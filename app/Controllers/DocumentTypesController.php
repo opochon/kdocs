@@ -20,14 +20,13 @@ class DocumentTypesController
     }
     
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentTypesController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         
@@ -55,14 +54,13 @@ class DocumentTypesController
     }
     
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentTypesController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = $args['id'] ?? null;
@@ -90,14 +88,13 @@ class DocumentTypesController
     }
     
     public function save(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentTypesController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $data = $request->getParsedBody();
         $id = $data['id'] ?? null;
         $db = Database::getInstance();
@@ -134,14 +131,13 @@ class DocumentTypesController
     }
     
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentTypesController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = $args['id'] ?? null;
         if ($id) {
             $db = Database::getInstance();

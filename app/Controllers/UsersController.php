@@ -25,14 +25,13 @@ class UsersController
      * Liste des utilisateurs
      */
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('UsersController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         
         if (!User::hasPermission($user, 'users.view')) {
@@ -69,14 +68,13 @@ class UsersController
      * Affiche le formulaire de création/édition
      */
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('UsersController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         
         if (!User::hasPermission($user, 'users.edit')) {
@@ -126,14 +124,13 @@ class UsersController
      * Crée ou met à jour un utilisateur
      */
     public function save(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('UsersController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         
         if (!User::hasPermission($user, 'users.edit')) {
@@ -237,14 +234,13 @@ class UsersController
      * Supprime un utilisateur
      */
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('UsersController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         
         if (!User::hasPermission($user, 'users.delete')) {

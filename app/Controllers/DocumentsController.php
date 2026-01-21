@@ -513,14 +513,13 @@ class DocumentsController
      * Page d'upload
      */
     public function showUpload(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::showUpload', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         
         // Récupérer les types de documents et correspondants pour les selects
@@ -550,14 +549,13 @@ class DocumentsController
      * Traitement de l'upload
      */
     public function upload(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::upload', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $basePath = Config::basePath();
         
@@ -687,14 +685,13 @@ class DocumentsController
      * Affiche les détails d'un document
      */
     public function show(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::show', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -765,14 +762,13 @@ class DocumentsController
      * Télécharge un document
      */
     public function download(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::download', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -799,14 +795,13 @@ class DocumentsController
      * Affiche un document dans le navigateur (pour PDF/images)
      */
     public function view(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::view', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -833,14 +828,13 @@ class DocumentsController
      * Affiche le formulaire d'édition (Priorité 1.2)
      */
     public function showEdit(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::showEdit', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -909,14 +903,13 @@ class DocumentsController
      * Traite l'édition d'un document (Priorité 1.2)
      */
     public function edit(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::edit', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         $basePath = Config::basePath();
@@ -1101,14 +1094,13 @@ class DocumentsController
      * Supprime un document (déplace dans le trash)
      */
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         $basePath = Config::basePath();
@@ -1155,14 +1147,13 @@ class DocumentsController
      * Restaure un document depuis le trash
      */
     public function restore(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::restore', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         $basePath = Config::basePath();
@@ -1209,14 +1200,13 @@ class DocumentsController
      * Actions groupées sur plusieurs documents (Priorité 1.3)
      */
     public function bulkAction(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::bulkAction', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody();
         $action = $data['action'] ?? '';
@@ -1305,14 +1295,13 @@ class DocumentsController
      * API: Scanner le filesystem pour mapping (savoir où est chaque document)
      */
     public function scanFilesystem(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::scanFilesystem', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         try {
             $mapper = new \KDocs\Services\DocumentMapper();
             $stats = $mapper->scanForMapping();
@@ -1364,14 +1353,13 @@ class DocumentsController
      * API: Upload multiple de documents
      */
     public function apiUpload(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::apiUpload', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $uploadedFiles = $request->getUploadedFiles();
         $results = [];
@@ -1444,14 +1432,13 @@ class DocumentsController
      * Partage un document (Priorité 3.3)
      */
     public function share(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::share', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -1500,14 +1487,13 @@ class DocumentsController
      * Affiche l'historique des modifications (Priorité 3.4)
      */
     public function history(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::history', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -1556,14 +1542,13 @@ class DocumentsController
      * Liste les recherches sauvegardées (Priorité 3.2)
      */
     public function listSavedSearches(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::listSavedSearches', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         try {
             $searches = SavedSearch::findByUser($user['id']);
@@ -1581,14 +1566,13 @@ class DocumentsController
      * Sauvegarde une recherche (Priorité 3.2)
      */
     public function saveSearch(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::saveSearch', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody();
         
@@ -1616,14 +1600,13 @@ class DocumentsController
      * Supprime une recherche sauvegardée (Priorité 3.2)
      */
     public function deleteSavedSearch(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::deleteSavedSearch', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         
@@ -1643,14 +1626,13 @@ class DocumentsController
      * Liste les notes d'un document (API Phase 2.4)
      */
     public function listNotes(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::listNotes', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = (int)$args['id'];
         $notes = \KDocs\Models\DocumentNote::allForDocument($id);
         
@@ -1666,14 +1648,13 @@ class DocumentsController
      * Ajoute une note à un document (API Phase 2.4)
      */
     public function addNote(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::addNote', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = (int)$args['id'];
         $data = $request->getParsedBody();
         $user = $request->getAttribute('user');
@@ -1704,14 +1685,13 @@ class DocumentsController
      * Supprime une note (API Phase 2.4)
      */
     public function deleteNote(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('DocumentsController::deleteNote', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $noteId = (int)$args['noteId'];
         
         try {

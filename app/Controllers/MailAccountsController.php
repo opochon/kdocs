@@ -27,14 +27,13 @@ class MailAccountsController
      * Liste des comptes email
      */
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $accounts = MailAccount::all();
         
@@ -58,14 +57,13 @@ class MailAccountsController
      * Formulaire de création/édition
      */
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = isset($args['id']) ? (int)$args['id'] : null;
         
@@ -101,14 +99,13 @@ class MailAccountsController
      * Sauvegarde d'un compte
      */
     public function save(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody();
         $basePath = \KDocs\Core\Config::basePath();
@@ -136,14 +133,13 @@ class MailAccountsController
      * Test de connexion
      */
     public function testConnection(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::testConnection', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = (int)$args['id'];
         $result = MailAccount::testConnection($id);
         
@@ -154,14 +150,13 @@ class MailAccountsController
      * Traitement manuel des emails
      */
     public function process(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::process', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = (int)$args['id'];
         $result = MailService::processAccount($id);
         
@@ -172,14 +167,13 @@ class MailAccountsController
      * Suppression d'un compte
      */
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('MailAccountsController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         $basePath = \KDocs\Core\Config::basePath();

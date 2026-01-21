@@ -20,14 +20,13 @@ class StoragePathsController
     }
     
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('StoragePathsController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $storagePaths = StoragePath::all();
         
@@ -47,14 +46,13 @@ class StoragePathsController
     }
     
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('StoragePathsController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $id = $args['id'] ?? null;
         $storagePath = $id ? StoragePath::find((int)$id) : null;
@@ -75,14 +73,13 @@ class StoragePathsController
     }
     
     public function save(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('StoragePathsController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $data = $request->getParsedBody();
         $id = $data['id'] ?? null;
         
@@ -119,14 +116,13 @@ class StoragePathsController
     }
     
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('StoragePathsController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = $args['id'] ?? null;
         if ($id) {
             StoragePath::delete((int)$id);

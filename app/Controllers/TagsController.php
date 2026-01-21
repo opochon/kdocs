@@ -27,14 +27,13 @@ class TagsController
      * Liste des tags
      */
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('TagsController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         
@@ -66,14 +65,13 @@ class TagsController
      * Affiche le formulaire de création/édition
      */
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('TagsController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
@@ -118,14 +116,13 @@ class TagsController
      * Crée ou met à jour un tag
      */
     public function save(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('TagsController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
@@ -187,14 +184,13 @@ class TagsController
      * Supprime un tag
      */
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('TagsController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = (int)$args['id'];

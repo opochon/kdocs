@@ -44,7 +44,7 @@ class ScheduledTasksController
             
             // #region agent log
             \KDocs\Core\DebugLogger::log('ScheduledTasksController::index', 'After ScheduledTask::all', [
-                'tasksCount' => count($tasks)
+        'tasksCount' => count($tasks)
             ], 'E');
             // #endregion
         } catch (\Exception $e) {
@@ -74,14 +74,13 @@ class ScheduledTasksController
      * Exécution manuelle d'une tâche
      */
     public function run(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('ScheduledTasksController::run', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $id = (int)$args['id'];
         $task = ScheduledTask::find($id);
         
@@ -106,14 +105,13 @@ class ScheduledTasksController
      * Traitement de la file d'attente
      */
     public function processQueue(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('ScheduledTasksController::processQueue', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $result = TaskService::processQueue();
         return $response->withJson($result);
     }

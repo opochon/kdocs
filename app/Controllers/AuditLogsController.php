@@ -23,14 +23,13 @@ class AuditLogsController
      * Liste des logs d'audit
      */
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('AuditLogsController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $queryParams = $request->getQueryParams();
         

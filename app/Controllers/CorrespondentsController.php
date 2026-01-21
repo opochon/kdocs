@@ -27,14 +27,13 @@ class CorrespondentsController
      * Liste des correspondants
      */
     public function index(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('CorrespondentsController::index', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         
@@ -65,14 +64,13 @@ class CorrespondentsController
      * Affiche le formulaire de création/édition
      */
     public function showForm(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('CorrespondentsController::showForm', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
@@ -110,14 +108,13 @@ class CorrespondentsController
      * Crée ou met à jour un correspondant
      */
     public function save(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('CorrespondentsController::save', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
@@ -179,14 +176,13 @@ class CorrespondentsController
      * Supprime un correspondant
      */
     public function delete(Request $request, Response $response, array $args): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('CorrespondentsController::delete', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = (int)$args['id'];
@@ -227,14 +223,13 @@ class CorrespondentsController
      * Recherche de correspondants (API pour autocomplétion)
      */
     public function search(Request $request, Response $response): Response
+    {
         // #region agent log
         \KDocs\Core\DebugLogger::log('CorrespondentsController::search', 'Controller entry', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-
-    {
         $query = $request->getQueryParams()['q'] ?? '';
         $db = Database::getInstance();
         
