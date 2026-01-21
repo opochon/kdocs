@@ -740,11 +740,17 @@ class DocumentsController
             // Table document_notes n'existe pas encore
         }
         
+        // Vérifier si la classification IA est disponible (Bonus)
+        $aiClassifier = new \KDocs\Services\AIClassifierService();
+        $aiAvailable = $aiClassifier->isAvailable();
+        
         $content = $this->renderTemplate(__DIR__ . '/../../templates/documents/show.php', [
             'document' => $document,
             'tags' => $tags,
             'notes' => $notes,
             'documentId' => $id,
+            'aiClassifier' => $aiClassifier,
+            'aiAvailable' => $aiAvailable,
         ]);
         
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
@@ -1646,6 +1652,7 @@ class DocumentsController
     
     /**
      * Ajoute une note à un document (API Phase 2.4)
+     * Gère à la fois les requêtes JSON (API) et les formulaires web
      */
     public function addNote(Request $request, Response $response, array $args): Response
     {
@@ -1658,31 +1665,68 @@ class DocumentsController
         $id = (int)$args['id'];
         $data = $request->getParsedBody();
         $user = $request->getAttribute('user');
+        $basePath = Config::basePath();
+        
+        // Détecter si c'est une requête JSON (API) ou formulaire web
+        $isJson = strpos($request->getHeaderLine('Content-Type'), 'application/json') !== false;
         
         try {
+            // Récupérer le contenu de la note (API: 'note', Web: 'content')
+            $noteContent = $data['note'] ?? $data['content'] ?? '';
+            
+            if (empty($noteContent)) {
+                if ($isJson) {
+                    $response->getBody()->write(json_encode([
+                        'success' => false,
+                        'error' => 'Le contenu de la note est requis'
+                    ]));
+                    return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+                } else {
+                    // Redirection web avec message d'erreur
+                    return $response
+                        ->withHeader('Location', $basePath . '/documents/' . $id . '?error=note_empty')
+                        ->withStatus(302);
+                }
+            }
+            
             $noteId = \KDocs\Models\DocumentNote::create([
                 'document_id' => $id,
                 'user_id' => $user['id'] ?? null,
-                'note' => $data['note'] ?? ''
+                'note' => $noteContent
             ]);
             
-            $response->getBody()->write(json_encode([
-                'success' => true,
-                'note_id' => $noteId
-            ]));
+            if ($isJson) {
+                // Réponse JSON pour API
+                $response->getBody()->write(json_encode([
+                    'success' => true,
+                    'note_id' => $noteId
+                ]));
+                return $response->withHeader('Content-Type', 'application/json');
+            } else {
+                // Redirection web vers la page du document
+                return $response
+                    ->withHeader('Location', $basePath . '/documents/' . $id . '?note_added=1')
+                    ->withStatus(302);
+            }
         } catch (\Exception $e) {
-            $response->getBody()->write(json_encode([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]));
-            return $response->withStatus(500);
+            if ($isJson) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]));
+                return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            } else {
+                // Redirection web avec erreur
+                return $response
+                    ->withHeader('Location', $basePath . '/documents/' . $id . '?error=note_failed')
+                    ->withStatus(302);
+            }
         }
-        
-        return $response->withHeader('Content-Type', 'application/json');
     }
     
     /**
      * Supprime une note (API Phase 2.4)
+     * Gère à la fois les requêtes JSON (API) et les requêtes DELETE web
      */
     public function deleteNote(Request $request, Response $response, array $args): Response
     {
@@ -1693,21 +1737,47 @@ class DocumentsController
         ], 'A');
         // #endregion
         $noteId = (int)$args['noteId'];
+        $documentId = (int)$args['id'];
+        $basePath = Config::basePath();
+        
+        // Détecter si c'est une requête JSON (API) ou web
+        $isJson = strpos($request->getHeaderLine('Content-Type'), 'application/json') !== false 
+                  || strpos($request->getHeaderLine('Accept'), 'application/json') !== false;
         
         try {
+            // Récupérer le document_id depuis la note avant suppression
+            $note = \KDocs\Models\DocumentNote::find($noteId);
+            if ($note) {
+                $documentId = $note['document_id'];
+            }
+            
             \KDocs\Models\DocumentNote::delete($noteId);
             
-            $response->getBody()->write(json_encode([
-                'success' => true
-            ]));
+            if ($isJson) {
+                // Réponse JSON pour API
+                $response->getBody()->write(json_encode([
+                    'success' => true
+                ]));
+                return $response->withHeader('Content-Type', 'application/json');
+            } else {
+                // Redirection web vers la page du document
+                return $response
+                    ->withHeader('Location', $basePath . '/documents/' . $documentId . '?note_deleted=1')
+                    ->withStatus(302);
+            }
         } catch (\Exception $e) {
-            $response->getBody()->write(json_encode([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]));
-            return $response->withStatus(500);
+            if ($isJson) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]));
+                return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            } else {
+                // Redirection web avec erreur
+                return $response
+                    ->withHeader('Location', $basePath . '/documents/' . $documentId . '?error=note_delete_failed')
+                    ->withStatus(302);
+            }
         }
-        
-        return $response->withHeader('Content-Type', 'application/json');
     }
 }

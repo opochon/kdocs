@@ -266,6 +266,74 @@ class DocumentsApiController extends ApiController
     }
 
     /**
+     * Classifier un document avec l'IA (POST /api/documents/{id}/classify-ai)
+     */
+    public function classifyWithAI(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $document = Document::findById($id);
+        
+        if (!$document || $document['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+        
+        $classifier = new \KDocs\Services\AIClassifierService();
+        
+        if (!$classifier->isAvailable()) {
+            return $this->errorResponse($response, 'Claude API non configurée');
+        }
+        
+        $suggestions = $classifier->classify($id);
+        
+        if (!$suggestions) {
+            return $this->errorResponse($response, 'Impossible de classifier le document. Vérifiez que le document contient du texte.');
+        }
+        
+        // Stocker temporairement les suggestions en session
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['ai_suggestions_' . $id] = $suggestions;
+        
+        return $this->successResponse($response, [
+            'suggestions' => $suggestions
+        ], 'Classification réussie');
+    }
+
+    /**
+     * Appliquer les suggestions de l'IA (POST /api/documents/{id}/apply-ai-suggestions)
+     */
+    public function applyAISuggestions(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $document = Document::findById($id);
+        
+        if (!$document || $document['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+        
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        $suggestions = $_SESSION['ai_suggestions_' . $id] ?? null;
+        
+        if (!$suggestions) {
+            return $this->errorResponse($response, 'Pas de suggestions disponibles. Veuillez d\'abord classifier le document.');
+        }
+        
+        $classifier = new \KDocs\Services\AIClassifierService();
+        $success = $classifier->applySuggestions($id, $suggestions);
+        
+        if ($success) {
+            unset($_SESSION['ai_suggestions_' . $id]);
+            return $this->successResponse($response, null, 'Suggestions appliquées avec succès');
+        } else {
+            return $this->errorResponse($response, 'Erreur lors de l\'application des suggestions');
+        }
+    }
+
+    /**
      * Formate un document pour l'API
      */
     private function formatDocument(array $document): array

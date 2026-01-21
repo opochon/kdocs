@@ -145,6 +145,135 @@ $base = Config::basePath();
         </div>
         <?php endif; ?>
         
+        <!-- Section Notes -->
+        <div class="border-t pt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">📝 Notes</h3>
+                <button onclick="openAddNoteModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                    + Ajouter une note
+                </button>
+            </div>
+            
+            <?php if (empty($notes)): ?>
+            <p class="text-gray-500 text-sm">Aucune note pour ce document.</p>
+            <?php else: ?>
+            <div class="space-y-4">
+                <?php foreach ($notes as $note): ?>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-700 whitespace-pre-wrap"><?= nl2br(htmlspecialchars($note['note'] ?? $note['content'] ?? '')) ?></p>
+                        </div>
+                        <button onclick="deleteNote(<?= $note['id'] ?>)" class="ml-2 text-red-600 hover:text-red-800 text-sm">
+                            ✕
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
+                        <span>
+                            <?php if (!empty($note['user_name'])): ?>
+                                Par <?= htmlspecialchars($note['user_name']) ?>
+                            <?php else: ?>
+                                Par utilisateur inconnu
+                            <?php endif; ?>
+                        </span>
+                        <span><?= date('d/m/Y à H:i', strtotime($note['created_at'])) ?></span>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Modal Ajout Note -->
+        <div id="add-note-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Ajouter une note</h3>
+                <form onsubmit="saveNote(event)">
+                    <textarea id="note-text" rows="4" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required placeholder="Saisissez votre note..."></textarea>
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button type="button" onclick="closeAddNoteModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Annuler
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Ajouter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <script>
+        function openAddNoteModal() {
+            document.getElementById('add-note-modal').classList.remove('hidden');
+        }
+        
+        function closeAddNoteModal() {
+            document.getElementById('add-note-modal').classList.add('hidden');
+            document.getElementById('note-text').value = '';
+        }
+        
+        function saveNote(event) {
+            event.preventDefault();
+            const noteText = document.getElementById('note-text').value;
+            const documentId = <?= $document['id'] ?? 0 ?>;
+            
+            if (!noteText.trim()) {
+                alert('Veuillez saisir une note');
+                return;
+            }
+            
+            fetch('<?= url('/api/documents/' . ($document['id'] ?? 0) . '/notes') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    note: noteText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeAddNoteModal();
+                    window.location.reload();
+                } else {
+                    alert('Erreur : ' + (data.error || 'Impossible d\'ajouter la note'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de l\'ajout de la note');
+            });
+        }
+        
+        function deleteNote(noteId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
+                return;
+            }
+            
+            const documentId = <?= $document['id'] ?? 0 ?>;
+            
+            fetch('<?= url('/api/documents/' . ($document['id'] ?? 0) . '/notes/') ?>' + noteId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erreur : ' + (data.error || 'Impossible de supprimer la note'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression de la note');
+            });
+        }
+        </script>
+        
         <?php if (!empty($document['ocr_text'])): ?>
         <div class="border-t pt-6">
             <label class="block text-sm font-medium text-gray-500 mb-2">Texte extrait (OCR)</label>
@@ -157,6 +286,15 @@ $base = Config::basePath();
         <div class="border-t pt-6">
             <div class="flex items-center justify-between">
                 <div class="flex gap-2">
+                    <?php if (isset($aiAvailable) && $aiAvailable): ?>
+                    <button 
+                        onclick="classifyWithAI(<?= $document['id'] ?>)" 
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        id="classify-ai-btn"
+                    >
+                        ✨ Classifier avec IA
+                    </button>
+                    <?php endif; ?>
                     <a 
                         href="<?= url('/documents/' . $document['id'] . '/edit') ?>" 
                         class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
@@ -363,6 +501,125 @@ function updateImageZoom() {
     const zoomSelect = document.getElementById('zoom-select');
     if (zoomLevel) zoomLevel.textContent = currentZoom + '%';
     if (zoomSelect) zoomSelect.value = currentZoom;
+        }
+        </script>
+<?php endif; ?>
+
+<?php if (isset($aiAvailable) && $aiAvailable): ?>
+<!-- Modal Suggestions IA -->
+<div id="ai-suggestions-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+        <h3 class="text-lg font-bold mb-4">✨ Suggestions IA</h3>
+        <div id="ai-suggestions-content" class="space-y-2">
+            <p class="text-gray-500">Chargement...</p>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+            <button onclick="closeAISuggestionsModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                Annuler
+            </button>
+            <button onclick="applyAISuggestions(<?= $document['id'] ?>)" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                Appliquer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function classifyWithAI(docId) {
+    const btn = document.getElementById('classify-ai-btn');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="animate-spin">⏳</span> Classification...';
+    
+    try {
+        const response = await fetch('<?= url('/api/documents/') ?>' + docId + '/classify-ai', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.suggestions) {
+            showAISuggestionsModal(data.data.suggestions, docId);
+        } else {
+            alert('Erreur: ' + (data.message || 'Impossible de classifier le document'));
+        }
+    } catch (e) {
+        console.error('Erreur:', e);
+        alert('Erreur de classification');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
+
+function showAISuggestionsModal(suggestions, docId) {
+    const modal = document.getElementById('ai-suggestions-modal');
+    const content = document.getElementById('ai-suggestions-content');
+    
+    if (!modal || !content) return;
+    
+    const confidence = Math.round((suggestions.confidence || 0) * 100);
+    const confidenceColor = confidence >= 70 ? 'text-green-600' : confidence >= 50 ? 'text-yellow-600' : 'text-red-600';
+    
+    content.innerHTML = `
+        <div class="space-y-2">
+            <p><strong>Titre:</strong> <span class="text-gray-700">${suggestions.title_suggestion || '-'}</span></p>
+            <p><strong>Correspondant:</strong> <span class="text-gray-700">${suggestions.correspondent || '-'}</span></p>
+            <p><strong>Type:</strong> <span class="text-gray-700">${suggestions.document_type || '-'}</span></p>
+            <p><strong>Tags:</strong> <span class="text-gray-700">${suggestions.tags && suggestions.tags.length > 0 ? suggestions.tags.join(', ') : '-'}</span></p>
+            <p><strong>Date:</strong> <span class="text-gray-700">${suggestions.document_date || '-'}</span></p>
+            <p><strong>Montant:</strong> <span class="text-gray-700">${suggestions.amount ? suggestions.amount + ' CHF' : '-'}</span></p>
+            <p><strong>Confiance:</strong> <span class="${confidenceColor} font-semibold">${confidence}%</span></p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    modal.setAttribute('data-doc-id', docId);
+}
+
+function closeAISuggestionsModal() {
+    const modal = document.getElementById('ai-suggestions-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+async function applyAISuggestions(docId) {
+    const docIdFromModal = document.getElementById('ai-suggestions-modal')?.getAttribute('data-doc-id') || docId;
+    
+    try {
+        const response = await fetch('<?= url('/api/documents/') ?>' + docIdFromModal + '/apply-ai-suggestions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeAISuggestionsModal();
+            // Recharger la page pour voir les changements
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            alert('Erreur: ' + (data.message || 'Impossible d\'appliquer les suggestions'));
+        }
+    } catch (e) {
+        console.error('Erreur:', e);
+        alert('Erreur lors de l\'application des suggestions');
+    }
+}
+
+// Fermer la modal avec Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAISuggestionsModal();
+    }
+});
 </script>
 <?php endif; ?>

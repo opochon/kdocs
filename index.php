@@ -114,6 +114,9 @@ $app->group('', function ($group) {
     $group->get('/documents/{id}/view', [DocumentsController::class, 'view']);
     $group->get('/documents/{id}/share', [DocumentsController::class, 'share']);  // Priorité 3.3
     $group->get('/documents/{id}/history', [DocumentsController::class, 'history']);  // Priorité 3.4
+    // Routes Notes (web) - AVANT routes API pour éviter conflits
+    $group->post('/documents/{id}/notes', [DocumentsController::class, 'addNote']);
+    $group->delete('/documents/{id}/notes/{noteId}', [DocumentsController::class, 'deleteNote']);
     
     // API REST Complète (Phase 5)
     // IMPORTANT: Routes statiques AVANT routes variables pour éviter les conflits FastRoute
@@ -150,6 +153,10 @@ $app->group('', function ($group) {
     $group->get('/api/documents/{id}/notes', [DocumentsController::class, 'listNotes']);
     $group->post('/api/documents/{id}/notes', [DocumentsController::class, 'addNote']);
     $group->delete('/api/documents/{id}/notes/{noteId}', [DocumentsController::class, 'deleteNote']);
+    
+    // API Classification IA (Bonus)
+    $group->post('/api/documents/{id}/classify-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'classifyWithAI']);
+    $group->post('/api/documents/{id}/apply-ai-suggestions', [\KDocs\Controllers\Api\DocumentsApiController::class, 'applyAISuggestions']);
     
     // API Recherches sauvegardées (Priorité 3.2)
     $group->get('/api/saved-searches', [DocumentsController::class, 'listSavedSearches']);

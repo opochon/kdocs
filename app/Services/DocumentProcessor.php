@@ -1,6 +1,13 @@
 <?php
+/**
+ * K-Docs - Service de traitement de documents
+ * Enchaîne OCR → Matching → Thumbnail → Workflows
+ */
+
 namespace KDocs\Services;
+
 use KDocs\Core\Database;
+use KDocs\Core\Config;
 use KDocs\Models\Document;
 use KDocs\Services\WebhookService;
 
@@ -8,42 +15,170 @@ class DocumentProcessor
 {
     private OCRService $ocrService;
     private MetadataExtractor $metadataExtractor;
+    private ThumbnailGenerator $thumbnail;
     private $db;
     
     public function __construct()
     {
         $this->ocrService = new OCRService();
         $this->metadataExtractor = new MetadataExtractor();
+        $this->thumbnail = new ThumbnailGenerator();
         $this->db = Database::getInstance();
     }
     
-    public function processDocument(int $documentId): bool
+    /**
+     * Traitement complet d'un document (OCR → Matching → Thumbnail → Workflows)
+     * 
+     * @param int $documentId ID du document à traiter
+     * @return array Résultats du traitement
+     */
+    public function process(int $documentId): array
     {
         $document = Document::findById($documentId);
-        if (!$document || !file_exists($document['file_path'])) return false;
+        if (!$document) {
+            throw new \Exception("Document introuvable: {$documentId}");
+        }
         
-        try {
-            $text = $this->ocrService->extractText($document['file_path']);
-            $metadata = $this->metadataExtractor->extractMetadata($text ?? '', $document['filename']);
-            $this->updateDocument($documentId, $text, $metadata);
-            
-            // Déclencher webhook document.processed
+        $results = [
+            'ocr' => false,
+            'matching' => [],
+            'thumbnail' => false,
+            'workflows' => []
+        ];
+        
+        // Récupérer le chemin du fichier
+        // Utiliser file_path si disponible, sinon construire depuis storage_path ou filename
+        if (!empty($document['file_path']) && file_exists($document['file_path'])) {
+            $filePath = $document['file_path'];
+        } else {
+            $config = Config::load();
+            $basePath = Config::get('storage.base_path', __DIR__ . '/../../storage/documents');
+            $resolved = realpath($basePath);
+            $documentsDir = rtrim($resolved ?: $basePath, '/\\');
+            // Essayer storage_path, puis filename, puis original_filename
+            $relativePath = $document['storage_path'] ?? $document['filename'] ?? $document['original_filename'] ?? '';
+            $filePath = $documentsDir . DIRECTORY_SEPARATOR . $relativePath;
+        }
+        
+        if (!file_exists($filePath)) {
+            throw new \Exception("Fichier introuvable: {$filePath}");
+        }
+        
+        // 1. OCR si pas de contenu
+        if (empty($document['content'])) {
             try {
-                $webhookService = new WebhookService();
-                $processedDocument = Document::findById($documentId);
-                if ($processedDocument) {
-                    $webhookService->trigger('document.processed', [
-                        'id' => $documentId,
-                        'title' => $processedDocument['title'] ?? $processedDocument['original_filename'],
-                        'is_indexed' => true,
-                        'indexed_at' => $processedDocument['indexed_at'] ?? date('c'),
-                    ]);
+                $content = $this->ocrService->extractText($filePath);
+                if ($content) {
+                    $stmt = $this->db->prepare("UPDATE documents SET content = ? WHERE id = ?");
+                    $stmt->execute([$content, $documentId]);
+                    $document['content'] = $content;
+                    $results['ocr'] = true;
                 }
             } catch (\Exception $e) {
-                // Ne pas bloquer le traitement si le webhook échoue
-                error_log("Erreur webhook document.processed: " . $e->getMessage());
+                error_log("Erreur OCR document {$documentId}: " . $e->getMessage());
             }
-            
+        }
+        
+        // 2. Matching automatique
+        $documentText = $document['content'] ?? '';
+        if (!empty($documentText)) {
+            try {
+                $matches = MatchingService::applyMatching($documentText);
+                
+                // Appliquer les tags
+                foreach ($matches['tags'] as $tagId) {
+                    $this->db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)")
+                       ->execute([$documentId, $tagId]);
+                }
+                
+                // Appliquer le premier correspondent trouvé (si pas déjà assigné)
+                if (!empty($matches['correspondents']) && empty($document['correspondent_id'])) {
+                    $this->db->prepare("UPDATE documents SET correspondent_id = ? WHERE id = ?")
+                       ->execute([$matches['correspondents'][0], $documentId]);
+                }
+                
+                // Appliquer le premier type trouvé (si pas déjà assigné)
+                if (!empty($matches['document_types']) && empty($document['document_type_id'])) {
+                    $this->db->prepare("UPDATE documents SET document_type_id = ? WHERE id = ?")
+                       ->execute([$matches['document_types'][0], $documentId]);
+                }
+                
+                // Appliquer le premier storage path trouvé (si pas déjà assigné)
+                if (!empty($matches['storage_paths']) && empty($document['storage_path_id'])) {
+                    $this->db->prepare("UPDATE documents SET storage_path_id = ? WHERE id = ?")
+                       ->execute([$matches['storage_paths'][0], $documentId]);
+                }
+                
+                $results['matching'] = $matches;
+            } catch (\Exception $e) {
+                error_log("Erreur matching document {$documentId}: " . $e->getMessage());
+            }
+        }
+        
+        // 3. Générer thumbnail
+        if (empty($document['thumbnail_path'])) {
+            try {
+                $thumbFilename = $this->thumbnail->generate($filePath, $documentId);
+                if ($thumbFilename) {
+                    $this->db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")
+                       ->execute([$thumbFilename, $documentId]);
+                    $results['thumbnail'] = true;
+                }
+            } catch (\Exception $e) {
+                error_log("Erreur thumbnail document {$documentId}: " . $e->getMessage());
+            }
+        }
+        
+        // 4. Exécuter les workflows
+        try {
+            WorkflowService::executeOnDocumentAdded($documentId);
+            $results['workflows'] = ['executed' => true];
+        } catch (\Exception $e) {
+            error_log("Erreur workflows document {$documentId}: " . $e->getMessage());
+            $results['workflows'] = ['executed' => false, 'error' => $e->getMessage()];
+        }
+        
+        // 5. Extraire les métadonnées et mettre à jour
+        try {
+            $metadata = $this->metadataExtractor->extractMetadata($documentText, $document['original_filename'] ?? '');
+            $this->updateDocument($documentId, $documentText, $metadata);
+        } catch (\Exception $e) {
+            error_log("Erreur extraction métadonnées document {$documentId}: " . $e->getMessage());
+        }
+        
+        // 6. Marquer comme indexé
+        $this->db->prepare("UPDATE documents SET is_indexed = TRUE, indexed_at = NOW() WHERE id = ?")
+           ->execute([$documentId]);
+        
+        // 7. Déclencher webhook document.processed
+        try {
+            $webhookService = new WebhookService();
+            $processedDocument = Document::findById($documentId);
+            if ($processedDocument) {
+                $webhookService->trigger('document.processed', [
+                    'id' => $documentId,
+                    'title' => $processedDocument['title'] ?? $processedDocument['original_filename'],
+                    'is_indexed' => true,
+                    'indexed_at' => $processedDocument['indexed_at'] ?? date('c'),
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Ne pas bloquer le traitement si le webhook échoue
+            error_log("Erreur webhook document.processed: " . $e->getMessage());
+        }
+        
+        return $results;
+    }
+    
+    /**
+     * Traitement d'un document (méthode legacy, utilise process())
+     * 
+     * @deprecated Utiliser process() à la place
+     */
+    public function processDocument(int $documentId): bool
+    {
+        try {
+            $this->process($documentId);
             return true;
         } catch (\Exception $e) {
             error_log("Erreur traitement document {$documentId}: " . $e->getMessage());
@@ -57,9 +192,38 @@ class DocumentProcessor
         $stmt->execute([$limit]);
         $stats = ['processed' => 0, 'errors' => 0];
         foreach ($stmt->fetchAll() as $doc) {
-            $this->processDocument($doc['id']) ? $stats['processed']++ : $stats['errors']++;
+            try {
+                $this->process($doc['id']);
+                $stats['processed']++;
+            } catch (\Exception $e) {
+                $stats['errors']++;
+                error_log("Erreur traitement document {$doc['id']}: " . $e->getMessage());
+            }
         }
         return $stats;
+    }
+    
+    /**
+     * Retraiter tous les documents sans contenu
+     * 
+     * @return array Statistiques du retraitement
+     */
+    public function reprocessAll(): array
+    {
+        $docs = $this->db->query("SELECT id FROM documents WHERE content IS NULL OR content = ''")->fetchAll();
+        
+        $results = ['total' => count($docs), 'success' => 0, 'errors' => []];
+        
+        foreach ($docs as $doc) {
+            try {
+                $this->process($doc['id']);
+                $results['success']++;
+            } catch (\Exception $e) {
+                $results['errors'][] = "Doc #{$doc['id']}: " . $e->getMessage();
+            }
+        }
+        
+        return $results;
     }
     
     private function updateDocument(int $documentId, ?string $text, array $metadata): void
