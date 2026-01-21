@@ -1,0 +1,86 @@
+# Dependencies
+/vendor/
+/node_modules/
+composer.phar
+
+# Configuration locale
+/config/config.local.php
+/config/config.php
+*.env
+.env.local
+
+# Logs
+*.log
+/logs/
+.cursor/debug.log
+
+# Cache
+/cache/
+/storage/cache/
+/storage/temp/
+
+# Uploads temporaires
+/storage/uploads/temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Tests
+/tests/_output/
+phpunit.xml
+
+# Documentation générée
+/docs/_build/
+
+# Fichiers temporaires
+*.tmp
+*.bak
+*.backup
+cookies.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Thumbnails (générés automatiquement)
+/storage/thumbnails/
+
+# Fichiers de test temporaires
+test_*.php
+check_*.php
+find_*.php
+generate_*.php
+create_*.php
+install_*.ps1
+install_*.md
+STATUS_*.md
+STATUT_*.md
+RAPPORT_*.md
+RESUME_*.md
+COMPARAISON_*.md
+ANALYSE_*.md
+AMELIORATIONS_*.md
+PLAN_*.md
+IMPLEMENTATION_*.md
+MANQUANT_*.md
+SETUP_*.md
+INSTALL_*.md
+INSTALLATION*.md
+GUIDE_*.md
+WEBHOOKS_*.md
+DEBUG_*.md

@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /kdocs/
+
+# Servir les fichiers statiques directement depuis public/
+RewriteRule ^public/(.*)$ public/$1 [L]
+
+# Rediriger toutes les requêtes vers index.php sauf les fichiers existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
