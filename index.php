@@ -53,6 +53,7 @@ use KDocs\Controllers\SettingsController;
 use KDocs\Controllers\CustomFieldsController;
 use KDocs\Controllers\StoragePathsController;
 use KDocs\Controllers\WorkflowsController;
+use KDocs\Controllers\WorkflowDesignerController;
 use KDocs\Controllers\DocumentTypesController;
 use KDocs\Controllers\WebhooksController;
 use KDocs\Controllers\AuditLogsController;
@@ -175,6 +176,14 @@ $app->group('', function ($group) {
     $group->get('/api/saved-searches', [DocumentsController::class, 'listSavedSearches']);
     $group->post('/api/saved-searches', [DocumentsController::class, 'saveSearch']);
     $group->delete('/api/saved-searches/{id}', [DocumentsController::class, 'deleteSavedSearch']);
+    
+    // API Workflow Designer
+    $group->get('/api/workflows', [WorkflowDesignerController::class, 'list']);
+    $group->get('/api/workflows/{id}', [WorkflowDesignerController::class, 'get']);
+    $group->post('/api/workflows', [WorkflowDesignerController::class, 'create']);
+    $group->put('/api/workflows/{id}', [WorkflowDesignerController::class, 'update']);
+    $group->delete('/api/workflows/{id}', [WorkflowDesignerController::class, 'delete']);
+    $group->post('/api/workflows/{id}/enable', [WorkflowDesignerController::class, 'toggleEnabled']);
     
     // API Scanner
     $group->post('/api/scanner/scan', [DocumentsController::class, 'scanFilesystem']);
