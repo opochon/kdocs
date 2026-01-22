@@ -169,11 +169,7 @@ $base = Config::basePath();
     </div>
 </div>
 
-<!-- React Flow via CDN -->
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@xyflow/react@1/dist/xyflow.min.js"></script>
-
+<script src="<?= url('/public/js/workflow-designer.js') ?>"></script>
 <script>
 (function() {
     'use strict';
@@ -181,157 +177,46 @@ $base = Config::basePath();
     const workflowId = <?= json_encode($workflowId ?? null) ?>;
     const basePath = <?= json_encode($base) ?>;
     
-    // Initialiser React Flow
-    const { React, ReactDOM, ReactFlow, useReactFlow } = window.ReactFlow || {};
-    
-    if (!React || !ReactDOM || !ReactFlow) {
-        console.error('React Flow non chargé');
-        document.getElementById('react-flow-container').innerHTML = 
-            '<div class="flex items-center justify-center h-full text-gray-500">Erreur: React Flow non chargé</div>';
-        return;
-    }
-    
-    // État initial
-    let nodes = [];
-    let edges = [];
-    let selectedNode = null;
-    
-    // Charger le workflow existant
-    async function loadWorkflow() {
-        if (!workflowId) return;
-        
-        try {
-            const response = await fetch(`${basePath}/api/workflows/${workflowId}`);
-            const data = await response.json();
-            
-            if (data.success && data.data) {
-                // Convertir les nodes
-                nodes = (data.data.nodes || []).map(node => ({
-                    id: String(node.id),
-                    type: 'default',
-                    position: { x: node.position_x || 0, y: node.position_y || 0 },
-                    data: { 
-                        label: node.name,
-                        nodeType: node.node_type,
-                        config: node.config || {},
-                    },
-                }));
-                
-                // Convertir les connections
-                edges = (data.data.connections || []).map(conn => ({
-                    id: String(conn.id),
-                    source: String(conn.from_node_id),
-                    target: String(conn.to_node_id),
-                    label: conn.label || '',
-                }));
-                
-                // Réinitialiser React Flow
-                initReactFlow();
-            }
-        } catch (error) {
-            console.error('Erreur chargement workflow:', error);
-        }
-    }
-    
-    // Initialiser React Flow
-    function initReactFlow() {
-        // Pour l'instant, affichage simple sans React Flow complet
-        // (nécessiterait un build ou une intégration plus complexe)
-        const container = document.getElementById('react-flow-container');
-        container.innerHTML = `
-            <div class="p-8">
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-700 mb-4">Canvas Workflow</h3>
-                    <p class="text-sm text-gray-500 mb-4">
-                        ${nodes.length} nodes, ${edges.length} connections
-                    </p>
-                    <div id="workflow-nodes-list" class="space-y-2">
-                        ${nodes.map(node => `
-                            <div class="p-3 bg-gray-50 rounded border border-gray-200">
-                                <div class="font-medium text-sm">${node.data.label}</div>
-                                <div class="text-xs text-gray-500">${node.data.nodeType}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Gestion drag & drop depuis la toolbox
-    document.querySelectorAll('.node-toolbox-item').forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('node-type', item.dataset.nodeType);
-        });
-    });
-    
-    const container = document.getElementById('react-flow-container');
-    container.addEventListener('dragover', (e) => {
-        e.preventDefault();
-    });
-    
-    container.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const nodeType = e.dataTransfer.getData('node-type');
-        if (nodeType) {
-            // Créer un nouveau node à la position du drop
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // TODO: Ajouter le node au canvas
-            console.log('Drop node:', nodeType, 'at', x, y);
-        }
+    // Initialiser le designer
+    window.workflowDesigner = new WorkflowDesigner('react-flow-container', {
+        basePath: basePath,
+        workflowId: workflowId,
     });
     
     // Sauvegarder le workflow
-    document.getElementById('save-workflow').addEventListener('click', async () => {
-        const workflowData = {
-            name: 'Nouveau Workflow',
-            nodes: nodes.map(node => ({
-                node_type: node.data.nodeType,
-                name: node.data.label,
-                config: node.data.config,
-                position_x: node.position.x,
-                position_y: node.position.y,
-                is_entry_point: node.id === nodes[0]?.id,
-            })),
-            connections: edges.map(edge => ({
-                from_node_id: parseInt(edge.source),
-                to_node_id: parseInt(edge.target),
-                output_name: 'default',
-            })),
-        };
-        
-        try {
-            const url = workflowId 
-                ? `${basePath}/api/workflows/${workflowId}`
-                : `${basePath}/api/workflows`;
-            const method = workflowId ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(workflowData),
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-                alert('Workflow enregistré avec succès!');
-                if (!workflowId && data.id) {
-                    window.location.href = `${basePath}/admin/workflows/${data.id}/designer`;
-                }
-            } else {
-                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
-            }
-        } catch (error) {
-            console.error('Erreur sauvegarde:', error);
-            alert('Erreur lors de la sauvegarde');
-        }
+    document.getElementById('save-workflow').addEventListener('click', () => {
+        window.workflowDesigner.saveWorkflow();
     });
     
-    // Charger au démarrage
-    loadWorkflow();
-    initReactFlow();
+    // Tester le workflow
+    document.getElementById('test-workflow').addEventListener('click', () => {
+        alert('Fonctionnalité de test à implémenter');
+    });
 })();
 </script>
+
+<style>
+#workflow-canvas {
+    background: #f9fafb;
+    background-image: 
+        linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.workflow-node {
+    cursor: move;
+}
+
+.workflow-node:hover {
+    filter: brightness(1.1);
+}
+
+.connection-handle {
+    cursor: crosshair;
+}
+
+.connection-handle:hover {
+    r: 8;
+}
+</style>
