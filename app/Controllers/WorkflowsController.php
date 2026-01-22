@@ -5,7 +5,8 @@
 
 namespace KDocs\Controllers;
 
-use KDocs\Models\Workflow;
+use KDocs\Models\WorkflowDefinition;
+use KDocs\Workflow\WorkflowManager;
 use KDocs\Core\Database;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -29,12 +30,27 @@ class WorkflowsController
         ], 'A');
         // #endregion
         $user = $request->getAttribute('user');
-        $workflows = Workflow::all();
         
-        // Charger les triggers et actions pour chaque workflow
+        // Utiliser le nouveau système WorkflowDefinition
+        try {
+            $workflows = WorkflowDefinition::findAll();
+        } catch (\Exception $e) {
+            // Si la table n'existe pas encore, retourner un tableau vide
+            error_log("Erreur chargement workflows: " . $e->getMessage());
+            $workflows = [];
+        }
+        
+        // Charger les nodes et connections pour chaque workflow
+        $workflowManager = new WorkflowManager();
         foreach ($workflows as &$workflow) {
-            $workflow['triggers'] = Workflow::getTriggers($workflow['id']);
-            $workflow['actions'] = Workflow::getActions($workflow['id']);
+            try {
+                $fullWorkflow = $workflowManager->getWorkflow($workflow['id']);
+                $workflow['nodes'] = $fullWorkflow['nodes'] ?? [];
+                $workflow['connections'] = $fullWorkflow['connections'] ?? [];
+            } catch (\Exception $e) {
+                $workflow['nodes'] = [];
+                $workflow['connections'] = [];
+            }
         }
         
         $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/workflows.php', [
@@ -62,62 +78,14 @@ class WorkflowsController
         // #endregion
         $user = $request->getAttribute('user');
         $id = $args['id'] ?? null;
-        $workflow = $id ? Workflow::find((int)$id) : null;
         
-        if ($workflow) {
-            $workflow['triggers'] = Workflow::getTriggers($workflow['id']);
-            $workflow['actions'] = Workflow::getActions($workflow['id']);
+        // Rediriger vers le designer pour les workflows existants
+        if ($id) {
+            return $response->withHeader('Location', '/admin/workflows/' . $id . '/designer')->withStatus(302);
         }
         
-        // Charger toutes les données nécessaires pour les actions
-        $db = Database::getInstance();
-        $tags = $db->query("SELECT id, name FROM tags ORDER BY name")->fetchAll();
-        $correspondents = $db->query("SELECT id, name FROM correspondents ORDER BY name")->fetchAll();
-        $documentTypes = $db->query("SELECT id, label FROM document_types ORDER BY label")->fetchAll();
-        
-        // Vérifier si la table storage_paths existe
-        try {
-            $storagePaths = $db->query("SELECT id, name FROM storage_paths ORDER BY name")->fetchAll();
-        } catch (\Exception $e) {
-            $storagePaths = [];
-        }
-        
-        // Vérifier si la table custom_fields existe
-        try {
-            $customFields = $db->query("SELECT id, name FROM custom_fields ORDER BY name")->fetchAll();
-        } catch (\Exception $e) {
-            $customFields = [];
-        }
-        
-        $users = $db->query("SELECT id, username, first_name, last_name FROM users ORDER BY username")->fetchAll();
-        
-        // Vérifier si la table groups existe
-        try {
-            $groups = $db->query("SELECT id, name FROM groups ORDER BY name")->fetchAll();
-        } catch (\Exception $e) {
-            $groups = [];
-        }
-        
-        $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/workflow_form.php', [
-            'workflow' => $workflow,
-            'tags' => $tags,
-            'correspondents' => $correspondents,
-            'documentTypes' => $documentTypes,
-            'storagePaths' => $storagePaths,
-            'customFields' => $customFields,
-            'users' => $users,
-            'groups' => $groups,
-        ]);
-        
-        $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
-            'title' => ($workflow ? 'Modifier' : 'Créer') . ' workflow - K-Docs',
-            'content' => $content,
-            'user' => $user,
-            'pageTitle' => ($workflow ? 'Modifier' : 'Créer') . ' workflow'
-        ]);
-        
-        $response->getBody()->write($html);
-        return $response;
+        // Pour un nouveau workflow, rediriger vers le designer
+        return $response->withHeader('Location', '/admin/workflows/new/designer')->withStatus(302);
     }
     
     public function save(Request $request, Response $response): Response
@@ -128,82 +96,30 @@ class WorkflowsController
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-        $data = $request->getParsedBody();
-        $id = $data['id'] ?? null;
         
-        try {
-            if ($id) {
-                Workflow::update((int)$id, $data);
-                $workflowId = (int)$id;
-            } else {
-                $workflowId = Workflow::create($data);
-            }
-            
-            // Gérer les triggers
-            if (isset($data['triggers']) && is_array($data['triggers'])) {
-                // Supprimer les anciens triggers
-                $db = \KDocs\Core\Database::getInstance();
-                $db->prepare("DELETE FROM workflow_triggers WHERE workflow_id = ?")->execute([$workflowId]);
-                
-                // Ajouter les nouveaux
-                foreach ($data['triggers'] as $trigger) {
-                    if (!empty($trigger['trigger_type'])) {
-                        Workflow::addTrigger($workflowId, $trigger);
-                    }
-                }
-            }
-            
-            // Gérer les actions
-            if (isset($data['actions']) && is_array($data['actions'])) {
-                // Supprimer les anciennes actions
-                $db = \KDocs\Core\Database::getInstance();
-                $db->prepare("DELETE FROM workflow_actions WHERE workflow_id = ?")->execute([$workflowId]);
-                
-                // Ajouter les nouvelles
-                foreach ($data['actions'] as $index => $action) {
-                    if (!empty($action['action_type'])) {
-                        $action['order_index'] = $index;
-                        Workflow::addAction($workflowId, $action);
-                    }
-                }
-            }
-            
-            $basePath = \KDocs\Core\Config::basePath();
-            return $response->withHeader('Location', $basePath . '/admin/workflows')->withStatus(302);
-        } catch (\Exception $e) {
-            $user = $request->getAttribute('user');
-            $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/workflow_form.php', [
-                'workflow' => $id ? Workflow::find((int)$id) : null,
-                'error' => 'Erreur : ' . $e->getMessage(),
-            ]);
-            
-            $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
-                'title' => 'Erreur - K-Docs',
-                'content' => $content,
-                'user' => $user,
-            ]);
-            
-            $response->getBody()->write($html);
-            return $response->withStatus(500);
-        }
+        // Rediriger vers le designer pour la sauvegarde
+        // La sauvegarde se fait maintenant via l'API du designer
+        $basePath = \KDocs\Core\Config::basePath();
+        return $response->withHeader('Location', $basePath . '/admin/workflows/new/designer')->withStatus(302);
     }
     
     public function delete(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowsController::delete', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
-        $id = $args['id'] ?? null;
-        if ($id) {
-            Workflow::delete((int)$id);
+        // Utiliser le nouveau système WorkflowManager pour supprimer
+        $id = (int)($args['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $workflowManager = new WorkflowManager();
+                $workflowManager->deleteWorkflow($id);
+            } catch (\Exception $e) {
+                error_log("Erreur suppression workflow: " . $e->getMessage());
+            }
         }
         
         $basePath = \KDocs\Core\Config::basePath();
         return $response->withHeader('Location', $basePath . '/admin/workflows')->withStatus(302);
     }
+    
     
     public function actionFormTemplate(Request $request, Response $response): Response
     {
