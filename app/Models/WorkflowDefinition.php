@@ -40,7 +40,7 @@ class WorkflowDefinition
         $stmt->execute([
             $data['name'],
             $data['description'] ?? null,
-            $data['enabled'] ?? 1,
+            ($data['enabled'] ?? true) ? 1 : 0, // Convertir bool en int
             $data['version'] ?? 1,
             isset($data['canvas_data']) ? json_encode($data['canvas_data']) : null,
             $data['created_by'] ?? null,

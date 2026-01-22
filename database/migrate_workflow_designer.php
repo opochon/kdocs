@@ -69,7 +69,11 @@ try {
                 echo "  [$index] Exécution requête...\n";
             }
             
-            $db->exec($query);
+            $result = $db->exec($query);
+            if ($result === false) {
+                $errorInfo = $db->errorInfo();
+                echo "    ⚠️  Erreur SQL: " . ($errorInfo[2] ?? 'Unknown error') . "\n";
+            }
             
         } catch (PDOException $e) {
             // Ignorer les erreurs "table already exists" pour les CREATE TABLE
@@ -78,10 +82,12 @@ try {
                 continue;
             }
             // Ignorer les erreurs "table doesn't exist" pour les DROP TABLE
-            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+            if (strpos($e->getMessage(), "doesn't exist") !== false || strpos($e->getMessage(), "does not exist") !== false) {
                 echo "    ⚠️  Table n'existe pas, ignoré\n";
                 continue;
             }
+            echo "    ❌ Erreur: " . $e->getMessage() . "\n";
+            echo "    Requête: " . substr($query, 0, 200) . "...\n";
             throw $e;
         }
     }
