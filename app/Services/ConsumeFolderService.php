@@ -1,9 +1,4 @@
 <?php
-/**
- * K-Docs - Service de Consume Folder
- * Surveille un dossier et importe automatiquement les nouveaux fichiers
- */
-
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
@@ -12,234 +7,226 @@ use KDocs\Core\Config;
 class ConsumeFolderService
 {
     private string $consumePath;
-    private DocumentProcessor $processor;
+    private string $processedPath;
+    private string $documentsPath;
     private $db;
     
     public function __construct()
     {
         $config = Config::load();
-        // Chemin du dossier consume (par défaut storage/consume)
-        $this->consumePath = Config::get('storage.consume', __DIR__ . '/../../storage/consume');
+        $base = dirname(__DIR__, 2) . '/storage';
         
-        // Résoudre le chemin relatif en chemin absolu
-        $resolved = realpath($this->consumePath);
-        if (!$resolved) {
-            // Créer le dossier s'il n'existe pas
-            @mkdir($this->consumePath, 0755, true);
-            $resolved = realpath($this->consumePath);
-        }
-        $this->consumePath = rtrim($resolved ?: $this->consumePath, '/\\');
-        
-        $this->processor = new DocumentProcessor();
+        $this->consumePath = $config['storage']['consume'] ?? $base . '/consume';
+        $this->processedPath = $config['storage']['processed'] ?? $base . '/processed';
+        $this->documentsPath = $config['storage']['documents'] ?? $base . '/documents';
         $this->db = Database::getInstance();
+        
+        foreach ([$this->consumePath, $this->processedPath, $this->documentsPath] as $p) {
+            if (!is_dir($p)) @mkdir($p, 0755, true);
+        }
     }
     
-    /**
-     * Scanner le dossier consume et traiter les nouveaux fichiers
-     * Supporte filesystem local et KDrive
-     * 
-     * @return array Résultats du traitement ['processed' => int, 'errors' => array]
-     */
     public function scan(): array
     {
-        $results = ['processed' => 0, 'errors' => []];
+        $results = ['scanned' => 0, 'imported' => 0, 'skipped' => 0, 'errors' => [], 'documents' => []];
         
-        $config = Config::load();
-        $storageType = Config::get('storage.type', 'local');
-        $allowedExtensions = $config['storage']['allowed_extensions'] ?? ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif'];
-        
-        if ($storageType === 'kdrive') {
-            // Scanner KDrive
-            return $this->scanKDrive($allowedExtensions);
-        }
-        
-        // Scanner filesystem local
         if (!is_dir($this->consumePath)) {
-            @mkdir($this->consumePath, 0755, true);
+            $results['errors'][] = "Dossier inexistant: {$this->consumePath}";
             return $results;
         }
         
-        // Scanner tous les fichiers du dossier consume
-        $files = glob($this->consumePath . '/*.*');
+        $allowed = ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif', 'gif', 'webp'];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->consumePath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
         
-        foreach ($files as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
+        foreach ($iterator as $file) {
+            if ($file->isDir()) continue;
+            $results['scanned']++;
             
-            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedExtensions)) {
+            $path = $file->getPathname();
+            $ext = strtolower($file->getExtension());
+            
+            if (!in_array($ext, $allowed)) { $results['skipped']++; continue; }
+            
+            $checksum = md5_file($path);
+            $stmt = $this->db->prepare("SELECT id FROM documents WHERE checksum = ?");
+            $stmt->execute([$checksum]);
+            if ($stmt->fetch()) {
+                $results['skipped']++;
+                $this->moveToProcessed($path);
                 continue;
             }
             
             try {
-                $this->processFile($file);
-                $results['processed']++;
+                $subfolder = trim(str_replace($this->consumePath, '', dirname($path)), '/\\') ?: null;
+                $doc = $this->importFile($path, $subfolder);
+                $results['imported']++;
+                $results['documents'][] = $doc;
             } catch (\Exception $e) {
-                $results['errors'][] = basename($file) . ': ' . $e->getMessage();
+                $results['errors'][] = basename($path) . ": " . $e->getMessage();
             }
         }
         
         return $results;
     }
     
-    /**
-     * Scanner KDrive pour les nouveaux fichiers
-     */
-    private function scanKDrive(array $allowedExtensions): array
+    private function importFile(string $path, ?string $subfolder): array
     {
-        $results = ['processed' => 0, 'errors' => []];
+        $filename = basename($path);
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $unique = date('Ymd_His') . '_' . uniqid() . '.' . $ext;
+        $dest = $this->documentsPath . '/' . $unique;
         
-        try {
-            $filesystemReader = new \KDocs\Services\FilesystemReader();
-            $config = Config::load();
-            
-            // Chemin du dossier consume dans KDrive
-            $consumePath = Config::get('storage.consume', 'consume');
-            
-            // Lister les fichiers dans le dossier consume KDrive
-            $content = $filesystemReader->readDirectory($consumePath, false);
-            
-            if (isset($content['error'])) {
-                $results['errors'][] = "Erreur lecture KDrive: " . $content['error'];
-                return $results;
-            }
-            
-            foreach ($content['files'] as $file) {
-                $ext = strtolower($file['extension'] ?? '');
-                if (!in_array($ext, $allowedExtensions)) {
-                    continue;
-                }
-                
-                try {
-                    // Télécharger temporairement depuis KDrive
-                    $tempDir = $config['storage']['temp'] ?? __DIR__ . '/../../storage/temp';
-                    if (!is_dir($tempDir)) {
-                        @mkdir($tempDir, 0755, true);
-                    }
-                    
-                    $tempPath = $tempDir . DIRECTORY_SEPARATOR . uniqid() . '_' . $file['name'];
-                    
-                    if ($filesystemReader->downloadFile($file['path'], $tempPath)) {
-                        $this->processFile($tempPath);
-                        $results['processed']++;
-                        // Supprimer le fichier temporaire après traitement
-                        @unlink($tempPath);
-                    } else {
-                        $results['errors'][] = "Impossible de télécharger: " . $file['name'];
-                    }
-                } catch (\Exception $e) {
-                    $results['errors'][] = $file['name'] . ': ' . $e->getMessage();
-                }
-            }
-        } catch (\Exception $e) {
-            $results['errors'][] = "Erreur scan KDrive: " . $e->getMessage();
-        }
+        if (!copy($path, $dest)) throw new \Exception("Copie impossible");
         
-        return $results;
-    }
-    
-    /**
-     * Traiter un fichier du dossier consume
-     * 
-     * @param string $filePath Chemin complet du fichier à traiter
-     * @throws \Exception En cas d'erreur lors du traitement
-     */
-    private function processFile(string $filePath): void
-    {
-        $filename = basename($filePath);
-        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        
-        // Générer hash pour éviter doublons
-        $hash = md5_file($filePath);
-        
-        // Vérifier si déjà importé (par checksum)
-        $stmt = $this->db->prepare("SELECT id FROM documents WHERE checksum = ?");
-        $stmt->execute([$hash]);
-        if ($stmt->fetch()) {
-            // Doublon, supprimer le fichier du consume folder
-            @unlink($filePath);
-            return;
-        }
-        
-        // Copier vers storage/documents
-        $config = Config::load();
-        $basePath = Config::get('storage.base_path', __DIR__ . '/../../storage/documents');
-        $resolved = realpath($basePath);
-        $destDir = rtrim($resolved ?: $basePath, '/\\');
-        
-        // Créer le dossier s'il n'existe pas
-        if (!is_dir($destDir)) {
-            @mkdir($destDir, 0755, true);
-        }
-        
-        // Générer un nom de fichier unique
-        $newFilename = uniqid() . '_' . $filename;
-        $destPath = $destDir . DIRECTORY_SEPARATOR . $newFilename;
-        
-        if (!copy($filePath, $destPath)) {
-            throw new \Exception("Impossible de copier le fichier vers " . $destPath);
-        }
-        
-        // Déterminer le MIME type
-        $mimeTypes = [
-            'pdf' => 'application/pdf',
-            'png' => 'image/png',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'tiff' => 'image/tiff',
-            'tif' => 'image/tiff'
-        ];
-        $mimeType = $mimeTypes[$ext] ?? 'application/octet-stream';
-        
-        // Créer le document en DB
-        $title = pathinfo($filename, PATHINFO_FILENAME);
         $stmt = $this->db->prepare("
-            INSERT INTO documents (
-                title, 
-                original_filename, 
-                filename,
-                file_path, 
-                mime_type, 
-                checksum, 
-                file_size,
-                created_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            INSERT INTO documents (title, filename, original_filename, file_path, file_size, mime_type, checksum, status, consume_subfolder, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, NOW(), NOW())
         ");
-        
-        $fileSize = filesize($filePath);
         $stmt->execute([
-            $title,
-            $filename,
-            $newFilename,
-            $destPath,
-            $mimeType,
-            $hash,
-            $fileSize
+            pathinfo($filename, PATHINFO_FILENAME),
+            $unique, $filename, $dest,
+            filesize($dest),
+            mime_content_type($dest) ?: 'application/octet-stream',
+            md5_file($dest),
+            $subfolder
         ]);
         
-        $documentId = $this->db->lastInsertId();
+        $docId = $this->db->lastInsertId();
+        $this->moveToProcessed($path);
         
-        // Lancer le traitement complet (OCR → Matching → Thumbnail → Workflows)
+        $result = ['id' => $docId, 'filename' => $filename, 'status' => 'imported'];
+        
         try {
-            $this->processor->process($documentId);
+            // OCR
+            $processor = new DocumentProcessor();
+            $processor->process($docId);
+            
+            // Classification (selon mode configuré)
+            $classifier = new ClassificationService();
+            $classification = $classifier->classify($docId);
+            
+            // Sauvegarder suggestions
+            $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
+                ->execute([json_encode($classification), $docId]);
+            
+            $result['classification'] = $classification;
+            $result['status'] = $classification['auto_applied'] ? 'auto_validated' : ($classification['should_review'] ? 'needs_review' : 'processed');
+            
         } catch (\Exception $e) {
-            // Logger l'erreur mais ne pas bloquer l'import
-            error_log("Erreur traitement document {$documentId}: " . $e->getMessage());
+            $result['status'] = 'error';
+            $result['error'] = $e->getMessage();
         }
         
-        // Supprimer le fichier original du consume folder
-        @unlink($filePath);
+        return $result;
     }
     
-    /**
-     * Retourne le chemin du dossier consume
-     * 
-     * @return string
-     */
-    public function getConsumePath(): string
+    private function moveToProcessed(string $path): bool
     {
-        return $this->consumePath;
+        return @rename($path, $this->processedPath . '/' . date('Ymd_His') . '_' . basename($path));
     }
+    
+    public function getPendingDocuments(): array
+    {
+        return $this->db->query("
+            SELECT d.*, c.name as correspondent_name, dt.label as document_type_name
+            FROM documents d
+            LEFT JOIN correspondents c ON d.correspondent_id = c.id
+            LEFT JOIN document_types dt ON d.document_type_id = dt.id
+            WHERE d.status IN ('pending', 'needs_review')
+            ORDER BY d.created_at DESC
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+    }
+    
+    public function validateDocument(int $id, array $data): bool
+    {
+        $sets = ['status = ?']; $params = ['validated'];
+        foreach (['title', 'correspondent_id', 'document_type_id', 'doc_date', 'amount'] as $f) {
+            if (isset($data[$f])) { $sets[] = "$f = ?"; $params[] = $data[$f] ?: null; }
+        }
+        
+        // Gérer le chemin de stockage
+        $storagePathOption = $data['storage_path_option'] ?? 'suggested';
+        
+        if ($storagePathOption === 'custom' && !empty($data['storage_path_custom'])) {
+            // Créer le chemin personnalisé et déplacer le fichier
+            $this->createAndMoveToPath($id, $data['storage_path_custom']);
+        } elseif ($storagePathOption === 'existing' && !empty($data['storage_path_id'])) {
+            $sets[] = 'storage_path_id = ?';
+            $params[] = (int)$data['storage_path_id'];
+        } elseif ($storagePathOption === 'suggested') {
+            // Générer le chemin suggéré et déplacer le fichier
+            $doc = $this->getDocument($id);
+            if ($doc) {
+                $year = !empty($data['doc_date']) ? date('Y', strtotime($data['doc_date'])) : date('Y');
+                $typeName = 'Divers';
+                $corrName = 'Inconnu';
+                
+                if (!empty($data['document_type_id'])) {
+                    $typeStmt = $this->db->prepare("SELECT label FROM document_types WHERE id = ?");
+                    $typeStmt->execute([$data['document_type_id']]);
+                    $type = $typeStmt->fetch();
+                    if ($type) $typeName = $type['label'];
+                }
+                
+                if (!empty($data['correspondent_id'])) {
+                    $corrStmt = $this->db->prepare("SELECT name FROM correspondents WHERE id = ?");
+                    $corrStmt->execute([$data['correspondent_id']]);
+                    $corr = $corrStmt->fetch();
+                    if ($corr) $corrName = $corr['name'];
+                }
+                
+                $suggestedPath = $year . '/' . $this->sanitizePath($typeName) . '/' . $this->sanitizePath($corrName);
+                $this->createAndMoveToPath($id, $suggestedPath);
+            }
+        }
+        
+        $params[] = $id;
+        $this->db->prepare("UPDATE documents SET " . implode(', ', $sets) . " WHERE id = ?")->execute($params);
+        
+        if (isset($data['tags']) && is_array($data['tags'])) {
+            $this->db->prepare("DELETE FROM document_tags WHERE document_id = ?")->execute([$id]);
+            foreach ($data['tags'] as $tid) {
+                $this->db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)")->execute([$id, $tid]);
+            }
+        }
+        return true;
+    }
+    
+    private function createAndMoveToPath(int $documentId, string $relativePath): void
+    {
+        $doc = $this->getDocument($documentId);
+        if (!$doc || empty($doc['file_path'])) return;
+        
+        // Créer le dossier si nécessaire
+        $fullPath = $this->documentsPath . '/' . $relativePath;
+        if (!is_dir($fullPath)) {
+            @mkdir($fullPath, 0755, true);
+        }
+        
+        // Déplacer le fichier
+        $newFilePath = $fullPath . '/' . basename($doc['file_path']);
+        if (@rename($doc['file_path'], $newFilePath)) {
+            $this->db->prepare("UPDATE documents SET file_path = ? WHERE id = ?")
+                ->execute([$newFilePath, $documentId]);
+        }
+    }
+    
+    private function sanitizePath(string $path): string
+    {
+        // Nettoyer le chemin pour éviter les caractères interdits
+        $path = preg_replace('/[<>:"|?*]/', '_', $path);
+        $path = trim($path, '/\\');
+        return $path ?: 'Divers';
+    }
+    
+    private function getDocument(int $id): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM documents WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+    }
+    
+    public function getConsumePath(): string { return $this->consumePath; }
 }

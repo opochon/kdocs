@@ -84,3 +84,5 @@ INSTALLATION*.md
 GUIDE_*.md
 WEBHOOKS_*.md
 DEBUG_*.md
+
+claude_api_key.txt

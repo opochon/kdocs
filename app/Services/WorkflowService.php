@@ -104,8 +104,9 @@ class WorkflowService
     
     /**
      * Récupère un document avec toutes ses relations
+     * Méthode publique pour permettre l'accès depuis WorkflowEngine
      */
-    private function getDocumentWithRelations(int $documentId): ?array
+    public function getDocumentWithRelations(int $documentId): ?array
     {
         $stmt = $this->db->prepare("
             SELECT d.*, 

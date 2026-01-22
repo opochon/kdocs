@@ -62,6 +62,7 @@ use KDocs\Controllers\UsersController;
 use KDocs\Controllers\ExportController;
 use KDocs\Controllers\MailAccountsController;
 use KDocs\Controllers\ScheduledTasksController;
+use KDocs\Controllers\ConsumeController;
 use KDocs\Controllers\Api\ConsumptionApiController;
 use KDocs\Controllers\Api\DocumentsApiController;
 use KDocs\Controllers\Api\TagsApiController;
@@ -299,9 +300,21 @@ $app->group('', function ($group) {
     $group->post('/admin/scheduled-tasks/{id}/run', [ScheduledTasksController::class, 'run']);
     $group->post('/admin/scheduled-tasks/process-queue', [ScheduledTasksController::class, 'processQueue']);
     
+    // Consume Folder (Pipeline d'ingestion)
+    $group->get('/admin/consume', [ConsumeController::class, 'index']);
+    $group->post('/admin/consume/scan', [ConsumeController::class, 'scan']);
+    $group->post('/admin/consume/validate/{id}', [ConsumeController::class, 'validate']);
+    
     // Document Consumption API (10% manquant - 2%)
     $group->post('/api/consumption/consume', [ConsumptionApiController::class, 'consume']);
     $group->post('/api/consumption/consume-batch', [ConsumptionApiController::class, 'consumeBatch']);
+    
+    // API pour cron consume folder
+    $group->post('/api/consume/scan', function($req, $res) {
+        $results = (new \KDocs\Services\ConsumeFolderService())->scan();
+        $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
+        return $res->withHeader('Content-Type', 'application/json');
+    });
 })->add(new AuthMiddleware());
 
 // Démarrer l'application

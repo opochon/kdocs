@@ -10,6 +10,7 @@ use KDocs\Core\Database;
 use KDocs\Core\Config;
 use KDocs\Models\Document;
 use KDocs\Services\WebhookService;
+use KDocs\Services\WorkflowEngine;
 
 class DocumentProcessor
 {
@@ -153,10 +154,11 @@ class DocumentProcessor
             }
         }
         
-        // 4. Exécuter les workflows
+        // 4. Exécuter les workflows (nouveau moteur unifié)
         try {
-            WorkflowService::executeOnDocumentAdded($documentId);
-            $results['workflows'] = ['executed' => true];
+            $workflowEngine = new WorkflowEngine();
+            $workflowResults = $workflowEngine->executeForEvent('document_added', $documentId);
+            $results['workflows'] = $workflowResults;
         } catch (\Exception $e) {
             error_log("Erreur workflows document {$documentId}: " . $e->getMessage());
             $results['workflows'] = ['executed' => false, 'error' => $e->getMessage()];
