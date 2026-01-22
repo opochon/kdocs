@@ -16,13 +16,15 @@ $stats = [
     'documents' => 0,
     'tags' => 0,
     'correspondents' => 0,
-    'saved_searches' => 0
+    'saved_searches' => 0,
+    'pending_validation' => 0
 ];
 try {
     $stats['documents'] = $db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL")->fetchColumn();
     $stats['tags'] = $db->query("SELECT COUNT(*) FROM tags")->fetchColumn();
     $stats['correspondents'] = $db->query("SELECT COUNT(*) FROM correspondents")->fetchColumn();
     $stats['saved_searches'] = $db->query("SELECT COUNT(*) FROM saved_searches")->fetchColumn();
+    $stats['pending_validation'] = $db->query("SELECT COUNT(*) FROM documents WHERE status IN ('pending', 'needs_review')")->fetchColumn();
 } catch (\Exception $e) {
     // Tables n'existent pas encore
 }
@@ -57,6 +59,21 @@ try {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                     <span>Dashboard</span>
+                </a>
+            </li>
+            
+            <!-- Fichiers à valider -->
+            <li>
+                <a href="<?= url('/admin/consume') ?>" class="flex items-center justify-between px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/consume', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Fichiers à valider</span>
+                    </div>
+                    <?php if ($stats['pending_validation'] > 0): ?>
+                    <span class="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full"><?= $stats['pending_validation'] ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
             
