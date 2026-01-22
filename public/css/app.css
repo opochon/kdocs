@@ -245,6 +245,15 @@ a:hover {
     background: var(--text-muted);
 }
 
+/* Highlight des matches dans les résultats de recherche */
+mark {
+    background-color: #fef08a;
+    color: #713f12;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     :root {
