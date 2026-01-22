@@ -53,6 +53,7 @@ use KDocs\Controllers\SettingsController;
 use KDocs\Controllers\CustomFieldsController;
 use KDocs\Controllers\StoragePathsController;
 use KDocs\Controllers\WorkflowsController;
+use KDocs\Controllers\WorkflowDesignerPageController;
 use KDocs\Controllers\WorkflowDesignerController;
 use KDocs\Controllers\DocumentTypesController;
 use KDocs\Controllers\WebhooksController;
@@ -259,6 +260,10 @@ $app->group('', function ($group) {
     $group->post('/admin/workflows/save', [WorkflowsController::class, 'save']);
     $group->post('/admin/workflows/{id}/save', [WorkflowsController::class, 'save']);
     $group->post('/admin/workflows/{id}/delete', [WorkflowsController::class, 'delete']);
+    
+    // Workflow Designer (nouveau système)
+    $group->get('/admin/workflows/new/designer', [WorkflowDesignerPageController::class, 'newDesigner']);
+    $group->get('/admin/workflows/{id}/designer', [WorkflowDesignerPageController::class, 'designer']);
     
     // Webhooks (Phase 4.3)
     $group->get('/admin/webhooks', [WebhooksController::class, 'index']);
