@@ -94,8 +94,18 @@ $isEdit = !empty($user);
             <label for="permissions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Permissions (séparées par des virgules)
             </label>
+            <?php
+            $permissionsValue = '';
+            if (!empty($user) && isset($user['permissions'])) {
+                if (is_array($user['permissions'])) {
+                    $permissionsValue = implode(', ', $user['permissions']);
+                } else {
+                    $permissionsValue = (string)$user['permissions'];
+                }
+            }
+            ?>
             <input type="text" id="permissions" name="permissions"
-                   value="<?= htmlspecialchars(is_array($user['permissions'] ?? []) ? implode(', ', $user['permissions']) : ($user['permissions'] ?? '')) ?>"
+                   value="<?= htmlspecialchars($permissionsValue) ?>"
                    placeholder="documents.view, documents.create, documents.edit"
                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">

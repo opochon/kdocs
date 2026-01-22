@@ -28,7 +28,7 @@ $base = Config::basePath();
         </div>
     </div>
     
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden" style="height: calc(100vh - 200px); min-height: 500px;">
         <!-- Sidebar gauche - Toolbox des nodes -->
         <div class="w-64 border-r border-gray-200 overflow-y-auto bg-gray-50">
             <div class="p-4">
@@ -153,8 +153,8 @@ $base = Config::basePath();
         </div>
         
         <!-- Canvas central - Workflow Designer -->
-        <div class="flex-1 relative bg-gray-50">
-            <div id="react-flow-container" class="w-full h-full"></div>
+        <div class="flex-1 relative bg-gray-50" style="min-height: 400px;">
+            <div id="react-flow-container" class="w-full h-full" style="min-height: 400px;"></div>
         </div>
         
         <!-- Sidebar droite - Configuration du node sélectionné -->

@@ -97,11 +97,19 @@ class UsersController
             }
         }
         
-        $groupModel = new UserGroup();
-        $groups = $groupModel->getAll();
+        $groups = [];
+        $userGroups = [];
         
-        $userModel = new User();
-        $userGroups = $id ? $userModel->getUserGroups($id) : [];
+        try {
+            $groupModel = new UserGroup();
+            $groups = $groupModel->getAll();
+            
+            $userModel = new User();
+            $userGroups = $id ? $userModel->getUserGroups($id) : [];
+        } catch (\Exception $e) {
+            // Table user_groups n'existe peut-être pas encore
+            error_log("Erreur chargement groupes utilisateurs: " . $e->getMessage());
+        }
         
         $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/user_form.php', [
             'user' => $userData,
