@@ -31,7 +31,7 @@ class AiExtractProcessor extends AbstractNodeExecutor
             }
             
             $aiService = new AIClassifierService();
-            $suggestions = $aiService->classifyDocument($context->documentId);
+            $suggestions = $aiService->classify($context->documentId);
             
             // Ajouter les suggestions au contexte
             $context->set('ai_suggestions', $suggestions);
