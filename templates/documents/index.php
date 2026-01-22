@@ -405,16 +405,28 @@ function setViewMode(mode) {
                     
                     // Développer tous les parents
                     path.forEach(async (item) => {
-                        const folderId = item.dataset.folderId;
-                        const childrenContainer = item.querySelector('.folder-children');
-                        const toggle = item.querySelector('.folder-toggle');
-                        const arrow = toggle?.querySelector('.folder-arrow');
-                        
-                        if (childrenContainer && childrenContainer.classList.contains('hidden')) {
-                            await loadChildren(folderId, item);
-                            if (arrow) {
-                                arrow.style.transform = 'rotate(90deg)';
+                        try {
+                            if (!item || !item.dataset) return;
+                            
+                            const folderId = item.dataset.folderId;
+                            if (!folderId) return;
+                            
+                            const childrenContainer = item.querySelector('.folder-children');
+                            if (!childrenContainer) return;
+                            
+                            const toggle = item.querySelector('.folder-toggle');
+                            if (!toggle) return;
+                            
+                            const arrow = toggle.querySelector('.folder-arrow');
+                            
+                            if (childrenContainer && childrenContainer.classList.contains('hidden')) {
+                                await loadChildren(folderId, item);
+                                if (arrow) {
+                                    arrow.style.transform = 'rotate(90deg)';
+                                }
                             }
+                        } catch (error) {
+                            console.warn('Error expanding folder path:', error);
                         }
                     });
                 }

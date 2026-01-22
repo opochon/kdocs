@@ -42,6 +42,11 @@ class AISearchService
      */
     private function questionToFilters(string $question): array
     {
+        // Si Claude n'est pas configuré, utiliser une recherche simple
+        if (!$this->claude->isConfigured()) {
+            return ['text_search' => $question];
+        }
+        
         $systemPrompt = <<<PROMPT
 Tu es un assistant qui convertit des questions en langage naturel en filtres de recherche JSON.
 
@@ -84,34 +89,39 @@ Réponds UNIQUEMENT avec un JSON valide.
 Exemple : {"text_search": "facture", "correspondent_name": "swisscom", "sort_by": "date", "sort_dir": "desc", "limit": 10}
 PROMPT;
 
-        // Récupérer les entités pour le contexte
-        $correspondents = $this->db->query("SELECT id, name FROM correspondents")->fetchAll();
-        $types = $this->db->query("SELECT id, name FROM document_types")->fetchAll();
-        $tags = $this->db->query("SELECT id, name FROM tags")->fetchAll();
-        
-        $corrList = implode(", ", array_map(fn($c) => "{$c['name']} (ID:{$c['id']})", $correspondents));
-        $typeList = implode(", ", array_map(fn($t) => "{$t['name']} (ID:{$t['id']})", $types));
-        $tagList = implode(", ", array_column($tags, 'name'));
-        
-        $prompt = str_replace(
-            ['{CORRESPONDENTS_LIST}', '{TYPES_LIST}', '{TAGS_LIST}', '{QUESTION}'],
-            [$corrList, $typeList, $tagList, $question],
-            $systemPrompt
-        );
-        
-        $response = $this->claude->sendMessage($prompt);
-        if (!$response) {
-            return ['text_search' => $question]; // Fallback
+        try {
+            // Récupérer les entités pour le contexte
+            $correspondents = $this->db->query("SELECT id, name FROM correspondents")->fetchAll();
+            $types = $this->db->query("SELECT id, label FROM document_types")->fetchAll();
+            $tags = $this->db->query("SELECT id, name FROM tags")->fetchAll();
+            
+            $corrList = implode(", ", array_map(fn($c) => "{$c['name']} (ID:{$c['id']})", $correspondents));
+            $typeList = implode(", ", array_map(fn($t) => "{$t['label']} (ID:{$t['id']})", $types));
+            $tagList = implode(", ", array_column($tags, 'name'));
+            
+            $prompt = str_replace(
+                ['{CORRESPONDENTS_LIST}', '{TYPES_LIST}', '{TAGS_LIST}', '{QUESTION}'],
+                [$corrList, $typeList, $tagList, $question],
+                $systemPrompt
+            );
+            
+            $response = $this->claude->sendMessage($prompt);
+            if (!$response) {
+                return ['text_search' => $question]; // Fallback
+            }
+            
+            $text = $this->claude->extractText($response);
+            
+            // Parser le JSON
+            $text = preg_replace('/^```json\s*/', '', $text);
+            $text = preg_replace('/\s*```$/', '', $text);
+            
+            $filters = json_decode($text, true);
+            return $filters ?: ['text_search' => $question];
+        } catch (\Exception $e) {
+            error_log("AISearchService::questionToFilters error: " . $e->getMessage());
+            return ['text_search' => $question]; // Fallback en cas d'erreur
         }
-        
-        $text = $this->claude->extractText($response);
-        
-        // Parser le JSON
-        $text = preg_replace('/^```json\s*/', '', $text);
-        $text = preg_replace('/\s*```$/', '', $text);
-        
-        $filters = json_decode($text, true);
-        return $filters ?: ['text_search' => $question];
     }
     
     /**
@@ -137,7 +147,7 @@ PROMPT;
         
         // Type
         if (!empty($filters['type_name'])) {
-            $conditions[] = "EXISTS (SELECT 1 FROM document_types dt WHERE dt.id = d.document_type_id AND dt.name LIKE ?)";
+            $conditions[] = "EXISTS (SELECT 1 FROM document_types dt WHERE dt.id = d.document_type_id AND dt.label LIKE ?)";
             $params[] = '%' . $filters['type_name'] . '%';
         }
         
@@ -190,7 +200,7 @@ PROMPT;
         $sql = "
             SELECT d.*, 
                    c.name as correspondent_name,
-                   dt.name as document_type_name
+                   dt.label as document_type_name
             FROM documents d
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
@@ -226,6 +236,23 @@ PROMPT;
             return "Je n'ai trouvé aucun document correspondant à votre recherche.";
         }
         
+        // Si Claude n'est pas configuré, retourner une réponse simple
+        if (!$this->claude->isConfigured()) {
+            $count = count($documents);
+            $answer = "J'ai trouvé $count document(s) correspondant à votre recherche.";
+            
+            // Ajouter quelques détails
+            if ($count > 0 && $count <= 5) {
+                $answer .= "\n\nDocuments trouvés :\n";
+                foreach ($documents as $i => $doc) {
+                    $title = $doc['title'] ?? $doc['original_filename'] ?? 'Sans titre';
+                    $answer .= ($i + 1) . ". $title\n";
+                }
+            }
+            
+            return $answer;
+        }
+        
         // Calculer des statistiques si demandé
         $stats = [];
         if (!empty($filters['aggregation'])) {
@@ -242,27 +269,28 @@ PROMPT;
             }
         }
         
-        // Construire le contexte pour Claude
-        $context = "Documents trouvés (" . count($documents) . ") :\n\n";
-        foreach (array_slice($documents, 0, 10) as $i => $doc) {
-            $context .= ($i + 1) . ". " . ($doc['title'] ?? $doc['original_filename']) . "\n";
-            $context .= "   - Correspondant: " . ($doc['correspondent_name'] ?? 'N/A') . "\n";
-            $context .= "   - Date: " . ($doc['document_date'] ?? 'N/A') . "\n";
-            $context .= "   - Montant: " . ($doc['amount'] ? number_format($doc['amount'], 2) . ' CHF' : 'N/A') . "\n";
-            if (!empty($doc['tags'])) {
-                $context .= "   - Tags: " . implode(', ', $doc['tags']) . "\n";
+        try {
+            // Construire le contexte pour Claude
+            $context = "Documents trouvés (" . count($documents) . ") :\n\n";
+            foreach (array_slice($documents, 0, 10) as $i => $doc) {
+                $context .= ($i + 1) . ". " . ($doc['title'] ?? $doc['original_filename']) . "\n";
+                $context .= "   - Correspondant: " . ($doc['correspondent_name'] ?? 'N/A') . "\n";
+                $context .= "   - Date: " . ($doc['document_date'] ?? 'N/A') . "\n";
+                $context .= "   - Montant: " . ($doc['amount'] ? number_format($doc['amount'], 2) . ' CHF' : 'N/A') . "\n";
+                if (!empty($doc['tags'])) {
+                    $context .= "   - Tags: " . implode(', ', $doc['tags']) . "\n";
+                }
+                $context .= "\n";
             }
-            $context .= "\n";
-        }
-        
-        if (!empty($stats)) {
-            $context .= "Statistiques:\n";
-            foreach ($stats as $key => $value) {
-                $context .= "- $key: $value\n";
+            
+            if (!empty($stats)) {
+                $context .= "Statistiques:\n";
+                foreach ($stats as $key => $value) {
+                    $context .= "- $key: $value\n";
+                }
             }
-        }
-        
-        $prompt = <<<PROMPT
+            
+            $prompt = <<<PROMPT
 Question de l'utilisateur: $question
 
 $context
@@ -276,13 +304,17 @@ Génère une réponse concise et utile en français qui:
 Réponds directement, sans formatage markdown excessif.
 PROMPT;
 
-        $response = $this->claude->sendMessage($prompt);
-        if (!$response) {
-            // Fallback simple
+            $response = $this->claude->sendMessage($prompt);
+            if (!$response) {
+                // Fallback simple
+                return "J'ai trouvé " . count($documents) . " document(s) correspondant à votre recherche.";
+            }
+            
+            return $this->claude->extractText($response);
+        } catch (\Exception $e) {
+            error_log("AISearchService::generateAnswer error: " . $e->getMessage());
             return "J'ai trouvé " . count($documents) . " document(s) correspondant à votre recherche.";
         }
-        
-        return $this->claude->extractText($response);
     }
     
     /**

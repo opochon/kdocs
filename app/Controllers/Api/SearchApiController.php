@@ -11,7 +11,6 @@ class SearchApiController extends ApiController
     
     public function __construct()
     {
-        parent::__construct();
         $this->searchService = new AISearchService();
     }
     
@@ -21,19 +20,26 @@ class SearchApiController extends ApiController
      */
     public function ask(Request $request, Response $response): Response
     {
-        $data = json_decode($request->getBody()->getContents(), true);
-        $question = $data['question'] ?? '';
-        
-        if (empty($question)) {
-            return $this->jsonResponse($response, ['error' => 'Question requise'], 400);
-        }
-        
         try {
+            $body = $request->getBody()->getContents();
+            $data = json_decode($body, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return $this->jsonResponse($response, ['error' => 'JSON invalide: ' . json_last_error_msg()], 400);
+            }
+            
+            $question = $data['question'] ?? '';
+            
+            if (empty($question)) {
+                return $this->jsonResponse($response, ['error' => 'Question requise'], 400);
+            }
+            
             $result = $this->searchService->askQuestion($question);
             return $this->jsonResponse($response, $result);
         } catch (\Exception $e) {
             error_log("AISearch error: " . $e->getMessage());
-            return $this->jsonResponse($response, ['error' => $e->getMessage()], 500);
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return $this->jsonResponse($response, ['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
         }
     }
     
