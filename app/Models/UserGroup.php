@@ -22,8 +22,34 @@ class UserGroup
      */
     public function getAll(): array
     {
-        $stmt = $this->db->query("SELECT * FROM user_groups ORDER BY name");
-        $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // #region agent log
+        \KDocs\Core\DebugLogger::log('UserGroup::getAll', 'Before query', [
+            'table' => 'user_groups'
+        ], 'A');
+        // #endregion
+        
+        try {
+            // Vérifier si la table existe et sa structure
+            $columns = $this->db->query("SHOW COLUMNS FROM user_groups")->fetchAll(PDO::FETCH_COLUMN);
+            
+            // #region agent log
+            \KDocs\Core\DebugLogger::log('UserGroup::getAll', 'Table columns', [
+                'columns' => $columns
+            ], 'A');
+            // #endregion
+            
+            // Déterminer la colonne de tri (name ou group_name)
+            $orderColumn = in_array('name', $columns) ? 'name' : (in_array('group_name', $columns) ? 'group_name' : 'id');
+            
+            $stmt = $this->db->query("SELECT * FROM user_groups ORDER BY $orderColumn");
+            $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            // #region agent log
+            \KDocs\Core\DebugLogger::logException($e, 'UserGroup::getAll', 'A');
+            // #endregion
+            // Table n'existe peut-être pas encore
+            return [];
+        }
         
         foreach ($groups as &$group) {
             if ($group['permissions']) {
