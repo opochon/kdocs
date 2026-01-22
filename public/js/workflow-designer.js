@@ -5,7 +5,7 @@
 
 class WorkflowDesigner {
     constructor(containerId, options = {}) {
-        this.containerId = containerId;
+        this.container = document.getElementById(containerId);
         this.basePath = options.basePath || '';
         this.workflowId = options.workflowId || null;
         this.nodes = [];
@@ -15,28 +15,20 @@ class WorkflowDesigner {
         this.dragOffset = { x: 0, y: 0 };
         this.isDragging = false;
         this.dragNode = null;
+        this.isConnecting = false;
+        this.connectingFrom = null;
+        this.tempLine = null;
         
-        // Attendre que le DOM soit chargé
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
-        } else {
-            this.init();
-        }
+        this.init();
     }
     
     init() {
-        this.container = document.getElementById(this.containerId);
-        if (!this.container) {
-            console.error(`Container #${this.containerId} not found`);
-            return;
-        }
         this.render();
         this.setupEventListeners();
         this.loadWorkflow();
     }
     
     render() {
-        if (!this.container) return;
         this.container.innerHTML = `
             <svg id="workflow-canvas" class="w-full h-full">
                 <defs>
@@ -78,10 +70,13 @@ class WorkflowDesigner {
             }
         });
         
-        // Zoom avec molette
-        this.canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            // TODO: Implémenter zoom
+        // Clic hors node = déselectionner
+        this.canvas.addEventListener('click', (e) => {
+            if (e.target === this.canvas || e.target.id === 'edges-layer' || e.target.id === 'nodes-layer') {
+                this.selectedNode = null;
+                this.renderNodes();
+                document.getElementById('config-panel')?.classList.add('hidden');
+            }
         });
     }
     
@@ -145,7 +140,7 @@ class WorkflowDesigner {
             rect.setAttribute('rx', '8');
             rect.setAttribute('fill', color);
             rect.setAttribute('stroke', isSelected ? '#000' : '#fff');
-            rect.setAttribute('stroke-width', isSelected ? '2' : '1');
+            rect.setAttribute('stroke-width', isSelected ? '3' : '1');
             rect.setAttribute('class', 'cursor-move');
             
             // Texte
@@ -170,6 +165,7 @@ class WorkflowDesigner {
             inputHandle.setAttribute('stroke', color);
             inputHandle.setAttribute('stroke-width', '2');
             inputHandle.setAttribute('class', 'connection-handle input-handle');
+            inputHandle.setAttribute('data-node-id', node.id);
             
             const outputHandle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             outputHandle.setAttribute('cx', '150');
@@ -179,6 +175,7 @@ class WorkflowDesigner {
             outputHandle.setAttribute('stroke', color);
             outputHandle.setAttribute('stroke-width', '2');
             outputHandle.setAttribute('class', 'connection-handle output-handle');
+            outputHandle.setAttribute('data-node-id', node.id);
             
             nodeGroup.appendChild(inputHandle);
             nodeGroup.appendChild(outputHandle);
@@ -203,9 +200,9 @@ class WorkflowDesigner {
             
             if (!sourceNode || !targetNode) return;
             
-            const x1 = sourceNode.x + 150; // Output handle
+            const x1 = sourceNode.x + 150;
             const y1 = sourceNode.y + 30;
-            const x2 = targetNode.x; // Input handle
+            const x2 = targetNode.x;
             const y2 = targetNode.y + 30;
             
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -217,6 +214,15 @@ class WorkflowDesigner {
             line.setAttribute('stroke-width', '2');
             line.setAttribute('marker-end', 'url(#arrowhead)');
             line.setAttribute('class', 'workflow-edge');
+            line.setAttribute('data-edge-id', edge.id);
+            
+            // Double-clic pour supprimer la connexion
+            line.addEventListener('dblclick', () => {
+                if (confirm('Supprimer cette connexion ?')) {
+                    this.edges = this.edges.filter(e => e.id !== edge.id);
+                    this.renderEdges();
+                }
+            });
             
             this.edgesLayer.appendChild(line);
         });
@@ -226,15 +232,10 @@ class WorkflowDesigner {
         // Si on clique sur un handle de connexion
         if (e.target.classList.contains('connection-handle')) {
             e.stopPropagation();
+            e.preventDefault();
             
             if (e.target.classList.contains('output-handle')) {
-                // Démarrer une connexion depuis ce node
                 this.startConnection(node, e);
-            } else if (e.target.classList.contains('input-handle')) {
-                // Si on a une connexion en cours, la terminer ici
-                if (this.connectingFrom) {
-                    this.finishConnection(node);
-                }
             }
             return;
         }
@@ -255,7 +256,6 @@ class WorkflowDesigner {
         this.connectingFrom = sourceNode;
         this.isConnecting = true;
         
-        // Créer une ligne temporaire
         const rect = this.canvas.getBoundingClientRect();
         this.tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         this.tempLine.setAttribute('x1', sourceNode.x + 150);
@@ -271,7 +271,6 @@ class WorkflowDesigner {
         document.addEventListener('mousemove', this.onConnectionDrag);
         document.addEventListener('mouseup', this.onConnectionEnd);
         
-        // Changer le curseur
         this.canvas.style.cursor = 'crosshair';
     }
     
@@ -287,7 +286,6 @@ class WorkflowDesigner {
         document.removeEventListener('mousemove', this.onConnectionDrag);
         document.removeEventListener('mouseup', this.onConnectionEnd);
         
-        // Supprimer la ligne temporaire
         if (this.tempLine) {
             this.tempLine.remove();
             this.tempLine = null;
@@ -296,13 +294,10 @@ class WorkflowDesigner {
         // Vérifier si on a relâché sur un input-handle
         const target = e.target;
         if (target.classList && target.classList.contains('input-handle')) {
-            const nodeGroup = target.closest('.workflow-node');
-            if (nodeGroup) {
-                const targetNodeId = nodeGroup.dataset.nodeId;
-                const targetNode = this.nodes.find(n => n.id === targetNodeId);
-                if (targetNode && this.connectingFrom) {
-                    this.finishConnection(targetNode);
-                }
+            const targetNodeId = target.getAttribute('data-node-id');
+            const targetNode = this.nodes.find(n => n.id === targetNodeId);
+            if (targetNode && this.connectingFrom && this.connectingFrom.id !== targetNodeId) {
+                this.finishConnection(targetNode);
             }
         }
         
@@ -312,19 +307,13 @@ class WorkflowDesigner {
     };
     
     finishConnection(targetNode) {
-        if (!this.connectingFrom || this.connectingFrom.id === targetNode.id) {
-            return; // Pas de connexion vers soi-même
-        }
-        
-        // Vérifier si la connexion existe déjà
         const exists = this.edges.some(e => 
             e.source === this.connectingFrom.id && e.target === targetNode.id
         );
         
         if (!exists) {
-            const edgeId = `edge_${Date.now()}`;
             this.edges.push({
-                id: edgeId,
+                id: `edge_${Date.now()}`,
                 source: this.connectingFrom.id,
                 target: targetNode.id,
             });
@@ -364,7 +353,6 @@ class WorkflowDesigner {
         
         panel.classList.remove('hidden');
         
-        // Générer le formulaire de configuration selon le type de node
         content.innerHTML = `
             <div class="space-y-4">
                 <div>
@@ -386,15 +374,19 @@ class WorkflowDesigner {
             </div>
         `;
         
-        // Attacher les event listeners
-        document.getElementById('btn-save-node-config')?.addEventListener('click', () => this.saveNodeConfig());
-        document.getElementById('btn-delete-node')?.addEventListener('click', () => this.deleteNode());
-            </div>
-        `;
+        // Attacher les event listeners avec le bon contexte
+        const saveBtn = document.getElementById('btn-save-node-config');
+        const deleteBtn = document.getElementById('btn-delete-node');
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveNodeConfig());
+        }
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => this.deleteNode());
+        }
     }
     
     getConfigFields(nodeType, config) {
-        // Générer les champs selon le type de node
         if (nodeType === 'trigger_scan') {
             return `
                 <div>
@@ -435,7 +427,6 @@ class WorkflowDesigner {
             this.selectedNode.name = nameInput.value;
         }
         
-        // Récupérer les autres champs de config
         const config = {};
         document.querySelectorAll('#config-content input[id^="config-"]').forEach(input => {
             const key = input.id.replace('config-', '');
@@ -448,6 +439,18 @@ class WorkflowDesigner {
         
         this.selectedNode.config = config;
         this.renderNodes();
+        
+        // Feedback visuel
+        const saveBtn = document.getElementById('btn-save-node-config');
+        if (saveBtn) {
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✓ Enregistré';
+            saveBtn.classList.add('bg-green-600');
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.classList.remove('bg-green-600');
+            }, 1000);
+        }
     }
     
     deleteNode() {
@@ -483,18 +486,16 @@ class WorkflowDesigner {
             const data = await response.json();
             
             if (data.success && data.data) {
-                // Convertir les nodes
                 this.nodes = (data.data.nodes || []).map(node => ({
                     id: `node_${node.id}`,
                     type: node.node_type,
-                    x: node.position_x || 0,
-                    y: node.position_y || 0,
+                    x: node.position_x || 100,
+                    y: node.position_y || 100,
                     name: node.name,
                     config: node.config || {},
                     originalId: node.id,
                 }));
                 
-                // Convertir les edges
                 this.edges = (data.data.connections || []).map(conn => ({
                     id: `edge_${conn.id}`,
                     source: `node_${conn.from_node_id}`,
@@ -512,14 +513,22 @@ class WorkflowDesigner {
     }
     
     async saveWorkflow() {
+        if (this.nodes.length === 0) {
+            alert('Ajoutez au moins un node avant de sauvegarder');
+            return;
+        }
+        
+        const workflowName = prompt('Nom du workflow:', 'Nouveau Workflow');
+        if (!workflowName) return;
+        
         const workflowData = {
-            name: 'Nouveau Workflow',
+            name: workflowName,
             nodes: this.nodes.map((node, index) => ({
                 node_type: node.type,
                 name: node.name,
                 config: node.config,
-                position_x: node.x,
-                position_y: node.y,
+                position_x: Math.round(node.x),
+                position_y: Math.round(node.y),
                 is_entry_point: index === 0,
             })),
             connections: this.edges.map(edge => ({
