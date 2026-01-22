@@ -232,7 +232,7 @@ PROMPT;
         $stmt->execute($params);
         $documents = $stmt->fetchAll();
         
-        // Ajouter les tags à chaque document
+        // Ajouter les tags, résumé et matches à chaque document
         foreach ($documents as &$doc) {
             $tagStmt = $this->db->prepare("
                 SELECT t.name FROM tags t
@@ -241,9 +241,76 @@ PROMPT;
             ");
             $tagStmt->execute([$doc['id']]);
             $doc['tags'] = array_column($tagStmt->fetchAll(), 'name');
+            
+            // Générer un résumé court (premiers 200 caractères)
+            $content = ($doc['ocr_text'] ?? '') ?: ($doc['content'] ?? '');
+            if (strlen($content) > 200) {
+                $doc['summary'] = substr($content, 0, 200) . '...';
+            } else {
+                $doc['summary'] = $content ?: 'Aucun contenu disponible';
+            }
+            
+            // Trouver les matches (lignes correspondantes)
+            if (!empty($filters['text_search'])) {
+                $doc['matches'] = $this->findMatches($doc, $filters['text_search']);
+            } else {
+                $doc['matches'] = [];
+            }
         }
         
         return $documents;
+    }
+    
+    /**
+     * Trouve les lignes correspondantes dans un document
+     */
+    private function findMatches(array $document, string $searchText): array
+    {
+        $matches = [];
+        $content = ($document['ocr_text'] ?? '') ?: ($document['content'] ?? '');
+        
+        if (empty($content)) {
+            return $matches;
+        }
+        
+        $words = preg_split('/\s+/', trim($searchText));
+        $lines = explode("\n", $content);
+        
+        foreach ($lines as $lineNum => $line) {
+            $lineNum++; // Numéro de ligne commence à 1
+            $lineLower = mb_strtolower($line, 'UTF-8');
+            
+            foreach ($words as $word) {
+                if (strlen($word) < 2) continue;
+                $wordLower = mb_strtolower($word, 'UTF-8');
+                
+                if (mb_strpos($lineLower, $wordLower) !== false) {
+                    // Trouver la position du mot dans la ligne
+                    $pos = mb_strpos($lineLower, $wordLower);
+                    $start = max(0, $pos - 50);
+                    $end = min(mb_strlen($line), $pos + mb_strlen($word) + 50);
+                    $excerpt = mb_substr($line, $start, $end - $start);
+                    
+                    // Ajouter "..." si nécessaire
+                    if ($start > 0) $excerpt = '...' . $excerpt;
+                    if ($end < mb_strlen($line)) $excerpt = $excerpt . '...';
+                    
+                    // Mettre en évidence le mot
+                    $excerpt = preg_replace('/(' . preg_quote($word, '/') . ')/iu', '<mark>$1</mark>', $excerpt);
+                    
+                    $matches[] = [
+                        'line' => $lineNum,
+                        'text' => trim($line),
+                        'excerpt' => $excerpt,
+                        'word' => $word
+                    ];
+                    break; // Une seule correspondance par ligne
+                }
+            }
+        }
+        
+        // Limiter à 5 matches maximum
+        return array_slice($matches, 0, 5);
     }
     
     /**

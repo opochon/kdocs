@@ -212,8 +212,19 @@ class WorkflowDesigner {
     }
     
     startDrag(e, node) {
+        // Si on clique sur un handle de connexion
         if (e.target.classList.contains('connection-handle')) {
-            // TODO: Créer une connexion
+            e.stopPropagation();
+            
+            if (e.target.classList.contains('output-handle')) {
+                // Démarrer une connexion depuis ce node
+                this.startConnection(node, e);
+            } else if (e.target.classList.contains('input-handle')) {
+                // Si on a une connexion en cours, la terminer ici
+                if (this.connectingFrom) {
+                    this.finishConnection(node);
+                }
+            }
             return;
         }
         
@@ -227,6 +238,87 @@ class WorkflowDesigner {
         
         document.addEventListener('mousemove', this.onDrag);
         document.addEventListener('mouseup', this.onDragEnd);
+    }
+    
+    startConnection(sourceNode, e) {
+        this.connectingFrom = sourceNode;
+        this.isConnecting = true;
+        
+        // Créer une ligne temporaire
+        const rect = this.canvas.getBoundingClientRect();
+        this.tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        this.tempLine.setAttribute('x1', sourceNode.x + 150);
+        this.tempLine.setAttribute('y1', sourceNode.y + 30);
+        this.tempLine.setAttribute('x2', e.clientX - rect.left);
+        this.tempLine.setAttribute('y2', e.clientY - rect.top);
+        this.tempLine.setAttribute('stroke', '#3b82f6');
+        this.tempLine.setAttribute('stroke-width', '2');
+        this.tempLine.setAttribute('stroke-dasharray', '5,5');
+        this.tempLine.setAttribute('marker-end', 'url(#arrowhead)');
+        this.edgesLayer.appendChild(this.tempLine);
+        
+        document.addEventListener('mousemove', this.onConnectionDrag);
+        document.addEventListener('mouseup', this.onConnectionEnd);
+        
+        // Changer le curseur
+        this.canvas.style.cursor = 'crosshair';
+    }
+    
+    onConnectionDrag = (e) => {
+        if (!this.isConnecting || !this.tempLine) return;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        this.tempLine.setAttribute('x2', e.clientX - rect.left);
+        this.tempLine.setAttribute('y2', e.clientY - rect.top);
+    };
+    
+    onConnectionEnd = (e) => {
+        document.removeEventListener('mousemove', this.onConnectionDrag);
+        document.removeEventListener('mouseup', this.onConnectionEnd);
+        
+        // Supprimer la ligne temporaire
+        if (this.tempLine) {
+            this.tempLine.remove();
+            this.tempLine = null;
+        }
+        
+        // Vérifier si on a relâché sur un input-handle
+        const target = e.target;
+        if (target.classList && target.classList.contains('input-handle')) {
+            const nodeGroup = target.closest('.workflow-node');
+            if (nodeGroup) {
+                const targetNodeId = nodeGroup.dataset.nodeId;
+                const targetNode = this.nodes.find(n => n.id === targetNodeId);
+                if (targetNode && this.connectingFrom) {
+                    this.finishConnection(targetNode);
+                }
+            }
+        }
+        
+        this.isConnecting = false;
+        this.connectingFrom = null;
+        this.canvas.style.cursor = 'default';
+    };
+    
+    finishConnection(targetNode) {
+        if (!this.connectingFrom || this.connectingFrom.id === targetNode.id) {
+            return; // Pas de connexion vers soi-même
+        }
+        
+        // Vérifier si la connexion existe déjà
+        const exists = this.edges.some(e => 
+            e.source === this.connectingFrom.id && e.target === targetNode.id
+        );
+        
+        if (!exists) {
+            const edgeId = `edge_${Date.now()}`;
+            this.edges.push({
+                id: edgeId,
+                source: this.connectingFrom.id,
+                target: targetNode.id,
+            });
+            this.renderEdges();
+        }
     }
     
     onDrag = (e) => {

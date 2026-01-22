@@ -208,20 +208,96 @@ $isConfigured = $claudeService->isConfigured();
                             const elements = getChatElements();
                             if (elements.messages) {
                                 const docsDiv = document.createElement('div');
-                                docsDiv.className = 'mt-2 space-y-2';
-                                data.documents.slice(0, 5).forEach(doc => {
-                                    const docLink = document.createElement('a');
-                                    docLink.href = '<?= url('/documents') ?>/' + doc.id;
-                                    docLink.className = 'block p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-sm';
-                                    docLink.innerHTML = `
-                                        <div class="font-medium">${doc.title || doc.original_filename || 'Sans titre'}</div>
-                                        <div class="text-gray-500 text-xs mt-1">
-                                            ${doc.correspondent_name || ''} 
-                                            ${doc.document_date ? '• ' + doc.document_date : ''}
-                                        </div>
-                                    `;
-                                    docsDiv.appendChild(docLink);
+                                docsDiv.className = 'mt-4 space-y-3';
+                                
+                                // En-tête
+                                const header = document.createElement('div');
+                                header.className = 'text-sm font-medium text-gray-700 mb-2';
+                                header.textContent = `J'ai trouvé ${data.documents.length} document(s) correspondant à votre recherche.`;
+                                docsDiv.appendChild(header);
+                                
+                                data.documents.slice(0, 10).forEach(doc => {
+                                    const docCard = document.createElement('div');
+                                    docCard.className = 'bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow';
+                                    
+                                    // En-tête du document
+                                    const docHeader = document.createElement('div');
+                                    docHeader.className = 'flex items-start justify-between mb-2';
+                                    
+                                    const docTitle = document.createElement('a');
+                                    docTitle.href = '<?= url('/documents') ?>/' + doc.id;
+                                    docTitle.className = 'font-semibold text-gray-900 hover:text-blue-600 text-sm';
+                                    docTitle.textContent = doc.title || doc.original_filename || 'Sans titre';
+                                    docHeader.appendChild(docTitle);
+                                    
+                                    docCard.appendChild(docHeader);
+                                    
+                                    // Métadonnées
+                                    const meta = document.createElement('div');
+                                    meta.className = 'flex flex-wrap gap-2 text-xs text-gray-500 mb-3';
+                                    const metaItems = [];
+                                    if (doc.correspondent_name) metaItems.push(`👤 ${doc.correspondent_name}`);
+                                    if (doc.document_type_name) metaItems.push(`📁 ${doc.document_type_name}`);
+                                    if (doc.document_date) metaItems.push(`📅 ${doc.document_date}`);
+                                    if (doc.amount) metaItems.push(`💰 ${parseFloat(doc.amount).toFixed(2)} CHF`);
+                                    if (doc.tags && doc.tags.length) metaItems.push(`🏷️ ${doc.tags.join(', ')}`);
+                                    meta.innerHTML = metaItems.join(' • ');
+                                    docCard.appendChild(meta);
+                                    
+                                    // Résumé/Aperçu
+                                    if (doc.summary) {
+                                        const summary = document.createElement('div');
+                                        summary.className = 'text-xs text-gray-600 mb-3 line-clamp-2';
+                                        summary.textContent = doc.summary;
+                                        docCard.appendChild(summary);
+                                    }
+                                    
+                                    // Matches (lignes correspondantes)
+                                    if (doc.matches && doc.matches.length > 0) {
+                                        const matchesDiv = document.createElement('div');
+                                        matchesDiv.className = 'mt-3 pt-3 border-t border-gray-100';
+                                        
+                                        const matchesTitle = document.createElement('div');
+                                        matchesTitle.className = 'text-xs font-medium text-gray-700 mb-2';
+                                        matchesTitle.textContent = 'Correspondances trouvées :';
+                                        matchesDiv.appendChild(matchesTitle);
+                                        
+                                        const matchesList = document.createElement('div');
+                                        matchesList.className = 'space-y-1';
+                                        
+                                        doc.matches.forEach(match => {
+                                            const matchItem = document.createElement('div');
+                                            matchItem.className = 'text-xs text-gray-600 flex items-start gap-2';
+                                            
+                                            const lineNum = document.createElement('span');
+                                            lineNum.className = 'font-mono text-gray-400 min-w-[3ch]';
+                                            lineNum.textContent = match.line + ':';
+                                            
+                                    const matchText = document.createElement('span');
+                                    matchText.className = 'flex-1';
+                                    // Échapper HTML sauf les balises <mark>
+                                    const text = (match.excerpt || match.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                    matchText.innerHTML = text.replace(/&lt;mark&gt;(.*?)&lt;\/mark&gt;/g, '<mark>$1</mark>');
+                                            
+                                            matchItem.appendChild(lineNum);
+                                            matchItem.appendChild(matchText);
+                                            matchesList.appendChild(matchItem);
+                                        });
+                                        
+                                        matchesDiv.appendChild(matchesList);
+                                        docCard.appendChild(matchesDiv);
+                                    }
+                                    
+                                    // Lien "Voir le document"
+                                    const viewLink = document.createElement('a');
+                                    viewLink.href = '<?= url('/documents') ?>/' + doc.id;
+                                    viewLink.className = 'inline-block mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium';
+                                    viewLink.textContent = '→ Voir le document complet';
+                                    docCard.appendChild(viewLink);
+                                    
+                                    docsDiv.appendChild(docCard);
                                 });
+                                
                                 elements.messages.appendChild(docsDiv);
                             }
                         }
