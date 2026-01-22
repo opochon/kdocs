@@ -17,11 +17,41 @@ class ClaudeService
     public function __construct()
     {
         $config = Config::load();
-        // Chercher la clé API dans plusieurs endroits
-        $this->apiKey = $config['claude']['api_key'] 
-                     ?? $config['ai']['claude_api_key'] 
-                     ?? $_ENV['ANTHROPIC_API_KEY'] 
-                     ?? '';
+        
+        // Chercher la clé API (ordre de priorité)
+        $this->apiKey = '';
+        
+        // 1. Config directe
+        if (!empty($config['claude']['api_key'])) {
+            $this->apiKey = $config['claude']['api_key'];
+        }
+        // 2. Config ai
+        elseif (!empty($config['ai']['claude_api_key'])) {
+            $this->apiKey = $config['ai']['claude_api_key'];
+        }
+        // 3. Variable d'environnement
+        elseif (!empty($_ENV['ANTHROPIC_API_KEY'])) {
+            $this->apiKey = $_ENV['ANTHROPIC_API_KEY'];
+        }
+        elseif (!empty(getenv('ANTHROPIC_API_KEY'))) {
+            $this->apiKey = getenv('ANTHROPIC_API_KEY');
+        }
+        // 4. Setting en base
+        else {
+            try {
+                $setting = \KDocs\Models\Setting::get('ai.claude_api_key');
+                if (!empty($setting)) {
+                    $this->apiKey = $setting;
+                }
+            } catch (\Exception $e) {}
+        }
+        // 5. Fichier texte
+        if (empty($this->apiKey)) {
+            $keyFile = dirname(__DIR__, 2) . '/claude_api_key.txt';
+            if (file_exists($keyFile)) {
+                $this->apiKey = trim(file_get_contents($keyFile));
+            }
+        }
         
         if (isset($config['claude']['model'])) {
             $this->model = $config['claude']['model'];

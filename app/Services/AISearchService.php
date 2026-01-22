@@ -132,11 +132,30 @@ PROMPT;
         $conditions = ["d.deleted_at IS NULL"];
         $params = [];
         
-        // Recherche full-text
+        // Recherche full-text AMÉLIORÉE - cherche chaque mot avec OR
         if (!empty($filters['text_search'])) {
-            $search = '%' . $filters['text_search'] . '%';
-            $conditions[] = "(d.title LIKE ? OR d.content LIKE ? OR d.original_filename LIKE ?)";
-            $params = array_merge($params, [$search, $search, $search]);
+            $searchText = trim($filters['text_search']);
+            $words = preg_split('/\s+/', $searchText);
+            
+            if (count($words) > 1) {
+                // Multi-mots : chercher AU MOINS un mot (OR)
+                $wordConditions = [];
+                foreach ($words as $word) {
+                    if (strlen($word) >= 2) {
+                        $search = '%' . $word . '%';
+                        $wordConditions[] = "(d.title LIKE ? OR d.content LIKE ? OR d.ocr_text LIKE ? OR d.original_filename LIKE ?)";
+                        $params = array_merge($params, [$search, $search, $search, $search]);
+                    }
+                }
+                if (!empty($wordConditions)) {
+                    $conditions[] = "(" . implode(" OR ", $wordConditions) . ")";
+                }
+            } else {
+                // Un seul mot
+                $search = '%' . $searchText . '%';
+                $conditions[] = "(d.title LIKE ? OR d.content LIKE ? OR d.ocr_text LIKE ? OR d.original_filename LIKE ?)";
+                $params = array_merge($params, [$search, $search, $search, $search]);
+            }
         }
         
         // Correspondent

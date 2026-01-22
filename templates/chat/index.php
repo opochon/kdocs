@@ -4,9 +4,9 @@ use KDocs\Core\Config;
 use KDocs\Models\Setting;
 $base = Config::basePath();
 
-// Vérifier si Claude est configuré
-$claudeApiKey = Setting::get('ai.claude_api_key', '');
-$isConfigured = !empty($claudeApiKey);
+// Vérifier si Claude est configuré (utiliser le même service que partout)
+$claudeService = new \KDocs\Services\ClaudeService();
+$isConfigured = $claudeService->isConfigured();
 ?>
 
 <div class="flex flex-col h-full max-w-4xl mx-auto">

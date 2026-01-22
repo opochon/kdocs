@@ -774,9 +774,78 @@ function discardChanges() {
     }
 }
 
-function getAISuggestions(docId) {
-    // TODO: Implémenter suggestions IA
-    alert('Suggestions IA à implémenter');
+async function getAISuggestions(docId) {
+    const btn = event.target;
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="animate-pulse">Analyse...</span>';
+    
+    try {
+        // L'API existe déjà : /api/documents/{id}/classify-ai
+        const response = await fetch(`<?= url('/api/documents/') ?>${docId}/classify-ai`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok || data.error) {
+            alert('Erreur: ' + (data.error || data.message || 'Erreur inconnue'));
+            return;
+        }
+        
+        const suggestions = data.suggestions || data.data?.suggestions;
+        if (!suggestions) {
+            alert('Aucune suggestion disponible. Vérifiez que :\n1. La clé API Claude est configurée (Paramètres > IA)\n2. Le document contient du texte lisible');
+            return;
+        }
+        
+        // Construire le message
+        const msg = [];
+        if (suggestions.title_suggestion) msg.push(`📝 Titre: ${suggestions.title_suggestion}`);
+        if (suggestions.correspondent) msg.push(`👤 Correspondant: ${suggestions.correspondent}`);
+        if (suggestions.document_type) msg.push(`📁 Type: ${suggestions.document_type}`);
+        if (suggestions.tags && suggestions.tags.length) msg.push(`🏷️ Tags: ${suggestions.tags.join(', ')}`);
+        if (suggestions.document_date) msg.push(`📅 Date: ${suggestions.document_date}`);
+        if (suggestions.amount) msg.push(`💰 Montant: ${suggestions.amount} CHF`);
+        if (suggestions.confidence) msg.push(`\n📊 Confiance: ${Math.round(suggestions.confidence * 100)}%`);
+        
+        if (msg.length === 0) {
+            alert('L\'IA n\'a pas pu extraire de suggestions pour ce document.');
+            return;
+        }
+        
+        const apply = confirm('🤖 Suggestions IA :\n\n' + msg.join('\n') + '\n\nAppliquer ces suggestions ?');
+        
+        if (apply) {
+            // Appeler l'API pour appliquer les suggestions
+            const applyResponse = await fetch(`<?= url('/api/documents/') ?>${docId}/apply-ai-suggestions`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const applyData = await applyResponse.json();
+            
+            if (applyResponse.ok && !applyData.error) {
+                alert('✅ Suggestions appliquées ! La page va se recharger.');
+                window.location.reload();
+            } else {
+                alert('Erreur lors de l\'application: ' + (applyData.error || 'Erreur inconnue'));
+            }
+        }
+    } catch (error) {
+        console.error('Erreur suggestions IA:', error);
+        alert('Erreur de connexion: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
 }
 
 function addCustomField() {
