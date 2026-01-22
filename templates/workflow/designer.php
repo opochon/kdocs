@@ -7,7 +7,7 @@ use KDocs\Core\Config;
 $base = Config::basePath();
 ?>
 
-<div class="flex flex-col h-full bg-white">
+<div class="flex flex-col bg-white h-full">
     <!-- Header -->
     <div class="border-b border-gray-200 px-6 py-4">
         <div class="flex items-center justify-between">

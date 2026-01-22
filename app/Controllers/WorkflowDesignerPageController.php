@@ -36,7 +36,8 @@ class WorkflowDesignerPageController
             'title' => 'Workflow Designer - K-Docs',
             'content' => $content,
             'user' => $user,
-            'pageTitle' => 'Workflow Designer'
+            'pageTitle' => 'Workflow Designer',
+            'fullHeight' => true
         ]);
         
         $response->getBody()->write($html);
@@ -59,7 +60,8 @@ class WorkflowDesignerPageController
             'title' => 'Nouveau Workflow - K-Docs',
             'content' => $content,
             'user' => $user,
-            'pageTitle' => 'Nouveau Workflow'
+            'pageTitle' => 'Nouveau Workflow',
+            'fullHeight' => true
         ]);
         
         $response->getBody()->write($html);

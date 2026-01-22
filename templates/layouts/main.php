@@ -27,10 +27,14 @@
                 <?php // include __DIR__ . '/../partials/search_chat.php'; ?>
             
             <!-- Page content -->
-            <main class="flex-1 overflow-y-auto p-6">
+            <main class="flex-1 overflow-y-auto <?= isset($fullHeight) && $fullHeight ? 'p-0' : 'p-6' ?>">
+                <?php if (!isset($fullHeight) || !$fullHeight): ?>
                 <div class="max-w-7xl mx-auto">
+                <?php endif; ?>
                     <?= $content ?? '' ?>
+                <?php if (!isset($fullHeight) || !$fullHeight): ?>
                 </div>
+                <?php endif; ?>
             </main>
             
             <!-- Footer -->
