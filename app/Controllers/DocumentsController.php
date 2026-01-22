@@ -19,6 +19,8 @@ use KDocs\Services\SearchParser;
 use KDocs\Services\WebhookService;
 use KDocs\Services\AuditService;
 use KDocs\Models\SavedSearch;
+use KDocs\Services\SearchService;
+use KDocs\Search\SearchQueryBuilder;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -233,85 +235,115 @@ class DocumentsController
                 $currentFolder = null;
             }
         } else {
-            // Vue par défaut : tous les documents (depuis la DB, mais filtrer ceux du filesystem)
-            $where = ['d.deleted_at IS NULL'];
-            $params = [];
-            $paramIndex = 1;
-            
-            // Recherche avancée avec SearchParser (Priorité 2.4)
-            if (!empty($search)) {
-                $parsedSearch = SearchParser::parse($search);
-                if (!empty($parsedSearch['where'])) {
-                    $where[] = $parsedSearch['where'];
-                    $params = array_merge($params, $parsedSearch['params']);
-                } else {
-                    // Fallback sur recherche simple si le parser ne retourne rien
+            // Vue par défaut : utiliser SearchService avec SearchQueryBuilder (nouveau)
+            try {
+                $searchService = new SearchService();
+                $builder = SearchQueryBuilder::create();
+                
+                // Recherche texte
+                if (!empty($search)) {
+                    $builder->whereText($search);
+                }
+                
+                // Filtres
+                if ($typeId) {
+                    $builder->whereDocumentType($typeId);
+                }
+                
+                if ($correspondentId) {
+                    $builder->whereCorrespondent($correspondentId);
+                }
+                
+                if ($tagId) {
+                    $builder->whereHasTag($tagId);
+                }
+                
+                // Tri
+                $sortField = match($sort) {
+                    'title' => 'title',
+                    'filename' => 'title', // Pas de champ filename dans SearchQuery, utiliser title
+                    'document_date' => 'created_at',
+                    'amount' => 'created_at', // Pas de champ amount dans SearchQuery
+                    default => 'created_at',
+                };
+                $builder->orderBy($sortField, $order);
+                
+                // Pagination
+                $builder->page($page, $limit);
+                
+                // Exécuter la recherche
+                $searchQuery = $builder->build();
+                $searchResult = $searchService->advancedSearch($searchQuery);
+                
+                $documents = $searchResult->documents;
+                $total = $searchResult->total;
+            } catch (\Exception $e) {
+                // Fallback sur l'ancienne méthode si erreur
+                error_log("SearchService error: " . $e->getMessage());
+                
+                $where = ['d.deleted_at IS NULL'];
+                $params = [];
+                
+                if (!empty($search)) {
                     $where[] = "(d.title LIKE ? OR d.original_filename LIKE ? OR d.filename LIKE ? OR d.ocr_text LIKE ? OR d.content LIKE ?)";
                     $searchParam = '%' . $search . '%';
-                    $params[] = $searchParam;
-                    $params[] = $searchParam;
-                    $params[] = $searchParam;
-                    $params[] = $searchParam;
-                    $params[] = $searchParam;
+                    $params = array_fill(0, 5, $searchParam);
                 }
+                
+                if ($typeId) {
+                    $where[] = "d.document_type_id = ?";
+                    $params[] = $typeId;
+                }
+                
+                if ($correspondentId) {
+                    $where[] = "d.correspondent_id = ?";
+                    $params[] = $correspondentId;
+                }
+                
+                if ($tagId) {
+                    $where[] = "EXISTS (SELECT 1 FROM document_tags dt WHERE dt.document_id = d.id AND dt.tag_id = ?)";
+                    $params[] = $tagId;
+                }
+                
+                $whereClause = 'WHERE ' . implode(' AND ', $where);
+                $orderBy = "d.$sort";
+                if ($sort === 'title') {
+                    $orderBy = "COALESCE(d.title, d.original_filename, d.filename)";
+                } elseif ($sort === 'filename') {
+                    $orderBy = "COALESCE(d.original_filename, d.filename)";
+                }
+                
+                $sql = "
+                    SELECT d.*, 
+                           dt.label as document_type_label,
+                           c.name as correspondent_name
+                    FROM documents d
+                    LEFT JOIN document_types dt ON d.document_type_id = dt.id
+                    LEFT JOIN correspondents c ON d.correspondent_id = c.id
+                    $whereClause
+                    ORDER BY $orderBy $order
+                    LIMIT ? OFFSET ?
+                ";
+                
+                $stmt = $db->prepare($sql);
+                $bindIndex = 1;
+                foreach ($params as $value) {
+                    $stmt->bindValue($bindIndex++, $value);
+                }
+                $stmt->bindValue($bindIndex++, $limit, PDO::PARAM_INT);
+                $stmt->bindValue($bindIndex++, $offset, PDO::PARAM_INT);
+                $stmt->execute();
+                $documents = $stmt->fetchAll();
+                
+                $countSql = "SELECT COUNT(*) FROM documents d $whereClause";
+                $countStmt = $db->prepare($countSql);
+                $countParamIndex = 1;
+                foreach ($params as $value) {
+                    $countStmt->bindValue($countParamIndex++, $value);
+                }
+                $countStmt->execute();
+                $total = (int)$countStmt->fetchColumn();
             }
-            
-            if ($typeId) {
-                $where[] = "d.document_type_id = ?";
-                $params[] = $typeId;
-            }
-            
-            if ($correspondentId) {
-                $where[] = "d.correspondent_id = ?";
-                $params[] = $correspondentId;
-            }
-            
-            if ($tagId) {
-                $where[] = "EXISTS (SELECT 1 FROM document_tags dt WHERE dt.document_id = d.id AND dt.tag_id = ?)";
-                $params[] = $tagId;
-            }
-            
-            $whereClause = 'WHERE ' . implode(' AND ', $where);
-            
-            // Construire ORDER BY selon le tri demandé
-            $orderBy = "d.$sort";
-            if ($sort === 'title') {
-                $orderBy = "COALESCE(d.title, d.original_filename, d.filename)";
-            } elseif ($sort === 'filename') {
-                $orderBy = "COALESCE(d.original_filename, d.filename)";
-            }
-            
-            $sql = "
-                SELECT d.*, 
-                       dt.label as document_type_label,
-                       c.name as correspondent_name
-                FROM documents d
-                LEFT JOIN document_types dt ON d.document_type_id = dt.id
-                LEFT JOIN correspondents c ON d.correspondent_id = c.id
-                $whereClause
-                ORDER BY $orderBy $order
-                LIMIT ? OFFSET ?
-            ";
-            
-            $stmt = $db->prepare($sql);
-            $bindIndex = 1;
-            foreach ($params as $value) {
-                $stmt->bindValue($bindIndex++, $value);
-            }
-            $stmt->bindValue($bindIndex++, $limit, PDO::PARAM_INT);
-            $stmt->bindValue($bindIndex++, $offset, PDO::PARAM_INT);
-            $stmt->execute();
-            $documents = $stmt->fetchAll();
-            
-            // Compter le total avec filtres
-            $countSql = "SELECT COUNT(*) FROM documents d $whereClause";
-            $countStmt = $db->prepare($countSql);
-            $countParamIndex = 1;
-            foreach ($params as $value) {
-                $countStmt->bindValue($countParamIndex++, $value);
-            }
-            $countStmt->execute();
-            $total = (int)$countStmt->fetchColumn();
         }
         
         $totalPages = ceil($total / $limit);

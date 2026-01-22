@@ -2,21 +2,24 @@
 namespace KDocs\Controllers\Api;
 
 use KDocs\Services\AISearchService;
+use KDocs\Services\NaturalLanguageQueryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class SearchApiController extends ApiController
 {
     private AISearchService $searchService;
+    private NaturalLanguageQueryService $nlQueryService;
     
     public function __construct()
     {
         $this->searchService = new AISearchService();
+        $this->nlQueryService = new NaturalLanguageQueryService();
     }
     
     /**
      * POST /api/search/ask
-     * Question en langage naturel
+     * Question en langage naturel (utilise maintenant NaturalLanguageQueryService)
      */
     public function ask(Request $request, Response $response): Response
     {
@@ -34,12 +37,34 @@ class SearchApiController extends ApiController
                 return $this->jsonResponse($response, ['error' => 'Question requise'], 400);
             }
             
-            $result = $this->searchService->askQuestion($question);
-            return $this->jsonResponse($response, $result);
+            // Utiliser le nouveau NaturalLanguageQueryService
+            $result = $this->nlQueryService->query($question);
+            
+            // Convertir SearchResult en format attendu par le frontend
+            return $this->jsonResponse($response, [
+                'answer' => $result->aiResponse ?? "J'ai trouvé {$result->total} document(s).",
+                'documents' => $result->documents,
+                'count' => $result->total,
+                'filters_used' => $result->query ? ['text_search' => $result->query] : [],
+                'search_time' => $result->searchTime,
+                'facets' => [
+                    'correspondents' => $result->correspondentFacets,
+                    'document_types' => $result->documentTypeFacets,
+                    'tags' => $result->tagFacets,
+                    'years' => $result->yearFacets,
+                ]
+            ]);
         } catch (\Exception $e) {
-            error_log("AISearch error: " . $e->getMessage());
+            error_log("NL Query error: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
-            return $this->jsonResponse($response, ['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
+            
+            // Fallback sur l'ancien service si erreur
+            try {
+                $result = $this->searchService->askQuestion($question);
+                return $this->jsonResponse($response, $result);
+            } catch (\Exception $e2) {
+                return $this->jsonResponse($response, ['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
+            }
         }
     }
     
