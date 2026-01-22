@@ -64,6 +64,9 @@ use KDocs\Controllers\Api\ConsumptionApiController;
 use KDocs\Controllers\Api\DocumentsApiController;
 use KDocs\Controllers\Api\TagsApiController;
 use KDocs\Controllers\Api\CorrespondentsApiController;
+use KDocs\Controllers\Api\SearchApiController;
+use KDocs\Controllers\Api\FoldersApiController;
+use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
 use KDocs\Core\Config;
 
@@ -101,6 +104,9 @@ $app->group('', function ($group) {
     $group->get('/', [DashboardController::class, 'index']);
     $group->get('/dashboard', [DashboardController::class, 'index']);
     
+    // Chat IA
+    $group->get('/chat', [ChatController::class, 'index']);
+    
     // Documents
     $group->get('/documents', [DocumentsController::class, 'index']);
     $group->get('/documents/upload', [DocumentsController::class, 'showUpload']);
@@ -112,6 +118,7 @@ $app->group('', function ($group) {
     $group->post('/documents/{id}/restore', [DocumentsController::class, 'restore']);  // Restauration
     $group->get('/documents/{id}/download', [DocumentsController::class, 'download']);
     $group->get('/documents/{id}/view', [DocumentsController::class, 'view']);
+    $group->get('/documents/{id}/thumbnail', [DocumentsController::class, 'thumbnail']);
     $group->get('/documents/{id}/share', [DocumentsController::class, 'share']);  // Priorité 3.3
     $group->get('/documents/{id}/history', [DocumentsController::class, 'history']);  // Priorité 3.4
     // Routes Notes (web) - AVANT routes API pour éviter conflits
@@ -158,6 +165,12 @@ $app->group('', function ($group) {
     $group->post('/api/documents/{id}/classify-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'classifyWithAI']);
     $group->post('/api/documents/{id}/apply-ai-suggestions', [\KDocs\Controllers\Api\DocumentsApiController::class, 'applyAISuggestions']);
     
+    // API Recherche IA (Recherche contextuelle & Chat IA)
+    $group->post('/api/search/ask', [SearchApiController::class, 'ask']);
+    $group->get('/api/search/quick', [SearchApiController::class, 'quick']);
+    $group->get('/api/search/reference', [SearchApiController::class, 'reference']);
+    $group->get('/api/documents/{id}/summary', [SearchApiController::class, 'summary']);
+    
     // API Recherches sauvegardées (Priorité 3.2)
     $group->get('/api/saved-searches', [DocumentsController::class, 'listSavedSearches']);
     $group->post('/api/saved-searches', [DocumentsController::class, 'saveSearch']);
@@ -165,6 +178,9 @@ $app->group('', function ($group) {
     
     // API Scanner
     $group->post('/api/scanner/scan', [DocumentsController::class, 'scanFilesystem']);
+    
+    // API Folders (arborescence dynamique)
+    $group->get('/api/folders/children', [FoldersApiController::class, 'getChildren']);
     
     // Tâches
     $group->get('/tasks', [TasksController::class, 'index']);
@@ -230,6 +246,7 @@ $app->group('', function ($group) {
     $group->get('/admin/workflows', [WorkflowsController::class, 'index']);
     $group->get('/admin/workflows/create', [WorkflowsController::class, 'showForm']);
     $group->get('/admin/workflows/{id}/edit', [WorkflowsController::class, 'showForm']);
+    $group->get('/admin/workflows/action-form-template', [WorkflowsController::class, 'actionFormTemplate']);
     $group->post('/admin/workflows/save', [WorkflowsController::class, 'save']);
     $group->post('/admin/workflows/{id}/save', [WorkflowsController::class, 'save']);
     $group->post('/admin/workflows/{id}/delete', [WorkflowsController::class, 'delete']);

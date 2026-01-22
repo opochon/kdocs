@@ -6,6 +6,7 @@
 namespace KDocs\Controllers;
 
 use KDocs\Models\Workflow;
+use KDocs\Core\Database;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -68,8 +69,44 @@ class WorkflowsController
             $workflow['actions'] = Workflow::getActions($workflow['id']);
         }
         
+        // Charger toutes les données nécessaires pour les actions
+        $db = Database::getInstance();
+        $tags = $db->query("SELECT id, name FROM tags ORDER BY name")->fetchAll();
+        $correspondents = $db->query("SELECT id, name FROM correspondents ORDER BY name")->fetchAll();
+        $documentTypes = $db->query("SELECT id, label FROM document_types ORDER BY label")->fetchAll();
+        
+        // Vérifier si la table storage_paths existe
+        try {
+            $storagePaths = $db->query("SELECT id, name FROM storage_paths ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $storagePaths = [];
+        }
+        
+        // Vérifier si la table custom_fields existe
+        try {
+            $customFields = $db->query("SELECT id, name FROM custom_fields ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $customFields = [];
+        }
+        
+        $users = $db->query("SELECT id, username, first_name, last_name FROM users ORDER BY username")->fetchAll();
+        
+        // Vérifier si la table groups existe
+        try {
+            $groups = $db->query("SELECT id, name FROM groups ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $groups = [];
+        }
+        
         $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/workflow_form.php', [
             'workflow' => $workflow,
+            'tags' => $tags,
+            'correspondents' => $correspondents,
+            'documentTypes' => $documentTypes,
+            'storagePaths' => $storagePaths,
+            'customFields' => $customFields,
+            'users' => $users,
+            'groups' => $groups,
         ]);
         
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
@@ -166,5 +203,48 @@ class WorkflowsController
         
         $basePath = \KDocs\Core\Config::basePath();
         return $response->withHeader('Location', $basePath . '/admin/workflows')->withStatus(302);
+    }
+    
+    public function actionFormTemplate(Request $request, Response $response): Response
+    {
+        $index = (int)($request->getQueryParams()['index'] ?? 0);
+        
+        // Charger toutes les données nécessaires
+        $db = Database::getInstance();
+        $tags = $db->query("SELECT id, name FROM tags ORDER BY name")->fetchAll();
+        $correspondents = $db->query("SELECT id, name FROM correspondents ORDER BY name")->fetchAll();
+        $documentTypes = $db->query("SELECT id, label FROM document_types ORDER BY label")->fetchAll();
+        
+        // Vérifier si la table storage_paths existe
+        try {
+            $storagePaths = $db->query("SELECT id, name FROM storage_paths ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $storagePaths = [];
+        }
+        
+        // Vérifier si la table custom_fields existe
+        try {
+            $customFields = $db->query("SELECT id, name FROM custom_fields ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $customFields = [];
+        }
+        
+        $users = $db->query("SELECT id, username, first_name, last_name FROM users ORDER BY username")->fetchAll();
+        
+        // Vérifier si la table groups existe
+        try {
+            $groups = $db->query("SELECT id, name FROM groups ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {
+            $groups = [];
+        }
+        
+        $action = null; // Nouvelle action
+        
+        ob_start();
+        include __DIR__ . '/../../templates/admin/workflow_action_form.php';
+        $html = ob_get_clean();
+        
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 }

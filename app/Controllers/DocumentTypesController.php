@@ -99,31 +99,48 @@ class DocumentTypesController
         $id = $data['id'] ?? null;
         $db = Database::getInstance();
         
-        $code = trim($data['code'] ?? '');
-        $label = trim($data['label'] ?? '');
-        $description = trim($data['description'] ?? '');
-        $retentionDays = !empty($data['retention_days']) ? (int)$data['retention_days'] : null;
+        // Utiliser "name" comme label (comme Paperless-ngx)
+        $name = trim($data['name'] ?? '');
         $match = trim($data['match'] ?? '');
-        $matchingAlgorithm = $data['matching_algorithm'] ?? 'none';
+        $matchingAlgorithm = isset($data['matching_algorithm']) ? (int)$data['matching_algorithm'] : 6; // 6 = Auto par défaut
+        $isInsensitive = isset($data['is_insensitive']) ? 1 : 0;
         
-        if (empty($code) || empty($label)) {
+        // Permissions
+        $ownerId = !empty($data['owner_id']) ? (int)$data['owner_id'] : null;
+        $viewUsers = isset($data['view_users']) && is_array($data['view_users']) ? json_encode(array_map('intval', $data['view_users'])) : null;
+        $viewGroups = isset($data['view_groups']) && is_array($data['view_groups']) ? json_encode(array_map('intval', $data['view_groups'])) : null;
+        $modifyUsers = isset($data['modify_users']) && is_array($data['modify_users']) ? json_encode(array_map('intval', $data['modify_users'])) : null;
+        $modifyGroups = isset($data['modify_groups']) && is_array($data['modify_groups']) ? json_encode(array_map('intval', $data['modify_groups'])) : null;
+        
+        if (empty($name)) {
             $basePath = \KDocs\Core\Config::basePath();
             return $response->withHeader('Location', $basePath . '/admin/document-types')->withStatus(302);
         }
         
+        // Générer un code à partir du nom (slug)
+        $code = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $name));
+        $code = trim($code, '-');
+        
         if ($id) {
             $stmt = $db->prepare("
                 UPDATE document_types 
-                SET code = ?, label = ?, description = ?, retention_days = ?, `match` = ?, matching_algorithm = ?
+                SET code = ?, label = ?, `match` = ?, matching_algorithm = ?, is_insensitive = ?,
+                    owner_id = ?, view_users = ?, view_groups = ?, modify_users = ?, modify_groups = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$code, $label, $description, $retentionDays, $match, $matchingAlgorithm, $id]);
+            $stmt->execute([
+                $code, $name, $match, $matchingAlgorithm, $isInsensitive,
+                $ownerId, $viewUsers, $viewGroups, $modifyUsers, $modifyGroups, $id
+            ]);
         } else {
             $stmt = $db->prepare("
-                INSERT INTO document_types (code, label, description, retention_days, `match`, matching_algorithm)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO document_types (code, label, `match`, matching_algorithm, is_insensitive, owner_id, view_users, view_groups, modify_users, modify_groups)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$code, $label, $description, $retentionDays, $match, $matchingAlgorithm]);
+            $stmt->execute([
+                $code, $name, $match, $matchingAlgorithm, $isInsensitive,
+                $ownerId, $viewUsers, $viewGroups, $modifyUsers, $modifyGroups
+            ]);
         }
         
         $basePath = \KDocs\Core\Config::basePath();

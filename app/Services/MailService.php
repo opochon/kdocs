@@ -234,4 +234,51 @@ class MailService
         $key = \KDocs\Core\Config::get('encryption_key', 'default-key-change-in-production');
         return openssl_decrypt(base64_decode($encrypted), 'AES-256-CBC', $key, 0, substr(hash('sha256', $key), 0, 16));
     }
+    
+    /**
+     * Envoie un email (pour les workflows)
+     * @param string $to Adresse email du destinataire
+     * @param string $subject Sujet de l'email
+     * @param string $body Corps de l'email (HTML)
+     * @param string|null $attachment Chemin vers le fichier à attacher
+     * @return bool True si l'email a été envoyé avec succès
+     */
+    public function send(string $to, string $subject, string $body, ?string $attachment = null): bool
+    {
+        try {
+            $boundary = uniqid('boundary_');
+            $headers = [];
+            $headers[] = "MIME-Version: 1.0";
+            $headers[] = "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+            $headers[] = "From: K-Docs <noreply@kdocs.local>";
+            $headers[] = "Reply-To: noreply@kdocs.local";
+            $headers[] = "X-Mailer: PHP/" . phpversion();
+            
+            $message = "--$boundary\r\n";
+            $message .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+            $message .= $body . "\r\n";
+            
+            // Ajouter la pièce jointe si fournie
+            if ($attachment && file_exists($attachment)) {
+                $filename = basename($attachment);
+                $fileContent = file_get_contents($attachment);
+                $fileContentEncoded = chunk_split(base64_encode($fileContent));
+                $mimeType = mime_content_type($attachment) ?: 'application/octet-stream';
+                
+                $message .= "--$boundary\r\n";
+                $message .= "Content-Type: $mimeType; name=\"$filename\"\r\n";
+                $message .= "Content-Disposition: attachment; filename=\"$filename\"\r\n";
+                $message .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $message .= $fileContentEncoded . "\r\n";
+            }
+            
+            $message .= "--$boundary--\r\n";
+            
+            return mail($to, $subject, $message, implode("\r\n", $headers));
+        } catch (\Exception $e) {
+            error_log("Erreur envoi email: " . $e->getMessage());
+            return false;
+        }
+    }
 }

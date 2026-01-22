@@ -22,32 +22,31 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rétention</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rapprochement</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                <?php foreach ($documentTypes as $type): ?>
+                <?php 
+                $algorithmNames = [
+                    0 => 'Aucun',
+                    1 => 'Any',
+                    2 => 'All',
+                    3 => 'Exact',
+                    4 => 'Regex',
+                    5 => 'Fuzzy',
+                    6 => 'Automatique'
+                ];
+                foreach ($documentTypes as $type): 
+                ?>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900 font-mono"><?= htmlspecialchars($type['code']) ?></div>
-                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($type['label']) ?></div>
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-500"><?= htmlspecialchars($type['description'] ?? '-') ?></div>
-                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <?php if ($type['retention_days']): ?>
-                        <span class="text-sm text-gray-900"><?= $type['retention_days'] ?> jours</span>
-                        <?php else: ?>
-                        <span class="text-sm text-gray-400">-</span>
-                        <?php endif; ?>
+                        <span class="text-sm text-gray-600"><?= htmlspecialchars($algorithmNames[$type['matching_algorithm'] ?? 6] ?? 'Automatique') ?></span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="text-sm text-gray-900"><?= $type['document_count'] ?></span>

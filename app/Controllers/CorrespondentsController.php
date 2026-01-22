@@ -123,6 +123,8 @@ class CorrespondentsController
         $name = trim($data['name'] ?? '');
         $slug = trim($data['slug'] ?? '');
         $match = trim($data['match'] ?? '');
+        $matchingAlgorithm = (int)($data['matching_algorithm'] ?? 0);
+        $isInsensitive = isset($data['is_insensitive']) ? 1 : 0;
         
         if (empty($name)) {
             $basePath = \KDocs\Core\Config::basePath();
@@ -143,8 +145,8 @@ class CorrespondentsController
             $oldCorrespondent = $oldCorrStmt->fetch(PDO::FETCH_ASSOC);
             
             // Mise à jour
-            $stmt = $db->prepare("UPDATE correspondents SET name = ?, slug = ?, match = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$name, $slug, $match, $id]);
+            $stmt = $db->prepare("UPDATE correspondents SET name = ?, slug = ?, match = ?, matching_algorithm = ?, is_insensitive = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$name, $slug, $match, $matchingAlgorithm, $isInsensitive, $id]);
             
             // Audit log
             if ($oldCorrespondent) {
@@ -158,8 +160,8 @@ class CorrespondentsController
             }
         } else {
             // Création
-            $stmt = $db->prepare("INSERT INTO correspondents (name, slug, match, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-            $stmt->execute([$name, $slug, $match]);
+            $stmt = $db->prepare("INSERT INTO correspondents (name, slug, match, matching_algorithm, is_insensitive, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
+            $stmt->execute([$name, $slug, $match, $matchingAlgorithm, $isInsensitive]);
             $newId = (int)$db->lastInsertId();
             
             // Audit log

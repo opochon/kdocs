@@ -99,19 +99,41 @@ $defaultColors = [
                     <p class="mt-1 text-sm text-gray-500">Texte utilisé pour le matching automatique</p>
                 </div>
                 
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="matching_algorithm" class="block text-sm font-medium text-gray-700 mb-1">Algorithme</label>
+                        <select id="matching_algorithm" 
+                                name="matching_algorithm"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="0" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 0 ? 'selected' : '' ?>>Aucun</option>
+                            <option value="1" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 1 ? 'selected' : '' ?>>N'importe lequel</option>
+                            <option value="2" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 2 ? 'selected' : '' ?>>Tous</option>
+                            <option value="3" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 3 ? 'selected' : '' ?>>Exact</option>
+                            <option value="4" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 4 ? 'selected' : '' ?>>Regex</option>
+                            <option value="5" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 5 ? 'selected' : '' ?>>Fuzzy</option>
+                            <option value="6" <?= ((int)($tag['matching_algorithm'] ?? 0)) == 6 ? 'selected' : '' ?>>Auto (ML)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
+                        <label class="flex items-center h-10 px-3 py-2 border border-gray-300 rounded-lg">
+                            <input type="checkbox" name="is_insensitive" value="1" 
+                                   <?= ($tag['is_insensitive'] ?? true) ? 'checked' : '' ?>
+                                   class="mr-2">
+                            <span class="text-sm">Insensible à la casse</span>
+                        </label>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500">Algorithme utilisé pour le matching automatique</p>
+                
                 <div>
-                    <label for="matching_algorithm" class="block text-sm font-medium text-gray-700 mb-1">Algorithme de matching</label>
-                    <select id="matching_algorithm" 
-                            name="matching_algorithm"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="none" <?= ($tag['matching_algorithm'] ?? 'none') === 'none' ? 'selected' : '' ?>>Aucun</option>
-                        <option value="any" <?= ($tag['matching_algorithm'] ?? '') === 'any' ? 'selected' : '' ?>>Any (n'importe quel mot)</option>
-                        <option value="all" <?= ($tag['matching_algorithm'] ?? '') === 'all' ? 'selected' : '' ?>>All (tous les mots)</option>
-                        <option value="exact" <?= ($tag['matching_algorithm'] ?? '') === 'exact' ? 'selected' : '' ?>>Exact (correspondance exacte)</option>
-                        <option value="regex" <?= ($tag['matching_algorithm'] ?? '') === 'regex' ? 'selected' : '' ?>>Regex (expression régulière)</option>
-                        <option value="fuzzy" <?= ($tag['matching_algorithm'] ?? '') === 'fuzzy' ? 'selected' : '' ?>>Fuzzy (approximatif)</option>
-                    </select>
-                    <p class="mt-1 text-sm text-gray-500">Algorithme utilisé pour le matching automatique</p>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_inbox_tag" value="1" 
+                               <?= ($tag['is_inbox_tag'] ?? false) ? 'checked' : '' ?>
+                               class="mr-2">
+                        <span class="text-sm text-gray-700">Est un tag Inbox</span>
+                    </label>
+                    <p class="mt-1 text-sm text-gray-500">Marque les documents non traités</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-4 border-t">

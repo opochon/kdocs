@@ -40,18 +40,41 @@ $isEdit = !empty($correspondent);
                     <p class="mt-1 text-sm text-gray-500">Identifiant unique (généré automatiquement si vide)</p>
                 </div>
 
-                <div>
-                    <label for="match" class="block text-sm font-medium text-gray-700 mb-1">Expression de correspondance</label>
-                    <input 
-                        type="text" 
-                        id="match" 
-                        name="match" 
-                        value="<?= htmlspecialchars($correspondent['match'] ?? '') ?>"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ex: ACME|Acme Corp"
-                    >
-                    <p class="mt-1 text-sm text-gray-500">Expression régulière pour détecter automatiquement ce correspondant</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="match" class="block text-sm font-medium text-gray-700 mb-1">Match</label>
+                        <input 
+                            type="text" 
+                            id="match" 
+                            name="match" 
+                            value="<?= htmlspecialchars($correspondent['match'] ?? '') ?>"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Texte à rechercher"
+                        >
+                    </div>
+                    <div>
+                        <label for="matching_algorithm" class="block text-sm font-medium text-gray-700 mb-1">Algorithme</label>
+                        <select id="matching_algorithm" 
+                                name="matching_algorithm"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="0" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 0 ? 'selected' : '' ?>>Aucun</option>
+                            <option value="1" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 1 ? 'selected' : '' ?>>N'importe lequel</option>
+                            <option value="2" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 2 ? 'selected' : '' ?>>Tous</option>
+                            <option value="3" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 3 ? 'selected' : '' ?>>Exact</option>
+                            <option value="4" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 4 ? 'selected' : '' ?>>Regex</option>
+                            <option value="5" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 5 ? 'selected' : '' ?>>Fuzzy</option>
+                            <option value="6" <?= ((int)($correspondent['matching_algorithm'] ?? 0)) == 6 ? 'selected' : '' ?>>Auto (ML)</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="mt-2">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_insensitive" value="1" 
+                               <?= ($correspondent['is_insensitive'] ?? true) ? 'checked' : '' ?>>
+                        <span class="ml-2 text-sm">Insensible à la casse</span>
+                    </label>
+                </div>
+                <p class="text-sm text-gray-500">Expression pour détecter automatiquement ce correspondant</p>
 
                 <div class="flex items-center justify-end gap-3 pt-4 border-t">
                     <a href="<?= url('/admin/correspondents') ?>" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">

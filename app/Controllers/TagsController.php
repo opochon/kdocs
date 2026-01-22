@@ -131,6 +131,10 @@ class TagsController
         $name = trim($data['name'] ?? '');
         $color = trim($data['color'] ?? '#6b7280');
         $match = trim($data['match'] ?? '');
+        $matchingAlgorithm = (int)($data['matching_algorithm'] ?? 0);
+        $isInsensitive = isset($data['is_insensitive']) ? 1 : 0;
+        $isInboxTag = isset($data['is_inbox_tag']) ? 1 : 0;
+        $parentId = !empty($data['parent_id']) ? (int)$data['parent_id'] : null;
         
         if (empty($name)) {
             $basePath = \KDocs\Core\Config::basePath();
@@ -151,8 +155,8 @@ class TagsController
             $oldTag = $oldTagStmt->fetch(PDO::FETCH_ASSOC);
             
             // Mise à jour
-            $stmt = $db->prepare("UPDATE tags SET name = ?, color = ?, match = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$name, $color, $match, $id]);
+            $stmt = $db->prepare("UPDATE tags SET name = ?, color = ?, match = ?, matching_algorithm = ?, is_insensitive = ?, is_inbox_tag = ?, parent_id = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$name, $color, $match, $matchingAlgorithm, $isInsensitive, $isInboxTag, $parentId, $id]);
             
             // Audit log
             if ($oldTag) {
@@ -166,8 +170,8 @@ class TagsController
             }
         } else {
             // Création
-            $stmt = $db->prepare("INSERT INTO tags (name, color, match, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-            $stmt->execute([$name, $color, $match]);
+            $stmt = $db->prepare("INSERT INTO tags (name, color, match, matching_algorithm, is_insensitive, is_inbox_tag, parent_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+            $stmt->execute([$name, $color, $match, $matchingAlgorithm, $isInsensitive, $isInboxTag, $parentId]);
             $newId = (int)$db->lastInsertId();
             
             // Audit log

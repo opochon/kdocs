@@ -119,6 +119,20 @@ class SettingsController
             }
         }
         
+        // Sauvegarder les paramètres KDrive
+        if (isset($data['kdrive'])) {
+            foreach ($data['kdrive'] as $key => $value) {
+                $fullKey = 'kdrive.' . $key;
+                // Masquer le mot de passe dans les logs
+                $displayKey = ($key === 'password' && !empty($value)) ? 'kdrive.password (masqué)' : $fullKey;
+                if (Setting::set($fullKey, $value, 'string', $user['id'])) {
+                    $success[] = "Paramètre $displayKey sauvegardé";
+                } else {
+                    $errors[] = "Erreur lors de la sauvegarde de $displayKey";
+                }
+            }
+        }
+        
         // Réinitialiser le cache de configuration pour recharger les nouveaux paramètres
         Config::reset();
         

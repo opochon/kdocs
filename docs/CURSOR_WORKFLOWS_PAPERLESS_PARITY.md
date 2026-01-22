@@ -1,9 +1,158 @@
-<?php
-/**
- * K-Docs - Service Workflow (Parité Paperless-ngx)
- * Exécute les workflows automatiques avec tous les triggers et actions
- */
+# K-Docs - Mise à niveau Workflows au niveau Paperless-ngx
 
+## 🎯 OBJECTIF
+
+Atteindre la parité complète avec les workflows Paperless-ngx.
+Référence : https://docs.paperless-ngx.com/usage/#workflows
+
+---
+
+## 📋 ÉTAT ACTUEL vs CIBLE
+
+### Triggers - À compléter
+
+**Paperless-ngx supporte :**
+1. **Consumption Started** - Avant que le document soit consommé
+   - Filtres : sources (consume folder, API upload, mail fetch), filter_path, filter_filename
+   
+2. **Document Added** - Après ajout d'un document
+   - Filtres : filter_has_tags, filter_has_all_tags, filter_has_not_tags
+   - filter_has_correspondent, filter_has_not_correspondents  
+   - filter_has_document_type, filter_has_not_document_types
+   - filter_has_storage_path, filter_has_not_storage_paths
+   - match (texte à chercher), matching_algorithm (any/all/exact/regex/fuzzy), is_insensitive
+   
+3. **Document Updated** - Quand un document est modifié
+   - Mêmes filtres que Document Added
+   
+4. **Scheduled** - Planifié basé sur une date
+   - schedule_date_field (created, added, modified, custom_field)
+   - schedule_date_custom_field (ID du champ custom si custom_field)
+   - schedule_offset_days (peut être négatif pour "X jours avant")
+   - schedule_is_recurring, schedule_recurring_interval_days
+
+### Actions - À compléter
+
+**Paperless-ngx supporte :**
+
+1. **Assignment (type=1)** - Assigner des valeurs
+   - assign_title (avec placeholders : {correspondent}, {document_type}, {created_year}, etc.)
+   - assign_tags (liste d'IDs)
+   - assign_document_type (ID)
+   - assign_correspondent (ID)
+   - assign_storage_path (ID)
+   - assign_owner (user ID)
+   - assign_view_users, assign_view_groups (permissions lecture)
+   - assign_change_users, assign_change_groups (permissions modification)
+   - assign_custom_fields (liste d'IDs de champs à assigner)
+   - assign_custom_fields_values (JSON avec les valeurs)
+
+2. **Removal (type=2)** - Retirer des valeurs
+   - remove_tags (liste d'IDs)
+   - remove_all_tags (boolean)
+   - remove_correspondents (liste d'IDs)
+   - remove_all_correspondents (boolean)
+   - remove_document_types (liste d'IDs)
+   - remove_all_document_types (boolean)
+   - remove_storage_paths (liste d'IDs)
+   - remove_all_storage_paths (boolean)
+   - remove_custom_fields (liste d'IDs)
+   - remove_all_custom_fields (boolean)
+   - remove_owners, remove_all_owners
+   - remove_view_users, remove_view_groups, remove_change_users, remove_change_groups
+   - remove_all_permissions (boolean)
+
+3. **Email (type=3)** - Envoyer un email
+   - email_subject (avec placeholders)
+   - email_body (avec placeholders)
+   - email_to (adresse email)
+   - email_include_document (boolean - attacher le PDF)
+
+4. **Webhook (type=4)** - Appeler une URL
+   - webhook_url
+   - webhook_use_params (boolean - GET params vs body)
+   - webhook_as_json (boolean - JSON vs form-data)
+   - webhook_params (JSON pour les paramètres)
+   - webhook_body (template du body avec placeholders)
+   - webhook_headers (JSON pour headers custom)
+   - webhook_include_document (boolean - inclure le fichier)
+
+---
+
+## 📁 FICHIERS À MODIFIER
+
+### 1. Migration Base de Données
+
+**Créer** `database/migrations/add_workflow_columns.sql` :
+```sql
+-- Ajout des colonnes manquantes pour les triggers
+ALTER TABLE workflow_triggers 
+    ADD COLUMN IF NOT EXISTS sources TEXT DEFAULT NULL COMMENT 'JSON: consume_folder, api_upload, mail_fetch',
+    ADD COLUMN IF NOT EXISTS filter_has_tags TEXT DEFAULT NULL COMMENT 'JSON array of tag IDs',
+    ADD COLUMN IF NOT EXISTS filter_has_all_tags TEXT DEFAULT NULL COMMENT 'JSON array of tag IDs (ALL must match)',
+    ADD COLUMN IF NOT EXISTS filter_has_not_tags TEXT DEFAULT NULL COMMENT 'JSON array of tag IDs to exclude',
+    ADD COLUMN IF NOT EXISTS filter_has_correspondent INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS filter_has_not_correspondents TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS filter_has_document_type INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS filter_has_not_document_types TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS filter_has_storage_path INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS filter_has_not_storage_paths TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS match_text VARCHAR(500) DEFAULT NULL COMMENT 'Text to match in content',
+    ADD COLUMN IF NOT EXISTS matching_algorithm ENUM('any', 'all', 'exact', 'regex', 'fuzzy') DEFAULT 'any',
+    ADD COLUMN IF NOT EXISTS is_insensitive BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS schedule_date_field ENUM('created', 'added', 'modified', 'custom_field') DEFAULT 'created',
+    ADD COLUMN IF NOT EXISTS schedule_date_custom_field INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS schedule_recurring_interval_days INT DEFAULT 30;
+
+-- Ajout des colonnes manquantes pour les actions
+ALTER TABLE workflow_actions
+    ADD COLUMN IF NOT EXISTS assign_title VARCHAR(500) DEFAULT NULL COMMENT 'Title template with placeholders',
+    ADD COLUMN IF NOT EXISTS assign_tags TEXT DEFAULT NULL COMMENT 'JSON array of tag IDs',
+    ADD COLUMN IF NOT EXISTS assign_document_type INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS assign_correspondent INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS assign_storage_path INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS assign_owner INT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS assign_view_users TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS assign_view_groups TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS assign_change_users TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS assign_change_groups TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS assign_custom_fields TEXT DEFAULT NULL COMMENT 'JSON array of field IDs',
+    ADD COLUMN IF NOT EXISTS assign_custom_fields_values TEXT DEFAULT NULL COMMENT 'JSON object {field_id: value}',
+    ADD COLUMN IF NOT EXISTS remove_tags TEXT DEFAULT NULL COMMENT 'JSON array',
+    ADD COLUMN IF NOT EXISTS remove_all_tags BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_correspondents TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_correspondents BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_document_types TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_document_types BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_storage_paths TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_storage_paths BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_custom_fields TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_custom_fields BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_owners TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_owners BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS remove_view_users TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_view_groups TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_change_users TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_change_groups TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS remove_all_permissions BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS email_subject VARCHAR(500) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS email_body TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS email_to VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS email_include_document BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS webhook_url VARCHAR(500) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS webhook_use_params BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS webhook_as_json BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS webhook_params TEXT DEFAULT NULL COMMENT 'JSON object',
+    ADD COLUMN IF NOT EXISTS webhook_body TEXT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS webhook_headers TEXT DEFAULT NULL COMMENT 'JSON object',
+    ADD COLUMN IF NOT EXISTS webhook_include_document BOOLEAN DEFAULT FALSE;
+```
+
+### 2. Service WorkflowService Complet
+
+**Modifier** `app/Services/WorkflowService.php` :
+```php
+<?php
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
@@ -44,8 +193,8 @@ class WorkflowService
     {
         $results = [];
         
-        // Récupérer le document avec toutes les relations
-        $document = $this->getDocumentWithRelations($documentId);
+        // Récupérer le document
+        $document = Document::find($documentId);
         if (!$document) {
             return ['error' => 'Document not found'];
         }
@@ -103,41 +252,6 @@ class WorkflowService
     }
     
     /**
-     * Récupère un document avec toutes ses relations
-     */
-    private function getDocumentWithRelations(int $documentId): ?array
-    {
-        $stmt = $this->db->prepare("
-            SELECT d.*, 
-                   dt.label as document_type_label,
-                   dt.code as document_type_code,
-                   c.name as correspondent_name,
-                   u.username as created_by_username,
-                   sp.name as storage_path_name,
-                   sp.path as storage_path_path,
-                   owner.username as owner_name
-            FROM documents d
-            LEFT JOIN document_types dt ON d.document_type_id = dt.id
-            LEFT JOIN correspondents c ON d.correspondent_id = c.id
-            LEFT JOIN users u ON d.created_by = u.id
-            LEFT JOIN storage_paths sp ON d.storage_path_id = sp.id
-            LEFT JOIN users owner ON d.owner_id = owner.id
-            WHERE d.id = ? AND d.deleted_at IS NULL
-        ");
-        $stmt->execute([$documentId]);
-        $document = $stmt->fetch();
-        
-        if ($document) {
-            // Ajouter les alias pour compatibilité
-            $document['document_type_name'] = $document['document_type_label'] ?? null;
-            $document['added_at'] = $document['created_at'] ?? null;
-            $document['archive_serial_number'] = $document['asn'] ?? null;
-        }
-        
-        return $document ?: null;
-    }
-    
-    /**
      * Vérifie si un trigger correspond au document
      */
     private function triggerMatches(array $trigger, array $document, array $context = []): bool
@@ -178,7 +292,7 @@ class WorkflowService
         if (!empty($trigger['filter_has_tags'])) {
             $requiredTags = json_decode($trigger['filter_has_tags'], true) ?: [];
             $documentTags = $this->getDocumentTagIds($document['id']);
-            if (empty(array_intersect($requiredTags, $documentTags))) {
+            if (!array_intersect($requiredTags, $documentTags)) {
                 return false;
             }
         }
@@ -196,7 +310,7 @@ class WorkflowService
         if (!empty($trigger['filter_has_not_tags'])) {
             $excludedTags = json_decode($trigger['filter_has_not_tags'], true) ?: [];
             $documentTags = $this->getDocumentTagIds($document['id']);
-            if (!empty(array_intersect($excludedTags, $documentTags))) {
+            if (array_intersect($excludedTags, $documentTags)) {
                 return false;
             }
         }
@@ -208,25 +322,9 @@ class WorkflowService
             }
         }
         
-        // Filtre par correspondents exclus
-        if (!empty($trigger['filter_has_not_correspondents'])) {
-            $excluded = json_decode($trigger['filter_has_not_correspondents'], true) ?: [];
-            if (in_array($document['correspondent_id'], $excluded)) {
-                return false;
-            }
-        }
-        
         // Filtre par document type
         if (!empty($trigger['filter_has_document_type'])) {
             if ($document['document_type_id'] != $trigger['filter_has_document_type']) {
-                return false;
-            }
-        }
-        
-        // Filtre par document types exclus
-        if (!empty($trigger['filter_has_not_document_types'])) {
-            $excluded = json_decode($trigger['filter_has_not_document_types'], true) ?: [];
-            if (in_array($document['document_type_id'], $excluded)) {
                 return false;
             }
         }
@@ -238,18 +336,10 @@ class WorkflowService
             }
         }
         
-        // Filtre par storage paths exclus
-        if (!empty($trigger['filter_has_not_storage_paths'])) {
-            $excluded = json_decode($trigger['filter_has_not_storage_paths'], true) ?: [];
-            if (in_array($document['storage_path_id'], $excluded)) {
-                return false;
-            }
-        }
-        
         // Filtre par match text
         if (!empty($trigger['match_text'])) {
             $text = $trigger['match_text'];
-            $content = ($document['title'] ?? '') . ' ' . ($document['ocr_text'] ?? '') . ' ' . ($document['content'] ?? '');
+            $content = ($document['title'] ?? '') . ' ' . ($document['content'] ?? '');
             $algorithm = $trigger['matching_algorithm'] ?? 'any';
             $insensitive = $trigger['is_insensitive'] ?? true;
             
@@ -336,47 +426,16 @@ class WorkflowService
             $updates['owner_id'] = $action['assign_owner'];
         }
         
-        // Assign permissions (view)
-        if (!empty($action['assign_view_users'])) {
-            $users = json_decode($action['assign_view_users'], true) ?: [];
-            // TODO: Implémenter la gestion des permissions si la table existe
-            $updates['view_users'] = $users;
-        }
-        
-        if (!empty($action['assign_view_groups'])) {
-            $groups = json_decode($action['assign_view_groups'], true) ?: [];
-            // TODO: Implémenter la gestion des permissions si la table existe
-            $updates['view_groups'] = $groups;
-        }
-        
-        // Assign permissions (change)
-        if (!empty($action['assign_change_users'])) {
-            $users = json_decode($action['assign_change_users'], true) ?: [];
-            // TODO: Implémenter la gestion des permissions si la table existe
-            $updates['change_users'] = $users;
-        }
-        
-        if (!empty($action['assign_change_groups'])) {
-            $groups = json_decode($action['assign_change_groups'], true) ?: [];
-            // TODO: Implémenter la gestion des permissions si la table existe
-            $updates['change_groups'] = $groups;
-        }
-        
         // Assign custom fields
         if (!empty($action['assign_custom_fields_values'])) {
             $values = json_decode($action['assign_custom_fields_values'], true) ?: [];
             foreach ($values as $fieldId => $value) {
                 // Upsert custom field value
-                try {
-                    $this->db->prepare("
-                        INSERT INTO document_custom_fields (document_id, custom_field_id, value)
-                        VALUES (?, ?, ?)
-                        ON DUPLICATE KEY UPDATE value = VALUES(value)
-                    ")->execute([$docId, $fieldId, $value]);
-                } catch (\Exception $e) {
-                    // Table peut ne pas exister
-                    error_log("Erreur assign custom field: " . $e->getMessage());
-                }
+                $this->db->prepare("
+                    INSERT INTO document_custom_fields (document_id, custom_field_id, value)
+                    VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE value = VALUES(value)
+                ")->execute([$docId, $fieldId, $value]);
             }
             $updates['custom_fields'] = $values;
         }
@@ -398,88 +457,40 @@ class WorkflowService
             $removed['all_tags'] = true;
         } elseif (!empty($action['remove_tags'])) {
             $tags = json_decode($action['remove_tags'], true) ?: [];
-            if (!empty($tags)) {
-                $placeholders = implode(',', array_fill(0, count($tags), '?'));
-                $this->db->prepare("DELETE FROM document_tags WHERE document_id = ? AND tag_id IN ($placeholders)")
-                    ->execute(array_merge([$docId], $tags));
-                $removed['tags'] = $tags;
-            }
+            $placeholders = implode(',', array_fill(0, count($tags), '?'));
+            $this->db->prepare("DELETE FROM document_tags WHERE document_id = ? AND tag_id IN ($placeholders)")
+                ->execute(array_merge([$docId], $tags));
+            $removed['tags'] = $tags;
         }
         
         // Remove correspondent
         if (!empty($action['remove_all_correspondents'])) {
             $this->db->prepare("UPDATE documents SET correspondent_id = NULL WHERE id = ?")->execute([$docId]);
             $removed['correspondent'] = true;
-        } elseif (!empty($action['remove_correspondents'])) {
-            $correspondents = json_decode($action['remove_correspondents'], true) ?: [];
-            if (in_array($document['correspondent_id'], $correspondents)) {
-                $this->db->prepare("UPDATE documents SET correspondent_id = NULL WHERE id = ?")->execute([$docId]);
-                $removed['correspondent'] = true;
-            }
         }
         
         // Remove document type
         if (!empty($action['remove_all_document_types'])) {
             $this->db->prepare("UPDATE documents SET document_type_id = NULL WHERE id = ?")->execute([$docId]);
             $removed['document_type'] = true;
-        } elseif (!empty($action['remove_document_types'])) {
-            $types = json_decode($action['remove_document_types'], true) ?: [];
-            if (in_array($document['document_type_id'], $types)) {
-                $this->db->prepare("UPDATE documents SET document_type_id = NULL WHERE id = ?")->execute([$docId]);
-                $removed['document_type'] = true;
-            }
         }
         
         // Remove storage path
         if (!empty($action['remove_all_storage_paths'])) {
             $this->db->prepare("UPDATE documents SET storage_path_id = NULL WHERE id = ?")->execute([$docId]);
             $removed['storage_path'] = true;
-        } elseif (!empty($action['remove_storage_paths'])) {
-            $paths = json_decode($action['remove_storage_paths'], true) ?: [];
-            if (in_array($document['storage_path_id'], $paths)) {
-                $this->db->prepare("UPDATE documents SET storage_path_id = NULL WHERE id = ?")->execute([$docId]);
-                $removed['storage_path'] = true;
-            }
         }
         
         // Remove custom fields
         if (!empty($action['remove_all_custom_fields'])) {
-            try {
-                $this->db->prepare("DELETE FROM document_custom_fields WHERE document_id = ?")->execute([$docId]);
-                $removed['all_custom_fields'] = true;
-            } catch (\Exception $e) {
-                error_log("Erreur remove all custom fields: " . $e->getMessage());
-            }
+            $this->db->prepare("DELETE FROM document_custom_fields WHERE document_id = ?")->execute([$docId]);
+            $removed['all_custom_fields'] = true;
         } elseif (!empty($action['remove_custom_fields'])) {
             $fields = json_decode($action['remove_custom_fields'], true) ?: [];
-            if (!empty($fields)) {
-                try {
-                    $placeholders = implode(',', array_fill(0, count($fields), '?'));
-                    $this->db->prepare("DELETE FROM document_custom_fields WHERE document_id = ? AND custom_field_id IN ($placeholders)")
-                        ->execute(array_merge([$docId], $fields));
-                    $removed['custom_fields'] = $fields;
-                } catch (\Exception $e) {
-                    error_log("Erreur remove custom fields: " . $e->getMessage());
-                }
-            }
-        }
-        
-        // Remove owner
-        if (!empty($action['remove_all_owners'])) {
-            $this->db->prepare("UPDATE documents SET owner_id = NULL WHERE id = ?")->execute([$docId]);
-            $removed['owner'] = true;
-        } elseif (!empty($action['remove_owners'])) {
-            $owners = json_decode($action['remove_owners'], true) ?: [];
-            if (in_array($document['owner_id'], $owners)) {
-                $this->db->prepare("UPDATE documents SET owner_id = NULL WHERE id = ?")->execute([$docId]);
-                $removed['owner'] = true;
-            }
-        }
-        
-        // Remove permissions
-        if (!empty($action['remove_all_permissions'])) {
-            // TODO: Implémenter si la table de permissions existe
-            $removed['all_permissions'] = true;
+            $placeholders = implode(',', array_fill(0, count($fields), '?'));
+            $this->db->prepare("DELETE FROM document_custom_fields WHERE document_id = ? AND custom_field_id IN ($placeholders)")
+                ->execute(array_merge([$docId], $fields));
+            $removed['custom_fields'] = $fields;
         }
         
         return $removed;
@@ -498,28 +509,18 @@ class WorkflowService
         $subject = $this->replacePlaceholders($action['email_subject'] ?? 'Document notification', $document);
         $body = $this->replacePlaceholders($action['email_body'] ?? '', $document);
         
-        // Utiliser le MailService existant ou PHPMailer directement
-        $sent = false;
-        try {
-            if (class_exists('\KDocs\Services\MailService')) {
-                $mailService = new \KDocs\Services\MailService();
-                $attachment = null;
-                if (!empty($action['email_include_document'])) {
-                    $filePath = $document['file_path'] ?? null;
-                    if ($filePath && file_exists($filePath)) {
-                        $attachment = $filePath;
-                    }
-                }
-                $sent = $mailService->send($to, $subject, $body, $attachment);
-            } else {
-                // Fallback: utiliser mail() PHP
-                $headers = "From: K-Docs <noreply@kdocs.local>\r\n";
-                $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-                $sent = mail($to, $subject, $body, $headers);
+        // Utiliser le MailService existant
+        $mailService = new MailService();
+        
+        $attachment = null;
+        if (!empty($action['email_include_document'])) {
+            $filePath = $document['file_path'] ?? null;
+            if ($filePath && file_exists($filePath)) {
+                $attachment = $filePath;
             }
-        } catch (\Exception $e) {
-            throw new \Exception("Email sending failed: " . $e->getMessage());
         }
+        
+        $sent = $mailService->send($to, $subject, $body, $attachment);
         
         return [
             'sent' => $sent,
@@ -559,13 +560,7 @@ class WorkflowService
         // Custom body
         if (!empty($action['webhook_body'])) {
             $body = $this->replacePlaceholders($action['webhook_body'], $document);
-            // Essayer de parser comme JSON, sinon utiliser comme texte
-            $parsed = json_decode($body, true);
-            if ($parsed !== null) {
-                $data = array_merge($data, $parsed);
-            } else {
-                $data['body'] = $body;
-            }
+            $data = json_decode($body, true) ?: ['body' => $body];
         }
         
         // Headers
@@ -596,23 +591,10 @@ class WorkflowService
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         
         if ($postData !== null) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        }
-        
-        // Inclure le document si demandé
-        if (!empty($action['webhook_include_document'])) {
-            $filePath = $document['file_path'] ?? null;
-            if ($filePath && file_exists($filePath)) {
-                $file = new \CURLFile($filePath);
-                $data['document'] = $file;
-                $postData = $data;
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            }
         }
         
         $response = curl_exec($ch);
@@ -622,10 +604,6 @@ class WorkflowService
         
         if ($error) {
             throw new \Exception("Webhook failed: $error");
-        }
-        
-        if ($httpCode >= 400) {
-            throw new \Exception("Webhook returned error code: $httpCode");
         }
         
         return [
@@ -650,14 +628,7 @@ class WorkflowService
             $data['created_day'] = $created->format('d');
         }
         
-        if (!empty($document['added_at'])) {
-            $added = new \DateTime($document['added_at']);
-            $data['added_year'] = $added->format('Y');
-            $data['added_month'] = $added->format('m');
-            $data['added_day'] = $added->format('d');
-        }
-        
-        // Récupérer les noms liés si manquants
+        // Récupérer les noms liés
         if (!empty($document['correspondent_id']) && empty($document['correspondent_name'])) {
             $stmt = $this->db->prepare("SELECT name FROM correspondents WHERE id = ?");
             $stmt->execute([$document['correspondent_id']]);
@@ -693,7 +664,7 @@ class WorkflowService
             case 'exact':
                 return strpos($content, $text) !== false;
             case 'all':
-                $words = preg_split('/\s+/', trim($text));
+                $words = preg_split('/\s+/', $text);
                 foreach ($words as $word) {
                     if (strpos($content, $word) === false) {
                         return false;
@@ -701,7 +672,7 @@ class WorkflowService
                 }
                 return true;
             case 'any':
-                $words = preg_split('/\s+/', trim($text));
+                $words = preg_split('/\s+/', $text);
                 foreach ($words as $word) {
                     if (strpos($content, $word) !== false) {
                         return true;
@@ -709,8 +680,7 @@ class WorkflowService
                 }
                 return false;
             case 'regex':
-                $flags = $insensitive ? 'iu' : 'u';
-                return preg_match('/' . $text . '/' . $flags, $content) === 1;
+                return preg_match('/' . $text . '/u' . ($insensitive ? 'i' : ''), $content) === 1;
             case 'fuzzy':
                 // Fuzzy matching basique (70% similarité)
                 similar_text($content, $text, $percent);
@@ -729,13 +699,9 @@ class WorkflowService
     
     private function getDocumentTagIds(int $documentId): array
     {
-        try {
-            $stmt = $this->db->prepare("SELECT tag_id FROM document_tags WHERE document_id = ?");
-            $stmt->execute([$documentId]);
-            return array_column($stmt->fetchAll(), 'tag_id');
-        } catch (\Exception $e) {
-            return [];
-        }
+        $stmt = $this->db->prepare("SELECT tag_id FROM document_tags WHERE document_id = ?");
+        $stmt->execute([$documentId]);
+        return array_column($stmt->fetchAll(), 'tag_id');
     }
     
     private function getWorkflowsForEvent(string $event): array
@@ -765,19 +731,47 @@ class WorkflowService
         $stmt->execute($types);
         return $stmt->fetchAll();
     }
-    
-    /**
-     * Méthodes statiques pour compatibilité avec l'ancien code
-     */
-    public static function executeOnDocumentAdded(int $documentId): void
-    {
-        $service = new self();
-        $service->executeForEvent('document_added', $documentId);
-    }
-    
-    public static function executeOnDocumentModified(int $documentId): void
-    {
-        $service = new self();
-        $service->executeForEvent('document_updated', $documentId);
-    }
 }
+```
+
+### 3. Interface Formulaire Améliorée
+
+**Remplacer** `templates/admin/workflow_form.php` avec une interface complète qui inclut :
+- Multi-select pour tags/correspondents/types avec Select2 ou Choices.js
+- Sections collapsibles pour chaque type d'action
+- Preview des placeholders disponibles
+- Validation côté client
+
+---
+
+## 🎯 PRIORITÉS
+
+1. **D'abord** : Exécuter la migration SQL
+2. **Ensuite** : Mettre à jour WorkflowService.php
+3. **Puis** : Améliorer l'interface formulaire
+4. **Enfin** : Tester avec des cas réels
+
+---
+
+## 🧪 TESTS À EFFECTUER
+
+1. Créer un workflow "Document Added" avec filtre sur tag
+2. Créer un workflow "Assignment" qui ajoute un tag
+3. Créer un workflow "Email" avec placeholders
+4. Créer un workflow "Webhook" vers RequestBin
+5. Tester les matching algorithms (any, all, exact, regex)
+
+---
+
+## 📌 INSTRUCTIONS CURSOR
+
+```
+Lis docs/CURSOR_WORKFLOWS_PAPERLESS_PARITY.md et implémente les améliorations.
+
+1. Exécute la migration SQL pour ajouter les colonnes manquantes
+2. Remplace app/Services/WorkflowService.php avec le code complet
+3. Améliore templates/admin/workflow_form.php avec multi-select et toutes les options
+4. Teste que tout fonctionne
+
+Référence : https://docs.paperless-ngx.com/usage/#workflows
+```

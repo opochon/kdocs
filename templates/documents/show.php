@@ -1,625 +1,816 @@
 <?php
-// $document est passé depuis le contrôleur
+// Template Paperless-ngx style - Page de détails du document
+// $document, $tags, $notes, $documentId, $correspondents, $documentTypes, $storagePaths, $allTags, $previousId, $nextId sont passés
 use KDocs\Core\Config;
 $base = Config::basePath();
+$isPDF = strpos($document['mime_type'] ?? '', 'pdf') !== false;
+$isImage = strpos($document['mime_type'] ?? '', 'image') !== false;
+$canPreview = $isPDF || $isImage;
 ?>
 
-<div class="max-w-4xl mx-auto space-y-6">
+<!-- Header avec titre et actions -->
+<div class="bg-white border-b border-gray-200 px-4 py-3">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-800">Détails du document</h1>
-        <a href="<?= url('/documents') ?>" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-            ← Retour à la liste
-        </a>
-    </div>
-
-    <div class="bg-white rounded-lg shadow p-6 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <?php if (!empty($document['asn'])): ?>
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">ASN</label>
-                <p class="text-lg font-semibold text-gray-900 font-mono">
-                    <?= htmlspecialchars($document['asn']) ?>
-                </p>
+        <!-- Titre et navigation -->
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+            <h1 class="text-lg font-semibold text-gray-900 truncate">
+                <?= htmlspecialchars($document['title'] ?: $document['original_filename']) ?>
+            </h1>
+            <?php if ($canPreview && $isPDF): ?>
+            <div class="hidden md:flex items-center gap-2 text-sm text-gray-600">
+                <button onclick="previousPDFPage()" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50" title="Page précédente">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <span id="page-info-header" class="px-2">Page 1 sur 1</span>
+                <button onclick="nextPDFPage()" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50" title="Page suivante">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-1">
+                    <button onclick="decreaseZoom()" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">-</button>
+                    <select id="zoom-select-header" onchange="setZoomFromSelect(this.value)" class="text-sm border border-gray-300 rounded px-2 py-1">
+                        <option value="0.5">50%</option>
+                        <option value="0.75">75%</option>
+                        <option value="1.0" selected>100%</option>
+                        <option value="1.25">125%</option>
+                        <option value="1.5">150%</option>
+                        <option value="2.0">200%</option>
+                        <option value="fit-width">Ajuster largeur</option>
+                        <option value="fit-page">Ajuster page</option>
+                    </select>
+                    <button onclick="increaseZoom()" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">+</button>
+                </div>
             </div>
             <?php endif; ?>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+            <form method="POST" action="<?= url('/documents/' . $document['id'] . '/delete') ?>" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');" class="inline">
+                <button type="submit" class="px-3 py-1.5 text-sm border border-red-300 text-red-700 rounded hover:bg-red-50" title="Supprimer">
+                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    <span class="hidden lg:inline ml-1">Supprimer</span>
+                </button>
+            </form>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Titre</label>
-                <p class="text-lg font-semibold text-gray-900">
-                    <?= htmlspecialchars($document['title'] ?: $document['original_filename']) ?>
-                </p>
+            <div class="relative" id="download-dropdown">
+                <button onclick="toggleDropdown('download-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span class="hidden lg:inline">Télécharger</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
+                    <a href="<?= url('/documents/' . $document['id'] . '/download') ?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Télécharger original
+                    </a>
+                </div>
             </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Type de document</label>
-                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded">
-                    <?= htmlspecialchars($document['document_type_label'] ?: 'Non défini') ?>
-                </span>
+            
+            <div class="relative" id="actions-dropdown">
+                <button onclick="toggleDropdown('actions-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                    </svg>
+                    <span class="hidden lg:inline">Actions</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
+                    <button onclick="reprocessDocument(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Retraiter
+                    </button>
+                    <?php if ($isPDF): ?>
+                    <button onclick="printDocument()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Imprimer
+                    </button>
+                    <?php endif; ?>
+                    <button onclick="moreLikeThis(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Plus comme celui-ci
+                    </button>
+                </div>
             </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Fichier original</label>
-                <p class="text-gray-900"><?= htmlspecialchars($document['original_filename']) ?></p>
+            
+            <div class="relative" id="custom-fields-dropdown">
+                <button onclick="toggleDropdown('custom-fields-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50">
+                    <span class="hidden lg:inline">Champs personnalisés</span>
+                    <span class="lg:hidden">Champs</span>
+                </button>
+                <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[250px] p-3">
+                    <p class="text-sm text-gray-600 mb-2">Ajouter un champ personnalisé</p>
+                    <select id="custom-field-select" class="w-full text-sm border border-gray-300 rounded px-2 py-1 mb-2">
+                        <option value="">Sélectionner un champ...</option>
+                        <?php
+                        try {
+                            $customFields = \KDocs\Models\CustomField::all();
+                            foreach ($customFields as $cf) {
+                                echo '<option value="' . $cf['id'] . '">' . htmlspecialchars($cf['name']) . '</option>';
+                            }
+                        } catch (\Exception $e) {}
+                        ?>
+                    </select>
+                    <button onclick="addCustomField()" class="w-full px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Ajouter
+                    </button>
+                </div>
             </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Taille</label>
-                <p class="text-gray-900">
-                    <?= $document['file_size'] ? number_format($document['file_size'] / 1024, 2) . ' KB' : '-' ?>
-                </p>
+            
+            <div class="relative" id="send-dropdown">
+                <button onclick="toggleDropdown('send-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span class="hidden lg:inline">Envoyer</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
+                    <button onclick="openShareLinks(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Liens de partage
+                    </button>
+                    <button onclick="openEmailDocument(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Email
+                    </button>
+                </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Date du document</label>
-                <p class="text-gray-900">
-                    <?= $document['document_date'] ? date('d/m/Y', strtotime($document['document_date'])) : ($document['doc_date'] ? date('d/m/Y', strtotime($document['doc_date'])) : '-') ?>
-                </p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Montant</label>
-                <p class="text-gray-900">
-                    <?php if ($document['amount']): ?>
-                        <?= number_format($document['amount'], 2, ',', ' ') ?> <?= htmlspecialchars($document['currency']) ?>
+<!-- Layout deux colonnes -->
+<div class="flex flex-col md:flex-row h-[calc(100vh-120px)] overflow-hidden">
+    <!-- Colonne gauche : Formulaire avec onglets -->
+    <div class="w-full md:w-5/12 lg:w-2/5 border-r border-gray-200 bg-white overflow-y-auto">
+        <form id="document-form" method="POST" action="<?= url('/documents/' . $document['id'] . '/edit') ?>">
+            <!-- Barre d'outils -->
+            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200">
+                <div class="flex items-center gap-1">
+                    <a href="<?= url('/documents') ?>" class="p-1.5 text-gray-600 hover:bg-gray-100 rounded" title="Fermer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </a>
+                    <a href="<?= $previousId ? url('/documents/' . $previousId) : '#' ?>" 
+                       class="p-1.5 text-gray-600 hover:bg-gray-100 rounded <?= !$previousId ? 'opacity-50 cursor-not-allowed' : '' ?>" 
+                       title="Précédent"
+                       <?= !$previousId ? 'onclick="return false;"' : '' ?>>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <a href="<?= $nextId ? url('/documents/' . $nextId) : '#' ?>" 
+                       class="p-1.5 text-gray-600 hover:bg-gray-100 rounded <?= !$nextId ? 'opacity-50 cursor-not-allowed' : '' ?>" 
+                       title="Suivant"
+                       <?= !$nextId ? 'onclick="return false;"' : '' ?>>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <?php if ($aiAvailable): ?>
+                    <button type="button" onclick="getAISuggestions(<?= $document['id'] ?>)" class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50">
+                        Suggestions IA
+                    </button>
+                    <?php endif; ?>
+                    <button type="button" onclick="discardChanges()" class="px-3 py-1 text-xs border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                        Abandonner
+                    </button>
+                    <?php if ($nextId): ?>
+                    <button type="submit" name="save_and_next" value="1" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Enregistrer & suivant
+                    </button>
                     <?php else: ?>
-                        -
+                    <button type="submit" name="save_and_close" value="1" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Enregistrer & fermer
+                    </button>
                     <?php endif; ?>
-                </p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Correspondant</label>
-                <p class="text-gray-900">
-                    <?= htmlspecialchars($document['correspondent_name'] ?: 'Non défini') ?>
-                </p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Uploadé par</label>
-                <p class="text-gray-900">
-                    <?= htmlspecialchars($document['created_by_username'] ?: 'Inconnu') ?>
-                </p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Date d'upload</label>
-                <p class="text-gray-900">
-                    <?= date('d/m/Y à H:i', strtotime($document['created_at'])) ?>
-                </p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Type MIME</label>
-                <p class="text-gray-900"><?= htmlspecialchars($document['mime_type']) ?></p>
-            </div>
-            
-            <?php if (!empty($document['storage_path_name'])): ?>
-            <div>
-                <label class="block text-sm font-medium text-gray-500 mb-1">Chemin de stockage</label>
-                <p class="text-gray-900 font-mono text-sm"><?= htmlspecialchars($document['storage_path_path']) ?></p>
-            </div>
-            <?php endif; ?>
-        </div>
-        
-        <!-- Custom Fields (Phase 2.1) -->
-        <?php
-        try {
-            $customFieldValues = \KDocs\Models\CustomField::getValuesForDocument($document['id']);
-            if (!empty($customFieldValues)):
-        ?>
-        <div class="border-t pt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Champs personnalisés</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <?php foreach ($customFieldValues as $cfv): ?>
-                <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1"><?= htmlspecialchars($cfv['field_name']) ?></label>
-                    <p class="text-gray-900">
-                        <?php if ($cfv['field_type'] === 'boolean'): ?>
-                            <?= $cfv['value'] ? 'Oui' : 'Non' ?>
-                        <?php else: ?>
-                            <?= htmlspecialchars($cfv['value']) ?>
-                        <?php endif; ?>
-                    </p>
+                    <button type="submit" class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                        Enregistrer
+                    </button>
                 </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php
-            endif;
-        } catch (\Exception $e) {
-            // Table custom_fields n'existe pas encore
-        }
-        ?>
-
-        <?php if (!empty($tags)): ?>
-        <div class="border-t pt-6">
-            <label class="block text-sm font-medium text-gray-500 mb-2">Tags</label>
-            <div class="flex flex-wrap gap-2">
-                <?php foreach ($tags as $tag): ?>
-                <span class="inline-block px-3 py-1 text-xs rounded-full"
-                      style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
-                    <?= htmlspecialchars($tag['name']) ?>
-                </span>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
-        
-        <!-- Section Notes -->
-        <div class="border-t pt-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">📝 Notes</h3>
-                <button onclick="openAddNoteModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                    + Ajouter une note
-                </button>
             </div>
             
-            <?php if (empty($notes)): ?>
-            <p class="text-gray-500 text-sm">Aucune note pour ce document.</p>
-            <?php else: ?>
-            <div class="space-y-4">
-                <?php foreach ($notes as $note): ?>
-                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex-1">
-                            <p class="text-sm text-gray-700 whitespace-pre-wrap"><?= nl2br(htmlspecialchars($note['note'] ?? $note['content'] ?? '')) ?></p>
+            <!-- Onglets -->
+            <div class="border-b border-gray-200">
+                <nav class="flex overflow-x-auto" id="document-tabs">
+                    <button type="button" onclick="switchTab('details')" class="tab-button active px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600">
+                        Détails
+                    </button>
+                    <button type="button" onclick="switchTab('content')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Contenu
+                    </button>
+                    <button type="button" onclick="switchTab('metadata')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Métadonnées
+                    </button>
+                    <button type="button" onclick="switchTab('notes')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Notes <?php if (count($notes) > 0): ?><span class="ml-1 px-1.5 py-0.5 text-xs bg-gray-200 rounded"><?= count($notes) ?></span><?php endif; ?>
+                    </button>
+                    <button type="button" onclick="switchTab('history')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Historique
+                    </button>
+                </nav>
+            </div>
+            
+            <!-- Contenu des onglets -->
+            <div class="p-4">
+                <!-- Onglet Détails -->
+                <div id="tab-details" class="tab-content">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                            <input type="text" name="title" value="<?= htmlspecialchars($document['title'] ?? '') ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
-                        <button onclick="deleteNote(<?= $note['id'] ?>)" class="ml-2 text-red-600 hover:text-red-800 text-sm">
-                            ✕
-                        </button>
-                    </div>
-                    <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
-                        <span>
-                            <?php if (!empty($note['user_name'])): ?>
-                                Par <?= htmlspecialchars($note['user_name']) ?>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro de série d'archivage (NSA)</label>
+                            <input type="number" name="asn" value="<?= htmlspecialchars($document['asn'] ?? '') ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
+                            <input type="date" name="document_date" value="<?= $document['document_date'] ? date('Y-m-d', strtotime($document['document_date'])) : '' ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Correspondant</label>
+                            <select name="correspondent_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Non défini</option>
+                                <?php foreach ($correspondents as $corr): ?>
+                                <option value="<?= $corr['id'] ?>" <?= ($document['correspondent_id'] ?? null) == $corr['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($corr['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type de document</label>
+                            <select name="document_type_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Non défini</option>
+                                <?php foreach ($documentTypes as $dt): ?>
+                                <option value="<?= $dt['id'] ?>" <?= ($document['document_type_id'] ?? null) == $dt['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($dt['label']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chemin de stockage</label>
+                            <select name="storage_path_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Par défaut</option>
+                                <?php foreach ($storagePaths as $sp): ?>
+                                <option value="<?= $sp['id'] ?>" <?= ($document['storage_path_id'] ?? null) == $sp['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($sp['name']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Étiquettes</label>
+                            <div id="tags-container" class="flex flex-wrap gap-2 mb-2">
+                                <?php foreach ($tags as $tag): ?>
+                                <span class="inline-flex items-center px-2 py-1 text-xs rounded-full" 
+                                      style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
+                                    <?= htmlspecialchars($tag['name']) ?>
+                                    <button type="button" onclick="removeTag(<?= $tag['id'] ?>)" class="ml-1 hover:font-bold">×</button>
+                                </span>
+                                <?php endforeach; ?>
+                            </div>
+                            <select id="tag-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Ajouter une étiquette...</option>
+                                <?php foreach ($allTags as $tag): ?>
+                                <?php if (!in_array($tag['id'], array_column($tags, 'id'))): ?>
+                                <option value="<?= $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></option>
+                                <?php endif; ?>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <!-- Custom Fields existants -->
+                        <?php
+                        try {
+                            $customFieldValues = \KDocs\Models\CustomField::getValuesForDocument($document['id']);
+                            foreach ($customFieldValues as $cfv):
+                                $field = \KDocs\Models\CustomField::findById($cfv['custom_field_id']);
+                                if (!$field) continue;
+                        ?>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                <?= htmlspecialchars($field['name']) ?>
+                                <button type="button" onclick="removeCustomField(<?= $cfv['id'] ?>)" class="ml-2 text-red-600 hover:text-red-800 text-xs">×</button>
+                            </label>
+                            <?php if ($field['data_type'] === 'boolean'): ?>
+                            <input type="checkbox" name="custom_fields[<?= $field['id'] ?>]" value="1" <?= $cfv['value'] ? 'checked' : '' ?>>
+                            <?php elseif ($field['data_type'] === 'date'): ?>
+                            <input type="date" name="custom_fields[<?= $field['id'] ?>]" value="<?= htmlspecialchars($cfv['value'] ?? '') ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <?php elseif ($field['data_type'] === 'integer' || $field['data_type'] === 'float'): ?>
+                            <input type="number" name="custom_fields[<?= $field['id'] ?>]" value="<?= htmlspecialchars($cfv['value'] ?? '') ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             <?php else: ?>
-                                Par utilisateur inconnu
+                            <input type="text" name="custom_fields[<?= $field['id'] ?>]" value="<?= htmlspecialchars($cfv['value'] ?? '') ?>" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             <?php endif; ?>
-                        </span>
-                        <span><?= date('d/m/Y à H:i', strtotime($note['created_at'])) ?></span>
+                        </div>
+                        <?php
+                            endforeach;
+                        } catch (\Exception $e) {}
+                        ?>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="discardChanges()" class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Abandonner
+                            </button>
+                            <?php if ($nextId): ?>
+                            <button type="submit" name="save_and_next" value="1" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Enregistrer & suivant
+                            </button>
+                            <?php else: ?>
+                            <button type="submit" name="save_and_close" value="1" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Enregistrer & fermer
+                            </button>
+                            <?php endif; ?>
+                            <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                Enregistrer
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
+                
+                <!-- Onglet Contenu -->
+                <div id="tab-content" class="tab-content hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Contenu extrait (OCR)</label>
+                        <textarea name="ocr_text" rows="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"><?= htmlspecialchars($document['ocr_text'] ?? '') ?></textarea>
+                    </div>
+                </div>
+                
+                <!-- Onglet Métadonnées -->
+                <div id="tab-metadata" class="tab-content hidden">
+                    <table class="w-full text-sm">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Date modifiée</td>
+                                <td class="py-2 text-gray-900"><?= $document['updated_at'] ? date('d/m/Y H:i', strtotime($document['updated_at'])) : '-' ?></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Date ajoutée</td>
+                                <td class="py-2 text-gray-900"><?= date('d/m/Y H:i', strtotime($document['created_at'])) ?></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Nom du fichier</td>
+                                <td class="py-2 text-gray-900 font-mono text-xs"><?= htmlspecialchars($document['filename'] ?? '') ?></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Fichier original</td>
+                                <td class="py-2 text-gray-900 font-mono text-xs"><?= htmlspecialchars($document['original_filename'] ?? '') ?></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Taille du fichier</td>
+                                <td class="py-2 text-gray-900"><?= $document['file_size'] ? number_format($document['file_size'] / 1024, 2) . ' KB' : '-' ?></td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Type MIME</td>
+                                <td class="py-2 text-gray-900"><?= htmlspecialchars($document['mime_type'] ?? '') ?></td>
+                            </tr>
+                            <?php if (!empty($document['checksum'])): ?>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Checksum MD5</td>
+                                <td class="py-2 text-gray-900 font-mono text-xs"><?= htmlspecialchars($document['checksum']) ?></td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Onglet Notes -->
+                <div id="tab-notes" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <?php if (empty($notes)): ?>
+                        <p class="text-gray-500 text-sm">Aucune note pour ce document.</p>
+                        <?php else: ?>
+                        <?php foreach ($notes as $note): ?>
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex items-start justify-between mb-2">
+                                <p class="text-sm text-gray-700 whitespace-pre-wrap flex-1"><?= nl2br(htmlspecialchars($note['note'] ?? $note['content'] ?? '')) ?></p>
+                                <button onclick="deleteNote(<?= $note['id'] ?>)" class="ml-2 text-red-600 hover:text-red-800 text-sm">×</button>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-2">
+                                <?php if (!empty($note['user_name'])): ?>
+                                Par <?= htmlspecialchars($note['user_name']) ?> • 
+                                <?php endif; ?>
+                                <?= date('d/m/Y à H:i', strtotime($note['created_at'])) ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
+                        
+                        <div class="border-t pt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Ajouter une note</h4>
+                            <textarea id="new-note-text" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            <button onclick="addNote()" class="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Onglet Historique -->
+                <div id="tab-history" class="tab-content hidden">
+                    <div id="history-content">
+                        <p class="text-gray-500 text-sm">Chargement de l'historique...</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Colonne droite : Prévisualisation -->
+    <div class="w-full md:w-7/12 lg:w-3/5 bg-gray-50 overflow-hidden relative">
+        <?php if ($canPreview): ?>
+        <div id="preview-container" class="h-full w-full overflow-auto bg-gray-100">
+            <?php if ($isPDF): ?>
+            <!-- Prévisualisation PDF -->
+            <div id="pdf-preview" class="h-full flex items-center justify-center p-4">
+                <div id="pdf-loading" class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                    <p class="text-gray-600">Chargement du PDF...</p>
+                </div>
+                <canvas id="pdf-canvas" class="hidden max-w-full"></canvas>
+            </div>
+            <?php else: ?>
+            <!-- Prévisualisation Image -->
+            <div class="h-full flex items-center justify-center p-4">
+                <img src="<?= url('/documents/' . $document['id'] . '/view') ?>" 
+                     alt="<?= htmlspecialchars($document['title'] ?: $document['original_filename']) ?>"
+                     class="max-w-full max-h-full object-contain"
+                     onerror="this.parentElement.innerHTML='<div class=\'text-center text-gray-500\'><p>Erreur de chargement de l\'image</p></div>'">
             </div>
             <?php endif; ?>
         </div>
-        
-        <!-- Modal Ajout Note -->
-        <div id="add-note-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Ajouter une note</h3>
-                <form onsubmit="saveNote(event)">
-                    <textarea id="note-text" rows="4" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required placeholder="Saisissez votre note..."></textarea>
-                    <div class="mt-4 flex justify-end gap-2">
-                        <button type="button" onclick="closeAddNoteModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Annuler
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            Ajouter
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <script>
-        function openAddNoteModal() {
-            document.getElementById('add-note-modal').classList.remove('hidden');
-        }
-        
-        function closeAddNoteModal() {
-            document.getElementById('add-note-modal').classList.add('hidden');
-            document.getElementById('note-text').value = '';
-        }
-        
-        function saveNote(event) {
-            event.preventDefault();
-            const noteText = document.getElementById('note-text').value;
-            const documentId = <?= $document['id'] ?? 0 ?>;
-            
-            if (!noteText.trim()) {
-                alert('Veuillez saisir une note');
-                return;
-            }
-            
-            fetch('<?= url('/api/documents/' . ($document['id'] ?? 0) . '/notes') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    note: noteText
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    closeAddNoteModal();
-                    window.location.reload();
-                } else {
-                    alert('Erreur : ' + (data.error || 'Impossible d\'ajouter la note'));
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Erreur lors de l\'ajout de la note');
-            });
-        }
-        
-        function deleteNote(noteId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
-                return;
-            }
-            
-            const documentId = <?= $document['id'] ?? 0 ?>;
-            
-            fetch('<?= url('/api/documents/' . ($document['id'] ?? 0) . '/notes/') ?>' + noteId, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert('Erreur : ' + (data.error || 'Impossible de supprimer la note'));
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Erreur lors de la suppression de la note');
-            });
-        }
-        </script>
-        
-        <?php if (!empty($document['ocr_text'])): ?>
-        <div class="border-t pt-6">
-            <label class="block text-sm font-medium text-gray-500 mb-2">Texte extrait (OCR)</label>
-            <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-                <pre class="text-sm text-gray-700 whitespace-pre-wrap"><?= htmlspecialchars($document['ocr_text']) ?></pre>
+        <?php else: ?>
+        <div class="h-full flex items-center justify-center text-gray-500">
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p>Aucune prévisualisation disponible</p>
+                <a href="<?= url('/documents/' . $document['id'] . '/download') ?>" class="mt-2 inline-block px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Télécharger
+                </a>
             </div>
         </div>
         <?php endif; ?>
-        
-        <div class="border-t pt-6">
-            <div class="flex items-center justify-between">
-                <div class="flex gap-2">
-                    <?php if (isset($aiAvailable) && $aiAvailable): ?>
-                    <button 
-                        onclick="classifyWithAI(<?= $document['id'] ?>)" 
-                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                        id="classify-ai-btn"
-                    >
-                        ✨ Classifier avec IA
-                    </button>
-                    <?php endif; ?>
-                    <a 
-                        href="<?= url('/documents/' . $document['id'] . '/edit') ?>" 
-                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                    >
-                        ✏️ Modifier
-                    </a>
-                    <a 
-                        href="<?= url('/documents/' . $document['id'] . '/download') ?>" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        📥 Télécharger
-                    </a>
-                    <?php if (strpos($document['mime_type'], 'pdf') !== false || strpos($document['mime_type'], 'image') !== false): ?>
-                    <button 
-                        onclick="openViewer(<?= $document['id'] ?>)"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                        👁️ Visualiser
-                    </button>
-                    <?php endif; ?>
-                    <form method="POST" 
-                          action="<?= url('/documents/' . $document['id'] . '/delete') ?>" 
-                          onsubmit="if(confirm('Êtes-vous sûr de vouloir supprimer ce document ? Il sera déplacé dans la corbeille.')) { showToast('Document supprimé', 'success'); return true; } return false;"
-                          class="inline">
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                            🗑️ Supprimer
-                        </button>
-                    </form>
-                    <button onclick="shareDocument(<?= $document['id'] ?>)" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        🔗 Partager
-                    </button>
-                    <a href="<?= url('/documents/' . $document['id'] . '/history') ?>" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                        📜 Historique
-                    </a>
-                </div>
-                <div class="text-sm text-gray-500">
-                    ID: <?= $document['id'] ?>
-                    <?php if ($document['is_indexed']): ?>
-                        <span class="ml-2 text-green-600">✓ Indexé</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
-<!-- Visualiseur PDF intégré avec PDF.js (Style Paperless-ngx) -->
-<?php if (strpos($document['mime_type'], 'pdf') !== false || strpos($document['mime_type'], 'image') !== false): ?>
-<link rel="stylesheet" href="<?= url('/css/pdf-viewer.css') ?>">
-<div id="pdf-viewer-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
-    <div class="bg-white flex flex-col h-full">
-        <!-- Barre d'outils -->
-        <div class="viewer-toolbar">
-            <div class="toolbar-group">
-                <button onclick="closePDFViewer()" class="toolbar-btn" title="Fermer (Esc)">
-                    ✕ Fermer
-                </button>
-            </div>
-            
-            <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-            <!-- Navigation pages -->
-            <div class="toolbar-group">
-                <button id="prev-page-btn" onclick="previousPage()" class="toolbar-btn" title="Page précédente (←)">
-                    ◀
-                </button>
-                <input type="number" id="page-input" min="1" value="1" class="toolbar-input" 
-                       onchange="goToPage(this.value)" onkeypress="if(event.key==='Enter') goToPage(this.value)">
-                <span id="page-info" class="text-sm px-2">Page 1 / 1</span>
-                <button id="next-page-btn" onclick="nextPage()" class="toolbar-btn" title="Page suivante (→)">
-                    ▶
-                </button>
-            </div>
-            <?php endif; ?>
-            
-            <!-- Zoom -->
-            <div class="toolbar-group">
-                <button onclick="zoomOut()" class="toolbar-btn" title="Zoom arrière (-)">🔍-</button>
-                <span id="zoom-level" class="text-sm px-2">100%</span>
-                <button onclick="zoomIn()" class="toolbar-btn" title="Zoom avant (+)">🔍+</button>
-                <select id="zoom-select" onchange="setZoom(this.value)" class="toolbar-select">
-                    <option value="0.5">50%</option>
-                    <option value="0.75">75%</option>
-                    <option value="1.0" selected>100%</option>
-                    <option value="1.25">125%</option>
-                    <option value="1.5">150%</option>
-                    <option value="2.0">200%</option>
-                    <option value="3.0">300%</option>
-                    <option value="fit-width">Ajuster largeur</option>
-                    <option value="fit-page">Ajuster page</option>
-                </select>
-            </div>
-            
-            <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-            <!-- Rotation -->
-            <div class="toolbar-group">
-                <button onclick="rotatePDF()" class="toolbar-btn" title="Rotation (R)">↻</button>
-            </div>
-            
-            <!-- Recherche dans PDF -->
-            <div class="toolbar-group">
-                <div class="search-bar">
-                    <input type="text" id="pdf-search-input" class="search-input" 
-                           placeholder="Rechercher dans le PDF..." 
-                           onkeypress="if(event.key==='Enter') searchInPDF(this.value)">
-                    <button onclick="searchInPDF(document.getElementById('pdf-search-input').value)" class="toolbar-btn">🔍</button>
-                    <button onclick="previousSearchResult()" class="toolbar-btn" title="Résultat précédent">▲</button>
-                    <button onclick="nextSearchResult()" class="toolbar-btn" title="Résultat suivant">▼</button>
-                    <span id="search-results" class="search-results"></span>
-                </div>
-            </div>
-            <?php endif; ?>
-            
-            <!-- Actions -->
-            <div class="toolbar-group ml-auto">
-                <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-                <button onclick="downloadCurrentPage()" class="toolbar-btn" title="Télécharger la page actuelle">
-                    📄 Télécharger page
-                </button>
-                <?php endif; ?>
-                <a href="<?= url('/documents/' . $document['id'] . '/download') ?>" 
-                   class="toolbar-btn" title="Télécharger le document">
-                    📥 Télécharger
-                </a>
-                <button onclick="toggleFullscreen()" class="toolbar-btn" title="Plein écran (F)">
-                    ⛶ Plein écran
-                </button>
-            </div>
-        </div>
-        
-        <!-- Zone de visualisation -->
-        <div class="flex-1 overflow-auto" id="viewer-container">
-            <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-            <canvas id="pdf-canvas"></canvas>
-            <?php else: ?>
-            <img 
-                id="image-viewer"
-                src="<?= url('/documents/' . $document['id'] . '/view') ?>"
-                alt="<?= htmlspecialchars($document['title'] ?: $document['original_filename']) ?>"
-                class="max-w-full max-h-full object-contain m-auto"
-                style="zoom: 1;"
-            />
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-
-<script src="<?= url('/js/pdf-viewer.js') ?>"></script>
-<script>
-let currentZoom = 100;
-
-function openViewer(id) {
-    const modal = document.getElementById('pdf-viewer-modal');
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    
-    <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-    // Initialiser PDF.js
-    const pdfUrl = '<?= url('/documents/' . $document['id'] . '/view') ?>';
-    initPDFViewer(pdfUrl);
-    <?php else: ?>
-    // Pour les images, on gère le zoom
-    currentZoom = 100;
-    updateImageZoom();
-    <?php endif; ?>
+<style>
+.tab-button {
+    white-space: nowrap;
+    transition: all 0.2s;
 }
-
-function closeViewer() {
-    <?php if (strpos($document['mime_type'], 'pdf') !== false): ?>
-    closePDFViewer();
-    <?php else: ?>
-    document.getElementById('pdf-viewer-modal').classList.add('hidden');
-    document.body.style.overflow = '';
-    <?php endif; ?>
+.tab-button.active {
+    border-bottom-color: #2563eb;
+    color: #2563eb;
 }
-
-// Gestion zoom pour images
-function zoomIn() {
-    <?php if (strpos($document['mime_type'], 'pdf') === false): ?>
-    currentZoom = Math.min(currentZoom + 25, 200);
-    updateImageZoom();
-    <?php endif; ?>
+.tab-content {
+    display: block;
 }
-
-function zoomOut() {
-    <?php if (strpos($document['mime_type'], 'pdf') === false): ?>
-    currentZoom = Math.max(currentZoom - 25, 25);
-    updateImageZoom();
-    <?php endif; ?>
+.tab-content.hidden {
+    display: none;
 }
-
-function setZoom(value) {
-    <?php if (strpos($document['mime_type'], 'pdf') === false): ?>
-    currentZoom = parseInt(value);
-    updateImageZoom();
-    <?php endif; ?>
-}
-
-function updateImageZoom() {
-    const img = document.getElementById('image-viewer');
-    if (img) {
-        img.style.zoom = currentZoom / 100;
-    }
-    const zoomLevel = document.getElementById('zoom-level');
-    const zoomSelect = document.getElementById('zoom-select');
-    if (zoomLevel) zoomLevel.textContent = currentZoom + '%';
-    if (zoomSelect) zoomSelect.value = currentZoom;
-        }
-        </script>
-<?php endif; ?>
-
-<?php if (isset($aiAvailable) && $aiAvailable): ?>
-<!-- Modal Suggestions IA -->
-<div id="ai-suggestions-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-        <h3 class="text-lg font-bold mb-4">✨ Suggestions IA</h3>
-        <div id="ai-suggestions-content" class="space-y-2">
-            <p class="text-gray-500">Chargement...</p>
-        </div>
-        <div class="mt-4 flex justify-end gap-2">
-            <button onclick="closeAISuggestionsModal()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                Annuler
-            </button>
-            <button onclick="applyAISuggestions(<?= $document['id'] ?>)" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                Appliquer
-            </button>
-        </div>
-    </div>
-</div>
+</style>
 
 <script>
-async function classifyWithAI(docId) {
-    const btn = document.getElementById('classify-ai-btn');
-    if (!btn) return;
+// Gestion des onglets
+function switchTab(tabName) {
+    // Masquer tous les contenus
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
     
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="animate-spin">⏳</span> Classification...';
+    // Désactiver tous les boutons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+        btn.classList.add('text-gray-600');
+    });
     
-    try {
-        const response = await fetch('<?= url('/api/documents/') ?>' + docId + '/classify-ai', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    // Afficher le contenu sélectionné
+    const content = document.getElementById('tab-' + tabName);
+    if (content) {
+        content.classList.remove('hidden');
+    }
+    
+    // Activer le bouton
+    const buttons = document.querySelectorAll('.tab-button');
+    buttons.forEach(btn => {
+        if (btn.textContent.trim().includes(tabName === 'details' ? 'Détails' : 
+                                            tabName === 'content' ? 'Contenu' : 
+                                            tabName === 'metadata' ? 'Métadonnées' : 
+                                            tabName === 'notes' ? 'Notes' : 'Historique')) {
+            btn.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+            btn.classList.remove('text-gray-600');
+        }
+    });
+    
+    // Charger l'historique si nécessaire
+    if (tabName === 'history') {
+        loadHistory();
+    }
+}
+
+// Dropdowns
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    const menu = dropdown.querySelector('.hidden');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+// Fermer les dropdowns au clic extérieur
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('[id$="-dropdown"]')) {
+        document.querySelectorAll('[id$="-dropdown"] .hidden').forEach(menu => {
+            if (!menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
             }
         });
-        
-        const data = await response.json();
-        
-        if (data.success && data.data && data.data.suggestions) {
-            showAISuggestionsModal(data.data.suggestions, docId);
-        } else {
-            alert('Erreur: ' + (data.message || 'Impossible de classifier le document'));
-        }
-    } catch (e) {
-        console.error('Erreur:', e);
-        alert('Erreur de classification');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-}
-
-function showAISuggestionsModal(suggestions, docId) {
-    const modal = document.getElementById('ai-suggestions-modal');
-    const content = document.getElementById('ai-suggestions-content');
-    
-    if (!modal || !content) return;
-    
-    const confidence = Math.round((suggestions.confidence || 0) * 100);
-    const confidenceColor = confidence >= 70 ? 'text-green-600' : confidence >= 50 ? 'text-yellow-600' : 'text-red-600';
-    
-    content.innerHTML = `
-        <div class="space-y-2">
-            <p><strong>Titre:</strong> <span class="text-gray-700">${suggestions.title_suggestion || '-'}</span></p>
-            <p><strong>Correspondant:</strong> <span class="text-gray-700">${suggestions.correspondent || '-'}</span></p>
-            <p><strong>Type:</strong> <span class="text-gray-700">${suggestions.document_type || '-'}</span></p>
-            <p><strong>Tags:</strong> <span class="text-gray-700">${suggestions.tags && suggestions.tags.length > 0 ? suggestions.tags.join(', ') : '-'}</span></p>
-            <p><strong>Date:</strong> <span class="text-gray-700">${suggestions.document_date || '-'}</span></p>
-            <p><strong>Montant:</strong> <span class="text-gray-700">${suggestions.amount ? suggestions.amount + ' CHF' : '-'}</span></p>
-            <p><strong>Confiance:</strong> <span class="${confidenceColor} font-semibold">${confidence}%</span></p>
-        </div>
-    `;
-    
-    modal.classList.remove('hidden');
-    modal.setAttribute('data-doc-id', docId);
-}
-
-function closeAISuggestionsModal() {
-    const modal = document.getElementById('ai-suggestions-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
-}
-
-async function applyAISuggestions(docId) {
-    const docIdFromModal = document.getElementById('ai-suggestions-modal')?.getAttribute('data-doc-id') || docId;
-    
-    try {
-        const response = await fetch('<?= url('/api/documents/') ?>' + docIdFromModal + '/apply-ai-suggestions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            closeAISuggestionsModal();
-            // Recharger la page pour voir les changements
-            setTimeout(() => window.location.reload(), 500);
-        } else {
-            alert('Erreur: ' + (data.message || 'Impossible d\'appliquer les suggestions'));
-        }
-    } catch (e) {
-        console.error('Erreur:', e);
-        alert('Erreur lors de l\'application des suggestions');
-    }
-}
-
-// Fermer la modal avec Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeAISuggestionsModal();
     }
 });
-</script>
+
+// Gestion des tags
+document.getElementById('tag-select')?.addEventListener('change', function() {
+    if (this.value) {
+        addTag(this.value);
+        this.value = '';
+    }
+});
+
+function addTag(tagId) {
+    // TODO: Implémenter l'ajout de tag via API
+    console.log('Ajouter tag:', tagId);
+}
+
+function removeTag(tagId) {
+    // TODO: Implémenter la suppression de tag via API
+    console.log('Supprimer tag:', tagId);
+}
+
+// Gestion des notes
+function addNote() {
+    const text = document.getElementById('new-note-text').value;
+    if (!text.trim()) return;
+    
+    fetch('<?= url('/api/documents/' . $document['id'] . '/notes') ?>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: text })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        }
+    });
+}
+
+function deleteNote(noteId) {
+    if (!confirm('Supprimer cette note ?')) return;
+    
+    fetch('<?= url('/api/documents/' . $document['id'] . '/notes/') ?>' + noteId, {
+        method: 'DELETE'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        }
+    });
+}
+
+// Charger l'historique
+function loadHistory() {
+    fetch('<?= url('/documents/' . $document['id'] . '/history') ?>', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => r.text())
+    .then(html => {
+        document.getElementById('history-content').innerHTML = html;
+    })
+    .catch(err => {
+        document.getElementById('history-content').innerHTML = '<p class="text-red-500 text-sm">Erreur lors du chargement de l\'historique</p>';
+        console.error('Erreur chargement historique:', err);
+    });
+}
+
+// Prévisualisation PDF
+<?php if ($isPDF): ?>
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 1;
+let currentScale = 1.5;
+
+function initPDFPreview() {
+    const pdfUrl = '<?= url('/documents/' . $document['id'] . '/view') ?>';
+    
+    // Utiliser PDF.js pour charger le PDF
+    if (typeof pdfjsLib === 'undefined') {
+        // Charger le worker d'abord
+        const workerScript = document.createElement('script');
+        workerScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        script.onload = () => {
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+            loadPDF(pdfUrl);
+        };
+        script.onerror = () => {
+            const loadingDiv = document.getElementById('pdf-loading');
+            if (loadingDiv) {
+                loadingDiv.innerHTML = '<p class="text-red-500">Erreur de chargement de PDF.js</p>';
+            }
+        };
+        document.head.appendChild(workerScript);
+        document.head.appendChild(script);
+    } else {
+        if (pdfjsLib.GlobalWorkerOptions) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        loadPDF(pdfUrl);
+    }
+}
+
+function loadPDF(url) {
+    const loadingDiv = document.getElementById('pdf-loading');
+    if (loadingDiv) {
+        loadingDiv.innerHTML = '<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div><p class="text-gray-600">Chargement du PDF...</p>';
+    }
+    
+    pdfjsLib.getDocument(url).promise.then(pdf => {
+        pdfDoc = pdf;
+        totalPages = pdf.numPages;
+        updatePageInfo();
+        renderPage(1);
+        
+        // Masquer le loader et afficher le canvas
+        const loadingDiv = document.getElementById('pdf-loading');
+        const canvas = document.getElementById('pdf-canvas');
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+        if (canvas) canvas.classList.remove('hidden');
+    }).catch(err => {
+        console.error('Erreur chargement PDF:', err);
+        const loadingDiv = document.getElementById('pdf-loading');
+        if (loadingDiv) {
+            loadingDiv.innerHTML = '<p class="text-red-500">Erreur lors du chargement du PDF</p>';
+        }
+    });
+}
+
+function renderPage(num) {
+    if (!pdfDoc) return;
+    const canvas = document.getElementById('pdf-canvas');
+    if (!canvas) return;
+    
+    pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale: currentScale });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const ctx = canvas.getContext('2d');
+        const renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+        };
+        
+        page.render(renderContext).promise.then(() => {
+            currentPage = num;
+            updatePageInfo();
+        });
+    }).catch(err => {
+        console.error('Erreur rendu page:', err);
+    });
+}
+
+function previousPDFPage() {
+    if (currentPage > 1) {
+        renderPage(currentPage - 1);
+    }
+}
+
+function nextPDFPage() {
+    if (currentPage < totalPages) {
+        renderPage(currentPage + 1);
+    }
+}
+
+function updatePageInfo() {
+    const info = document.getElementById('page-info-header');
+    if (info) {
+        info.textContent = `Page ${currentPage} sur ${totalPages}`;
+    }
+}
+
+function decreaseZoom() {
+    currentScale = Math.max(0.5, currentScale - 0.25);
+    if (pdfDoc && currentPage) {
+        renderPage(currentPage);
+    }
+}
+
+function increaseZoom() {
+    currentScale = Math.min(3.0, currentScale + 0.25);
+    if (pdfDoc && currentPage) {
+        renderPage(currentPage);
+    }
+}
+
+function setZoomFromSelect(value) {
+    if (value === 'fit-width' || value === 'fit-page') {
+        // TODO: Implémenter ajustement automatique
+        return;
+    }
+    currentScale = parseFloat(value);
+    if (pdfDoc && currentPage) {
+        renderPage(currentPage);
+    }
+}
+
+// Initialiser la prévisualisation au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    initPDFPreview();
+});
 <?php endif; ?>
+
+// Autres fonctions
+function discardChanges() {
+    if (confirm('Abandonner les modifications non enregistrées ?')) {
+        window.location.reload();
+    }
+}
+
+function getAISuggestions(docId) {
+    // TODO: Implémenter suggestions IA
+    alert('Suggestions IA à implémenter');
+}
+
+function addCustomField() {
+    // TODO: Implémenter ajout champ personnalisé
+    alert('Ajout champ personnalisé à implémenter');
+}
+
+function removeCustomField(fieldValueId) {
+    // TODO: Implémenter suppression champ personnalisé
+    alert('Suppression champ personnalisé à implémenter');
+}
+
+function reprocessDocument(docId) {
+    // TODO: Implémenter retraitement
+    alert('Retraitement à implémenter');
+}
+
+function printDocument() {
+    window.print();
+}
+
+function moreLikeThis(docId) {
+    // TODO: Implémenter "plus comme celui-ci"
+    alert('Plus comme celui-ci à implémenter');
+}
+
+function openShareLinks(docId) {
+    // TODO: Implémenter liens de partage
+    alert('Liens de partage à implémenter');
+}
+
+function openEmailDocument(docId) {
+    // TODO: Implémenter email
+    alert('Email à implémenter');
+}
+</script>
+

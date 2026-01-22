@@ -50,11 +50,14 @@ class Setting
         $db = Database::getInstance();
         
         try {
-            // Convertir la valeur selon le type
+            // Convertir la valeur selon le type (même si vide)
             $stringValue = self::stringifyValue($value, $type);
             
-            // Vérifier si le paramètre existe déjà
-            $checkStmt = $db->prepare("SELECT id FROM settings WHERE `key` = ?");
+            // Extraire la catégorie depuis la clé (ex: 'storage.base_path' -> 'storage')
+            $category = explode('.', $key)[0] ?? 'general';
+            
+            // Vérifier si le paramètre existe déjà (utiliser `key` car pas de colonne `id`)
+            $checkStmt = $db->prepare("SELECT `key` FROM settings WHERE `key` = ?");
             $checkStmt->execute([$key]);
             $existing = $checkStmt->fetch();
             
@@ -62,20 +65,29 @@ class Setting
                 // Mettre à jour
                 $stmt = $db->prepare("
                     UPDATE settings 
-                    SET `value` = ?, `type` = ?, `updated_by` = ?, `updated_at` = CURRENT_TIMESTAMP
+                    SET `value` = ?, `type` = ?, `category` = ?, `updated_by` = ?, `updated_at` = CURRENT_TIMESTAMP
                     WHERE `key` = ?
                 ");
-                return $stmt->execute([$stringValue, $type, $userId, $key]);
+                $result = $stmt->execute([$stringValue, $type, $category, $userId, $key]);
+                if (!$result) {
+                    error_log("Erreur UPDATE Setting::set pour '$key': " . implode(', ', $stmt->errorInfo()));
+                }
+                return $result;
             } else {
                 // Insérer
                 $stmt = $db->prepare("
-                    INSERT INTO settings (`key`, `value`, `type`, `updated_by`)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO settings (`key`, `value`, `type`, `category`, `updated_by`)
+                    VALUES (?, ?, ?, ?, ?)
                 ");
-                return $stmt->execute([$key, $stringValue, $type, $userId]);
+                $result = $stmt->execute([$key, $stringValue, $type, $category, $userId]);
+                if (!$result) {
+                    error_log("Erreur INSERT Setting::set pour '$key': " . implode(', ', $stmt->errorInfo()));
+                }
+                return $result;
             }
         } catch (\Exception $e) {
-            error_log("Erreur Setting::set: " . $e->getMessage());
+            error_log("Erreur Setting::set pour '$key': " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return false;
         }
     }
@@ -154,6 +166,11 @@ class Setting
      */
     private static function stringifyValue($value, string $type): string
     {
+        // Permettre les valeurs vides/null
+        if ($value === null || $value === '') {
+            return '';
+        }
+        
         switch ($type) {
             case 'json':
                 return json_encode($value);

@@ -106,7 +106,7 @@ class DocumentsController
             // Le folderId est un hash MD5 du chemin de dossier
             $fsReader = new FilesystemReader();
             
-            // Construire la liste de tous les dossiers avec leurs chemins
+            // Construire la liste de tous les dossiers avec leurs chemins pour trouver le chemin sélectionné
             $allFolderPaths = [];
             
             // Fonction récursive pour lire tous les dossiers
@@ -132,7 +132,9 @@ class DocumentsController
             // Trouver le chemin correspondant au hash
             $folderPath = null;
             foreach ($allFolderPaths as $path) {
-                $pathHash = md5($path);
+                // Normaliser le chemin pour le hash
+                $normalizedForHash = ($path === '' || $path === '/') ? '/' : $path;
+                $pathHash = md5($normalizedForHash);
                 if ($pathHash === $folderId) {
                     $folderPath = $path;
                     break;
@@ -151,8 +153,11 @@ class DocumentsController
             if ($folderPath !== null) {
                 // Lire les fichiers directement depuis le filesystem
                 // Normaliser : '/' devient '' pour la racine
-                $normalizedPath = ($folderPath === '/') ? '' : $folderPath;
+                $normalizedPath = ($folderPath === '/' || $folderPath === '') ? '' : $folderPath;
                 $fsContent = $fsReader->readDirectory($normalizedPath, false);
+                
+                // Définir currentFolder pour le template
+                $currentFolder = $normalizedPath;
                 
                 // Debug: logger si aucun fichier trouvé
                 if (empty($fsContent['files']) && empty($fsContent['error'])) {
@@ -219,9 +224,13 @@ class DocumentsController
                 $total = count($documents);
                 // Pagination manuelle
                 $documents = array_slice($documents, $offset, $limit);
+                
+                // Définir currentFolder pour le template (chemin normalisé)
+                $currentFolder = $normalizedPath;
             } else {
                 $documents = [];
                 $total = 0;
+                $currentFolder = null;
             }
         } else {
             // Vue par défaut : tous les documents (depuis la DB, mais filtrer ceux du filesystem)
@@ -310,120 +319,42 @@ class DocumentsController
         // Récupérer les dossiers logiques pour la sidebar
         $logicalFolders = LogicalFolder::getAll();
         
-        // Récupérer les dossiers filesystem réels depuis le filesystem
+        // Les dossiers filesystem sont maintenant chargés dynamiquement via AJAX
+        // On garde juste le chemin du dossier actuel pour le template
         $fsFolders = [];
-        try {
-            $fsReader = new FilesystemReader();
-            
-            // Fonction récursive pour lire tous les dossiers avec comptage réel des fichiers
-            $readAllFolders = function($relativePath = '') use (&$readAllFolders, $fsReader) {
-                $folders = [];
-                $content = $fsReader->readDirectory($relativePath, false);
+        $currentFolderPath = null;
+        
+        // Si un dossier est sélectionné, trouver son chemin pour le template
+        if ($folderId) {
+            try {
+                $fsReader = new FilesystemReader();
                 
-                foreach ($content['folders'] as $folder) {
-                    $folderPath = $relativePath ? $relativePath . '/' . $folder['name'] : $folder['name'];
-                    
-                    // Compter les fichiers réels dans ce dossier (depuis le filesystem)
-                    $realFileCount = $folder['file_count'] ?? 0;
-                    
-                    $folders[] = [
-                        'path' => $folderPath,
-                        'name' => $folder['name'],
-                        'depth' => substr_count($folderPath, '/'),
-                        'file_count' => $realFileCount
-                    ];
-                    
-                    // Lire récursivement les sous-dossiers
-                    $subFolders = $readAllFolders($folderPath);
-                    $folders = array_merge($folders, $subFolders);
-                }
+                // Construire la liste de tous les dossiers pour trouver le chemin
+                $allFolderPaths = [];
+                $readAllFolders = function($relativePath = '') use (&$readAllFolders, $fsReader, &$allFolderPaths) {
+                    $content = $fsReader->readDirectory($relativePath, false);
+                    foreach ($content['folders'] as $folder) {
+                        $folderPath = $relativePath ? $relativePath . '/' . $folder['name'] : $folder['name'];
+                        $allFolderPaths[] = $folderPath;
+                        $readAllFolders($folderPath);
+                    }
+                };
+                $allFolderPaths[] = '/';
+                $allFolderPaths[] = '';
+                $readAllFolders();
                 
-                return $folders;
-            };
-            
-            $allFolders = $readAllFolders();
-            
-            // Compter aussi les fichiers indexés en DB par dossier pour information
-            $stmt = $db->query("
-                SELECT relative_path 
-                FROM documents 
-                WHERE deleted_at IS NULL 
-                AND relative_path IS NOT NULL 
-                AND relative_path != ''
-            ");
-            $paths = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
-            $folderMap = [];
-            $rootCount = 0;
-            
-            // Construire la map des dossiers avec comptage depuis le filesystem
-            foreach ($allFolders as $folder) {
-                $folderMap[$folder['path']] = $folder;
-            }
-            
-            // Compter les fichiers indexés en DB par dossier (pour info supplémentaire)
-            foreach ($paths as $path) {
-                $dir = dirname($path);
-                if ($dir === '.' || $dir === '' || $dir === '/') {
-                    $rootCount++;
-                } else {
-                    // Normaliser le chemin
-                    $dir = trim($dir, '/');
-                    if (isset($folderMap[$dir])) {
-                        // Le comptage filesystem est déjà fait, on peut juste vérifier
+                // Trouver le chemin correspondant au hash
+                foreach ($allFolderPaths as $path) {
+                    $normalizedForHash = ($path === '' || $path === '/') ? '/' : $path;
+                    $pathHash = md5($normalizedForHash);
+                    if ($pathHash === $folderId) {
+                        $currentFolderPath = ($path === '' || $path === '/') ? '' : $path;
+                        break;
                     }
                 }
+            } catch (\Exception $e) {
+                error_log("Erreur récupération chemin dossier: " . $e->getMessage());
             }
-            
-            // Ajouter la racine si elle contient des fichiers (depuis le filesystem)
-            $rootContent = $fsReader->readDirectory('', false);
-            $rootFileCount = count($rootContent['files']);
-            // Toujours ajouter la racine pour permettre la navigation (une seule fois)
-            if (!isset($folderMap['/'])) {
-                $folderMap['/'] = [
-                    'path' => '/',
-                    'name' => '[Racine]',
-                    'depth' => 0,
-                    'file_count' => $rootFileCount
-                ];
-            }
-            
-            // Trier par profondeur puis par nom
-            usort($folderMap, function($a, $b) {
-                if ($a['depth'] === $b['depth']) {
-                    return strcmp($a['name'], $b['name']);
-                }
-                return $a['depth'] - $b['depth'];
-            });
-            
-            // Convertir en format avec ID pour compatibilité
-            $fsFolders = [];
-            $addedIds = []; // Pour éviter les doublons par ID
-            foreach ($folderMap as $path => $folder) {
-                // Utiliser le chemin normalisé pour l'ID (toujours '/' pour la racine)
-                $normalizedPath = ($path === '' || $path === '/') ? '/' : $path;
-                $pathId = md5($normalizedPath);
-                
-                // Éviter les doublons (même ID = même dossier)
-                if (in_array($pathId, $addedIds)) {
-                    continue;
-                }
-                
-                $fsFolders[] = [
-                    'id' => $pathId, // ID basé sur le chemin normalisé
-                    'path' => $normalizedPath,
-                    'name' => $folder['name'],
-                    'depth' => $folder['depth'],
-                    'file_count' => $folder['file_count']
-                ];
-                $addedIds[] = $pathId;
-            }
-        } catch (\Exception $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::logException($e, 'DocumentsController::index - Error fetching filesystem folders', 'A');
-            // #endregion
-            // Erreur lors de la récupération
-            error_log("Erreur récupération dossiers filesystem: " . $e->getMessage());
         }
         
         // Récupérer les types de documents pour le filtre
@@ -470,7 +401,9 @@ class DocumentsController
         ], 'C');
         // #endregion
         
-        $content = $this->renderTemplate(__DIR__ . '/../../templates/documents/index.php', [
+        // Utiliser le template principal
+        $templateFile = __DIR__ . '/../../templates/documents/index.php';
+        $content = $this->renderTemplate($templateFile, [
             'documents' => $documents,
             'page' => $page,
             'totalPages' => $totalPages,
@@ -488,7 +421,8 @@ class DocumentsController
             'correspondents' => $correspondents,
             'correspondentId' => $correspondentId,
             'tagId' => $tagId,
-            'currentFolder' => $logicalFolderId ?? $folderId,
+            'currentFolder' => $logicalFolderId ?? ($folderId ? true : null),
+            'currentFolderPath' => $currentFolderPath ?? (isset($currentFolder) ? $currentFolder : null),
             'storagePaths' => $storagePaths ?? [],
         ]);
         
@@ -740,6 +674,35 @@ class DocumentsController
             // Table document_notes n'existe pas encore
         }
         
+        // Récupérer les correspondants, types, storage paths pour les formulaires
+        $correspondents = [];
+        $documentTypes = [];
+        $storagePaths = [];
+        $allTags = [];
+        try {
+            $correspondents = $db->query("SELECT id, name FROM correspondents ORDER BY name")->fetchAll();
+            $documentTypes = $db->query("SELECT id, code, label FROM document_types ORDER BY label")->fetchAll();
+            $storagePaths = $db->query("SELECT id, name, path FROM storage_paths ORDER BY name")->fetchAll();
+            $allTags = $db->query("SELECT id, name, color FROM tags ORDER BY name")->fetchAll();
+        } catch (\Exception $e) {}
+        
+        // Récupérer les IDs précédent/suivant pour la navigation
+        $previousId = null;
+        $nextId = null;
+        try {
+            // Document précédent (créé avant celui-ci)
+            $prevStmt = $db->prepare("SELECT id FROM documents WHERE deleted_at IS NULL AND created_at < ? ORDER BY created_at DESC LIMIT 1");
+            $prevStmt->execute([$document['created_at']]);
+            $prevDoc = $prevStmt->fetch();
+            $previousId = $prevDoc ? $prevDoc['id'] : null;
+            
+            // Document suivant (créé après celui-ci)
+            $nextStmt = $db->prepare("SELECT id FROM documents WHERE deleted_at IS NULL AND created_at > ? ORDER BY created_at ASC LIMIT 1");
+            $nextStmt->execute([$document['created_at']]);
+            $nextDoc = $nextStmt->fetch();
+            $nextId = $nextDoc ? $nextDoc['id'] : null;
+        } catch (\Exception $e) {}
+        
         // Vérifier si la classification IA est disponible (Bonus)
         $aiClassifier = new \KDocs\Services\AIClassifierService();
         $aiAvailable = $aiClassifier->isAvailable();
@@ -751,6 +714,12 @@ class DocumentsController
             'documentId' => $id,
             'aiClassifier' => $aiClassifier,
             'aiAvailable' => $aiAvailable,
+            'correspondents' => $correspondents,
+            'documentTypes' => $documentTypes,
+            'storagePaths' => $storagePaths,
+            'allTags' => $allTags,
+            'previousId' => $previousId,
+            'nextId' => $nextId,
         ]);
         
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
@@ -827,6 +796,45 @@ class DocumentsController
             ->withHeader('Content-Type', $document['mime_type'])
             ->withHeader('Content-Disposition', 'inline; filename="' . $document['original_filename'] . '"')
             ->withHeader('Content-Length', (string)$document['file_size'])
+            ->withBody($stream);
+    }
+
+    /**
+     * Affiche une miniature de document
+     */
+    public function thumbnail(Request $request, Response $response, array $args): Response
+    {
+        $user = $request->getAttribute('user');
+        $id = (int)$args['id'];
+        
+        $document = Document::findById($id);
+        
+        if (!$document) {
+            return $response->withStatus(404);
+        }
+        
+        $config = Config::load();
+        $thumbBasePath = $config['storage']['thumbnails'] ?? __DIR__ . '/../../storage/thumbnails';
+        
+        // thumbnail_path contient juste le nom du fichier (ex: "123_thumb.png")
+        $thumbnailFilename = $document['thumbnail_path'] ?? null;
+        
+        if (!$thumbnailFilename) {
+            return $response->withStatus(404);
+        }
+        
+        $thumbnailPath = $thumbBasePath . DIRECTORY_SEPARATOR . basename($thumbnailFilename);
+        
+        if (!file_exists($thumbnailPath)) {
+            return $response->withStatus(404);
+        }
+        
+        $file = fopen($thumbnailPath, 'rb');
+        $stream = new \Slim\Psr7\Stream($file);
+        
+        return $response
+            ->withHeader('Content-Type', 'image/png')
+            ->withHeader('Cache-Control', 'public, max-age=31536000')
             ->withBody($stream);
     }
 
@@ -1513,6 +1521,21 @@ class DocumentsController
         
         $db = Database::getInstance();
         $history = [];
+        
+        // Ajouter la date de création comme première entrée d'historique
+        $createdBy = $document['created_by_username'] ?? 'Inconnu';
+        $history[] = [
+            'id' => 0,
+            'document_id' => $id,
+            'user_id' => $document['created_by'] ?? null,
+            'action' => 'created',
+            'field_name' => 'Document créé',
+            'old_value' => null,
+            'new_value' => 'Document ajouté au système',
+            'created_at' => $document['created_at'],
+            'user_name' => $createdBy
+        ];
+        
         try {
             $stmt = $db->prepare("
                 SELECT h.*, u.username as user_name
@@ -1523,9 +1546,26 @@ class DocumentsController
                 LIMIT 50
             ");
             $stmt->execute([$id]);
-            $history = $stmt->fetchAll();
+            $dbHistory = $stmt->fetchAll();
+            
+            // Fusionner avec l'entrée de création et trier par date décroissante
+            $history = array_merge($history, $dbHistory);
+            usort($history, function($a, $b) {
+                return strtotime($b['created_at']) - strtotime($a['created_at']);
+            });
         } catch (\Exception $e) {
-            // Table n'existe pas encore
+            // Table n'existe pas encore, on garde juste l'entrée de création
+        }
+        
+        // Si c'est une requête AJAX, retourner juste le HTML de l'historique
+        if ($request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest' || 
+            strpos($request->getUri()->getPath(), '/history') !== false) {
+            $content = $this->renderTemplate(__DIR__ . '/../../templates/documents/history_partial.php', [
+                'document' => $document,
+                'history' => $history,
+            ]);
+            $response->getBody()->write($content);
+            return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
         }
         
         $content = $this->renderTemplate(__DIR__ . '/../../templates/documents/history.php', [

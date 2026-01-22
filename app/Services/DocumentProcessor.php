@@ -48,20 +48,44 @@ class DocumentProcessor
         
         // Récupérer le chemin du fichier
         // Utiliser file_path si disponible, sinon construire depuis storage_path ou filename
+        $filePath = null;
+        
         if (!empty($document['file_path']) && file_exists($document['file_path'])) {
             $filePath = $document['file_path'];
         } else {
             $config = Config::load();
-            $basePath = Config::get('storage.base_path', __DIR__ . '/../../storage/documents');
-            $resolved = realpath($basePath);
-            $documentsDir = rtrim($resolved ?: $basePath, '/\\');
-            // Essayer storage_path, puis filename, puis original_filename
-            $relativePath = $document['storage_path'] ?? $document['filename'] ?? $document['original_filename'] ?? '';
-            $filePath = $documentsDir . DIRECTORY_SEPARATOR . $relativePath;
+            $storageType = Config::get('storage.type', 'local');
+            
+            if ($storageType === 'kdrive') {
+                // Pour KDrive, télécharger le fichier temporairement
+                $relativePath = $document['storage_path'] ?? $document['filename'] ?? $document['original_filename'] ?? '';
+                if ($relativePath) {
+                    $tempDir = $config['storage']['temp'] ?? __DIR__ . '/../../storage/temp';
+                    if (!is_dir($tempDir)) {
+                        @mkdir($tempDir, 0755, true);
+                    }
+                    $localTempPath = $tempDir . DIRECTORY_SEPARATOR . basename($relativePath);
+                    
+                    // Télécharger depuis KDrive
+                    $filesystemReader = new \KDocs\Services\FilesystemReader();
+                    if ($filesystemReader->downloadFile($relativePath, $localTempPath)) {
+                        $filePath = $localTempPath;
+                    } else {
+                        throw new \Exception("Impossible de télécharger le fichier depuis KDrive: {$relativePath}");
+                    }
+                }
+            } else {
+                // Stockage local
+                $basePath = Config::get('storage.base_path', __DIR__ . '/../../storage/documents');
+                $resolved = realpath($basePath);
+                $documentsDir = rtrim($resolved ?: $basePath, '/\\');
+                $relativePath = $document['storage_path'] ?? $document['filename'] ?? $document['original_filename'] ?? '';
+                $filePath = $documentsDir . DIRECTORY_SEPARATOR . $relativePath;
+            }
         }
         
-        if (!file_exists($filePath)) {
-            throw new \Exception("Fichier introuvable: {$filePath}");
+        if (!$filePath || !file_exists($filePath)) {
+            throw new \Exception("Fichier introuvable: " . ($filePath ?? 'chemin non défini'));
         }
         
         // 1. OCR si pas de contenu
@@ -80,10 +104,10 @@ class DocumentProcessor
         }
         
         // 2. Matching automatique
-        $documentText = $document['content'] ?? '';
+        $documentText = ($document['title'] ?? '') . ' ' . ($document['ocr_text'] ?? '') . ' ' . ($document['content'] ?? '');
         if (!empty($documentText)) {
             try {
-                $matches = MatchingService::applyMatching($documentText);
+                $matches = MatchingService::findMatches($documentText);
                 
                 // Appliquer les tags
                 foreach ($matches['tags'] as $tagId) {

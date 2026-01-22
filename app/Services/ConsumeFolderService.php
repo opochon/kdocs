@@ -36,6 +36,7 @@ class ConsumeFolderService
     
     /**
      * Scanner le dossier consume et traiter les nouveaux fichiers
+     * Supporte filesystem local et KDrive
      * 
      * @return array Résultats du traitement ['processed' => int, 'errors' => array]
      */
@@ -43,14 +44,20 @@ class ConsumeFolderService
     {
         $results = ['processed' => 0, 'errors' => []];
         
+        $config = Config::load();
+        $storageType = Config::get('storage.type', 'local');
+        $allowedExtensions = $config['storage']['allowed_extensions'] ?? ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif'];
+        
+        if ($storageType === 'kdrive') {
+            // Scanner KDrive
+            return $this->scanKDrive($allowedExtensions);
+        }
+        
+        // Scanner filesystem local
         if (!is_dir($this->consumePath)) {
             @mkdir($this->consumePath, 0755, true);
             return $results;
         }
-        
-        // Récupérer les extensions autorisées depuis la config
-        $config = Config::load();
-        $allowedExtensions = $config['storage']['allowed_extensions'] ?? ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif'];
         
         // Scanner tous les fichiers du dossier consume
         $files = glob($this->consumePath . '/*.*');
@@ -71,6 +78,62 @@ class ConsumeFolderService
             } catch (\Exception $e) {
                 $results['errors'][] = basename($file) . ': ' . $e->getMessage();
             }
+        }
+        
+        return $results;
+    }
+    
+    /**
+     * Scanner KDrive pour les nouveaux fichiers
+     */
+    private function scanKDrive(array $allowedExtensions): array
+    {
+        $results = ['processed' => 0, 'errors' => []];
+        
+        try {
+            $filesystemReader = new \KDocs\Services\FilesystemReader();
+            $config = Config::load();
+            
+            // Chemin du dossier consume dans KDrive
+            $consumePath = Config::get('storage.consume', 'consume');
+            
+            // Lister les fichiers dans le dossier consume KDrive
+            $content = $filesystemReader->readDirectory($consumePath, false);
+            
+            if (isset($content['error'])) {
+                $results['errors'][] = "Erreur lecture KDrive: " . $content['error'];
+                return $results;
+            }
+            
+            foreach ($content['files'] as $file) {
+                $ext = strtolower($file['extension'] ?? '');
+                if (!in_array($ext, $allowedExtensions)) {
+                    continue;
+                }
+                
+                try {
+                    // Télécharger temporairement depuis KDrive
+                    $tempDir = $config['storage']['temp'] ?? __DIR__ . '/../../storage/temp';
+                    if (!is_dir($tempDir)) {
+                        @mkdir($tempDir, 0755, true);
+                    }
+                    
+                    $tempPath = $tempDir . DIRECTORY_SEPARATOR . uniqid() . '_' . $file['name'];
+                    
+                    if ($filesystemReader->downloadFile($file['path'], $tempPath)) {
+                        $this->processFile($tempPath);
+                        $results['processed']++;
+                        // Supprimer le fichier temporaire après traitement
+                        @unlink($tempPath);
+                    } else {
+                        $results['errors'][] = "Impossible de télécharger: " . $file['name'];
+                    }
+                } catch (\Exception $e) {
+                    $results['errors'][] = $file['name'] . ': ' . $e->getMessage();
+                }
+            }
+        } catch (\Exception $e) {
+            $results['errors'][] = "Erreur scan KDrive: " . $e->getMessage();
         }
         
         return $results;
