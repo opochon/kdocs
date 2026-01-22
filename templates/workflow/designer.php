@@ -152,8 +152,8 @@ $base = Config::basePath();
             </div>
         </div>
         
-        <!-- Canvas central - React Flow -->
-        <div class="flex-1 relative">
+        <!-- Canvas central - Workflow Designer -->
+        <div class="flex-1 relative bg-gray-50">
             <div id="react-flow-container" class="w-full h-full"></div>
         </div>
         
@@ -169,7 +169,7 @@ $base = Config::basePath();
     </div>
 </div>
 
-<script src="<?= url('/public/js/workflow-designer.js') ?>"></script>
+<script src="<?= $base ?>/public/js/workflow-designer.js"></script>
 <script>
 (function() {
     'use strict';

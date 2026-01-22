@@ -33,6 +33,10 @@ class OcrProcessor extends AbstractNodeExecutor
             $ocrService = new OCRService();
             $ocrText = $ocrService->extractText($document['file_path']);
             
+            if (!$ocrText) {
+                return ExecutionResult::failed('Impossible d\'extraire le texte avec OCR');
+            }
+            
             // Mettre à jour le document avec le texte OCR
             $updateStmt = $db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
             $updateStmt->execute([$ocrText, $context->documentId]);
