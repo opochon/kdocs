@@ -28,7 +28,7 @@ class ConsumeFolderService
     
     public function scan(): array
     {
-        $results = ['scanned' => 0, 'imported' => 0, 'skipped' => 0, 'errors' => [], 'documents' => []];
+        $results = ['scanned' => 0, 'imported' => 0, 'skipped' => 0, 'reprocessed' => 0, 'errors' => [], 'documents' => []];
         
         if (!is_dir($this->consumePath)) {
             $results['errors'][] = "Dossier inexistant: {$this->consumePath}";
@@ -50,12 +50,29 @@ class ConsumeFolderService
             if (!in_array($ext, $allowed)) { $results['skipped']++; continue; }
             
             $checksum = md5_file($path);
-            $stmt = $this->db->prepare("SELECT id FROM documents WHERE checksum = ?");
+            
+            // Vérifier si le document existe déjà
+            $stmt = $this->db->prepare("SELECT id, status FROM documents WHERE checksum = ?");
             $stmt->execute([$checksum]);
-            if ($stmt->fetch()) {
-                $results['skipped']++;
-                $this->moveToProcessed($path);
-                continue;
+            $existing = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($existing) {
+                // Si le document est déjà validé, ignorer et déplacer vers processed
+                if ($existing['status'] === 'validated') {
+                    $results['skipped']++;
+                    $this->moveToProcessed($path);
+                    continue;
+                }
+                
+                // Si le document existe mais n'est pas validé, le retraiter
+                // Supprimer l'ancien document et réimporter
+                try {
+                    $this->db->prepare("DELETE FROM documents WHERE id = ?")->execute([$existing['id']]);
+                    $this->db->prepare("DELETE FROM document_tags WHERE document_id = ?")->execute([$existing['id']]);
+                    $results['reprocessed']++;
+                } catch (\Exception $e) {
+                    error_log("Erreur suppression document existant: " . $e->getMessage());
+                }
             }
             
             try {
@@ -76,13 +93,21 @@ class ConsumeFolderService
         $filename = basename($path);
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $unique = date('Ymd_His') . '_' . uniqid() . '.' . $ext;
-        $dest = $this->documentsPath . '/' . $unique;
+        
+        // Créer le dossier "toclassify" pour les fichiers non triés
+        $toclassifyPath = $this->documentsPath . '/toclassify';
+        if (!is_dir($toclassifyPath)) {
+            @mkdir($toclassifyPath, 0755, true);
+        }
+        
+        // Placer le fichier dans toclassify en attendant la validation
+        $dest = $toclassifyPath . '/' . $unique;
         
         if (!copy($path, $dest)) throw new \Exception("Copie impossible");
         
         $stmt = $this->db->prepare("
-            INSERT INTO documents (title, filename, original_filename, file_path, file_size, mime_type, checksum, status, consume_subfolder, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, NOW(), NOW())
+            INSERT INTO documents (title, filename, original_filename, file_path, file_size, mime_type, checksum, status, consume_subfolder, uploaded_at, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, NOW(), NOW(), NOW())
         ");
         $stmt->execute([
             pathinfo($filename, PATHINFO_FILENAME),
@@ -94,7 +119,9 @@ class ConsumeFolderService
         ]);
         
         $docId = $this->db->lastInsertId();
-        $this->moveToProcessed($path);
+        
+        // NE PAS déplacer vers processed ici - seulement après validation
+        // Le fichier reste dans consume jusqu'à validation
         
         $result = ['id' => $docId, 'filename' => $filename, 'status' => 'imported'];
         
@@ -112,11 +139,12 @@ class ConsumeFolderService
                 ->execute([json_encode($classification), $docId]);
             
             $result['classification'] = $classification;
-            $result['status'] = $classification['auto_applied'] ? 'auto_validated' : ($classification['should_review'] ? 'needs_review' : 'processed');
+            $result['status'] = $classification['auto_applied'] ? 'auto_validated' : ($classification['should_review'] ? 'needs_review' : 'pending');
             
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['error'] = $e->getMessage();
+            error_log("Erreur traitement document {$docId}: " . $e->getMessage());
         }
         
         return $result;
@@ -141,6 +169,11 @@ class ConsumeFolderService
     
     public function validateDocument(int $id, array $data): bool
     {
+        $doc = $this->getDocument($id);
+        if (!$doc) {
+            throw new \Exception("Document introuvable: {$id}");
+        }
+        
         $sets = ['status = ?']; $params = ['validated'];
         foreach (['title', 'correspondent_id', 'document_type_id', 'doc_date', 'amount'] as $f) {
             if (isset($data[$f])) { $sets[] = "$f = ?"; $params[] = $data[$f] ?: null; }
@@ -148,38 +181,42 @@ class ConsumeFolderService
         
         // Gérer le chemin de stockage
         $storagePathOption = $data['storage_path_option'] ?? 'suggested';
+        $targetPath = null;
         
         if ($storagePathOption === 'custom' && !empty($data['storage_path_custom'])) {
-            // Créer le chemin personnalisé et déplacer le fichier
-            $this->createAndMoveToPath($id, $data['storage_path_custom']);
+            // Créer le chemin personnalisé
+            $targetPath = $data['storage_path_custom'];
+            $this->createAndMoveToPath($id, $targetPath);
         } elseif ($storagePathOption === 'existing' && !empty($data['storage_path_id'])) {
             $sets[] = 'storage_path_id = ?';
             $params[] = (int)$data['storage_path_id'];
-        } elseif ($storagePathOption === 'suggested') {
-            // Générer le chemin suggéré et déplacer le fichier
-            $doc = $this->getDocument($id);
-            if ($doc) {
-                $year = !empty($data['doc_date']) ? date('Y', strtotime($data['doc_date'])) : date('Y');
-                $typeName = 'Divers';
-                $corrName = 'Inconnu';
-                
-                if (!empty($data['document_type_id'])) {
-                    $typeStmt = $this->db->prepare("SELECT label FROM document_types WHERE id = ?");
-                    $typeStmt->execute([$data['document_type_id']]);
-                    $type = $typeStmt->fetch();
-                    if ($type) $typeName = $type['label'];
-                }
-                
-                if (!empty($data['correspondent_id'])) {
-                    $corrStmt = $this->db->prepare("SELECT name FROM correspondents WHERE id = ?");
-                    $corrStmt->execute([$data['correspondent_id']]);
-                    $corr = $corrStmt->fetch();
-                    if ($corr) $corrName = $corr['name'];
-                }
-                
-                $suggestedPath = $year . '/' . $this->sanitizePath($typeName) . '/' . $this->sanitizePath($corrName);
-                $this->createAndMoveToPath($id, $suggestedPath);
+            
+            // Récupérer le chemin du storage_path
+            $stmt = $this->db->prepare("SELECT path FROM storage_paths WHERE id = ?");
+            $stmt->execute([$data['storage_path_id']]);
+            $sp = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($sp) {
+                $targetPath = $sp['path'];
+                $this->createAndMoveToPath($id, $targetPath);
             }
+        } elseif ($storagePathOption === 'suggested') {
+            // Générer le chemin suggéré avec StoragePathGenerator
+            // Fusionner les données du document avec les données du formulaire
+            $docData = array_merge($doc, $data);
+            $docData['uploaded_at'] = $doc['created_at'] ?? null;
+            
+            $pathGenerator = new \KDocs\Services\StoragePathGenerator();
+            $targetPath = $pathGenerator->generatePath($docData);
+            
+            if (!empty($targetPath)) {
+                $this->createAndMoveToPath($id, $targetPath);
+            }
+        }
+        
+        // Si aucun chemin n'a été défini, créer un dossier "Unsorted" ou "Non triés"
+        if (empty($targetPath) && strpos($doc['file_path'], '/toclassify/') !== false) {
+            $targetPath = 'Unsorted';
+            $this->createAndMoveToPath($id, $targetPath);
         }
         
         $params[] = $id;
@@ -191,7 +228,30 @@ class ConsumeFolderService
                 $this->db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)")->execute([$id, $tid]);
             }
         }
+        
+        // Déplacer le fichier original de consume vers processed APRÈS validation
+        if (!empty($doc['original_filename'])) {
+            $this->moveOriginalToProcessed($doc['original_filename']);
+        }
+        
         return true;
+    }
+    
+    /**
+     * Déplace le fichier original de consume vers processed après validation
+     */
+    private function moveOriginalToProcessed(string $originalFilename): void
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->consumePath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getFilename() === $originalFilename) {
+                $this->moveToProcessed($file->getPathname());
+                break;
+            }
+        }
     }
     
     private function createAndMoveToPath(int $documentId, string $relativePath): void
