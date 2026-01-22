@@ -90,17 +90,42 @@ class DocumentProcessor
         }
         
         // 1. OCR si pas de contenu
-        if (empty($document['content'])) {
+        if (empty($document['content']) && empty($document['ocr_text'])) {
             try {
                 $content = $this->ocrService->extractText($filePath);
-                if ($content) {
-                    $stmt = $this->db->prepare("UPDATE documents SET content = ? WHERE id = ?");
-                    $stmt->execute([$content, $documentId]);
+                if ($content && !empty(trim($content))) {
+                    // Stocker dans 'content' (colonne principale) et aussi dans 'ocr_text' pour compatibilité
+                    $stmt = $this->db->prepare("UPDATE documents SET content = ?, ocr_text = ? WHERE id = ?");
+                    $stmt->execute([$content, $content, $documentId]);
                     $document['content'] = $content;
+                    $document['ocr_text'] = $content;
                     $results['ocr'] = true;
+                    error_log("OCR réussi pour document {$documentId}, " . strlen($content) . " caractères extraits");
+                } else {
+                    error_log("OCR échoué pour document {$documentId}: contenu vide ou null");
+                    // Stocker un message d'erreur pour indiquer que l'OCR a été tenté mais a échoué
+                    $stmt = $this->db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
+                    $stmt->execute(["OCR échoué: aucun outil disponible (pdftotext, pdftoppm ou ImageMagick requis)", $documentId]);
                 }
             } catch (\Exception $e) {
                 error_log("Erreur OCR document {$documentId}: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
+                // Stocker l'erreur dans ocr_text pour debugging
+                try {
+                    $stmt = $this->db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
+                    $stmt->execute(["Erreur OCR: " . $e->getMessage(), $documentId]);
+                } catch (\Exception $e2) {
+                    // Ignorer si la colonne n'existe pas
+                }
+            }
+        } else {
+            // Si le contenu existe déjà, s'assurer que les deux colonnes sont synchronisées
+            if (!empty($document['content']) && empty($document['ocr_text'])) {
+                $stmt = $this->db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
+                $stmt->execute([$document['content'], $documentId]);
+            } elseif (!empty($document['ocr_text']) && empty($document['content'])) {
+                $stmt = $this->db->prepare("UPDATE documents SET content = ? WHERE id = ?");
+                $stmt->execute([$document['ocr_text'], $documentId]);
             }
         }
         

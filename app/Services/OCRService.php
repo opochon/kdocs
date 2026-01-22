@@ -43,21 +43,100 @@ class OCRService
     
     private function extractTextFromPDF(string $pdfPath): ?string
     {
+        // Méthode 1: Essayer pdftotext (le plus rapide et efficace)
+        $outputFile = $this->tempDir . '/' . uniqid('pdf_text_') . '.txt';
+        $pdfCmd = escapeshellarg($pdfPath);
+        $outputCmd = escapeshellarg($outputFile);
+        
+        // Vérifier si pdftotext est disponible
+        exec("where pdftotext 2>&1", $whereOutput, $whereCode);
+        $pdftotextAvailable = ($whereCode === 0);
+        
+        if ($pdftotextAvailable) {
+            exec("pdftotext -layout $pdfCmd $outputCmd 2>&1", $output, $returnCode);
+            
+            if ($returnCode === 0 && file_exists($outputFile)) {
+                $text = file_get_contents($outputFile);
+                @unlink($outputFile);
+                $text = trim($text);
+                if (!empty($text)) {
+                    return $text;
+                }
+            }
+        } else {
+            error_log("pdftotext non disponible, utilisation du fallback OCR");
+        }
+        
+        // Méthode 2: Fallback sur conversion image + OCR (plus lent mais fonctionne toujours)
         $tempDir = $this->tempDir . '/' . uniqid('pdf_');
         @mkdir($tempDir, 0755, true);
-        $pdfCmd = escapeshellarg($pdfPath);
         $tempCmd = escapeshellarg($tempDir);
-        exec("pdftoppm -png -r 300 $pdfCmd $tempCmd/page 2>&1", $output, $returnCode);
-        if ($returnCode !== 0) {
-            exec("magick convert -density 300 $pdfCmd $tempCmd/page.png 2>&1", $output, $returnCode);
+        
+        $conversionSuccess = false;
+        
+        // Essayer pdftoppm d'abord
+        exec("where pdftoppm 2>&1", $pdftoppmCheck, $pdftoppmCheckCode);
+        if ($pdftoppmCheckCode === 0) {
+            exec("pdftoppm -png -r 200 $pdfCmd $tempCmd/page 2>&1", $output, $returnCode);
+            if ($returnCode === 0) {
+                $conversionSuccess = true;
+            }
         }
+        
+        // Fallback ImageMagick si pdftoppm n'est pas disponible ou a échoué
+        if (!$conversionSuccess) {
+            $config = Config::load();
+            $imageMagickPath = $config['tools']['imagemagick'] ?? 'magick';
+            $imageMagickCmd = escapeshellarg($imageMagickPath);
+            
+            // Vérifier si ImageMagick est disponible
+            exec("where $imageMagickCmd 2>&1", $imCheck, $imCheckCode);
+            if ($imCheckCode === 0) {
+                exec("$imageMagickCmd convert -density 200 $pdfCmd $tempCmd/page.png 2>&1", $output, $returnCode);
+                if ($returnCode === 0) {
+                    $conversionSuccess = true;
+                }
+            } else {
+                error_log("ImageMagick non disponible, impossible de convertir le PDF en images");
+            }
+        }
+        
+        if (!$conversionSuccess) {
+            error_log("Aucun outil de conversion PDF disponible (pdftoppm ou ImageMagick requis)");
+            $this->deleteDirectory($tempDir);
+            return null;
+        }
+        
         $textParts = [];
-        foreach (glob($tempDir . '/page*.png') as $pageFile) {
-            $pageText = $this->extractTextFromImage($pageFile);
-            if ($pageText) $textParts[] = $pageText;
+        $pageFiles = array_merge(
+            glob($tempDir . '/page*.png'),
+            glob($tempDir . '/page-*.png')
+        );
+        
+        // Limiter à 5 pages pour la performance
+        $pageFiles = array_slice($pageFiles, 0, 5);
+        
+        if (empty($pageFiles)) {
+            error_log("Aucune page convertie depuis le PDF");
+            $this->deleteDirectory($tempDir);
+            return null;
         }
+        
+        foreach ($pageFiles as $pageFile) {
+            $pageText = $this->extractTextFromImage($pageFile);
+            if ($pageText) {
+                $textParts[] = $pageText;
+            }
+        }
+        
         $this->deleteDirectory($tempDir);
-        return !empty($textParts) ? implode("\n\n", $textParts) : null;
+        
+        if (empty($textParts)) {
+            error_log("Aucun texte extrait par OCR depuis les images du PDF");
+            return null;
+        }
+        
+        return implode("\n\n", $textParts);
     }
     
     private function deleteDirectory(string $dir): void
