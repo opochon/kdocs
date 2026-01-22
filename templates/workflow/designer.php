@@ -177,11 +177,26 @@ $base = Config::basePath();
     const workflowId = <?= json_encode($workflowId ?? null) ?>;
     const basePath = <?= json_encode($base) ?>;
     
-    // Initialiser le designer
-    window.workflowDesigner = new WorkflowDesigner('react-flow-container', {
-        basePath: basePath,
-        workflowId: workflowId,
-    });
+    // Attendre que le DOM soit complètement chargé
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDesigner);
+    } else {
+        initDesigner();
+    }
+    
+    function initDesigner() {
+        const container = document.getElementById('react-flow-container');
+        if (!container) {
+            console.error('Container react-flow-container not found');
+            return;
+        }
+        
+        // Initialiser le designer
+        window.workflowDesigner = new WorkflowDesigner('react-flow-container', {
+            basePath: basePath,
+            workflowId: workflowId,
+        });
+    }
     
     // Sauvegarder le workflow
     document.getElementById('save-workflow').addEventListener('click', () => {

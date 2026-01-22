@@ -5,7 +5,7 @@
 
 class WorkflowDesigner {
     constructor(containerId, options = {}) {
-        this.container = document.getElementById(containerId);
+        this.containerId = containerId;
         this.basePath = options.basePath || '';
         this.workflowId = options.workflowId || null;
         this.nodes = [];
@@ -16,16 +16,27 @@ class WorkflowDesigner {
         this.isDragging = false;
         this.dragNode = null;
         
-        this.init();
+        // Attendre que le DOM soit chargé
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        } else {
+            this.init();
+        }
     }
     
     init() {
+        this.container = document.getElementById(this.containerId);
+        if (!this.container) {
+            console.error(`Container #${this.containerId} not found`);
+            return;
+        }
         this.render();
         this.setupEventListeners();
         this.loadWorkflow();
     }
     
     render() {
+        if (!this.container) return;
         this.container.innerHTML = `
             <svg id="workflow-canvas" class="w-full h-full">
                 <defs>
@@ -363,15 +374,21 @@ class WorkflowDesigner {
                 </div>
                 ${this.getConfigFields(node.type, node.config)}
                 <div class="flex gap-2">
-                    <button onclick="workflowDesigner.saveNodeConfig()" 
+                    <button id="btn-save-node-config"
                             class="flex-1 px-3 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800">
                         Enregistrer
                     </button>
-                    <button onclick="workflowDesigner.deleteNode()" 
+                    <button id="btn-delete-node"
                             class="px-3 py-2 bg-red-100 text-red-700 text-sm rounded hover:bg-red-200">
                         Supprimer
                     </button>
                 </div>
+            </div>
+        `;
+        
+        // Attacher les event listeners
+        document.getElementById('btn-save-node-config')?.addEventListener('click', () => this.saveNodeConfig());
+        document.getElementById('btn-delete-node')?.addEventListener('click', () => this.deleteNode());
             </div>
         `;
     }
@@ -434,13 +451,22 @@ class WorkflowDesigner {
     }
     
     deleteNode() {
-        if (!this.selectedNode) return;
+        if (!this.selectedNode) {
+            alert('Aucun node sélectionné');
+            return;
+        }
         
-        if (confirm('Supprimer ce node ?')) {
-            this.nodes = this.nodes.filter(n => n.id !== this.selectedNode.id);
-            this.edges = this.edges.filter(e => e.source !== this.selectedNode.id && e.target !== this.selectedNode.id);
+        const nodeId = this.selectedNode.id;
+        const nodeName = this.selectedNode.name;
+        
+        if (confirm(`Supprimer le node "${nodeName}" ?`)) {
+            this.nodes = this.nodes.filter(n => n.id !== nodeId);
+            this.edges = this.edges.filter(e => e.source !== nodeId && e.target !== nodeId);
             this.selectedNode = null;
-            document.getElementById('config-panel')?.classList.add('hidden');
+            
+            const panel = document.getElementById('config-panel');
+            if (panel) panel.classList.add('hidden');
+            
             this.renderNodes();
             this.renderEdges();
         }
