@@ -12,6 +12,7 @@ use KDocs\Core\Database;
 use KDocs\Services\FilesystemScanner;
 use KDocs\Services\FilesystemIndexer;
 use KDocs\Services\FilesystemReader;
+use KDocs\Services\FolderIndexService;
 use KDocs\Services\ThumbnailGenerator;
 use KDocs\Services\DocumentProcessor;
 use KDocs\Services\TrashService;
@@ -21,6 +22,7 @@ use KDocs\Services\AuditService;
 use KDocs\Models\SavedSearch;
 use KDocs\Services\SearchService;
 use KDocs\Search\SearchQueryBuilder;
+use KDocs\Helpers\FolderTreeHelper;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -104,110 +106,129 @@ class DocumentsController
                 $total = 0;
             }
         } elseif ($folderId) {
-            // Si un dossier filesystem est sélectionné, lire directement depuis le filesystem
-            // Le folderId est un hash MD5 du chemin de dossier
+            // =====================================================
+            // DOSSIER FILESYSTEM SÉLECTIONNÉ
+            // =====================================================
             $fsReader = new FilesystemReader();
+            $basePath = $fsReader->getBasePath();
             
-            // Construire la liste de tous les dossiers avec leurs chemins pour trouver le chemin sélectionné
-            $allFolderPaths = [];
+            // Le PATH vient de l'URL (clé de la correction)
+            $folderPath = $queryParams['path'] ?? '';
+            $normalizedPath = trim($folderPath, '/');
             
-            // Fonction récursive pour lire tous les dossiers
-            $readAllFolders = function($relativePath = '') use (&$readAllFolders, $fsReader, &$allFolderPaths) {
-                $content = $fsReader->readDirectory($relativePath, false);
-                
-                foreach ($content['folders'] as $folder) {
-                    $folderPath = $relativePath ? $relativePath . '/' . $folder['name'] : $folder['name'];
-                    $allFolderPaths[] = $folderPath;
-                    
-                    // Lire récursivement les sous-dossiers
-                    $readAllFolders($folderPath);
-                }
-            };
-            
-            // Ajouter la racine d'abord
-            $allFolderPaths[] = '/';
-            $allFolderPaths[] = ''; // Racine vide aussi
-            
-            // Lire tous les dossiers
-            $readAllFolders();
-            
-            // Trouver le chemin correspondant au hash
-            $folderPath = null;
-            foreach ($allFolderPaths as $path) {
-                // Normaliser le chemin pour le hash
-                $normalizedForHash = ($path === '' || $path === '/') ? '/' : $path;
-                $pathHash = md5($normalizedForHash);
-                if ($pathHash === $folderId) {
-                    $folderPath = $path;
-                    break;
-                }
+            // Pour la racine
+            if ($folderId === md5('/') || $folderId === md5('')) {
+                $normalizedPath = '';
             }
             
-            // Si pas trouvé, essayer aussi avec le hash de la racine normalisée
-            if ($folderPath === null) {
-                if (md5('/') === $folderId) {
-                    $folderPath = '/';
-                } elseif (md5('') === $folderId) {
-                    $folderPath = '';
-                }
-            }
+            $fullPath = $basePath . ($normalizedPath ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalizedPath) : '');
             
-            if ($folderPath !== null) {
-                // Lire les fichiers directement depuis le filesystem
-                // Normaliser : '/' devient '' pour la racine
-                $normalizedPath = ($folderPath === '/' || $folderPath === '') ? '' : $folderPath;
-                $fsContent = $fsReader->readDirectory($normalizedPath, false);
-                
-                // Définir currentFolder pour le template
-                $currentFolder = $normalizedPath;
-                
-                // Debug: logger si aucun fichier trouvé
-                if (empty($fsContent['files']) && empty($fsContent['error'])) {
-                    error_log("Dossier '$normalizedPath' (hash: $folderId) trouvé mais vide");
-                }
-                
-                // Mapper les fichiers du filesystem avec les documents en DB
+            if (!is_dir($fullPath)) {
                 $documents = [];
-                foreach ($fsContent['files'] as $file) {
-                    // Chercher le document correspondant en DB
-                    // Le relative_path peut être stocké avec ou sans le nom du fichier
-                    // Essayer d'abord avec le chemin complet, puis avec juste le nom du fichier
-                    $docStmt = $db->prepare("
+                $total = 0;
+                $currentFolder = null;
+            } else {
+                // =====================================================
+                // REQUÊTE SQL - CORRIGÉE
+                // =====================================================
+                // Le relative_path en DB : "2024/factures/doc.pdf" (sans slash initial)
+                
+                if ($normalizedPath === '') {
+                    // RACINE : fichiers sans slash dans relative_path
+                    $sql = "
                         SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
                         FROM documents d
                         LEFT JOIN document_types dt ON d.document_type_id = dt.id
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
-                        WHERE (d.relative_path = ? OR d.relative_path = ? OR d.filename = ?) 
-                        AND d.deleted_at IS NULL
+                        WHERE d.deleted_at IS NULL
                         AND (d.status IS NULL OR d.status != 'pending')
-                        LIMIT 1
-                    ");
-                    $fileName = basename($file['path']);
-                    $docStmt->execute([$file['path'], $fileName, $fileName]);
-                    $doc = $docStmt->fetch(PDO::FETCH_ASSOC);
+                        AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
+                        ORDER BY d.created_at DESC
+                        LIMIT ? OFFSET ?
+                    ";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+                    $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     
-                    if ($doc) {
-                        // Vérifier si le fichier a été modifié
-                        if ($fsReader->checkFileModified($file['path'], $doc['checksum'] ?? null, $doc['file_modified_at'] ?? null)) {
-                            $doc['_modified'] = true;
-                            $doc['_file_info'] = $file;
+                    $countSql = "
+                        SELECT COUNT(*) FROM documents d
+                        WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status != 'pending')
+                        AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
+                    ";
+                    $total = (int)$db->query($countSql)->fetchColumn();
+                    
+                } else {
+                    // SOUS-DOSSIER : "dossier/%" mais pas "dossier/%/%"
+                    $directPattern = $normalizedPath . '/%';
+                    $excludeSubfolders = $normalizedPath . '/%/%';
+                    
+                    $sql = "
+                        SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
+                        FROM documents d
+                        LEFT JOIN document_types dt ON d.document_type_id = dt.id
+                        LEFT JOIN correspondents c ON d.correspondent_id = c.id
+                        WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status != 'pending')
+                        AND d.relative_path LIKE ?
+                        AND d.relative_path NOT LIKE ?
+                        ORDER BY d.created_at DESC
+                        LIMIT ? OFFSET ?
+                    ";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(1, $directPattern);
+                    $stmt->bindValue(2, $excludeSubfolders);
+                    $stmt->bindValue(3, $limit, PDO::PARAM_INT);
+                    $stmt->bindValue(4, $offset, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    
+                    $countSql = "
+                        SELECT COUNT(*) FROM documents d
+                        WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status != 'pending')
+                        AND d.relative_path LIKE ?
+                        AND d.relative_path NOT LIKE ?
+                    ";
+                    $countStmt = $db->prepare($countSql);
+                    $countStmt->execute([$directPattern, $excludeSubfolders]);
+                    $total = (int)$countStmt->fetchColumn();
+                }
+                
+                $currentFolder = $normalizedPath;
+                
+                // =====================================================
+                // INDEXATION EN ARRIÈRE-PLAN (non bloquant)
+                // =====================================================
+                // Compter les fichiers physiques
+                $physicalCount = 0;
+                $allowedExt = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+                $items = @scandir($fullPath);
+                if ($items !== false) {
+                    foreach ($items as $item) {
+                        if ($item[0] === '.') continue;
+                        if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
+                            $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+                            if (in_array($ext, $allowedExt)) {
+                                $physicalCount++;
+                            }
                         }
-                        $documents[] = $doc;
-                    } else {
-                        // Fichier non indexé en DB, créer une entrée minimale pour affichage
-                        $documents[] = [
-                            'id' => null,
-                            'title' => pathinfo($file['name'], PATHINFO_FILENAME),
-                            'filename' => $file['name'],
-                            'original_filename' => $file['name'],
-                            'file_path' => $file['full_path'],
-                            'relative_path' => $file['path'],
-                            'file_size' => $file['size'],
-                            'mime_type' => $file['mime_type'],
-                            'created_at' => date('Y-m-d H:i:s', $file['modified'] ?? time()),
-                            '_not_indexed' => true,
-                            '_file_info' => $file,
-                        ];
+                    }
+                }
+                
+                // Queue seulement si : fichiers physiques > 0 ET désynchronisé ET pas déjà en queue
+                if ($physicalCount > 0 && $physicalCount !== $total) {
+                    $queueDir = __DIR__ . '/../../storage/crawl_queue';
+                    if (!is_dir($queueDir)) @mkdir($queueDir, 0755, true);
+                    
+                    $hash = md5($normalizedPath);
+                    if (empty(glob($queueDir . '/crawl_' . $hash . '_*.json'))) {
+                        @file_put_contents(
+                            $queueDir . '/crawl_' . $hash . '_' . time() . '.json',
+                            json_encode(['path' => $normalizedPath, 'triggered_at' => time()])
+                        );
                     }
                 }
                 
@@ -222,18 +243,8 @@ class DocumentsController
                         }
                     }
                     $documents = $filtered;
+                    $total = count($filtered);
                 }
-                
-                $total = count($documents);
-                // Pagination manuelle
-                $documents = array_slice($documents, $offset, $limit);
-                
-                // Définir currentFolder pour le template (chemin normalisé)
-                $currentFolder = $normalizedPath;
-            } else {
-                $documents = [];
-                $total = 0;
-                $currentFolder = null;
             }
         } else {
             // Vue par défaut : utiliser SearchService avec SearchQueryBuilder (nouveau)
@@ -355,76 +366,44 @@ class DocumentsController
         // Récupérer les dossiers logiques pour la sidebar
         $logicalFolders = LogicalFolder::getAll();
         
-        // Charger les dossiers racine côté serveur pour affichage immédiat (pas d'AJAX)
-        $rootFolders = [];
-        $currentFolderPath = null;
+        // =====================================================
+        // ARBORESCENCE - Version simplifiée (tout côté serveur)
+        // =====================================================
+        $folderTreeHtml = '';
         try {
             $fsReader = new FilesystemReader();
-            $content = $fsReader->readDirectory('', false);
-            
-            if (!isset($content['error']) && !empty($content['folders'])) {
-                foreach ($content['folders'] as $folder) {
-                    $folderPath = $folder['name'];
-                    
-                    // Vérifier si ce dossier a des sous-dossiers (sans les charger)
-                    $hasChildren = false;
-                    try {
-                        $subContent = $fsReader->readDirectory($folderPath, false);
-                        $hasChildren = !empty($subContent['folders']) && !isset($subContent['error']);
-                    } catch (\Exception $e) {
-                        // Ignorer les erreurs
-                    }
-                    
-                    $rootFolders[] = [
-                        'id' => md5($folderPath),
-                        'path' => $folderPath,
-                        'name' => $folder['name'],
-                        'file_count' => $folder['file_count'] ?? 0,
-                        'has_children' => $hasChildren,
-                    ];
-                }
-                
-                // Trier par nom
-                usort($rootFolders, function($a, $b) {
-                    return strcmp($a['name'], $b['name']);
-                });
+            $currentPath = null;
+            if ($folderId && isset($currentFolder)) {
+                $currentPath = $currentFolder;
+            } elseif ($folderId && isset($currentFolderPath)) {
+                $currentPath = $currentFolderPath;
             }
+            
+            $treeHelper = new FolderTreeHelper(
+                $fsReader->getBasePath(),
+                Config::basePath(),
+                $folderId,
+                10, // max depth
+                $currentPath
+            );
+            $folderTreeHtml = $treeHelper->render();
         } catch (\Exception $e) {
-            // Ignorer les erreurs, les dossiers seront chargés via AJAX
+            $folderTreeHtml = '<p class="text-red-500 text-sm px-2">Erreur chargement arborescence</p>';
         }
         
         $fsFolders = [];
+        $currentFolderPath = null;
         
-        // Si un dossier est sélectionné, trouver son chemin pour le template
-        if ($folderId) {
-            try {
-                $fsReader = new FilesystemReader();
-                
-                // Construire la liste de tous les dossiers pour trouver le chemin
-                $allFolderPaths = [];
-                $readAllFolders = function($relativePath = '') use (&$readAllFolders, $fsReader, &$allFolderPaths) {
-                    $content = $fsReader->readDirectory($relativePath, false);
-                    foreach ($content['folders'] as $folder) {
-                        $folderPath = $relativePath ? $relativePath . '/' . $folder['name'] : $folder['name'];
-                        $allFolderPaths[] = $folderPath;
-                        $readAllFolders($folderPath);
-                    }
-                };
-                $allFolderPaths[] = '/';
-                $allFolderPaths[] = '';
-                $readAllFolders();
-                
-                // Trouver le chemin correspondant au hash
-                foreach ($allFolderPaths as $path) {
-                    $normalizedForHash = ($path === '' || $path === '/') ? '/' : $path;
-                    $pathHash = md5($normalizedForHash);
-                    if ($pathHash === $folderId) {
-                        $currentFolderPath = ($path === '' || $path === '/') ? '' : $path;
-                        break;
-                    }
-                }
-            } catch (\Exception $e) {
-                error_log("Erreur récupération chemin dossier: " . $e->getMessage());
+        // OPTIMISATION : Utiliser le chemin déjà trouvé (éviter double recherche)
+        if ($folderId && isset($currentFolder)) {
+            $currentFolderPath = $currentFolder;
+        } elseif ($folderId) {
+            // Si folderId === md5('/'), c'est la racine
+            if ($folderId === md5('/')) {
+                $currentFolderPath = '';
+            } else {
+                // Utiliser le chemin déjà trouvé dans la section précédente
+                $currentFolderPath = isset($folderPath) ? $folderPath : null;
             }
         }
         
@@ -487,7 +466,7 @@ class DocumentsController
             'order' => $order,
             'logicalFolders' => $logicalFolders,
             'fsFolders' => $fsFolders,
-            'rootFolders' => $rootFolders ?? [],
+            'folderTreeHtml' => $folderTreeHtml,
             'documentTypes' => $documentTypes,
             'tags' => $tags,
             'correspondents' => $correspondents,
@@ -1892,4 +1871,5 @@ class DocumentsController
             }
         }
     }
+    
 }
