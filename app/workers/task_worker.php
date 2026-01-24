@@ -15,7 +15,17 @@ require_once __DIR__ . '/../../app/autoload.php';
 use KDocs\Services\TaskService;
 use KDocs\Models\ScheduledTask;
 
+// Inclure le crawler de dossiers
+require_once __DIR__ . '/folder_crawler.php';
+
 echo "[" . date('Y-m-d H:i:s') . "] Démarrage du worker de tâches\n";
+
+// Traiter les tâches de crawl de dossiers (priorité haute)
+$crawler = new FolderCrawler();
+$crawlProcessed = $crawler->processQueue();
+if ($crawlProcessed > 0) {
+    echo "[" . date('Y-m-d H:i:s') . "] Crawl de dossier traité\n";
+}
 
 // Traiter la file d'attente
 $result = TaskService::processQueue(10);

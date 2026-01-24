@@ -129,6 +129,21 @@ class ScheduledTask
         
         // Logique simplifiée pour calculer la prochaine exécution
         // Pour une implémentation complète, utiliser une bibliothèque cron
+        
+        // Gérer les patterns */X pour les minutes
+        if (preg_match('/^\*\/(\d+)$/', $minute, $matches)) {
+            $interval = (int)$matches[1];
+            $next->modify("+{$interval} minutes");
+            return $next;
+        }
+        
+        // Si minute = *, exécuter toutes les minutes (ajouter 1 minute)
+        if ($minute === '*') {
+            $next->modify('+1 minute');
+            return $next;
+        }
+        
+        // Cas standard : heure et minute spécifiques
         if ($minute !== '*' && $hour !== '*') {
             $next->setTime((int)$hour, (int)$minute, 0);
             if ($next <= $now) {

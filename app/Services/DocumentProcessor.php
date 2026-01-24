@@ -9,8 +9,10 @@ namespace KDocs\Services;
 use KDocs\Core\Database;
 use KDocs\Core\Config;
 use KDocs\Models\Document;
+use KDocs\Models\Setting;
 use KDocs\Services\WebhookService;
 use KDocs\Services\WorkflowEngine;
+use KDocs\Services\AIClassifierService;
 
 class DocumentProcessor
 {
@@ -89,11 +91,21 @@ class DocumentProcessor
             throw new \Exception("Fichier introuvable: " . ($filePath ?? 'chemin non défini'));
         }
         
-        // 1. OCR si pas de contenu
-        if (empty($document['content']) && empty($document['ocr_text'])) {
+        // 1. OCR si pas de contenu OU si erreur OCR précédente détectée
+        $hasOcrError = !empty($document['ocr_text']) && 
+                      (strpos($document['ocr_text'], 'OCR échoué') !== false || 
+                       strpos($document['ocr_text'], 'Erreur OCR') !== false);
+        
+        if ((empty($document['content']) && empty($document['ocr_text'])) || $hasOcrError) {
             try {
                 $content = $this->ocrService->extractText($filePath);
                 if ($content && !empty(trim($content))) {
+                    // Nettoyer et encoder correctement le texte en UTF-8
+                    $content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
+                    // Supprimer les caractères de contrôle invalides (sauf retours à la ligne et tabulations)
+                    $content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $content);
+                    $content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
+                    
                     // Stocker dans 'content' (colonne principale) et aussi dans 'ocr_text' pour compatibilité
                     $stmt = $this->db->prepare("UPDATE documents SET content = ?, ocr_text = ? WHERE id = ?");
                     $stmt->execute([$content, $content, $documentId]);
@@ -195,6 +207,13 @@ class DocumentProcessor
             $this->updateDocument($documentId, $documentText, $metadata);
         } catch (\Exception $e) {
             error_log("Erreur extraction métadonnées document {$documentId}: " . $e->getMessage());
+        }
+        
+        // 5.5. Vérifier si le document n'a pas de synthèse et utiliser l'IA complexe automatiquement si activé
+        try {
+            $this->checkAndProcessComplexDocument($documentId, $document, $filePath);
+        } catch (\Exception $e) {
+            error_log("Erreur traitement IA complexe automatique document {$documentId}: " . $e->getMessage());
         }
         
         // 6. Marquer comme indexé
@@ -317,5 +336,122 @@ class DocumentProcessor
                 $this->db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)")->execute([$documentId, $tagId]);
             }
         }
+    }
+    
+    /**
+     * Vérifie si le document n'a pas de synthèse et utilise l'IA complexe automatiquement si activé
+     * 
+     * @param int $documentId ID du document
+     * @param array $document Données du document
+     * @param string $filePath Chemin vers le fichier
+     */
+    private function checkAndProcessComplexDocument(int $documentId, array $document, string $filePath): void
+    {
+        // Vérifier si l'IA complexe automatique est activée (via setting en base)
+        $aiComplexAuto = Setting::get('ai.complex_auto_enabled', '0');
+        if ($aiComplexAuto !== '1' && $aiComplexAuto !== true && $aiComplexAuto !== 'true') {
+            // Vérifier aussi dans la config
+            $config = Config::load();
+            if (empty($config['ai']['complex_auto_enabled']) || $config['ai']['complex_auto_enabled'] !== true) {
+                return; // Fonctionnalité désactivée
+            }
+        }
+        
+        // Note: Le toggle "IA complexe auto" est visible seulement si OCR (local) est choisi
+        // Donc si ce setting est activé, on peut supposer que l'utilisateur utilise OCR local
+        // et veut utiliser l'IA pour les documents complexes uniquement
+        
+        // Vérifier si l'IA est disponible
+        $aiClassifier = new AIClassifierService();
+        if (!$aiClassifier->isAvailable()) {
+            return; // IA non disponible
+        }
+        
+        // Vérifier si le document n'a pas de synthèse
+        $suggestions = json_decode($document['classification_suggestions'] ?? '{}', true);
+        $hasSummary = false;
+        
+        // Vérifier dans différentes sources
+        if (!empty($suggestions['final']['summary'])) {
+            $hasSummary = true;
+        } elseif (!empty($suggestions['ai_result']['summary'])) {
+            $hasSummary = true;
+        }
+        
+        // Si le document a déjà une synthèse, ne rien faire
+        if ($hasSummary) {
+            return;
+        }
+        
+        // Utiliser l'analyse complexe avec le fichier directement
+        // (peu importe si le contenu OCR existe ou non, l'IA peut améliorer/extracter le texte)
+        try {
+            $aiResult = $aiClassifier->classifyComplexWithFile($documentId);
+            if ($aiResult) {
+                // Normaliser le résultat
+                $normalized = $this->normalizeAIResult($aiResult);
+                
+                // Mettre à jour les suggestions
+                $suggestions['ai_result'] = $normalized;
+                $suggestions['method_used'] = 'ai_complex_auto';
+                $suggestions['final'] = $normalized;
+                $suggestions['confidence'] = $normalized['confidence'] ?? 0.7;
+                
+                // Mettre à jour le contenu OCR si fourni par l'IA
+                $updateFields = ['classification_suggestions = ?'];
+                $updateParams = [json_encode($suggestions)];
+                
+                // Vérifier le contenu OCR actuel
+                $documentText = $document['content'] ?? $document['ocr_text'] ?? '';
+                
+                // Si l'IA a extrait du texte et que le contenu OCR est vide ou pauvre, le mettre à jour
+                $extractedText = $normalized['extracted_text'] ?? null;
+                if (!empty($extractedText) && (empty($documentText) || strlen(trim($documentText)) < 100)) {
+                    // Nettoyer le texte extrait
+                    $extractedText = mb_convert_encoding($extractedText, 'UTF-8', 'UTF-8');
+                    $extractedText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $extractedText);
+                    
+                    $updateFields[] = 'content = ?';
+                    $updateFields[] = 'ocr_text = ?';
+                    $updateParams[] = $extractedText;
+                    $updateParams[] = $extractedText;
+                    
+                    error_log("Document {$documentId}: Contenu OCR mis à jour depuis l'analyse IA complexe (" . strlen($extractedText) . " caractères)");
+                }
+                
+                $updateParams[] = $documentId;
+                $stmt = $this->db->prepare("UPDATE documents SET " . implode(', ', $updateFields) . " WHERE id = ?");
+                $stmt->execute($updateParams);
+                
+                error_log("Document {$documentId}: Analyse IA complexe automatique effectuée (pas de synthèse détectée)");
+            }
+        } catch (\Exception $e) {
+            error_log("Erreur analyse IA complexe automatique document {$documentId}: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Normalise le résultat de l'IA pour correspondre au format attendu
+     */
+    private function normalizeAIResult(array $aiResult): array
+    {
+        $matched = $aiResult['matched'] ?? [];
+        
+        return [
+            'method' => 'ai_complex',
+            'correspondent_id' => $matched['correspondent_id'] ?? null,
+            'correspondent_name' => $aiResult['correspondent'] ?? null,
+            'document_type_id' => $matched['document_type_id'] ?? null,
+            'document_type_name' => $aiResult['document_type'] ?? null,
+            'tag_ids' => $matched['tag_ids'] ?? [],
+            'tag_names' => $aiResult['tags'] ?? [],
+            'doc_date' => $aiResult['document_date'] ?? null,
+            'amount' => $aiResult['amount'] ?? null,
+            'currency' => null,
+            'confidence' => $aiResult['confidence'] ?? 0.7,
+            'summary' => $aiResult['summary'] ?? null,
+            'additional_categories' => $aiResult['additional_categories'] ?? [],
+            'extracted_text' => $aiResult['extracted_text'] ?? null, // Texte extrait par l'IA si disponible
+        ];
     }
 }

@@ -28,11 +28,22 @@
             
             <!-- Page content -->
             <main class="flex-1 <?= isset($fullHeight) && $fullHeight ? 'overflow-hidden p-0' : 'overflow-y-auto p-6' ?>">
-                <?php if (!isset($fullHeight) || !$fullHeight): ?>
+                <?php 
+                $currentRoute = $_SERVER['REQUEST_URI'] ?? '/';
+                $basePath = \KDocs\Core\Config::basePath();
+                // Détecter la page documents/index (pas /documents/show ou autres sous-routes)
+                $documentsBasePath = $basePath . '/documents';
+                $routeLength = strlen($currentRoute);
+                $baseLength = strlen($documentsBasePath);
+                $isDocumentsIndexPage = (strpos($currentRoute, $documentsBasePath) === 0) && 
+                                        ($routeLength === $baseLength || 
+                                         ($routeLength > $baseLength && in_array($currentRoute[$baseLength], ['?', '#'])));
+                ?>
+                <?php if ((!isset($fullHeight) || !$fullHeight) && !$isDocumentsIndexPage): ?>
                 <div class="max-w-7xl mx-auto">
                 <?php endif; ?>
                     <?= $content ?? '' ?>
-                <?php if (!isset($fullHeight) || !$fullHeight): ?>
+                <?php if ((!isset($fullHeight) || !$fullHeight) && !$isDocumentsIndexPage): ?>
                 </div>
                 <?php endif; ?>
             </main>

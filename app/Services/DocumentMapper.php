@@ -25,8 +25,15 @@ class DocumentMapper
         // Résoudre le chemin relatif en chemin absolu
         $resolved = realpath($basePath);
         $this->basePath = rtrim($resolved ?: $basePath, '/\\');
-        $this->allowedExtensions = $storageConfig['allowed_extensions'] ?? ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
-        $this->ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
+        
+        // S'assurer que allowedExtensions est toujours un tableau
+        $allowedExts = $storageConfig['allowed_extensions'] ?? ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+        $this->allowedExtensions = is_array($allowedExts) ? $allowedExts : (is_string($allowedExts) ? explode(',', $allowedExts) : ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx']);
+        
+        // S'assurer que ignoreFolders est toujours un tableau
+        $ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
+        $this->ignoreFolders = is_array($ignoreFolders) ? $ignoreFolders : (is_string($ignoreFolders) ? explode(',', $ignoreFolders) : ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db']);
+        
         $this->db = Database::getInstance();
     }
     
@@ -134,6 +141,74 @@ class DocumentMapper
         ");
         $insertStmt->execute([
             $filename, $filename, $fullPath, $relativePath, $folderId,
+            $filesize, $mimeType, $checksum, $fileModified
+        ]);
+        return 'new';
+    }
+    
+    /**
+     * Mappe un fichier depuis le filesystem vers la DB (méthode publique pour le worker)
+     * @param string $filePath Chemin complet du fichier
+     * @param string $relativePath Chemin relatif depuis la racine
+     * @return string 'new', 'updated', ou 'skipped'
+     */
+    public function mapFile(string $filePath, string $relativePath): string
+    {
+        if (!file_exists($filePath)) {
+            return 'skipped';
+        }
+        
+        $filename = basename($relativePath);
+        $filesize = @filesize($filePath);
+        if ($filesize === false) return 'skipped';
+        
+        $checksum = @md5_file($filePath);
+        if ($checksum === false) return 'skipped';
+        
+        $fileModified = @filemtime($filePath) ?: null;
+        $mimeType = @mime_content_type($filePath) ?: 'application/octet-stream';
+        
+        // Chercher le document en DB par checksum ou chemin
+        $stmt = $this->db->prepare("
+            SELECT id, checksum, file_modified_at 
+            FROM documents 
+            WHERE (checksum = ? OR relative_path = ? OR file_path = ?)
+            AND deleted_at IS NULL
+            LIMIT 1
+        ");
+        $stmt->execute([$checksum, $relativePath, $filePath]);
+        $existing = $stmt->fetch();
+        
+        if ($existing) {
+            // Document existe, vérifier s'il a été modifié
+            if ($existing['checksum'] !== $checksum || ($fileModified && $existing['file_modified_at'] != $fileModified)) {
+                // Modifié : mettre à jour
+                $updateStmt = $this->db->prepare("
+                    UPDATE documents SET 
+                        checksum = ?, 
+                        file_size = ?, 
+                        file_path = ?,
+                        relative_path = ?,
+                        file_modified_at = ?,
+                        updated_at = NOW(),
+                        is_indexed = FALSE
+                    WHERE id = ?
+                ");
+                $updateStmt->execute([$checksum, $filesize, $filePath, $relativePath, $fileModified, $existing['id']]);
+                return 'updated';
+            }
+            return 'skipped';
+        }
+        
+        // Nouveau document : créer l'entrée en DB
+        $insertStmt = $this->db->prepare("
+            INSERT INTO documents 
+            (filename, original_filename, file_path, relative_path, 
+             file_size, mime_type, checksum, file_modified_at, is_indexed, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, NOW())
+        ");
+        $insertStmt->execute([
+            $filename, $filename, $filePath, $relativePath,
             $filesize, $mimeType, $checksum, $fileModified
         ]);
         return 'new';

@@ -130,6 +130,8 @@ PROMPT;
     private function executeSearch(array $filters): array
     {
         $conditions = ["d.deleted_at IS NULL"];
+        // Exclure les documents en attente de validation (pending)
+        $conditions[] = "(d.status IS NULL OR d.status != 'pending')";
         $params = [];
         
         // Recherche full-text AMÉLIORÉE - cherche chaque mot avec OR
@@ -416,6 +418,7 @@ PROMPT;
             FROM documents d
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             WHERE d.deleted_at IS NULL
+            AND (d.status IS NULL OR d.status != 'pending')
               AND (d.title LIKE ? OR d.content LIKE ? OR d.original_filename LIKE ?
                    OR c.name LIKE ?)
             ORDER BY d.document_date DESC
@@ -441,6 +444,7 @@ PROMPT;
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
             WHERE d.deleted_at IS NULL
+            AND (d.status IS NULL OR d.status != 'pending')
               AND d.content LIKE ?
             ORDER BY d.document_date DESC
             LIMIT 20

@@ -40,12 +40,17 @@ class AutoClassifierService
         $doc = $this->getDocument($documentId);
         if (!$doc) return ['error' => 'Document non trouvé'];
         
-        $text = implode(' ', array_filter([
-            $doc['title'] ?? '',
-            $doc['content'] ?? '',
-            $doc['ocr_text'] ?? '',
-            $doc['original_filename'] ?? ''
-        ]));
+        // Construire le texte à analyser (priorité au contenu OCR)
+        $textParts = [];
+        if (!empty($doc['content'])) $textParts[] = $doc['content'];
+        if (!empty($doc['ocr_text'])) $textParts[] = $doc['ocr_text'];
+        if (!empty($doc['title'])) $textParts[] = $doc['title'];
+        if (!empty($doc['original_filename'])) $textParts[] = $doc['original_filename'];
+        
+        $text = implode(' ', $textParts);
+        
+        // Normaliser le texte pour améliorer le matching
+        $text = mb_strtolower($text);
         
         $results = [
             'method' => 'rules',
@@ -71,17 +76,83 @@ class AutoClassifierService
         
         $emails = $this->extractEmails($text);
         
-        // Matching
-        $corr = $this->matchCorrespondent($text, $emails);
-        if ($corr) {
-            $results['correspondent_id'] = $corr['id'];
-            $results['correspondent_name'] = $corr['name'];
+        // Essayer d'abord avec l'IA pour les champs configurés
+        $fieldAI = null;
+        try {
+            $fieldAI = new \KDocs\Services\FieldAIClassifierService();
+            if ($fieldAI->isAvailable()) {
+                $aiResults = $fieldAI->classifyAllFields($documentId);
+                
+                // Utiliser les résultats IA pour les champs correspondants
+                if (!empty($aiResults['supplier']) || !empty($aiResults['correspondent'])) {
+                    $supplierName = $aiResults['supplier'] ?? $aiResults['correspondent'] ?? null;
+                    if ($supplierName) {
+                        $corr = $this->findCorrespondentByName($supplierName);
+                        if ($corr) {
+                            $results['correspondent_id'] = $corr['id'];
+                            $results['correspondent_name'] = $corr['name'];
+                            $results['method'] = 'ai_field';
+                        }
+                    }
+                }
+                
+                if (!empty($aiResults['type'])) {
+                    $typeName = $aiResults['type'];
+                    $type = $this->findDocumentTypeByName($typeName);
+                    if ($type) {
+                        $results['document_type_id'] = $type['id'];
+                        $results['document_type_name'] = $type['label'];
+                        $results['method'] = 'ai_field';
+                    }
+                }
+                
+                if (!empty($aiResults['year'])) {
+                    $year = $aiResults['year'];
+                    // Si on a déjà une date, vérifier que l'année correspond
+                    if ($results['doc_date']) {
+                        $dateYear = date('Y', strtotime($results['doc_date']));
+                        if ($dateYear != $year) {
+                            // Utiliser l'année de l'IA pour créer une date si nécessaire
+                        }
+                    }
+                }
+                
+                if (!empty($aiResults['date'])) {
+                    $aiDate = $aiResults['date'];
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $aiDate)) {
+                        $results['doc_date'] = $aiDate;
+                        $results['method'] = 'ai_field';
+                    }
+                }
+                
+                if (!empty($aiResults['amount'])) {
+                    $amount = floatval($aiResults['amount']);
+                    if ($amount > 0) {
+                        $results['amount'] = $amount;
+                        $results['method'] = 'ai_field';
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Si l'IA échoue, continuer avec les règles
+            error_log("AutoClassifierService: IA field classification failed: " . $e->getMessage());
         }
         
-        $type = $this->matchDocumentType($text, $doc['consume_subfolder'] ?? null);
-        if ($type) {
-            $results['document_type_id'] = $type['id'];
-            $results['document_type_name'] = $type['label'];
+        // Matching par règles (si pas déjà trouvé par IA)
+        if (empty($results['correspondent_id'])) {
+            $corr = $this->matchCorrespondent($text, $emails);
+            if ($corr) {
+                $results['correspondent_id'] = $corr['id'];
+                $results['correspondent_name'] = $corr['name'];
+            }
+        }
+        
+        if (empty($results['document_type_id'])) {
+            $type = $this->matchDocumentType($text, $doc['consume_subfolder'] ?? null);
+            if ($type) {
+                $results['document_type_id'] = $type['id'];
+                $results['document_type_name'] = $type['label'];
+            }
         }
         
         $tags = $this->matchTags($text);
@@ -154,6 +225,31 @@ class AutoClassifierService
             if ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) return $r;
         }
         
+        // Par nom exact dans le texte (amélioration)
+        $rows = $this->db->query("SELECT id, name FROM correspondents")->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $name = mb_strtolower($row['name']);
+            // Vérifier si le nom apparaît dans le texte (au moins 3 caractères)
+            if (mb_strlen($name) >= 3 && mb_strpos($text, $name) !== false) {
+                return ['id' => $row['id'], 'name' => $row['name']];
+            }
+            
+            // Vérifier aussi les mots-clés du nom (ex: "tribunal civil" -> "tribunal" ou "civil")
+            $nameWords = preg_split('/\s+/', $name);
+            if (count($nameWords) >= 2) {
+                $foundWords = 0;
+                foreach ($nameWords as $word) {
+                    if (mb_strlen($word) >= 4 && mb_strpos($text, $word) !== false) {
+                        $foundWords++;
+                    }
+                }
+                // Si au moins 2 mots du nom sont trouvés, considérer comme match
+                if ($foundWords >= 2) {
+                    return ['id' => $row['id'], 'name' => $row['name']];
+                }
+            }
+        }
+        
         // Par mots-clés
         $rows = $this->db->query("SELECT id, name, matching_algorithm, matching_keywords, is_insensitive FROM correspondents WHERE matching_keywords IS NOT NULL AND matching_keywords != ''")->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($rows as $row) {
@@ -173,6 +269,16 @@ class AutoClassifierService
             if ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) return $r;
         }
         
+        // Par nom exact dans le texte (amélioration)
+        $rows = $this->db->query("SELECT id, label FROM document_types")->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $label = mb_strtolower($row['label']);
+            // Vérifier si le label apparaît dans le texte
+            if (mb_strpos($text, $label) !== false) {
+                return ['id' => $row['id'], 'label' => $row['label']];
+            }
+        }
+        
         // Par mots-clés
         $rows = $this->db->query("SELECT id, label, matching_algorithm, matching_keywords, is_insensitive FROM document_types WHERE matching_keywords IS NOT NULL AND matching_keywords != ''")->fetchAll(\PDO::FETCH_ASSOC);
         foreach ($rows as $row) {
@@ -180,6 +286,26 @@ class AutoClassifierService
                 return ['id' => $row['id'], 'label' => $row['label']];
             }
         }
+        
+        // Détection par patterns communs
+        $patterns = [
+            'facture|invoice|rechnung' => 'Facture',
+            'note.*crédit|credit.*note' => 'Note de crédit',
+            'contrat|contract' => 'Contrat',
+            'courrier|lettre|letter' => 'Courrier',
+            'reçu|receipt' => 'Reçu',
+        ];
+        
+        foreach ($patterns as $pattern => $typeLabel) {
+            if (preg_match('/' . $pattern . '/iu', $text)) {
+                $stmt = $this->db->prepare("SELECT id, label FROM document_types WHERE label LIKE ? LIMIT 1");
+                $stmt->execute(['%' . $typeLabel . '%']);
+                if ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                    return $r;
+                }
+            }
+        }
+        
         return null;
     }
     
@@ -287,5 +413,51 @@ class AutoClassifierService
         $stmt = $this->db->prepare("SELECT * FROM documents WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+    }
+    
+    /**
+     * Trouve un correspondant par nom (recherche exacte ou partielle)
+     */
+    private function findCorrespondentByName(string $name): ?array
+    {
+        $nameLower = mb_strtolower(trim($name));
+        $rows = $this->db->query("SELECT id, name FROM correspondents")->fetchAll(\PDO::FETCH_ASSOC);
+        
+        foreach ($rows as $row) {
+            $rowNameLower = mb_strtolower($row['name']);
+            // Match exact
+            if ($rowNameLower === $nameLower) {
+                return $row;
+            }
+            // Match partiel (le nom recherché contient le nom de la base ou vice versa)
+            if (mb_strpos($rowNameLower, $nameLower) !== false || mb_strpos($nameLower, $rowNameLower) !== false) {
+                return $row;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Trouve un type de document par nom (recherche exacte ou partielle)
+     */
+    private function findDocumentTypeByName(string $name): ?array
+    {
+        $nameLower = mb_strtolower(trim($name));
+        $rows = $this->db->query("SELECT id, label FROM document_types")->fetchAll(\PDO::FETCH_ASSOC);
+        
+        foreach ($rows as $row) {
+            $rowLabelLower = mb_strtolower($row['label']);
+            // Match exact
+            if ($rowLabelLower === $nameLower) {
+                return ['id' => $row['id'], 'label' => $row['label']];
+            }
+            // Match partiel
+            if (mb_strpos($rowLabelLower, $nameLower) !== false || mb_strpos($nameLower, $rowLabelLower) !== false) {
+                return ['id' => $row['id'], 'label' => $row['label']];
+            }
+        }
+        
+        return null;
     }
 }

@@ -127,6 +127,8 @@ class ClassificationService
             'amount' => $aiResult['amount'] ?? null,
             'currency' => null, // L'IA ne retourne pas toujours la devise
             'confidence' => $aiResult['confidence'] ?? 0.7,
+            'summary' => $aiResult['summary'] ?? null, // Synthèse du document
+            'additional_categories' => $aiResult['additional_categories'] ?? [], // Catégories supplémentaires extraites par IA
         ];
     }
     

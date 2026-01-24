@@ -14,17 +14,19 @@ try {
     
     echo "=== Consume Folder Worker ===\n";
     echo "Dossier surveillé: " . $service->getConsumePath() . "\n";
-    echo "Fichiers traités: " . $results['processed'] . "\n";
+    echo "Fichiers scannés: " . ($results['scanned'] ?? 0) . "\n";
+    echo "Fichiers importés: " . ($results['imported'] ?? 0) . "\n";
+    echo "Fichiers ignorés: " . ($results['skipped'] ?? 0) . "\n";
     
     if (!empty($results['errors'])) {
-        echo "Erreurs:\n";
+        echo "\nErreurs:\n";
         foreach ($results['errors'] as $error) {
             echo "  - $error\n";
         }
         exit(1);
     }
     
-    echo "Succès!\n";
+    echo "\nSuccès!\n";
     exit(0);
 } catch (\Exception $e) {
     echo "ERREUR: " . $e->getMessage() . "\n";

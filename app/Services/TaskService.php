@@ -113,6 +113,9 @@ class TaskService
                 case 'process_document':
                     return self::processDocument($data['document_id'] ?? null);
                 
+                case 'scan_consume_folder':
+                    return self::scanConsumeFolder();
+                
                 default:
                     return ['success' => false, 'error' => "Type de tâche inconnu: $taskType"];
             }
@@ -196,7 +199,10 @@ class TaskService
             $db = Database::getInstance();
             
             if ($documentId) {
-                $documents = [$db->prepare("SELECT * FROM documents WHERE id = ?")->execute([$documentId])->fetch(\PDO::FETCH_ASSOC)];
+                $stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
+                $stmt->execute([$documentId]);
+                $doc = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $documents = $doc ? [$doc] : [];
             } else {
                 // Documents sans miniature
                 $documents = $db->query("
@@ -245,6 +251,49 @@ class TaskService
             }
             
             return ['success' => true, 'message' => "Document $documentId traité"];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Scanne le dossier consume et traite les fichiers
+     * Vérifie d'abord s'il y a des fichiers avant de scanner
+     */
+    private static function scanConsumeFolder(): array
+    {
+        try {
+            $service = new \KDocs\Services\ConsumeFolderService();
+            
+            // Vérifier rapidement s'il y a au moins un fichier
+            if (!$service->hasFiles()) {
+                return ['success' => true, 'message' => 'Aucun fichier à traiter'];
+            }
+            
+            // Scanner seulement s'il y a des fichiers
+            $results = $service->scan();
+            
+            // Si le scan était déjà en cours, retourner un message approprié
+            if (!empty($results['errors']) && strpos($results['errors'][0], 'Scan déjà en cours') !== false) {
+                return ['success' => true, 'message' => 'Scan déjà en cours, ignoré'];
+            }
+            
+            $message = sprintf(
+                "Scan terminé: %d fichier(s) scanné(s), %d importé(s), %d ignoré(s)",
+                $results['scanned'] ?? 0,
+                $results['imported'] ?? 0,
+                $results['skipped'] ?? 0
+            );
+            
+            if (!empty($results['errors'])) {
+                $message .= " (" . count($results['errors']) . " erreur(s))";
+                return [
+                    'success' => false,
+                    'error' => $message . " - " . implode(", ", array_slice($results['errors'], 0, 3))
+                ];
+            }
+            
+            return ['success' => true, 'message' => $message];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }

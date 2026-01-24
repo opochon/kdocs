@@ -1,6 +1,7 @@
 /**
  * K-Docs - Workflow Designer JavaScript
  * Gestion du canvas workflow avec drag & drop
+ * Version 2.0 - Style Alfresco avec formulaires dynamiques
  */
 
 class WorkflowDesigner {
@@ -8,6 +9,7 @@ class WorkflowDesigner {
         this.container = document.getElementById(containerId);
         this.basePath = options.basePath || '';
         this.workflowId = options.workflowId || null;
+        this.nodeCatalog = options.nodeCatalog || {};
         this.nodes = [];
         this.edges = [];
         this.selectedNode = null;
@@ -17,15 +19,36 @@ class WorkflowDesigner {
         this.dragNode = null;
         this.isConnecting = false;
         this.connectingFrom = null;
+        this.connectingOutput = null;
         this.tempLine = null;
-        
+
+        // Initialiser le renderer de formulaires
+        this.formRenderer = new NodeConfigFormRenderer({
+            basePath: this.basePath
+        });
+
+        // Construire l'index des nodes par type
+        this.nodeIndex = {};
+        Object.entries(this.nodeCatalog).forEach(([category, nodes]) => {
+            nodes.forEach(node => {
+                this.nodeIndex[node.type] = { ...node, category };
+            });
+        });
+
         this.init();
     }
-    
+
     init() {
         this.render();
         this.setupEventListeners();
         this.loadWorkflow();
+    }
+
+    /**
+     * Charge les options pour les selects dynamiques
+     */
+    async loadOptions() {
+        await this.formRenderer.loadOptions();
     }
     
     render() {
@@ -97,134 +120,235 @@ class WorkflowDesigner {
     }
     
     getNodeName(nodeType) {
+        // Utiliser le catalogue si disponible
+        const nodeInfo = this.nodeIndex[nodeType];
+        if (nodeInfo) return nodeInfo.name;
+
+        // Fallback
         const names = {
             'trigger_scan': 'Scan dossier',
             'trigger_upload': 'Upload',
             'trigger_manual': 'Démarrage manuel',
+            'trigger_document_added': 'Document ajouté',
+            'trigger_tag_added': 'Tag ajouté',
             'process_ocr': 'OCR',
             'process_ai_extract': 'Extraction IA',
             'process_classify': 'Classification',
             'condition_category': 'Type document',
+            'condition_amount': 'Montant',
+            'condition_tag': 'Tag',
+            'condition_field': 'Champ personnalisé',
+            'condition_correspondent': 'Correspondant',
             'action_assign_user': 'Assigner utilisateur',
+            'action_assign_group': 'Assigner au groupe',
             'action_add_tag': 'Ajouter tag',
+            'action_send_email': 'Envoyer email',
+            'action_webhook': 'Webhook',
+            'action_request_approval': 'Demande d\'approbation',
             'wait_approval': 'Approbation',
+            'timer_delay': 'Délai',
         };
         return names[nodeType] || nodeType;
     }
-    
+
     getNodeColor(nodeType) {
+        // Utiliser le catalogue si disponible
+        const nodeInfo = this.nodeIndex[nodeType];
+        if (nodeInfo) return nodeInfo.color;
+
+        // Fallback basé sur le préfixe
         if (nodeType.startsWith('trigger_')) return '#3b82f6'; // blue
         if (nodeType.startsWith('process_')) return '#10b981'; // green
         if (nodeType.startsWith('condition_')) return '#f59e0b'; // yellow
         if (nodeType.startsWith('action_')) return '#8b5cf6'; // purple
         if (nodeType.startsWith('wait_')) return '#f97316'; // orange
+        if (nodeType.startsWith('timer_')) return '#06b6d4'; // cyan
         return '#6b7280'; // gray
+    }
+
+    /**
+     * Obtient les sorties (outputs) d'un type de node
+     */
+    getNodeOutputs(nodeType) {
+        const nodeInfo = this.nodeIndex[nodeType];
+        if (nodeInfo) return nodeInfo.outputs || ['default'];
+        return ['default'];
     }
     
     renderNodes() {
         this.nodesLayer.innerHTML = '';
-        
+
         this.nodes.forEach(node => {
             const color = this.getNodeColor(node.type);
             const isSelected = this.selectedNode?.id === node.id;
-            
+            const outputs = this.getNodeOutputs(node.type);
+            const hasMultipleOutputs = outputs.length > 1;
+
+            // Calculer la hauteur en fonction du nombre de sorties
+            const nodeHeight = hasMultipleOutputs ? 60 + (outputs.length - 1) * 20 : 60;
+
             const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             nodeGroup.setAttribute('class', 'workflow-node');
             nodeGroup.setAttribute('data-node-id', node.id);
             nodeGroup.setAttribute('transform', `translate(${node.x}, ${node.y})`);
-            
+
             // Rectangle du node
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('width', '150');
-            rect.setAttribute('height', '60');
+            rect.setAttribute('width', '160');
+            rect.setAttribute('height', String(nodeHeight));
             rect.setAttribute('rx', '8');
             rect.setAttribute('fill', color);
             rect.setAttribute('stroke', isSelected ? '#000' : '#fff');
             rect.setAttribute('stroke-width', isSelected ? '3' : '1');
             rect.setAttribute('class', 'cursor-move');
-            
-            // Texte
+
+            // Texte du nom
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            text.setAttribute('x', '75');
-            text.setAttribute('y', '35');
+            text.setAttribute('x', '80');
+            text.setAttribute('y', hasMultipleOutputs ? '22' : '35');
             text.setAttribute('text-anchor', 'middle');
             text.setAttribute('fill', '#fff');
             text.setAttribute('font-size', '12');
             text.setAttribute('font-weight', '500');
             text.textContent = node.name;
-            
+
             nodeGroup.appendChild(rect);
             nodeGroup.appendChild(text);
-            
-            // Handles de connexion (entrée et sortie)
-            const inputHandle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            inputHandle.setAttribute('cx', '0');
-            inputHandle.setAttribute('cy', '30');
-            inputHandle.setAttribute('r', '6');
-            inputHandle.setAttribute('fill', '#fff');
-            inputHandle.setAttribute('stroke', color);
-            inputHandle.setAttribute('stroke-width', '2');
-            inputHandle.setAttribute('class', 'connection-handle input-handle');
-            inputHandle.setAttribute('data-node-id', node.id);
-            
-            const outputHandle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            outputHandle.setAttribute('cx', '150');
-            outputHandle.setAttribute('cy', '30');
-            outputHandle.setAttribute('r', '6');
-            outputHandle.setAttribute('fill', '#fff');
-            outputHandle.setAttribute('stroke', color);
-            outputHandle.setAttribute('stroke-width', '2');
-            outputHandle.setAttribute('class', 'connection-handle output-handle');
-            outputHandle.setAttribute('data-node-id', node.id);
-            
-            nodeGroup.appendChild(inputHandle);
-            nodeGroup.appendChild(outputHandle);
-            
+
+            // Handle d'entrée (sauf pour les triggers)
+            if (!node.type.startsWith('trigger_')) {
+                const inputHandle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                inputHandle.setAttribute('cx', '0');
+                inputHandle.setAttribute('cy', String(nodeHeight / 2));
+                inputHandle.setAttribute('r', '6');
+                inputHandle.setAttribute('fill', '#fff');
+                inputHandle.setAttribute('stroke', color);
+                inputHandle.setAttribute('stroke-width', '2');
+                inputHandle.setAttribute('class', 'connection-handle input-handle');
+                inputHandle.setAttribute('data-node-id', node.id);
+                nodeGroup.appendChild(inputHandle);
+            }
+
+            // Handles de sortie (multiples si nécessaire)
+            const outputLabels = {
+                'true': 'Oui',
+                'false': 'Non',
+                'approved': 'Approuvé',
+                'rejected': 'Refusé',
+                'timeout': 'Timeout',
+                'default': ''
+            };
+
+            const outputColors = {
+                'true': '#10b981',      // vert
+                'false': '#ef4444',     // rouge
+                'approved': '#10b981',  // vert
+                'rejected': '#ef4444',  // rouge
+                'timeout': '#f59e0b',   // orange
+                'default': '#fff'
+            };
+
+            outputs.forEach((output, index) => {
+                const yPos = hasMultipleOutputs
+                    ? 30 + index * 25
+                    : nodeHeight / 2;
+
+                const outputHandle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                outputHandle.setAttribute('cx', '160');
+                outputHandle.setAttribute('cy', String(yPos));
+                outputHandle.setAttribute('r', '6');
+                outputHandle.setAttribute('fill', outputColors[output] || '#fff');
+                outputHandle.setAttribute('stroke', color);
+                outputHandle.setAttribute('stroke-width', '2');
+                outputHandle.setAttribute('class', 'connection-handle output-handle');
+                outputHandle.setAttribute('data-node-id', node.id);
+                outputHandle.setAttribute('data-output', output);
+                nodeGroup.appendChild(outputHandle);
+
+                // Label de sortie pour les sorties multiples
+                if (hasMultipleOutputs && outputLabels[output]) {
+                    const outputLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    outputLabel.setAttribute('x', '150');
+                    outputLabel.setAttribute('y', String(yPos + 4));
+                    outputLabel.setAttribute('text-anchor', 'end');
+                    outputLabel.setAttribute('fill', '#fff');
+                    outputLabel.setAttribute('font-size', '10');
+                    outputLabel.textContent = outputLabels[output];
+                    nodeGroup.appendChild(outputLabel);
+                }
+            });
+
             // Événements
             nodeGroup.addEventListener('mousedown', (e) => this.startDrag(e, node));
             nodeGroup.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectNode(node);
             });
-            
+
             this.nodesLayer.appendChild(nodeGroup);
         });
     }
     
     renderEdges() {
         this.edgesLayer.innerHTML = '';
-        
+
+        // Couleurs des connexions par type de sortie
+        const outputColors = {
+            'true': '#10b981',      // vert
+            'false': '#ef4444',     // rouge
+            'approved': '#10b981',  // vert
+            'rejected': '#ef4444',  // rouge
+            'timeout': '#f59e0b',   // orange
+            'default': '#6b7280'    // gris
+        };
+
         this.edges.forEach(edge => {
             const sourceNode = this.nodes.find(n => n.id === edge.source);
             const targetNode = this.nodes.find(n => n.id === edge.target);
-            
+
             if (!sourceNode || !targetNode) return;
-            
-            const x1 = sourceNode.x + 150;
-            const y1 = sourceNode.y + 30;
+
+            // Calculer la position Y de sortie en fonction de l'output
+            const outputs = this.getNodeOutputs(sourceNode.type);
+            const outputIndex = outputs.indexOf(edge.output || 'default');
+            const hasMultipleOutputs = outputs.length > 1;
+            const sourceHeight = hasMultipleOutputs ? 60 + (outputs.length - 1) * 20 : 60;
+            const sourceY = hasMultipleOutputs
+                ? 30 + Math.max(0, outputIndex) * 25
+                : sourceHeight / 2;
+
+            // Calculer la position Y d'entrée du target
+            const targetOutputs = this.getNodeOutputs(targetNode.type);
+            const targetHasMultiple = targetOutputs.length > 1;
+            const targetHeight = targetHasMultiple ? 60 + (targetOutputs.length - 1) * 20 : 60;
+            const targetY = targetHeight / 2;
+
+            const x1 = sourceNode.x + 160;
+            const y1 = sourceNode.y + sourceY;
             const x2 = targetNode.x;
-            const y2 = targetNode.y + 30;
-            
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', x1);
-            line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2);
-            line.setAttribute('y2', y2);
-            line.setAttribute('stroke', '#6b7280');
-            line.setAttribute('stroke-width', '2');
-            line.setAttribute('marker-end', 'url(#arrowhead)');
-            line.setAttribute('class', 'workflow-edge');
-            line.setAttribute('data-edge-id', edge.id);
-            
+            const y2 = targetNode.y + targetY;
+
+            // Utiliser une courbe de Bézier pour un meilleur rendu
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dx = Math.abs(x2 - x1) * 0.5;
+            const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', outputColors[edge.output] || outputColors['default']);
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('marker-end', 'url(#arrowhead)');
+            path.setAttribute('class', 'workflow-edge');
+            path.setAttribute('data-edge-id', edge.id);
+
             // Double-clic pour supprimer la connexion
-            line.addEventListener('dblclick', () => {
+            path.addEventListener('dblclick', () => {
                 if (confirm('Supprimer cette connexion ?')) {
                     this.edges = this.edges.filter(e => e.id !== edge.id);
                     this.renderEdges();
                 }
             });
-            
-            this.edgesLayer.appendChild(line);
+
+            this.edgesLayer.appendChild(path);
         });
     }
     
@@ -233,13 +357,14 @@ class WorkflowDesigner {
         if (e.target.classList.contains('connection-handle')) {
             e.stopPropagation();
             e.preventDefault();
-            
+
             if (e.target.classList.contains('output-handle')) {
-                this.startConnection(node, e);
+                const outputName = e.target.getAttribute('data-output') || 'default';
+                this.startConnection(node, e, outputName);
             }
             return;
         }
-        
+
         this.isDragging = true;
         this.dragNode = node;
         const rect = this.canvas.getBoundingClientRect();
@@ -247,19 +372,27 @@ class WorkflowDesigner {
             x: e.clientX - rect.left - node.x,
             y: e.clientY - rect.top - node.y,
         };
-        
+
         document.addEventListener('mousemove', this.onDrag);
         document.addEventListener('mouseup', this.onDragEnd);
     }
     
-    startConnection(sourceNode, e) {
+    startConnection(sourceNode, e, outputName = 'default') {
         this.connectingFrom = sourceNode;
+        this.connectingOutput = outputName;
         this.isConnecting = true;
-        
+
+        // Calculer la position Y du handle de sortie
+        const outputs = this.getNodeOutputs(sourceNode.type);
+        const outputIndex = outputs.indexOf(outputName);
+        const hasMultipleOutputs = outputs.length > 1;
+        const nodeHeight = hasMultipleOutputs ? 60 + (outputs.length - 1) * 20 : 60;
+        const yPos = hasMultipleOutputs ? 30 + outputIndex * 25 : nodeHeight / 2;
+
         const rect = this.canvas.getBoundingClientRect();
         this.tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        this.tempLine.setAttribute('x1', sourceNode.x + 150);
-        this.tempLine.setAttribute('y1', sourceNode.y + 30);
+        this.tempLine.setAttribute('x1', sourceNode.x + 160);
+        this.tempLine.setAttribute('y1', sourceNode.y + yPos);
         this.tempLine.setAttribute('x2', e.clientX - rect.left);
         this.tempLine.setAttribute('y2', e.clientY - rect.top);
         this.tempLine.setAttribute('stroke', '#3b82f6');
@@ -267,10 +400,10 @@ class WorkflowDesigner {
         this.tempLine.setAttribute('stroke-dasharray', '5,5');
         this.tempLine.setAttribute('marker-end', 'url(#arrowhead)');
         this.edgesLayer.appendChild(this.tempLine);
-        
+
         document.addEventListener('mousemove', this.onConnectionDrag);
         document.addEventListener('mouseup', this.onConnectionEnd);
-        
+
         this.canvas.style.cursor = 'crosshair';
     }
     
@@ -307,15 +440,19 @@ class WorkflowDesigner {
     };
     
     finishConnection(targetNode) {
-        const exists = this.edges.some(e => 
-            e.source === this.connectingFrom.id && e.target === targetNode.id
+        // Vérifier si une connexion existe déjà avec le même output
+        const exists = this.edges.some(e =>
+            e.source === this.connectingFrom.id &&
+            e.target === targetNode.id &&
+            e.output === this.connectingOutput
         );
-        
+
         if (!exists) {
             this.edges.push({
                 id: `edge_${Date.now()}`,
                 source: this.connectingFrom.id,
                 target: targetNode.id,
+                output: this.connectingOutput || 'default',
             });
             this.renderEdges();
         }
@@ -348,36 +485,72 @@ class WorkflowDesigner {
     showConfigPanel(node) {
         const panel = document.getElementById('config-panel');
         const content = document.getElementById('config-content');
-        
+
         if (!panel || !content) return;
-        
+
         panel.classList.remove('hidden');
-        
+
+        // Obtenir les infos du node depuis le catalogue
+        const nodeInfo = this.nodeIndex[node.type] || {};
+        const color = nodeInfo.color || this.getNodeColor(node.type);
+
+        // Générer le formulaire dynamique
+        const formHtml = this.formRenderer.renderForm(node.type, node.config);
+
         content.innerHTML = `
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Nom</label>
-                    <input type="text" id="node-name" value="${node.name}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm">
+                <!-- En-tête avec le type de node -->
+                <div class="flex items-center gap-2 pb-3 border-b border-gray-200">
+                    <div class="w-8 h-8 rounded flex items-center justify-center" style="background-color: ${color}20;">
+                        <span class="text-sm font-bold" style="color: ${color};">${node.type.split('_')[0].charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">${nodeInfo.name || node.type}</p>
+                        <p class="text-xs text-gray-500">${nodeInfo.description || ''}</p>
+                    </div>
                 </div>
-                ${this.getConfigFields(node.type, node.config)}
-                <div class="flex gap-2">
+
+                <!-- Nom personnalisé du node -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">
+                        Nom du node
+                        <span class="text-gray-400 font-normal">(affiché sur le canvas)</span>
+                    </label>
+                    <input type="text" id="node-name" value="${this.escapeHtml(node.name)}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Formulaire de configuration dynamique -->
+                <div id="dynamic-config-form">
+                    ${formHtml}
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="flex gap-2 pt-3 border-t border-gray-200">
                     <button id="btn-save-node-config"
-                            class="flex-1 px-3 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800">
-                        Enregistrer
+                            class="flex-1 px-3 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800 transition-colors">
+                        Appliquer
                     </button>
                     <button id="btn-delete-node"
-                            class="px-3 py-2 bg-red-100 text-red-700 text-sm rounded hover:bg-red-200">
-                        Supprimer
+                            class="px-3 py-2 bg-red-100 text-red-700 text-sm rounded hover:bg-red-200 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
         `;
-        
-        // Attacher les event listeners avec le bon contexte
+
+        // Initialiser les champs conditionnels
+        const formContainer = content.querySelector('.node-config-form');
+        if (formContainer) {
+            this.formRenderer.initConditionalFields(formContainer);
+        }
+
+        // Attacher les event listeners
         const saveBtn = document.getElementById('btn-save-node-config');
         const deleteBtn = document.getElementById('btn-delete-node');
-        
+
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveNodeConfig());
         }
@@ -385,71 +558,44 @@ class WorkflowDesigner {
             deleteBtn.addEventListener('click', () => this.deleteNode());
         }
     }
-    
-    getConfigFields(nodeType, config) {
-        if (nodeType === 'trigger_scan') {
-            return `
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Dossier à surveiller</label>
-                    <input type="text" id="config-watch_folder" value="${config.watch_folder || ''}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                           placeholder="/scan/input">
-                </div>
-            `;
-        }
-        if (nodeType === 'action_assign_user') {
-            return `
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">ID Utilisateur</label>
-                    <input type="number" id="config-user_id" value="${config.user_id || ''}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm">
-                </div>
-            `;
-        }
-        if (nodeType === 'action_add_tag') {
-            return `
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">IDs Tags (séparés par virgule)</label>
-                    <input type="text" id="config-tag_ids" value="${(config.tag_ids || []).join(',')}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                           placeholder="1, 2, 3">
-                </div>
-            `;
-        }
-        return '<p class="text-sm text-gray-500">Aucune configuration requise</p>';
+
+    /**
+     * Échappe le HTML pour éviter les injections XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
     }
-    
+
     saveNodeConfig() {
         if (!this.selectedNode) return;
-        
+
+        // Récupérer le nom personnalisé
         const nameInput = document.getElementById('node-name');
         if (nameInput) {
             this.selectedNode.name = nameInput.value;
         }
-        
-        const config = {};
-        document.querySelectorAll('#config-content input[id^="config-"]').forEach(input => {
-            const key = input.id.replace('config-', '');
-            if (key === 'tag_ids') {
-                config[key] = input.value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-            } else {
-                config[key] = input.value;
-            }
-        });
-        
-        this.selectedNode.config = config;
+
+        // Récupérer les valeurs du formulaire dynamique
+        const formContainer = document.querySelector('.node-config-form');
+        if (formContainer) {
+            this.selectedNode.config = this.formRenderer.getFormValues(formContainer);
+        }
+
         this.renderNodes();
-        
+
         // Feedback visuel
         const saveBtn = document.getElementById('btn-save-node-config');
         if (saveBtn) {
             const originalText = saveBtn.textContent;
-            saveBtn.textContent = '✓ Enregistré';
-            saveBtn.classList.add('bg-green-600');
+            const originalClass = saveBtn.className;
+            saveBtn.textContent = 'Enregistré';
+            saveBtn.className = saveBtn.className.replace('bg-gray-900', 'bg-green-600');
             setTimeout(() => {
                 saveBtn.textContent = originalText;
-                saveBtn.classList.remove('bg-green-600');
-            }, 1000);
+                saveBtn.className = originalClass;
+            }, 1500);
         }
     }
     
@@ -517,24 +663,24 @@ class WorkflowDesigner {
             alert('Ajoutez au moins un node avant de sauvegarder');
             return;
         }
-        
+
         const workflowName = prompt('Nom du workflow:', 'Nouveau Workflow');
         if (!workflowName) return;
-        
+
         const workflowData = {
             name: workflowName,
             nodes: this.nodes.map((node, index) => ({
                 node_type: node.type,
                 name: node.name,
-                config: node.config,
+                config: node.config || {},
                 position_x: Math.round(node.x),
                 position_y: Math.round(node.y),
-                is_entry_point: index === 0,
+                is_entry_point: node.type.startsWith('trigger_') || index === 0,
             })),
             connections: this.edges.map(edge => ({
                 from_node_id: parseInt(edge.source.replace('node_', '')),
                 to_node_id: parseInt(edge.target.replace('node_', '')),
-                output_name: 'default',
+                output_name: edge.output || 'default',
             })),
         };
         

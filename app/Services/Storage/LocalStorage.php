@@ -20,8 +20,14 @@ class LocalStorage implements StorageInterface
         $basePath = Config::get('storage.base_path', __DIR__ . '/../../../storage/documents');
         $resolved = realpath($basePath);
         $this->basePath = rtrim($resolved ?: $basePath, '/\\');
-        $this->allowedExtensions = $storageConfig['allowed_extensions'] ?? ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
-        $this->ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
+        
+        // S'assurer que allowedExtensions est toujours un tableau
+        $allowedExts = $storageConfig['allowed_extensions'] ?? ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+        $this->allowedExtensions = is_array($allowedExts) ? $allowedExts : (is_string($allowedExts) ? explode(',', $allowedExts) : ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx']);
+        
+        // Ignorer uniquement les dossiers système (pas les dossiers utilisateur)
+        $ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
+        $this->ignoreFolders = is_array($ignoreFolders) ? $ignoreFolders : (is_string($ignoreFolders) ? explode(',', $ignoreFolders) : ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db']);
     }
     
     public function readDirectory(string $relativePath = '', bool $includeSubfolders = false): array
@@ -41,7 +47,10 @@ class LocalStorage implements StorageInterface
         }
         
         foreach ($items as $item) {
-            if ($item === '.' || $item === '..' || in_array($item, $this->ignoreFolders)) {
+            // Ignorer les fichiers système et les fichiers de statut d'indexation
+            if ($item === '.' || $item === '..' || 
+                in_array($item, $this->ignoreFolders) ||
+                $item === '.indexing' || $item === '.indexed') {
                 continue;
             }
             
@@ -155,7 +164,12 @@ class LocalStorage implements StorageInterface
         if ($items === false) return 0;
         
         foreach ($items as $item) {
-            if ($item === '.' || $item === '..' || in_array($item, $this->ignoreFolders)) continue;
+            // Ignorer les fichiers système et les fichiers de statut d'indexation
+            if ($item === '.' || $item === '..' || 
+                in_array($item, $this->ignoreFolders) ||
+                $item === '.indexing' || $item === '.indexed') {
+                continue;
+            }
             $itemPath = $dirPath . DIRECTORY_SEPARATOR . $item;
             if (is_file($itemPath)) {
                 $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));

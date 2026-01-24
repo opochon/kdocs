@@ -108,10 +108,16 @@ class SettingsController
         // Sauvegarder les paramètres AI
         if (isset($data['ai'])) {
             foreach ($data['ai'] as $key => $value) {
+                // Déterminer le type selon la clé
+                $type = 'string';
+                if ($key === 'complex_auto_enabled') {
+                    $type = 'boolean';
+                    $value = ($value === '1' || $value === 'true' || $value === true) ? '1' : '0';
+                }
                 $fullKey = 'ai.' . $key;
                 // Masquer la clé API dans les logs
                 $displayKey = ($key === 'claude_api_key' && !empty($value)) ? 'ai.claude_api_key (masquée)' : $fullKey;
-                if (Setting::set($fullKey, $value, 'string', $user['id'])) {
+                if (Setting::set($fullKey, $value, $type, $user['id'])) {
                     $success[] = "Paramètre $displayKey sauvegardé";
                 } else {
                     $errors[] = "Erreur lors de la sauvegarde de $displayKey";

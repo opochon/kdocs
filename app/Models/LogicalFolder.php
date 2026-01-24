@@ -31,9 +31,13 @@ class LogicalFolder
         $params = [];
         $paramIndex = 1;
         
+        // Toujours exclure les documents supprimés et en attente de validation
+        $where[] = "d.deleted_at IS NULL";
+        $where[] = "(d.status IS NULL OR d.status != 'pending')";
+        
         switch ($folder['filter_type']) {
             case 'filesystem':
-                // Tous les documents - pas de filtre
+                // Tous les documents - pas de filtre supplémentaire
                 break;
             case 'document_type':
                 if (!empty($filterConfig['document_type_id'])) {
@@ -86,9 +90,13 @@ class LogicalFolder
         $params = [];
         $paramIndex = 1;
         
+        // Toujours exclure les documents supprimés et en attente de validation
+        $where[] = "d.deleted_at IS NULL";
+        $where[] = "(d.status IS NULL OR d.status != 'pending')";
+        
         switch ($folder['filter_type']) {
             case 'filesystem':
-                // Tous les documents - pas de filtre
+                // Tous les documents - pas de filtre supplémentaire
                 break;
             case 'document_type':
                 if (!empty($filterConfig['document_type_id'])) {

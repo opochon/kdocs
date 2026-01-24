@@ -67,4 +67,9 @@ class FilesystemReader
     {
         return $this->storage->getBasePath();
     }
+    
+    public function getStorage(): StorageInterface
+    {
+        return $this->storage;
+    }
 }

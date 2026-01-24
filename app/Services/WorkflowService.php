@@ -496,36 +496,99 @@ class WorkflowService
             throw new \Exception('Email recipient not specified');
         }
         
+        // Valider et parser les adresses email (support plusieurs destinataires séparés par virgule)
+        $recipients = array_map('trim', explode(',', $to));
+        $validRecipients = [];
+        foreach ($recipients as $recipient) {
+            if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                $validRecipients[] = $recipient;
+            } else {
+                error_log("WorkflowService: Email invalide ignoré: $recipient");
+            }
+        }
+        
+        if (empty($validRecipients)) {
+            throw new \Exception('Aucune adresse email valide spécifiée');
+        }
+        
         $subject = $this->replacePlaceholders($action['email_subject'] ?? 'Document notification', $document);
         $body = $this->replacePlaceholders($action['email_body'] ?? '', $document);
         
-        // Utiliser le MailService existant ou PHPMailer directement
+        // Construire le chemin complet du fichier si nécessaire
+        $attachment = null;
+        if (!empty($action['email_include_document'])) {
+            $filePath = $document['file_path'] ?? null;
+            if ($filePath) {
+                // Si le chemin est relatif, construire le chemin complet
+                if (!file_exists($filePath) && !empty($document['file_path'])) {
+                    $config = \KDocs\Core\Config::load();
+                    $documentsPath = $config['storage']['documents'] ?? __DIR__ . '/../../storage/documents';
+                    $fullPath = $documentsPath . '/' . basename($filePath);
+                    if (file_exists($fullPath)) {
+                        $filePath = $fullPath;
+                    }
+                }
+                
+                if ($filePath && file_exists($filePath)) {
+                    $attachment = $filePath;
+                } else {
+                    error_log("WorkflowService: Fichier document introuvable pour pièce jointe: " . ($document['file_path'] ?? 'N/A'));
+                }
+            }
+        }
+        
+        // Utiliser le MailService existant
         $sent = false;
+        $errors = [];
         try {
             if (class_exists('\KDocs\Services\MailService')) {
                 $mailService = new \KDocs\Services\MailService();
-                $attachment = null;
-                if (!empty($action['email_include_document'])) {
-                    $filePath = $document['file_path'] ?? null;
-                    if ($filePath && file_exists($filePath)) {
-                        $attachment = $filePath;
+                
+                // Envoyer à chaque destinataire valide
+                foreach ($validRecipients as $recipient) {
+                    try {
+                        $result = $mailService->send($recipient, $subject, $body, $attachment);
+                        if ($result) {
+                            $sent = true;
+                        } else {
+                            $errors[] = "Échec envoi à $recipient";
+                        }
+                    } catch (\Exception $e) {
+                        $errors[] = "Erreur pour $recipient: " . $e->getMessage();
+                        error_log("WorkflowService: Erreur envoi email à $recipient: " . $e->getMessage());
                     }
                 }
-                $sent = $mailService->send($to, $subject, $body, $attachment);
             } else {
-                // Fallback: utiliser mail() PHP
-                $headers = "From: K-Docs <noreply@kdocs.local>\r\n";
-                $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-                $sent = mail($to, $subject, $body, $headers);
+                // Fallback: utiliser mail() PHP (sans pièce jointe car complexe)
+                foreach ($validRecipients as $recipient) {
+                    $headers = "From: K-Docs <noreply@kdocs.local>\r\n";
+                    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $result = @mail($recipient, $subject, $body, $headers);
+                    if ($result) {
+                        $sent = true;
+                    } else {
+                        $errors[] = "Échec envoi à $recipient (fallback mail())";
+                    }
+                }
+                
+                if ($attachment) {
+                    error_log("WorkflowService: Pièce jointe ignorée en mode fallback mail()");
+                }
             }
         } catch (\Exception $e) {
             throw new \Exception("Email sending failed: " . $e->getMessage());
         }
         
+        if (!$sent && !empty($errors)) {
+            throw new \Exception("Aucun email envoyé. Erreurs: " . implode('; ', $errors));
+        }
+        
         return [
             'sent' => $sent,
-            'to' => $to,
-            'subject' => $subject
+            'to' => implode(', ', $validRecipients),
+            'subject' => $subject,
+            'recipients_count' => count($validRecipients),
+            'errors' => $errors
         ];
     }
     
@@ -537,6 +600,11 @@ class WorkflowService
         $url = $action['webhook_url'] ?? null;
         if (!$url) {
             throw new \Exception('Webhook URL not specified');
+        }
+        
+        // Valider l'URL
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new \Exception("URL webhook invalide: $url");
         }
         
         // Préparer les données
@@ -569,71 +637,159 @@ class WorkflowService
             }
         }
         
-        // Headers
-        $headers = ['Content-Type: application/json'];
-        if (!empty($action['webhook_headers'])) {
-            $customHeaders = json_decode($action['webhook_headers'], true) ?: [];
-            foreach ($customHeaders as $key => $value) {
-                $headers[] = "$key: $value";
+        // Vérifier si on doit inclure le document
+        $includeDocument = !empty($action['webhook_include_document']);
+        $filePath = null;
+        if ($includeDocument) {
+            $filePath = $document['file_path'] ?? null;
+            if ($filePath) {
+                // Si le chemin est relatif, construire le chemin complet
+                if (!file_exists($filePath)) {
+                    $config = \KDocs\Core\Config::load();
+                    $documentsPath = $config['storage']['documents'] ?? __DIR__ . '/../../storage/documents';
+                    $fullPath = $documentsPath . '/' . basename($filePath);
+                    if (file_exists($fullPath)) {
+                        $filePath = $fullPath;
+                    }
+                }
+                
+                if (!file_exists($filePath)) {
+                    error_log("WorkflowService: Fichier document introuvable pour webhook: " . ($document['file_path'] ?? 'N/A'));
+                    $includeDocument = false;
+                }
+            } else {
+                $includeDocument = false;
             }
         }
         
         // Méthode et format
         $asJson = $action['webhook_as_json'] ?? true;
         $useParams = $action['webhook_use_params'] ?? false;
+        $timeout = (int)($action['webhook_timeout'] ?? 30);
         
-        if ($useParams) {
-            $url .= '?' . http_build_query($data);
-            $postData = null;
+        // Headers de base
+        $headers = [];
+        if ($includeDocument) {
+            // Si on inclut le document, utiliser multipart/form-data
+            $headers[] = 'Content-Type: multipart/form-data';
+        } elseif ($asJson) {
+            $headers[] = 'Content-Type: application/json';
         } else {
-            $postData = $asJson ? json_encode($data) : http_build_query($data);
-            if (!$asJson) {
-                $headers = ['Content-Type: application/x-www-form-urlencoded'];
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        }
+        
+        // Ajouter les headers custom (fusionner au lieu d'écraser)
+        if (!empty($action['webhook_headers'])) {
+            $customHeaders = json_decode($action['webhook_headers'], true) ?: [];
+            foreach ($customHeaders as $key => $value) {
+                // Ne pas écraser Content-Type si déjà défini
+                if (stripos($key, 'content-type') === false) {
+                    $headers[] = "$key: $value";
+                }
             }
+        }
+        
+        // Préparer les données POST
+        $postData = null;
+        $isGet = false;
+        
+        if ($useParams && !$includeDocument) {
+            // GET avec params dans l'URL
+            $url .= '?' . http_build_query($data);
+            $isGet = true;
+        } elseif ($includeDocument) {
+            // POST avec multipart/form-data (document inclus)
+            $postData = [];
+            foreach ($data as $key => $value) {
+                $postData[$key] = $value;
+            }
+            $postData['document'] = new \CURLFile($filePath);
+        } elseif ($asJson) {
+            // POST JSON
+            $postData = json_encode($data);
+        } else {
+            // POST form-urlencoded
+            $postData = http_build_query($data);
         }
         
         // Exécuter la requête
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
         
-        if ($postData !== null) {
+        if (!$isGet && $postData !== null) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        }
-        
-        // Inclure le document si demandé
-        if (!empty($action['webhook_include_document'])) {
-            $filePath = $document['file_path'] ?? null;
-            if ($filePath && file_exists($filePath)) {
-                $file = new \CURLFile($filePath);
-                $data['document'] = $file;
-                $postData = $data;
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            }
         }
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
+        $curlErrno = curl_errno($ch);
         curl_close($ch);
         
-        if ($error) {
-            throw new \Exception("Webhook failed: $error");
+        // Logger l'exécution (si table webhook_logs existe)
+        try {
+            $this->logWebhookExecution($action, $url, $data, $httpCode, $response, $error);
+        } catch (\Exception $e) {
+            // Table peut ne pas exister, ignorer
+            error_log("WorkflowService: Impossible de logger webhook: " . $e->getMessage());
+        }
+        
+        if ($curlErrno !== CURLE_OK || $error) {
+            throw new \Exception("Webhook failed: $error (cURL error $curlErrno)");
         }
         
         if ($httpCode >= 400) {
-            throw new \Exception("Webhook returned error code: $httpCode");
+            $errorMsg = "Webhook returned error code: $httpCode";
+            if ($response) {
+                $errorMsg .= " - Response: " . substr($response, 0, 200);
+            }
+            throw new \Exception($errorMsg);
         }
         
         return [
             'url' => $url,
             'http_code' => $httpCode,
-            'response' => substr($response, 0, 500)
+            'response' => substr($response, 0, 500),
+            'method' => $isGet ? 'GET' : 'POST',
+            'document_included' => $includeDocument
         ];
+    }
+    
+    /**
+     * Log l'exécution d'un webhook dans webhook_logs
+     */
+    private function logWebhookExecution(array $action, string $url, array $payload, int $httpCode, ?string $response, ?string $error): void
+    {
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO webhook_logs 
+                (webhook_id, event, payload, response_code, response_body, error_message, execution_time_ms, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $stmt->execute([
+                null, // webhook_id (null pour workflows)
+                'workflow_action',
+                json_encode($payload),
+                $httpCode,
+                $response ? substr($response, 0, 10000) : null,
+                $error,
+                0 // execution_time_ms (non mesuré ici)
+            ]);
+        } catch (\Exception $e) {
+            // Table peut ne pas exister ou erreur SQL
+            error_log("WorkflowService: Erreur logging webhook: " . $e->getMessage());
+        }
     }
     
     /**

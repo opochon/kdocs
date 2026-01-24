@@ -13,7 +13,7 @@ use PDO;
 
 class SearchService
 {
-    private Database $db;
+    private \PDO $db;
     
     public function __construct()
     {
@@ -169,6 +169,9 @@ class SearchService
         ";
         
         $where = ["d.deleted_at IS NULL"];
+        // Exclure les documents en attente de validation (pending) de la recherche
+        // Ces documents sont visibles uniquement dans /admin/consume
+        $where[] = "(d.status IS NULL OR d.status != 'pending')";
         $params = [];
         $joins = [];
         

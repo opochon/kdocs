@@ -20,7 +20,8 @@ $stats = [
     'pending_validation' => 0
 ];
 try {
-    $stats['documents'] = $db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL")->fetchColumn();
+    // Exclure les documents en attente de validation (pending) du compteur principal
+    $stats['documents'] = $db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND (status IS NULL OR status != 'pending')")->fetchColumn();
     $stats['tags'] = $db->query("SELECT COUNT(*) FROM tags")->fetchColumn();
     $stats['correspondents'] = $db->query("SELECT COUNT(*) FROM correspondents")->fetchColumn();
     $stats['saved_searches'] = $db->query("SELECT COUNT(*) FROM saved_searches")->fetchColumn();
@@ -153,6 +154,16 @@ try {
                 </a>
             </li>
             
+            <!-- Classification Fields -->
+            <li>
+                <a href="<?= url('/admin/classification-fields') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/classification-fields', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    <span>Champs de classification</span>
+                </a>
+            </li>
+            
             <!-- Saved Searches -->
             <?php if ($stats['saved_searches'] > 0): ?>
             <li>
@@ -221,6 +232,14 @@ try {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                     <span>Paramètres</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?= url('/admin/api-usage') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/api-usage', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span>Statistiques API</span>
                 </a>
             </li>
             

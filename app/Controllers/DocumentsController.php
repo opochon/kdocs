@@ -179,6 +179,7 @@ class DocumentsController
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
                         WHERE (d.relative_path = ? OR d.relative_path = ? OR d.filename = ?) 
                         AND d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status != 'pending')
                         LIMIT 1
                     ");
                     $fileName = basename($file['path']);
@@ -282,6 +283,9 @@ class DocumentsController
                 error_log("SearchService error: " . $e->getMessage());
                 
                 $where = ['d.deleted_at IS NULL'];
+                // Exclure les documents en attente de validation (pending) de la liste principale
+                // Ces documents sont visibles uniquement dans /admin/consume
+                $where[] = "(d.status IS NULL OR d.status != 'pending')";
                 $params = [];
                 
                 if (!empty($search)) {
@@ -351,10 +355,45 @@ class DocumentsController
         // Récupérer les dossiers logiques pour la sidebar
         $logicalFolders = LogicalFolder::getAll();
         
-        // Les dossiers filesystem sont maintenant chargés dynamiquement via AJAX
-        // On garde juste le chemin du dossier actuel pour le template
-        $fsFolders = [];
+        // Charger les dossiers racine côté serveur pour affichage immédiat (pas d'AJAX)
+        $rootFolders = [];
         $currentFolderPath = null;
+        try {
+            $fsReader = new FilesystemReader();
+            $content = $fsReader->readDirectory('', false);
+            
+            if (!isset($content['error']) && !empty($content['folders'])) {
+                foreach ($content['folders'] as $folder) {
+                    $folderPath = $folder['name'];
+                    
+                    // Vérifier si ce dossier a des sous-dossiers (sans les charger)
+                    $hasChildren = false;
+                    try {
+                        $subContent = $fsReader->readDirectory($folderPath, false);
+                        $hasChildren = !empty($subContent['folders']) && !isset($subContent['error']);
+                    } catch (\Exception $e) {
+                        // Ignorer les erreurs
+                    }
+                    
+                    $rootFolders[] = [
+                        'id' => md5($folderPath),
+                        'path' => $folderPath,
+                        'name' => $folder['name'],
+                        'file_count' => $folder['file_count'] ?? 0,
+                        'has_children' => $hasChildren,
+                    ];
+                }
+                
+                // Trier par nom
+                usort($rootFolders, function($a, $b) {
+                    return strcmp($a['name'], $b['name']);
+                });
+            }
+        } catch (\Exception $e) {
+            // Ignorer les erreurs, les dossiers seront chargés via AJAX
+        }
+        
+        $fsFolders = [];
         
         // Si un dossier est sélectionné, trouver son chemin pour le template
         if ($folderId) {
@@ -448,6 +487,7 @@ class DocumentsController
             'order' => $order,
             'logicalFolders' => $logicalFolders,
             'fsFolders' => $fsFolders,
+            'rootFolders' => $rootFolders ?? [],
             'documentTypes' => $documentTypes,
             'tags' => $tags,
             'correspondents' => $correspondents,

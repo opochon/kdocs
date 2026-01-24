@@ -11,6 +11,15 @@ class OCRService
     {
         $config = Config::load();
         $this->tesseractPath = $config['ocr']['tesseract_path'] ?? 'tesseract';
+        
+        // Vérifier si le chemin configuré existe, sinon essayer dans PATH
+        if ($this->tesseractPath !== 'tesseract' && !file_exists($this->tesseractPath)) {
+            exec("where tesseract 2>&1", $whereOutput, $whereCode);
+            if ($whereCode === 0) {
+                $this->tesseractPath = 'tesseract';
+            }
+        }
+        
         $this->tempDir = $config['storage']['temp'] ?? __DIR__ . '/../../storage/temp';
         if (!is_dir($this->tempDir)) @mkdir($this->tempDir, 0755, true);
     }
@@ -26,6 +35,12 @@ class OCRService
     
     private function extractTextFromImage(string $imagePath): ?string
     {
+        // Vérifier si Tesseract est disponible
+        if ($this->tesseractPath !== 'tesseract' && !file_exists($this->tesseractPath)) {
+            error_log("Tesseract non disponible à: {$this->tesseractPath}");
+            return null;
+        }
+        
         $outputFile = $this->tempDir . '/' . uniqid('ocr_');
         // Utiliser escapeshellarg pour gérer les espaces dans les chemins Windows
         $tesseractCmd = escapeshellarg($this->tesseractPath);
@@ -33,6 +48,11 @@ class OCRService
         $outputCmd = escapeshellarg($outputFile);
         $command = "$tesseractCmd $imageCmd $outputCmd -l fra+eng 2>&1";
         exec($command, $output, $returnCode);
+        
+        if ($returnCode !== 0) {
+            error_log("Erreur Tesseract (code $returnCode): " . implode("\n", $output));
+        }
+        
         if ($returnCode === 0 && file_exists($outputFile . '.txt')) {
             $text = file_get_contents($outputFile . '.txt');
             @unlink($outputFile . '.txt');
@@ -48,20 +68,37 @@ class OCRService
         $pdfCmd = escapeshellarg($pdfPath);
         $outputCmd = escapeshellarg($outputFile);
         
-        // Vérifier si pdftotext est disponible
+        // Vérifier si pdftotext est disponible dans le PATH
         exec("where pdftotext 2>&1", $whereOutput, $whereCode);
-        $pdftotextAvailable = ($whereCode === 0);
+        $pdftotextPath = ($whereCode === 0) ? 'pdftotext' : null;
         
-        if ($pdftotextAvailable) {
-            exec("pdftotext -layout $pdfCmd $outputCmd 2>&1", $output, $returnCode);
+        // Si pas dans PATH, vérifier dans config
+        if (!$pdftotextPath) {
+            $config = Config::load();
+            $pdftotextPath = $config['tools']['pdftotext'] ?? null;
+            if ($pdftotextPath && file_exists($pdftotextPath)) {
+                // Garder le chemin tel quel, sera échappé plus tard
+            } else {
+                $pdftotextPath = null;
+            }
+        }
+        
+        if ($pdftotextPath) {
+            $pdftotextCmd = escapeshellarg($pdftotextPath);
+            exec("$pdftotextCmd -layout $pdfCmd $outputCmd 2>&1", $output, $returnCode);
             
             if ($returnCode === 0 && file_exists($outputFile)) {
                 $text = file_get_contents($outputFile);
                 @unlink($outputFile);
                 $text = trim($text);
                 if (!empty($text)) {
+                    error_log("OCR réussi avec pdftotext: " . strlen($text) . " caractères extraits");
                     return $text;
+                } else {
+                    error_log("pdftotext a réussi mais texte vide");
                 }
+            } else {
+                error_log("Erreur pdftotext (code $returnCode): " . implode("\n", $output));
             }
         } else {
             error_log("pdftotext non disponible, utilisation du fallback OCR");
@@ -76,10 +113,26 @@ class OCRService
         
         // Essayer pdftoppm d'abord
         exec("where pdftoppm 2>&1", $pdftoppmCheck, $pdftoppmCheckCode);
-        if ($pdftoppmCheckCode === 0) {
-            exec("pdftoppm -png -r 200 $pdfCmd $tempCmd/page 2>&1", $output, $returnCode);
+        $pdftoppmPath = ($pdftoppmCheckCode === 0) ? 'pdftoppm' : null;
+        
+        // Si pas dans PATH, vérifier dans config
+        if (!$pdftoppmPath) {
+            $config = Config::load();
+            $pdftoppmPath = $config['tools']['pdftoppm'] ?? null;
+            if ($pdftoppmPath && file_exists($pdftoppmPath)) {
+                // Garder le chemin tel quel
+            } else {
+                $pdftoppmPath = null;
+            }
+        }
+        
+        if ($pdftoppmPath) {
+            $pdftoppmCmd = escapeshellarg($pdftoppmPath);
+            exec("$pdftoppmCmd -png -r 200 $pdfCmd $tempCmd/page 2>&1", $output, $returnCode);
             if ($returnCode === 0) {
                 $conversionSuccess = true;
+            } else {
+                error_log("Erreur pdftoppm (code $returnCode): " . implode("\n", $output));
             }
         }
         
@@ -87,14 +140,27 @@ class OCRService
         if (!$conversionSuccess) {
             $config = Config::load();
             $imageMagickPath = $config['tools']['imagemagick'] ?? 'magick';
-            $imageMagickCmd = escapeshellarg($imageMagickPath);
             
-            // Vérifier si ImageMagick est disponible
-            exec("where $imageMagickCmd 2>&1", $imCheck, $imCheckCode);
-            if ($imCheckCode === 0) {
-                exec("$imageMagickCmd convert -density 200 $pdfCmd $tempCmd/page.png 2>&1", $output, $returnCode);
+            // Vérifier si le chemin configuré existe
+            if ($imageMagickPath !== 'magick' && file_exists($imageMagickPath)) {
+                $imageMagickCmd = escapeshellarg($imageMagickPath);
+            } else {
+                // Essayer dans PATH
+                exec("where magick 2>&1", $imCheck, $imCheckCode);
+                if ($imCheckCode === 0) {
+                    $imageMagickCmd = 'magick';
+                } else {
+                    $imageMagickCmd = null;
+                }
+            }
+            
+            if ($imageMagickCmd) {
+                $magickCmd = is_string($imageMagickCmd) && strpos($imageMagickCmd, ' ') !== false ? $imageMagickCmd : escapeshellarg($imageMagickCmd);
+                exec("$magickCmd convert -density 200 $pdfCmd $tempCmd/page-%02d.png 2>&1", $output, $returnCode);
                 if ($returnCode === 0) {
                     $conversionSuccess = true;
+                } else {
+                    error_log("Erreur ImageMagick (code $returnCode): " . implode("\n", $output));
                 }
             } else {
                 error_log("ImageMagick non disponible, impossible de convertir le PDF en images");

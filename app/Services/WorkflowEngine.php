@@ -15,7 +15,7 @@ use KDocs\Workflow\WorkflowManager;
 
 class WorkflowEngine
 {
-    private Database $db;
+    private \PDO $db;
     private WorkflowService $workflowService;
     
     public function __construct()

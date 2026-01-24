@@ -63,12 +63,18 @@ use KDocs\Controllers\ExportController;
 use KDocs\Controllers\MailAccountsController;
 use KDocs\Controllers\ScheduledTasksController;
 use KDocs\Controllers\ConsumeController;
+use KDocs\Controllers\ClassificationFieldsController;
 use KDocs\Controllers\Api\ConsumptionApiController;
 use KDocs\Controllers\Api\DocumentsApiController;
 use KDocs\Controllers\Api\TagsApiController;
+use KDocs\Controllers\Api\DocumentTypesApiController;
+use KDocs\Controllers\Api\ClassificationFieldsApiController;
+use KDocs\Controllers\Api\CategoryMappingApiController;
+use KDocs\Controllers\Api\SuggestedTagsApiController;
 use KDocs\Controllers\Api\CorrespondentsApiController;
 use KDocs\Controllers\Api\SearchApiController;
 use KDocs\Controllers\Api\FoldersApiController;
+use KDocs\Controllers\Api\WorkflowApiController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
 use KDocs\Core\Config;
@@ -148,6 +154,24 @@ $app->group('', function ($group) {
     $group->put('/api/tags/{id}', [TagsApiController::class, 'update']);
     $group->delete('/api/tags/{id}', [TagsApiController::class, 'delete']);
     
+    // Document Types API
+    $group->get('/api/document-types', [DocumentTypesApiController::class, 'index']);
+    
+    // Classification Fields API
+    $group->get('/api/classification-fields', [ClassificationFieldsApiController::class, 'index']);
+    
+    // Category Mapping API
+    $group->post('/api/category-mapping/create-tag', [CategoryMappingApiController::class, 'createTag']);
+    $group->post('/api/category-mapping/create-field', [CategoryMappingApiController::class, 'createField']);
+    $group->post('/api/category-mapping/create-correspondent', [CategoryMappingApiController::class, 'createCorrespondent']);
+    $group->post('/api/category-mapping/map-to-tag', [CategoryMappingApiController::class, 'mapToTag']);
+    $group->post('/api/category-mapping/map-to-field', [CategoryMappingApiController::class, 'mapToField']);
+    $group->post('/api/category-mapping/map-to-correspondent', [CategoryMappingApiController::class, 'mapToCorrespondent']);
+    $group->post('/api/category-mapping/map-to-type', [CategoryMappingApiController::class, 'mapToType']);
+    
+    // Suggested Tags API
+    $group->post('/api/suggested-tags/mark-irrelevant', [SuggestedTagsApiController::class, 'markIrrelevant']);
+    
     // Documents API - Routes statiques d'abord
     $group->post('/api/documents/bulk-action', [DocumentsController::class, 'bulkAction']);
     $group->post('/api/documents/upload', [DocumentsController::class, 'apiUpload']);
@@ -166,6 +190,8 @@ $app->group('', function ($group) {
     
     // API Classification IA (Bonus)
     $group->post('/api/documents/{id}/classify-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'classifyWithAI']);
+    $group->post('/api/documents/{id}/analyze-with-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'analyzeWithAI']);
+    $group->post('/api/documents/{id}/analyze-complex-with-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'analyzeComplexWithAI']);
     $group->post('/api/documents/{id}/apply-ai-suggestions', [\KDocs\Controllers\Api\DocumentsApiController::class, 'applyAISuggestions']);
     
     // API Recherche IA (Recherche contextuelle & Chat IA)
@@ -186,12 +212,21 @@ $app->group('', function ($group) {
     $group->put('/api/workflows/{id}', [WorkflowDesignerController::class, 'update']);
     $group->delete('/api/workflows/{id}', [WorkflowDesignerController::class, 'delete']);
     $group->post('/api/workflows/{id}/enable', [WorkflowDesignerController::class, 'toggleEnabled']);
+
+    // API Workflow Options & Catalog (Phase 1 - Designer UI)
+    $group->get('/api/workflow/node-catalog', [WorkflowApiController::class, 'getNodeCatalog']);
+    $group->get('/api/workflow/node-config/{type}', [WorkflowApiController::class, 'getNodeConfig']);
+    $group->get('/api/workflow/options', [WorkflowApiController::class, 'getOptions']);
     
     // API Scanner
     $group->post('/api/scanner/scan', [DocumentsController::class, 'scanFilesystem']);
     
     // API Folders (arborescence dynamique)
     $group->get('/api/folders/children', [FoldersApiController::class, 'getChildren']);
+    $group->post('/api/folders/crawl', [FoldersApiController::class, 'triggerCrawlApi']);
+    $group->get('/api/folders/crawl-status', [FoldersApiController::class, 'getCrawlStatus']);
+    $group->get('/api/folders/indexing-status', [FoldersApiController::class, 'getIndexingStatus']);
+    $group->post('/api/folders/counts', [FoldersApiController::class, 'getFolderCounts']);
     
     // Tâches
     $group->get('/tasks', [TasksController::class, 'index']);
@@ -201,6 +236,7 @@ $app->group('', function ($group) {
     
     // Administration
     $group->get('/admin', [AdminController::class, 'index']);
+    $group->get('/admin/api-usage', [AdminController::class, 'apiUsage']);
     // Users (Multi-utilisateurs avancé)
     $group->get('/admin/users', [UsersController::class, 'index']);
     $group->get('/admin/users/create', [UsersController::class, 'showForm']);
@@ -302,8 +338,18 @@ $app->group('', function ($group) {
     
     // Consume Folder (Pipeline d'ingestion)
     $group->get('/admin/consume', [ConsumeController::class, 'index']);
+    $group->get('/admin/consume/document-card/{id}', [ConsumeController::class, 'documentCard']);
     $group->post('/admin/consume/scan', [ConsumeController::class, 'scan']);
+    $group->post('/admin/consume/rescan', [ConsumeController::class, 'rescan']);
     $group->post('/admin/consume/validate/{id}', [ConsumeController::class, 'validate']);
+    
+    // Classification Fields (Champs paramétrables)
+    $group->get('/admin/classification-fields', [ClassificationFieldsController::class, 'index']);
+    $group->get('/admin/classification-fields/create', [ClassificationFieldsController::class, 'showForm']);
+    $group->get('/admin/classification-fields/{id}/edit', [ClassificationFieldsController::class, 'showForm']);
+    $group->post('/admin/classification-fields/save', [ClassificationFieldsController::class, 'save']);
+    $group->post('/admin/classification-fields/{id}/save', [ClassificationFieldsController::class, 'save']);
+    $group->post('/admin/classification-fields/{id}/delete', [ClassificationFieldsController::class, 'delete']);
     
     // Document Consumption API (10% manquant - 2%)
     $group->post('/api/consumption/consume', [ConsumptionApiController::class, 'consume']);
