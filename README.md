@@ -56,11 +56,57 @@ L'application utilise :
 
 ## Statut
 
-✅ Phase 1 - Fondations : Complétée
+✅ **Phase 1 - Fondations** : Complétée
 - Structure de base créée
-- Base de données initialisée (18 tables)
+- Base de données initialisée (18+ tables)
 - Classes Core implémentées (Config, Database, App, Auth)
 
-🔄 Phase 2 - Authentification : À venir
-- Page de login
-- Dashboard
+✅ **Phase 2 - Authentification** : Complétée
+- Page de login (`/login`)
+- Système d'authentification avec sessions
+- Middleware de protection des routes
+- Dashboard (`/dashboard`)
+- Gestion des utilisateurs
+
+✅ **Phase 3 - Gestion de Documents** : Complétée
+- CRUD complet des documents
+- Upload et traitement automatique
+- OCR avec Tesseract (fallback pdftotext)
+- Génération de miniatures
+- Extraction de métadonnées
+- Vue grille/liste/tableau
+- Recherche simple et avancée
+- Filtrage par dossier, correspondant, tag, type
+- Partage et historique
+
+✅ **Phase 4 - Consume Folder** : Complétée
+- Scan automatique du dossier `storage/consume/`
+- Classification automatique (3 modes : rules, ai, auto)
+- Champs de classification configurables
+- Validation manuelle des documents
+- Génération de chemins de stockage dynamiques
+- Découpage intelligent de PDFs multi-pages (IA)
+
+✅ **Phase 5 - Workflows** : Complétée
+- Designer visuel de workflows
+- 14 types de nodes (Triggers, Processing, Conditions, Actions, Waits, Timers)
+- Exécution automatique des workflows
+- Système d'approbation
+- Timers avec cron job
+
+✅ **Phase 6 - IA/Claude** : Complétée
+- Classification intelligente des documents
+- Recherche en langage naturel
+- Chat IA intégré
+- Extraction de données avec prompts personnalisés
+
+✅ **Phase 7 - Administration** : Complétée
+- 18 pages d'administration
+- Gestion des correspondants, tags, types de documents
+- Champs personnalisés et de classification
+- Chemins de stockage
+- Workflows et webhooks
+- Utilisateurs et permissions
+- Statistiques API
+
+**État général** : **95% fonctionnel**, architecture moderne, prêt pour production

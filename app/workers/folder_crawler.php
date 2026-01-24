@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../app/autoload.php';
 use KDocs\Core\Database;
 use KDocs\Services\FilesystemReader;
 use KDocs\Services\DocumentMapper;
+use KDocs\Services\FolderIndexService;
 
 class FolderCrawler
 {
@@ -68,15 +69,8 @@ class FolderCrawler
             });
             
             // Créer le fichier .indexing AVANT de commencer le traitement
-            file_put_contents($indexingFile, json_encode([
-                'path' => $relativePath,
-                'total' => $totalFiles,
-                'current' => 0,
-                'processed' => 0,
-                'skipped' => 0,
-                'started_at' => time(),
-                'updated_at' => time()
-            ]));
+            $indexService = new \KDocs\Services\FolderIndexService();
+            $indexService->writeIndexingProgress($relativePath, $totalFiles, 0, 0);
             
             $mapper = new DocumentMapper();
             $processed = 0;
@@ -88,15 +82,7 @@ class FolderCrawler
                 
                 try {
                     // Mettre à jour le fichier .indexing avec la progression
-                    file_put_contents($indexingFile, json_encode([
-                        'path' => $relativePath,
-                        'total' => $totalFiles,
-                        'current' => $currentFile,
-                        'processed' => $processed,
-                        'skipped' => $skipped,
-                        'started_at' => time(),
-                        'updated_at' => time()
-                    ]));
+                    $indexService->writeIndexingProgress($relativePath, $totalFiles, $currentFile, $processed);
                     
                     // Vérifier si le fichier existe déjà dans la DB (par checksum ou chemin)
                     $filePath = $file['full_path'] ?? ($relativePath . '/' . $file['name']);
@@ -135,20 +121,11 @@ class FolderCrawler
             // Compter les documents dans la DB pour ce chemin
             $dbCount = $this->countDocumentsInPath($relativePath);
             
-            // Créer le fichier .indexed avec les résultats finaux
-            $indexedFile = $fullPath . DIRECTORY_SEPARATOR . '.indexed';
-            file_put_contents($indexedFile, json_encode([
-                'path' => $relativePath,
-                'file_count' => $totalFiles,
-                'db_count' => $dbCount,
-                'processed' => $processed,
-                'skipped' => $skipped,
-                'indexed_at' => time(),
-                'indexed_date' => date('Y-m-d H:i:s')
-            ]));
+            // Créer le fichier .index avec les résultats finaux (remplace .indexed)
+            $indexService->writeIndex($relativePath, $totalFiles, $dbCount);
             
-            // Supprimer le fichier .indexing
-            @unlink($indexingFile);
+            // Supprimer le fichier .indexing (indexation terminée)
+            $indexService->removeIndexing($relativePath);
             
             error_log("FolderCrawler: Traité $relativePath - $processed nouveaux/mis à jour, $skipped ignorés, $dbCount documents dans DB");
             
@@ -158,7 +135,10 @@ class FolderCrawler
             
         } catch (\Exception $e) {
             error_log("FolderCrawler: Erreur traitement tâche $relativePath: " . $e->getMessage());
-            @unlink($indexingFile ?? '');
+            // Supprimer le fichier .indexing en cas d'erreur
+            if (isset($indexService)) {
+                $indexService->removeIndexing($relativePath);
+            }
             @unlink($taskFile);
             return false;
         }

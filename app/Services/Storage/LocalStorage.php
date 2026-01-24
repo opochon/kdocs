@@ -47,10 +47,10 @@ class LocalStorage implements StorageInterface
         }
         
         foreach ($items as $item) {
-            // Ignorer les fichiers système et les fichiers de statut d'indexation
+            // Ignorer les fichiers système et les fichiers de statut d'indexation (cachés)
             if ($item === '.' || $item === '..' || 
                 in_array($item, $this->ignoreFolders) ||
-                $item === '.indexing' || $item === '.indexed') {
+                $item === '.indexing' || $item === '.indexed' || $item === '.index') {
                 continue;
             }
             
@@ -164,10 +164,10 @@ class LocalStorage implements StorageInterface
         if ($items === false) return 0;
         
         foreach ($items as $item) {
-            // Ignorer les fichiers système et les fichiers de statut d'indexation
+            // Ignorer les fichiers système et les fichiers de statut d'indexation (cachés)
             if ($item === '.' || $item === '..' || 
                 in_array($item, $this->ignoreFolders) ||
-                $item === '.indexing' || $item === '.indexed') {
+                $item === '.indexing' || $item === '.indexed' || $item === '.index') {
                 continue;
             }
             $itemPath = $dirPath . DIRECTORY_SEPARATOR . $item;

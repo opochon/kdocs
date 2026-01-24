@@ -139,6 +139,31 @@ class SettingsController
             }
         }
         
+        // Sauvegarder les paramètres d'indexation
+        $indexingKeys = [
+            'indexing_max_concurrent_queues',
+            'indexing_memory_limit',
+            'indexing_delay_between_files',
+            'indexing_batch_size',
+            'indexing_batch_pause',
+            'indexing_turbo_mode',
+        ];
+        
+        foreach ($indexingKeys as $key) {
+            if (isset($data[$key])) {
+                $value = $data[$key];
+                // Convertir checkbox en 0/1
+                if ($key === 'indexing_turbo_mode') {
+                    $value = ($value === '1' || $value === 'on') ? '1' : '0';
+                }
+                if (Setting::set($key, $value, 'string', $user['id'])) {
+                    $success[] = "Paramètre $key sauvegardé";
+                } else {
+                    $errors[] = "Erreur lors de la sauvegarde de $key";
+                }
+            }
+        }
+        
         // Réinitialiser le cache de configuration pour recharger les nouveaux paramètres
         Config::reset();
         

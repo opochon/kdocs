@@ -86,6 +86,11 @@ $app->get('/login', [AuthController::class, 'showLogin']);
 $app->post('/login', [AuthController::class, 'login']);
 $app->get('/logout', [AuthController::class, 'logout']);
 
+// Workflow Approval - Routes publiques accessibles via token email (style Alfresco)
+use KDocs\Controllers\WorkflowApprovalController;
+$app->get('/workflow/approve/{token}', [WorkflowApprovalController::class, 'showApprovalPage']);
+$app->post('/workflow/approve/{token}', [WorkflowApprovalController::class, 'processApproval']);
+
 // Helper function pour rendre un template
 function renderTemplate($templatePath, $data = []) {
     extract($data);
@@ -244,6 +249,16 @@ $app->group('', function ($group) {
     $group->post('/admin/users/save', [UsersController::class, 'save']);
     $group->post('/admin/users/{id}/save', [UsersController::class, 'save']);
     $group->post('/admin/users/{id}/delete', [UsersController::class, 'delete']);
+    
+    // User Groups (Groupes pour workflows d'approbation style Alfresco)
+    $group->get('/admin/user-groups', [\KDocs\Controllers\UserGroupsController::class, 'index']);
+    $group->get('/admin/user-groups/create', [\KDocs\Controllers\UserGroupsController::class, 'showForm']);
+    $group->get('/admin/user-groups/{id}/edit', [\KDocs\Controllers\UserGroupsController::class, 'showForm']);
+    $group->post('/admin/user-groups/save', [\KDocs\Controllers\UserGroupsController::class, 'save']);
+    $group->post('/admin/user-groups/{id}/save', [\KDocs\Controllers\UserGroupsController::class, 'save']);
+    $group->post('/admin/user-groups/{id}/delete', [\KDocs\Controllers\UserGroupsController::class, 'delete']);
+    $group->get('/api/user-groups', [\KDocs\Controllers\UserGroupsController::class, 'apiIndex']);
+    $group->get('/api/user-groups/{id}', [\KDocs\Controllers\UserGroupsController::class, 'apiShow']);
     
     // Paramètres système (configurable)
     $group->get('/admin/settings', [SettingsController::class, 'index']);

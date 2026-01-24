@@ -41,6 +41,14 @@ $kdriveUsername = Setting::get('kdrive.username', '');
 $kdrivePassword = Setting::get('kdrive.password', '');
 $kdriveBasePath = Setting::get('kdrive.base_path', '');
 
+// Configuration Indexation
+$indexingMaxQueues = Setting::get('indexing_max_concurrent_queues', '2');
+$indexingMemoryLimit = Setting::get('indexing_memory_limit', '128');
+$indexingDelayFiles = Setting::get('indexing_delay_between_files', '50');
+$indexingBatchSize = Setting::get('indexing_batch_size', '20');
+$indexingBatchPause = Setting::get('indexing_batch_pause', '500');
+$indexingTurboMode = Setting::get('indexing_turbo_mode', '0');
+
 // Messages
 $successMsg = $_GET['success'] ?? null;
 $errorMsg = $_GET['error'] ?? null;
@@ -272,6 +280,84 @@ $errorMsg = $_GET['error'] ?? null;
                         <li>Chat IA pour interroger vos documents</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+
+        <!-- Section Indexation -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">⚙️ Paramètres d'indexation</h2>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Queues simultanées max
+                    </label>
+                    <input type="number" name="indexing_max_concurrent_queues" 
+                           value="<?= htmlspecialchars($indexingMaxQueues) ?>"
+                           min="1" max="10"
+                           class="w-full px-3 py-2 border rounded">
+                    <p class="text-xs text-gray-500 mt-1">1-10. Plus = plus rapide mais plus de charge</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Mémoire par worker (MB)
+                    </label>
+                    <input type="number" name="indexing_memory_limit" 
+                           value="<?= htmlspecialchars($indexingMemoryLimit) ?>"
+                           min="64" max="512"
+                           class="w-full px-3 py-2 border rounded">
+                    <p class="text-xs text-gray-500 mt-1">64-512 MB</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Pause entre fichiers (ms)
+                    </label>
+                    <input type="number" name="indexing_delay_between_files" 
+                           value="<?= htmlspecialchars($indexingDelayFiles) ?>"
+                           min="0" max="1000"
+                           class="w-full px-3 py-2 border rounded">
+                    <p class="text-xs text-gray-500 mt-1">0 = pas de pause, 50-100 recommandé</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Fichiers par batch
+                    </label>
+                    <input type="number" name="indexing_batch_size" 
+                           value="<?= htmlspecialchars($indexingBatchSize) ?>"
+                           min="5" max="100"
+                           class="w-full px-3 py-2 border rounded">
+                    <p class="text-xs text-gray-500 mt-1">Pause longue après ce nombre de fichiers</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Pause après batch (ms)
+                    </label>
+                    <input type="number" name="indexing_batch_pause" 
+                           value="<?= htmlspecialchars($indexingBatchPause) ?>"
+                           min="0" max="5000"
+                           class="w-full px-3 py-2 border rounded">
+                </div>
+                
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="indexing_turbo_mode" value="1"
+                               <?= $indexingTurboMode === '1' ? 'checked' : '' ?>
+                               class="mr-2">
+                        <span class="text-sm font-medium text-gray-700">Mode Turbo</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Ignore toutes les pauses (charge max)</p>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                <p class="text-xs text-blue-800">
+                    <strong>💡 Astuce :</strong> Ces paramètres contrôlent l'indexation en arrière-plan. 
+                    Réduisez les pauses pour une indexation plus rapide, mais augmentez-les si le serveur est surchargé.
+                </p>
             </div>
         </div>
 

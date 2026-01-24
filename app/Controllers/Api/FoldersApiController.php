@@ -7,188 +7,200 @@ namespace KDocs\Controllers\Api;
 
 use KDocs\Services\FilesystemReader;
 use KDocs\Core\Database;
+use KDocs\Core\Config;
 use KDocs\Services\DocumentMapper;
+use KDocs\Services\FolderIndexService;
+use KDocs\Services\IndexingService;
+use KDocs\Services\QueueService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class FoldersApiController
 {
     /**
-     * Récupère les sous-dossiers d'un dossier parent
+     * Récupère les sous-dossiers d'un dossier parent - VERSION CORRIGÉE
+     * Reçoit le PATH directement, plus de recherche récursive
      */
     public function getChildren(Request $request, Response $response): Response
     {
         try {
             $queryParams = $request->getQueryParams();
-            $parentId = $queryParams['parent_id'] ?? null;
+            $parentPath = $queryParams['path'] ?? '';
             
-            if ($parentId === null || $parentId === md5('/')) {
-                // Retourner seulement les dossiers de premier niveau (pas récursif)
-                $fsReader = new FilesystemReader();
-                $content = $fsReader->readDirectory('', false);
-                
-                if (isset($content['error'])) {
-                    $response->getBody()->write(json_encode([
-                        'success' => false,
-                        'error' => $content['error'],
-                        'folders' => []
-                    ]));
-                    return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-                }
-                
-                $folders = [];
-                foreach (($content['folders'] ?? []) as $folder) {
-                    $folderPath = $folder['name'];
-                    
-                    // Vérifier si ce dossier a des sous-dossiers (sans les charger)
-                    $hasChildren = false;
-                    try {
-                        $subContent = $fsReader->readDirectory($folderPath, false);
-                        $hasChildren = !empty($subContent['folders']) && !isset($subContent['error']);
-                    } catch (\Exception $e) {
-                        error_log("Erreur vérification sous-dossiers $folderPath: " . $e->getMessage());
-                    }
-                    
-                    $folders[] = [
-                        'id' => md5($folderPath),
-                        'path' => $folderPath,
-                        'name' => $folder['name'],
-                        'file_count' => $folder['file_count'] ?? 0,
-                        'has_children' => $hasChildren,
-                        'depth' => 0,
-                    ];
-                }
-                
-                // Trier par nom
-                usort($folders, function($a, $b) {
-                    return strcmp($a['name'], $b['name']);
-                });
-                
-                $response->getBody()->write(json_encode([
-                    'success' => true,
-                    'folders' => $folders,
-                    'parent_id' => md5('/'),
-                    'parent_path' => '/'
-                ]));
-                return $response->withHeader('Content-Type', 'application/json');
-            }
-            
-            // Trouver le chemin du dossier parent de manière optimisée
-            // Au lieu de parcourir récursivement tous les dossiers, on utilise une approche plus directe
-            $fsReader = new FilesystemReader();
-            
-            // Si c'est la racine, on le sait directement
-            if ($parentId === md5('/')) {
+            // Normaliser le chemin
+            $parentPath = trim($parentPath, '/');
+            if ($parentPath === 'root' || $parentPath === '/') {
                 $parentPath = '';
-            } else {
-                // Pour les autres dossiers, on doit trouver le chemin
-                // On utilise une recherche récursive mais limitée et optimisée
-                $parentPath = null;
-                $maxDepth = 5; // Limiter à 5 niveaux pour la performance
-                
-                $findPath = function($relativePath = '', $depth = 0) use (&$findPath, $fsReader, $parentId, $maxDepth, &$parentPath) {
-                    if ($depth > $maxDepth || $parentPath !== null) {
-                        return; // Arrêter si trouvé ou trop profond
-                    }
-                    
-                    // Vérifier si ce chemin correspond
-                    $normalizedForHash = ($relativePath === '' || $relativePath === '/') ? '/' : $relativePath;
-                    $pathHash = md5($normalizedForHash);
-                    if ($pathHash === $parentId) {
-                        $parentPath = ($relativePath === '' || $relativePath === '/') ? '' : $relativePath;
-                        return;
-                    }
-                    
-                    // Si pas trouvé, chercher dans les sous-dossiers
-                    try {
-                        $content = $fsReader->readDirectory($relativePath, false);
-                        if (!isset($content['error']) && !empty($content['folders'])) {
-                            foreach ($content['folders'] as $folder) {
-                                if ($parentPath !== null) break; // Arrêter si trouvé
-                                $folderPath = $relativePath ? $relativePath . '/' . $folder['name'] : $folder['name'];
-                                $findPath($folderPath, $depth + 1);
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        // Ignorer les erreurs silencieusement
-                    }
-                };
-                
-                $findPath();
-                
-                if ($parentPath === null) {
-                    $response->getBody()->write(json_encode([
-                        'success' => false,
-                        'error' => 'Dossier parent introuvable',
-                        'folders' => []
-                    ]));
-                    return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
-                }
             }
             
-            // Lire les sous-dossiers
-            $content = $fsReader->readDirectory($parentPath, false);
+            $fsReader = new FilesystemReader();
+            $basePath = $fsReader->getBasePath();
+            $fullParentPath = $basePath . ($parentPath ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $parentPath) : '');
             
-            // Vérifier les erreurs
-            if (isset($content['error'])) {
-                $response->getBody()->write(json_encode([
+            // Vérifier que le dossier existe
+            if (!is_dir($fullParentPath)) {
+                return $this->jsonResponse($response, [
                     'success' => false,
-                    'error' => $content['error'],
+                    'error' => 'Dossier inexistant',
                     'folders' => []
-                ]));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+                ]);
             }
             
             $folders = [];
-            foreach (($content['folders'] ?? []) as $folder) {
-                try {
-                    $folderPath = $parentPath ? $parentPath . '/' . $folder['name'] : $folder['name'];
-                    $normalizedPath = $folderPath;
-                    $pathId = md5($normalizedPath);
-                    
-                    // Vérifier si ce dossier a des sous-dossiers de manière optimisée
-                    // On fait cette vérification seulement si nécessaire (pas pour tous les dossiers)
-                    // Pour améliorer les performances, on assume qu'un dossier peut avoir des enfants
-                    // Le frontend vérifiera au besoin lors du clic
-                    $hasChildren = true; // Optimisation : assumer qu'il peut y avoir des enfants
-                    
-                    $folders[] = [
-                        'id' => $pathId,
-                        'path' => $normalizedPath,
-                        'name' => $folder['name'],
-                        'file_count' => $folder['file_count'] ?? 0,
-                        'has_children' => $hasChildren,
-                    ];
-                } catch (\Exception $e) {
-                    error_log("Erreur traitement dossier: " . $e->getMessage());
+            $items = @scandir($fullParentPath);
+            
+            if ($items === false) {
+                return $this->jsonResponse($response, [
+                    'success' => false,
+                    'error' => 'Impossible de lire le dossier',
+                    'folders' => []
+                ]);
+            }
+            
+            $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+            
+            foreach ($items as $item) {
+                // Ignorer les fichiers cachés et spéciaux
+                if ($item === '.' || $item === '..' || $item[0] === '.') {
                     continue;
                 }
+                
+                $itemFullPath = $fullParentPath . DIRECTORY_SEPARATOR . $item;
+                
+                // Seulement les dossiers
+                if (!is_dir($itemFullPath)) {
+                    continue;
+                }
+                
+                $folderPath = $parentPath ? $parentPath . '/' . $item : $item;
+                
+                // Compter les fichiers (rapide, juste scandir)
+                $fileCount = 0;
+                $hasChildren = false;
+                $subItems = @scandir($itemFullPath);
+                
+                if ($subItems !== false) {
+                    foreach ($subItems as $subItem) {
+                        if ($subItem === '.' || $subItem === '..' || $subItem[0] === '.') {
+                            continue;
+                        }
+                        
+                        $subItemPath = $itemFullPath . DIRECTORY_SEPARATOR . $subItem;
+                        
+                        if (is_dir($subItemPath)) {
+                            $hasChildren = true;
+                        } elseif (is_file($subItemPath)) {
+                            // Vérifier l'extension
+                            $ext = strtolower(pathinfo($subItem, PATHINFO_EXTENSION));
+                            if (in_array($ext, $allowedExtensions)) {
+                                $fileCount++;
+                            }
+                        }
+                    }
+                }
+                
+                // Lire le fichier .index si disponible (pour db_count)
+                $indexPath = $itemFullPath . DIRECTORY_SEPARATOR . '.index';
+                $dbCount = 0;
+                $needsSync = false;
+                $isIndexing = file_exists($itemFullPath . DIRECTORY_SEPARATOR . '.indexing');
+                
+                if (file_exists($indexPath)) {
+                    $indexData = @json_decode(file_get_contents($indexPath), true);
+                    if ($indexData) {
+                        $dbCount = $indexData['db_count'] ?? 0;
+                        // Utiliser le file_count du .index s'il est plus récent
+                        if (isset($indexData['file_count'])) {
+                            $needsSync = ($indexData['file_count'] != $dbCount);
+                        }
+                    }
+                } else {
+                    // Pas de .index = pas encore indexé
+                    $needsSync = ($fileCount > 0);
+                }
+                
+                $folders[] = [
+                    'id' => md5($folderPath),
+                    'path' => $folderPath,
+                    'name' => $item,
+                    'file_count' => $fileCount,
+                    'db_count' => $dbCount,
+                    'has_children' => $hasChildren,
+                    'needs_sync' => $needsSync,
+                    'is_indexing' => $isIndexing,
+                ];
             }
             
             // Trier par nom
-            usort($folders, function($a, $b) {
-                return strcmp($a['name'], $b['name']);
-            });
+            usort($folders, fn($a, $b) => strcasecmp($a['name'], $b['name']));
             
-            $response->getBody()->write(json_encode([
+            return $this->jsonResponse($response, [
                 'success' => true,
                 'folders' => $folders,
-                'parent_id' => $parentId,
-                'parent_path' => $parentPath === '' ? '/' : $parentPath
-            ]));
-            return $response->withHeader('Content-Type', 'application/json');
+                'parent_path' => $parentPath ?: '/',
+            ]);
             
         } catch (\Exception $e) {
             error_log("FoldersApiController::getChildren - Erreur: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            
-            $response->getBody()->write(json_encode([
+            return $this->jsonResponse($response, [
                 'success' => false,
-                'error' => 'Erreur lors du chargement des dossiers: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
                 'folders' => []
-            ]));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+            ]);
         }
+    }
+    
+    private function jsonResponse(Response $response, array $data, int $status = 200): Response
+    {
+        $response->getBody()->write(json_encode($data));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
+    }
+    
+    /**
+     * Vérifie rapidement si un dossier a des sous-dossiers
+     */
+    private function hasSubfolders(FilesystemReader $fsReader, string $path): bool
+    {
+        try {
+            $basePath = $fsReader->getBasePath();
+            $fullPath = $basePath . ($path ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path) : '');
+            
+            if (!is_dir($fullPath)) {
+                return false;
+            }
+            
+            $handle = opendir($fullPath);
+            if (!$handle) {
+                return false;
+            }
+            
+            while (($entry = readdir($handle)) !== false) {
+                if ($entry === '.' || $entry === '..') continue;
+                if ($entry[0] === '.') continue; // Ignorer fichiers cachés (.index, .indexing)
+                
+                if (is_dir($fullPath . DIRECTORY_SEPARATOR . $entry)) {
+                    closedir($handle);
+                    return true;
+                }
+            }
+            
+            closedir($handle);
+            return false;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    private function jsonSuccess(Response $response, array $data): Response
+    {
+        $response->getBody()->write(json_encode(array_merge(['success' => true], $data)));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    
+    private function jsonError(Response $response, string $error, int $status): Response
+    {
+        $response->getBody()->write(json_encode(['success' => false, 'error' => $error]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
     
     /**
@@ -348,46 +360,133 @@ class FoldersApiController
     }
     
     /**
-     * Déclenche le crawl d'un dossier via API
+     * Déclenche le crawl d'un dossier via API - VERSION CORRIGÉE
+     * Ne crawle pas les dossiers vides
      */
     public function triggerCrawlApi(Request $request, Response $response): Response
     {
         try {
             $data = json_decode($request->getBody()->getContents(), true);
             $relativePath = $data['path'] ?? '';
+            $priority = $data['priority'] ?? 'normal';
             
             if (empty($relativePath)) {
-                $response->getBody()->write(json_encode([
+                return $this->jsonResponse($response, [
                     'success' => false,
                     'error' => 'Chemin manquant'
+                ], 400);
+            }
+            
+            // Vérifier que le dossier contient des fichiers
+            $fsReader = new FilesystemReader();
+            $basePath = $fsReader->getBasePath();
+            $fullPath = $basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath) : '');
+            
+            if (!is_dir($fullPath)) {
+                return $this->jsonResponse($response, [
+                    'success' => false,
+                    'error' => 'Dossier inexistant'
+                ]);
+            }
+            
+            // Compter les fichiers
+            $fileCount = 0;
+            $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+            $items = @scandir($fullPath);
+            
+            if ($items !== false) {
+                foreach ($items as $item) {
+                    if ($item === '.' || $item === '..' || $item[0] === '.') continue;
+                    if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
+                        $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+                        if (in_array($ext, $allowedExtensions)) {
+                            $fileCount++;
+                        }
+                    }
+                }
+            }
+            
+            // Ne pas crawler si vide
+            if ($fileCount === 0) {
+                return $this->jsonResponse($response, [
+                    'success' => true,
+                    'message' => 'Dossier vide, rien à indexer',
+                    'status' => 'skipped'
+                ]);
+            }
+            
+            // Utiliser QueueService si disponible
+            if (class_exists('\KDocs\Services\QueueService')) {
+                // Vérifier si un job existe déjà pour ce chemin
+                if (QueueService::hasJobForPath($relativePath)) {
+                    return $this->jsonResponse($response, [
+                        'success' => true,
+                        'message' => 'Déjà en queue',
+                        'status' => 'queued'
+                    ]);
+                }
+                
+                // Vérifier le nombre de jobs actifs (limite configurable)
+                $maxQueues = Config::get('indexing.max_concurrent_queues', 2);
+                $activeJobs = QueueService::countActiveJobs('indexing') + QueueService::countActiveJobs('indexing_high');
+                
+                if ($activeJobs >= $maxQueues && $priority !== 'high') {
+                    return $this->jsonResponse($response, [
+                        'success' => true,
+                        'message' => 'Trop de queues actives, réessayez plus tard',
+                        'status' => 'rejected',
+                        'active_queues' => $activeJobs,
+                        'max_queues' => $maxQueues
+                    ]);
+                }
+                
+                // Ajouter le job à la queue
+                $added = QueueService::queueIndexing($relativePath, $priority);
+                
+                return $this->jsonResponse($response, [
+                    'success' => $added,
+                    'message' => $added ? 'Queue ajoutée' : 'Erreur ajout queue',
+                    'status' => $added ? 'queued' : 'error'
+                ]);
+            } else {
+                // Fallback : utiliser l'ancien système de fichiers JSON
+                $crawlDir = __DIR__ . '/../../storage/crawl_queue';
+                if (!is_dir($crawlDir)) {
+                    @mkdir($crawlDir, 0755, true);
+                }
+                
+                $pathHash = md5($relativePath);
+                $existingQueues = glob($crawlDir . '/crawl_' . $pathHash . '_*.json');
+                
+                if (!empty($existingQueues)) {
+                    return $this->jsonResponse($response, [
+                        'success' => true,
+                        'message' => 'Déjà en queue',
+                        'status' => 'queued'
+                    ]);
+                }
+                
+                // Créer la queue
+                $taskFile = $crawlDir . '/crawl_' . $pathHash . '_' . time() . '.json';
+                $result = @file_put_contents($taskFile, json_encode([
+                    'path' => $relativePath,
+                    'created_at' => time(),
+                    'file_count' => $fileCount
                 ]));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+                
+                return $this->jsonResponse($response, [
+                    'success' => $result !== false,
+                    'message' => $result !== false ? 'Queue créée' : 'Erreur création queue',
+                    'status' => $result !== false ? 'queued' : 'error'
+                ]);
             }
-            
-            $this->triggerCrawl($relativePath);
-            
-            // Traiter immédiatement une tâche si possible (non-bloquant)
-            if (function_exists('exec') && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-                // Sur Linux/Mac, exécuter en arrière-plan
-                $workerPath = __DIR__ . '/../workers/folder_crawler.php';
-                exec("php $workerPath > /dev/null 2>&1 &");
-            }
-            // Sur Windows, le worker sera traité par le cron/tâche planifiée
-            
-            $response->getBody()->write(json_encode([
-                'success' => true,
-                'message' => 'Crawl déclenché'
-            ]));
-            return $response->withHeader('Content-Type', 'application/json');
             
         } catch (\Exception $e) {
             error_log("FoldersApiController::triggerCrawlApi - Erreur: " . $e->getMessage());
-            
-            $response->getBody()->write(json_encode([
+            return $this->jsonResponse($response, [
                 'success' => false,
-                'error' => 'Erreur lors du déclenchement du crawl: ' . $e->getMessage()
-            ]));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
     
@@ -476,10 +575,10 @@ class FoldersApiController
                 }
             }
             
-            // Sinon vérifier .indexed (terminé)
-            $indexedFile = $fullPath . DIRECTORY_SEPARATOR . '.indexed';
-            if (file_exists($indexedFile)) {
-                $data = json_decode(file_get_contents($indexedFile), true);
+            // Sinon vérifier .index (terminé, remplace .indexed)
+            $indexFile = $fullPath . DIRECTORY_SEPARATOR . '.index';
+            if (file_exists($indexFile)) {
+                $data = json_decode(file_get_contents($indexFile), true);
                 if ($data) {
                     $response->getBody()->write(json_encode([
                         'success' => true,
