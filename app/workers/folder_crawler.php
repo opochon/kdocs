@@ -155,11 +155,11 @@ class FolderCrawler
             $searchPath2 = '%/' . $normalizedPath . '%';
             $searchPath3 = $normalizedPath . '/%';
             
+            // Compter TOUS les documents (y compris pending) pour comparaison avec fichiers physiques
             $stmt = $this->db->prepare("
                 SELECT COUNT(*) 
                 FROM documents 
                 WHERE deleted_at IS NULL 
-                AND (status IS NULL OR status != 'pending')
                 AND (
                     file_path LIKE ? 
                     OR file_path LIKE ?

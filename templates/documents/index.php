@@ -124,7 +124,17 @@ $base = Config::basePath();
         
         <!-- Contenu -->
         <div class="flex-1 overflow-y-auto bg-white p-4" style="min-width: 0; width: 100%;">
-            <?php if (empty($documents)): ?>
+            <?php if (!empty($indexationMessage ?? null)): ?>
+            <div class="flex flex-col items-center justify-center h-full text-center py-12">
+                <svg class="w-8 h-8 text-orange-500 mx-auto mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <h2 class="text-base font-medium text-orange-600 mb-1">Indexation en cours</h2>
+                <p class="text-sm text-orange-500 mb-4"><?= htmlspecialchars($indexationMessage) ?></p>
+                <p class="text-xs text-gray-400">Les documents apparaîtront automatiquement une fois l'indexation terminée.</p>
+            </div>
+            <?php elseif (empty($documents)): ?>
             <div class="flex flex-col items-center justify-center h-full text-center py-12">
                 <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -141,7 +151,14 @@ $base = Config::basePath();
             <div id="view-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">
                 <?php foreach ($documents as $doc): ?>
                 <a href="<?= url('/documents/' . ($doc['id'] ?? 'new')) ?>" 
-                   class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block">
+                   class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative">
+                    <!-- Badge "À valider" pour les documents pending -->
+                    <?php if (($doc['status'] ?? '') === 'pending'): ?>
+                    <span class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded z-10" title="Document en attente de validation">
+                        À valider
+                    </span>
+                    <?php endif; ?>
+                    
                     <!-- Thumbnail -->
                     <div class="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden relative">
                         <?php if (!empty($doc['id'])): ?>
@@ -267,34 +284,8 @@ function setViewMode(mode) {
     window.location.href = url.toString();
 }
 
-// Arborescence - Version simplifiée
-// Tout est rendu côté serveur, le JS gère juste le toggle
-(function() {
-    const tree = document.getElementById('filesystem-tree');
-    if (!tree) return;
-    
-    tree.addEventListener('click', function(e) {
-        // Clic sur l'expander (flèche)
-        const expander = e.target.closest('.folder-expander');
-        if (expander && expander.querySelector('.folder-arrow')) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const folderItem = expander.closest('.folder-item');
-            const children = folderItem.querySelector('.folder-children');
-            const arrow = expander.querySelector('.folder-arrow');
-            
-            if (children) {
-                const isHidden = children.style.display === 'none';
-                children.style.display = isHidden ? 'block' : 'none';
-                arrow.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
-            }
-            return;
-        }
-        
-        // Clic sur le lien = navigation normale (pas d'interception)
-    });
-})();
+// Arborescence - Le JavaScript est maintenant généré par FolderTreeHelper::renderJavaScript()
+// Plus besoin de code ici, tout est géré côté serveur avec indicateurs d'indexation
 
 // Redimensionnement de la sidebar
 (function() {

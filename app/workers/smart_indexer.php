@@ -317,13 +317,13 @@ class SmartIndexer
             $exactPath = $normalizedPath ?: '';
             
             $stmt = $this->db->prepare("
+                // Compter TOUS les documents (y compris pending) pour comparaison avec fichiers physiques
                 SELECT COUNT(*) FROM documents 
                 WHERE (
                     (relative_path LIKE ? AND relative_path NOT LIKE ?)
                     OR relative_path = ?
                 )
                 AND deleted_at IS NULL
-                AND (status IS NULL OR status != 'pending')
             ");
             
             $excludeSubfolders = $normalizedPath ? $normalizedPath . '/%/%' : '%/%/%';

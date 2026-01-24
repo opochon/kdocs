@@ -1,6 +1,8 @@
 <?php
 /**
  * K-Docs - Classe de gestion de la base de données (Singleton PDO)
+ * 
+ * OPTIMISÉ : Suppression des appels DebugLogger pour performance
  */
 
 namespace KDocs\Core;
@@ -29,14 +31,6 @@ class Database
             );
 
             try {
-                // #region agent log
-                \KDocs\Core\DebugLogger::log('Database::getInstance', 'Attempting DB connection', [
-                    'host' => $config['host'],
-                    'port' => $config['port'],
-                    'dbname' => $config['name']
-                ], 'E');
-                // #endregion
-                
                 self::$instance = new PDO(
                     $dsn,
                     $config['user'],
@@ -47,14 +41,7 @@ class Database
                         PDO::ATTR_EMULATE_PREPARES => false,
                     ]
                 );
-                
-                // #region agent log
-                \KDocs\Core\DebugLogger::log('Database::getInstance', 'DB connection successful', [], 'E');
-                // #endregion
             } catch (PDOException $e) {
-                // #region agent log
-                \KDocs\Core\DebugLogger::logException($e, 'Database::getInstance - Connection failed', 'E');
-                // #endregion
                 throw new \RuntimeException(
                     "Erreur de connexion à la base de données: " . $e->getMessage(),
                     0,
@@ -66,25 +53,7 @@ class Database
         return self::$instance;
     }
 
-    /**
-     * Empêche la création d'instances externes
-     */
-    private function __construct()
-    {
-    }
-
-    /**
-     * Empêche le clonage
-     */
-    private function __clone()
-    {
-    }
-
-    /**
-     * Empêche la désérialisation
-     */
-    public function __wakeup()
-    {
-        throw new \RuntimeException("Cannot unserialize singleton");
-    }
+    private function __construct() {}
+    private function __clone() {}
+    public function __wakeup() { throw new \RuntimeException("Cannot unserialize singleton"); }
 }

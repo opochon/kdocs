@@ -112,6 +112,21 @@ try {
     }
 }
 
+// Déclenchement automatique du crawler (toutes les 10 minutes)
+// Vérifie s'il y a des queues et si le dernier crawl date de plus de 10 minutes
+try {
+    $autoTrigger = new \KDocs\Services\CrawlerAutoTrigger();
+    if ($autoTrigger->shouldRun() && $autoTrigger->hasQueues()) {
+        $autoTrigger->trigger();
+    }
+} catch (\Exception $e) {
+    // Ignorer les erreurs silencieusement
+    $config = Config::load();
+    if ($config['app']['debug'] ?? false) {
+        error_log("CrawlerAutoTrigger error: " . $e->getMessage());
+    }
+}
+
 // Routes protégées (avec authentification)
 $app->group('', function ($group) {
     // Dashboard (Priorité 2.5)

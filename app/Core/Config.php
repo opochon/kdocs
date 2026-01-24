@@ -1,19 +1,22 @@
 <?php
 /**
  * K-Docs - Classe de gestion de la configuration
+ * 
+ * ATTENTION: Ne pas charger les settings DB ici pour éviter
+ * la dépendance circulaire Config -> Database -> Config
  */
 
 namespace KDocs\Core;
-
-use KDocs\Models\Setting;
 
 class Config
 {
     private static ?array $config = null;
     private static ?array $dbSettings = null;
+    private static bool $dbSettingsLoaded = false;
 
     /**
-     * Charge la configuration depuis le fichier config.php et merge avec les settings DB
+     * Charge la configuration depuis le fichier config.php UNIQUEMENT
+     * Les settings DB sont chargés à la demande via loadDbSettings()
      */
     public static function load(): array
     {
@@ -24,32 +27,45 @@ class Config
             }
             self::$config = require $configPath;
             
-            // Charger les settings depuis la DB et les merger
-            self::loadDbSettings();
+            // NE PAS charger les settings DB ici pour éviter la dépendance circulaire
+            // Database::getInstance() appelle Config::get('database') 
+            // qui appellerait Setting::getAll() qui appelle Database::getInstance()
         }
         return self::$config;
     }
     
     /**
-     * Charge les paramètres depuis la base de données et les merge avec la config
+     * Charge les settings DB et les merge avec la config
+     * Appelé uniquement quand on a besoin des settings DB (pas pour database.*)
      */
-    private static function loadDbSettings(): void
+    public static function loadDbSettingsIfNeeded(): void
     {
+        if (self::$dbSettingsLoaded) {
+            return;
+        }
+        
+        self::$dbSettingsLoaded = true;
+        
         try {
             // Charger les settings depuis la DB
-            $dbSettings = Setting::getAll();
+            $dbSettings = \KDocs\Models\Setting::getAll();
             
             // Merger avec la config (les settings DB ont priorité)
             foreach ($dbSettings as $key => $setting) {
-                // Ignorer les valeurs vides (utiliser config par défaut)
+                // Ignorer les valeurs vides
                 if ($setting['value'] === null || $setting['value'] === '') {
+                    continue;
+                }
+                
+                // NE PAS permettre de surcharger la config database depuis les settings DB
+                // pour éviter les problèmes de bootstrap
+                if (strpos($key, 'database.') === 0) {
                     continue;
                 }
                 
                 $keys = explode('.', $key);
                 $target = &self::$config;
                 
-                // Naviguer dans la structure
                 for ($i = 0; $i < count($keys) - 1; $i++) {
                     if (!isset($target[$keys[$i]])) {
                         $target[$keys[$i]] = [];
@@ -57,11 +73,9 @@ class Config
                     $target = &$target[$keys[$i]];
                 }
                 
-                // Définir la valeur (convertir selon le type)
                 $finalKey = $keys[count($keys) - 1];
                 $value = $setting['value'];
                 
-                // Conversion selon le type
                 switch ($setting['type']) {
                     case 'integer':
                         $value = (int)$value;
@@ -77,32 +91,34 @@ class Config
                 $target[$finalKey] = $value;
             }
         } catch (\Exception $e) {
-            // Si la table settings n'existe pas encore, continuer avec la config par défaut
-            // Ne pas logger pour éviter les erreurs au démarrage
+            // Si la table settings n'existe pas, continuer avec la config par défaut
         }
     }
     
     /**
-     * Réinitialise le cache de configuration (utile après modification des settings)
+     * Réinitialise le cache de configuration
      */
     public static function reset(): void
     {
         self::$config = null;
         self::$dbSettings = null;
+        self::$dbSettingsLoaded = false;
     }
 
     /**
      * Récupère une valeur de configuration
-     * 
-     * @param string $key Clé au format "section.key" ou "section.key.subkey"
-     * @param mixed $default Valeur par défaut si la clé n'existe pas
-     * @return mixed
      */
     public static function get(string $key, $default = null)
     {
         $config = self::load();
+        
+        // Pour les clés non-database, charger les settings DB
+        if (strpos($key, 'database') !== 0) {
+            self::loadDbSettingsIfNeeded();
+        }
+        
         $keys = explode('.', $key);
-        $value = $config;
+        $value = self::$config; // Utiliser la config potentiellement modifiée
 
         foreach ($keys as $k) {
             if (!isset($value[$k])) {
@@ -127,7 +143,9 @@ class Config
      */
     public static function all(): array
     {
-        return self::load();
+        self::load();
+        self::loadDbSettingsIfNeeded();
+        return self::$config;
     }
 
     /**
@@ -140,7 +158,6 @@ class Config
 
     /**
      * Retourne le chemin de base (path) de l'URL
-     * Ex: http://localhost/kdocs -> /kdocs
      */
     public static function basePath(): string
     {

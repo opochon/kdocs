@@ -205,6 +205,7 @@ class IndexingService
             $searchPattern = $normalizedPath ? $normalizedPath . '/%' : '%';
             $exactPath = $normalizedPath ?: '';
             
+            // Compter TOUS les documents (y compris pending) pour comparaison avec fichiers physiques
             $stmt = $this->db->prepare("
                 SELECT COUNT(*) FROM documents 
                 WHERE (
@@ -212,7 +213,6 @@ class IndexingService
                     OR relative_path = ?
                 )
                 AND deleted_at IS NULL
-                AND (status IS NULL OR status != 'pending')
             ");
             
             $excludeSubfolders = $normalizedPath ? $normalizedPath . '/%/%' : '%/%/%';

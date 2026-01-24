@@ -23,6 +23,7 @@ use KDocs\Models\SavedSearch;
 use KDocs\Services\SearchService;
 use KDocs\Search\SearchQueryBuilder;
 use KDocs\Helpers\FolderTreeHelper;
+use KDocs\Services\CrawlerAutoTrigger;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -51,6 +52,17 @@ class DocumentsController
             'queryParams' => $request->getQueryParams()
         ], 'B');
         // #endregion
+        
+        // Vérifier et déclencher le crawler si nécessaire (dernier crawl > 10 minutes)
+        try {
+            $autoTrigger = new CrawlerAutoTrigger();
+            if ($autoTrigger->shouldRun() && $autoTrigger->hasQueues()) {
+                $autoTrigger->trigger();
+            }
+        } catch (\Exception $e) {
+            // Ignorer les erreurs silencieusement
+            error_log("CrawlerAutoTrigger error in DocumentsController: " . $e->getMessage());
+        }
         
         $user = $request->getAttribute('user');
         
@@ -123,6 +135,9 @@ class DocumentsController
             
             $fullPath = $basePath . ($normalizedPath ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $normalizedPath) : '');
             
+            // Message d'indexation (initialisé ici pour être accessible partout)
+            $indexationMessage = null;
+            
             if (!is_dir($fullPath)) {
                 $documents = [];
                 $total = 0;
@@ -135,13 +150,14 @@ class DocumentsController
                 
                 if ($normalizedPath === '') {
                     // RACINE : fichiers sans slash dans relative_path
+                    // NOTE: On affiche TOUS les documents du dossier, y compris 'pending'
+                    // La distinction se fait visuellement (icône/badge différent)
                     $sql = "
                         SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
                         FROM documents d
                         LEFT JOIN document_types dt ON d.document_type_id = dt.id
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
                         WHERE d.deleted_at IS NULL
-                        AND (d.status IS NULL OR d.status != 'pending')
                         AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
                         ORDER BY d.created_at DESC
                         LIMIT ? OFFSET ?
@@ -155,23 +171,32 @@ class DocumentsController
                     $countSql = "
                         SELECT COUNT(*) FROM documents d
                         WHERE d.deleted_at IS NULL
-                        AND (d.status IS NULL OR d.status != 'pending')
                         AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
                     ";
                     $total = (int)$db->query($countSql)->fetchColumn();
                     
                 } else {
-                    // SOUS-DOSSIER : "dossier/%" mais pas "dossier/%/%"
-                    $directPattern = $normalizedPath . '/%';
-                    $excludeSubfolders = $normalizedPath . '/%/%';
+                    // SOUS-DOSSIER : fichiers dont relative_path commence par le path
+                    // Le relative_path contient le chemin complet incluant le nom du fichier
+                    // Exemple : "2024/Tribunal_civil/Contrat/nomfichier.pdf"
+                    // Pour le dossier "2024/Tribunal_civil/Contrat", on cherche les fichiers
+                    // dont relative_path commence par "2024/Tribunal_civil/Contrat/"
+                    // mais qui ne sont pas dans un sous-dossier (pas de "/" après le nom du fichier)
                     
+                    $pathPrefix = $normalizedPath . '/';
+                    $directPattern = $pathPrefix . '%';
+                    $excludeSubfolders = $pathPrefix . '%/%';
+                    
+                    // NOTE: On affiche TOUS les documents du dossier, y compris 'pending'
+                    // La distinction se fait visuellement (icône/badge différent)
                     $sql = "
                         SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
                         FROM documents d
                         LEFT JOIN document_types dt ON d.document_type_id = dt.id
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
                         WHERE d.deleted_at IS NULL
-                        AND (d.status IS NULL OR d.status != 'pending')
+                        AND d.relative_path IS NOT NULL
+                        AND d.relative_path != ''
                         AND d.relative_path LIKE ?
                         AND d.relative_path NOT LIKE ?
                         ORDER BY d.created_at DESC
@@ -188,47 +213,82 @@ class DocumentsController
                     $countSql = "
                         SELECT COUNT(*) FROM documents d
                         WHERE d.deleted_at IS NULL
-                        AND (d.status IS NULL OR d.status != 'pending')
+                        AND d.relative_path IS NOT NULL
+                        AND d.relative_path != ''
                         AND d.relative_path LIKE ?
                         AND d.relative_path NOT LIKE ?
                     ";
                     $countStmt = $db->prepare($countSql);
                     $countStmt->execute([$directPattern, $excludeSubfolders]);
                     $total = (int)$countStmt->fetchColumn();
-                }
-                
-                $currentFolder = $normalizedPath;
-                
-                // =====================================================
-                // INDEXATION EN ARRIÈRE-PLAN (non bloquant)
-                // =====================================================
-                // Compter les fichiers physiques
-                $physicalCount = 0;
-                $allowedExt = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
-                $items = @scandir($fullPath);
-                if ($items !== false) {
-                    foreach ($items as $item) {
-                        if ($item[0] === '.') continue;
-                        if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
-                            $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-                            if (in_array($ext, $allowedExt)) {
-                                $physicalCount++;
+                    
+                    $currentFolder = $normalizedPath;
+                    
+                    // =====================================================
+                    // INDEXATION EN ARRIÈRE-PLAN (non bloquant)
+                    // =====================================================
+                    // Compter les fichiers physiques
+                    $physicalCount = 0;
+                    $allowedExt = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+                    $items = @scandir($fullPath);
+                    if ($items !== false) {
+                        foreach ($items as $item) {
+                            if ($item[0] === '.') continue;
+                            if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
+                                $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+                                if (in_array($ext, $allowedExt)) {
+                                    $physicalCount++;
+                                }
                             }
                         }
                     }
-                }
-                
-                // Queue seulement si : fichiers physiques > 0 ET désynchronisé ET pas déjà en queue
-                if ($physicalCount > 0 && $physicalCount !== $total) {
-                    $queueDir = __DIR__ . '/../../storage/crawl_queue';
-                    if (!is_dir($queueDir)) @mkdir($queueDir, 0755, true);
                     
-                    $hash = md5($normalizedPath);
-                    if (empty(glob($queueDir . '/crawl_' . $hash . '_*.json'))) {
-                        @file_put_contents(
-                            $queueDir . '/crawl_' . $hash . '_' . time() . '.json',
-                            json_encode(['path' => $normalizedPath, 'triggered_at' => time()])
-                        );
+                    // =====================================================
+                    // INDEXATION ASYNCHRONE UNIQUEMENT (non bloquant)
+                    // =====================================================
+                    // NE JAMAIS indexer de façon synchrone - ça bloque la page !
+                    // On crée juste une queue et on continue
+                    
+                    // Message d'indexation pour l'utilisateur
+                    if ($physicalCount > 0 && $total === 0) {
+                        $indexationMessage = "Indexation en cours... ({$physicalCount} fichier" . ($physicalCount > 1 ? 's' : '') . " détecté" . ($physicalCount > 1 ? 's' : '') . ")";
+                    }
+                    
+                    if ($physicalCount > 0 && $physicalCount !== $total) {
+                        // Queue seulement si : fichiers physiques > 0 ET désynchronisé ET pas déjà en queue
+                        $queueDir = __DIR__ . '/../../storage/crawl_queue';
+                        if (!is_dir($queueDir)) @mkdir($queueDir, 0755, true);
+                        
+                        $hash = md5($normalizedPath ?: '/');
+                        
+                        // Check plus robuste : chercher n'importe quelle queue pour ce hash
+                        $existingQueues = glob($queueDir . '/crawl_' . $hash . '_*.json');
+                        
+                        // Vérifier aussi s'il y a un .indexing dans le dossier
+                        $isIndexing = file_exists($fullPath . DIRECTORY_SEPARATOR . '.indexing');
+                        
+                        if (empty($existingQueues) && !$isIndexing) {
+                            $queueFile = $queueDir . '/crawl_' . $hash . '_' . time() . '.json';
+                            $written = @file_put_contents($queueFile, json_encode([
+                                'path' => $normalizedPath,
+                                'full_path' => $fullPath,
+                                'triggered_at' => time(),
+                                'physical_count' => $physicalCount,
+                                'db_count' => $total
+                            ], JSON_PRETTY_PRINT));
+                            
+                            if ($written === false) {
+                                error_log("K-Docs: Failed to create queue file: $queueFile");
+                            } else {
+                                // Déclencher le crawler automatiquement en arrière-plan
+                                try {
+                                    $autoTrigger = new CrawlerAutoTrigger();
+                                    $autoTrigger->trigger();
+                                } catch (\Exception $e) {
+                                    error_log("CrawlerAutoTrigger error: " . $e->getMessage());
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -475,6 +535,7 @@ class DocumentsController
             'currentFolder' => $logicalFolderId ?? ($folderId ? true : null),
             'currentFolderPath' => $currentFolderPath ?? (isset($currentFolder) ? $currentFolder : null),
             'storagePaths' => $storagePaths ?? [],
+            'indexationMessage' => $indexationMessage ?? null,
         ]);
         
         // #region agent log
