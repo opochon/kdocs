@@ -62,6 +62,29 @@ try {
                     <span>Dashboard</span>
                 </a>
             </li>
+
+            <!-- Mes Tâches -->
+            <?php
+            $taskCount = 0;
+            try {
+                $taskService = new \KDocs\Services\TaskUnifiedService();
+                $taskCounts = $taskService->getTaskCounts($user['id'] ?? 0);
+                $taskCount = $taskCounts['total'] ?? 0;
+            } catch (\Exception $e) {}
+            ?>
+            <li>
+                <a href="<?= url('/mes-taches') ?>" class="flex items-center justify-between px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/mes-taches', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span>Mes Tâches</span>
+                    </div>
+                    <?php if ($taskCount > 0): ?>
+                    <span class="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"><?= $taskCount ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
             
             <!-- Fichiers à valider -->
             <li>
@@ -75,6 +98,16 @@ try {
                     <?php if ($stats['pending_validation'] > 0): ?>
                     <span class="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full"><?= $stats['pending_validation'] ?></span>
                     <?php endif; ?>
+                </a>
+            </li>
+            
+            <!-- Indexation -->
+            <li>
+                <a href="<?= url('/admin/indexing') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/indexing', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Indexation</span>
                 </a>
             </li>
             

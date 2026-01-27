@@ -33,6 +33,26 @@ class WorkflowDefinition
     public static function create(array $data): int
     {
         $db = Database::getInstance();
+
+        // Vérifier que created_by existe si fourni
+        $createdBy = $data['created_by'] ?? null;
+
+        // S'assurer que c'est un entier valide
+        if ($createdBy !== null && $createdBy !== '') {
+            $createdBy = (int)$createdBy;
+            if ($createdBy > 0) {
+                $stmt = $db->prepare("SELECT id FROM users WHERE id = ?");
+                $stmt->execute([$createdBy]);
+                if (!$stmt->fetch()) {
+                    $createdBy = null; // User n'existe pas, mettre NULL
+                }
+            } else {
+                $createdBy = null;
+            }
+        } else {
+            $createdBy = null;
+        }
+
         $stmt = $db->prepare("
             INSERT INTO workflow_definitions (name, description, enabled, version, canvas_data, created_by)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -43,7 +63,7 @@ class WorkflowDefinition
             ($data['enabled'] ?? true) ? 1 : 0, // Convertir bool en int
             $data['version'] ?? 1,
             isset($data['canvas_data']) ? json_encode($data['canvas_data']) : null,
-            $data['created_by'] ?? null,
+            $createdBy,
         ]);
         return (int)$db->lastInsertId();
     }

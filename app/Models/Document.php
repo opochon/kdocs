@@ -15,22 +15,11 @@ class Document
      */
     public static function getAll(int $limit = 20, int $offset = 0): array
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('Document::getAll', 'Method entry', [
-            'limit' => $limit,
-            'offset' => $offset
-        ], 'A');
-        // #endregion
-        
         $db = Database::getInstance();
-        
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('Document::getAll', 'Before query execution', [], 'E');
-        // #endregion
         
         try {
             $stmt = $db->prepare("
-                SELECT d.*, 
+                SELECT d.*,
                        dt.label as document_type_label,
                        c.name as correspondent_name,
                        u.username as created_by_username
@@ -46,19 +35,9 @@ class Document
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
             
-            $result = $stmt->fetchAll();
-            
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('Document::getAll', 'Query successful', [
-                'resultCount' => count($result)
-            ], 'E');
-            // #endregion
-            
-            return $result;
+            return $stmt->fetchAll();
         } catch (\PDOException $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::logException($e, 'Document::getAll - Query failed', 'E');
-            // #endregion
+            error_log("Document::getAll - " . $e->getMessage());
             throw $e;
         }
     }
@@ -81,7 +60,7 @@ class Document
         $db = Database::getInstance();
         
         $stmt = $db->prepare("
-            SELECT d.*, 
+            SELECT d.*,
                    dt.label as document_type_label,
                    c.name as correspondent_name,
                    u.username as created_by_username
@@ -174,15 +153,6 @@ class Document
             'currency' => $data['currency'] ?? 'CHF',
             'created_by' => $data['created_by'] ?? null,
         ]);
-        
-        // Appliquer les règles de renommage si disponible
-        if (class_exists('\KDocs\Services\FileRenamingService')) {
-            try {
-                \KDocs\Services\FileRenamingService::applyRules($id);
-            } catch (\Exception $e) {
-                // Ignorer les erreurs de renommage
-            }
-        }
     }
 
     /**

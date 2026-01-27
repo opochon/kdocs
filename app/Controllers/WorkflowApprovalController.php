@@ -180,7 +180,7 @@ HTML
             
             // Enregistrer dans l'historique des décisions
             $stmt = $db->prepare("
-                INSERT INTO workflow_decision_history 
+                INSERT INTO workflow_decision_history
                 (execution_id, document_id, node_id, token_id, decision, comment)
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
@@ -190,6 +190,38 @@ HTML
                 $approval['node_id'],
                 $approval['id'],
                 $decision,
+                $comment
+            ]);
+
+            // Mettre à jour le statut de validation sur le document
+            $validationStatus = ($decision === 'approved') ? 'approved' : 'rejected';
+            $stmt = $db->prepare("
+                UPDATE documents
+                SET validation_status = ?,
+                    validated_by = ?,
+                    validated_at = NOW(),
+                    validation_comment = ?,
+                    requires_approval = FALSE
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $validationStatus,
+                $approval['assigned_user_id'],
+                $comment,
+                $approval['document_id']
+            ]);
+
+            // Enregistrer dans l'historique de validation du document
+            $stmt = $db->prepare("
+                INSERT INTO document_validation_history
+                (document_id, action, from_status, to_status, performed_by, comment)
+                VALUES (?, ?, 'pending', ?, ?, ?)
+            ");
+            $stmt->execute([
+                $approval['document_id'],
+                $decision,
+                $validationStatus,
+                $approval['assigned_user_id'],
                 $comment
             ]);
             

@@ -229,6 +229,12 @@ class ConsumeFolderService
             $processor = new DocumentProcessor();
             $processor->process($docId);
             
+            // Après l'OCR, mettre à jour le titre avec extractTitle()
+            $docData = $this->getDocument($docId);
+            $ocrContent = $docData['content'] ?? $docData['ocr_text'] ?? null;
+            $smartTitle = $this->extractTitle($filename, $ocrContent);
+            $this->db->prepare("UPDATE documents SET title = ? WHERE id = ?")->execute([$smartTitle, $docId]);
+            
             // Vérifier si c'est un PDF multi-pages à séparer (mode AI uniquement)
             $config = Config::load();
             $classificationMode = $config['classification']['method'] ?? 'auto';
@@ -466,6 +472,49 @@ class ConsumeFolderService
     }
     
     public function getConsumePath(): string { return $this->consumePath; }
+    
+    /**
+     * Extrait un titre intelligent depuis le contenu OCR ou le nom de fichier
+     */
+    public function extractTitle(string $filename, ?string $ocrContent): string
+    {
+        // 1. D'abord essayer depuis le nom de fichier (sans extension)
+        $nameWithoutExt = pathinfo($filename, PATHINFO_FILENAME);
+        
+        // Nettoyer le nom (remplacer _ et - par espaces)
+        $cleanName = preg_replace('/[_-]+/', ' ', $nameWithoutExt);
+        $cleanName = preg_replace('/\s+/', ' ', trim($cleanName));
+        
+        // Si le nom est informatif (pas juste des chiffres ou "scan", "doc", etc.)
+        if (strlen($cleanName) > 5 && !preg_match('/^(scan|doc|document|img|image|file|toclassify|\d+)$/i', $cleanName)) {
+            return ucfirst($cleanName);
+        }
+        
+        // 2. Sinon, extraire depuis le contenu OCR
+        if ($ocrContent && strlen($ocrContent) > 10) {
+            $lines = array_filter(array_map('trim', explode("\n", $ocrContent)));
+            $lines = array_slice($lines, 0, 5);
+            
+            foreach ($lines as $line) {
+                if (strlen($line) < 10 || strlen($line) > 100) continue;
+                
+                // Patterns courants pour documents juridiques/administratifs
+                if (preg_match('/^(Arrêt|Jugement|Décision|Contrat|Convention|Facture|Devis|Attestation|Certificat|Ordonnance|Bundesgericht)/iu', $line)) {
+                    return $line;
+                }
+            }
+            
+            // Sinon prendre la première ligne significative
+            foreach ($lines as $line) {
+                if (strlen($line) >= 15 && strlen($line) <= 80) {
+                    return $line;
+                }
+            }
+        }
+        
+        // 3. Fallback
+        return $cleanName ?: 'Document sans titre';
+    }
     
     /**
      * Réinitialise les checksums MD5 des documents pour permettre leur re-traitement

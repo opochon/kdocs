@@ -803,18 +803,19 @@ class WorkflowDesigner {
         }
     }
     
-    async saveWorkflow() {
+    async saveWorkflow(suggestedName = null) {
         if (this.nodes.length === 0) {
             alert('Ajoutez au moins un composant avant de sauvegarder');
             return;
         }
-        
-        const workflowName = prompt('Nom du workflow:', 'Nouveau Workflow');
+
+        const defaultName = suggestedName || 'Nouveau Workflow';
+        const workflowName = prompt('Nom du workflow:', defaultName);
         if (!workflowName) return;
-        
+
         // Trouver les entry points (nodes sans connexion entrante)
         const nodesWithIncoming = new Set(this.edges.map(e => e.target));
-        
+
         const workflowData = {
             name: workflowName,
             nodes: this.nodes.map((node) => ({
@@ -831,31 +832,39 @@ class WorkflowDesigner {
                 output_name: edge.output || 'default',
             })),
         };
-        
+
         try {
-            const url = this.workflowId 
+            const url = this.workflowId
                 ? `${this.basePath}/api/workflows/${this.workflowId}`
                 : `${this.basePath}/api/workflows`;
             const method = this.workflowId ? 'PUT' : 'POST';
-            
+
             const response = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(workflowData),
             });
-            
+
             const data = await response.json();
             if (data.success) {
-                alert('✅ Workflow enregistré avec succès !');
+                alert('Workflow enregistré avec succès !');
                 if (!this.workflowId && data.data?.id) {
                     window.location.href = `${this.basePath}/admin/workflows/${data.data.id}/designer`;
                 }
+            } else if (data.code === 'DUPLICATE_NAME' && data.suggested_name) {
+                // Nom déjà utilisé, proposer le nom suggéré
+                const useSuggested = confirm(
+                    `${data.error}\n\nVoulez-vous utiliser le nom suggéré ?\n"${data.suggested_name}"`
+                );
+                if (useSuggested) {
+                    this.saveWorkflow(data.suggested_name);
+                }
             } else {
-                alert('❌ Erreur: ' + (data.error || 'Erreur inconnue'));
+                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
             }
         } catch (error) {
             console.error('Erreur sauvegarde:', error);
-            alert('❌ Erreur lors de la sauvegarde');
+            alert('Erreur lors de la sauvegarde');
         }
     }
     

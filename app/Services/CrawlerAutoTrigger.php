@@ -195,15 +195,32 @@ class CrawlerAutoTrigger
     
     /**
      * Vérifie s'il y a des queues à traiter
+     * Vérifie les deux sources : fichiers JSON ET table job_queue_jobs
      */
     public function hasQueues(): bool
     {
+        // 1. Vérifier les fichiers JSON (ancien système)
         $queueDir = __DIR__ . '/../../storage/crawl_queue';
-        if (!is_dir($queueDir)) {
-            return false;
+        if (is_dir($queueDir)) {
+            $queues = glob($queueDir . '/crawl_*.json');
+            if (!empty($queues)) {
+                return true;
+            }
         }
         
-        $queues = glob($queueDir . '/crawl_*.json');
-        return !empty($queues);
+        // 2. Vérifier la table job_queue_jobs (nouveau système via QueueService)
+        try {
+            if (class_exists('\KDocs\Services\QueueService')) {
+                $pendingIndexing = \KDocs\Services\QueueService::countPendingJobs('indexing');
+                $pendingIndexingHigh = \KDocs\Services\QueueService::countPendingJobs('indexing_high');
+                if ($pendingIndexing > 0 || $pendingIndexingHigh > 0) {
+                    return true;
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignorer les erreurs de connexion DB
+        }
+        
+        return false;
     }
 }

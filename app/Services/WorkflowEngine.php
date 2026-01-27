@@ -144,11 +144,41 @@ class WorkflowEngine
         $nodeType = $node['node_type'] ?? '';
         $config = $node['config'] ?? [];
         
-        // Mapping événement -> type de trigger
+        // Mapping événement -> types de triggers possibles
+        $eventToTriggers = [
+            'consumption_started' => ['trigger_scan', 'trigger_document_added'],
+            'document_added' => ['trigger_upload', 'trigger_document_added'],
+            'document_updated' => ['trigger_upload', 'trigger_document_added'],
+            'document_validation_changed' => ['trigger_validation_changed'],
+            'document_submitted_for_approval' => ['trigger_document_added'],
+        ];
+
+        $expectedTriggers = $eventToTriggers[$event] ?? [];
+        if (!empty($expectedTriggers) && !in_array($nodeType, $expectedTriggers)) {
+            return false;
+        }
+
+        // Pour le trigger validation_changed, utiliser la méthode shouldTrigger
+        if ($nodeType === 'trigger_validation_changed') {
+            $triggerClass = '\\KDocs\\Workflow\\Nodes\\Triggers\\ValidationStatusChangedTrigger';
+            if (class_exists($triggerClass) && method_exists($triggerClass, 'shouldTrigger')) {
+                return $triggerClass::shouldTrigger($config, $documentId, $context);
+            }
+        }
+
+        // Pour trigger_document_added, utiliser la méthode shouldTrigger
+        if ($nodeType === 'trigger_document_added') {
+            $triggerClass = '\\KDocs\\Workflow\\Nodes\\Triggers\\DocumentAddedTrigger';
+            if (class_exists($triggerClass) && method_exists($triggerClass, 'shouldTrigger')) {
+                return $triggerClass::shouldTrigger($config, $documentId, $context);
+            }
+        }
+
+        // Ancien mapping pour compatibilité
         $eventToTrigger = [
             'consumption_started' => 'trigger_scan',
             'document_added' => 'trigger_upload',
-            'document_updated' => 'trigger_upload', // Peut être déclenché par upload aussi
+            'document_updated' => 'trigger_upload',
         ];
         
         $expectedTrigger = $eventToTrigger[$event] ?? null;
@@ -224,5 +254,44 @@ class WorkflowEngine
     {
         $engine = new self();
         $engine->executeForEvent('consumption_started', $documentId, $context);
+    }
+
+    /**
+     * Déclenche les workflows lors d'un changement de statut de validation
+     */
+    public static function executeOnValidationChanged(int $documentId, string $newStatus, ?string $previousStatus = null, ?int $validatedBy = null): void
+    {
+        $engine = new self();
+        $engine->executeForEvent('document_validation_changed', $documentId, [
+            'new_status' => $newStatus,
+            'previous_status' => $previousStatus,
+            'validated_by' => $validatedBy
+        ]);
+    }
+
+    /**
+     * Déclenche les workflows lors de la soumission pour approbation
+     */
+    public static function executeOnSubmittedForApproval(int $documentId, array $context = []): void
+    {
+        $engine = new self();
+        $engine->executeForEvent('document_submitted_for_approval', $documentId, $context);
+    }
+
+    /**
+     * Récupère un document avec ses relations
+     */
+    private function getDocumentWithRelations(int $documentId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT d.*, dt.code as document_type_code, dt.label as document_type_label,
+                   c.name as correspondent_name
+            FROM documents d
+            LEFT JOIN document_types dt ON d.document_type_id = dt.id
+            LEFT JOIN correspondents c ON d.correspondent_id = c.id
+            WHERE d.id = ?
+        ");
+        $stmt->execute([$documentId]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
 }

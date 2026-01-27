@@ -56,6 +56,16 @@ class OCRService
         if ($returnCode === 0 && file_exists($outputFile . '.txt')) {
             $text = file_get_contents($outputFile . '.txt');
             @unlink($outputFile . '.txt');
+            
+            // Fix encodage: Tesseract peut retourner ISO-8859-1 au lieu de UTF-8
+            if ($text && !mb_check_encoding($text, 'UTF-8')) {
+                $detected = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+                if ($detected && $detected !== 'UTF-8') {
+                    $text = mb_convert_encoding($text, 'UTF-8', $detected);
+                    error_log("OCR: Converti de $detected vers UTF-8");
+                }
+            }
+            
             return trim($text);
         }
         return null;

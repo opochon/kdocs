@@ -46,12 +46,18 @@ class DocumentsController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('DocumentsController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'queryParams' => $request->getQueryParams()
-        ], 'B');
-        // #endregion
+        // OPTIMISATION : DebugLogger conditionnel (uniquement en mode debug)
+        $config = Config::load();
+        $isDebug = $config['app']['debug'] ?? false;
+        
+        if ($isDebug) {
+            // #region agent log
+            \KDocs\Core\DebugLogger::log('DocumentsController::index', 'Controller entry', [
+                'path' => $request->getUri()->getPath(),
+                'queryParams' => $request->getQueryParams()
+            ], 'B');
+            // #endregion
+        }
         
         // Vérifier et déclencher le crawler si nécessaire (dernier crawl > 10 minutes)
         try {
@@ -66,12 +72,14 @@ class DocumentsController
         
         $user = $request->getAttribute('user');
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('DocumentsController::index', 'User attribute', [
-            'userFound' => $user !== null,
-            'userId' => $user['id'] ?? null
-        ], 'D');
-        // #endregion
+        if ($isDebug) {
+            // #region agent log
+            \KDocs\Core\DebugLogger::log('DocumentsController::index', 'User attribute', [
+                'userFound' => $user !== null,
+                'userId' => $user['id'] ?? null
+            ], 'D');
+            // #endregion
+        }
         $queryParams = $request->getQueryParams();
         $page = (int)($queryParams['page'] ?? 1);
         $search = trim($queryParams['search'] ?? '');
@@ -137,7 +145,8 @@ class DocumentsController
             
             // Message d'indexation (initialisé ici pour être accessible partout)
             $indexationMessage = null;
-            
+            $indexationProgress = null; // Pour la barre de progression
+
             if (!is_dir($fullPath)) {
                 $documents = [];
                 $total = 0;
@@ -227,17 +236,27 @@ class DocumentsController
                     // =====================================================
                     // INDEXATION EN ARRIÈRE-PLAN (non bloquant)
                     // =====================================================
+                    // OPTIMISATION : Utiliser le fichier .index au lieu de scandir()
                     // Compter les fichiers physiques
                     $physicalCount = 0;
-                    $allowedExt = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
-                    $items = @scandir($fullPath);
-                    if ($items !== false) {
-                        foreach ($items as $item) {
-                            if ($item[0] === '.') continue;
-                            if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
-                                $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
-                                if (in_array($ext, $allowedExt)) {
-                                    $physicalCount++;
+                    $indexService = new \KDocs\Services\FolderIndexService();
+                    $indexData = $indexService->readIndex($normalizedPath);
+                    
+                    if ($indexData && isset($indexData['file_count'])) {
+                        // Utiliser le file_count du .index (rapide, < 1ms)
+                        $physicalCount = (int)$indexData['file_count'];
+                    } else {
+                        // Fallback : scanner seulement si .index n'existe pas
+                        $allowedExt = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
+                        $items = @scandir($fullPath);
+                        if ($items !== false) {
+                            foreach ($items as $item) {
+                                if ($item[0] === '.') continue;
+                                if (is_file($fullPath . DIRECTORY_SEPARATOR . $item)) {
+                                    $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
+                                    if (in_array($ext, $allowedExt)) {
+                                        $physicalCount++;
+                                    }
                                 }
                             }
                         }
@@ -249,44 +268,52 @@ class DocumentsController
                     // NE JAMAIS indexer de façon synchrone - ça bloque la page !
                     // On crée juste une queue et on continue
                     
-                    // Message d'indexation pour l'utilisateur
-                    if ($physicalCount > 0 && $total === 0) {
-                        $indexationMessage = "Indexation en cours... ({$physicalCount} fichier" . ($physicalCount > 1 ? 's' : '') . " détecté" . ($physicalCount > 1 ? 's' : '') . ")";
-                    }
+                    // NE PAS BLOQUER l'affichage - l'utilisateur doit pouvoir naviguer
+                    // L'indexation se fait en arrière-plan via le menu Indexation
+                    // On n'utilise plus $indexationMessage pour éviter le blocage
                     
                     if ($physicalCount > 0 && $physicalCount !== $total) {
                         // Queue seulement si : fichiers physiques > 0 ET désynchronisé ET pas déjà en queue
-                        $queueDir = __DIR__ . '/../../storage/crawl_queue';
-                        if (!is_dir($queueDir)) @mkdir($queueDir, 0755, true);
-                        
-                        $hash = md5($normalizedPath ?: '/');
-                        
-                        // Check plus robuste : chercher n'importe quelle queue pour ce hash
-                        $existingQueues = glob($queueDir . '/crawl_' . $hash . '_*.json');
-                        
                         // Vérifier aussi s'il y a un .indexing dans le dossier
                         $isIndexing = file_exists($fullPath . DIRECTORY_SEPARATOR . '.indexing');
                         
-                        if (empty($existingQueues) && !$isIndexing) {
-                            $queueFile = $queueDir . '/crawl_' . $hash . '_' . time() . '.json';
-                            $written = @file_put_contents($queueFile, json_encode([
-                                'path' => $normalizedPath,
-                                'full_path' => $fullPath,
-                                'triggered_at' => time(),
-                                'physical_count' => $physicalCount,
-                                'db_count' => $total
-                            ], JSON_PRETTY_PRINT));
-                            
-                            if ($written === false) {
-                                error_log("K-Docs: Failed to create queue file: $queueFile");
-                            } else {
-                                // Déclencher le crawler automatiquement en arrière-plan
-                                try {
-                                    $autoTrigger = new CrawlerAutoTrigger();
-                                    $autoTrigger->trigger();
-                                } catch (\Exception $e) {
-                                    error_log("CrawlerAutoTrigger error: " . $e->getMessage());
+                        if (!$isIndexing) {
+                            // Utiliser QueueService (nouveau système unifié)
+                            try {
+                                if (class_exists('\KDocs\Services\QueueService')) {
+                                    // Vérifier si un job existe déjà pour ce chemin
+                                    if (!\KDocs\Services\QueueService::hasJobForPath($normalizedPath)) {
+                                        \KDocs\Services\QueueService::queueIndexing($normalizedPath, 'normal');
+                                        
+                                        // Déclencher le crawler automatiquement en arrière-plan
+                                        $autoTrigger = new CrawlerAutoTrigger();
+                                        $autoTrigger->trigger();
+                                    }
+                                } else {
+                                    // Fallback : ancien système fichiers JSON
+                                    $queueDir = __DIR__ . '/../../storage/crawl_queue';
+                                    if (!is_dir($queueDir)) @mkdir($queueDir, 0755, true);
+                                    
+                                    $hash = md5($normalizedPath ?: '/');
+                                    $existingQueues = glob($queueDir . '/crawl_' . $hash . '_*.json');
+                                    
+                                    if (empty($existingQueues)) {
+                                        $queueFile = $queueDir . '/crawl_' . $hash . '_' . time() . '.json';
+                                        @file_put_contents($queueFile, json_encode([
+                                            'path' => $normalizedPath,
+                                            'full_path' => $fullPath,
+                                            'triggered_at' => time(),
+                                            'physical_count' => $physicalCount,
+                                            'db_count' => $total
+                                        ], JSON_PRETTY_PRINT));
+                                        
+                                        // Déclencher le crawler automatiquement en arrière-plan
+                                        $autoTrigger = new CrawlerAutoTrigger();
+                                        $autoTrigger->trigger();
+                                    }
                                 }
+                            } catch (\Exception $e) {
+                                error_log("K-Docs: Queue error: " . $e->getMessage());
                             }
                         }
                     }
@@ -467,49 +494,75 @@ class DocumentsController
             }
         }
         
-        // Récupérer les types de documents pour le filtre
-        $documentTypes = [];
-        try {
-            $documentTypes = $db->query("SELECT id, code, label FROM document_types ORDER BY label")->fetchAll();
-        } catch (\Exception $e) {}
+        // OPTIMISATION : Cache des requêtes SQL secondaires (5 minutes)
+        $cacheDir = __DIR__ . '/../../storage/cache';
+        if (!is_dir($cacheDir)) @mkdir($cacheDir, 0755, true);
+        $cacheFile = $cacheDir . '/sidebar_data.json';
+        $cacheAge = file_exists($cacheFile) ? (time() - filemtime($cacheFile)) : 999;
         
-        // Récupérer les tags (si table existe)
-        $tags = [];
-        try {
-            $tags = $db->query("SELECT id, name, color FROM tags ORDER BY name LIMIT 20")->fetchAll();
-        } catch (\Exception $e) {}
-        
-        // Récupérer les correspondants pour la sidebar (Priorité 1.4)
-        $correspondents = [];
-        try {
-            $corrStmt = $db->query("
-                SELECT c.id, c.name, COUNT(d.id) as doc_count
-                FROM correspondents c
-                LEFT JOIN documents d ON c.id = d.correspondent_id AND d.deleted_at IS NULL
-                GROUP BY c.id, c.name
-                HAVING doc_count > 0
-                ORDER BY c.name
-                LIMIT 20
-            ");
-            $correspondents = $corrStmt->fetchAll();
-        } catch (\Exception $e) {}
-        
-        // Récupérer les Storage Paths (Phase 2.2)
-        $storagePaths = [];
-        try {
-            $storagePaths = \KDocs\Models\StoragePath::all();
-        } catch (\Exception $e) {
-            // Table storage_paths n'existe pas encore
+        if ($cacheAge < 300) {
+            // Cache valide (5 minutes)
+            $cached = json_decode(@file_get_contents($cacheFile), true);
+            $documentTypes = $cached['documentTypes'] ?? [];
+            $tags = $cached['tags'] ?? [];
+            $correspondents = $cached['correspondents'] ?? [];
+            $storagePaths = $cached['storagePaths'] ?? [];
+        } else {
+            // Exécuter les requêtes et mettre en cache
+            // Récupérer les types de documents pour le filtre
+            $documentTypes = [];
+            try {
+                $documentTypes = $db->query("SELECT id, code, label FROM document_types ORDER BY label")->fetchAll();
+            } catch (\Exception $e) {}
+            
+            // Récupérer les tags (si table existe)
+            $tags = [];
+            try {
+                $tags = $db->query("SELECT id, name, color FROM tags ORDER BY name LIMIT 20")->fetchAll();
+            } catch (\Exception $e) {}
+            
+            // Récupérer les correspondants pour la sidebar (Priorité 1.4)
+            $correspondents = [];
+            try {
+                $corrStmt = $db->query("
+                    SELECT c.id, c.name, COUNT(d.id) as doc_count
+                    FROM correspondents c
+                    LEFT JOIN documents d ON c.id = d.correspondent_id AND d.deleted_at IS NULL
+                    GROUP BY c.id, c.name
+                    HAVING doc_count > 0
+                    ORDER BY c.name
+                    LIMIT 20
+                ");
+                $correspondents = $corrStmt->fetchAll();
+            } catch (\Exception $e) {}
+            
+            // Récupérer les Storage Paths (Phase 2.2)
+            $storagePaths = [];
+            try {
+                $storagePaths = \KDocs\Models\StoragePath::all();
+            } catch (\Exception $e) {
+                // Table storage_paths n'existe pas encore
+            }
+            
+            // Mettre en cache
+            @file_put_contents($cacheFile, json_encode([
+                'documentTypes' => $documentTypes,
+                'tags' => $tags,
+                'correspondents' => $correspondents,
+                'storagePaths' => $storagePaths
+            ]));
         }
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('DocumentsController::index', 'Before template render', [
-            'documentsCount' => count($documents),
-            'total' => $total,
-            'templatePath' => __DIR__ . '/../../templates/documents/index.php',
-            'templateExists' => file_exists(__DIR__ . '/../../templates/documents/index.php')
-        ], 'C');
-        // #endregion
+        if ($isDebug) {
+            // #region agent log
+            \KDocs\Core\DebugLogger::log('DocumentsController::index', 'Before template render', [
+                'documentsCount' => count($documents),
+                'total' => $total,
+                'templatePath' => __DIR__ . '/../../templates/documents/index.php',
+                'templateExists' => file_exists(__DIR__ . '/../../templates/documents/index.php')
+            ], 'C');
+            // #endregion
+        }
         
         // Utiliser le template principal
         $templateFile = __DIR__ . '/../../templates/documents/index.php';
@@ -538,11 +591,13 @@ class DocumentsController
             'indexationMessage' => $indexationMessage ?? null,
         ]);
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('DocumentsController::index', 'After template render', [
-            'contentLength' => strlen($content)
-        ], 'C');
-        // #endregion
+        if ($isDebug) {
+            // #region agent log
+            \KDocs\Core\DebugLogger::log('DocumentsController::index', 'After template render', [
+                'contentLength' => strlen($content)
+            ], 'C');
+            // #endregion
+        }
         
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
             'title' => 'Documents - K-Docs',
@@ -743,19 +798,21 @@ class DocumentsController
         
         $db = Database::getInstance();
         
-        // Récupérer le document avec storage path (Phase 2.2)
+        // Récupérer le document avec storage path et validation
         $stmt = $db->prepare("
-            SELECT d.*, 
+            SELECT d.*,
                    dt.label as document_type_label,
                    c.name as correspondent_name,
                    u.username as created_by_username,
                    sp.name as storage_path_name,
-                   sp.path as storage_path_path
+                   sp.path as storage_path_path,
+                   v.username as validated_by_username
             FROM documents d
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN users u ON d.created_by = u.id
             LEFT JOIN storage_paths sp ON d.storage_path_id = sp.id
+            LEFT JOIN users v ON d.validated_by = v.id
             WHERE d.id = ? AND d.deleted_at IS NULL
         ");
         $stmt->execute([$id]);
@@ -818,7 +875,17 @@ class DocumentsController
         // Vérifier si la classification IA est disponible (Bonus)
         $aiClassifier = new \KDocs\Services\AIClassifierService();
         $aiAvailable = $aiClassifier->isAvailable();
-        
+
+        // Vérifier si l'utilisateur peut valider ce document
+        $canValidate = false;
+        try {
+            $canValidateResult = \KDocs\Models\Role::canUserValidateDocument($user['id'], $document);
+            $canValidate = $canValidateResult['can_validate'] ?? false;
+        } catch (\Exception $e) {
+            // Si le système de rôles n'est pas configuré, autoriser par défaut
+            $canValidate = true;
+        }
+
         $content = $this->renderTemplate(__DIR__ . '/../../templates/documents/show.php', [
             'document' => $document,
             'tags' => $tags,
@@ -832,6 +899,7 @@ class DocumentsController
             'allTags' => $allTags,
             'previousId' => $previousId,
             'nextId' => $nextId,
+            'canValidate' => $canValidate,
         ]);
         
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [

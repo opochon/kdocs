@@ -92,6 +92,7 @@ class WorkflowDesignerController
     {
         try {
             $user = $request->getAttribute('user');
+            $userId = $request->getAttribute('user_id') ?? ($user['id'] ?? null);
             $data = json_decode($request->getBody()->getContents(), true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
@@ -108,8 +109,25 @@ class WorkflowDesignerController
                     'error' => 'Le nom est requis'
                 ], 400);
             }
-            
-            $data['created_by'] = $user['id'] ?? null;
+
+            // Vérifier si le nom existe déjà
+            $db = \KDocs\Core\Database::getInstance();
+            $stmt = $db->prepare("SELECT COUNT(*) FROM workflow_definitions WHERE name = ?");
+            $stmt->execute([$data['name']]);
+            if ($stmt->fetchColumn() > 0) {
+                // Générer un nom suggéré
+                $baseName = preg_replace('/\s*\(\d+\)$/', '', $data['name']); // Retirer "(N)" existant
+                $suggestedName = $this->generateUniqueName($db, $baseName);
+
+                return $this->jsonResponse($response, [
+                    'success' => false,
+                    'error' => "Un workflow nommé \"{$data['name']}\" existe déjà",
+                    'suggested_name' => $suggestedName,
+                    'code' => 'DUPLICATE_NAME'
+                ], 409);
+            }
+
+            $data['created_by'] = $userId;
             $workflowId = WorkflowManager::createWorkflow($data);
             
             $workflow = WorkflowManager::getWorkflow($workflowId);
@@ -247,5 +265,34 @@ class WorkflowDesignerController
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Génère un nom unique pour un workflow
+     */
+    private function generateUniqueName(\PDO $db, string $baseName): string
+    {
+        $counter = 2;
+        $suggestedName = "{$baseName} ({$counter})";
+
+        $stmt = $db->prepare("SELECT name FROM workflow_definitions WHERE name LIKE ?");
+        $stmt->execute([$baseName . ' (%)']);
+        $existingNames = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+
+        while (in_array($suggestedName, $existingNames) || $counter > 100) {
+            $counter++;
+            $suggestedName = "{$baseName} ({$counter})";
+        }
+
+        // Vérifier aussi le nom exact
+        $stmt = $db->prepare("SELECT COUNT(*) FROM workflow_definitions WHERE name = ?");
+        $stmt->execute([$suggestedName]);
+        while ($stmt->fetchColumn() > 0 && $counter < 100) {
+            $counter++;
+            $suggestedName = "{$baseName} ({$counter})";
+            $stmt->execute([$suggestedName]);
+        }
+
+        return $suggestedName;
     }
 }

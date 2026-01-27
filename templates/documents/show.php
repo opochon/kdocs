@@ -16,6 +16,15 @@ $canPreview = $isPDF || $isImage;
             <h1 class="text-lg font-semibold text-gray-900 truncate">
                 <?= htmlspecialchars($document['title'] ?: $document['original_filename']) ?>
             </h1>
+            <!-- Badge de validation -->
+            <?php
+            $validation_status = $document['validation_status'] ?? null;
+            $validated_by_username = $document['validated_by_username'] ?? null;
+            $validated_at = $document['validated_at'] ?? null;
+            $size = 'md';
+            $show_details = true;
+            ?>
+            <?php include __DIR__ . '/../components/validation_badge.php'; ?>
             <?php if ($canPreview && $isPDF): ?>
             <div class="hidden md:flex items-center gap-2 text-sm text-gray-600">
                 <button onclick="previousPDFPage()" class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50" title="Page précédente">
@@ -88,16 +97,13 @@ $canPreview = $isPDF || $isImage;
                 </button>
                 <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
                     <button onclick="reprocessDocument(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        Retraiter
+                        Retraiter (OCR)
                     </button>
                     <?php if ($isPDF): ?>
                     <button onclick="printDocument()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         Imprimer
                     </button>
                     <?php endif; ?>
-                    <button onclick="moreLikeThis(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        Plus comme celui-ci
-                    </button>
                 </div>
             </div>
             
@@ -136,6 +142,9 @@ $canPreview = $isPDF || $isImage;
                     </svg>
                 </button>
                 <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
+                    <button onclick="openNoteModal(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Envoyer une note
+                    </button>
                     <button onclick="openShareLinks(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         Liens de partage
                     </button>
@@ -181,25 +190,12 @@ $canPreview = $isPDF || $isImage;
                 
                 <div class="flex items-center gap-2">
                     <?php if ($aiAvailable): ?>
-                    <button type="button" onclick="getAISuggestions(<?= $document['id'] ?>)" class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50">
+                    <button type="button" onclick="getAISuggestions(<?= $document['id'] ?>)"
+                            class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50"
+                            title="Analyse le document avec l'IA pour suggérer titre, type, correspondant et tags">
                         Suggestions IA
                     </button>
                     <?php endif; ?>
-                    <button type="button" onclick="discardChanges()" class="px-3 py-1 text-xs border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
-                        Abandonner
-                    </button>
-                    <?php if ($nextId): ?>
-                    <button type="submit" name="save_and_next" value="1" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Enregistrer & suivant
-                    </button>
-                    <?php else: ?>
-                    <button type="submit" name="save_and_close" value="1" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Enregistrer & fermer
-                    </button>
-                    <?php endif; ?>
-                    <button type="submit" class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
-                        Enregistrer
-                    </button>
                 </div>
             </div>
             
@@ -228,6 +224,20 @@ $canPreview = $isPDF || $isImage;
             <div class="p-4">
                 <!-- Onglet Détails -->
                 <div id="tab-details" class="tab-content">
+                    <!-- Statut de validation -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Validation</h4>
+                        <?php
+                        $document_id = $document['id'];
+                        $validation_status = $document['validation_status'] ?? null;
+                        $can_validate = $canValidate ?? true;
+                        $requires_approval = $document['requires_approval'] ?? false;
+                        $show_submit = false;
+                        $basePath = $base;
+                        ?>
+                        <?php include __DIR__ . '/../components/validation_actions.php'; ?>
+                    </div>
+
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
@@ -242,8 +252,8 @@ $canPreview = $isPDF || $isImage;
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Date de création</label>
-                            <input type="date" name="document_date" value="<?= $document['document_date'] ? date('Y-m-d', strtotime($document['document_date'])) : '' ?>" 
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date du document</label>
+                            <input type="date" name="document_date" value="<?= ($document['document_date'] ?? $document['doc_date'] ?? null) ? date('Y-m-d', strtotime($document['document_date'] ?? $document['doc_date'])) : '' ?>"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         
@@ -867,11 +877,6 @@ function printDocument() {
     window.print();
 }
 
-function moreLikeThis(docId) {
-    // TODO: Implémenter "plus comme celui-ci"
-    alert('Plus comme celui-ci à implémenter');
-}
-
 function openShareLinks(docId) {
     // TODO: Implémenter liens de partage
     alert('Liens de partage à implémenter');
@@ -881,5 +886,77 @@ function openEmailDocument(docId) {
     // TODO: Implémenter email
     alert('Email à implémenter');
 }
+
+// Note modal functions
+function openNoteModal(documentId = null) {
+    const modal = document.getElementById('noteModal');
+    const docIdInput = document.getElementById('noteDocumentId');
+    if (docIdInput) docIdInput.value = documentId || '';
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeNoteModal() {
+    const modal = document.getElementById('noteModal');
+    const form = document.getElementById('noteForm');
+    const actionTypeContainer = document.getElementById('actionTypeContainer');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    if (form) form.reset();
+    if (actionTypeContainer) actionTypeContainer.classList.add('hidden');
+}
+
+async function sendNote(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    const data = {
+        to_user_id: parseInt(formData.get('to_user_id')),
+        message: formData.get('message'),
+        subject: formData.get('subject') || null,
+        document_id: formData.get('document_id') ? parseInt(formData.get('document_id')) : null,
+        action_required: formData.get('action_required') === '1',
+        action_type: formData.get('action_type') || null
+    };
+
+    try {
+        const response = await fetch('<?= url('/api/notes') ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            closeNoteModal();
+            alert('Note envoyée avec succès');
+        } else {
+            alert(result.error || 'Erreur lors de l\'envoi');
+        }
+    } catch (error) {
+        console.error('Error sending note:', error);
+        alert('Erreur de connexion');
+    }
+}
+
+document.getElementById('noteActionRequired')?.addEventListener('change', function() {
+    const container = document.getElementById('actionTypeContainer');
+    if (container) container.classList.toggle('hidden', !this.checked);
+});
 </script>
+
+<!-- Modal envoi de note -->
+<?php
+$document_id = $document['id'];
+$recipients = [];
+try {
+    $noteService = new \KDocs\Services\UserNoteService();
+    $recipients = $noteService->getAvailableRecipients($user['id'] ?? 0);
+} catch (\Exception $e) {}
+include __DIR__ . '/../components/note_form.php';
+?>
 

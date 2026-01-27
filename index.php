@@ -75,6 +75,10 @@ use KDocs\Controllers\Api\CorrespondentsApiController;
 use KDocs\Controllers\Api\SearchApiController;
 use KDocs\Controllers\Api\FoldersApiController;
 use KDocs\Controllers\Api\WorkflowApiController;
+use KDocs\Controllers\Api\ValidationApiController;
+use KDocs\Controllers\Api\NotificationsApiController;
+use KDocs\Controllers\Api\UserNotesApiController;
+use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
 use KDocs\Core\Config;
@@ -135,7 +139,10 @@ $app->group('', function ($group) {
     
     // Chat IA
     $group->get('/chat', [ChatController::class, 'index']);
-    
+
+    // Mes Tâches (centralisé)
+    $group->get('/mes-taches', [MyTasksController::class, 'index']);
+
     // Documents
     $group->get('/documents', [DocumentsController::class, 'index']);
     $group->get('/documents/upload', [DocumentsController::class, 'showUpload']);
@@ -237,16 +244,67 @@ $app->group('', function ($group) {
     $group->get('/api/workflow/node-catalog', [WorkflowApiController::class, 'getNodeCatalog']);
     $group->get('/api/workflow/node-config/{type}', [WorkflowApiController::class, 'getNodeConfig']);
     $group->get('/api/workflow/options', [WorkflowApiController::class, 'getOptions']);
-    
+
+    // API Validation Documents (Approbation)
+    $group->get('/api/validation/pending', [ValidationApiController::class, 'getPending']);
+    $group->get('/api/validation/statistics', [ValidationApiController::class, 'getStatistics']);
+    $group->post('/api/validation/{documentId}/submit', [ValidationApiController::class, 'submit']);
+    $group->post('/api/validation/{documentId}/approve', [ValidationApiController::class, 'approve']);
+    $group->post('/api/validation/{documentId}/reject', [ValidationApiController::class, 'reject']);
+    $group->post('/api/validation/{documentId}/validate', [ValidationApiController::class, 'validate']);
+    $group->get('/api/validation/{documentId}/history', [ValidationApiController::class, 'getHistory']);
+    $group->get('/api/validation/{documentId}/status', [ValidationApiController::class, 'getStatus']);
+    $group->post('/api/validation/{documentId}/status', [ValidationApiController::class, 'setStatus']);
+    $group->get('/api/validation/{documentId}/can-validate', [ValidationApiController::class, 'canValidate']);
+
+    // API Rôles
+    $group->get('/api/roles', [ValidationApiController::class, 'getRoles']);
+    $group->get('/api/roles/user/{userId}', [ValidationApiController::class, 'getUserRoles']);
+    $group->post('/api/roles/user/{userId}/assign', [ValidationApiController::class, 'assignRole']);
+    $group->delete('/api/roles/user/{userId}/{roleCode}', [ValidationApiController::class, 'removeRole']);
+
+    // API Notifications
+    $group->get('/api/notifications', [NotificationsApiController::class, 'index']);
+    $group->get('/api/notifications/unread', [NotificationsApiController::class, 'unread']);
+    $group->get('/api/notifications/count', [NotificationsApiController::class, 'count']);
+    $group->post('/api/notifications/{id}/read', [NotificationsApiController::class, 'markRead']);
+    $group->post('/api/notifications/read-all', [NotificationsApiController::class, 'markAllRead']);
+    $group->delete('/api/notifications/{id}', [NotificationsApiController::class, 'delete']);
+
+    // API Notes inter-utilisateurs
+    $group->get('/api/notes', [UserNotesApiController::class, 'index']);
+    $group->get('/api/notes/recipients', [UserNotesApiController::class, 'recipients']);
+    $group->get('/api/notes/document/{documentId}', [UserNotesApiController::class, 'forDocument']);
+    $group->get('/api/notes/{id}', [UserNotesApiController::class, 'show']);
+    $group->get('/api/notes/{id}/thread', [UserNotesApiController::class, 'thread']);
+    $group->post('/api/notes', [UserNotesApiController::class, 'create']);
+    $group->post('/api/notes/{id}/reply', [UserNotesApiController::class, 'reply']);
+    $group->post('/api/notes/{id}/read', [UserNotesApiController::class, 'markRead']);
+    $group->post('/api/notes/{id}/complete', [UserNotesApiController::class, 'markComplete']);
+    $group->delete('/api/notes/{id}', [UserNotesApiController::class, 'delete']);
+
+    // API Tâches unifiées
+    $group->get('/api/tasks', [MyTasksController::class, 'apiIndex']);
+    $group->get('/api/tasks/counts', [MyTasksController::class, 'apiCounts']);
+    $group->get('/api/tasks/summary', [MyTasksController::class, 'apiSummary']);
+
     // API Scanner
     $group->post('/api/scanner/scan', [DocumentsController::class, 'scanFilesystem']);
     
     // API Folders (arborescence dynamique)
+    $group->get('/api/folders/documents', [FoldersApiController::class, 'getDocuments']);
     $group->get('/api/folders/children', [FoldersApiController::class, 'getChildren']);
+    $group->get('/api/folders/tree', [FoldersApiController::class, 'getTree']);
+    $group->get('/api/folders/tree-html', [FoldersApiController::class, 'getTreeHtml']);
     $group->post('/api/folders/crawl', [FoldersApiController::class, 'triggerCrawlApi']);
+    $group->post('/api/folders/index', [FoldersApiController::class, 'indexFolder']);
+    $group->get('/api/folders/indexing-all', [FoldersApiController::class, 'getAllIndexingStatus']);
     $group->get('/api/folders/crawl-status', [FoldersApiController::class, 'getCrawlStatus']);
     $group->get('/api/folders/indexing-status', [FoldersApiController::class, 'getIndexingStatus']);
     $group->post('/api/folders/counts', [FoldersApiController::class, 'getFolderCounts']);
+    $group->post('/api/folders/rename', [FoldersApiController::class, 'renameFolder']);
+    $group->post('/api/folders/move', [FoldersApiController::class, 'moveFolder']);
+    $group->post('/api/folders/delete', [FoldersApiController::class, 'deleteFolder']);
     
     // Tâches
     $group->get('/tasks', [TasksController::class, 'index']);
@@ -265,6 +323,12 @@ $app->group('', function ($group) {
     $group->post('/admin/users/{id}/save', [UsersController::class, 'save']);
     $group->post('/admin/users/{id}/delete', [UsersController::class, 'delete']);
     
+    // Rôles utilisateurs (validation)
+    $group->get('/admin/roles', [\KDocs\Controllers\RolesController::class, 'index']);
+    $group->get('/admin/roles/{userId}/assign', [\KDocs\Controllers\RolesController::class, 'showAssignForm']);
+    $group->post('/admin/roles/{userId}/assign', [\KDocs\Controllers\RolesController::class, 'assign']);
+    $group->post('/admin/roles/{userId}/remove/{roleCode}', [\KDocs\Controllers\RolesController::class, 'remove']);
+
     // User Groups (Groupes pour workflows d'approbation style Alfresco)
     $group->get('/admin/user-groups', [\KDocs\Controllers\UserGroupsController::class, 'index']);
     $group->get('/admin/user-groups/create', [\KDocs\Controllers\UserGroupsController::class, 'showForm']);
@@ -380,6 +444,16 @@ $app->group('', function ($group) {
     $group->post('/admin/classification-fields/save', [ClassificationFieldsController::class, 'save']);
     $group->post('/admin/classification-fields/{id}/save', [ClassificationFieldsController::class, 'save']);
     $group->post('/admin/classification-fields/{id}/delete', [ClassificationFieldsController::class, 'delete']);
+    
+    // Indexation (Contrôle et monitoring)
+    $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
+    $group->get('/admin/indexing/status', [\KDocs\Controllers\IndexingController::class, 'status']);
+    $group->post('/admin/indexing/start', [\KDocs\Controllers\IndexingController::class, 'start']);
+    $group->post('/admin/indexing/stop', [\KDocs\Controllers\IndexingController::class, 'stop']);
+    $group->get('/admin/indexing/logs', [\KDocs\Controllers\IndexingController::class, 'logs']);
+    $group->post('/admin/indexing/clear-logs', [\KDocs\Controllers\IndexingController::class, 'clearLogs']);
+    $group->post('/admin/indexing/settings', [\KDocs\Controllers\IndexingController::class, 'saveSettings']);
+    $group->get('/admin/indexing/worker', [\KDocs\Controllers\IndexingController::class, 'worker']);
     
     // Document Consumption API (10% manquant - 2%)
     $group->post('/api/consumption/consume', [ConsumptionApiController::class, 'consume']);

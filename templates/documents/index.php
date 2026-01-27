@@ -124,6 +124,17 @@ $base = Config::basePath();
         
         <!-- Contenu -->
         <div class="flex-1 overflow-y-auto bg-white p-4" style="min-width: 0; width: 100%;">
+            <!-- Zone de chargement AJAX -->
+            <div id="documents-loading" class="hidden flex flex-col items-center justify-center h-full text-center py-12">
+                <svg class="w-8 h-8 text-blue-500 mx-auto mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm text-gray-500">Chargement...</p>
+            </div>
+            
+            <!-- Contenu des documents (chargé via AJAX ou PHP) -->
+            <div id="documents-content">
             <?php if (!empty($indexationMessage ?? null)): ?>
             <div class="flex flex-col items-center justify-center h-full text-center py-12">
                 <svg class="w-8 h-8 text-orange-500 mx-auto mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -135,7 +146,7 @@ $base = Config::basePath();
                 <p class="text-xs text-gray-400">Les documents apparaîtront automatiquement une fois l'indexation terminée.</p>
             </div>
             <?php elseif (empty($documents)): ?>
-            <div class="flex flex-col items-center justify-center h-full text-center py-12">
+            <div id="empty-state" class="flex flex-col items-center justify-center h-full text-center py-12">
                 <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
@@ -150,13 +161,23 @@ $base = Config::basePath();
             <!-- Grille de documents - Utilise toute la largeur disponible -->
             <div id="view-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">
                 <?php foreach ($documents as $doc): ?>
-                <a href="<?= url('/documents/' . ($doc['id'] ?? 'new')) ?>" 
+                <a href="<?= url('/documents/' . ($doc['id'] ?? 'new')) ?>"
                    class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative">
-                    <!-- Badge "À valider" pour les documents pending -->
-                    <?php if (($doc['status'] ?? '') === 'pending'): ?>
-                    <span class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded z-10" title="Document en attente de validation">
-                        À valider
-                    </span>
+                    <!-- Badge statut de validation -->
+                    <?php
+                    $validation_status = $doc['validation_status'] ?? null;
+                    $size = 'sm';
+                    ?>
+                    <?php if ($validation_status || ($doc['status'] ?? '') === 'pending'): ?>
+                    <div class="absolute top-2 right-2 z-10">
+                        <?php if ($validation_status): ?>
+                            <?php include __DIR__ . '/../components/validation_badge.php'; ?>
+                        <?php elseif (($doc['status'] ?? '') === 'pending'): ?>
+                        <span class="inline-flex items-center gap-1 rounded-full border bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-0.5" title="Document en attente de traitement">
+                            À classer
+                        </span>
+                        <?php endif; ?>
+                    </div>
                     <?php endif; ?>
                     
                     <!-- Thumbnail -->
@@ -222,6 +243,7 @@ $base = Config::basePath();
             </div>
             <?php endif; ?>
             <?php endif; ?>
+            </div><!-- /#documents-content -->
         </div>
     </main>
 </div>
@@ -286,6 +308,454 @@ function setViewMode(mode) {
 
 // Arborescence - Le JavaScript est maintenant généré par FolderTreeHelper::renderJavaScript()
 // Plus besoin de code ici, tout est géré côté serveur avec indicateurs d'indexation
+
+// ===== INDEXATION DES DOSSIERS =====
+let currentIndexingPath = null;
+let indexingPollInterval = null;
+
+// Indexer un dossier (appelé par le bouton)
+function indexFolder(path) {
+    const btn = document.getElementById('index-folder-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Indexation...
+        `;
+    }
+    
+    currentIndexingPath = path;
+    
+    // Appeler l'API d'indexation (synchrone)
+    fetch(`${BASE_PATH}/api/folders/index`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({path: path, async: false})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour les documents de manière asynchrone (sans recharger)
+            updateDocumentsAfterIndexing(path, data);
+            
+            // Afficher un message de succès
+            showNotification(`Indexation terminée: ${data.indexed || 0} document(s) indexé(s)`, 'success');
+        } else {
+            showNotification(`Erreur: ${data.error || 'Inconnue'}`, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Indexer ce dossier
+                `;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Indexation error:', error);
+        showNotification('Erreur de connexion', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Indexer ce dossier';
+        }
+    });
+}
+
+// Mettre à jour les documents après indexation (sans recharger la page)
+function updateDocumentsAfterIndexing(path, indexResult) {
+    // Requêter les nouveaux documents indexés
+    fetch(`${BASE_PATH}/api/folders/documents?path=${encodeURIComponent(path || '')}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            
+            const grid = document.querySelector('#documents-content .grid');
+            if (!grid) return;
+            
+            // Créer un map des documents actuellement affichés (par filename)
+            const existingCards = {};
+            grid.querySelectorAll('.document-card').forEach(card => {
+                const title = card.querySelector('h3')?.textContent?.trim();
+                if (title) existingCards[title] = card;
+            });
+            
+            // Parcourir les nouveaux documents
+            data.documents.forEach(doc => {
+                const title = doc.title || doc.filename || 'Sans titre';
+                const existingCard = existingCards[title];
+                
+                if (existingCard && doc.id) {
+                    // Document existait déjà, mettre à jour la carte
+                    updateDocumentCard(existingCard, doc);
+                }
+            });
+            
+            // Masquer/mettre à jour la barre d'avertissement
+            const warningBar = document.querySelector('#documents-content .bg-yellow-50');
+            if (warningBar) {
+                if (data.stats.physical_count === 0) {
+                    // Plus de fichiers non indexés, masquer la barre avec animation
+                    warningBar.style.transition = 'opacity 0.3s, max-height 0.3s';
+                    warningBar.style.opacity = '0';
+                    warningBar.style.maxHeight = '0';
+                    warningBar.style.overflow = 'hidden';
+                    setTimeout(() => warningBar.remove(), 300);
+                } else {
+                    // Mettre à jour le compteur
+                    const countSpan = warningBar.querySelector('span');
+                    if (countSpan) {
+                        countSpan.textContent = `⚠ ${data.stats.physical_count} fichier(s) non indexé(s) dans ce dossier`;
+                    }
+                    // Réactiver le bouton
+                    const btn = warningBar.querySelector('button');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = `
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Indexer ce dossier
+                        `;
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error updating documents:', error));
+}
+
+// Mettre à jour une carte de document individuellement
+function updateDocumentCard(card, doc) {
+    // Supprimer le badge "Non indexé" s'il existe
+    const badge = card.querySelector('.bg-yellow-100');
+    if (badge) {
+        badge.style.transition = 'opacity 0.3s';
+        badge.style.opacity = '0';
+        setTimeout(() => badge.parentElement?.remove(), 300);
+    }
+    
+    // Retirer l'opacité réduite
+    card.classList.remove('opacity-75');
+    
+    // Mettre à jour le lien
+    if (doc.id) {
+        card.href = `${BASE_PATH}/documents/${doc.id}`;
+    }
+    
+    // Mettre à jour la thumbnail si disponible
+    if (doc.thumbnail_url) {
+        const imgContainer = card.querySelector('.aspect-\\[3\\/4\\]');
+        if (imgContainer) {
+            let img = imgContainer.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.className = 'w-full h-full object-cover';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                };
+                imgContainer.insertBefore(img, imgContainer.firstChild);
+            }
+            img.src = doc.thumbnail_url;
+            img.alt = doc.title || doc.filename;
+            img.style.display = 'block';
+            
+            // Cacher l'icône placeholder
+            const placeholder = imgContainer.querySelector('div');
+            if (placeholder) placeholder.style.display = 'none';
+        }
+    }
+    
+    // Mettre à jour le titre si nécessaire
+    const titleEl = card.querySelector('h3');
+    if (titleEl && doc.title && doc.title !== titleEl.textContent) {
+        titleEl.textContent = doc.title;
+        titleEl.title = doc.title;
+    }
+    
+    // Animation de succès
+    card.style.transition = 'box-shadow 0.3s, border-color 0.3s';
+    card.style.boxShadow = '0 0 0 2px rgba(34, 197, 94, 0.5)';
+    card.style.borderColor = 'rgb(34, 197, 94)';
+    setTimeout(() => {
+        card.style.boxShadow = '';
+        card.style.borderColor = '';
+    }, 2000);
+}
+
+// Afficher une notification
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500'
+    };
+    
+    const notif = document.createElement('div');
+    notif.className = `fixed top-4 right-4 px-4 py-2 rounded text-white text-sm ${colors[type] || colors.info} shadow-lg z-50`;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    
+    setTimeout(() => notif.remove(), 4000);
+}
+
+// ===== CHARGEMENT AJAX DES DOCUMENTS =====
+const BASE_PATH = '<?= $base ?>';
+
+// Charger les documents d'un dossier via AJAX (appelé par les liens de la sidebar)
+function loadFolderDocuments(path, updateUrl = true) {
+    const loadingEl = document.getElementById('documents-loading');
+    const contentEl = document.getElementById('documents-content');
+    
+    // Afficher le chargement
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (contentEl) contentEl.innerHTML = '';
+    
+    // Mettre à jour l'URL sans recharger la page
+    if (updateUrl) {
+        // Simple hash pour le folderId (pas besoin de MD5 exact)
+        const folderId = path ? btoa(path).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32) : '';
+        const newUrl = new URL(window.location.href);
+        if (path) {
+            newUrl.searchParams.set('folder', folderId || 'folder');
+            newUrl.searchParams.set('path', path);
+        } else {
+            newUrl.searchParams.delete('folder');
+            newUrl.searchParams.delete('path');
+        }
+        newUrl.searchParams.delete('page');
+        history.pushState({path: path}, '', newUrl.toString());
+    }
+    
+    // Appeler l'API
+    fetch(`${BASE_PATH}/api/folders/documents?path=${encodeURIComponent(path || '')}`)
+        .then(response => response.json())
+        .then(data => {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            
+            if (data.success) {
+                renderDocuments(data.documents, data.pagination, data.stats, path);
+            } else {
+                contentEl.innerHTML = `<div class="text-center py-12 text-red-500">Erreur: ${data.error || 'Inconnue'}</div>`;
+            }
+        })
+        .catch(error => {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            contentEl.innerHTML = `<div class="text-center py-12 text-red-500">Erreur de chargement</div>`;
+            console.error('Error loading documents:', error);
+        });
+}
+
+// Rendre les documents dans la grille
+function renderDocuments(documents, pagination, stats, path) {
+    const contentEl = document.getElementById('documents-content');
+    if (!contentEl) return;
+    
+    // NE PAS déclencher l'indexation automatiquement
+    // L'utilisateur peut cliquer sur le bouton "Indexer ce dossier" s'il le souhaite
+    
+    if (!documents || documents.length === 0) {
+        contentEl.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full text-center py-12">
+                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h2 class="text-base font-medium text-gray-700 mb-1">Aucun document</h2>
+                <p class="text-sm text-gray-400 mb-2">Ce dossier est vide.</p>
+                ${stats && stats.physical_count === 0 ? '' : `<p class="text-xs text-orange-500">Fichiers physiques non indexés: ${stats?.physical_count || 0}</p>`}
+            </div>
+        `;
+        return;
+    }
+    
+    // Générer la grille de documents
+    let html = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">`;
+    
+    documents.forEach(doc => {
+        const isPhysical = doc.is_physical || doc.status === 'not_indexed';
+        const title = doc.title || doc.filename || 'Sans titre';
+        const date = doc.created_at ? new Date(doc.created_at).toLocaleDateString('fr-CH') : '';
+        const href = doc.id ? `${BASE_PATH}/documents/${doc.id}` : '#';
+        const thumbnailUrl = doc.thumbnail_url || '';
+        
+        html += `
+            <a href="${href}" 
+               class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative ${isPhysical ? 'opacity-75' : ''}">
+                ${isPhysical ? `
+                <div class="absolute top-2 right-2 z-10">
+                    <span class="inline-flex items-center gap-1 rounded-full border bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-0.5" title="Fichier non indexé">
+                        Non indexé
+                    </span>
+                </div>` : ''}
+                <div class="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                    ${thumbnailUrl ? `
+                    <img src="${thumbnailUrl}" alt="${title}" class="w-full h-full object-cover"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    ` : ''}
+                    <div class="w-full h-full flex items-center justify-center ${thumbnailUrl ? 'hidden' : ''}">
+                        <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="p-1.5 border-t border-gray-50">
+                    <h3 class="text-xs font-medium text-gray-900 truncate mb-0.5" title="${title}">${title}</h3>
+                    <p class="text-xs text-gray-400">${date}</p>
+                </div>
+            </a>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    // Ajouter les stats si fichiers physiques
+    if (stats && stats.physical_count > 0) {
+        html += `
+            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-yellow-800 text-sm">⚠ ${stats.physical_count} fichier(s) non indexé(s) dans ce dossier</span>
+                    <button onclick="indexFolder('${path || ''}')" class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center gap-1" id="index-folder-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Indexer ce dossier
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    contentEl.innerHTML = html;
+}
+
+// Intercepter les clics sur les liens de dossiers dans la sidebar
+document.addEventListener('click', function(e) {
+    const folderLink = e.target.closest('.folder-link[data-ajax-load]');
+    if (folderLink) {
+        e.preventDefault();
+        const path = folderLink.dataset.path || '';
+        loadFolderDocuments(path);
+        
+        // Mettre en surbrillance le dossier actif
+        document.querySelectorAll('.folder-link').forEach(el => el.classList.remove('bg-gray-100', 'font-medium'));
+        folderLink.classList.add('bg-gray-100', 'font-medium');
+    }
+});
+
+// Gérer le bouton retour du navigateur
+window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.path !== undefined) {
+        loadFolderDocuments(e.state.path, false);
+    }
+});
+
+// ===== FONCTIONS D'INDEXATION (utilisées uniquement via le bouton) =====
+// Note: L'indexation automatique a été désactivée pour éviter les rechargements intempestifs
+
+// Polling global pour les indexations (peut être utilisé si on réactive l'async)
+var kdocsIndexingPollInterval = null;
+
+// Afficher la barre de progression d'indexation
+function showIndexingBar(path, total) {
+    const bar = document.getElementById('indexing-status-bar');
+    const list = document.getElementById('indexing-progress-list');
+    
+    if (!bar || !list) return;
+    
+    bar.style.display = 'block';
+    
+    // Ajouter ou mettre à jour l'entrée pour ce dossier
+    let entry = document.getElementById(`indexing-${btoa(path).replace(/[^a-zA-Z0-9]/g, '')}`);
+    if (!entry) {
+        entry = document.createElement('div');
+        entry.id = `indexing-${btoa(path).replace(/[^a-zA-Z0-9]/g, '')}`;
+        entry.className = 'flex items-center gap-3';
+        list.appendChild(entry);
+    }
+    
+    entry.innerHTML = `
+        <svg class="w-4 h-4 text-orange-500 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-sm text-gray-700">
+            <strong>${path || 'Racine'}</strong> - Indexation de ${total} fichier(s)...
+        </span>
+    `;
+}
+
+// Masquer la barre de progression pour un dossier
+function hideIndexingBar(path) {
+    const entry = document.getElementById(`indexing-${btoa(path).replace(/[^a-zA-Z0-9]/g, '')}`);
+    if (entry) {
+        entry.innerHTML = `
+            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-sm text-green-700">
+                <strong>${path || 'Racine'}</strong> - Indexation terminée!
+            </span>
+        `;
+        
+        // Masquer après 3 secondes
+        setTimeout(() => {
+            entry.remove();
+            const list = document.getElementById('indexing-progress-list');
+            if (list && list.children.length === 0) {
+                document.getElementById('indexing-status-bar').style.display = 'none';
+            }
+        }, 3000);
+    }
+}
+
+// Polling pour vérifier l'état des indexations
+function startIndexingPolling() {
+    if (kdocsIndexingPollInterval) return;
+    
+    kdocsIndexingPollInterval = setInterval(() => {
+        fetch(`${BASE_PATH}/api/folders/indexing-all`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.count > 0) {
+                    // Afficher la barre avec les indexations en cours
+                    data.indexing.forEach(idx => {
+                        showIndexingBar(idx.path, idx.total);
+                    });
+                } else {
+                    // Aucune indexation en cours, arrêter le polling
+                    stopIndexingPolling();
+                }
+            })
+            .catch(() => {});
+    }, 3000);
+}
+
+function stopIndexingPolling() {
+    if (kdocsIndexingPollInterval) {
+        clearInterval(kdocsIndexingPollInterval);
+        kdocsIndexingPollInterval = null;
+    }
+}
+
+// Charger automatiquement si on a un path dans l'URL et que le contenu est vide
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pathParam = urlParams.get('path');
+    const folderParam = urlParams.get('folder');
+    const emptyState = document.getElementById('empty-state');
+    const contentEl = document.getElementById('documents-content');
+    
+    // Si on a un path (dossier filesystem sélectionné), TOUJOURS charger via AJAX
+    // Car PHP ne scan pas le filesystem, seulement la DB
+    if (pathParam || folderParam) {
+        // Charger via AJAX pour avoir les fichiers physiques + DB
+        loadFolderDocuments(pathParam || '', false);
+    }
+})();
 
 // Redimensionnement de la sidebar
 (function() {

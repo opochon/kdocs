@@ -56,13 +56,20 @@ class NaturalLanguageQueryService
         
         try {
             $response = $this->claudeService->sendMessage($prompt);
-            
+
             if (empty($response)) {
                 return null;
             }
-            
+
+            // Extract text from Claude response (sendMessage returns array, not string)
+            $responseText = $this->claudeService->extractText($response);
+
+            if (empty($responseText)) {
+                return null;
+            }
+
             // Try to extract JSON from response
-            $data = $this->parseJsonResponse($response);
+            $data = $this->parseJsonResponse($responseText);
             
             if ($data === null) {
                 return null;

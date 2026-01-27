@@ -96,6 +96,9 @@ class ConsumeController
             // Récupérer le contenu OCR
             $doc['content_preview'] = substr($doc['content'] ?? $doc['ocr_text'] ?? '', 0, 500);
             
+            // Extraire les tags suggérés depuis le contenu OCR
+            $doc['suggested_tags'] = $classifier->extractSuggestedTags($doc['content'] ?? $doc['ocr_text'] ?? '');
+            
             // Générer suggestion de chemin de stockage avec StoragePathGenerator
             $suggestions = json_decode($doc['classification_suggestions'] ?? '{}', true);
             $final = $suggestions['final'] ?? [];

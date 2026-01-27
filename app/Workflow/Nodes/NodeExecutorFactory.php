@@ -13,6 +13,7 @@ use KDocs\Workflow\Nodes\Triggers\UploadTrigger;
 use KDocs\Workflow\Nodes\Triggers\ManualTrigger;
 use KDocs\Workflow\Nodes\Triggers\DocumentAddedTrigger;
 use KDocs\Workflow\Nodes\Triggers\TagAddedTrigger;
+use KDocs\Workflow\Nodes\Triggers\ValidationStatusChangedTrigger;
 
 // Processing
 use KDocs\Workflow\Nodes\Processing\OcrProcessor;
@@ -33,6 +34,7 @@ use KDocs\Workflow\Nodes\Actions\SendEmailAction;
 use KDocs\Workflow\Nodes\Actions\WebhookAction;
 use KDocs\Workflow\Nodes\Actions\RequestApprovalAction;
 use KDocs\Workflow\Nodes\Actions\AssignToGroupAction;
+use KDocs\Workflow\Nodes\Actions\SetValidationStatusAction;
 
 // Waits
 use KDocs\Workflow\Nodes\Waits\ApprovalWait;
@@ -87,6 +89,14 @@ class NodeExecutorFactory
                 'icon' => 'play',
                 'color' => '#3b82f6',
                 'outputs' => ['default'],
+            ],
+            'trigger_validation_changed' => [
+                'class' => ValidationStatusChangedTrigger::class,
+                'name' => 'Validation changée',
+                'description' => 'Déclenche quand le statut de validation d\'un document change',
+                'icon' => 'check-circle',
+                'color' => '#3b82f6',
+                'outputs' => ['approved', 'rejected', 'default'],
             ],
         ],
         
@@ -212,6 +222,14 @@ class NodeExecutorFactory
                 'color' => '#8b5cf6',
                 'outputs' => ['default'],
             ],
+            'action_set_validation' => [
+                'class' => SetValidationStatusAction::class,
+                'name' => 'Marquer validé/rejeté',
+                'description' => 'Définit le statut de validation du document (approuvé, rejeté, en attente)',
+                'icon' => 'badge-check',
+                'color' => '#10b981',
+                'outputs' => ['approved', 'rejected', 'default'],
+            ],
         ],
         
         // === ATTENTES ===
@@ -262,6 +280,7 @@ class NodeExecutorFactory
             'trigger_manual' => new ManualTrigger(),
             'trigger_document_added' => new DocumentAddedTrigger(),
             'trigger_tag_added' => new TagAddedTrigger(),
+            'trigger_validation_changed' => new ValidationStatusChangedTrigger(),
             
             // Processing
             'process_ocr' => new OcrProcessor(),
@@ -282,6 +301,7 @@ class NodeExecutorFactory
             'action_webhook' => new WebhookAction(),
             'action_request_approval' => new RequestApprovalAction(),
             'action_assign_group' => new AssignToGroupAction(),
+            'action_set_validation' => new SetValidationStatusAction(),
             
             // Waits
             'wait_approval' => new ApprovalWait(),

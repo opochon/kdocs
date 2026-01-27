@@ -99,6 +99,12 @@ class ClassificationService
         
         $result['should_review'] = $result['confidence'] < $this->threshold;
         
+        // Si la confiance est 0 ou très basse, recalculer avec notre méthode
+        if ($result['confidence'] < 0.1 && $result['final']) {
+            $result['confidence'] = $this->calculateConfidence($result['final']);
+            $result['should_review'] = $result['confidence'] < $this->threshold;
+        }
+        
         // Auto-apply si configuré
         if ($this->autoApply && !$result['should_review'] && $result['final']) {
             $this->rules->applyClassification($documentId, $result['final']);
@@ -148,4 +154,76 @@ class ClassificationService
     
     public function getMethod(): string { return $this->method; }
     public function isAIAvailable(): bool { return $this->ai !== null; }
+    
+    /**
+     * Extrait des tags suggérés depuis le contenu OCR
+     * @param string $content Contenu OCR du document
+     * @return array Liste de tags suggérés
+     */
+    public function extractSuggestedTags(string $content): array
+    {
+        $tags = [];
+        
+        // 1. Extraire les noms propres (mots avec majuscule, > 3 lettres)
+        preg_match_all('/\b([A-ZÀÂÄÉÈÊËÏÎÔÙÛÜÇ][a-zàâäéèêëïîôùûüç]{2,})\b/u', $content, $matches);
+        $properNouns = array_unique($matches[1] ?? []);
+        // Filtrer les mots trop communs
+        $commonWords = ['Le', 'La', 'Les', 'Un', 'Une', 'Des', 'Du', 'De', 'Et', 'En', 'Au', 'Aux', 'Ce', 'Cette', 'Ces', 'Son', 'Sa', 'Ses', 'Leur', 'Leurs'];
+        $properNouns = array_diff($properNouns, $commonWords);
+        $tags = array_merge($tags, array_slice($properNouns, 0, 5));
+        
+        // 2. Extraire les années (19xx, 20xx)
+        preg_match_all('/\b(19\d{2}|20\d{2})\b/', $content, $years);
+        $tags = array_merge($tags, array_unique($years[0] ?? []));
+        
+        // 3. Mots-clés juridiques/métier courants
+        $keywords = ['Tribunal', 'Arrêt', 'Jugement', 'Contrat', 'Convention', 'Facture', 'Devis', 'Attestation', 'Certificat', 'Décision', 'Accord', 'Ordonnance'];
+        foreach ($keywords as $kw) {
+            if (stripos($content, $kw) !== false) {
+                $tags[] = $kw;
+            }
+        }
+        
+        // Dédupliquer et limiter à 10
+        return array_slice(array_unique($tags), 0, 10);
+    }
+    
+    /**
+     * Calcule un score de confiance basé sur les suggestions extraites
+     * @param array $suggestions Les suggestions de classification
+     * @return float Score entre 0 et 1
+     */
+    public function calculateConfidence(array $suggestions): float
+    {
+        $confidence = 0.0;
+        
+        // +30% si type de document suggéré
+        if (!empty($suggestions['document_type_id']) || !empty($suggestions['document_type_name'])) {
+            $confidence += 0.30;
+        }
+        
+        // +20% si date extraite
+        if (!empty($suggestions['doc_date']) || !empty($suggestions['document_date'])) {
+            $confidence += 0.20;
+        }
+        
+        // +20% si correspondant suggéré
+        if (!empty($suggestions['correspondent_id']) || !empty($suggestions['correspondent_name'])) {
+            $confidence += 0.20;
+        }
+        
+        // +15% si titre extrait (pas générique)
+        $title = $suggestions['title'] ?? '';
+        if (!empty($title) && !in_array(strtolower($title), ['document sans titre', 'toclassify', 'scan', 'doc'])) {
+            $confidence += 0.15;
+        }
+        
+        // +15% si des tags sont suggérés
+        $tagCount = count($suggestions['tag_ids'] ?? []) + count($suggestions['tag_names'] ?? []);
+        if ($tagCount > 0) {
+            $confidence += 0.15;
+        }
+        
+        return min(1.0, $confidence);
+    }
 }

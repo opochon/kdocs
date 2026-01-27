@@ -53,6 +53,7 @@ class AuthMiddleware implements MiddlewareInterface
 
         // Ajouter l'utilisateur à la requête
         $request = $request->withAttribute('user', $user);
+        $request = $request->withAttribute('user_id', $user['id'] ?? null);
 
         // #region agent log
         \KDocs\Core\DebugLogger::log('AuthMiddleware::process', 'Middleware exit', [

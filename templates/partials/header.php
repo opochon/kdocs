@@ -9,9 +9,12 @@ $currentRoute = $_SERVER['REQUEST_URI'] ?? '/';
             <h2 class="text-sm font-medium text-gray-700"><?= htmlspecialchars($pageTitle ?? 'K-Docs') ?></h2>
         </div>
         
-        <div class="flex items-center gap-2 justify-end">
-            <!-- User menu minimaliste -->
+        <div class="flex items-center gap-3 justify-end">
             <?php if ($user): ?>
+            <!-- Notifications dropdown -->
+            <?php include __DIR__ . '/notifications_dropdown.php'; ?>
+
+            <!-- User menu minimaliste -->
             <div class="relative">
                 <button id="user-menu-toggle" 
                         class="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded transition-colors">

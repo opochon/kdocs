@@ -331,6 +331,10 @@
                             if (empty($suggestedTags) && !empty($suggestions['ai_result']['tags'])) {
                                 $suggestedTags = $suggestions['ai_result']['tags'];
                             }
+                            // Si toujours vide, utiliser les tags extraits du contenu OCR
+                            if (empty($suggestedTags) && !empty($doc['suggested_tags'])) {
+                                $suggestedTags = $doc['suggested_tags'];
+                            }
                             if (!empty($suggestedTags)): 
                                 // Récupérer les tags ignorés pour ce document
                                 $ignoredTags = json_decode($doc['ai_ignored_tags'] ?? '[]', true);
