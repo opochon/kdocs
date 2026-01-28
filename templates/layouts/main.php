@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= \KDocs\Core\Config::basePath() ?>">
+    <?= \KDocs\Core\CSRF::metaTag() ?>
     <title><?= htmlspecialchars($title ?? 'K-Docs') ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -53,5 +54,66 @@
             <?php include __DIR__ . '/../partials/footer.php'; ?>
         </div>
     </div>
+    <!-- Auto-refresh apres indexation -->
+    <script>
+    (function() {
+        let lastIndexTime = localStorage.getItem('kdocs_last_index_time') || null;
+        let isIndexingPage = window.location.pathname.includes('/admin/indexing');
+
+        function checkIndexingStatus() {
+            fetch('<?= \KDocs\Core\Config::basePath() ?>/admin/indexing/status')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.status) {
+                    const progress = data.status.progress || {};
+
+                    // Si indexation vient de se terminer
+                    if (progress.status === 'completed' && progress.updated_at) {
+                        const newTime = String(progress.updated_at);
+
+                        if (lastIndexTime === null) {
+                            lastIndexTime = newTime;
+                            localStorage.setItem('kdocs_last_index_time', newTime);
+                        } else if (newTime !== lastIndexTime) {
+                            lastIndexTime = newTime;
+                            localStorage.setItem('kdocs_last_index_time', newTime);
+
+                            // Ne pas recharger si on est sur la page d'indexation (elle gere elle-meme)
+                            if (!isIndexingPage) {
+                                // Afficher une notification et recharger
+                                showIndexingNotification();
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(() => {});
+        }
+
+        function showIndexingNotification() {
+            // Creer une notification discrete
+            const notif = document.createElement('div');
+            notif.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3';
+            notif.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Indexation terminee - Rafraichissement...</span>
+            `;
+            document.body.appendChild(notif);
+
+            // Recharger la page apres 1.5 secondes
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+
+        // Verifier toutes les 15 secondes (pas trop frequent)
+        setInterval(checkIndexingStatus, 15000);
+
+        // Premiere verification apres 3 secondes
+        setTimeout(checkIndexingStatus, 3000);
+    })();
+    </script>
 </body>
 </html>

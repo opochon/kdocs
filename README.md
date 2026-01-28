@@ -110,3 +110,106 @@ L'application utilise :
 - Statistiques API
 
 **État général** : **95% fonctionnel**, architecture moderne, prêt pour production
+
+## Tests
+
+K-Docs utilise PHPUnit 10 pour les tests automatisés.
+
+### Exécuter les tests
+
+```bash
+# Tous les tests
+php vendor/bin/phpunit
+
+# Tests avec détails
+php vendor/bin/phpunit --testdox
+
+# Tests unitaires uniquement
+php vendor/bin/phpunit --testsuite Unit
+
+# Tests Feature/API
+php vendor/bin/phpunit --testsuite Feature
+```
+
+### Structure des tests
+
+```
+tests/
+├── bootstrap.php           # Configuration tests
+├── TestCase.php            # Classe de base
+├── Unit/                   # Tests unitaires
+│   ├── Core/               # Tests classes Core (CSRF, Validator)
+│   └── Services/           # Tests Services
+└── Feature/                # Tests d'intégration API
+    ├── ApiTestCase.php     # Base pour tests API
+    └── *ApiTest.php        # Tests endpoints
+```
+
+## API REST
+
+K-Docs expose une API REST complète. Voir [docs/API.md](docs/API.md) pour la documentation détaillée.
+
+### Endpoints principaux
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/documents` | GET | Liste des documents |
+| `/api/documents/{id}` | GET | Détails document |
+| `/api/documents` | POST | Créer document |
+| `/api/documents/{id}` | PUT | Modifier document |
+| `/api/documents/{id}` | DELETE | Supprimer document |
+| `/api/search` | GET | Recherche documents |
+| `/api/validation/pending` | GET | Documents à valider |
+| `/api/validation/{id}/status` | POST | Définir statut validation |
+| `/api/notifications` | GET | Notifications utilisateur |
+
+## Configuration
+
+### Variables d'environnement
+
+Éditer `config/config.php` :
+
+```php
+'database' => [
+    'host' => 'localhost',
+    'port' => 3307,           // MariaDB port
+    'name' => 'kdocs',
+    'user' => 'root',
+    'password' => '',
+    'charset' => 'utf8mb4'
+],
+'claude' => [
+    'api_key' => 'sk-ant-...'  // Clé API Claude (optionnel)
+],
+'ocr' => [
+    'engine' => 'tesseract',   // ou 'pdftotext'
+    'language' => 'fra+eng'
+]
+```
+
+### Dossier Consume
+
+Les documents placés dans `storage/consume/` sont automatiquement traités :
+1. OCR et extraction de texte
+2. Classification automatique (IA si configurée)
+3. Déplacement vers le bon dossier
+
+## Sécurité
+
+- **CSRF** : Protection automatique sur tous les formulaires
+- **Validation** : Validation centralisée des entrées utilisateur
+- **Rate Limiting** : 100 requêtes/minute par IP sur l'API
+- **Authentification** : Sessions PHP sécurisées
+
+## Contribution
+
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/ma-feature`)
+3. Exécuter les tests (`php vendor/bin/phpunit`)
+4. Commit (`git commit -am 'Add feature'`)
+5. Push (`git push origin feature/ma-feature`)
+6. Créer une Pull Request
+
+## Licence
+
+Propriétaire - Usage interne uniquement

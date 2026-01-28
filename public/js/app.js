@@ -1,10 +1,44 @@
 /**
- * K-Docs - JavaScript global pour les fonctionnalités Priorité 3
+ * K-Docs - JavaScript global
+ * - CSRF Token handling
  * - Thème sombre (Priorité 3.5)
  * - Raccourcis clavier (Priorité 3.6)
  * - Notifications toast (Priorité 3.7)
  * - Mode plein écran (Priorité 3.8)
  */
+
+// ===== CSRF TOKEN HANDLING =====
+(function() {
+    // Récupérer le token CSRF depuis la meta tag
+    function getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : null;
+    }
+
+    // Intercepter toutes les requêtes fetch pour ajouter le token CSRF
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
+
+        // Ajouter le token CSRF pour les méthodes modificatrices (sauf API)
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            const token = getCSRFToken();
+            if (token && !url.includes('/api/')) {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    options.headers.set('X-CSRF-Token', token);
+                } else {
+                    options.headers['X-CSRF-Token'] = token;
+                }
+            }
+        }
+
+        return originalFetch.call(this, url, options);
+    };
+
+    // Exposer la fonction pour usage manuel
+    window.getCSRFToken = getCSRFToken;
+})();
 
 // ===== THÈME SOMBRE (Priorité 3.5) =====
 (function() {

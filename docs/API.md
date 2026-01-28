@@ -217,3 +217,344 @@ DELETE /api/correspondents/{id}
   }
 }
 ```
+
+---
+
+### Validation
+
+#### Documents en attente de validation
+```
+GET /api/validation/pending
+```
+
+**Query Parameters:**
+- `limit` (int, default: 50) - Nombre maximum
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 5,
+  "documents": [
+    {
+      "id": 123,
+      "title": "Facture > 1000 CHF",
+      "amount": 1500.00,
+      "approval_deadline": "2026-01-30T00:00:00",
+      "days_until_deadline": 3
+    }
+  ]
+}
+```
+
+#### Définir le statut de validation
+```
+POST /api/validation/{documentId}/status
+```
+
+**Body:**
+```json
+{
+  "status": "approved",
+  "comment": "Document conforme"
+}
+```
+
+**Valeurs status:** `approved`, `rejected`, `na`
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": "approved",
+  "validated_by": 1,
+  "role": "VALIDATOR_L1"
+}
+```
+
+#### Approuver un document
+```
+POST /api/validation/{documentId}/approve
+```
+
+**Body:**
+```json
+{
+  "comment": "Approuvé"
+}
+```
+
+#### Rejeter un document
+```
+POST /api/validation/{documentId}/reject
+```
+
+**Body:**
+```json
+{
+  "comment": "Information manquante"
+}
+```
+
+#### Récupérer le statut de validation
+```
+GET /api/validation/{documentId}/status
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "document_id": 123,
+  "status": "approved",
+  "validated_by": {"id": 1, "username": "admin"},
+  "validated_at": "2026-01-27T11:00:00",
+  "comment": "OK",
+  "requires_approval": false
+}
+```
+
+#### Historique de validation
+```
+GET /api/validation/{documentId}/history
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "document_id": 123,
+  "history": [
+    {
+      "action": "submitted",
+      "from_status": null,
+      "to_status": "pending",
+      "performed_by": 2,
+      "username": "user1",
+      "created_at": "2026-01-27T10:00:00"
+    }
+  ]
+}
+```
+
+#### Statistiques de validation
+```
+GET /api/validation/statistics
+```
+
+**Query Parameters:**
+- `period` (string) - `day`, `week`, `month`, `year`
+- `user_id` (int) - Filtrer par validateur
+
+**Response:**
+```json
+{
+  "success": true,
+  "period": "month",
+  "statistics": {
+    "approved": {"count": 45, "total_amount": 25000, "avg_amount": 555},
+    "rejected": {"count": 5, "total_amount": 3000, "avg_amount": 600},
+    "pending": {"count": 10, "total_amount": 8000, "avg_amount": 800}
+  }
+}
+```
+
+#### Vérifier si l'utilisateur peut valider
+```
+GET /api/validation/can-validate/{documentId}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "document_id": 123,
+  "can_validate": true,
+  "role": "VALIDATOR_L1",
+  "max_amount": 10000
+}
+```
+
+---
+
+### Notifications
+
+#### Liste des notifications
+```
+GET /api/notifications
+```
+
+**Query Parameters:**
+- `limit` (int, default: 50)
+- `offset` (int, default: 0)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "type": "validation_pending",
+      "title": "Document à valider",
+      "message": "Facture EDF soumise par user1",
+      "link": "/documents/123",
+      "is_read": false,
+      "priority": "high",
+      "created_at": "2026-01-27T10:00:00"
+    }
+  ]
+}
+```
+
+#### Notifications non lues
+```
+GET /api/notifications/unread
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 5,
+  "by_priority": {
+    "urgent": 1,
+    "high": 2,
+    "normal": 2,
+    "low": 0
+  },
+  "notifications": [...]
+}
+```
+
+#### Marquer une notification comme lue
+```
+POST /api/notifications/{id}/read
+```
+
+#### Marquer toutes les notifications comme lues
+```
+POST /api/notifications/read-all
+```
+
+---
+
+### Rôles
+
+#### Liste des types de rôles
+```
+GET /api/roles
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "roles": [
+    {"code": "VALIDATOR_L1", "label": "Validateur Niveau 1"},
+    {"code": "VALIDATOR_L2", "label": "Validateur Niveau 2"},
+    {"code": "APPROVER", "label": "Approbateur"},
+    {"code": "ADMIN", "label": "Administrateur"}
+  ]
+}
+```
+
+#### Rôles d'un utilisateur
+```
+GET /api/roles/user/{userId}
+```
+
+#### Assigner un rôle
+```
+POST /api/roles/user/{userId}/assign
+```
+
+**Body:**
+```json
+{
+  "role_code": "VALIDATOR_L1",
+  "scope": "*",
+  "max_amount": 5000,
+  "valid_from": "2026-01-01",
+  "valid_to": "2026-12-31"
+}
+```
+
+#### Retirer un rôle
+```
+DELETE /api/roles/user/{userId}/{roleCode}?scope=*
+```
+
+---
+
+### Recherche
+
+#### Recherche avancée
+```
+GET /api/search
+```
+
+**Query Parameters:**
+- `q` (string) - Texte recherché
+- `correspondent_id` (int)
+- `document_type_id` (int)
+- `tag_ids[]` (int[])
+- `created_after` (date)
+- `created_before` (date)
+- `amount_min` (float)
+- `amount_max` (float)
+- `page` (int)
+- `per_page` (int)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "documents": [...],
+    "total": 25,
+    "search_time": 0.045,
+    "facets": {
+      "correspondents": [{"id": 1, "name": "EDF", "count": 10}],
+      "document_types": [{"id": 5, "name": "Facture", "count": 15}],
+      "tags": [{"id": 1, "name": "Important", "count": 5}]
+    }
+  }
+}
+```
+
+#### Suggestions de recherche
+```
+GET /api/search/suggest?q=fac&limit=10
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "suggestions": [
+    {"text": "Facture EDF", "type": "document"},
+    {"text": "EDF", "type": "correspondent"}
+  ]
+}
+```
+
+---
+
+## Rate Limiting
+
+L'API est limitée à **100 requêtes par minute** par adresse IP.
+
+**Headers:**
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1706356800
+```
+
+**Erreur 429:**
+```json
+{
+  "error": "Rate limit exceeded. Try again in 45 seconds."
+}
+```

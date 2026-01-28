@@ -78,9 +78,11 @@ use KDocs\Controllers\Api\WorkflowApiController;
 use KDocs\Controllers\Api\ValidationApiController;
 use KDocs\Controllers\Api\NotificationsApiController;
 use KDocs\Controllers\Api\UserNotesApiController;
+use KDocs\Controllers\Api\ChatApiController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
+use KDocs\Middleware\AutoIndexMiddleware;
 use KDocs\Core\Config;
 
 $app = App::create();
@@ -94,6 +96,85 @@ $app->get('/logout', [AuthController::class, 'logout']);
 use KDocs\Controllers\WorkflowApprovalController;
 $app->get('/workflow/approve/{token}', [WorkflowApprovalController::class, 'showApprovalPage']);
 $app->post('/workflow/approve/{token}', [WorkflowApprovalController::class, 'processApproval']);
+
+// Health Check - Route publique pour monitoring
+$app->get('/health', function($request, $response) {
+    $checks = [];
+    $status = 'healthy';
+    $httpStatus = 200;
+
+    // 1. Database check
+    try {
+        $db = \KDocs\Core\Database::getInstance();
+        $stmt = $db->query('SELECT 1');
+        $checks['database'] = ['status' => 'ok', 'message' => 'Connected'];
+    } catch (\Exception $e) {
+        $checks['database'] = ['status' => 'error', 'message' => $e->getMessage()];
+        $status = 'unhealthy';
+        $httpStatus = 503;
+    }
+
+    // 2. Storage writable check
+    $storageDir = __DIR__ . '/storage';
+    if (is_writable($storageDir)) {
+        $checks['storage'] = ['status' => 'ok', 'message' => 'Writable'];
+    } else {
+        $checks['storage'] = ['status' => 'error', 'message' => 'Not writable'];
+        $status = 'unhealthy';
+        $httpStatus = 503;
+    }
+
+    // 3. Cache directory check
+    $cacheDir = __DIR__ . '/storage/cache';
+    if (is_dir($cacheDir) && is_writable($cacheDir)) {
+        $checks['cache'] = ['status' => 'ok', 'message' => 'Writable'];
+    } else {
+        $checks['cache'] = ['status' => 'warning', 'message' => 'Not available'];
+    }
+
+    // 4. OCR tools check
+    $tesseractPath = 'tesseract';
+    $ocrAvailable = false;
+    exec("$tesseractPath --version 2>&1", $output, $returnCode);
+    if ($returnCode === 0) {
+        $checks['ocr'] = ['status' => 'ok', 'message' => 'Tesseract available'];
+        $ocrAvailable = true;
+    } else {
+        $checks['ocr'] = ['status' => 'warning', 'message' => 'Tesseract not found'];
+    }
+
+    // 5. Queue worker check (optional)
+    $queueLock = __DIR__ . '/storage/queue_worker.lock';
+    if (file_exists($queueLock)) {
+        $lockTime = filemtime($queueLock);
+        if (time() - $lockTime < 300) { // 5 minutes
+            $checks['queue_worker'] = ['status' => 'ok', 'message' => 'Running'];
+        } else {
+            $checks['queue_worker'] = ['status' => 'warning', 'message' => 'Stale lock file'];
+        }
+    } else {
+        $checks['queue_worker'] = ['status' => 'warning', 'message' => 'Not running'];
+    }
+
+    // 6. PHP version check
+    $checks['php'] = [
+        'status' => version_compare(PHP_VERSION, '8.3.0', '>=') ? 'ok' : 'warning',
+        'message' => 'PHP ' . PHP_VERSION
+    ];
+
+    // Build response
+    $result = [
+        'status' => $status,
+        'timestamp' => date('c'),
+        'checks' => $checks,
+        'version' => '1.0.0'
+    ];
+
+    $response->getBody()->write(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus($httpStatus);
+});
 
 // Helper function pour rendre un template
 function renderTemplate($templatePath, $data = []) {
@@ -270,6 +351,14 @@ $app->group('', function ($group) {
     $group->post('/api/notifications/{id}/read', [NotificationsApiController::class, 'markRead']);
     $group->post('/api/notifications/read-all', [NotificationsApiController::class, 'markAllRead']);
     $group->delete('/api/notifications/{id}', [NotificationsApiController::class, 'delete']);
+
+    // API Chat conversations
+    $group->get('/api/chat/conversations', [ChatApiController::class, 'listConversations']);
+    $group->post('/api/chat/conversations', [ChatApiController::class, 'createConversation']);
+    $group->get('/api/chat/conversations/{id}', [ChatApiController::class, 'getConversation']);
+    $group->patch('/api/chat/conversations/{id}', [ChatApiController::class, 'updateConversation']);
+    $group->delete('/api/chat/conversations/{id}', [ChatApiController::class, 'deleteConversation']);
+    $group->post('/api/chat/conversations/{id}/messages', [ChatApiController::class, 'sendMessage']);
 
     // API Notes inter-utilisateurs
     $group->get('/api/notes', [UserNotesApiController::class, 'index']);
@@ -465,7 +554,7 @@ $app->group('', function ($group) {
         $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
         return $res->withHeader('Content-Type', 'application/json');
     });
-})->add(new AuthMiddleware());
+})->add(new AutoIndexMiddleware())->add(new AuthMiddleware());
 
 // Démarrer l'application
 try {

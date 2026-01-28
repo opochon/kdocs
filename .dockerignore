@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Dependencies (will be installed in container)
+vendor/
+
+# Local configuration
+config/config.local.php
+
+# Storage (mounted as volume)
+storage/documents/*
+storage/cache/*
+storage/consume/*
+storage/processed/*
+storage/logs/*
+!storage/.gitkeep
+
+# Tests
+tests/
+phpunit.xml
+.phpunit.cache/
+.phpunit.result.cache
+
+# Documentation
+docs/CURSOR_*.md
+IMPROVEMENT_PLAN.md
+WORKLOG.md
+
+# Development files
+*.md
+!README.md
+composer.lock
+composer.phar
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.log
