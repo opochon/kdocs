@@ -10,6 +10,7 @@ namespace KDocs\Services;
 use KDocs\Core\Database;
 use KDocs\Core\Config;
 use KDocs\Services\ClaudeService;
+use KDocs\Helpers\SystemHelper;
 
 class PDFSplitterService
 {
@@ -158,8 +159,7 @@ class PDFSplitterService
         $pdfCmd = escapeshellarg($filePath);
         
         // Méthode 1: pdftk (si disponible)
-        exec("where pdftk 2>&1", $pdftkCheck, $pdftkCode);
-        if ($pdftkCode === 0) {
+        if (SystemHelper::commandExists('pdftk')) {
             exec("pdftk $pdfCmd dump_data 2>&1", $output, $returnCode);
             if ($returnCode === 0) {
                 foreach ($output as $line) {
@@ -197,8 +197,7 @@ PYTHON;
         }
         
         // Méthode 3: Fallback - utiliser Ghostscript
-        exec("where gs 2>&1", $gsCheck, $gsCode);
-        if ($gsCode === 0) {
+        if (SystemHelper::commandExists('gs')) {
             exec("gs -q -dNODISPLAY -c \"({$filePath}) (r) file runpdfbegin pdfpagecount = quit\" 2>&1", $output, $returnCode);
             if ($returnCode === 0 && !empty($output) && is_numeric($output[0])) {
                 return (int)$output[0];
@@ -270,8 +269,7 @@ PYTHON;
         $outputCmd = escapeshellarg($outputFile);
         
         // Utiliser pdftotext avec option -f et -l pour une page spécifique
-        exec("where pdftotext 2>&1", $whereOutput, $whereCode);
-        if ($whereCode === 0) {
+        if (SystemHelper::commandExists('pdftotext')) {
             $pageOneIndexed = $pageNum + 1; // pdftotext utilise 1-indexed
             exec("pdftotext -f {$pageOneIndexed} -l {$pageOneIndexed} -layout {$pdfCmd} {$outputCmd} 2>&1", $output, $returnCode);
             
