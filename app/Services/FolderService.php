@@ -86,7 +86,7 @@ class FolderService
             $documentsUpdated = $this->updateDocumentPaths($relativePath, $newRelativePath);
             
             // Log d'audit
-            $this->auditService->log('folder_rename', [
+            $this->auditService->logAction('folder_rename', [
                 'old_path' => $relativePath,
                 'new_path' => $newRelativePath,
                 'old_name' => $oldName,
@@ -172,7 +172,7 @@ class FolderService
             $documentsUpdated = $this->updateDocumentPaths($sourcePath, $newRelativePath);
             
             // Log d'audit
-            $this->auditService->log('folder_move', [
+            $this->auditService->logAction('folder_move', [
                 'source_path' => $sourcePath,
                 'target_path' => $targetPath,
                 'new_path' => $newRelativePath,
@@ -254,7 +254,7 @@ class FolderService
             $this->recordFolderTrash($relativePath, $trashRelativePath, $userId, $stats);
             
             // Log d'audit
-            $this->auditService->log('folder_trash', [
+            $this->auditService->logAction('folder_trash', [
                 'original_path' => $relativePath,
                 'trash_path' => $trashRelativePath,
                 'file_count' => $stats['files'],
@@ -335,7 +335,7 @@ class FolderService
             $stmt->execute([$userId, $trashId]);
             
             // Log d'audit
-            $this->auditService->log('folder_restore', [
+            $this->auditService->logAction('folder_restore', [
                 'original_path' => $trash['original_path'],
                 'trash_path' => $trash['trash_path'],
                 'user_id' => $userId
@@ -412,7 +412,7 @@ class FolderService
         }
         
         // Log d'audit
-        $this->auditService->log('folder_create', [
+        $this->auditService->logAction('folder_create', [
             'path' => $newPath,
             'name' => $name,
             'user_id' => $userId

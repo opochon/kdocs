@@ -74,4 +74,25 @@ class AuditService
     {
         self::log("{$objectType}.restored", $objectType, $objectId, $objectName, null, $userId);
     }
+
+    /**
+     * Log générique (méthode d'instance pour compatibilité FolderService)
+     * Format: log('action_name', ['key' => 'value', ...])
+     */
+    public function logAction(string $action, array $data = []): void
+    {
+        $userId = $data['user_id'] ?? ($_SESSION['user']['id'] ?? null);
+        $objectId = $data['folder_id'] ?? $data['document_id'] ?? $data['id'] ?? null;
+        $objectName = $data['path'] ?? $data['name'] ?? $data['new_path'] ?? null;
+
+        // Déterminer le type d'objet depuis l'action
+        $objectType = 'folder';
+        if (str_starts_with($action, 'document')) {
+            $objectType = 'document';
+        } elseif (str_starts_with($action, 'user')) {
+            $objectType = 'user';
+        }
+
+        self::log($action, $objectType, $objectId, $objectName, $data, $userId);
+    }
 }

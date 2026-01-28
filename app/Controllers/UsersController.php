@@ -8,6 +8,7 @@ namespace KDocs\Controllers;
 use KDocs\Models\User;
 use KDocs\Models\UserGroup;
 use KDocs\Core\Database;
+use KDocs\Services\AuditService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -169,7 +170,10 @@ class UsersController
             }
 
             $userModel->update($id, $updateData);
-            
+
+            // Log audit
+            AuditService::logUpdate('user', $id, $updateData['username'], $updateData, $user['id']);
+
             // Gérer les groupes
             $groupModel = new UserGroup();
             if (isset($data['groups']) && is_array($data['groups'])) {
@@ -209,7 +213,10 @@ class UsersController
             ];
 
             $newId = $userModel->create($createData);
-            
+
+            // Log audit
+            AuditService::logCreate('user', $newId, $createData['username'], $user['id']);
+
             // Ajouter aux groupes
             if (!empty($data['groups']) && is_array($data['groups'])) {
                 $groupModel = new UserGroup();
@@ -259,8 +266,16 @@ class UsersController
         }
         
         $userModel = new User();
+
+        // Récupérer le nom avant suppression pour le log
+        $targetUser = User::findById($id);
+        $targetUsername = $targetUser['username'] ?? "User #$id";
+
         $userModel->delete($id);
-        
+
+        // Log audit
+        AuditService::logDelete('user', $id, $targetUsername, $user['id']);
+
         $basePath = \KDocs\Core\Config::basePath();
         return $response
             ->withHeader('Location', $basePath . '/admin/users')

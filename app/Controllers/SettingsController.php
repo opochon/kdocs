@@ -7,6 +7,7 @@ namespace KDocs\Controllers;
 
 use KDocs\Models\Setting;
 use KDocs\Core\Config;
+use KDocs\Services\AuditService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -166,7 +167,19 @@ class SettingsController
         
         // Réinitialiser le cache de configuration pour recharger les nouveaux paramètres
         Config::reset();
-        
+
+        // Log audit des modifications
+        if (!empty($success)) {
+            AuditService::log(
+                'settings.updated',
+                'settings',
+                null,
+                'Configuration système',
+                ['changes' => $success, 'errors' => $errors],
+                $user['id']
+            );
+        }
+
         // Rediriger avec message
         $message = !empty($success) ? 'success=' . urlencode(implode(', ', $success)) : '';
         if (!empty($errors)) {

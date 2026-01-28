@@ -7,6 +7,7 @@ namespace KDocs\Controllers;
 
 use KDocs\Core\Auth;
 use KDocs\Core\Config;
+use KDocs\Services\AuditService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -85,6 +86,9 @@ class AuthController
         // #endregion
 
         if (!$user) {
+            // Log échec de connexion
+            AuditService::log('auth.login_failed', 'user', null, $username);
+
             // Afficher à nouveau le formulaire avec erreur
             $basePath = Config::basePath();
             $loginContent = $this->renderTemplate(__DIR__ . '/../../templates/auth/login.php', [
@@ -108,6 +112,9 @@ class AuthController
         $userAgent = $request->getHeaderLine('User-Agent');
 
         Auth::createSession($user['id'], $sessionId, $ipAddress, $userAgent);
+
+        // Log connexion réussie
+        AuditService::log('auth.login', 'user', $user['id'], $user['username'], null, $user['id']);
 
         // Définir le cookie de session avec Slim
         $basePath = Config::basePath();
@@ -138,8 +145,15 @@ class AuthController
         // #endregion
         
         $sessionId = $_COOKIE['kdocs_session'] ?? null;
+        $user = null;
         if ($sessionId) {
+            $user = Auth::getUserFromSession($sessionId);
             Auth::destroySession($sessionId);
+        }
+
+        // Log déconnexion
+        if ($user) {
+            AuditService::log('auth.logout', 'user', $user['id'], $user['username'], null, $user['id']);
         }
 
         // Supprimer le cookie
