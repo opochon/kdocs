@@ -67,54 +67,65 @@ class MailAccount
     public static function update(int $id, array $data): bool
     {
         $db = Database::getInstance();
-        
+
         $fields = [];
         $params = [];
-        
+
         if (isset($data['name'])) {
             $fields[] = 'name = ?';
             $params[] = $data['name'];
         }
-        
+
         if (isset($data['imap_server'])) {
             $fields[] = 'imap_server = ?';
             $params[] = $data['imap_server'];
         }
-        
+
         if (isset($data['imap_port'])) {
             $fields[] = 'imap_port = ?';
             $params[] = $data['imap_port'];
         }
-        
+
         if (isset($data['imap_security'])) {
             $fields[] = 'imap_security = ?';
             $params[] = $data['imap_security'];
         }
-        
+
         if (isset($data['username'])) {
             $fields[] = 'username = ?';
             $params[] = $data['username'];
         }
-        
-        if (isset($data['password'])) {
+
+        if (!empty($data['password'])) {
             $fields[] = 'password_encrypted = ?';
             $params[] = self::encryptPassword($data['password']);
         }
-        
+
         if (isset($data['character_set'])) {
             $fields[] = 'character_set = ?';
             $params[] = $data['character_set'];
         }
-        
-        if (isset($data['is_active'])) {
+
+        if (array_key_exists('is_active', $data)) {
             $fields[] = 'is_active = ?';
-            $params[] = $data['is_active'];
+            $params[] = $data['is_active'] ? 1 : 0;
         }
-        
+
+        // Ingestion fields
+        $ingestionFields = ['folder', 'processed_folder', 'check_interval', 'filter_from',
+                           'filter_subject', 'default_correspondent_id', 'default_document_type_id',
+                           'default_folder_id'];
+        foreach ($ingestionFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $fields[] = "$field = ?";
+                $params[] = $data[$field] === '' ? null : $data[$field];
+            }
+        }
+
         if (empty($fields)) {
             return false;
         }
-        
+
         $params[] = $id;
         $stmt = $db->prepare("UPDATE mail_accounts SET " . implode(', ', $fields) . " WHERE id = ?");
         return $stmt->execute($params);

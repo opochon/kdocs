@@ -1,6 +1,8 @@
 <?php
 namespace KDocs\Services;
+
 use KDocs\Core\Config;
+use KDocs\Helpers\SystemHelper;
 
 class OCRService
 {
@@ -14,8 +16,7 @@ class OCRService
         
         // Vérifier si le chemin configuré existe, sinon essayer dans PATH
         if ($this->tesseractPath !== 'tesseract' && !file_exists($this->tesseractPath)) {
-            exec("where tesseract 2>&1", $whereOutput, $whereCode);
-            if ($whereCode === 0) {
+            if (SystemHelper::commandExists('tesseract')) {
                 $this->tesseractPath = 'tesseract';
             }
         }
@@ -78,20 +79,12 @@ class OCRService
         $pdfCmd = escapeshellarg($pdfPath);
         $outputCmd = escapeshellarg($outputFile);
         
-        // Vérifier si pdftotext est disponible dans le PATH
-        exec("where pdftotext 2>&1", $whereOutput, $whereCode);
-        $pdftotextPath = ($whereCode === 0) ? 'pdftotext' : null;
-        
-        // Si pas dans PATH, vérifier dans config
-        if (!$pdftotextPath) {
-            $config = Config::load();
-            $pdftotextPath = $config['tools']['pdftotext'] ?? null;
-            if ($pdftotextPath && file_exists($pdftotextPath)) {
-                // Garder le chemin tel quel, sera échappé plus tard
-            } else {
-                $pdftotextPath = null;
-            }
-        }
+        // Vérifier si pdftotext est disponible
+        $config = Config::load();
+        $configPath = $config['tools']['pdftotext'] ?? null;
+        $pdftotextPath = SystemHelper::findExecutable('pdftotext',
+            $configPath ? [$configPath, ...SystemHelper::getDefaultPaths('pdftotext')] : SystemHelper::getDefaultPaths('pdftotext')
+        );
         
         if ($pdftotextPath) {
             $pdftotextCmd = escapeshellarg($pdftotextPath);
@@ -122,19 +115,10 @@ class OCRService
         $conversionSuccess = false;
         
         // Essayer pdftoppm d'abord
-        exec("where pdftoppm 2>&1", $pdftoppmCheck, $pdftoppmCheckCode);
-        $pdftoppmPath = ($pdftoppmCheckCode === 0) ? 'pdftoppm' : null;
-        
-        // Si pas dans PATH, vérifier dans config
-        if (!$pdftoppmPath) {
-            $config = Config::load();
-            $pdftoppmPath = $config['tools']['pdftoppm'] ?? null;
-            if ($pdftoppmPath && file_exists($pdftoppmPath)) {
-                // Garder le chemin tel quel
-            } else {
-                $pdftoppmPath = null;
-            }
-        }
+        $configPdftoppm = $config['tools']['pdftoppm'] ?? null;
+        $pdftoppmPath = SystemHelper::findExecutable('pdftoppm',
+            $configPdftoppm ? [$configPdftoppm, ...SystemHelper::getDefaultPaths('pdftoppm')] : SystemHelper::getDefaultPaths('pdftoppm')
+        );
         
         if ($pdftoppmPath) {
             $pdftoppmCmd = escapeshellarg($pdftoppmPath);
@@ -148,20 +132,15 @@ class OCRService
         
         // Fallback ImageMagick si pdftoppm n'est pas disponible ou a échoué
         if (!$conversionSuccess) {
-            $config = Config::load();
-            $imageMagickPath = $config['tools']['imagemagick'] ?? 'magick';
-            
-            // Vérifier si le chemin configuré existe
-            if ($imageMagickPath !== 'magick' && file_exists($imageMagickPath)) {
+            $configImageMagick = $config['tools']['imagemagick'] ?? null;
+            $imageMagickPath = SystemHelper::findExecutable('magick',
+                $configImageMagick ? [$configImageMagick, ...SystemHelper::getDefaultPaths('imagemagick')] : SystemHelper::getDefaultPaths('imagemagick')
+            );
+
+            if ($imageMagickPath) {
                 $imageMagickCmd = escapeshellarg($imageMagickPath);
             } else {
-                // Essayer dans PATH
-                exec("where magick 2>&1", $imCheck, $imCheckCode);
-                if ($imCheckCode === 0) {
-                    $imageMagickCmd = 'magick';
-                } else {
-                    $imageMagickCmd = null;
-                }
+                $imageMagickCmd = null;
             }
             
             if ($imageMagickCmd) {

@@ -41,7 +41,7 @@ class AutoIndexMiddleware implements MiddlewareInterface
 
             $stmt = $db->query("
                 SELECT `key`, value FROM settings
-                WHERE `key` IN ('indexing_auto_enabled', 'indexing_interval_minutes', 'filesystem_last_index')
+                WHERE `key` IN ('indexing_auto_enabled', 'indexing_interval_minutes', 'filesystem_last_index', 'indexing_last_attempt')
             ");
             $settings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
 
@@ -52,10 +52,17 @@ class AutoIndexMiddleware implements MiddlewareInterface
 
             $intervalMinutes = (int)($settings['indexing_interval_minutes'] ?? 60);
             $lastRun = isset($settings['filesystem_last_index']) ? (int)$settings['filesystem_last_index'] : 0;
+            $lastAttempt = isset($settings['indexing_last_attempt']) ? (int)$settings['indexing_last_attempt'] : 0;
             $intervalSeconds = $intervalMinutes * 60;
 
-            // Si l'intervalle n'est pas depasse, sortir
+            // Si l'intervalle n'est pas depasse depuis la derniere indexation reussie, sortir
             if ($lastRun > 0 && (time() - $lastRun) < $intervalSeconds) {
+                return;
+            }
+
+            // Eviter les tentatives trop frequentes (cooldown de 5 minutes apres un echec)
+            $cooldownSeconds = 300; // 5 minutes
+            if ($lastAttempt > 0 && (time() - $lastAttempt) < $cooldownSeconds) {
                 return;
             }
 
@@ -67,12 +74,28 @@ class AutoIndexMiddleware implements MiddlewareInterface
                 return; // Deja en cours
             }
 
+            // Enregistrer cette tentative
+            $this->recordAttempt($db);
+
             // Lancer l'indexation en arriere-plan
             $this->launchBackgroundIndexing();
 
         } catch (\Exception $e) {
             // Ignorer silencieusement les erreurs pour ne pas bloquer la navigation
             error_log("AutoIndexMiddleware error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Enregistre une tentative d'indexation
+     */
+    private function recordAttempt($db): void
+    {
+        try {
+            $stmt = $db->prepare("INSERT INTO settings (`key`, value) VALUES ('indexing_last_attempt', ?) ON DUPLICATE KEY UPDATE value = VALUES(value)");
+            $stmt->execute([(string)time()]);
+        } catch (\Exception $e) {
+            // Ignorer
         }
     }
 
@@ -100,13 +123,24 @@ class AutoIndexMiddleware implements MiddlewareInterface
         $workerPath = dirname(__DIR__) . '/workers/indexing_worker.php';
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows: utiliser wmic pour lancement en arriere-plan (plus fiable depuis Apache)
-            $cmd = sprintf(
-                'wmic process call create "cmd /c \"%s\" \"%s\"" 2>&1',
-                str_replace('/', '\\', $phpPath),
-                str_replace('/', '\\', $workerPath)
-            );
-            @exec($cmd);
+            // Windows: utiliser VBS pour lancement en arriere-plan (plus fiable depuis Apache)
+            $phpPathWin = str_replace('/', '\\', $phpPath);
+            $workerPathWin = str_replace('/', '\\', $workerPath);
+
+            // Creer un script VBS temporaire
+            $vbsScript = sys_get_temp_dir() . '\\kdocs_indexing_' . uniqid() . '.vbs';
+            $vbsContent = "Set WshShell = CreateObject(\"WScript.Shell\")\n";
+            $vbsContent .= "WshShell.Run \"\"\"$phpPathWin\"\" \"\"$workerPathWin\"\"\", 0, False\n";
+            $vbsContent .= "Set WshShell = Nothing\n";
+
+            if (@file_put_contents($vbsScript, $vbsContent)) {
+                $command = 'cscript.exe //nologo "' . $vbsScript . '"';
+                pclose(popen($command, 'r'));
+
+                // Nettoyer le script VBS après un court delai
+                usleep(100000); // 100ms
+                @unlink($vbsScript);
+            }
         } else {
             // Linux/Mac
             $cmd = "$phpPath $workerPath > /dev/null 2>&1 &";

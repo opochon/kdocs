@@ -120,7 +120,7 @@ class FilesystemIndexer
         }
 
         // Si le processus a ete interrompu (pas de mise a jour depuis 30s)
-        if (isset($data['status']) && $data['status'] === 'running') {
+        if (isset($data['status']) && in_array($data['status'], ['running', 'starting'])) {
             if (time() - ($data['updated_at'] ?? 0) > 30) {
                 $data['status'] = 'stale';
             }

@@ -12,6 +12,7 @@
 namespace KDocs\Services;
 
 use KDocs\Core\Config;
+use KDocs\Helpers\SystemHelper;
 
 class ThumbnailGenerator
 {
@@ -42,49 +43,21 @@ class ThumbnailGenerator
     }
 
     /**
-     * Trouve Ghostscript sur Windows
+     * Trouve Ghostscript (cross-platform)
      */
     private function findGhostscript(): string
     {
-        // Chercher dans les emplacements courants de Windows
-        $paths = glob('C:/Program Files/gs/gs*/bin/gswin64c.exe');
-        if (!empty($paths)) {
-            rsort($paths);
-            return $paths[0];
-        }
-
-        $paths = glob('C:/Program Files (x86)/gs/gs*/bin/gswin32c.exe');
-        if (!empty($paths)) {
-            rsort($paths);
-            return $paths[0];
-        }
-
-        return 'gs';
+        $found = SystemHelper::findGhostscript();
+        return $found ?? 'gs';
     }
 
     /**
-     * Trouve LibreOffice sur Windows
+     * Trouve LibreOffice (cross-platform)
      */
     private function findLibreOffice(): string
     {
-        $paths = [
-            'C:/Program Files/LibreOffice/program/soffice.exe',
-            'C:/Program Files (x86)/LibreOffice/program/soffice.exe',
-        ];
-
-        foreach ($paths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        // Chercher avec glob
-        $globs = glob('C:/Program Files*/LibreOffice*/program/soffice.exe');
-        if (!empty($globs)) {
-            return $globs[0];
-        }
-
-        return 'soffice';
+        $found = SystemHelper::findLibreOffice();
+        return $found ?? (SystemHelper::isWindows() ? 'soffice.exe' : 'libreoffice');
     }
 
     /**

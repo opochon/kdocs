@@ -131,9 +131,17 @@ class ChatApiController extends ApiController
         // Save user message
         $this->chatService->addMessage($id, 'user', $question);
 
+        // Build search options
+        $searchOptions = [
+            'scope' => $body['scope'] ?? 'all',
+            'date_from' => $body['date_from'] ?? null,
+            'date_to' => $body['date_to'] ?? null,
+            'folder_id' => $body['folder_id'] ?? null,
+        ];
+
         // Get AI response
         try {
-            $result = $this->nlService->query($question);
+            $result = $this->nlService->query($question, $searchOptions);
 
             $aiResponse = $result->aiResponse ?? "J'ai trouvé {$result->total} document(s).";
 

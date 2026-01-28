@@ -141,11 +141,13 @@ class MailAccountsController
         ], 'A');
         // #endregion
         $id = (int)$args['id'];
-        $result = MailAccount::testConnection($id);
-        
-        return $response->withJson($result);
+        $service = new \KDocs\Services\EmailIngestionService();
+        $result = $service->testConnection($id);
+
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json');
     }
-    
+
     /**
      * Traitement manuel des emails
      */
@@ -158,9 +160,11 @@ class MailAccountsController
         ], 'A');
         // #endregion
         $id = (int)$args['id'];
-        $result = MailService::processAccount($id);
-        
-        return $response->withJson($result);
+        $service = new \KDocs\Services\EmailIngestionService();
+        $result = $service->processAccount($id);
+
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json');
     }
     
     /**

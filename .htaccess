@@ -1,6 +1,22 @@
 RewriteEngine On
 RewriteBase /kdocs/
 
+# ===== PROTECTION DES FICHIERS SENSIBLES =====
+# Bloquer l'accès aux fichiers de configuration et développement
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|\.env.*|\.git.*|\.htaccess|phpunit\.xml|README\.md|WORKLOG\.md)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquer l'accès aux dossiers sensibles via RewriteRule
+RewriteRule ^vendor(/.*)?$ - [F,L]
+RewriteRule ^app(/.*)?$ - [F,L]
+RewriteRule ^config(/.*)?$ - [F,L]
+RewriteRule ^database(/.*)?$ - [F,L]
+RewriteRule ^storage(/.*)?$ - [F,L]
+RewriteRule ^tests(/.*)?$ - [F,L]
+RewriteRule ^\.claude(/.*)?$ - [F,L]
+
+# ===== RÈGLES DE ROUTAGE =====
 # Servir les fichiers statiques directement depuis public/
 RewriteRule ^public/(.*)$ public/$1 [L]
 

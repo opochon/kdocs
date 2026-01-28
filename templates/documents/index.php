@@ -11,31 +11,32 @@ $base = Config::basePath();
     <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/50" onclick="closeDocumentPreview()"></div>
 
-    <!-- Panneau latéral (80% de la largeur) -->
-    <div class="absolute right-0 top-0 bottom-0 w-full max-w-5xl bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="preview-panel">
+    <!-- Panneau latéral (90% de la largeur) -->
+    <div class="absolute right-0 top-0 bottom-0 w-full max-w-6xl bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="preview-panel">
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+        <div class="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
             <div class="flex items-center gap-3">
                 <button onclick="closeDocumentPreview()" class="p-1 hover:bg-gray-200 rounded" title="Fermer (Echap)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-                <h2 id="preview-title" class="font-medium text-gray-900 truncate max-w-md">Chargement...</h2>
+                <h2 id="preview-title" class="font-medium text-gray-900 truncate max-w-lg">Chargement...</h2>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Navigation prev/next -->
-                <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document précédent">
+                <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document précédent (←)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
-                <button onclick="navigatePreview(1)" id="preview-next-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document suivant">
+                <span class="text-xs text-gray-400" id="preview-position"></span>
+                <button onclick="navigatePreview(1)" id="preview-next-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document suivant (→)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
-                <span class="text-xs text-gray-400 mx-2" id="preview-position"></span>
+                <span class="mx-1 text-gray-300">|</span>
                 <!-- Actions -->
                 <a href="#" id="preview-download-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Télécharger">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,8 +53,8 @@ $base = Config::basePath();
 
         <!-- Contenu -->
         <div class="flex-1 flex overflow-hidden">
-            <!-- Viewer (60%) -->
-            <div class="w-3/5 bg-gray-100 flex items-center justify-center overflow-auto p-4" id="preview-viewer-container">
+            <!-- Viewer (55%) -->
+            <div class="w-1/2 lg:w-3/5 bg-gray-100 flex items-center justify-center overflow-auto" id="preview-viewer-container">
                 <div id="preview-loading" class="text-center">
                     <svg class="w-8 h-8 text-gray-400 mx-auto animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -66,10 +67,10 @@ $base = Config::basePath();
                 </div>
             </div>
 
-            <!-- Métadonnées (40%) -->
-            <div class="w-2/5 border-l bg-white overflow-y-auto p-4">
+            <!-- Formulaire d'édition (45%) -->
+            <div class="w-1/2 lg:w-2/5 border-l bg-white overflow-y-auto p-3">
                 <div id="preview-metadata">
-                    <!-- Chargement des métadonnées -->
+                    <!-- Formulaire sera injecté ici -->
                 </div>
             </div>
         </div>
@@ -504,99 +505,371 @@ function renderDocumentViewer(doc) {
     }
 }
 
-// Afficher les métadonnées
+// Variable globale pour le document actuel
+let currentPreviewDocument = null;
+
+// Afficher les métadonnées (version éditable complète)
 function renderDocumentMetadata(doc) {
+    currentPreviewDocument = doc;
     const metadata = document.getElementById('preview-metadata');
+    const meta = doc._meta || {};
 
     const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toISOString().split('T')[0];
+    };
+
+    const formatDisplayDate = (dateStr) => {
         if (!dateStr) return '-';
         const d = new Date(dateStr);
         return d.toLocaleDateString('fr-CH');
     };
 
-    const formatSize = (bytes) => {
-        if (!bytes) return '-';
-        const sizes = ['o', 'Ko', 'Mo', 'Go'];
-        const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i];
-    };
+    // Options pour les selects
+    const correspondentOptions = (meta.correspondents || []).map(c =>
+        `<option value="${c.id}" ${doc.correspondent_id == c.id ? 'selected' : ''}>${c.name}</option>`
+    ).join('');
 
-    // Tags HTML
-    let tagsHtml = '-';
-    if (doc.tags && doc.tags.length > 0) {
-        tagsHtml = doc.tags.map(tag => `
-            <span class="inline-block px-2 py-0.5 text-xs rounded-full mr-1 mb-1"
-                  style="background-color: ${tag.color || '#e5e7eb'}20; color: ${tag.color || '#6b7280'}; border: 1px solid ${tag.color || '#e5e7eb'}">
-                ${tag.name}
+    const typeOptions = (meta.document_types || []).map(t =>
+        `<option value="${t.id}" ${doc.document_type_id == t.id ? 'selected' : ''}>${t.label}</option>`
+    ).join('');
+
+    // Tags sélectionnés
+    const selectedTagIds = (doc.tags || []).map(t => t.id);
+    const tagCheckboxes = (meta.all_tags || []).map(t => `
+        <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+            <input type="checkbox" name="preview_tags" value="${t.id}" ${selectedTagIds.includes(t.id) ? 'checked' : ''}
+                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="px-1.5 py-0.5 rounded" style="background-color: ${t.color || '#e5e7eb'}20; color: ${t.color || '#6b7280'}">
+                ${t.name}
             </span>
-        `).join('');
-    }
+        </label>
+    `).join('');
+
+    // Statut de validation
+    const validationStatus = doc.validation_status || 'pending';
+    const validationBadge = {
+        'approved': '<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Validé</span>',
+        'rejected': '<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">Rejeté</span>',
+        'na': '<span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">N/A</span>',
+        'pending': '<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">En attente</span>'
+    }[validationStatus] || '';
+
+    // Notes
+    const notesHtml = (doc.notes || []).length > 0
+        ? doc.notes.map(note => `
+            <div class="bg-gray-50 rounded p-2 text-xs border">
+                <div class="flex justify-between items-start">
+                    <p class="text-gray-700 whitespace-pre-wrap flex-1">${note.note || note.content || ''}</p>
+                    <button onclick="deleteNotePreview(${note.id})" class="text-red-500 hover:text-red-700 ml-2">×</button>
+                </div>
+                <p class="text-gray-400 mt-1">${note.user_name || ''} • ${formatDisplayDate(note.created_at)}</p>
+            </div>
+        `).join('')
+        : '<p class="text-xs text-gray-400">Aucune note</p>';
+
+    // OCR/Résumé (premiers 500 caractères)
+    const ocrPreview = doc.ocr_text
+        ? (doc.ocr_text.length > 500 ? doc.ocr_text.substring(0, 500) + '...' : doc.ocr_text)
+        : '';
 
     metadata.innerHTML = `
-        <div class="space-y-4">
+        <div class="space-y-3 text-sm">
+            <!-- Header avec AI et validation -->
+            <div class="flex items-center justify-between pb-2 border-b">
+                ${doc.ai_available ? `
+                <button onclick="getAISuggestionsPreview(${doc.id})" class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50">
+                    Suggestions IA
+                </button>
+                ` : '<span></span>'}
+                <div>${validationBadge}</div>
+            </div>
+
+            <!-- Validation rapide -->
+            ${doc.can_validate ? `
+            <div class="flex gap-1 pb-2 border-b">
+                <button onclick="setValidationStatus(${doc.id}, 'approved')"
+                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'approved' ? 'bg-green-600 text-white' : 'border border-green-300 text-green-700 hover:bg-green-50'}">
+                    Valider
+                </button>
+                <button onclick="setValidationStatus(${doc.id}, 'rejected')"
+                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'rejected' ? 'bg-red-600 text-white' : 'border border-red-300 text-red-700 hover:bg-red-50'}">
+                    Rejeter
+                </button>
+                <button onclick="setValidationStatus(${doc.id}, 'na')"
+                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'na' ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
+                    N/A
+                </button>
+            </div>
+            ` : ''}
+
             <!-- Titre -->
             <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Titre</label>
-                <p class="text-sm text-gray-900">${doc.title || doc.filename || '-'}</p>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Titre</label>
+                <input type="text" id="preview-title-input" value="${doc.title || ''}" placeholder="${doc.filename || ''}"
+                       class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <!-- Type de document -->
             <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Type</label>
-                <p class="text-sm text-gray-900">${doc.document_type_label || '-'}</p>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <select id="preview-type-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    <option value="">Non défini</option>
+                    ${typeOptions}
+                </select>
             </div>
 
             <!-- Correspondant -->
             <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Correspondant</label>
-                <p class="text-sm text-gray-900">${doc.correspondent_name || '-'}</p>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Correspondant</label>
+                <select id="preview-correspondent-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    <option value="">Non défini</option>
+                    ${correspondentOptions}
+                </select>
+            </div>
+
+            <!-- Date -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Date du document</label>
+                <input type="date" id="preview-date-input" value="${formatDate(doc.document_date)}"
+                       class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
             </div>
 
             <!-- Tags -->
             <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Tags</label>
-                <div class="flex flex-wrap">${tagsHtml}</div>
-            </div>
-
-            <!-- Date du document -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Date du document</label>
-                <p class="text-sm text-gray-900">${formatDate(doc.document_date)}</p>
-            </div>
-
-            <!-- Montant -->
-            ${doc.amount ? `
-            <div>
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Montant</label>
-                <p class="text-sm text-gray-900">${doc.amount} ${doc.currency || 'CHF'}</p>
-            </div>
-            ` : ''}
-
-            <!-- Informations fichier -->
-            <div class="pt-4 border-t">
-                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Fichier</label>
-                <div class="text-xs text-gray-500 space-y-1">
-                    <p><span class="font-medium">Nom:</span> ${doc.original_filename || doc.filename}</p>
-                    <p><span class="font-medium">Taille:</span> ${formatSize(doc.file_size)}</p>
-                    <p><span class="font-medium">Type:</span> ${doc.mime_type || '-'}</p>
-                    <p><span class="font-medium">Créé le:</span> ${formatDate(doc.created_at)}</p>
-                    ${doc.asn ? `<p><span class="font-medium">ASN:</span> ${doc.asn}</p>` : ''}
+                <label class="block text-xs font-medium text-gray-500 mb-1">Tags</label>
+                <div class="max-h-24 overflow-y-auto space-y-1 p-2 border rounded bg-gray-50">
+                    ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucun tag disponible</p>'}
                 </div>
             </div>
 
+            <!-- Notes -->
+            <div class="pt-2 border-t">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Notes</label>
+                <div class="space-y-2 max-h-32 overflow-y-auto mb-2">
+                    ${notesHtml}
+                </div>
+                <div class="flex gap-1">
+                    <input type="text" id="preview-new-note" placeholder="Ajouter une note..."
+                           class="flex-1 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"
+                           onkeypress="if(event.key==='Enter')addNotePreview(${doc.id})">
+                    <button onclick="addNotePreview(${doc.id})" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">+</button>
+                </div>
+            </div>
+
+            <!-- Résumé/OCR -->
+            ${ocrPreview ? `
+            <div class="pt-2 border-t">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Contenu extrait</label>
+                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">${ocrPreview}</div>
+            </div>
+            ` : ''}
+
+            <!-- Infos fichier -->
+            <div class="pt-2 border-t text-xs text-gray-500">
+                <p><span class="font-medium">Fichier:</span> ${doc.original_filename || doc.filename}</p>
+                <p><span class="font-medium">Créé:</span> ${formatDisplayDate(doc.created_at)}</p>
+                ${doc.asn ? `<p><span class="font-medium">ASN:</span> ${doc.asn}</p>` : ''}
+            </div>
+
             <!-- Actions -->
-            <div class="pt-4 border-t flex flex-col gap-2">
-                <a href="${BASE_PATH}/documents/${doc.id}"
-                   class="w-full px-3 py-2 bg-gray-900 text-white text-sm text-center rounded hover:bg-gray-800">
-                    Modifier le document
-                </a>
-                <a href="${BASE_PATH}/documents/${doc.id}/download"
-                   class="w-full px-3 py-2 bg-white text-gray-700 text-sm text-center rounded border hover:bg-gray-50">
-                    Télécharger
-                </a>
+            <div class="pt-3 border-t space-y-2">
+                <div class="flex gap-2">
+                    <button onclick="closeDocumentPreview()" class="flex-1 px-3 py-2 text-sm border rounded hover:bg-gray-50">
+                        Annuler
+                    </button>
+                    <button onclick="saveDocumentPreview(${doc.id})" class="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                        Enregistrer
+                    </button>
+                </div>
+                <button onclick="saveDocumentPreview(${doc.id}, true)" class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Enregistrer & suivant
+                </button>
             </div>
         </div>
     `;
+}
+
+// Sauvegarder le document depuis le preview
+async function saveDocumentPreview(docId, goNext = false) {
+    const title = document.getElementById('preview-title-input')?.value || '';
+    const documentTypeId = document.getElementById('preview-type-select')?.value || null;
+    const correspondentId = document.getElementById('preview-correspondent-select')?.value || null;
+    const documentDate = document.getElementById('preview-date-input')?.value || null;
+
+    // Récupérer les tags sélectionnés
+    const tagCheckboxes = document.querySelectorAll('input[name="preview_tags"]:checked');
+    const tagIds = Array.from(tagCheckboxes).map(cb => parseInt(cb.value));
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${docId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                document_type_id: documentTypeId || null,
+                correspondent_id: correspondentId || null,
+                document_date: documentDate || null,
+                tags: tagIds
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            // Mettre à jour l'affichage dans la grille si visible
+            const card = document.querySelector(`[data-doc-id="${docId}"]`);
+            if (card) {
+                const titleEl = card.querySelector('.doc-title');
+                if (titleEl) titleEl.textContent = title || currentPreviewDocument?.filename || '';
+            }
+
+            if (goNext) {
+                navigatePreview(1);
+            } else {
+                // Recharger le document pour afficher les changements
+                loadDocumentPreview(docId);
+            }
+        } else {
+            alert('Erreur: ' + (result.error || 'Échec de la sauvegarde'));
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        alert('Erreur lors de la sauvegarde');
+    }
+}
+
+// Définir le statut de validation
+async function setValidationStatus(docId, status) {
+    try {
+        const response = await fetch(`${BASE_PATH}/api/validation/${docId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ status: status })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            // Recharger le document
+            loadDocumentPreview(docId);
+        } else {
+            alert('Erreur: ' + (result.error || 'Échec de la validation'));
+        }
+    } catch (error) {
+        console.error('Validation error:', error);
+        alert('Erreur lors de la validation');
+    }
+}
+
+// Suggestions IA
+async function getAISuggestionsPreview(docId) {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Analyse...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${docId}/classify-ai`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+        if (result.success && result.data?.suggestions) {
+            const s = result.data.suggestions;
+            const matched = s.matched || {};
+
+            // Appliquer les suggestions aux champs
+            if (s.title_suggestion) {
+                document.getElementById('preview-title-input').value = s.title_suggestion;
+            }
+            if (matched.document_type_id) {
+                document.getElementById('preview-type-select').value = matched.document_type_id;
+            }
+            if (matched.correspondent_id) {
+                document.getElementById('preview-correspondent-select').value = matched.correspondent_id;
+            }
+            if (s.document_date) {
+                document.getElementById('preview-date-input').value = s.document_date;
+            }
+            if (matched.tag_ids && matched.tag_ids.length > 0) {
+                // Cocher les tags suggérés
+                document.querySelectorAll('input[name="preview_tags"]').forEach(cb => {
+                    cb.checked = matched.tag_ids.includes(parseInt(cb.value));
+                });
+            }
+
+            // Afficher un message avec le résumé si disponible
+            if (s.summary) {
+                console.log('Résumé IA:', s.summary);
+            }
+        } else {
+            alert(result.error || 'Aucune suggestion disponible');
+        }
+    } catch (error) {
+        console.error('AI error:', error);
+        alert('Erreur lors de l\'analyse IA');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Ajouter une note
+async function addNotePreview(docId) {
+    const input = document.getElementById('preview-new-note');
+    const note = input?.value?.trim();
+    if (!note) return;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${docId}/notes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ note: note })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            input.value = '';
+            loadDocumentPreview(docId);
+        } else {
+            alert('Erreur: ' + (result.error || 'Échec de l\'ajout'));
+        }
+    } catch (error) {
+        console.error('Note error:', error);
+        alert('Erreur lors de l\'ajout de la note');
+    }
+}
+
+// Supprimer une note
+async function deleteNotePreview(noteId) {
+    if (!confirm('Supprimer cette note ?')) return;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${currentPreviewDocument.id}/notes/${noteId}`, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (result.success && currentPreviewDocument) {
+            loadDocumentPreview(currentPreviewDocument.id);
+        }
+    } catch (error) {
+        console.error('Delete note error:', error);
+    }
 }
 
 // Raccourci clavier pour fermer

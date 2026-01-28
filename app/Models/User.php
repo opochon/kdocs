@@ -178,7 +178,7 @@ class User
 
     /**
      * Vérifie si un utilisateur a une permission
-     * Les permissions sont déterminées par les groupes de l'utilisateur
+     * Les permissions sont déterminées UNIQUEMENT par les groupes de l'utilisateur
      */
     public static function hasPermission(array $user, string $permission): bool
     {
@@ -189,11 +189,6 @@ class User
 
         // Vérifier si l'utilisateur est dans le groupe ADMIN
         if (self::isInAdminGroup($userId)) {
-            return true;
-        }
-
-        // Fallback: is_admin legacy
-        if ($user['is_admin'] ?? false) {
             return true;
         }
 

@@ -28,10 +28,11 @@ class RateLimitMiddleware implements MiddlewareInterface
     ) {
         $this->maxRequests = $maxRequests;
         $this->windowSeconds = $windowSeconds;
-        $this->storageDir = $storageDir ?? sys_get_temp_dir() . '/kdocs_ratelimit';
+        // Utiliser storage/ratelimit au lieu de sys_get_temp_dir()
+        $this->storageDir = $storageDir ?? dirname(__DIR__, 2) . '/storage/ratelimit';
 
         if (!is_dir($this->storageDir)) {
-            mkdir($this->storageDir, 0755, true);
+            @mkdir($this->storageDir, 0755, true);
         }
     }
 
@@ -117,10 +118,12 @@ class RateLimitMiddleware implements MiddlewareInterface
         $file = $this->getFilePath($identifier);
 
         if (file_exists($file)) {
-            $content = file_get_contents($file);
-            $data = json_decode($content, true);
-            if (is_array($data)) {
-                return $data;
+            $content = @file_get_contents($file);
+            if ($content !== false) {
+                $data = json_decode($content, true);
+                if (is_array($data)) {
+                    return $data;
+                }
             }
         }
 
@@ -133,7 +136,7 @@ class RateLimitMiddleware implements MiddlewareInterface
     private function saveRecord(string $identifier, array $record): void
     {
         $file = $this->getFilePath($identifier);
-        file_put_contents($file, json_encode($record), LOCK_EX);
+        @file_put_contents($file, json_encode($record), LOCK_EX);
     }
 
     /**
@@ -200,7 +203,7 @@ class RateLimitMiddleware implements MiddlewareInterface
 
         foreach (glob($this->storageDir . '/*.json') as $file) {
             if (filemtime($file) < $cutoff) {
-                unlink($file);
+                @unlink($file);
                 $count++;
             }
         }

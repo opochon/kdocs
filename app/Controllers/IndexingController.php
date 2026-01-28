@@ -134,23 +134,33 @@ class IndexingController
         $logFile = $this->logDir . '/worker_launch.log';
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows: utiliser WScript.Shell via PowerShell ou COM
-            // Methode 1: Via wmic (plus fiable depuis Apache)
-            $cmd = sprintf(
-                'wmic process call create "cmd /c \"%s\" \"%s\"" 2>&1',
-                str_replace('/', '\\', $phpPath),
-                str_replace('/', '\\', $workerPath)
-            );
-            @exec($cmd, $output, $code);
+            // Windows: utiliser VBS pour lancement en arriere-plan (plus fiable depuis Apache)
+            $phpPathWin = str_replace('/', '\\', $phpPath);
+            $workerPathWin = str_replace('/', '\\', $workerPath);
 
-            // Log pour debug
-            @file_put_contents($logFile, sprintf(
-                "[%s] Launch cmd: %s\nOutput: %s\nCode: %d\n",
-                date('Y-m-d H:i:s'),
-                $cmd,
-                implode("\n", $output ?? []),
-                $code
-            ), FILE_APPEND);
+            // Creer un script VBS temporaire
+            $vbsScript = sys_get_temp_dir() . '\\kdocs_indexing_' . uniqid() . '.vbs';
+            $vbsContent = "Set WshShell = CreateObject(\"WScript.Shell\")\n";
+            $vbsContent .= "WshShell.Run \"\"\"$phpPathWin\"\" \"\"$workerPathWin\"\"\", 0, False\n";
+            $vbsContent .= "Set WshShell = Nothing\n";
+
+            if (@file_put_contents($vbsScript, $vbsContent)) {
+                $command = 'cscript.exe //nologo "' . $vbsScript . '"';
+                pclose(popen($command, 'r'));
+
+                // Log pour debug
+                @file_put_contents($logFile, sprintf(
+                    "[%s] VBS Launch: %s\nPHP: %s\nWorker: %s\n",
+                    date('Y-m-d H:i:s'),
+                    $vbsScript,
+                    $phpPathWin,
+                    $workerPathWin
+                ), FILE_APPEND);
+
+                // Nettoyer le script VBS
+                usleep(100000); // 100ms
+                @unlink($vbsScript);
+            }
         } else {
             // Linux/Mac
             $cmd = "$phpPath $workerPath > /dev/null 2>&1 &";

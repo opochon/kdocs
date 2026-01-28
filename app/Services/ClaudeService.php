@@ -95,7 +95,7 @@ class ClaudeService
         }
         
         $ch = curl_init($this->apiUrl);
-        curl_setopt_array($ch, [
+        $curlOptions = [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
@@ -105,9 +105,17 @@ class ClaudeService
             ],
             CURLOPT_POSTFIELDS => json_encode($body),
             CURLOPT_TIMEOUT => 60,
-            CURLOPT_SSL_VERIFYPEER => false, // Désactiver la vérification SSL pour WAMP (à sécuriser en production)
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
+        ];
+
+        // Sur Windows/WAMP, utiliser le bundle CA si disponible
+        $caBundle = $this->findCaBundle();
+        if ($caBundle) {
+            $curlOptions[CURLOPT_CAINFO] = $caBundle;
+        }
+
+        curl_setopt_array($ch, $curlOptions);
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -201,7 +209,7 @@ class ClaudeService
         }
         
         $ch = curl_init($this->apiUrl);
-        curl_setopt_array($ch, [
+        $curlOptions = [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
@@ -211,27 +219,35 @@ class ClaudeService
             ],
             CURLOPT_POSTFIELDS => json_encode($body),
             CURLOPT_TIMEOUT => 120, // Plus de temps pour les fichiers
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
-        
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2
+        ];
+
+        // Sur Windows/WAMP, utiliser le bundle CA si disponible
+        $caBundle = $this->findCaBundle();
+        if ($caBundle) {
+            $curlOptions[CURLOPT_CAINFO] = $caBundle;
+        }
+
+        curl_setopt_array($ch, $curlOptions);
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         curl_close($ch);
-        
+
         if ($curlError) {
             error_log("ClaudeService curl error: $curlError");
             return null;
         }
-        
+
         if ($httpCode !== 200) {
             error_log("Claude API error: HTTP $httpCode - $response");
             // Enregistrer l'erreur
             $this->logUsage(null, 'file', null, null, "HTTP $httpCode");
             return null;
         }
-        
+
         $decoded = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log("ClaudeService JSON decode error: " . json_last_error_msg());
@@ -326,8 +342,50 @@ class ClaudeService
     }
     
     /**
+     * Trouve le bundle CA pour la vérification SSL
+     * Nécessaire sur Windows/WAMP où curl n'a pas de CA bundle par défaut
+     */
+    private function findCaBundle(): ?string
+    {
+        // Chemins courants pour le bundle CA
+        $paths = [
+            // WAMP avec PHP 8.x
+            'C:/wamp64/bin/php/php8.4.0/extras/ssl/cacert.pem',
+            'C:/wamp64/bin/php/php8.3.14/extras/ssl/cacert.pem',
+            'C:/wamp64/bin/php/extras/ssl/cacert.pem',
+            // XAMPP
+            'C:/xampp/php/extras/ssl/cacert.pem',
+            // Certifi standard
+            'C:/cacert.pem',
+            // Linux
+            '/etc/ssl/certs/ca-certificates.crt',
+            '/etc/pki/tls/certs/ca-bundle.crt',
+            '/etc/ssl/ca-bundle.pem',
+        ];
+
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        // Vérifier la config PHP
+        $iniPath = ini_get('curl.cainfo');
+        if ($iniPath && file_exists($iniPath)) {
+            return $iniPath;
+        }
+
+        $iniPath = ini_get('openssl.cafile');
+        if ($iniPath && file_exists($iniPath)) {
+            return $iniPath;
+        }
+
+        return null;
+    }
+
+    /**
      * Extraire le texte de la réponse Claude
-     * 
+     *
      * @param array $response Réponse de l'API Claude
      * @return string Texte extrait
      */

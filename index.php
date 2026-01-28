@@ -3,6 +3,13 @@
  * K-Docs - Point d'entrée principal
  */
 
+// Headers de sécurité
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
 // Charger l'autoloader Composer ou l'autoloader simple
 $autoloadPath = __DIR__ . '/vendor/autoload.php';
 if (file_exists($autoloadPath)) {
@@ -79,10 +86,12 @@ use KDocs\Controllers\Api\ValidationApiController;
 use KDocs\Controllers\Api\NotificationsApiController;
 use KDocs\Controllers\Api\UserNotesApiController;
 use KDocs\Controllers\Api\ChatApiController;
+use KDocs\Controllers\Api\OnlyOfficeApiController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
 use KDocs\Middleware\AutoIndexMiddleware;
+use KDocs\Middleware\RateLimitMiddleware;
 use KDocs\Core\Config;
 
 $app = App::create();
@@ -132,15 +141,21 @@ $app->get('/health', function($request, $response) {
         $checks['cache'] = ['status' => 'warning', 'message' => 'Not available'];
     }
 
-    // 4. OCR tools check
-    $tesseractPath = 'tesseract';
+    // 4. OCR tools check (cross-platform)
     $ocrAvailable = false;
-    exec("$tesseractPath --version 2>&1", $output, $returnCode);
-    if ($returnCode === 0) {
+    if (\KDocs\Helpers\SystemHelper::commandExists('tesseract')) {
         $checks['ocr'] = ['status' => 'ok', 'message' => 'Tesseract available'];
         $ocrAvailable = true;
     } else {
-        $checks['ocr'] = ['status' => 'warning', 'message' => 'Tesseract not found'];
+        // Essayer avec le chemin configuré
+        $config = \KDocs\Core\Config::load();
+        $tesseractPath = $config['ocr']['tesseract_path'] ?? 'tesseract';
+        if (file_exists($tesseractPath)) {
+            $checks['ocr'] = ['status' => 'ok', 'message' => 'Tesseract available (configured path)'];
+            $ocrAvailable = true;
+        } else {
+            $checks['ocr'] = ['status' => 'warning', 'message' => 'Tesseract not found'];
+        }
     }
 
     // 5. Queue worker check (optional)
@@ -394,7 +409,13 @@ $app->group('', function ($group) {
     $group->post('/api/folders/rename', [FoldersApiController::class, 'renameFolder']);
     $group->post('/api/folders/move', [FoldersApiController::class, 'moveFolder']);
     $group->post('/api/folders/delete', [FoldersApiController::class, 'deleteFolder']);
-    
+
+    // OnlyOffice API (prévisualisation documents Office)
+    $group->get('/api/onlyoffice/status', [OnlyOfficeApiController::class, 'status']);
+    $group->get('/api/onlyoffice/config/{documentId}', [OnlyOfficeApiController::class, 'getConfig']);
+    $group->get('/api/onlyoffice/download/{documentId}', [OnlyOfficeApiController::class, 'download']);
+    $group->post('/api/onlyoffice/callback/{documentId}', [OnlyOfficeApiController::class, 'saveCallback']);
+
     // Tâches
     $group->get('/tasks', [TasksController::class, 'index']);
     $group->get('/tasks/create', [TasksController::class, 'showCreate']);
@@ -554,7 +575,36 @@ $app->group('', function ($group) {
         $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
         return $res->withHeader('Content-Type', 'application/json');
     });
-})->add(new AutoIndexMiddleware())->add(new AuthMiddleware());
+
+    // API Email Ingestion
+    $group->get('/api/email-ingestion/logs', function($req, $res) {
+        $params = $req->getQueryParams();
+        $service = new \KDocs\Services\EmailIngestionService();
+        $accountId = isset($params['account_id']) ? (int)$params['account_id'] : null;
+        $limit = isset($params['limit']) ? min((int)$params['limit'], 500) : 50;
+        $logs = $service->getLogs($accountId, $limit);
+        $res->getBody()->write(json_encode(['success' => true, 'logs' => $logs]));
+        return $res->withHeader('Content-Type', 'application/json');
+    });
+    $group->post('/api/email-ingestion/process/{id}', function($req, $res, $args) {
+        $service = new \KDocs\Services\EmailIngestionService();
+        $result = $service->processAccount((int)$args['id']);
+        $res->getBody()->write(json_encode($result));
+        return $res->withHeader('Content-Type', 'application/json');
+    });
+    $group->post('/api/email-ingestion/process-all', function($req, $res) {
+        $service = new \KDocs\Services\EmailIngestionService();
+        $results = $service->processAllAccounts();
+        $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
+        return $res->withHeader('Content-Type', 'application/json');
+    });
+    $group->post('/api/email-ingestion/test/{id}', function($req, $res, $args) {
+        $service = new \KDocs\Services\EmailIngestionService();
+        $result = $service->testConnection((int)$args['id']);
+        $res->getBody()->write(json_encode($result));
+        return $res->withHeader('Content-Type', 'application/json');
+    });
+})->add(new AutoIndexMiddleware())->add(new RateLimitMiddleware(100, 60))->add(new \KDocs\Middleware\CSRFMiddleware())->add(new AuthMiddleware());
 
 // Démarrer l'application
 try {

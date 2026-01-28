@@ -9,15 +9,18 @@ namespace KDocs\Services;
 use KDocs\Core\Database;
 use KDocs\Search\SearchQuery;
 use KDocs\Search\SearchResult;
+use KDocs\Search\AdvancedSearchParser;
 use PDO;
 
 class SearchService
 {
     private \PDO $db;
-    
+    private AdvancedSearchParser $parser;
+
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $this->parser = new AdvancedSearchParser();
     }
     
     /**
@@ -166,28 +169,49 @@ class SearchService
         $select = "
             SELECT d.*,
                    c.name as correspondent_name,
-                   dt.label as document_type_name
+                   dt.label as document_type_name,
+                   df.path as folder_path
         ";
-        
+
         $from = "
             FROM documents d
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
+            LEFT JOIN document_folders df ON d.folder_id = df.id
         ";
-        
+
         $where = ["d.deleted_at IS NULL"];
         $params = [];
         $joins = [];
-        
-        // Full-text search
+
+        // Advanced full-text search with operators
         if (!empty($query->text)) {
-            $searchTerm = '%' . $query->text . '%';
-            $where[] = "(d.title LIKE :search_title OR d.content LIKE :search_content OR d.ocr_text LIKE :search_ocr)";
-            $params['search_title'] = $searchTerm;
-            $params['search_content'] = $searchTerm;
-            $params['search_ocr'] = $searchTerm;
+            $parsed = $this->parser->parse($query->text, $query->searchScope);
+            $where[] = $parsed['sql'];
+            $params = array_merge($params, $parsed['params']);
         }
-        
+
+        // Folder filter
+        if ($query->folderId) {
+            $where[] = "(d.folder_id = :folder_id OR df.path LIKE :folder_path_prefix)";
+            $params['folder_id'] = $query->folderId;
+            // Get folder path for subfolder matching
+            $folderStmt = $this->db->prepare("SELECT path FROM document_folders WHERE id = ?");
+            $folderStmt->execute([$query->folderId]);
+            $folderPath = $folderStmt->fetchColumn();
+            $params['folder_path_prefix'] = ($folderPath ?: '') . '/%';
+        }
+
+        // Date range filter
+        if ($query->dateFrom) {
+            $where[] = "DATE(d.created_at) >= :date_from";
+            $params['date_from'] = $query->dateFrom;
+        }
+        if ($query->dateTo) {
+            $where[] = "DATE(d.created_at) <= :date_to";
+            $params['date_to'] = $query->dateTo;
+        }
+
         // Correspondent filter
         if ($query->correspondentId) {
             $where[] = "d.correspondent_id = :correspondent_id";
@@ -401,7 +425,9 @@ class SearchService
      */
     private function enrichDocumentsWithRelevance(array $documents, string $searchText): array
     {
-        $searchTerms = preg_split('/\s+/', mb_strtolower(trim($searchText)));
+        // Use parser to get clean terms for highlighting
+        $searchTerms = $this->parser->getHighlightTerms($searchText);
+        $searchTerms = array_map('mb_strtolower', $searchTerms);
         $searchTerms = array_filter($searchTerms, fn($t) => mb_strlen($t) >= 2);
 
         foreach ($documents as &$doc) {

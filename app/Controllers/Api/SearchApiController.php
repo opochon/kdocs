@@ -32,13 +32,21 @@ class SearchApiController extends ApiController
             }
             
             $question = $data['question'] ?? '';
-            
+
             if (empty($question)) {
                 return $this->jsonResponse($response, ['error' => 'Question requise'], 400);
             }
-            
+
+            // Build search options from request
+            $searchOptions = [
+                'scope' => $data['scope'] ?? 'all',
+                'date_from' => $data['date_from'] ?? null,
+                'date_to' => $data['date_to'] ?? null,
+                'folder_id' => $data['folder_id'] ?? null,
+            ];
+
             // Utiliser le nouveau NaturalLanguageQueryService
-            $result = $this->nlQueryService->query($question);
+            $result = $this->nlQueryService->query($question, $searchOptions);
             
             // Convertir SearchResult en format attendu par le frontend
             return $this->jsonResponse($response, [

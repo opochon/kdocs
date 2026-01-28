@@ -22,24 +22,45 @@ class NaturalLanguageQueryService
     
     /**
      * Process a natural language question and return search results
+     *
+     * @param string $question The natural language question
+     * @param array $options Additional search options:
+     *   - scope: 'all', 'name', or 'content'
+     *   - date_from: Date string (YYYY-MM-DD)
+     *   - date_to: Date string (YYYY-MM-DD)
+     *   - folder_id: Limit search to specific folder
      */
-    public function query(string $question): \KDocs\Search\SearchResult
+    public function query(string $question, array $options = []): \KDocs\Search\SearchResult
     {
         // Convert question to search query using AI
         $searchQuery = $this->questionToSearchQuery($question);
-        
+
         if ($searchQuery === null) {
             // Fall back to simple text search
             $searchQuery = new SearchQuery();
             $searchQuery->text = $question;
         }
-        
+
+        // Apply additional options
+        if (!empty($options['scope'])) {
+            $searchQuery->searchScope = $options['scope'];
+        }
+        if (!empty($options['date_from'])) {
+            $searchQuery->dateFrom = $options['date_from'];
+        }
+        if (!empty($options['date_to'])) {
+            $searchQuery->dateTo = $options['date_to'];
+        }
+        if (!empty($options['folder_id'])) {
+            $searchQuery->folderId = (int)$options['folder_id'];
+        }
+
         // Execute search
         $result = $this->searchService->advancedSearch($searchQuery);
-        
+
         // Generate AI response summary
         $result->aiResponse = $this->generateResponseSummary($question, $result);
-        
+
         return $result;
     }
     

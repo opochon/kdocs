@@ -106,12 +106,61 @@ $isConfigured = $claudeService->isConfigured();
             </div>
         </div>
 
+        <!-- Search Options -->
+        <div id="search-options" class="border-t border-gray-100 px-4 py-2 bg-gray-50">
+            <div class="flex flex-wrap items-center gap-4 text-sm">
+                <!-- Search scope -->
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 mr-1">Rechercher dans:</span>
+                    <button type="button" data-scope="all" class="scope-btn px-2 py-1 rounded text-xs bg-gray-900 text-white">Tout</button>
+                    <button type="button" data-scope="name" class="scope-btn px-2 py-1 rounded text-xs bg-gray-200 text-gray-700 hover:bg-gray-300">Nom</button>
+                    <button type="button" data-scope="content" class="scope-btn px-2 py-1 rounded text-xs bg-gray-200 text-gray-700 hover:bg-gray-300">Contenu</button>
+                </div>
+
+                <!-- Date range -->
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-500">Période:</span>
+                    <input type="date" id="date-from" class="px-2 py-1 border border-gray-300 rounded text-xs" placeholder="Du">
+                    <span class="text-gray-400">-</span>
+                    <input type="date" id="date-to" class="px-2 py-1 border border-gray-300 rounded text-xs" placeholder="Au">
+                </div>
+
+                <!-- Folder filter -->
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-1 cursor-pointer">
+                        <input type="checkbox" id="current-folder-only" class="rounded border-gray-300">
+                        <span class="text-gray-500 text-xs">Dossier actuel</span>
+                    </label>
+                </div>
+
+                <!-- Help tooltip -->
+                <button type="button" id="search-help-btn" class="text-gray-400 hover:text-gray-600" title="Aide syntaxe">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Syntax help popup -->
+            <div id="syntax-help" class="hidden mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-xs">
+                <h4 class="font-semibold text-gray-700 mb-2">Syntaxe de recherche avancée</h4>
+                <div class="grid grid-cols-2 gap-2 text-gray-600">
+                    <div><code class="bg-gray-100 px-1 rounded">mot1 AND mot2</code> Les deux termes</div>
+                    <div><code class="bg-gray-100 px-1 rounded">mot1 OR mot2</code> L'un ou l'autre</div>
+                    <div><code class="bg-gray-100 px-1 rounded">"phrase exacte"</code> Expression exacte</div>
+                    <div><code class="bg-gray-100 px-1 rounded">NOT mot</code> Exclure un terme</div>
+                    <div><code class="bg-gray-100 px-1 rounded">fact*</code> Commence par "fact"</div>
+                    <div><code class="bg-gray-100 px-1 rounded">t?st</code> Un caractère variable</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Input -->
         <div class="border-t border-gray-100 p-4 bg-gray-50">
             <form id="chat-form" class="flex gap-2">
                 <input type="text" id="chat-input"
                        class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
-                       placeholder="Posez votre question..." autocomplete="off">
+                       placeholder="Recherchez avec AND, OR, &quot;phrase exacte&quot;, * wildcards..." autocomplete="off">
                 <button type="submit" id="send-btn"
                         class="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,6 +179,8 @@ $isConfigured = $claudeService->isConfigured();
 
     const BASE_URL = '<?= $base ?>';
     let currentConversationId = null;
+    let searchScope = 'all';
+    let currentFolderId = null; // Set from URL if on documents page
 
     // Elements
     const sidebar = document.getElementById('chat-sidebar');
@@ -140,6 +191,12 @@ $isConfigured = $claudeService->isConfigured();
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const newChatBtn = document.getElementById('new-chat-btn');
+    const scopeBtns = document.querySelectorAll('.scope-btn');
+    const dateFromInput = document.getElementById('date-from');
+    const dateToInput = document.getElementById('date-to');
+    const currentFolderCheckbox = document.getElementById('current-folder-only');
+    const searchHelpBtn = document.getElementById('search-help-btn');
+    const syntaxHelp = document.getElementById('syntax-help');
 
     // Escape HTML
     function escapeHtml(text) {
@@ -390,11 +447,20 @@ $isConfigured = $claudeService->isConfigured();
         // Show loading
         addLoadingIndicator();
 
+        // Build search options
+        const searchOptions = {
+            message,
+            scope: searchScope,
+            date_from: dateFromInput?.value || null,
+            date_to: dateToInput?.value || null,
+            folder_id: currentFolderCheckbox?.checked ? currentFolderId : null
+        };
+
         try {
             const response = await fetch(`${BASE_URL}/api/chat/conversations/${currentConversationId}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
+                body: JSON.stringify(searchOptions)
             });
 
             const data = await response.json();
@@ -477,6 +543,38 @@ $isConfigured = $claudeService->isConfigured();
                 e.preventDefault();
                 sendMessage(chatInput.value);
             });
+        }
+
+        // Scope buttons
+        scopeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                scopeBtns.forEach(b => {
+                    b.classList.remove('bg-gray-900', 'text-white');
+                    b.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                btn.classList.remove('bg-gray-200', 'text-gray-700');
+                btn.classList.add('bg-gray-900', 'text-white');
+                searchScope = btn.dataset.scope;
+            });
+        });
+
+        // Syntax help toggle
+        if (searchHelpBtn && syntaxHelp) {
+            searchHelpBtn.addEventListener('click', () => {
+                syntaxHelp.classList.toggle('hidden');
+            });
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (!searchHelpBtn.contains(e.target) && !syntaxHelp.contains(e.target)) {
+                    syntaxHelp.classList.add('hidden');
+                }
+            });
+        }
+
+        // Get current folder from URL if on documents page with folder filter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('folder_id')) {
+            currentFolderId = parseInt(urlParams.get('folder_id'));
         }
 
         // Load last conversation or create new

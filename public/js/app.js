@@ -20,10 +20,10 @@
     window.fetch = function(url, options = {}) {
         const method = (options.method || 'GET').toUpperCase();
 
-        // Ajouter le token CSRF pour les méthodes modificatrices (sauf API)
+        // Ajouter le token CSRF pour les méthodes modificatrices
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const token = getCSRFToken();
-            if (token && !url.includes('/api/')) {
+            if (token) {
                 options.headers = options.headers || {};
                 if (options.headers instanceof Headers) {
                     options.headers.set('X-CSRF-Token', token);
@@ -36,8 +36,65 @@
         return originalFetch.call(this, url, options);
     };
 
+    // Auto-injecter le token CSRF dans tous les formulaires HTML
+    function injectCSRFTokenInForms() {
+        const token = getCSRFToken();
+        if (!token) return;
+
+        document.querySelectorAll('form').forEach(form => {
+            // Vérifier si le formulaire a déjà un champ CSRF
+            if (form.querySelector('input[name="_csrf_token"]')) return;
+
+            // Ne pas ajouter aux formulaires GET
+            const method = (form.method || 'GET').toUpperCase();
+            if (method === 'GET') return;
+
+            // Créer et ajouter le champ hidden
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_csrf_token';
+            input.value = token;
+            form.appendChild(input);
+        });
+    }
+
+    // Injecter au chargement du DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectCSRFTokenInForms);
+    } else {
+        injectCSRFTokenInForms();
+    }
+
+    // Observer pour les formulaires ajoutés dynamiquement
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName === 'FORM') {
+                        injectCSRFTokenInForms();
+                    } else if (node.querySelectorAll) {
+                        const forms = node.querySelectorAll('form');
+                        if (forms.length > 0) {
+                            injectCSRFTokenInForms();
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    // Observer le body pour les changements dynamiques
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    }
+
     // Exposer la fonction pour usage manuel
     window.getCSRFToken = getCSRFToken;
+    window.injectCSRFTokenInForms = injectCSRFTokenInForms;
 })();
 
 // ===== THÈME SOMBRE (Priorité 3.5) =====
