@@ -11,6 +11,10 @@ use KDocs\Core\Config;
 class OnlyOfficeService
 {
     private array $config;
+    private static ?bool $serverAvailable = null;
+    private static int $lastCheck = 0;
+    private const CHECK_INTERVAL = 300; // 5 minutes cache
+
     private array $supportedFormats = [
         'docx', 'doc', 'odt', 'rtf', 'txt',
         'xlsx', 'xls', 'ods', 'csv',
@@ -24,11 +28,77 @@ class OnlyOfficeService
     }
 
     /**
-     * Vérifie si OnlyOffice est activé et configuré
+     * Vérifie si OnlyOffice est activé dans la config
      */
     public function isEnabled(): bool
     {
         return ($this->config['enabled'] ?? false) && !empty($this->config['server_url']);
+    }
+
+    /**
+     * Vérifie si le serveur OnlyOffice est réellement accessible
+     * Résultat mis en cache pendant CHECK_INTERVAL secondes
+     */
+    public function isAvailable(): bool
+    {
+        // Si pas activé, pas la peine de vérifier
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        // Utiliser le cache si récent
+        $now = time();
+        if (self::$serverAvailable !== null && ($now - self::$lastCheck) < self::CHECK_INTERVAL) {
+            return self::$serverAvailable;
+        }
+
+        // Vérifier la connectivité
+        self::$lastCheck = $now;
+        self::$serverAvailable = $this->checkServerHealth();
+
+        return self::$serverAvailable;
+    }
+
+    /**
+     * Vérifie la santé du serveur OnlyOffice (healthcheck endpoint)
+     */
+    private function checkServerHealth(): bool
+    {
+        $serverUrl = $this->getServerUrl();
+        if (empty($serverUrl)) {
+            return false;
+        }
+
+        $healthUrl = $serverUrl . '/healthcheck';
+
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 3, // Timeout court pour ne pas bloquer
+                'ignore_errors' => true,
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ]
+        ]);
+
+        try {
+            $response = @file_get_contents($healthUrl, false, $context);
+            // OnlyOffice healthcheck retourne "true" si OK
+            return $response !== false && (trim($response) === 'true' || strpos($response, 'true') !== false);
+        } catch (\Exception $e) {
+            error_log("OnlyOffice health check failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Réinitialise le cache de disponibilité (utile après config change)
+     */
+    public static function resetAvailabilityCache(): void
+    {
+        self::$serverAvailable = null;
+        self::$lastCheck = 0;
     }
 
     /**

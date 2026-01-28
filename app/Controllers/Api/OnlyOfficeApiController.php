@@ -33,10 +33,14 @@ class OnlyOfficeApiController
         $queryParams = $request->getQueryParams();
         $editMode = ($queryParams['mode'] ?? 'view') === 'edit';
 
-        if (!$this->service->isEnabled()) {
+        if (!$this->service->isAvailable()) {
+            $error = $this->service->isEnabled()
+                ? 'Le serveur OnlyOffice est actuellement inaccessible'
+                : 'OnlyOffice n\'est pas configuré sur ce serveur';
             return $this->jsonResponse($response, [
                 'success' => false,
-                'error' => 'OnlyOffice n\'est pas configuré sur ce serveur'
+                'error' => $error,
+                'enabled' => $this->service->isEnabled()
             ], 503);
         }
 
@@ -197,24 +201,22 @@ class OnlyOfficeApiController
     public function status(Request $request, Response $response): Response
     {
         $enabled = $this->service->isEnabled();
-        $serverUrl = $this->service->getServerUrl();
+        $available = $this->service->isAvailable();
 
         $status = [
             'enabled' => $enabled,
-            'server_url' => $serverUrl,
+            'available' => $available,
+            'server_url' => $this->service->getServerUrl(),
             'supported_formats' => $this->service->getSupportedFormats(),
         ];
 
-        // Vérifier la connectivité si activé
-        if ($enabled && $serverUrl) {
-            $healthUrl = $serverUrl . '/healthcheck';
-            $context = stream_context_create([
-                'http' => ['timeout' => 5],
-                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
-            ]);
-
-            $healthResponse = @file_get_contents($healthUrl, false, $context);
-            $status['server_reachable'] = ($healthResponse !== false);
+        // Message explicatif
+        if (!$enabled) {
+            $status['message'] = 'OnlyOffice n\'est pas activé dans la configuration';
+        } elseif (!$available) {
+            $status['message'] = 'Le serveur OnlyOffice est inaccessible';
+        } else {
+            $status['message'] = 'OnlyOffice est opérationnel';
         }
 
         return $this->jsonResponse($response, [

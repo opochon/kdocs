@@ -12,18 +12,17 @@ $editMode = $editMode ?? false;
 $documentId = $document['id'] ?? 0;
 $basePath = \KDocs\Core\Config::basePath();
 
-// Vérifier si OnlyOffice est activé
-$onlyOfficeConfig = \KDocs\Core\Config::get('onlyoffice', []);
-$onlyOfficeEnabled = ($onlyOfficeConfig['enabled'] ?? false) && !empty($onlyOfficeConfig['server_url']);
+// Vérifier si OnlyOffice est activé ET accessible
+$onlyOfficeService = new \KDocs\Services\OnlyOfficeService();
+$onlyOfficeAvailable = $onlyOfficeService->isAvailable();
 
 // Extensions supportées
-$supportedExtensions = ['docx', 'doc', 'odt', 'rtf', 'txt', 'xlsx', 'xls', 'ods', 'csv', 'pptx', 'ppt', 'odp', 'pdf'];
 $filename = $document['filename'] ?? $document['original_filename'] ?? '';
+$isSupported = $onlyOfficeService->isSupported($filename);
 $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-$isSupported = in_array($extension, $supportedExtensions);
 ?>
 
-<?php if ($onlyOfficeEnabled && $isSupported): ?>
+<?php if ($onlyOfficeAvailable && $isSupported): ?>
 <!-- OnlyOffice Preview Container -->
 <div id="onlyoffice-preview-container" class="w-full bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style="height: 600px;">
     <!-- Loading state -->
@@ -63,8 +62,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php elseif (!$onlyOfficeEnabled): ?>
-<!-- OnlyOffice non configuré -->
+<?php elseif (!$onlyOfficeAvailable): ?>
+<!-- OnlyOffice non disponible (non configuré ou serveur inaccessible) -->
+<?php
+    $isEnabled = $onlyOfficeService->isEnabled();
+    $message = $isEnabled
+        ? 'Le serveur OnlyOffice est actuellement inaccessible.'
+        : 'OnlyOffice n\'est pas configuré sur ce serveur.';
+?>
 <div class="w-full bg-gray-100 dark:bg-gray-800 rounded-lg p-8 text-center">
     <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Prévisualisation Office non disponible</h3>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        OnlyOffice n'est pas configuré sur ce serveur.
+        <?= htmlspecialchars($message) ?>
     </p>
     <a href="<?= $basePath ?>/api/documents/<?= $documentId ?>/download"
        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -98,10 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Format non supporté</h3>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Le format <code class="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">.<?= htmlspecialchars($extension) ?></code>
-        n'est pas supporté pour la prévisualisation OnlyOffice.
+        n'est pas supporté pour la prévisualisation.
     </p>
     <p class="text-xs text-gray-400 mb-4">
-        Formats supportés: <?= implode(', ', $supportedExtensions) ?>
+        Formats supportés: <?= implode(', ', $onlyOfficeService->getSupportedFormats()) ?>
     </p>
     <a href="<?= $basePath ?>/api/documents/<?= $documentId ?>/download"
        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
