@@ -158,21 +158,16 @@ class UsersController
             $updateData = [
                 'username' => $data['username'] ?? '',
                 'email' => $data['email'] ?? null,
-                'role' => $data['role'] ?? 'user',
             ];
-            
+
             if (!empty($data['password'])) {
                 $updateData['password'] = $data['password'];
             }
-            
+
             if (isset($data['is_active'])) {
                 $updateData['is_active'] = (bool)$data['is_active'];
             }
-            
-            if (!empty($data['permissions'])) {
-                $updateData['permissions'] = is_array($data['permissions']) ? $data['permissions'] : explode(',', $data['permissions']);
-            }
-            
+
             $userModel->update($id, $updateData);
             
             // Gérer les groupes
@@ -205,19 +200,14 @@ class UsersController
                     ->withHeader('Location', $basePath . '/admin/users')
                     ->withStatus(302);
             }
-            
+
             $createData = [
                 'username' => $data['username'],
                 'password' => $data['password'],
                 'email' => $data['email'] ?? null,
-                'role' => $data['role'] ?? 'user',
                 'is_active' => isset($data['is_active']) ? (bool)$data['is_active'] : true,
             ];
-            
-            if (!empty($data['permissions'])) {
-                $createData['permissions'] = is_array($data['permissions']) ? $data['permissions'] : explode(',', $data['permissions']);
-            }
-            
+
             $newId = $userModel->create($createData);
             
             // Ajouter aux groupes

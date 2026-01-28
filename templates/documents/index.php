@@ -6,6 +6,76 @@ use KDocs\Models\LogicalFolder;
 $base = Config::basePath();
 ?>
 
+<!-- Modale de prévisualisation du document -->
+<div id="document-preview-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50" onclick="closeDocumentPreview()"></div>
+
+    <!-- Panneau latéral (80% de la largeur) -->
+    <div class="absolute right-0 top-0 bottom-0 w-full max-w-5xl bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="preview-panel">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+            <div class="flex items-center gap-3">
+                <button onclick="closeDocumentPreview()" class="p-1 hover:bg-gray-200 rounded" title="Fermer (Echap)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <h2 id="preview-title" class="font-medium text-gray-900 truncate max-w-md">Chargement...</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Navigation prev/next -->
+                <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document précédent">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button onclick="navigatePreview(1)" id="preview-next-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document suivant">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+                <span class="text-xs text-gray-400 mx-2" id="preview-position"></span>
+                <!-- Actions -->
+                <a href="#" id="preview-download-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Télécharger">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </a>
+                <a href="#" id="preview-fullpage-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Ouvrir page complète">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenu -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Viewer (60%) -->
+            <div class="w-3/5 bg-gray-100 flex items-center justify-center overflow-auto p-4" id="preview-viewer-container">
+                <div id="preview-loading" class="text-center">
+                    <svg class="w-8 h-8 text-gray-400 mx-auto animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-sm text-gray-500 mt-2">Chargement...</p>
+                </div>
+                <div id="preview-viewer" class="hidden w-full h-full">
+                    <!-- PDF ou Image sera injecté ici -->
+                </div>
+            </div>
+
+            <!-- Métadonnées (40%) -->
+            <div class="w-2/5 border-l bg-white overflow-y-auto p-4">
+                <div id="preview-metadata">
+                    <!-- Chargement des métadonnées -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="flex min-h-screen bg-white w-full overflow-hidden">
     
     <!-- Sidebar gauche - Minimaliste -->
@@ -160,9 +230,11 @@ $base = Config::basePath();
             <?php else: ?>
             <!-- Grille de documents - Utilise toute la largeur disponible -->
             <div id="view-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">
-                <?php foreach ($documents as $doc): ?>
-                <a href="<?= url('/documents/' . ($doc['id'] ?? 'new')) ?>"
-                   class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative">
+                <?php foreach ($documents as $index => $doc): ?>
+                <div class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative cursor-pointer"
+                     data-doc-id="<?= $doc['id'] ?? '' ?>"
+                     data-doc-index="<?= $index ?>"
+                     onclick="openDocumentPreview(<?= $doc['id'] ?? 0 ?>, <?= $index ?>)">
                     <!-- Badge statut de validation -->
                     <?php
                     $validation_status = $doc['validation_status'] ?? null;
@@ -204,7 +276,7 @@ $base = Config::basePath();
                             <?= date('d/m/Y', strtotime($doc['created_at'] ?? 'now')) ?>
                         </p>
                     </div>
-                </a>
+                </div>
                 <?php endforeach; ?>
             </div>
             
@@ -273,6 +345,283 @@ $base = Config::basePath();
 </style>
 
 <script>
+// ===== MODALE DE PRÉVISUALISATION =====
+let currentPreviewIndex = 0;
+let documentsList = [];
+
+// Collecter tous les IDs des documents affichés
+function collectDocumentIds() {
+    documentsList = [];
+    document.querySelectorAll('.document-card[data-doc-id]').forEach(card => {
+        const id = parseInt(card.dataset.docId);
+        if (id > 0) {
+            documentsList.push(id);
+        }
+    });
+}
+
+// Ouvrir la modale de prévisualisation
+function openDocumentPreview(docId, index) {
+    if (!docId) return;
+
+    collectDocumentIds();
+    currentPreviewIndex = index;
+
+    const modal = document.getElementById('document-preview-modal');
+    const panel = document.getElementById('preview-panel');
+
+    // Afficher la modale
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Animer le panneau
+    setTimeout(() => {
+        panel.classList.remove('translate-x-full');
+    }, 10);
+
+    // Charger le document
+    loadDocumentPreview(docId);
+
+    // Mettre à jour la navigation
+    updatePreviewNavigation();
+}
+
+// Fermer la modale
+function closeDocumentPreview() {
+    const modal = document.getElementById('document-preview-modal');
+    const panel = document.getElementById('preview-panel');
+
+    panel.classList.add('translate-x-full');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        // Nettoyer le viewer
+        document.getElementById('preview-viewer').innerHTML = '';
+        document.getElementById('preview-viewer').classList.add('hidden');
+        document.getElementById('preview-loading').classList.remove('hidden');
+    }, 300);
+}
+
+// Naviguer entre les documents
+function navigatePreview(direction) {
+    const newIndex = currentPreviewIndex + direction;
+    if (newIndex >= 0 && newIndex < documentsList.length) {
+        currentPreviewIndex = newIndex;
+        const docId = documentsList[newIndex];
+        loadDocumentPreview(docId);
+        updatePreviewNavigation();
+    }
+}
+
+// Mettre à jour les boutons de navigation
+function updatePreviewNavigation() {
+    const prevBtn = document.getElementById('preview-prev-btn');
+    const nextBtn = document.getElementById('preview-next-btn');
+    const position = document.getElementById('preview-position');
+
+    prevBtn.disabled = currentPreviewIndex <= 0;
+    nextBtn.disabled = currentPreviewIndex >= documentsList.length - 1;
+    position.textContent = `${currentPreviewIndex + 1} / ${documentsList.length}`;
+}
+
+// Charger les détails du document
+function loadDocumentPreview(docId) {
+    const loading = document.getElementById('preview-loading');
+    const viewer = document.getElementById('preview-viewer');
+    const metadata = document.getElementById('preview-metadata');
+
+    loading.classList.remove('hidden');
+    viewer.classList.add('hidden');
+
+    fetch(`${BASE_PATH}/api/documents/${docId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.data) {
+                throw new Error(data.error || 'Document non trouvé');
+            }
+
+            const doc = data.data;
+
+            // Mettre à jour le titre
+            document.getElementById('preview-title').textContent = doc.title || doc.filename;
+
+            // Mettre à jour les liens
+            document.getElementById('preview-download-btn').href = `${BASE_PATH}/documents/${docId}/download`;
+            document.getElementById('preview-fullpage-btn').href = `${BASE_PATH}/documents/${docId}`;
+
+            // Afficher le viewer selon le type
+            renderDocumentViewer(doc);
+
+            // Afficher les métadonnées
+            renderDocumentMetadata(doc);
+
+            loading.classList.add('hidden');
+            viewer.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error loading document:', error);
+            loading.innerHTML = `<p class="text-red-500">Erreur: ${error.message}</p>`;
+        });
+}
+
+// Afficher le document (PDF ou image)
+function renderDocumentViewer(doc) {
+    const viewer = document.getElementById('preview-viewer');
+    const mimeType = doc.mime_type || '';
+
+    if (mimeType === 'application/pdf') {
+        // PDF viewer avec iframe
+        viewer.innerHTML = `
+            <iframe src="${BASE_PATH}/documents/${doc.id}/view#toolbar=1&navpanes=0"
+                    class="w-full h-full border-0 rounded bg-white"
+                    style="min-height: 600px;"></iframe>
+        `;
+    } else if (mimeType.startsWith('image/')) {
+        // Image
+        viewer.innerHTML = `
+            <div class="flex items-center justify-center w-full h-full">
+                <img src="${BASE_PATH}/documents/${doc.id}/view"
+                     alt="${doc.title || doc.filename}"
+                     class="max-w-full max-h-full object-contain rounded shadow">
+            </div>
+        `;
+    } else {
+        // Autres types - afficher la miniature
+        viewer.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full text-center">
+                <img src="${BASE_PATH}/documents/${doc.id}/thumbnail"
+                     alt="${doc.title || doc.filename}"
+                     class="max-w-64 max-h-64 object-contain rounded shadow mb-4"
+                     onerror="this.style.display='none'">
+                <p class="text-gray-500">Aperçu non disponible pour ce type de fichier</p>
+                <a href="${BASE_PATH}/documents/${doc.id}/download"
+                   class="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                    Télécharger le fichier
+                </a>
+            </div>
+        `;
+    }
+}
+
+// Afficher les métadonnées
+function renderDocumentMetadata(doc) {
+    const metadata = document.getElementById('preview-metadata');
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('fr-CH');
+    };
+
+    const formatSize = (bytes) => {
+        if (!bytes) return '-';
+        const sizes = ['o', 'Ko', 'Mo', 'Go'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i];
+    };
+
+    // Tags HTML
+    let tagsHtml = '-';
+    if (doc.tags && doc.tags.length > 0) {
+        tagsHtml = doc.tags.map(tag => `
+            <span class="inline-block px-2 py-0.5 text-xs rounded-full mr-1 mb-1"
+                  style="background-color: ${tag.color || '#e5e7eb'}20; color: ${tag.color || '#6b7280'}; border: 1px solid ${tag.color || '#e5e7eb'}">
+                ${tag.name}
+            </span>
+        `).join('');
+    }
+
+    metadata.innerHTML = `
+        <div class="space-y-4">
+            <!-- Titre -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Titre</label>
+                <p class="text-sm text-gray-900">${doc.title || doc.filename || '-'}</p>
+            </div>
+
+            <!-- Type de document -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Type</label>
+                <p class="text-sm text-gray-900">${doc.document_type_label || '-'}</p>
+            </div>
+
+            <!-- Correspondant -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Correspondant</label>
+                <p class="text-sm text-gray-900">${doc.correspondent_name || '-'}</p>
+            </div>
+
+            <!-- Tags -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Tags</label>
+                <div class="flex flex-wrap">${tagsHtml}</div>
+            </div>
+
+            <!-- Date du document -->
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Date du document</label>
+                <p class="text-sm text-gray-900">${formatDate(doc.document_date)}</p>
+            </div>
+
+            <!-- Montant -->
+            ${doc.amount ? `
+            <div>
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Montant</label>
+                <p class="text-sm text-gray-900">${doc.amount} ${doc.currency || 'CHF'}</p>
+            </div>
+            ` : ''}
+
+            <!-- Informations fichier -->
+            <div class="pt-4 border-t">
+                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Fichier</label>
+                <div class="text-xs text-gray-500 space-y-1">
+                    <p><span class="font-medium">Nom:</span> ${doc.original_filename || doc.filename}</p>
+                    <p><span class="font-medium">Taille:</span> ${formatSize(doc.file_size)}</p>
+                    <p><span class="font-medium">Type:</span> ${doc.mime_type || '-'}</p>
+                    <p><span class="font-medium">Créé le:</span> ${formatDate(doc.created_at)}</p>
+                    ${doc.asn ? `<p><span class="font-medium">ASN:</span> ${doc.asn}</p>` : ''}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-4 border-t flex flex-col gap-2">
+                <a href="${BASE_PATH}/documents/${doc.id}"
+                   class="w-full px-3 py-2 bg-gray-900 text-white text-sm text-center rounded hover:bg-gray-800">
+                    Modifier le document
+                </a>
+                <a href="${BASE_PATH}/documents/${doc.id}/download"
+                   class="w-full px-3 py-2 bg-white text-gray-700 text-sm text-center rounded border hover:bg-gray-50">
+                    Télécharger
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+// Raccourci clavier pour fermer
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('document-preview-modal');
+        if (!modal.classList.contains('hidden')) {
+            closeDocumentPreview();
+        }
+    }
+    // Navigation avec flèches
+    if (e.key === 'ArrowLeft') {
+        const modal = document.getElementById('document-preview-modal');
+        if (!modal.classList.contains('hidden')) {
+            navigatePreview(-1);
+        }
+    }
+    if (e.key === 'ArrowRight') {
+        const modal = document.getElementById('document-preview-modal');
+        if (!modal.classList.contains('hidden')) {
+            navigatePreview(1);
+        }
+    }
+});
+
 // Recherche
 document.getElementById('search-input')?.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
@@ -437,13 +786,15 @@ function updateDocumentCard(card, doc) {
         badge.style.opacity = '0';
         setTimeout(() => badge.parentElement?.remove(), 300);
     }
-    
+
     // Retirer l'opacité réduite
     card.classList.remove('opacity-75');
-    
-    // Mettre à jour le lien
+
+    // Mettre à jour le gestionnaire de clic et les data attributes
     if (doc.id) {
-        card.href = `${BASE_PATH}/documents/${doc.id}`;
+        card.dataset.docId = doc.id;
+        const index = card.dataset.docIndex || 0;
+        card.onclick = function() { openDocumentPreview(doc.id, parseInt(index)); };
     }
     
     // Mettre à jour la thumbnail si disponible
@@ -574,17 +925,20 @@ function renderDocuments(documents, pagination, stats, path) {
     
     // Générer la grille de documents
     let html = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">`;
-    
+
+    let docIndex = 0;
     documents.forEach(doc => {
         const isPhysical = doc.is_physical || doc.status === 'not_indexed';
         const title = doc.title || doc.filename || 'Sans titre';
         const date = doc.created_at ? new Date(doc.created_at).toLocaleDateString('fr-CH') : '';
-        const href = doc.id ? `${BASE_PATH}/documents/${doc.id}` : '#';
-        const thumbnailUrl = doc.thumbnail_url || '';
-        
+        const thumbnailUrl = doc.thumbnail_url || (doc.id ? `${BASE_PATH}/documents/${doc.id}/thumbnail` : '');
+        const clickHandler = doc.id ? `onclick="openDocumentPreview(${doc.id}, ${docIndex})"` : '';
+
         html += `
-            <a href="${href}" 
-               class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative ${isPhysical ? 'opacity-75' : ''}">
+            <div ${clickHandler}
+               data-doc-id="${doc.id || ''}"
+               data-doc-index="${docIndex}"
+               class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative cursor-pointer ${isPhysical ? 'opacity-75' : ''}">
                 ${isPhysical ? `
                 <div class="absolute top-2 right-2 z-10">
                     <span class="inline-flex items-center gap-1 rounded-full border bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-0.5" title="Fichier non indexé">
@@ -606,8 +960,9 @@ function renderDocuments(documents, pagination, stats, path) {
                     <h3 class="text-xs font-medium text-gray-900 truncate mb-0.5" title="${title}">${title}</h3>
                     <p class="text-xs text-gray-400">${date}</p>
                 </div>
-            </a>
+            </div>
         `;
+        docIndex++;
     });
     
     html += `</div>`;

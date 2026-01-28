@@ -1,331 +1,509 @@
 <?php
-// Page dédiée à la Recherche avancée
+// Page dédiée à la Recherche avancée avec historique des conversations
 use KDocs\Core\Config;
-use KDocs\Models\Setting;
-$base = Config::basePath();
+use KDocs\Services\ChatHistoryService;
 
-// Vérifier si Claude est configuré (utiliser le même service que partout)
+$base = Config::basePath();
+$userId = $user['id'] ?? 0;
+
+// Charger les conversations récentes
+$chatService = new ChatHistoryService();
+$conversations = $userId ? $chatService->getRecentConversations($userId) : [];
+
+// Vérifier si Claude est configuré
 $claudeService = new \KDocs\Services\ClaudeService();
 $isConfigured = $claudeService->isConfigured();
 ?>
 
-<div class="flex flex-col h-full max-w-4xl mx-auto">
-    <div class="bg-white border-b border-gray-100 px-6 py-4">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-lg font-medium text-gray-900">Recherche avancée</h1>
-                <p class="text-sm text-gray-500 mt-1">Recherchez dans vos documents en langage naturel</p>
-            </div>
-            <?php if (!$isConfigured): ?>
-            <a href="<?= url('/admin/settings#ai') ?>" 
-               class="px-3 py-1.5 bg-yellow-100 text-yellow-800 text-sm rounded hover:bg-yellow-200">
-                ⚠️ Configurer Claude API
-            </a>
-            <?php endif; ?>
-        </div>
-    </div>
-    
-    <div class="flex-1 overflow-hidden flex flex-col bg-white">
-        <!-- Messages -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
-            <?php if (!$isConfigured): ?>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+<div class="flex h-full -m-6">
+    <!-- Sidebar des conversations -->
+    <div id="chat-sidebar" class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+        <!-- Header sidebar -->
+        <div class="p-3 border-b border-gray-200">
+            <button id="new-chat-btn" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                <p class="text-sm text-yellow-800 mb-2">L'API Claude n'est pas configurée</p>
-                <p class="text-xs text-yellow-600 mb-4">Configurez votre clé API Claude dans les paramètres pour utiliser le chat IA.</p>
-                <a href="<?= url('/admin/settings#ai') ?>" 
-                   class="inline-block px-4 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700">
-                    Aller aux paramètres
-                </a>
+                Nouvelle conversation
+            </button>
+        </div>
+
+        <!-- Liste des conversations -->
+        <div id="conversations-list" class="flex-1 overflow-y-auto">
+            <?php if (empty($conversations)): ?>
+            <div class="p-4 text-center text-gray-500 text-sm">
+                Aucune conversation
             </div>
             <?php else: ?>
-            <div class="text-center text-gray-500 py-12">
-                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-                <p class="text-sm font-medium text-gray-700 mb-2">Recherchez dans vos documents</p>
-                <p class="text-xs text-gray-500 mb-4">Exemples de recherches :</p>
-                <div class="space-y-2 max-w-md mx-auto">
-                    <button onclick="window.askQuestion('Où est la référence ABC123 ?')" 
-                            class="block w-full px-4 py-2 text-sm text-left bg-gray-50 hover:bg-gray-100 rounded border border-gray-200">
-                        Où est la référence ABC123 ?
-                    </button>
-                    <button onclick="window.askQuestion('Total factures Swisscom 2024')" 
-                            class="block w-full px-4 py-2 text-sm text-left bg-gray-50 hover:bg-gray-100 rounded border border-gray-200">
-                        Total factures Swisscom 2024
-                    </button>
-                    <button onclick="window.askQuestion('Résume le dernier document')" 
-                            class="block w-full px-4 py-2 text-sm text-left bg-gray-50 hover:bg-gray-100 rounded border border-gray-200">
-                        Résume le dernier document
+            <?php foreach ($conversations as $conv): ?>
+            <div class="conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors group"
+                 data-id="<?= $conv['id'] ?>">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium text-gray-900 truncate"><?= htmlspecialchars($conv['title']) ?></div>
+                        <div class="text-xs text-gray-500 mt-0.5">
+                            <?= $conv['message_count'] ?> message<?= $conv['message_count'] > 1 ? 's' : '' ?>
+                            · <?= date('d/m', strtotime($conv['updated_at'])) ?>
+                        </div>
+                    </div>
+                    <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                            data-id="<?= $conv['id'] ?>" title="Supprimer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
                     </button>
                 </div>
             </div>
+            <?php endforeach; ?>
             <?php endif; ?>
         </div>
-        
-        <!-- Formulaire -->
+    </div>
+
+    <!-- Zone de chat principale -->
+    <div class="flex-1 flex flex-col h-full bg-white">
+        <?php if (!$isConfigured): ?>
+        <!-- API non configurée -->
+        <div class="flex-1 flex items-center justify-center p-6">
+            <div class="text-center max-w-md">
+                <svg class="w-16 h-16 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">API Claude non configurée</h3>
+                <p class="text-sm text-gray-500 mb-4">Configurez votre clé API Claude pour utiliser la recherche intelligente.</p>
+                <a href="<?= url('/admin/settings#ai') ?>" class="inline-block px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800">
+                    Configurer
+                </a>
+            </div>
+        </div>
+        <?php else: ?>
+        <!-- Header conversation -->
+        <div id="chat-header" class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h2 id="chat-title" class="text-sm font-medium text-gray-700">Nouvelle conversation</h2>
+        </div>
+
+        <!-- Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Welcome message -->
+            <div id="welcome-message" class="text-center py-8">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Recherche intelligente</h3>
+                <p class="text-sm text-gray-500 mb-4">Posez vos questions en langage naturel</p>
+                <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
+                    <button onclick="askQuestion('Combien de documents ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Combien de documents ?
+                    </button>
+                    <button onclick="askQuestion('Documents de cette semaine')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Documents de cette semaine
+                    </button>
+                    <button onclick="askQuestion('Combien de fois le mot contrat apparait ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Combien de fois "contrat" ?
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
         <div class="border-t border-gray-100 p-4 bg-gray-50">
-            <form id="chat-form" class="flex gap-2" onsubmit="return false;">
-                <input 
-                    type="text" 
-                    id="chat-input"
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400"
-                    placeholder="<?= $isConfigured ? 'Posez votre question...' : 'Configurez Claude API d\'abord' ?>"
-                    <?= !$isConfigured ? 'disabled' : '' ?>
-                >
-                <button type="submit" 
-                        class="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                        <?= !$isConfigured ? 'disabled' : '' ?>>
+            <form id="chat-form" class="flex gap-2">
+                <input type="text" id="chat-input"
+                       class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
+                       placeholder="Posez votre question..." autocomplete="off">
+                <button type="submit" id="send-btn"
+                        class="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                 </button>
             </form>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <script>
 (function() {
     'use strict';
-    
-    function getChatElements() {
-        return {
-            messages: document.getElementById('chat-messages'),
-            form: document.getElementById('chat-form'),
-            input: document.getElementById('chat-input')
-        };
-    }
-    
-    // Exposer askQuestion globalement
-    window.askQuestion = function(question) {
-        const elements = getChatElements();
-        if (!elements.input || !elements.form) {
-            // Si les éléments n'existent pas encore, attendre un peu
-            setTimeout(() => {
-                const els = getChatElements();
-                if (els.input && els.form) {
-                    els.input.value = question;
-                    els.form.dispatchEvent(new Event('submit'));
-                } else {
-                    console.error('Chat form elements not found');
-                }
-            }, 100);
-            return;
-        }
-        elements.input.value = question;
-        elements.form.dispatchEvent(new Event('submit'));
-    };
 
-    function addMessage(content, type = 'user') {
-        const elements = getChatElements();
-        if (!elements.messages) return;
-        
+    const BASE_URL = '<?= $base ?>';
+    let currentConversationId = null;
+
+    // Elements
+    const sidebar = document.getElementById('chat-sidebar');
+    const conversationsList = document.getElementById('conversations-list');
+    const messagesContainer = document.getElementById('chat-messages');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const chatTitle = document.getElementById('chat-title');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const newChatBtn = document.getElementById('new-chat-btn');
+
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    // Format markdown to HTML
+    function formatMarkdown(text) {
+        let html = escapeHtml(text);
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    // Add message to UI
+    function addMessageToUI(content, role, metadata = null) {
+        if (welcomeMessage) welcomeMessage.style.display = 'none';
+
         const messageDiv = document.createElement('div');
-        messageDiv.className = `flex ${type === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
-        
+        messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+
         const bubble = document.createElement('div');
-        bubble.className = `max-w-3xl px-4 py-2 rounded-lg ${
-            type === 'user' 
-                ? 'bg-gray-900 text-white' 
+        bubble.className = `max-w-2xl px-4 py-3 rounded-lg ${
+            role === 'user'
+                ? 'bg-gray-900 text-white'
                 : 'bg-gray-100 text-gray-900'
         }`;
-        bubble.textContent = content;
-        
+
+        if (role === 'assistant') {
+            bubble.innerHTML = `<div class="text-sm leading-relaxed">${formatMarkdown(content)}</div>`;
+
+            // Add documents if available
+            if (metadata && metadata.documents && metadata.documents.length > 0) {
+                const docsDiv = document.createElement('div');
+                docsDiv.className = 'mt-3 pt-3 border-t border-gray-200 space-y-2';
+
+                metadata.documents.slice(0, 5).forEach(doc => {
+                    const docItem = document.createElement('a');
+                    docItem.href = `${BASE_URL}/documents/${doc.id}`;
+                    docItem.target = '_blank';
+                    docItem.className = 'flex items-center gap-2 p-2 bg-white rounded border border-gray-200 hover:border-gray-300 transition-colors';
+
+                    let scoreHtml = '';
+                    if (doc.relevance_score !== undefined) {
+                        const score = doc.relevance_score;
+                        let color = 'text-gray-500';
+                        if (score >= 70) color = 'text-green-600';
+                        else if (score >= 40) color = 'text-yellow-600';
+                        scoreHtml = `<span class="text-xs font-medium ${color}">${score}%</span>`;
+                    }
+
+                    docItem.innerHTML = `
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="flex-1 text-xs text-gray-700 truncate">${escapeHtml(doc.title)}</span>
+                        ${scoreHtml}
+                        <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    `;
+
+                    docsDiv.appendChild(docItem);
+                });
+
+                if (metadata.total > 5) {
+                    const moreDiv = document.createElement('div');
+                    moreDiv.className = 'text-xs text-gray-500 text-center pt-1';
+                    moreDiv.textContent = `+ ${metadata.total - 5} autres documents`;
+                    docsDiv.appendChild(moreDiv);
+                }
+
+                bubble.appendChild(docsDiv);
+            }
+        } else {
+            bubble.textContent = content;
+        }
+
         messageDiv.appendChild(bubble);
-        elements.messages.appendChild(messageDiv);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    function addLoadingMessage() {
-        const elements = getChatElements();
-        if (!elements.messages) return;
-        
+    // Add loading indicator
+    function addLoadingIndicator() {
         const loadingDiv = document.createElement('div');
-        loadingDiv.id = 'loading-message';
+        loadingDiv.id = 'loading-indicator';
         loadingDiv.className = 'flex justify-start mb-4';
         loadingDiv.innerHTML = `
-            <div class="bg-gray-100 px-4 py-2 rounded-lg">
-                <div class="flex items-center gap-2">
+            <div class="bg-gray-100 px-4 py-3 rounded-lg">
+                <div class="flex items-center gap-1">
                     <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
                     <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
                 </div>
             </div>
         `;
-        elements.messages.appendChild(loadingDiv);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        messagesContainer.appendChild(loadingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    function removeLoadingMessage() {
-        const loading = document.getElementById('loading-message');
+    function removeLoadingIndicator() {
+        const loading = document.getElementById('loading-indicator');
         if (loading) loading.remove();
     }
 
-    // Attendre que le DOM soit chargé
-    document.addEventListener('DOMContentLoaded', function() {
-        const elements = getChatElements();
-        
-        if (elements.form && elements.input) {
-            elements.form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const question = elements.input.value.trim();
-                if (!question) return;
-                
-                // Ajouter la question de l'utilisateur
-                addMessage(question, 'user');
-                elements.input.value = '';
-                
-                // Afficher le loading
-                addLoadingMessage();
-                
-                try {
-                    const response = await fetch('<?= url('/api/search/ask') ?>', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ question: question })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    removeLoadingMessage();
-                    
-                    if (data.error) {
-                        addMessage('Erreur: ' + data.error, 'assistant');
-                    } else {
-                        addMessage(data.answer || data.response || 'Réponse reçue', 'assistant');
-                        
-                        // Afficher les documents trouvés si disponibles
-                        if (data.documents && data.documents.length > 0) {
-                            const elements = getChatElements();
-                            if (elements.messages) {
-                                const docsDiv = document.createElement('div');
-                                docsDiv.className = 'mt-4 space-y-3';
-                                
-                                // En-tête
-                                const header = document.createElement('div');
-                                header.className = 'text-sm font-medium text-gray-700 mb-2';
-                                header.textContent = `J'ai trouvé ${data.documents.length} document(s) correspondant à votre recherche.`;
-                                docsDiv.appendChild(header);
-                                
-                                data.documents.slice(0, 10).forEach(doc => {
-                                    const docCard = document.createElement('div');
-                                    docCard.className = 'bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow';
-                                    
-                                    // En-tête du document
-                                    const docHeader = document.createElement('div');
-                                    docHeader.className = 'flex items-start justify-between mb-2';
-                                    
-                                    const docTitle = document.createElement('a');
-                                    docTitle.href = '<?= url('/documents') ?>/' + doc.id;
-                                    docTitle.className = 'font-semibold text-gray-900 hover:text-blue-600 text-sm';
-                                    docTitle.textContent = doc.title || doc.original_filename || 'Sans titre';
-                                    docHeader.appendChild(docTitle);
-                                    
-                                    docCard.appendChild(docHeader);
-                                    
-                                    // Métadonnées
-                                    const meta = document.createElement('div');
-                                    meta.className = 'flex flex-wrap gap-2 text-xs text-gray-500 mb-3';
-                                    const metaItems = [];
-                                    if (doc.correspondent_name) metaItems.push(`👤 ${doc.correspondent_name}`);
-                                    if (doc.document_type_name) metaItems.push(`📁 ${doc.document_type_name}`);
-                                    if (doc.document_date) metaItems.push(`📅 ${doc.document_date}`);
-                                    if (doc.amount) metaItems.push(`💰 ${parseFloat(doc.amount).toFixed(2)} CHF`);
-                                    if (doc.tags && doc.tags.length) metaItems.push(`🏷️ ${doc.tags.join(', ')}`);
-                                    meta.innerHTML = metaItems.join(' • ');
-                                    docCard.appendChild(meta);
-                                    
-                                    // Résumé/Aperçu
-                                    if (doc.summary) {
-                                        const summary = document.createElement('div');
-                                        summary.className = 'text-xs text-gray-600 mb-3 line-clamp-2';
-                                        summary.textContent = doc.summary;
-                                        docCard.appendChild(summary);
-                                    }
-                                    
-                                    // Matches (lignes correspondantes)
-                                    if (doc.matches && doc.matches.length > 0) {
-                                        const matchesDiv = document.createElement('div');
-                                        matchesDiv.className = 'mt-3 pt-3 border-t border-gray-100';
-                                        
-                                        const matchesTitle = document.createElement('div');
-                                        matchesTitle.className = 'text-xs font-medium text-gray-700 mb-2';
-                                        matchesTitle.textContent = 'Correspondances trouvées :';
-                                        matchesDiv.appendChild(matchesTitle);
-                                        
-                                        const matchesList = document.createElement('div');
-                                        matchesList.className = 'space-y-1';
-                                        
-                                        doc.matches.forEach(match => {
-                                            const matchItem = document.createElement('div');
-                                            matchItem.className = 'text-xs text-gray-600 flex items-start gap-2';
-                                            
-                                            const lineNum = document.createElement('span');
-                                            lineNum.className = 'font-mono text-gray-400 min-w-[3ch]';
-                                            lineNum.textContent = match.line + ':';
-                                            
-                                    const matchText = document.createElement('span');
-                                    matchText.className = 'flex-1';
-                                    // Échapper HTML sauf les balises <mark>
-                                    const text = (match.excerpt || match.text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                                    matchText.innerHTML = text.replace(/&lt;mark&gt;(.*?)&lt;\/mark&gt;/g, '<mark>$1</mark>');
-                                            
-                                            matchItem.appendChild(lineNum);
-                                            matchItem.appendChild(matchText);
-                                            matchesList.appendChild(matchItem);
-                                        });
-                                        
-                                        matchesDiv.appendChild(matchesList);
-                                        docCard.appendChild(matchesDiv);
-                                    }
-                                    
-                                    // Lien "Voir le document"
-                                    const viewLink = document.createElement('a');
-                                    viewLink.href = '<?= url('/documents') ?>/' + doc.id;
-                                    viewLink.className = 'inline-block mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium';
-                                    viewLink.textContent = '→ Voir le document complet';
-                                    docCard.appendChild(viewLink);
-                                    
-                                    docsDiv.appendChild(docCard);
-                                });
-                                
-                                elements.messages.appendChild(docsDiv);
-                            }
-                        }
-                    }
-                } catch (error) {
-                    removeLoadingMessage();
-                    addMessage('Erreur de connexion: ' + error.message, 'assistant');
-                }
-                
-                const elementsAfter = getChatElements();
-                if (elementsAfter.messages) {
-                    elementsAfter.messages.scrollTop = elementsAfter.messages.scrollHeight;
-                }
+    // Create new conversation
+    async function createNewConversation() {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/conversations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
             });
-            
-            // Focus sur l'input au chargement
-            elements.input.focus();
+            const data = await response.json();
+
+            if (data.success) {
+                currentConversationId = data.conversation.id;
+                chatTitle.textContent = 'Nouvelle conversation';
+
+                // Clear messages
+                messagesContainer.innerHTML = '';
+                if (welcomeMessage) {
+                    messagesContainer.appendChild(welcomeMessage);
+                    welcomeMessage.style.display = 'block';
+                }
+
+                // Add to sidebar
+                addConversationToSidebar(data.conversation);
+                highlightActiveConversation();
+            }
+        } catch (error) {
+            console.error('Error creating conversation:', error);
         }
-    });
+    }
+
+    // Add conversation to sidebar
+    function addConversationToSidebar(conv) {
+        const emptyMsg = conversationsList.querySelector('.text-center');
+        if (emptyMsg) emptyMsg.remove();
+
+        const existingItem = conversationsList.querySelector(`[data-id="${conv.id}"]`);
+        if (existingItem) return;
+
+        const item = document.createElement('div');
+        item.className = 'conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors group';
+        item.dataset.id = conv.id;
+        item.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(conv.title)}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">0 messages · maintenant</div>
+                </div>
+                <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                        data-id="${conv.id}" title="Supprimer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        conversationsList.insertBefore(item, conversationsList.firstChild);
+        bindConversationEvents(item);
+    }
+
+    // Load conversation
+    async function loadConversation(id) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/conversations/${id}`);
+            const data = await response.json();
+
+            if (data.success) {
+                currentConversationId = data.conversation.id;
+                chatTitle.textContent = data.conversation.title;
+
+                // Clear and load messages
+                messagesContainer.innerHTML = '';
+
+                if (data.conversation.messages && data.conversation.messages.length > 0) {
+                    data.conversation.messages.forEach(msg => {
+                        const metadata = msg.metadata ? JSON.parse(msg.metadata) : null;
+                        addMessageToUI(msg.content, msg.role, metadata);
+                    });
+                } else {
+                    if (welcomeMessage) {
+                        messagesContainer.appendChild(welcomeMessage);
+                        welcomeMessage.style.display = 'block';
+                    }
+                }
+
+                highlightActiveConversation();
+            }
+        } catch (error) {
+            console.error('Error loading conversation:', error);
+        }
+    }
+
+    // Highlight active conversation
+    function highlightActiveConversation() {
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            if (parseInt(item.dataset.id) === currentConversationId) {
+                item.classList.add('bg-gray-200');
+            } else {
+                item.classList.remove('bg-gray-200');
+            }
+        });
+    }
+
+    // Delete conversation
+    async function deleteConversation(id) {
+        if (!confirm('Supprimer cette conversation ?')) return;
+
+        try {
+            await fetch(`${BASE_URL}/api/chat/conversations/${id}`, { method: 'DELETE' });
+
+            const item = conversationsList.querySelector(`[data-id="${id}"]`);
+            if (item) item.remove();
+
+            if (currentConversationId === id) {
+                // Load first available or create new
+                const firstItem = conversationsList.querySelector('.conversation-item');
+                if (firstItem) {
+                    loadConversation(parseInt(firstItem.dataset.id));
+                } else {
+                    createNewConversation();
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting conversation:', error);
+        }
+    }
+
+    // Send message
+    async function sendMessage(message) {
+        if (!message.trim()) return;
+
+        // Create conversation if needed
+        if (!currentConversationId) {
+            await createNewConversation();
+        }
+
+        // Add user message to UI
+        addMessageToUI(message, 'user');
+        chatInput.value = '';
+
+        // Show loading
+        addLoadingIndicator();
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/chat/conversations/${currentConversationId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+            removeLoadingIndicator();
+
+            // Add assistant response
+            const metadata = {
+                documents: data.documents?.map(d => ({
+                    id: d.id,
+                    title: d.title || d.filename,
+                    relevance_score: d.relevance_score,
+                    excerpts: d.excerpts
+                })) || [],
+                total: data.total || 0
+            };
+
+            addMessageToUI(data.answer || 'Réponse reçue', 'assistant', metadata);
+
+            // Update sidebar title
+            updateConversationInSidebar(currentConversationId, message);
+
+        } catch (error) {
+            removeLoadingIndicator();
+            addMessageToUI('Erreur de connexion: ' + error.message, 'assistant');
+        }
+    }
+
+    // Update conversation in sidebar
+    function updateConversationInSidebar(id, firstMessage) {
+        const item = conversationsList.querySelector(`[data-id="${id}"]`);
+        if (item) {
+            const titleEl = item.querySelector('.font-medium');
+            if (titleEl && titleEl.textContent === 'Nouvelle conversation') {
+                const title = firstMessage.substring(0, 40) + (firstMessage.length > 40 ? '...' : '');
+                titleEl.textContent = title;
+                chatTitle.textContent = title;
+            }
+
+            // Move to top
+            conversationsList.insertBefore(item, conversationsList.firstChild);
+        }
+    }
+
+    // Bind events to conversation item
+    function bindConversationEvents(item) {
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.delete-conv-btn')) {
+                loadConversation(parseInt(item.dataset.id));
+            }
+        });
+
+        const deleteBtn = item.querySelector('.delete-conv-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteConversation(parseInt(deleteBtn.dataset.id));
+            });
+        }
+    }
+
+    // Global function for quick questions
+    window.askQuestion = function(question) {
+        chatInput.value = question;
+        sendMessage(question);
+    };
+
+    // Initialize
+    function init() {
+        // Bind events to existing conversations
+        document.querySelectorAll('.conversation-item').forEach(bindConversationEvents);
+
+        // New chat button
+        if (newChatBtn) {
+            newChatBtn.addEventListener('click', createNewConversation);
+        }
+
+        // Form submit
+        if (chatForm) {
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                sendMessage(chatInput.value);
+            });
+        }
+
+        // Load last conversation or create new
+        const firstConv = document.querySelector('.conversation-item');
+        if (firstConv) {
+            loadConversation(parseInt(firstConv.dataset.id));
+        }
+
+        // Focus input
+        if (chatInput) chatInput.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 
 <style>
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-4px); }
 }
 .animate-bounce {
-    animation: bounce 1s infinite;
+    animation: bounce 0.6s infinite;
+}
+mark {
+    background-color: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
 }
 </style>

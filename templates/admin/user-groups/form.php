@@ -79,38 +79,75 @@ $isEdit = !empty($group);
             </p>
         </div>
         
-        <!-- Permissions (optionnel, pour plus tard) -->
+        <!-- Permissions -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Permissions</h2>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="permissions[can_approve_invoices]" value="1"
-                           <?= ($group['permissions']['can_approve_invoices'] ?? false) ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-sm text-gray-700">Peut approuver les factures</span>
-                </label>
-                
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="permissions[can_approve_contracts]" value="1"
-                           <?= ($group['permissions']['can_approve_contracts'] ?? false) ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-sm text-gray-700">Peut approuver les contrats</span>
-                </label>
-                
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="permissions[can_view_all_documents]" value="1"
-                           <?= ($group['permissions']['can_view_all_documents'] ?? false) ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-sm text-gray-700">Peut voir tous les documents</span>
-                </label>
-                
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="permissions[can_export]" value="1"
-                           <?= ($group['permissions']['can_export'] ?? false) ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-sm text-gray-700">Peut exporter</span>
-                </label>
+            <h2 class="text-lg font-medium text-gray-900 mb-2">Permissions</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Sélectionnez les permissions accordées aux membres de ce groupe. Le groupe "Administrateurs" (code ADMIN) a automatiquement tous les droits.
+            </p>
+
+            <?php
+            // Définir les catégories de permissions
+            $permissionCategories = [
+                'Documents' => [
+                    'documents.view' => 'Voir les documents',
+                    'documents.create' => 'Créer des documents',
+                    'documents.edit' => 'Modifier des documents',
+                    'documents.delete' => 'Supprimer des documents',
+                    'documents.*' => 'Tous droits documents',
+                ],
+                'Tags & Métadonnées' => [
+                    'tags.view' => 'Voir les tags',
+                    'tags.create' => 'Créer des tags',
+                    'tags.edit' => 'Modifier des tags',
+                    'tags.delete' => 'Supprimer des tags',
+                ],
+                'Correspondants' => [
+                    'correspondents.view' => 'Voir les correspondants',
+                    'correspondents.create' => 'Créer des correspondants',
+                    'correspondents.edit' => 'Modifier des correspondants',
+                    'correspondents.delete' => 'Supprimer des correspondants',
+                ],
+                'Administration' => [
+                    'users.view' => 'Voir les utilisateurs',
+                    'users.edit' => 'Gérer les utilisateurs',
+                    'users.delete' => 'Supprimer des utilisateurs',
+                    'settings.view' => 'Voir les paramètres',
+                    'settings.edit' => 'Modifier les paramètres',
+                ],
+                'Workflows' => [
+                    'workflows.view' => 'Voir les workflows',
+                    'workflows.edit' => 'Gérer les workflows',
+                    'can_approve_invoices' => 'Approuver les factures',
+                    'can_approve_contracts' => 'Approuver les contrats',
+                ],
+                'Autres' => [
+                    'export' => 'Exporter des données',
+                    'api.access' => 'Accès API',
+                ],
+            ];
+
+            $currentPerms = $group['permissions'] ?? [];
+            ?>
+
+            <div class="space-y-6">
+                <?php foreach ($permissionCategories as $category => $perms): ?>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2"><?= $category ?></h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <?php foreach ($perms as $permKey => $permLabel):
+                            $checked = isset($currentPerms[$permKey]) ? $currentPerms[$permKey] : (in_array($permKey, $currentPerms) ? true : false);
+                        ?>
+                        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                            <input type="checkbox" name="permissions[<?= $permKey ?>]" value="1"
+                                   <?= $checked ? 'checked' : '' ?>
+                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700"><?= $permLabel ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
         

@@ -90,35 +90,177 @@ class NaturalLanguageQueryService
         if ($result->total === 0) {
             return "Je n'ai trouvé aucun document correspondant à votre recherche.";
         }
-        
-        // Simple response without AI call for performance
-        $summary = "J'ai trouvé {$result->total} document(s)";
-        
+
+        $questionLower = mb_strtolower($question);
+
+        // Detect counting questions (combien de fois, nombre de, count)
+        if (preg_match('/combien\s+(de\s+fois|d\'occurrences?)|nombre\s+de\s+fois/ui', $questionLower)) {
+            return $this->generateCountingResponse($question, $result);
+        }
+
+        // Detect quantity questions (combien de documents/factures/etc)
+        if (preg_match('/combien\s+de\s+(\w+)/ui', $questionLower, $matches)) {
+            return $this->generateQuantityResponse($question, $result, $matches[1]);
+        }
+
+        // Default summary response
+        return $this->generateDefaultSummary($question, $result);
+    }
+
+    /**
+     * Generate response for "combien de fois" questions
+     */
+    private function generateCountingResponse(string $question, \KDocs\Search\SearchResult $result): string
+    {
+        // Extract the search term from the question
+        $searchTerm = $result->query;
+        if (empty($searchTerm)) {
+            // Try to extract from question
+            if (preg_match('/(?:mot|terme|texte|expression)\s+["\']?(\w+)["\']?/ui', $question, $matches)) {
+                $searchTerm = $matches[1];
+            } elseif (preg_match('/combien\s+de\s+fois\s+(?:le\s+mot\s+)?["\']?(\w+)["\']?/ui', $question, $matches)) {
+                $searchTerm = $matches[1];
+            }
+        }
+
+        if (empty($searchTerm)) {
+            return $this->generateDefaultSummary($question, $result);
+        }
+
+        // Count occurrences in all documents
+        $totalOccurrences = 0;
+        $docOccurrences = [];
+
+        foreach ($result->documents as $doc) {
+            $content = ($doc['content'] ?? '') . ' ' . ($doc['ocr_text'] ?? '') . ' ' . ($doc['title'] ?? '');
+            $count = mb_substr_count(mb_strtolower($content), mb_strtolower($searchTerm));
+            if ($count > 0) {
+                $totalOccurrences += $count;
+                $docOccurrences[] = [
+                    'title' => $doc['title'] ?? $doc['filename'] ?? 'Sans titre',
+                    'count' => $count,
+                    'id' => $doc['id']
+                ];
+            }
+        }
+
+        // Sort by count descending
+        usort($docOccurrences, fn($a, $b) => $b['count'] <=> $a['count']);
+
+        $summary = "Le mot \"**{$searchTerm}**\" apparaît **{$totalOccurrences} fois** dans **" . count($docOccurrences) . " document(s)**.";
+
+        if (!empty($docOccurrences)) {
+            $summary .= "\n\nRépartition :";
+            foreach (array_slice($docOccurrences, 0, 5) as $doc) {
+                $summary .= "\n• {$doc['title']} : {$doc['count']} occurrence(s)";
+            }
+            if (count($docOccurrences) > 5) {
+                $summary .= "\n• ... et " . (count($docOccurrences) - 5) . " autre(s) document(s)";
+            }
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Generate response for "combien de documents/factures" questions
+     */
+    private function generateQuantityResponse(string $question, \KDocs\Search\SearchResult $result, string $itemType): string
+    {
+        $count = $result->total;
+        $itemType = mb_strtolower(trim($itemType));
+
+        // Remove trailing 's' if present for singularization
+        $itemType = rtrim($itemType, 's');
+
+        // Pluralize correctly in French
+        $label = $count <= 1 ? $itemType : $itemType . 's';
+
+        $summary = "J'ai trouvé **{$count} {$label}**";
+
+        // Add type breakdown if available
+        $types = [];
+        foreach ($result->documents as $doc) {
+            $type = $doc['document_type_name'] ?? 'Non classé';
+            $types[$type] = ($types[$type] ?? 0) + 1;
+        }
+
+        if (count($types) > 1) {
+            arsort($types);
+            $summary .= " :\n";
+            foreach ($types as $type => $typeCount) {
+                $summary .= "\n• {$type} : {$typeCount}";
+            }
+        } else {
+            $summary .= ".";
+        }
+
+        // Add date range
+        $dates = array_filter(array_map(function($d) {
+            return !empty($d['created_at']) ? new \DateTime($d['created_at']) : null;
+        }, $result->documents));
+
+        if (count($dates) >= 2) {
+            usort($dates, fn($a, $b) => $a <=> $b);
+            $oldest = reset($dates)->format('d/m/Y');
+            $newest = end($dates)->format('d/m/Y');
+            if ($oldest !== $newest) {
+                $summary .= "\n\n📅 Période : du {$oldest} au {$newest}";
+            }
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Generate default summary
+     */
+    private function generateDefaultSummary(string $question, \KDocs\Search\SearchResult $result): string
+    {
+        $summary = "J'ai trouvé **{$result->total} document(s)**";
+
         if ($result->total === 1 && !empty($result->documents)) {
             $doc = $result->documents[0];
-            $summary .= ": \"" . ($doc['title'] ?? 'Sans titre') . "\"";
+            $summary .= " : \"" . ($doc['title'] ?? 'Sans titre') . "\"";
             if (!empty($doc['created_at'])) {
                 $date = new \DateTime($doc['created_at']);
                 $summary .= " du " . $date->format('d/m/Y');
             }
-        } else {
-            // Get date range
+        } else if ($result->total > 1) {
+            // Types breakdown
+            $types = [];
+            foreach ($result->documents as $doc) {
+                $type = $doc['document_type_name'] ?? null;
+                if ($type) {
+                    $types[$type] = ($types[$type] ?? 0) + 1;
+                }
+            }
+            if (!empty($types)) {
+                arsort($types);
+                $typeParts = [];
+                foreach (array_slice($types, 0, 3, true) as $type => $count) {
+                    $typeParts[] = "{$count} {$type}";
+                }
+                $summary .= " (" . implode(', ', $typeParts) . ")";
+            }
+
+            // Date range
             $dates = array_filter(array_map(function($d) {
                 return !empty($d['created_at']) ? new \DateTime($d['created_at']) : null;
             }, $result->documents));
-            
+
             if (!empty($dates)) {
                 usort($dates, fn($a, $b) => $a <=> $b);
                 $oldest = reset($dates)->format('d/m/Y');
                 $newest = end($dates)->format('d/m/Y');
                 if ($oldest !== $newest) {
-                    $summary .= " entre le {$oldest} et le {$newest}";
+                    $summary .= ", du {$oldest} au {$newest}";
                 }
             }
         }
-        
+
         $summary .= ".";
-        
+
         return $summary;
     }
     

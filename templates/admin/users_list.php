@@ -15,7 +15,6 @@
             <thead class="bg-gray-50 dark:bg-gray-700">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Utilisateur</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Rôle</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Groupes</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Statut</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Dernière connexion</th>
@@ -25,42 +24,52 @@
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 <?php if (empty($users)): ?>
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                         Aucun utilisateur trouvé.
                     </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($users as $u): ?>
+                <?php
+                // Vérifier si l'utilisateur est dans le groupe ADMIN
+                $isAdmin = false;
+                $groupCodes = [];
+                if (!empty($u['groups'])) {
+                    foreach ($u['groups'] as $g) {
+                        $code = $g['code'] ?? '';
+                        $groupCodes[] = $code;
+                        if ($code === 'ADMIN') {
+                            $isAdmin = true;
+                        }
+                    }
+                }
+                ?>
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td class="px-6 py-4">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100"><?= htmlspecialchars($u['username']) ?></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100"><?= htmlspecialchars($u['username']) ?></span>
+                            <?php if ($isAdmin): ?>
+                            <span class="px-1.5 py-0.5 text-xs font-semibold rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Admin</span>
+                            <?php endif; ?>
+                        </div>
                         <?php if (!empty($u['email'])): ?>
                         <div class="text-sm text-gray-500 dark:text-gray-400"><?= htmlspecialchars($u['email']) ?></div>
                         <?php endif; ?>
                     </td>
-                    <td class="px-6 py-4">
-                        <?php
-                        $role = $u['role'] ?? (($u['is_admin'] ?? false) ? 'admin' : 'user');
-                        $roleColors = [
-                            'admin' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-                            'user' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-                            'viewer' => 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-                        ];
-                        $roleColor = $roleColors[$role] ?? $roleColors['user'];
-                        ?>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $roleColor ?>">
-                            <?= htmlspecialchars(ucfirst($role)) ?>
-                        </span>
-                    </td>
                     <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                         <?php if (!empty($u['groups'])): ?>
-                        <?php foreach ($u['groups'] as $group): ?>
-                        <span class="inline-block px-2 py-1 mr-1 mb-1 text-xs bg-gray-100 dark:bg-gray-700 rounded">
+                        <?php foreach ($u['groups'] as $group):
+                            $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
+                            $bgClass = $isAdminGroup
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+                        ?>
+                        <span class="inline-block px-2 py-1 mr-1 mb-1 text-xs rounded <?= $bgClass ?>">
                             <?= htmlspecialchars($group['name']) ?>
                         </span>
                         <?php endforeach; ?>
                         <?php else: ?>
-                        <span class="text-gray-400">-</span>
+                        <span class="text-amber-500">Aucun groupe</span>
                         <?php endif; ?>
                     </td>
                     <td class="px-6 py-4">

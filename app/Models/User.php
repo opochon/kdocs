@@ -82,6 +82,8 @@ class User
 
     /**
      * Crée un nouvel utilisateur
+     * Note: le champ 'role' est conservé pour compatibilité DB mais les permissions
+     * sont maintenant gérées par les groupes
      */
     public function create(array $data): int
     {
@@ -89,21 +91,20 @@ class User
             INSERT INTO users (username, password_hash, email, role, permissions, is_active, is_admin, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
-        
-        $permissions = !empty($data['permissions']) ? json_encode($data['permissions']) : null;
+
+        // Role 'user' par défaut pour compatibilité, les vraies permissions viennent des groupes
         $role = $data['role'] ?? 'user';
-        $isAdmin = ($role === 'admin') ? 1 : 0;
-        
+
         $stmt->execute([
             $data['username'],
             password_hash($data['password'], PASSWORD_DEFAULT),
             $data['email'] ?? null,
             $role,
-            $permissions,
+            null, // permissions now come from groups
             $data['is_active'] ?? true,
-            $isAdmin
+            0 // is_admin now determined by ADMIN group membership
         ]);
-        
+
         return (int)$this->db->lastInsertId();
     }
 
@@ -177,55 +178,128 @@ class User
 
     /**
      * Vérifie si un utilisateur a une permission
+     * Les permissions sont déterminées par les groupes de l'utilisateur
      */
     public static function hasPermission(array $user, string $permission): bool
     {
-        // Admin a tous les droits (via role ou is_admin)
-        $role = $user['role'] ?? (($user['is_admin'] ?? false) ? 'admin' : 'user');
-        if ($role === 'admin' || ($user['is_admin'] ?? false)) {
+        $userId = $user['id'] ?? 0;
+        if (!$userId) {
+            return false;
+        }
+
+        // Vérifier si l'utilisateur est dans le groupe ADMIN
+        if (self::isInAdminGroup($userId)) {
             return true;
         }
-        
-        // Vérifier les permissions granulaires
-        $permissions = $user['permissions'] ?? [];
-        if (in_array('*', $permissions) || in_array($permission, $permissions)) {
+
+        // Fallback: is_admin legacy
+        if ($user['is_admin'] ?? false) {
             return true;
         }
-        
-        // Permissions par rôle
-        $rolePermissions = self::getRolePermissions($role);
-        return in_array($permission, $rolePermissions);
+
+        // Récupérer toutes les permissions des groupes de l'utilisateur
+        $groupPermissions = self::getGroupPermissions($userId);
+
+        // Vérifier la permission demandée
+        if (in_array('*', $groupPermissions)) {
+            return true;
+        }
+
+        if (in_array($permission, $groupPermissions)) {
+            return true;
+        }
+
+        // Vérifier les wildcards (ex: documents.* inclut documents.view)
+        $permissionParts = explode('.', $permission);
+        if (count($permissionParts) >= 2) {
+            $wildcardPermission = $permissionParts[0] . '.*';
+            if (in_array($wildcardPermission, $groupPermissions)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * Retourne les permissions par défaut d'un rôle
+     * Vérifie si l'utilisateur est dans le groupe ADMIN
      */
-    private static function getRolePermissions(string $role): array
+    public static function isInAdminGroup(int $userId): bool
     {
-        $permissions = [
-            'admin' => ['*'], // Tous les droits
-            'user' => [
-                'documents.view',
-                'documents.create',
-                'documents.edit',
-                'documents.delete',
-                'tags.view',
-                'tags.create',
-                'tags.edit',
-                'tags.delete',
-                'correspondents.view',
-                'correspondents.create',
-                'correspondents.edit',
-                'correspondents.delete',
-            ],
-            'viewer' => [
-                'documents.view',
-                'tags.view',
-                'correspondents.view',
-            ],
-        ];
-        
-        return $permissions[$role] ?? [];
+        static $cache = [];
+
+        if (isset($cache[$userId])) {
+            return $cache[$userId];
+        }
+
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM user_group_memberships ugm
+                INNER JOIN user_groups ug ON ug.id = ugm.group_id
+                WHERE ugm.user_id = ? AND ug.code = 'ADMIN'
+            ");
+            $stmt->execute([$userId]);
+            $cache[$userId] = (int)$stmt->fetchColumn() > 0;
+        } catch (\PDOException $e) {
+            $cache[$userId] = false;
+        }
+
+        return $cache[$userId];
+    }
+
+    /**
+     * Récupère toutes les permissions agrégées des groupes d'un utilisateur
+     */
+    public static function getGroupPermissions(int $userId): array
+    {
+        static $cache = [];
+
+        if (isset($cache[$userId])) {
+            return $cache[$userId];
+        }
+
+        $permissions = [];
+
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT ug.permissions, ug.code
+                FROM user_groups ug
+                INNER JOIN user_group_memberships ugm ON ug.id = ugm.group_id
+                WHERE ugm.user_id = ?
+            ");
+            $stmt->execute([$userId]);
+            $groups = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($groups as $group) {
+                // Groupe ADMIN = tous les droits
+                if ($group['code'] === 'ADMIN') {
+                    $cache[$userId] = ['*'];
+                    return $cache[$userId];
+                }
+
+                // Décoder et ajouter les permissions du groupe
+                if (!empty($group['permissions'])) {
+                    $groupPerms = json_decode($group['permissions'], true) ?? [];
+                    // Si c'est un tableau associatif (permissions checkbox), convertir
+                    if (!empty($groupPerms) && !isset($groupPerms[0])) {
+                        foreach ($groupPerms as $key => $value) {
+                            if ($value) {
+                                $permissions[] = $key;
+                            }
+                        }
+                    } else {
+                        $permissions = array_merge($permissions, $groupPerms);
+                    }
+                }
+            }
+        } catch (\PDOException $e) {
+            // Table n'existe peut-être pas
+        }
+
+        $cache[$userId] = array_unique($permissions);
+        return $cache[$userId];
     }
 
     /**

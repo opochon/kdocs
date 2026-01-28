@@ -103,6 +103,15 @@ class FolderTreeHelper
     }
     
     /**
+     * Génère uniquement le contenu HTML de l'arborescence (sans les scripts)
+     * Utilisé pour le rechargement AJAX
+     */
+    public function renderTreeOnly(): string
+    {
+        return $this->renderFolder('', 'Racine', 0, true);
+    }
+    
+    /**
      * Rend un dossier et ses enfants récursivement
      * MODIFIÉ : Charge TOUJOURS les sous-dossiers pour que le toggle fonctionne
      */
@@ -704,7 +713,7 @@ class FolderTreeHelper
         const currentFolder = urlParams.get('folder') || '';
         const currentPath = urlParams.get('path') || '';
         
-        // Charger le nouveau HTML
+        // Charger le nouveau HTML (renderTreeOnly retourne directement le contenu sans <nav>)
         fetch(BASE_URL + '/api/folders/tree-html?folder=' + encodeURIComponent(currentFolder) + '&path=' + encodeURIComponent(currentPath))
             .then(r => r.text())
             .then(html => {
@@ -712,13 +721,9 @@ class FolderTreeHelper
                 const temp = document.createElement('div');
                 temp.innerHTML = html;
                 
-                // Trouver le nouvel arbre
-                const newTree = temp.querySelector('#filesystem-tree');
-                if (!newTree) return;
-                
-                // Restaurer les états d'expansion
+                // Restaurer les états d'expansion avant le remplacement
                 expandedPaths.forEach(path => {
-                    const folder = newTree.querySelector('[data-folder-path="' + path + '"]');
+                    const folder = temp.querySelector('[data-folder-path="' + path + '"]');
                     if (folder) {
                         const children = folder.querySelector(':scope > .folder-children');
                         const arrow = folder.querySelector('.folder-arrow');
@@ -731,8 +736,8 @@ class FolderTreeHelper
                     }
                 });
                 
-                // Remplacer le contenu de l'arbre
-                tree.innerHTML = newTree.innerHTML;
+                // Remplacer directement le contenu de l'arbre
+                tree.innerHTML = temp.innerHTML;
                 
                 // Highlight le dossier modifié si spécifié
                 if (highlightPath !== null) {

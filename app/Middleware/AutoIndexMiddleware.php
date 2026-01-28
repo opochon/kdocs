@@ -85,11 +85,11 @@ class AutoIndexMiddleware implements MiddlewareInterface
         $indexer->initProgress();
 
         // Log
-        $logFile = dirname(__DIR__, 2) . '/storage/logs/indexing_' . date('Y-m-d') . '.log';
-        $logDir = dirname($logFile);
+        $logDir = dirname(__DIR__, 2) . '/storage/logs';
         if (!is_dir($logDir)) {
             @mkdir($logDir, 0755, true);
         }
+        $logFile = $logDir . '/indexing_' . date('Y-m-d') . '.log';
         @file_put_contents($logFile, sprintf(
             "[%s] INFO: Demarrage indexation automatique (pseudo-cron)\n",
             date('Y-m-d H:i:s')
@@ -100,9 +100,13 @@ class AutoIndexMiddleware implements MiddlewareInterface
         $workerPath = dirname(__DIR__) . '/workers/indexing_worker.php';
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows: start /B pour arriere-plan
-            $cmd = "start /B \"\" \"$phpPath\" \"$workerPath\" 2>&1";
-            pclose(popen($cmd, 'r'));
+            // Windows: utiliser wmic pour lancement en arriere-plan (plus fiable depuis Apache)
+            $cmd = sprintf(
+                'wmic process call create "cmd /c \"%s\" \"%s\"" 2>&1',
+                str_replace('/', '\\', $phpPath),
+                str_replace('/', '\\', $workerPath)
+            );
+            @exec($cmd);
         } else {
             // Linux/Mac
             $cmd = "$phpPath $workerPath > /dev/null 2>&1 &";

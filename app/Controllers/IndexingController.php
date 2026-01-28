@@ -99,8 +99,9 @@ class IndexingController
         $indexer = new FilesystemIndexer();
         $progress = $indexer->getProgressData();
 
-        // Verifier si deja en cours
-        if (in_array($progress['status'] ?? '', ['starting', 'running'])) {
+        // Verifier si deja en cours (avec timeout de 30s pour status stale)
+        $status = $progress['status'] ?? '';
+        if (in_array($status, ['starting', 'running'])) {
             $response->getBody()->write(json_encode([
                 'success' => false,
                 'error' => 'Une indexation est deja en cours'
@@ -114,24 +115,47 @@ class IndexingController
         $this->log("INFO", "Demarrage indexation manuelle");
 
         // Lancer le worker en arriere-plan
-        $phpPath = $this->findPhpExecutable();
-        $workerPath = dirname(__DIR__) . '/workers/indexing_worker.php';
-
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows: utiliser start /B pour arriere-plan
-            $cmd = "start /B \"\" \"$phpPath\" \"$workerPath\" 2>&1";
-            pclose(popen($cmd, 'r'));
-        } else {
-            // Linux/Mac
-            $cmd = "$phpPath $workerPath > /dev/null 2>&1 &";
-            exec($cmd);
-        }
+        $this->launchBackgroundWorker();
 
         $response->getBody()->write(json_encode([
             'success' => true,
             'message' => 'Indexation demarree en arriere-plan'
         ]));
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Lance le worker en arriere-plan (cross-platform)
+     */
+    private function launchBackgroundWorker(): void
+    {
+        $phpPath = $this->findPhpExecutable();
+        $workerPath = dirname(__DIR__) . '/workers/indexing_worker.php';
+        $logFile = $this->logDir . '/worker_launch.log';
+
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            // Windows: utiliser WScript.Shell via PowerShell ou COM
+            // Methode 1: Via wmic (plus fiable depuis Apache)
+            $cmd = sprintf(
+                'wmic process call create "cmd /c \"%s\" \"%s\"" 2>&1',
+                str_replace('/', '\\', $phpPath),
+                str_replace('/', '\\', $workerPath)
+            );
+            @exec($cmd, $output, $code);
+
+            // Log pour debug
+            @file_put_contents($logFile, sprintf(
+                "[%s] Launch cmd: %s\nOutput: %s\nCode: %d\n",
+                date('Y-m-d H:i:s'),
+                $cmd,
+                implode("\n", $output ?? []),
+                $code
+            ), FILE_APPEND);
+        } else {
+            // Linux/Mac
+            $cmd = "$phpPath $workerPath > /dev/null 2>&1 &";
+            exec($cmd);
+        }
     }
 
     /**

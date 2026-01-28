@@ -36,7 +36,8 @@ class ChatController
             'title' => 'Recherche avancée - K-Docs',
             'content' => $content,
             'user' => $user,
-            'pageTitle' => 'Recherche avancée'
+            'pageTitle' => 'Recherche avancée',
+            'fullHeight' => true
         ]);
         
         $response->getBody()->write($html);

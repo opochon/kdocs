@@ -111,24 +111,84 @@ class DocumentsApiController extends ApiController
     public function show(Request $request, Response $response, array $args): Response
     {
         $id = (int)$args['id'];
-        $document = Document::findById($id);
-        
-        if (!$document || $document['deleted_at']) {
+        $user = $request->getAttribute('user');
+
+        $db = Database::getInstance();
+
+        // Récupérer le document avec toutes les infos
+        $stmt = $db->prepare("
+            SELECT d.*,
+                   dt.label as document_type_label,
+                   c.name as correspondent_name
+            FROM documents d
+            LEFT JOIN document_types dt ON d.document_type_id = dt.id
+            LEFT JOIN correspondents c ON d.correspondent_id = c.id
+            WHERE d.id = ? AND d.deleted_at IS NULL
+        ");
+        $stmt->execute([$id]);
+        $document = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$document) {
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
-        
-        // Récupérer les tags
-        $db = Database::getInstance();
+
+        // Récupérer les tags du document
         $tags = [];
         try {
             $tagStmt = $db->prepare("SELECT t.id, t.name, t.color FROM tags t INNER JOIN document_tags dt ON t.id = dt.tag_id WHERE dt.document_id = ?");
             $tagStmt->execute([$id]);
             $tags = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {}
-        
+
+        // Récupérer les notes du document
+        $notes = [];
+        try {
+            $notes = \KDocs\Models\DocumentNote::allForDocument($id);
+        } catch (\Exception $e) {}
+
+        // Récupérer les listes de référence pour les formulaires
+        $correspondents = [];
+        $documentTypes = [];
+        $allTags = [];
+        try {
+            $correspondents = $db->query("SELECT id, name FROM correspondents ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+            $documentTypes = $db->query("SELECT id, code, label FROM document_types ORDER BY label")->fetchAll(PDO::FETCH_ASSOC);
+            $allTags = $db->query("SELECT id, name, color FROM tags ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {}
+
+        // Vérifier si l'utilisateur peut valider
+        $canValidate = true;
+        try {
+            if ($user) {
+                $result = \KDocs\Models\Role::canUserValidateDocument($user['id'], $document);
+                $canValidate = $result['can_validate'] ?? true;
+            }
+        } catch (\Exception $e) {}
+
+        // Vérifier si l'IA est disponible
+        $aiAvailable = false;
+        try {
+            $aiClassifier = new \KDocs\Services\AIClassifierService();
+            $aiAvailable = $aiClassifier->isAvailable();
+        } catch (\Exception $e) {}
+
         $formatted = $this->formatDocument($document);
         $formatted['tags'] = $tags;
-        
+        $formatted['notes'] = $notes;
+        $formatted['ocr_text'] = $document['ocr_text'] ?? '';
+        $formatted['validation_status'] = $document['validation_status'] ?? null;
+        $formatted['validated_at'] = $document['validated_at'] ?? null;
+        $formatted['validation_comment'] = $document['validation_comment'] ?? null;
+        $formatted['can_validate'] = $canValidate;
+        $formatted['ai_available'] = $aiAvailable;
+
+        // Ajouter les listes de référence
+        $formatted['_meta'] = [
+            'correspondents' => $correspondents,
+            'document_types' => $documentTypes,
+            'all_tags' => $allTags
+        ];
+
         return $this->successResponse($response, $formatted);
     }
 

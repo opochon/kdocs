@@ -56,8 +56,15 @@ class SearchService
             // Get documents
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
-            $result->documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+            $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Add relevance score and excerpts if searching
+            if (!empty($query->text)) {
+                $documents = $this->enrichDocumentsWithRelevance($documents, $query->text);
+            }
+
+            $result->documents = $documents;
+
             // Get facets if requested
             if ($query->withFacets) {
                 $result->correspondentFacets = $this->getCorrespondentFacets($query);
@@ -169,16 +176,16 @@ class SearchService
         ";
         
         $where = ["d.deleted_at IS NULL"];
-        // Exclure les documents en attente de validation (pending) de la recherche
-        // Ces documents sont visibles uniquement dans /admin/consume
-        $where[] = "(d.status IS NULL OR d.status != 'pending')";
         $params = [];
         $joins = [];
         
         // Full-text search
         if (!empty($query->text)) {
-            $where[] = "(d.title LIKE :search_like OR d.content LIKE :search_like OR d.ocr_text LIKE :search_like)";
-            $params['search_like'] = '%' . $query->text . '%';
+            $searchTerm = '%' . $query->text . '%';
+            $where[] = "(d.title LIKE :search_title OR d.content LIKE :search_content OR d.ocr_text LIKE :search_ocr)";
+            $params['search_title'] = $searchTerm;
+            $params['search_content'] = $searchTerm;
+            $params['search_ocr'] = $searchTerm;
         }
         
         // Correspondent filter
@@ -201,7 +208,7 @@ class SearchService
             $params['document_type_name'] = '%' . $query->documentTypeName . '%';
         }
         
-        // Tag filters
+        // Tag filters by ID
         if (!empty($query->tagIds)) {
             if ($query->tagsMatchAll) {
                 // All tags must match
@@ -219,6 +226,24 @@ class SearchService
                 }
                 $where[] = "dtag.tag_id IN (" . implode(',', $placeholders) . ")";
             }
+        }
+
+        // Tag filters by name
+        if (!empty($query->tagNames)) {
+            $joins[] = "INNER JOIN document_tags dtag_name ON d.id = dtag_name.document_id";
+            $joins[] = "INNER JOIN tags t_name ON dtag_name.tag_id = t_name.id";
+            $tagNameConditions = [];
+            foreach ($query->tagNames as $i => $tagName) {
+                $tagNameConditions[] = "t_name.name LIKE :tag_name_{$i}";
+                $params["tag_name_{$i}"] = '%' . $tagName . '%';
+            }
+            $where[] = "(" . implode(' OR ', $tagNameConditions) . ")";
+        }
+
+        // Category filter (search in correspondent or document type)
+        if (!empty($query->category)) {
+            $where[] = "(c.name LIKE :category OR dt.label LIKE :category)";
+            $params['category'] = '%' . $query->category . '%';
         }
         
         // Date filters
@@ -369,5 +394,111 @@ class SearchService
             'total_amount' => null,
             'avg_amount' => null,
         ];
+    }
+
+    /**
+     * Enrich documents with relevance score and excerpts
+     */
+    private function enrichDocumentsWithRelevance(array $documents, string $searchText): array
+    {
+        $searchTerms = preg_split('/\s+/', mb_strtolower(trim($searchText)));
+        $searchTerms = array_filter($searchTerms, fn($t) => mb_strlen($t) >= 2);
+
+        foreach ($documents as &$doc) {
+            $score = 0;
+            $excerpts = [];
+            $title = mb_strtolower($doc['title'] ?? '');
+            $content = $doc['content'] ?? '';
+            $ocrText = $doc['ocr_text'] ?? '';
+            $fullText = $content ?: $ocrText;
+            $fullTextLower = mb_strtolower($fullText);
+
+            foreach ($searchTerms as $term) {
+                // Score: title match = 30 points, content match = 10 points per occurrence (max 50)
+                if (mb_strpos($title, $term) !== false) {
+                    $score += 30;
+                }
+                $contentMatches = mb_substr_count($fullTextLower, $term);
+                $score += min(50, $contentMatches * 10);
+            }
+
+            // Normalize score to percentage (0-100)
+            $maxPossibleScore = count($searchTerms) * 80; // 30 title + 50 content per term
+            $doc['relevance_score'] = $maxPossibleScore > 0 ? min(100, round(($score / $maxPossibleScore) * 100)) : 0;
+
+            // Extract excerpts with context
+            $doc['excerpts'] = $this->extractExcerpts($fullText, $searchTerms, 3);
+        }
+
+        // Sort by relevance score descending
+        usort($documents, fn($a, $b) => $b['relevance_score'] <=> $a['relevance_score']);
+
+        return $documents;
+    }
+
+    /**
+     * Extract relevant excerpts with highlighted search terms
+     */
+    private function extractExcerpts(string $text, array $searchTerms, int $maxExcerpts = 3): array
+    {
+        if (empty($text) || empty($searchTerms)) {
+            return [];
+        }
+
+        $excerpts = [];
+        $textLower = mb_strtolower($text);
+        $contextLength = 80; // Characters before and after match
+
+        foreach ($searchTerms as $term) {
+            $pos = 0;
+            while (($pos = mb_strpos($textLower, $term, $pos)) !== false && count($excerpts) < $maxExcerpts) {
+                // Get context around the match
+                $start = max(0, $pos - $contextLength);
+                $end = min(mb_strlen($text), $pos + mb_strlen($term) + $contextLength);
+
+                // Adjust to word boundaries
+                if ($start > 0) {
+                    $spacePos = mb_strpos($text, ' ', $start);
+                    if ($spacePos !== false && $spacePos < $pos) {
+                        $start = $spacePos + 1;
+                    }
+                }
+                if ($end < mb_strlen($text)) {
+                    $spacePos = mb_strrpos(mb_substr($text, 0, $end), ' ');
+                    if ($spacePos !== false && $spacePos > $pos + mb_strlen($term)) {
+                        $end = $spacePos;
+                    }
+                }
+
+                $excerpt = mb_substr($text, $start, $end - $start);
+
+                // Clean up whitespace
+                $excerpt = preg_replace('/\s+/', ' ', trim($excerpt));
+
+                // Highlight the search term
+                $excerpt = preg_replace(
+                    '/(' . preg_quote($term, '/') . ')/iu',
+                    '<mark>$1</mark>',
+                    $excerpt
+                );
+
+                // Add ellipsis
+                if ($start > 0) {
+                    $excerpt = '...' . $excerpt;
+                }
+                if ($end < mb_strlen($text)) {
+                    $excerpt = $excerpt . '...';
+                }
+
+                $excerpts[] = $excerpt;
+                $pos += mb_strlen($term) + $contextLength; // Skip ahead to avoid overlapping excerpts
+            }
+
+            if (count($excerpts) >= $maxExcerpts) {
+                break;
+            }
+        }
+
+        return $excerpts;
     }
 }

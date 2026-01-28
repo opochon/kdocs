@@ -1205,7 +1205,8 @@ class FoldersApiController
                 $currentFolderPath
             );
             
-            $html = $helper->render();
+            // Utiliser renderTreeOnly() pour ne pas dupliquer les scripts/modals
+            $html = $helper->renderTreeOnly();
             
             $response->getBody()->write($html);
             return $response->withHeader('Content-Type', 'text/html; charset=utf-8');

@@ -56,15 +56,22 @@ $base = Config::basePath();
                         </td>
                     </tr>
                     <?php else: ?>
-                    <?php foreach ($groups as $group): ?>
+                    <?php foreach ($groups as $group):
+                        $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
+                    ?>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 flex-shrink-0 bg-purple-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-users text-purple-600"></i>
+                                <div class="w-10 h-10 flex-shrink-0 <?= $isAdminGroup ? 'bg-red-100' : 'bg-purple-100' ?> rounded-full flex items-center justify-center">
+                                    <i class="fas <?= $isAdminGroup ? 'fa-crown text-red-600' : 'fa-users text-purple-600' ?>"></i>
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($group['name']) ?></div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-medium text-gray-900"><?= htmlspecialchars($group['name']) ?></span>
+                                        <?php if ($isAdminGroup): ?>
+                                        <span class="px-1.5 py-0.5 text-xs font-semibold rounded bg-red-100 text-red-800">Tous droits</span>
+                                        <?php endif; ?>
+                                    </div>
                                     <?php if (!empty($group['description'])): ?>
                                     <div class="text-xs text-gray-500"><?= htmlspecialchars(substr($group['description'], 0, 50)) ?></div>
                                     <?php endif; ?>
@@ -73,7 +80,7 @@ $base = Config::basePath();
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <?php if (!empty($group['code'])): ?>
-                            <code class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"><?= htmlspecialchars($group['code']) ?></code>
+                            <code class="px-2 py-1 <?= $isAdminGroup ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' ?> rounded text-xs"><?= htmlspecialchars($group['code']) ?></code>
                             <?php else: ?>
                             <span class="text-gray-400">-</span>
                             <?php endif; ?>
@@ -119,10 +126,11 @@ $base = Config::basePath();
     
     <!-- Info box -->
     <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Utilisation des groupes</h3>
-        <p class="text-sm text-blue-700">
-            Les groupes permettent d'organiser les utilisateurs pour les workflows d'approbation. 
-            Assignez un document à un groupe (ex: "Comptabilité") et tous les membres recevront la notification d'approbation.
-        </p>
+        <h3 class="font-medium text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Système de permissions par groupes</h3>
+        <ul class="text-sm text-blue-700 space-y-1">
+            <li><strong>Permissions:</strong> Les droits des utilisateurs sont déterminés par leurs groupes.</li>
+            <li><strong>Groupe ADMIN:</strong> Les membres du groupe avec le code <code class="px-1 bg-blue-100 rounded">ADMIN</code> ont automatiquement tous les droits.</li>
+            <li><strong>Workflows:</strong> Assignez un document à un groupe et tous les membres recevront la notification d'approbation.</li>
+        </ul>
     </div>
 </div>
