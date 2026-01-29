@@ -139,8 +139,12 @@ class OnlyOfficeService
         // URL pour Docker (callback) - host.docker.internal sur Windows/Mac
         $callbackBaseUrl = rtrim($this->config['callback_url'] ?? $appUrl, '/');
 
-        $fileUrl = $callbackBaseUrl . '/api/onlyoffice/download/' . $document['id'];
-        $callbackUrl = $callbackBaseUrl . '/api/onlyoffice/callback/' . $document['id'];
+        // Générer un token de sécurité pour les routes publiques
+        $accessToken = \KDocs\Controllers\Api\OnlyOfficeApiController::generateAccessToken($document['id']);
+
+        // Utiliser les routes publiques avec token pour Docker
+        $fileUrl = $callbackBaseUrl . '/api/onlyoffice/public/download/' . $document['id'] . '/' . $accessToken;
+        $callbackUrl = $callbackBaseUrl . '/api/onlyoffice/public/callback/' . $document['id'] . '/' . $accessToken;
 
         $config = [
             'document' => [

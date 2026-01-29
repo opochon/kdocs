@@ -13,14 +13,15 @@ header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 // Content Security Policy (CSP)
 // Note: 'unsafe-inline' nécessaire pour les styles inline et certains scripts
 // En production stricte, utiliser des nonces ou hashes
+// OnlyOffice (localhost:8080) ajouté pour prévisualisation documents Office - HTTP et HTTPS
 header("Content-Security-Policy: " .
     "default-src 'self'; " .
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
-    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " .
-    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
-    "img-src 'self' data: blob:; " .
-    "connect-src 'self' https://cdn.jsdelivr.net; " .
-    "frame-src 'self'; " .
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com http://localhost:8080 https://localhost:8080; " .
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com http://localhost:8080 https://localhost:8080; " .
+    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com http://localhost:8080 https://localhost:8080; " .
+    "img-src 'self' data: blob: http://localhost:8080 https://localhost:8080; " .
+    "connect-src 'self' https://cdn.jsdelivr.net http://localhost:8080 https://localhost:8080 ws://localhost:8080 wss://localhost:8080; " .
+    "frame-src 'self' http://localhost:8080 https://localhost:8080; " .
     "object-src 'none'; " .
     "base-uri 'self';"
 );
@@ -128,6 +129,10 @@ use KDocs\Controllers\WorkflowApprovalController;
 $app->get('/workflow/approve/{token}', [WorkflowApprovalController::class, 'showApprovalPage']);
 $app->post('/workflow/approve/{token}', [WorkflowApprovalController::class, 'processApproval']);
 
+// OnlyOffice - Routes publiques pour accès Docker (avec token de sécurité)
+$app->get('/api/onlyoffice/public/download/{documentId}/{token}', [OnlyOfficeApiController::class, 'publicDownload']);
+$app->post('/api/onlyoffice/public/callback/{documentId}/{token}', [OnlyOfficeApiController::class, 'publicCallback']);
+
 // Health Check - Route publique pour monitoring
 $app->get('/health', function($request, $response) {
     $checks = [];
@@ -199,6 +204,21 @@ $app->get('/health', function($request, $response) {
         'message' => 'PHP ' . PHP_VERSION
     ];
 
+    // 7. OnlyOffice check
+    try {
+        $ooService = new \KDocs\Services\OnlyOfficeService();
+        if ($ooService->isEnabled()) {
+            $checks['onlyoffice'] = [
+                'status' => $ooService->isAvailable() ? 'ok' : 'warning',
+                'message' => $ooService->isAvailable() ? 'Available' : 'Server not responding'
+            ];
+        } else {
+            $checks['onlyoffice'] = ['status' => 'warning', 'message' => 'Disabled'];
+        }
+    } catch (\Exception $e) {
+        $checks['onlyoffice'] = ['status' => 'error', 'message' => $e->getMessage()];
+    }
+
     // Build response
     $result = [
         'status' => $status,
@@ -266,46 +286,35 @@ $app->group('', function ($group) {
     $group->get('/documents/upload', [DocumentsController::class, 'showUpload']);
     $group->post('/documents/upload', [DocumentsController::class, 'upload']);
     $group->get('/documents/{id}', [DocumentsController::class, 'show']);
-    $group->get('/documents/{id}/edit', [DocumentsController::class, 'showEdit']);  // Priorité 1.2
-    $group->post('/documents/{id}/edit', [DocumentsController::class, 'edit']);  // Priorité 1.2
-    $group->post('/documents/{id}/delete', [DocumentsController::class, 'delete']);  // Trash
-    $group->post('/documents/{id}/restore', [DocumentsController::class, 'restore']);  // Restauration
+    $group->get('/documents/{id}/edit', [DocumentsController::class, 'showEdit']);
+    $group->post('/documents/{id}/edit', [DocumentsController::class, 'edit']);
+    $group->post('/documents/{id}/delete', [DocumentsController::class, 'delete']);
+    $group->post('/documents/{id}/restore', [DocumentsController::class, 'restore']);
     $group->get('/documents/{id}/download', [DocumentsController::class, 'download']);
     $group->get('/documents/{id}/view', [DocumentsController::class, 'view']);
     $group->get('/documents/{id}/thumbnail', [DocumentsController::class, 'thumbnail']);
-    $group->get('/documents/{id}/share', [DocumentsController::class, 'share']);  // Priorité 3.3
-    $group->get('/documents/{id}/history', [DocumentsController::class, 'history']);  // Priorité 3.4
-    // Routes Notes (web) - AVANT routes API pour éviter conflits
+    $group->get('/documents/{id}/share', [DocumentsController::class, 'share']);
+    $group->get('/documents/{id}/history', [DocumentsController::class, 'history']);
     $group->post('/documents/{id}/notes', [DocumentsController::class, 'addNote']);
     $group->delete('/documents/{id}/notes/{noteId}', [DocumentsController::class, 'deleteNote']);
     
-    // API REST Complète (Phase 5)
-    // IMPORTANT: Routes statiques AVANT routes variables pour éviter les conflits FastRoute
-    
-    // API Recherche correspondants (route statique AVANT routes variables)
+    // API REST Complète
     $group->get('/api/correspondents/search', [CorrespondentsController::class, 'search']);
-    
-    // Correspondents API (routes variables APRÈS routes statiques)
     $group->get('/api/correspondents', [CorrespondentsApiController::class, 'index']);
     $group->get('/api/correspondents/{id}', [CorrespondentsApiController::class, 'show']);
     $group->post('/api/correspondents', [CorrespondentsApiController::class, 'create']);
     $group->put('/api/correspondents/{id}', [CorrespondentsApiController::class, 'update']);
     $group->delete('/api/correspondents/{id}', [CorrespondentsApiController::class, 'delete']);
     
-    // Tags API
     $group->get('/api/tags', [TagsApiController::class, 'index']);
     $group->get('/api/tags/{id}', [TagsApiController::class, 'show']);
     $group->post('/api/tags', [TagsApiController::class, 'create']);
     $group->put('/api/tags/{id}', [TagsApiController::class, 'update']);
     $group->delete('/api/tags/{id}', [TagsApiController::class, 'delete']);
     
-    // Document Types API
     $group->get('/api/document-types', [DocumentTypesApiController::class, 'index']);
-    
-    // Classification Fields API
     $group->get('/api/classification-fields', [ClassificationFieldsApiController::class, 'index']);
     
-    // Category Mapping API
     $group->post('/api/category-mapping/create-tag', [CategoryMappingApiController::class, 'createTag']);
     $group->post('/api/category-mapping/create-field', [CategoryMappingApiController::class, 'createField']);
     $group->post('/api/category-mapping/create-correspondent', [CategoryMappingApiController::class, 'createCorrespondent']);
@@ -314,43 +323,34 @@ $app->group('', function ($group) {
     $group->post('/api/category-mapping/map-to-correspondent', [CategoryMappingApiController::class, 'mapToCorrespondent']);
     $group->post('/api/category-mapping/map-to-type', [CategoryMappingApiController::class, 'mapToType']);
     
-    // Suggested Tags API
     $group->post('/api/suggested-tags/mark-irrelevant', [SuggestedTagsApiController::class, 'markIrrelevant']);
     
-    // Documents API - Routes statiques d'abord
     $group->post('/api/documents/bulk-action', [DocumentsController::class, 'bulkAction']);
     $group->post('/api/documents/upload', [DocumentsController::class, 'apiUpload']);
-    
-    // Documents API - Routes variables ensuite
     $group->get('/api/documents', [DocumentsApiController::class, 'index']);
     $group->get('/api/documents/{id}', [DocumentsApiController::class, 'show']);
     $group->post('/api/documents', [DocumentsApiController::class, 'create']);
     $group->put('/api/documents/{id}', [DocumentsApiController::class, 'update']);
     $group->delete('/api/documents/{id}', [DocumentsApiController::class, 'delete']);
     
-    // API Document Notes (routes avec {id} donc après routes simples)
     $group->get('/api/documents/{id}/notes', [DocumentsController::class, 'listNotes']);
     $group->post('/api/documents/{id}/notes', [DocumentsController::class, 'addNote']);
     $group->delete('/api/documents/{id}/notes/{noteId}', [DocumentsController::class, 'deleteNote']);
     
-    // API Classification IA (Bonus)
-    $group->post('/api/documents/{id}/classify-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'classifyWithAI']);
-    $group->post('/api/documents/{id}/analyze-with-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'analyzeWithAI']);
-    $group->post('/api/documents/{id}/analyze-complex-with-ai', [\KDocs\Controllers\Api\DocumentsApiController::class, 'analyzeComplexWithAI']);
-    $group->post('/api/documents/{id}/apply-ai-suggestions', [\KDocs\Controllers\Api\DocumentsApiController::class, 'applyAISuggestions']);
+    $group->post('/api/documents/{id}/classify-ai', [DocumentsApiController::class, 'classifyWithAI']);
+    $group->post('/api/documents/{id}/analyze-with-ai', [DocumentsApiController::class, 'analyzeWithAI']);
+    $group->post('/api/documents/{id}/analyze-complex-with-ai', [DocumentsApiController::class, 'analyzeComplexWithAI']);
+    $group->post('/api/documents/{id}/apply-ai-suggestions', [DocumentsApiController::class, 'applyAISuggestions']);
     
-    // API Recherche IA (Recherche contextuelle & Chat IA)
     $group->post('/api/search/ask', [SearchApiController::class, 'ask']);
     $group->get('/api/search/quick', [SearchApiController::class, 'quick']);
     $group->get('/api/search/reference', [SearchApiController::class, 'reference']);
     $group->get('/api/documents/{id}/summary', [SearchApiController::class, 'summary']);
     
-    // API Recherches sauvegardées (Priorité 3.2)
     $group->get('/api/saved-searches', [DocumentsController::class, 'listSavedSearches']);
     $group->post('/api/saved-searches', [DocumentsController::class, 'saveSearch']);
     $group->delete('/api/saved-searches/{id}', [DocumentsController::class, 'deleteSavedSearch']);
     
-    // API Workflow Designer
     $group->get('/api/workflows', [WorkflowDesignerController::class, 'list']);
     $group->get('/api/workflows/{id}', [WorkflowDesignerController::class, 'get']);
     $group->post('/api/workflows', [WorkflowDesignerController::class, 'create']);
@@ -358,12 +358,10 @@ $app->group('', function ($group) {
     $group->delete('/api/workflows/{id}', [WorkflowDesignerController::class, 'delete']);
     $group->post('/api/workflows/{id}/enable', [WorkflowDesignerController::class, 'toggleEnabled']);
 
-    // API Workflow Options & Catalog (Phase 1 - Designer UI)
     $group->get('/api/workflow/node-catalog', [WorkflowApiController::class, 'getNodeCatalog']);
     $group->get('/api/workflow/node-config/{type}', [WorkflowApiController::class, 'getNodeConfig']);
     $group->get('/api/workflow/options', [WorkflowApiController::class, 'getOptions']);
 
-    // API Validation Documents (Approbation)
     $group->get('/api/validation/pending', [ValidationApiController::class, 'getPending']);
     $group->get('/api/validation/statistics', [ValidationApiController::class, 'getStatistics']);
     $group->post('/api/validation/{documentId}/submit', [ValidationApiController::class, 'submit']);
@@ -375,13 +373,11 @@ $app->group('', function ($group) {
     $group->post('/api/validation/{documentId}/status', [ValidationApiController::class, 'setStatus']);
     $group->get('/api/validation/{documentId}/can-validate', [ValidationApiController::class, 'canValidate']);
 
-    // API Rôles
     $group->get('/api/roles', [ValidationApiController::class, 'getRoles']);
     $group->get('/api/roles/user/{userId}', [ValidationApiController::class, 'getUserRoles']);
     $group->post('/api/roles/user/{userId}/assign', [ValidationApiController::class, 'assignRole']);
     $group->delete('/api/roles/user/{userId}/{roleCode}', [ValidationApiController::class, 'removeRole']);
 
-    // API Notifications
     $group->get('/api/notifications', [NotificationsApiController::class, 'index']);
     $group->get('/api/notifications/unread', [NotificationsApiController::class, 'unread']);
     $group->get('/api/notifications/count', [NotificationsApiController::class, 'count']);
@@ -389,7 +385,6 @@ $app->group('', function ($group) {
     $group->post('/api/notifications/read-all', [NotificationsApiController::class, 'markAllRead']);
     $group->delete('/api/notifications/{id}', [NotificationsApiController::class, 'delete']);
 
-    // API Chat conversations
     $group->get('/api/chat/conversations', [ChatApiController::class, 'listConversations']);
     $group->post('/api/chat/conversations', [ChatApiController::class, 'createConversation']);
     $group->get('/api/chat/conversations/{id}', [ChatApiController::class, 'getConversation']);
@@ -397,7 +392,6 @@ $app->group('', function ($group) {
     $group->delete('/api/chat/conversations/{id}', [ChatApiController::class, 'deleteConversation']);
     $group->post('/api/chat/conversations/{id}/messages', [ChatApiController::class, 'sendMessage']);
 
-    // API Notes inter-utilisateurs
     $group->get('/api/notes', [UserNotesApiController::class, 'index']);
     $group->get('/api/notes/recipients', [UserNotesApiController::class, 'recipients']);
     $group->get('/api/notes/document/{documentId}', [UserNotesApiController::class, 'forDocument']);
@@ -409,15 +403,12 @@ $app->group('', function ($group) {
     $group->post('/api/notes/{id}/complete', [UserNotesApiController::class, 'markComplete']);
     $group->delete('/api/notes/{id}', [UserNotesApiController::class, 'delete']);
 
-    // API Tâches unifiées
     $group->get('/api/tasks', [MyTasksController::class, 'apiIndex']);
     $group->get('/api/tasks/counts', [MyTasksController::class, 'apiCounts']);
     $group->get('/api/tasks/summary', [MyTasksController::class, 'apiSummary']);
 
-    // API Scanner
     $group->post('/api/scanner/scan', [DocumentsController::class, 'scanFilesystem']);
     
-    // API Folders (arborescence dynamique)
     $group->get('/api/folders/documents', [FoldersApiController::class, 'getDocuments']);
     $group->get('/api/folders/children', [FoldersApiController::class, 'getChildren']);
     $group->get('/api/folders/tree', [FoldersApiController::class, 'getTree']);
@@ -432,22 +423,19 @@ $app->group('', function ($group) {
     $group->post('/api/folders/move', [FoldersApiController::class, 'moveFolder']);
     $group->post('/api/folders/delete', [FoldersApiController::class, 'deleteFolder']);
 
-    // OnlyOffice API (prévisualisation documents Office)
     $group->get('/api/onlyoffice/status', [OnlyOfficeApiController::class, 'status']);
     $group->get('/api/onlyoffice/config/{documentId}', [OnlyOfficeApiController::class, 'getConfig']);
     $group->get('/api/onlyoffice/download/{documentId}', [OnlyOfficeApiController::class, 'download']);
     $group->post('/api/onlyoffice/callback/{documentId}', [OnlyOfficeApiController::class, 'saveCallback']);
 
-    // Tâches
     $group->get('/tasks', [TasksController::class, 'index']);
     $group->get('/tasks/create', [TasksController::class, 'showCreate']);
     $group->post('/tasks/create', [TasksController::class, 'create']);
     $group->post('/tasks/{id}/status', [TasksController::class, 'updateStatus']);
     
-    // Administration
     $group->get('/admin', [AdminController::class, 'index']);
     $group->get('/admin/api-usage', [AdminController::class, 'apiUsage']);
-    // Users (Multi-utilisateurs avancé)
+    
     $group->get('/admin/users', [UsersController::class, 'index']);
     $group->get('/admin/users/create', [UsersController::class, 'showForm']);
     $group->get('/admin/users/{id}/edit', [UsersController::class, 'showForm']);
@@ -455,13 +443,11 @@ $app->group('', function ($group) {
     $group->post('/admin/users/{id}/save', [UsersController::class, 'save']);
     $group->post('/admin/users/{id}/delete', [UsersController::class, 'delete']);
     
-    // Rôles utilisateurs (validation)
     $group->get('/admin/roles', [\KDocs\Controllers\RolesController::class, 'index']);
     $group->get('/admin/roles/{userId}/assign', [\KDocs\Controllers\RolesController::class, 'showAssignForm']);
     $group->post('/admin/roles/{userId}/assign', [\KDocs\Controllers\RolesController::class, 'assign']);
     $group->post('/admin/roles/{userId}/remove/{roleCode}', [\KDocs\Controllers\RolesController::class, 'remove']);
 
-    // User Groups (Groupes pour workflows d'approbation style Alfresco)
     $group->get('/admin/user-groups', [\KDocs\Controllers\UserGroupsController::class, 'index']);
     $group->get('/admin/user-groups/create', [\KDocs\Controllers\UserGroupsController::class, 'showForm']);
     $group->get('/admin/user-groups/{id}/edit', [\KDocs\Controllers\UserGroupsController::class, 'showForm']);
@@ -471,11 +457,9 @@ $app->group('', function ($group) {
     $group->get('/api/user-groups', [\KDocs\Controllers\UserGroupsController::class, 'apiIndex']);
     $group->get('/api/user-groups/{id}', [\KDocs\Controllers\UserGroupsController::class, 'apiShow']);
     
-    // Paramètres système (configurable)
     $group->get('/admin/settings', [SettingsController::class, 'index']);
     $group->post('/admin/settings/save', [SettingsController::class, 'save']);
     
-    // Correspondants (Priorité 2.2)
     $group->get('/admin/correspondents', [CorrespondentsController::class, 'index']);
     $group->get('/admin/correspondents/create', [CorrespondentsController::class, 'showForm']);
     $group->get('/admin/correspondents/{id}/edit', [CorrespondentsController::class, 'showForm']);
@@ -483,7 +467,6 @@ $app->group('', function ($group) {
     $group->post('/admin/correspondents/{id}/save', [CorrespondentsController::class, 'save']);
     $group->post('/admin/correspondents/{id}/delete', [CorrespondentsController::class, 'delete']);
     
-    // Tags (Priorité 2.3)
     $group->get('/admin/tags', [TagsController::class, 'index']);
     $group->get('/admin/tags/create', [TagsController::class, 'showForm']);
     $group->get('/admin/tags/{id}/edit', [TagsController::class, 'showForm']);
@@ -491,7 +474,6 @@ $app->group('', function ($group) {
     $group->post('/admin/tags/{id}/save', [TagsController::class, 'save']);
     $group->post('/admin/tags/{id}/delete', [TagsController::class, 'delete']);
     
-    // Document Types
     $group->get('/admin/document-types', [DocumentTypesController::class, 'index']);
     $group->get('/admin/document-types/create', [DocumentTypesController::class, 'showForm']);
     $group->get('/admin/document-types/{id}/edit', [DocumentTypesController::class, 'showForm']);
@@ -499,7 +481,6 @@ $app->group('', function ($group) {
     $group->post('/admin/document-types/{id}/save', [DocumentTypesController::class, 'save']);
     $group->post('/admin/document-types/{id}/delete', [DocumentTypesController::class, 'delete']);
     
-    // Custom Fields (Phase 2.1)
     $group->get('/admin/custom-fields', [CustomFieldsController::class, 'index']);
     $group->get('/admin/custom-fields/create', [CustomFieldsController::class, 'showForm']);
     $group->get('/admin/custom-fields/{id}/edit', [CustomFieldsController::class, 'showForm']);
@@ -507,7 +488,6 @@ $app->group('', function ($group) {
     $group->post('/admin/custom-fields/{id}/save', [CustomFieldsController::class, 'save']);
     $group->post('/admin/custom-fields/{id}/delete', [CustomFieldsController::class, 'delete']);
     
-    // Storage Paths (Phase 2.2)
     $group->get('/admin/storage-paths', [StoragePathsController::class, 'index']);
     $group->get('/admin/storage-paths/create', [StoragePathsController::class, 'showForm']);
     $group->get('/admin/storage-paths/{id}/edit', [StoragePathsController::class, 'showForm']);
@@ -515,7 +495,6 @@ $app->group('', function ($group) {
     $group->post('/admin/storage-paths/{id}/save', [StoragePathsController::class, 'save']);
     $group->post('/admin/storage-paths/{id}/delete', [StoragePathsController::class, 'delete']);
     
-    // Workflows (Phase 3.3)
     $group->get('/admin/workflows', [WorkflowsController::class, 'index']);
     $group->get('/admin/workflows/create', [WorkflowsController::class, 'showForm']);
     $group->get('/admin/workflows/{id}/edit', [WorkflowsController::class, 'showForm']);
@@ -524,11 +503,9 @@ $app->group('', function ($group) {
     $group->post('/admin/workflows/{id}/save', [WorkflowsController::class, 'save']);
     $group->post('/admin/workflows/{id}/delete', [WorkflowsController::class, 'delete']);
     
-    // Workflow Designer (nouveau système)
     $group->get('/admin/workflows/new/designer', [WorkflowDesignerPageController::class, 'newDesigner']);
     $group->get('/admin/workflows/{id}/designer', [WorkflowDesignerPageController::class, 'designer']);
     
-    // Webhooks (Phase 4.3)
     $group->get('/admin/webhooks', [WebhooksController::class, 'index']);
     $group->get('/admin/webhooks/create', [WebhooksController::class, 'showForm']);
     $group->get('/admin/webhooks/{id}/edit', [WebhooksController::class, 'showForm']);
@@ -538,16 +515,13 @@ $app->group('', function ($group) {
     $group->post('/admin/webhooks/{id}/delete', [WebhooksController::class, 'delete']);
     $group->post('/admin/webhooks/{id}/test', [WebhooksController::class, 'test']);
     
-    // Audit Logs (Phase 5.3)
     $group->get('/admin/audit-logs', [AuditLogsController::class, 'index']);
     
-    // Export/Import (Phase 5.4)
     $group->get('/admin/export-import', [ExportController::class, 'index']);
     $group->get('/admin/export-import/export-documents', [ExportController::class, 'exportDocuments']);
     $group->get('/admin/export-import/export-metadata', [ExportController::class, 'exportMetadata']);
     $group->post('/admin/export-import/import', [ExportController::class, 'import']);
     
-    // Mail Accounts & Rules (10% manquant - 5%)
     $group->get('/admin/mail-accounts', [MailAccountsController::class, 'index']);
     $group->get('/admin/mail-accounts/create', [MailAccountsController::class, 'showForm']);
     $group->get('/admin/mail-accounts/{id}/edit', [MailAccountsController::class, 'showForm']);
@@ -557,19 +531,16 @@ $app->group('', function ($group) {
     $group->post('/admin/mail-accounts/{id}/process', [MailAccountsController::class, 'process']);
     $group->post('/admin/mail-accounts/{id}/delete', [MailAccountsController::class, 'delete']);
     
-    // Scheduled Tasks (10% manquant - 1.5%)
     $group->get('/admin/scheduled-tasks', [ScheduledTasksController::class, 'index']);
     $group->post('/admin/scheduled-tasks/{id}/run', [ScheduledTasksController::class, 'run']);
     $group->post('/admin/scheduled-tasks/process-queue', [ScheduledTasksController::class, 'processQueue']);
     
-    // Consume Folder (Pipeline d'ingestion)
     $group->get('/admin/consume', [ConsumeController::class, 'index']);
     $group->get('/admin/consume/document-card/{id}', [ConsumeController::class, 'documentCard']);
     $group->post('/admin/consume/scan', [ConsumeController::class, 'scan']);
     $group->post('/admin/consume/rescan', [ConsumeController::class, 'rescan']);
     $group->post('/admin/consume/validate/{id}', [ConsumeController::class, 'validate']);
     
-    // Classification Fields (Champs paramétrables)
     $group->get('/admin/classification-fields', [ClassificationFieldsController::class, 'index']);
     $group->get('/admin/classification-fields/create', [ClassificationFieldsController::class, 'showForm']);
     $group->get('/admin/classification-fields/{id}/edit', [ClassificationFieldsController::class, 'showForm']);
@@ -577,13 +548,11 @@ $app->group('', function ($group) {
     $group->post('/admin/classification-fields/{id}/save', [ClassificationFieldsController::class, 'save']);
     $group->post('/admin/classification-fields/{id}/delete', [ClassificationFieldsController::class, 'delete']);
 
-    // Attribution Rules (Règles d'attribution automatique)
     $group->get('/admin/attribution-rules', [AttributionRulesController::class, 'index']);
     $group->get('/admin/attribution-rules/create', [AttributionRulesController::class, 'editor']);
     $group->get('/admin/attribution-rules/{id}/edit', [AttributionRulesController::class, 'editor']);
     $group->get('/admin/attribution-rules/{id}/logs', [AttributionRulesController::class, 'logs']);
 
-    // API Attribution Rules
     $group->get('/api/attribution-rules/field-types', [AttributionRulesApiController::class, 'fieldTypes']);
     $group->get('/api/attribution-rules', [AttributionRulesApiController::class, 'index']);
     $group->post('/api/attribution-rules', [AttributionRulesApiController::class, 'create']);
@@ -596,7 +565,6 @@ $app->group('', function ($group) {
     $group->post('/api/attribution-rules/process-document', [AttributionRulesApiController::class, 'processDocument']);
     $group->post('/api/attribution-rules/process-batch', [AttributionRulesApiController::class, 'processBatch']);
 
-    // API Classification Suggestions (ML)
     $group->get('/api/suggestions/pending', [ClassificationSuggestionsApiController::class, 'listPending']);
     $group->get('/api/suggestions/stats', [ClassificationSuggestionsApiController::class, 'stats']);
     $group->get('/api/documents/{id}/suggestions', [ClassificationSuggestionsApiController::class, 'getForDocument']);
@@ -606,7 +574,6 @@ $app->group('', function ($group) {
     $group->post('/api/documents/{documentId}/suggestions/{suggestionId}/apply', [ClassificationSuggestionsApiController::class, 'apply']);
     $group->post('/api/documents/{documentId}/suggestions/{suggestionId}/ignore', [ClassificationSuggestionsApiController::class, 'ignore']);
 
-    // API Invoice Line Items
     $group->get('/api/documents/{id}/line-items', [InvoiceLineItemsApiController::class, 'index']);
     $group->post('/api/documents/{id}/line-items', [InvoiceLineItemsApiController::class, 'create']);
     $group->post('/api/documents/{id}/line-items/extract', [InvoiceLineItemsApiController::class, 'extract']);
@@ -617,7 +584,6 @@ $app->group('', function ($group) {
     $group->put('/api/documents/{documentId}/line-items/{lineId}', [InvoiceLineItemsApiController::class, 'update']);
     $group->delete('/api/documents/{documentId}/line-items/{lineId}', [InvoiceLineItemsApiController::class, 'delete']);
 
-    // API Classification Audit
     $group->get('/api/documents/{id}/classification-history', [ClassificationAuditApiController::class, 'documentHistory']);
     $group->get('/api/documents/{id}/classification-compare', [ClassificationAuditApiController::class, 'compare']);
     $group->get('/api/audit/classifications', [ClassificationAuditApiController::class, 'globalHistory']);
@@ -625,7 +591,6 @@ $app->group('', function ($group) {
     $group->get('/api/audit/classifications/export', [ClassificationAuditApiController::class, 'export']);
     $group->post('/api/audit/classifications/{id}/revert', [ClassificationAuditApiController::class, 'revert']);
 
-    // API Classification Field Options
     $group->get('/api/classification-field-options', [ClassificationFieldOptionsApiController::class, 'index']);
     $group->get('/api/classification-field-options/field/{fieldCode}', [ClassificationFieldOptionsApiController::class, 'getForField']);
     $group->post('/api/classification-field-options', [ClassificationFieldOptionsApiController::class, 'create']);
@@ -634,7 +599,6 @@ $app->group('', function ($group) {
     $group->put('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'update']);
     $group->delete('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'delete']);
 
-    // API Extraction Templates (système unifié d'extraction avec apprentissage)
     $group->get('/api/extraction/templates', [ExtractionApiController::class, 'listTemplates']);
     $group->get('/api/extraction/templates/{id}', [ExtractionApiController::class, 'getTemplate']);
     $group->post('/api/extraction/templates', [ExtractionApiController::class, 'createTemplate']);
@@ -647,7 +611,6 @@ $app->group('', function ($group) {
     $group->post('/api/documents/{id}/extracted/{field_code}/confirm', [ExtractionApiController::class, 'confirmValue']);
     $group->post('/api/documents/{id}/extracted/{field_code}/correct', [ExtractionApiController::class, 'correctValue']);
 
-    // Indexation (Contrôle et monitoring)
     $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
     $group->get('/admin/indexing/status', [\KDocs\Controllers\IndexingController::class, 'status']);
     $group->post('/admin/indexing/start', [\KDocs\Controllers\IndexingController::class, 'start']);
@@ -657,24 +620,20 @@ $app->group('', function ($group) {
     $group->post('/admin/indexing/settings', [\KDocs\Controllers\IndexingController::class, 'saveSettings']);
     $group->get('/admin/indexing/worker', [\KDocs\Controllers\IndexingController::class, 'worker']);
     
-    // Document Consumption API (10% manquant - 2%)
     $group->post('/api/consumption/consume', [ConsumptionApiController::class, 'consume']);
     $group->post('/api/consumption/consume-batch', [ConsumptionApiController::class, 'consumeBatch']);
     
-    // API pour cron consume folder
     $group->post('/api/consume/scan', function($req, $res) {
         $results = (new \KDocs\Services\ConsumeFolderService())->scan();
         $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
         return $res->withHeader('Content-Type', 'application/json');
     });
 
-    // API MSG Import (Outlook .msg avec pièces jointes)
     $group->get('/api/msg/status', [\KDocs\Controllers\Api\MSGImportApiController::class, 'status']);
     $group->post('/api/msg/import', [\KDocs\Controllers\Api\MSGImportApiController::class, 'import']);
     $group->get('/api/msg/{id}/attachments', [\KDocs\Controllers\Api\MSGImportApiController::class, 'getAttachments']);
     $group->get('/api/msg/thread/{threadId}', [\KDocs\Controllers\Api\MSGImportApiController::class, 'getThread']);
 
-    // API Email Ingestion
     $group->get('/api/email-ingestion/logs', function($req, $res) {
         $params = $req->getQueryParams();
         $service = new \KDocs\Services\EmailIngestionService();
@@ -706,22 +665,16 @@ $app->group('', function ($group) {
 
 // Démarrer l'application
 try {
-    // #region agent log
     \KDocs\Core\DebugLogger::log('index.php', 'Application start', [
         'requestUri' => $_SERVER['REQUEST_URI'] ?? '',
         'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? ''
     ], 'B');
-    // #endregion
     
     $app->run();
     
-    // #region agent log
     \KDocs\Core\DebugLogger::log('index.php', 'Application completed successfully', [], 'B');
-    // #endregion
 } catch (\Exception $e) {
-    // #region agent log
     \KDocs\Core\DebugLogger::logException($e, 'index.php - Application error', 'A');
-    // #endregion
     error_log("Application error: " . $e->getMessage());
     http_response_code(500);
     echo "Une erreur est survenue. Veuillez réessayer plus tard.";

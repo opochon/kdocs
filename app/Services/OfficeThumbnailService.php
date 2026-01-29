@@ -125,12 +125,14 @@ class OfficeThumbnailService
         $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
 
         // OnlyOffice nécessite que le fichier soit accessible via HTTP
-        // On utilise l'API de téléchargement existante
+        // On utilise l'API publique avec token de sécurité
         $config = Config::load();
         $callbackUrl = $config['onlyoffice']['callback_url'] ?? $config['onlyoffice']['app_url'] ?? '';
         $callbackUrl = rtrim($callbackUrl, '/');
 
-        $fileUrl = $callbackUrl . '/api/onlyoffice/download/' . $documentId;
+        // Générer token de sécurité
+        $accessToken = \KDocs\Controllers\Api\OnlyOfficeApiController::generateAccessToken($documentId);
+        $fileUrl = $callbackUrl . '/api/onlyoffice/public/download/' . $documentId . '/' . $accessToken;
 
         // Extension du fichier source
         $ext = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));

@@ -6,9 +6,10 @@
 
 namespace KDocs\Services;
 
+use KDocs\Contracts\AIServiceInterface;
 use KDocs\Core\Config;
 
-class ClaudeService
+class ClaudeService implements AIServiceInterface
 {
     private string $apiKey;
     private string $model = 'claude-sonnet-4-20250514';
@@ -349,10 +350,13 @@ class ClaudeService
     {
         // Chemins courants pour le bundle CA
         $paths = [
-            // WAMP avec PHP 8.x
-            'C:/wamp64/bin/php/php8.4.0/extras/ssl/cacert.pem',
+            // WAMP avec PHP 8.x (ordre par version décroissante)
             'C:/wamp64/bin/php/php8.3.14/extras/ssl/cacert.pem',
+            'C:/wamp64/bin/php/php8.4.0/extras/ssl/cacert.pem',
+            'C:/wamp64/bin/php/php8.2.0/extras/ssl/cacert.pem',
             'C:/wamp64/bin/php/extras/ssl/cacert.pem',
+            // Dans le dossier de l'app
+            __DIR__ . '/../../cacert.pem',
             // XAMPP
             'C:/xampp/php/extras/ssl/cacert.pem',
             // Certifi standard

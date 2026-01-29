@@ -102,7 +102,7 @@ class WorkflowEngine
                 }
                 
                 // Trouver les nodes de type trigger
-                $triggerNodes = array_filter($workflowData['nodes'] ?? [], function($node) use ($event) {
+                $triggerNodes = array_filter($workflowData['nodes'] ?? [], function($node) use ($event, $documentId, $context) {
                     return strpos($node['node_type'], 'trigger_') === 0 && $this->triggerNodeMatches($node, $event, $documentId, $context);
                 });
                 

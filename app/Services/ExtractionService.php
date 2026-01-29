@@ -214,15 +214,20 @@ class ExtractionService
 
         $prompt = $template['ai_prompt'] . $optionsText . "\n\n" . $context . "\n\nContenu du document:\n" . $contentTruncated;
 
+        $systemPrompt = "Tu es un assistant qui extrait des informations de documents. Réponds de manière concise avec uniquement la valeur demandée, sans phrase complète.";
+
         try {
-            $response = $this->claudeService->sendMessage($prompt, [
-                'max_tokens' => 100,
-                'temperature' => 0.1
-            ]);
+            $response = $this->claudeService->sendMessage($prompt, $systemPrompt);
 
             if (!empty($response)) {
+                // Extraire le texte de la réponse
+                $text = $this->claudeService->extractText($response);
+                if (empty($text)) {
+                    return null;
+                }
+
                 // Nettoyer la réponse
-                $value = trim($response);
+                $value = trim($text);
                 $value = preg_replace('/^(Le |La |L\'|The )/i', '', $value);
                 $value = trim($value, '."\'');
 
