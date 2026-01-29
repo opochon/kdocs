@@ -1,15 +1,42 @@
 @echo off
-REM K-Docs - Arrêter OnlyOffice Document Server
-cd /d "%~dp0"
-echo Arret OnlyOffice Document Server...
+setlocal EnableDelayedExpansion
+chcp 65001 >nul 2>&1
 
-REM Essayer docker compose (v2) puis docker-compose (v1)
-docker compose down 2>nul
-if %errorlevel% neq 0 (
-    docker-compose down 2>nul
-)
+REM ============================================================
+REM K-Docs - Arreter OnlyOffice Document Server
+REM ============================================================
+
+cd /d "%~dp0"
 
 echo.
-echo OnlyOffice arrete.
+echo Arret OnlyOffice Document Server...
+echo.
+
+REM Trouver Docker
+set DOCKER_EXE=
+
+where docker >nul 2>&1
+if %errorlevel% equ 0 (
+    set DOCKER_EXE=docker
+    goto :docker_found
+)
+
+if exist "C:\Program Files\Docker\Docker\resources\bin\docker.exe" (
+    set DOCKER_EXE="C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+    goto :docker_found
+)
+
+echo [ERREUR] Docker non trouve.
+pause
+exit /b 1
+
+:docker_found
+%DOCKER_EXE% stop kdocs-onlyoffice 2>nul
+if %errorlevel% equ 0 (
+    echo [OK] OnlyOffice arrete.
+) else (
+    echo [INFO] OnlyOffice n'etait pas en cours d'execution.
+)
+
 echo.
 pause

@@ -1,11 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
+chcp 65001 >nul 2>&1
 
 REM ============================================================
 REM K-Docs - Configuration OnlyOffice Document Server
 REM ============================================================
 
-set KDOCS_ROOT=%~dp0..\..
+set SCRIPT_DIR=%~dp0
+set KDOCS_ROOT=%SCRIPT_DIR%..\..
 set DOCKER_DIR=%KDOCS_ROOT%\docker\onlyoffice
 
 echo.
@@ -14,101 +16,132 @@ echo   Configuration OnlyOffice Document Server
 echo ══════════════════════════════════════════════════════════
 echo.
 
-REM Vérifier Docker
-echo Vérification de Docker...
-docker info >nul 2>&1
+REM Trouver Docker
+echo Recherche de Docker...
+call "%SCRIPT_DIR%find-docker.bat"
 if %errorlevel% neq 0 (
     echo.
-    echo [ERREUR] Docker n'est pas démarré.
+    echo [ERREUR] Docker non trouve sur ce systeme.
     echo.
-    echo 1. Lancez Docker Desktop depuis le menu Démarrer
-    echo 2. Attendez que l'icône baleine soit stable (1-2 min)
-    echo 3. Relancez ce script
+    echo Emplacements verifies:
+    echo   - PATH systeme
+    echo   - C:\Program Files\Docker\Docker\resources\bin\
+    echo   - %LOCALAPPDATA%\Docker\
+    echo.
+    echo Solutions:
+    echo   1. Installez Docker Desktop: https://www.docker.com/products/docker-desktop/
+    echo   2. Ou executez: installer\scripts\install-docker.bat
     echo.
     pause
     exit /b 1
 )
-echo [OK] Docker est opérationnel
+
+echo [OK] Docker trouve: %DOCKER_EXE%
+echo.
+
+REM Vérifier que Docker daemon tourne
+echo Verification du daemon Docker...
+%DOCKER_EXE% info >nul 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERREUR] Docker Desktop n'est pas demarre.
+    echo.
+    echo 1. Lancez Docker Desktop depuis le menu Demarrer
+    echo 2. Attendez que l'icone baleine soit stable (1-2 min)
+    echo 3. Relancez ce script
+    echo.
+
+    REM Tenter de lancer Docker Desktop
+    echo Tentative de lancement automatique...
+    start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe" 2>nul
+    if !errorlevel! equ 0 (
+        echo Docker Desktop lance. Patientez 60 secondes...
+        timeout /t 60 /nobreak
+        %DOCKER_EXE% info >nul 2>&1
+        if !errorlevel! neq 0 (
+            echo [ERREUR] Docker n'a pas demarre. Lancez-le manuellement.
+            pause
+            exit /b 1
+        )
+    ) else (
+        pause
+        exit /b 1
+    )
+)
+echo [OK] Docker daemon operationnel
 echo.
 
 REM Vérifier si le conteneur existe déjà
-docker ps -a --filter "name=kdocs-onlyoffice" --format "{{.Names}}" 2>nul | findstr /i "kdocs-onlyoffice" >nul
+echo Verification du conteneur OnlyOffice...
+%DOCKER_EXE% ps -a --filter "name=kdocs-onlyoffice" --format "{{.Names}}" 2>nul | findstr /i "kdocs-onlyoffice" >nul
 if %errorlevel% equ 0 (
-    echo [INFO] Conteneur kdocs-onlyoffice existant détecté.
-    echo.
-    echo Que voulez-vous faire ?
-    echo   [1] Démarrer le conteneur existant
-    echo   [2] Supprimer et recréer
-    echo   [3] Annuler
-    echo.
-    set /p choice="Votre choix: "
+    echo [INFO] Conteneur kdocs-onlyoffice existant detecte.
 
-    if "!choice!"=="1" goto start_container
-    if "!choice!"=="2" goto recreate_container
-    echo Annulé.
-    exit /b 0
+    REM Vérifier s'il tourne
+    %DOCKER_EXE% ps --filter "name=kdocs-onlyoffice" --format "{{.Names}}" 2>nul | findstr /i "kdocs-onlyoffice" >nul
+    if !errorlevel! equ 0 (
+        echo [OK] Conteneur deja en cours d'execution.
+        goto :wait_ready
+    ) else (
+        echo Demarrage du conteneur existant...
+        %DOCKER_EXE% start kdocs-onlyoffice
+        goto :wait_ready
+    )
 )
 
 :create_container
 echo.
-echo Création du conteneur OnlyOffice...
-echo (Le premier téléchargement peut prendre 5-10 minutes)
+echo Creation du conteneur OnlyOffice...
+echo (Premier telechargement: ~2-3 GB, peut prendre 5-15 minutes)
 echo.
 
 cd /d "%DOCKER_DIR%"
 
-REM Essayer docker compose v2 puis v1
-docker compose up -d 2>nul
+REM Utiliser docker compose avec le chemin complet
+%DOCKER_COMPOSE_CMD% -f "%DOCKER_DIR%\docker-compose.yml" up -d
 if %errorlevel% neq 0 (
-    docker-compose up -d 2>nul
+    echo.
+    echo [ERREUR] Docker Compose a echoue.
+    echo.
+    echo Tentative alternative avec docker run...
+    %DOCKER_EXE% run -d --name kdocs-onlyoffice --restart unless-stopped -p 8080:80 -e JWT_ENABLED=false onlyoffice/documentserver:latest
     if !errorlevel! neq 0 (
-        echo [ERREUR] Docker Compose a échoué.
+        echo [ERREUR] Impossible de creer le conteneur.
         pause
         exit /b 1
     )
 )
 
-goto wait_ready
-
-:start_container
-echo.
-echo Démarrage du conteneur...
-docker start kdocs-onlyoffice
-goto wait_ready
-
-:recreate_container
-echo.
-echo Suppression du conteneur existant...
-docker stop kdocs-onlyoffice >nul 2>&1
-docker rm kdocs-onlyoffice >nul 2>&1
-goto create_container
-
 :wait_ready
 echo.
-echo Attente du démarrage d'OnlyOffice...
-echo (Peut prendre 30-60 secondes au premier lancement)
+echo Attente du demarrage d'OnlyOffice...
+echo (Premiere execution: 30-90 secondes)
 echo.
 
 set ATTEMPTS=0
 :check_loop
 set /a ATTEMPTS+=1
-if %ATTEMPTS% gtr 30 (
+if %ATTEMPTS% gtr 40 (
     echo.
-    echo [ATTENTION] OnlyOffice met du temps à démarrer.
-    echo Vérifiez les logs: docker logs kdocs-onlyoffice
-    goto show_status
+    echo [ATTENTION] OnlyOffice met du temps a demarrer.
+    echo Verifiez les logs: %DOCKER_EXE% logs kdocs-onlyoffice
+    echo.
+    echo Le conteneur continue de demarrer en arriere-plan.
+    echo Reessayez dans quelques minutes.
+    goto :show_status
 )
 
+REM Test healthcheck
 curl -s http://localhost:8080/healthcheck 2>nul | findstr /i "true" >nul
 if %errorlevel% equ 0 (
     echo.
-    echo [OK] OnlyOffice est prêt !
-    goto show_status
+    echo [OK] OnlyOffice est pret !
+    goto :show_status
 )
 
-echo   Tentative %ATTEMPTS%/30...
+echo   Tentative %ATTEMPTS%/40... (patientez)
 timeout /t 3 /nobreak >nul
-goto check_loop
+goto :check_loop
 
 :show_status
 echo.
@@ -117,23 +150,28 @@ echo   STATUT ONLYOFFICE
 echo ══════════════════════════════════════════════════════════
 echo.
 
-docker ps --filter "name=kdocs-onlyoffice" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+%DOCKER_EXE% ps --filter "name=kdocs-onlyoffice" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 echo.
 echo URLs:
 echo   - Health check: http://localhost:8080/healthcheck
-echo   - Interface:    http://localhost:8080/
+echo   - Web interface: http://localhost:8080/
 echo.
 
 REM Test final
 curl -s http://localhost:8080/healthcheck 2>nul | findstr /i "true" >nul
 if %errorlevel% equ 0 (
-    echo [OK] OnlyOffice répond correctement.
+    echo ══════════════════════════════════════════════════════════
+    echo   [OK] OnlyOffice fonctionne correctement !
+    echo ══════════════════════════════════════════════════════════
     echo.
-    echo Vous pouvez maintenant ouvrir des fichiers Office dans K-Docs !
+    echo Vous pouvez maintenant:
+    echo   - Ouvrir des fichiers Office dans K-Docs
+    echo   - Les modifier en ligne
+    echo   - Generer des miniatures automatiquement
 ) else (
-    echo [ATTENTION] OnlyOffice ne répond pas encore.
-    echo Patientez quelques instants et testez: http://localhost:8080/healthcheck
+    echo [INFO] OnlyOffice demarre encore...
+    echo Testez dans quelques instants: http://localhost:8080/healthcheck
 )
 
 echo.
