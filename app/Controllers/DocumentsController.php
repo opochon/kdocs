@@ -1009,36 +1009,93 @@ class DocumentsController
     {
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
-        
+
         $document = Document::findById($id);
-        
+
         if (!$document) {
             return $response->withStatus(404);
         }
-        
+
         $config = Config::load();
         $thumbBasePath = $config['storage']['thumbnails'] ?? __DIR__ . '/../../storage/thumbnails';
-        
+
         // thumbnail_path contient juste le nom du fichier (ex: "123_thumb.png")
         $thumbnailFilename = $document['thumbnail_path'] ?? null;
-        
-        if (!$thumbnailFilename) {
+        $thumbnailPath = null;
+
+        if ($thumbnailFilename) {
+            $thumbnailPath = $thumbBasePath . DIRECTORY_SEPARATOR . basename($thumbnailFilename);
+            if (!file_exists($thumbnailPath)) {
+                $thumbnailPath = null;
+            }
+        }
+
+        // Si pas de miniature, essayer de générer pour fichiers Office
+        if (!$thumbnailPath) {
+            $filename = $document['filename'] ?? $document['original_filename'] ?? '';
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $officeExtensions = ['docx', 'doc', 'odt', 'rtf', 'xlsx', 'xls', 'ods', 'pptx', 'ppt', 'odp'];
+
+            if (in_array($ext, $officeExtensions)) {
+                try {
+                    $officeThumbnailService = new \KDocs\Services\OfficeThumbnailService();
+                    if ($officeThumbnailService->isAvailable()) {
+                        $sourcePath = $this->getDocumentFullPath($document);
+                        if ($sourcePath && file_exists($sourcePath)) {
+                            $thumbnailPath = $officeThumbnailService->getThumbnailPath($id, $sourcePath);
+
+                            // Mettre à jour la BDD si miniature générée
+                            if ($thumbnailPath) {
+                                $db = \KDocs\Core\Database::getInstance()->getConnection();
+                                $thumbFilename = basename($thumbnailPath);
+                                $db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")->execute([$thumbFilename, $id]);
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("Thumbnail generation error for doc $id: " . $e->getMessage());
+                }
+            }
+        }
+
+        if (!$thumbnailPath || !file_exists($thumbnailPath)) {
             return $response->withStatus(404);
         }
-        
-        $thumbnailPath = $thumbBasePath . DIRECTORY_SEPARATOR . basename($thumbnailFilename);
-        
-        if (!file_exists($thumbnailPath)) {
-            return $response->withStatus(404);
-        }
-        
+
         $file = fopen($thumbnailPath, 'rb');
         $stream = new \Slim\Psr7\Stream($file);
-        
+
         return $response
             ->withHeader('Content-Type', 'image/png')
             ->withHeader('Cache-Control', 'public, max-age=31536000')
             ->withBody($stream);
+    }
+
+    /**
+     * Récupère le chemin complet du fichier document
+     */
+    private function getDocumentFullPath(array $document): ?string
+    {
+        $config = Config::load();
+        $basePath = $config['storage']['documents'] ?? __DIR__ . '/../../storage/documents';
+
+        $filePath = $document['file_path'] ?? null;
+        if (!$filePath) {
+            return null;
+        }
+
+        // Si chemin absolu
+        if (file_exists($filePath)) {
+            return $filePath;
+        }
+
+        // Chemin relatif au storage
+        $fullPath = $basePath . DIRECTORY_SEPARATOR . $filePath;
+        if (file_exists($fullPath)) {
+            return $fullPath;
+        }
+
+        return null;
     }
 
     /**

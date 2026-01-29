@@ -134,10 +134,13 @@ class OnlyOfficeService
     public function generateConfig(array $document, int $userId, string $userName = '', bool $editMode = false): array
     {
         $basePath = Config::basePath();
+        // URL pour le navigateur (download)
         $appUrl = rtrim($this->config['app_url'] ?? Config::get('app.url', 'http://localhost/kdocs'), '/');
+        // URL pour Docker (callback) - host.docker.internal sur Windows/Mac
+        $callbackBaseUrl = rtrim($this->config['callback_url'] ?? $appUrl, '/');
 
-        $fileUrl = $appUrl . '/api/onlyoffice/download/' . $document['id'];
-        $callbackUrl = $appUrl . '/api/onlyoffice/callback/' . $document['id'];
+        $fileUrl = $callbackBaseUrl . '/api/onlyoffice/download/' . $document['id'];
+        $callbackUrl = $callbackBaseUrl . '/api/onlyoffice/callback/' . $document['id'];
 
         $config = [
             'document' => [

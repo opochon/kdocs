@@ -17,6 +17,15 @@ $onlyOfficeService = new \KDocs\Services\OnlyOfficeService();
 $onlyOfficeAvailable = $onlyOfficeService->isAvailable();
 $canPreviewOffice = $isOffice && $onlyOfficeAvailable;
 
+// Mode édition OnlyOffice (via query param)
+$editMode = isset($_GET['edit']) && $_GET['edit'] === '1';
+// Permissions d'édition : admin ou propriétaire du document
+$canEdit = $canPreviewOffice && (
+    ($user['role'] ?? '') === 'admin' ||
+    ($document['owner_id'] ?? 0) == ($user['id'] ?? 0) ||
+    ($document['created_by'] ?? 0) == ($user['id'] ?? 0)
+);
+
 $canPreview = $isPDF || $isImage || $canPreviewOffice;
 ?>
 
@@ -70,7 +79,30 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
         
         <!-- Actions -->
         <div class="flex items-center gap-2">
-            <form method="POST" action="<?= url('/documents/' . $document['id'] . '/delete') ?>" 
+            <?php if ($canEdit): ?>
+            <?php if ($editMode): ?>
+            <a href="<?= url('/documents/' . $document['id']) ?>"
+               class="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-1"
+               title="Quitter le mode édition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span class="hidden lg:inline">Lecture</span>
+            </a>
+            <?php else: ?>
+            <a href="<?= url('/documents/' . $document['id'] . '?edit=1') ?>"
+               class="px-3 py-1.5 text-sm border border-green-300 text-green-700 rounded hover:bg-green-50 flex items-center gap-1"
+               title="Modifier dans OnlyOffice">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                <span class="hidden lg:inline">Modifier</span>
+            </a>
+            <?php endif; ?>
+            <?php endif; ?>
+
+            <form method="POST" action="<?= url('/documents/' . $document['id'] . '/delete') ?>"
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');" class="inline">
                 <button type="submit" class="px-3 py-1.5 text-sm border border-red-300 text-red-700 rounded hover:bg-red-50" title="Supprimer">
                     <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -483,7 +515,9 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
             <?php elseif ($canPreviewOffice): ?>
             <!-- Prévisualisation Office via OnlyOffice -->
             <?php
-            $editMode = false; // Vue seule par défaut
+            // $editMode déjà défini en haut du fichier (via ?edit=1)
+            // Si pas autorisé à éditer, forcer le mode lecture
+            if (!$canEdit) $editMode = false;
             include __DIR__ . '/onlyoffice-preview.php';
             ?>
             <?php elseif ($isImage): ?>
