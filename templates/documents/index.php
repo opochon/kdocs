@@ -79,10 +79,13 @@ $base = Config::basePath();
 
 <div class="flex min-h-screen bg-white w-full overflow-hidden">
     
-    <!-- Sidebar gauche - Minimaliste -->
-    <aside id="documents-sidebar" class="bg-white border-r border-gray-100 overflow-y-auto overflow-x-auto flex-shrink-0 relative" style="max-height: 100vh; min-width: 200px; width: 256px;">
+    <!-- Sidebar gauche - Minimaliste avec redimensionnement -->
+    <aside id="documents-sidebar" class="bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0 relative" style="max-height: 100vh; min-width: 180px; width: 240px;">
         <!-- Poignée de redimensionnement -->
-        <div id="sidebar-resize-handle" class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-300 bg-transparent transition-colors z-10" style="margin-right: -2px;"></div>
+        <div id="sidebar-resize-handle" class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize z-20 group" style="margin-right: -3px;">
+            <div class="absolute inset-y-0 left-0 w-full bg-transparent hover:bg-blue-400 active:bg-blue-500 transition-colors"></div>
+            <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-8 rounded-full bg-gray-300 group-hover:bg-blue-400 transition-colors opacity-0 group-hover:opacity-100"></div>
+        </div>
         <!-- Dossiers logiques -->
         <?php if (!empty($logicalFolders)): ?>
         <div class="px-3 py-2 border-b border-gray-100">
@@ -151,13 +154,20 @@ $base = Config::basePath();
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <!-- Recherche -->
-                    <input type="text" 
-                           id="search-input"
-                           value="<?= htmlspecialchars($search ?? '') ?>"
-                           placeholder="Rechercher..."
-                           class="w-48 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-gray-300">
-                    
+                    <!-- Recherche avancée -->
+                    <div class="relative">
+                        <input type="text"
+                               id="search-input"
+                               value="<?= htmlspecialchars($search ?? '') ?>"
+                               placeholder="Rechercher... (AND, OR, &quot;phrase&quot;)"
+                               class="w-64 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-gray-400 pr-8">
+                        <button type="button" id="toggle-search-options" class="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600" title="Options de recherche">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                            </svg>
+                        </button>
+                    </div>
+
                     <!-- Tri -->
                     <select id="sort-select" class="px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-gray-300">
                         <option value="created_at-desc" <?= ($sort == 'created_at' && $order == 'DESC') ? 'selected' : '' ?>>Date ↓</option>
@@ -191,8 +201,59 @@ $base = Config::basePath();
                     </a>
                 </div>
             </div>
+
+            <!-- Panneau options de recherche avancée (collapsible) -->
+            <div id="search-options-panel" class="hidden border-t border-gray-100 pt-2 mt-2">
+                <div class="flex flex-wrap items-center gap-4 text-xs">
+                    <!-- Scope -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-gray-500">Dans:</span>
+                        <button type="button" data-scope="all" class="scope-btn px-2 py-0.5 rounded bg-gray-800 text-white">Tout</button>
+                        <button type="button" data-scope="name" class="scope-btn px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">Nom</button>
+                        <button type="button" data-scope="content" class="scope-btn px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">Contenu</button>
+                    </div>
+
+                    <!-- Période -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-gray-500">Période:</span>
+                        <input type="date" id="search-date-from" class="px-1.5 py-0.5 border border-gray-200 rounded text-xs">
+                        <span class="text-gray-300">-</span>
+                        <input type="date" id="search-date-to" class="px-1.5 py-0.5 border border-gray-200 rounded text-xs">
+                    </div>
+
+                    <!-- Aide syntaxe -->
+                    <button type="button" id="syntax-help-btn" class="text-gray-400 hover:text-gray-600" title="Aide syntaxe">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </button>
+
+                    <!-- Bouton rechercher -->
+                    <button type="button" id="do-advanced-search" class="px-2 py-0.5 bg-gray-800 text-white rounded hover:bg-gray-700">
+                        Rechercher
+                    </button>
+
+                    <!-- Reset -->
+                    <button type="button" id="reset-search" class="text-gray-400 hover:text-gray-600 text-xs underline">
+                        Réinitialiser
+                    </button>
+                </div>
+
+                <!-- Popup aide syntaxe -->
+                <div id="syntax-help-popup" class="hidden mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs">
+                    <h4 class="font-semibold text-gray-700 mb-1">Syntaxe de recherche</h4>
+                    <div class="grid grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
+                        <div><code class="bg-white px-1 rounded">mot1 AND mot2</code> Les deux</div>
+                        <div><code class="bg-white px-1 rounded">mot1 OR mot2</code> L'un ou l'autre</div>
+                        <div><code class="bg-white px-1 rounded">"phrase exacte"</code> Expression exacte</div>
+                        <div><code class="bg-white px-1 rounded">NOT mot</code> Exclure</div>
+                        <div><code class="bg-white px-1 rounded">fact*</code> Commence par</div>
+                        <div><code class="bg-white px-1 rounded">t?st</code> Un caractère variable</div>
+                    </div>
+                </div>
+            </div>
         </header>
-        
+
         <!-- Contenu -->
         <div class="flex-1 overflow-y-auto bg-white p-4" style="min-width: 0; width: 100%;">
             <!-- Zone de chargement AJAX -->
@@ -895,20 +956,119 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Recherche
+// ===== RECHERCHE AVANCÉE =====
+let searchScope = 'all';
+
+// Toggle panneau options
+document.getElementById('toggle-search-options')?.addEventListener('click', function() {
+    const panel = document.getElementById('search-options-panel');
+    panel?.classList.toggle('hidden');
+});
+
+// Scope buttons
+document.querySelectorAll('.scope-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.scope-btn').forEach(b => {
+            b.classList.remove('bg-gray-800', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        this.classList.remove('bg-gray-100', 'text-gray-600');
+        this.classList.add('bg-gray-800', 'text-white');
+        searchScope = this.dataset.scope;
+    });
+});
+
+// Syntax help toggle
+document.getElementById('syntax-help-btn')?.addEventListener('click', function() {
+    document.getElementById('syntax-help-popup')?.classList.toggle('hidden');
+});
+
+// Fonction de recherche avancée
+function doAdvancedSearch() {
+    const search = document.getElementById('search-input')?.value || '';
+    const dateFrom = document.getElementById('search-date-from')?.value || '';
+    const dateTo = document.getElementById('search-date-to')?.value || '';
+
+    const url = new URL(window.location.href);
+
+    if (search) {
+        url.searchParams.set('search', search);
+    } else {
+        url.searchParams.delete('search');
+    }
+
+    if (searchScope !== 'all') {
+        url.searchParams.set('scope', searchScope);
+    } else {
+        url.searchParams.delete('scope');
+    }
+
+    if (dateFrom) {
+        url.searchParams.set('date_from', dateFrom);
+    } else {
+        url.searchParams.delete('date_from');
+    }
+
+    if (dateTo) {
+        url.searchParams.set('date_to', dateTo);
+    } else {
+        url.searchParams.delete('date_to');
+    }
+
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+// Recherche sur Enter ou bouton
 document.getElementById('search-input')?.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        const search = this.value;
-        const url = new URL(window.location.href);
-        if (search) {
-            url.searchParams.set('search', search);
-        } else {
-            url.searchParams.delete('search');
-        }
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
+        doAdvancedSearch();
     }
 });
+
+document.getElementById('do-advanced-search')?.addEventListener('click', doAdvancedSearch);
+
+// Reset recherche
+document.getElementById('reset-search')?.addEventListener('click', function() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('search');
+    url.searchParams.delete('scope');
+    url.searchParams.delete('date_from');
+    url.searchParams.delete('date_to');
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+});
+
+// Initialiser les valeurs depuis PHP/URL
+(function initSearchFromUrl() {
+    // Valeurs PHP
+    const phpScope = '<?= htmlspecialchars($searchScope ?? 'all') ?>';
+    const phpDateFrom = '<?= htmlspecialchars($dateFrom ?? '') ?>';
+    const phpDateTo = '<?= htmlspecialchars($dateTo ?? '') ?>';
+
+    // Scope
+    if (phpScope && phpScope !== 'all') {
+        searchScope = phpScope;
+        document.querySelectorAll('.scope-btn').forEach(btn => {
+            if (btn.dataset.scope === phpScope) {
+                btn.classList.remove('bg-gray-100', 'text-gray-600');
+                btn.classList.add('bg-gray-800', 'text-white');
+            } else {
+                btn.classList.remove('bg-gray-800', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-600');
+            }
+        });
+    }
+
+    // Dates
+    if (phpDateFrom) document.getElementById('search-date-from').value = phpDateFrom;
+    if (phpDateTo) document.getElementById('search-date-to').value = phpDateTo;
+
+    // Ouvrir le panneau si des options sont actives
+    if ((phpScope && phpScope !== 'all') || phpDateFrom || phpDateTo) {
+        document.getElementById('search-options-panel')?.classList.remove('hidden');
+    }
+})();
 
 // Tri
 document.getElementById('sort-select')?.addEventListener('change', function() {
@@ -1385,53 +1545,446 @@ function stopIndexingPolling() {
     }
 })();
 
-// Redimensionnement de la sidebar
+// Redimensionnement de la sidebar avec limites basées sur le contenu
 (function() {
     const sidebar = document.getElementById('documents-sidebar');
     const resizeHandle = document.getElementById('sidebar-resize-handle');
-    
+
     if (!sidebar || !resizeHandle) return;
-    
+
+    const MIN_WIDTH = 180; // Largeur minimum
+    const MAX_WIDTH_RATIO = 0.4; // Maximum 40% de la fenêtre
+
+    // Calculer la largeur maximale nécessaire pour le contenu
+    function calculateMaxContentWidth() {
+        let maxWidth = MIN_WIDTH;
+
+        // Mesurer tous les éléments texte dans la sidebar
+        const textElements = sidebar.querySelectorAll('a, span, h2');
+        const measureDiv = document.createElement('div');
+        measureDiv.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit;padding:0 8px;';
+        document.body.appendChild(measureDiv);
+
+        textElements.forEach(el => {
+            // Calculer l'indentation (pour les dossiers imbriqués)
+            let indent = 0;
+            const paddingLeft = window.getComputedStyle(el).paddingLeft;
+            if (paddingLeft) indent = parseInt(paddingLeft) || 0;
+
+            // Mesurer le texte
+            measureDiv.style.font = window.getComputedStyle(el).font;
+            measureDiv.textContent = el.textContent;
+            const textWidth = measureDiv.offsetWidth + indent + 40; // +40 pour icônes et marges
+
+            if (textWidth > maxWidth) {
+                maxWidth = textWidth;
+            }
+        });
+
+        document.body.removeChild(measureDiv);
+
+        // Limiter au ratio max de la fenêtre
+        const windowMaxWidth = window.innerWidth * MAX_WIDTH_RATIO;
+        return Math.min(Math.max(maxWidth, MIN_WIDTH + 50), windowMaxWidth);
+    }
+
+    let maxContentWidth = calculateMaxContentWidth();
+
+    // Recalculer après chargement complet
+    window.addEventListener('load', () => {
+        maxContentWidth = calculateMaxContentWidth();
+    });
+
     // Charger la largeur sauvegardée depuis localStorage
     const savedWidth = localStorage.getItem('documents-sidebar-width');
     if (savedWidth) {
         const width = parseInt(savedWidth);
-        if (width >= 200) { // Respecter le min-width
+        if (width >= MIN_WIDTH && width <= maxContentWidth) {
             sidebar.style.width = width + 'px';
         }
     }
-    
+
     let isResizing = false;
     let startX = 0;
     let startWidth = 0;
-    
+
     resizeHandle.addEventListener('mousedown', function(e) {
         isResizing = true;
         startX = e.clientX;
         startWidth = sidebar.offsetWidth;
-        document.body.style.cursor = 'col-resize';
+        maxContentWidth = calculateMaxContentWidth(); // Recalculer à chaque resize
+
         document.body.style.userSelect = 'none';
+        document.body.classList.add('sidebar-resizing');
+        sidebar.style.transition = 'none'; // Désactiver les transitions pendant le drag
+
+        // Ajouter une classe pour le feedback visuel
+        resizeHandle.classList.add('resizing');
         e.preventDefault();
     });
-    
+
     document.addEventListener('mousemove', function(e) {
         if (!isResizing) return;
-        
+
         const diff = e.clientX - startX;
-        const newWidth = Math.max(200, startWidth + diff); // Minimum 200px
-        
+        // Limiter entre MIN_WIDTH et maxContentWidth
+        const newWidth = Math.min(Math.max(MIN_WIDTH, startWidth + diff), maxContentWidth);
+
         sidebar.style.width = newWidth + 'px';
+
+        // Feedback visuel si on atteint les limites
+        if (newWidth <= MIN_WIDTH) {
+            sidebar.style.boxShadow = 'inset -2px 0 0 #ef4444'; // Rouge si min
+        } else if (newWidth >= maxContentWidth) {
+            sidebar.style.boxShadow = 'inset -2px 0 0 #22c55e'; // Vert si max
+        } else {
+            sidebar.style.boxShadow = '';
+        }
     });
-    
+
     document.addEventListener('mouseup', function() {
         if (isResizing) {
             isResizing = false;
-            document.body.style.cursor = '';
             document.body.style.userSelect = '';
-            
+            document.body.classList.remove('sidebar-resizing');
+            sidebar.style.transition = '';
+            sidebar.style.boxShadow = '';
+            resizeHandle.classList.remove('resizing');
+
             // Sauvegarder la largeur dans localStorage
             localStorage.setItem('documents-sidebar-width', sidebar.offsetWidth.toString());
         }
+    });
+
+    // Double-clic pour ajuster automatiquement à la largeur optimale
+    resizeHandle.addEventListener('dblclick', function() {
+        maxContentWidth = calculateMaxContentWidth();
+        sidebar.style.transition = 'width 0.2s ease';
+        sidebar.style.width = maxContentWidth + 'px';
+        localStorage.setItem('documents-sidebar-width', maxContentWidth.toString());
+        setTimeout(() => sidebar.style.transition = '', 200);
+    });
+
+    // Tooltip avec la largeur actuelle pendant le drag
+    let widthTooltip = null;
+
+    function showWidthTooltip(width, x, y) {
+        if (!widthTooltip) {
+            widthTooltip = document.createElement('div');
+            widthTooltip.className = 'fixed bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none';
+            document.body.appendChild(widthTooltip);
+        }
+        widthTooltip.textContent = `${width}px`;
+        widthTooltip.style.left = (x + 10) + 'px';
+        widthTooltip.style.top = (y - 20) + 'px';
+        widthTooltip.style.display = 'block';
+    }
+
+    function hideWidthTooltip() {
+        if (widthTooltip) {
+            widthTooltip.style.display = 'none';
+        }
+    }
+
+    // Modifier le mousemove pour afficher le tooltip
+    const originalMouseMove = document.onmousemove;
+    document.addEventListener('mousemove', function(e) {
+        if (isResizing) {
+            showWidthTooltip(sidebar.offsetWidth, e.clientX, e.clientY);
+        }
+    });
+
+    // Cacher le tooltip au mouseup
+    document.addEventListener('mouseup', function() {
+        hideWidthTooltip();
+    });
+})();
+
+// ===== DRAG & DROP DE FICHIERS =====
+(function() {
+    // Extensions autorisées
+    const allowedExtensions = <?= json_encode(Config::get('storage.allowed_extensions', ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'doc', 'docx'])) ?>;
+
+    // Variable pour stocker le dossier courant
+    let currentDropFolder = '';
+
+    // Récupérer le dossier courant depuis l'URL
+    function getCurrentFolder() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('path') || '';
+    }
+
+    // Créer l'overlay de drop
+    function createDropOverlay() {
+        if (document.getElementById('drop-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'drop-overlay';
+        overlay.className = 'fixed inset-0 bg-blue-500/20 backdrop-blur-sm z-40 pointer-events-none hidden';
+        overlay.innerHTML = `
+            <div class="absolute inset-4 border-4 border-dashed border-blue-500 rounded-2xl flex items-center justify-center">
+                <div class="text-center bg-white/90 rounded-xl p-8 shadow-2xl">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-xl font-semibold text-gray-800" id="drop-overlay-text">Déposez vos fichiers ici</p>
+                    <p class="text-sm text-gray-500 mt-2" id="drop-overlay-folder"></p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Afficher l'overlay
+    function showDropOverlay(folderPath) {
+        const overlay = document.getElementById('drop-overlay');
+        const folderText = document.getElementById('drop-overlay-folder');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            if (folderText) {
+                folderText.textContent = folderPath ? `Dossier: ${folderPath}` : 'Dossier racine';
+            }
+        }
+    }
+
+    // Cacher l'overlay
+    function hideDropOverlay() {
+        const overlay = document.getElementById('drop-overlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
+    }
+
+    // Créer l'overlay de progression
+    function createProgressOverlay() {
+        if (document.getElementById('upload-progress-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'upload-progress-overlay';
+        overlay.className = 'fixed bottom-4 right-4 bg-white rounded-lg shadow-2xl p-4 z-50 min-w-80 hidden';
+        overlay.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-medium text-gray-800">Upload en cours...</span>
+                <button onclick="this.parentElement.parentElement.classList.add('hidden')" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <div id="upload-progress-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Ajouter un fichier à la liste de progression
+    function addFileProgress(filename, status = 'pending') {
+        const list = document.getElementById('upload-progress-list');
+        if (!list) return;
+
+        const id = 'upload-' + btoa(filename).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+        let item = document.getElementById(id);
+
+        if (!item) {
+            item = document.createElement('div');
+            item.id = id;
+            item.className = 'flex items-center gap-2 text-sm';
+            list.appendChild(item);
+        }
+
+        const icons = {
+            pending: '<svg class="w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>',
+            success: '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+            error: '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+        };
+
+        item.innerHTML = `${icons[status] || icons.pending}<span class="truncate flex-1">${filename}</span>`;
+        return item;
+    }
+
+    // Upload d'un fichier
+    async function uploadFile(file, folder) {
+        const formData = new FormData();
+        formData.append('files[]', file);
+        formData.append('folder', folder);
+
+        try {
+            const response = await fetch(`${BASE_PATH}/api/documents/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Upload error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Gérer le drop de fichiers
+    async function handleFileDrop(files, targetFolder) {
+        if (!files || files.length === 0) return;
+
+        // Afficher l'overlay de progression
+        const progressOverlay = document.getElementById('upload-progress-overlay');
+        if (progressOverlay) {
+            progressOverlay.classList.remove('hidden');
+            document.getElementById('upload-progress-list').innerHTML = '';
+        }
+
+        const results = [];
+
+        for (const file of files) {
+            // Vérifier l'extension
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(ext)) {
+                addFileProgress(file.name, 'error');
+                showNotification(`${file.name}: Extension non autorisée`, 'error');
+                continue;
+            }
+
+            // Ajouter à la liste avec statut pending
+            addFileProgress(file.name, 'pending');
+
+            // Upload
+            const result = await uploadFile(file, targetFolder);
+
+            if (result.success && result.results) {
+                const fileResult = result.results[0];
+                if (fileResult.success) {
+                    addFileProgress(file.name, 'success');
+                    results.push(fileResult);
+                } else {
+                    addFileProgress(file.name, 'error');
+                    showNotification(`${file.name}: ${fileResult.error}`, 'error');
+                }
+            } else {
+                addFileProgress(file.name, 'error');
+                showNotification(`${file.name}: ${result.error || 'Erreur inconnue'}`, 'error');
+            }
+        }
+
+        // Notification de succès
+        if (results.length > 0) {
+            showNotification(`${results.length} fichier(s) uploadé(s) avec succès`, 'success');
+
+            // Recharger les documents du dossier courant
+            const currentFolder = getCurrentFolder();
+            if (currentFolder === targetFolder || (!currentFolder && !targetFolder)) {
+                setTimeout(() => loadFolderDocuments(targetFolder, false), 500);
+            }
+        }
+
+        // Masquer l'overlay de progression après 3 secondes si tout est OK
+        if (results.length === files.length) {
+            setTimeout(() => {
+                if (progressOverlay) progressOverlay.classList.add('hidden');
+            }, 3000);
+        }
+    }
+
+    // Initialiser les overlays
+    createDropOverlay();
+    createProgressOverlay();
+
+    // Compteur pour gérer les événements dragenter/dragleave imbriqués
+    let dragCounter = 0;
+
+    // Event listeners sur la zone principale (main)
+    const mainArea = document.querySelector('main');
+    if (mainArea) {
+        mainArea.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter++;
+            if (dragCounter === 1) {
+                currentDropFolder = getCurrentFolder();
+                showDropOverlay(currentDropFolder);
+            }
+        });
+
+        mainArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter--;
+            if (dragCounter === 0) {
+                hideDropOverlay();
+            }
+        });
+
+        mainArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        mainArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = 0;
+            hideDropOverlay();
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileDrop(Array.from(files), currentDropFolder);
+            }
+        });
+    }
+
+    // Event listeners sur les dossiers de la sidebar
+    function setupFolderDropZones() {
+        // Dossiers filesystem
+        document.querySelectorAll('.folder-link[data-path]').forEach(folderLink => {
+            const folderPath = folderLink.dataset.path || '';
+
+            folderLink.addEventListener('dragenter', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('bg-blue-100', 'ring-2', 'ring-blue-400');
+            });
+
+            folderLink.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.remove('bg-blue-100', 'ring-2', 'ring-blue-400');
+            });
+
+            folderLink.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+
+            folderLink.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.remove('bg-blue-100', 'ring-2', 'ring-blue-400');
+                hideDropOverlay();
+                dragCounter = 0;
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileDrop(Array.from(files), folderPath);
+                }
+            });
+        });
+    }
+
+    // Observer pour les dossiers chargés dynamiquement
+    const sidebarObserver = new MutationObserver(() => {
+        setupFolderDropZones();
+    });
+
+    const sidebar = document.getElementById('documents-sidebar');
+    if (sidebar) {
+        sidebarObserver.observe(sidebar, { childList: true, subtree: true });
+    }
+
+    // Setup initial
+    setupFolderDropZones();
+
+    // Empêcher le comportement par défaut du navigateur (ouvrir le fichier)
+    document.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
     });
 })();
 </script>
@@ -1470,21 +2023,31 @@ html, body {
 /* Améliorer la navigation dans l'arborescence */
 #filesystem-tree {
     min-width: 100%;
-    width: max-content; /* Permet le scroll horizontal si nécessaire */
-    max-width: 100%; /* Ne pas dépasser la largeur de la sidebar */
 }
 
 .folder-toggle {
     white-space: nowrap; /* Empêche le retour à la ligne */
     width: 100%;
-    max-width: 100%;
 }
 
 .folder-link {
-    min-width: 0; /* Permet le truncate de fonctionner */
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    white-space: nowrap;
+}
+
+/* Les noms de dossiers dans la sidebar */
+#documents-sidebar nav a,
+#documents-sidebar .folder-link {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Permettre le scroll horizontal si contenu dépasse */
+#documents-sidebar {
+    overflow-x: auto;
 }
 
 /* Améliorer le scroll dans la sidebar */
@@ -1509,5 +2072,87 @@ aside::-webkit-scrollbar-thumb {
 
 aside::-webkit-scrollbar-thumb:hover {
     background: #a0aec0;
+}
+
+/* Poignée de redimensionnement de la sidebar */
+#sidebar-resize-handle {
+    touch-action: none;
+}
+
+#sidebar-resize-handle:hover,
+#sidebar-resize-handle.resizing {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+#sidebar-resize-handle.resizing > div:first-child {
+    background-color: #3b82f6 !important;
+}
+
+#sidebar-resize-handle.resizing > div:last-child {
+    opacity: 1 !important;
+    background-color: #3b82f6 !important;
+}
+
+/* Curseur de redimensionnement global pendant le drag */
+body.sidebar-resizing,
+body.sidebar-resizing * {
+    cursor: col-resize !important;
+}
+
+/* Transition douce pour la sidebar */
+#documents-sidebar {
+    transition: box-shadow 0.2s;
+}
+
+#documents-sidebar:has(+ main) {
+    /* Ombre subtile quand survolée */
+}
+
+/* Styles pour le drag & drop */
+.folder-link.drag-over,
+.folder-link[data-path].drag-over {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    box-shadow: inset 0 0 0 2px #3b82f6;
+}
+
+/* Zone de drop principale */
+#drop-overlay {
+    transition: opacity 0.2s;
+}
+
+#drop-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Animation de pulsation pour l'overlay */
+#drop-overlay > div {
+    animation: dropPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dropPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.01); }
+}
+
+/* Overlay de progression des uploads */
+#upload-progress-overlay {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Indicateur de drop sur les dossiers */
+.folder-link {
+    transition: background-color 0.15s, box-shadow 0.15s;
 }
 </style>

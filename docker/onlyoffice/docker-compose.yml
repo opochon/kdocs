@@ -1,0 +1,33 @@
+# K-Docs - OnlyOffice Document Server
+# Usage: docker-compose up -d
+
+version: '3.8'
+
+services:
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: kdocs-onlyoffice
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # Désactiver JWT pour simplifier (activer en prod avec secret partagé)
+      - JWT_ENABLED=false
+      # Ou activer avec: JWT_ENABLED=true et JWT_SECRET=votre_secret
+      # - JWT_SECRET=kdocs_onlyoffice_secret_change_me
+    volumes:
+      # Persistance des données
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_logs:/var/log/onlyoffice
+      - onlyoffice_fonts:/usr/share/fonts/truetype/custom
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  onlyoffice_data:
+  onlyoffice_logs:
+  onlyoffice_fonts:

@@ -88,7 +88,12 @@ class DocumentsController
         $typeId = !empty($queryParams['type']) ? (int)$queryParams['type'] : null;
         $correspondentId = !empty($queryParams['correspondent']) ? (int)$queryParams['correspondent'] : null;
         $tagId = !empty($queryParams['tag']) ? (int)$queryParams['tag'] : null;
-        
+
+        // Options de recherche avancée
+        $searchScope = $queryParams['scope'] ?? 'all'; // 'all', 'name', 'content'
+        $dateFrom = !empty($queryParams['date_from']) ? $queryParams['date_from'] : null;
+        $dateTo = !empty($queryParams['date_to']) ? $queryParams['date_to'] : null;
+
         // Tri et ordre (Priorité 1.1)
         $sort = $queryParams['sort'] ?? 'created_at';
         $order = strtoupper($queryParams['order'] ?? 'desc');
@@ -339,11 +344,20 @@ class DocumentsController
                 $searchService = new SearchService();
                 $builder = SearchQueryBuilder::create();
                 
-                // Recherche texte
+                // Recherche texte avec scope
                 if (!empty($search)) {
                     $builder->whereText($search);
+                    // Appliquer le scope au SearchQuery après build
                 }
-                
+
+                // Filtres de date
+                if ($dateFrom) {
+                    $builder->whereCreatedAfter($dateFrom);
+                }
+                if ($dateTo) {
+                    $builder->whereCreatedBefore($dateTo);
+                }
+
                 // Filtres
                 if ($typeId) {
                     $builder->whereDocumentType($typeId);
@@ -372,6 +386,12 @@ class DocumentsController
                 
                 // Exécuter la recherche
                 $searchQuery = $builder->build();
+
+                // Appliquer le scope de recherche
+                if ($searchScope && in_array($searchScope, ['name', 'content', 'all'])) {
+                    $searchQuery->searchScope = $searchScope;
+                }
+
                 $searchResult = $searchService->advancedSearch($searchQuery);
                 
                 $documents = $searchResult->documents;
@@ -572,6 +592,9 @@ class DocumentsController
             'totalPages' => $totalPages,
             'total' => $total,
             'search' => $search ?? '',
+            'searchScope' => $searchScope ?? 'all',
+            'dateFrom' => $dateFrom ?? null,
+            'dateTo' => $dateTo ?? null,
             'logicalFolderId' => $logicalFolderId,
             'folderId' => $folderId,
             'typeId' => $typeId,
@@ -1545,6 +1568,7 @@ class DocumentsController
 
     /**
      * API: Upload multiple de documents
+     * Supporte un paramètre 'folder' pour spécifier le dossier cible
      */
     public function apiUpload(Request $request, Response $response): Response
     {
@@ -1554,72 +1578,173 @@ class DocumentsController
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-        $user = $request->getAttribute('user');
-        $uploadedFiles = $request->getUploadedFiles();
-        $results = [];
-        
-        if (empty($uploadedFiles['files']) && empty($uploadedFiles['files[]'])) {
+
+        try {
+            $user = $request->getAttribute('user');
+            $uploadedFiles = $request->getUploadedFiles();
+
+            // Pour multipart/form-data, les champs texte peuvent être dans getParsedBody() ou $_POST
+            $parsedBody = $request->getParsedBody();
+            if (!is_array($parsedBody)) {
+                $parsedBody = [];
+            }
+
+            $results = [];
+
+            // Dossier cible (relatif à storage.documents)
+            // Essayer getParsedBody d'abord, puis $_POST
+            $targetFolder = $parsedBody['folder'] ?? $_POST['folder'] ?? '';
+            // Nettoyer le chemin pour éviter les attaques de traversée
+            $targetFolder = trim((string)$targetFolder, '/\\');
+            $targetFolder = preg_replace('/\.\./', '', $targetFolder);
+            $targetFolder = str_replace(['..', "\0"], '', $targetFolder);
+
+            if (empty($uploadedFiles['files']) && empty($uploadedFiles['files[]'])) {
+                $response->getBody()->write(json_encode(['success' => false, 'error' => 'Aucun fichier fourni']));
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+            }
+
+            $files = $uploadedFiles['files'] ?? $uploadedFiles['files[]'] ?? [];
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
+            $baseStoragePath = Config::get('storage.documents');
+            $storagePath = $baseStoragePath;
+
+            // Si un dossier cible est spécifié, l'utiliser
+            if (!empty($targetFolder)) {
+                $storagePath = $baseStoragePath . '/' . $targetFolder;
+            }
+
+            // Créer le dossier s'il n'existe pas
+            if (!is_dir($storagePath)) {
+                if (!mkdir($storagePath, 0755, true)) {
+                    $response->getBody()->write(json_encode(['success' => false, 'error' => 'Impossible de créer le dossier cible']));
+                    return $response
+                        ->withHeader('Content-Type', 'application/json')
+                        ->withStatus(500);
+                }
+            }
+
+            // Vérifier que le dossier est bien sous storage.documents
+            $realStoragePath = realpath($storagePath);
+            $realBasePath = realpath($baseStoragePath);
+            if ($realStoragePath === false || $realBasePath === false || strpos($realStoragePath, $realBasePath) !== 0) {
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Dossier cible invalide',
+                    'debug' => [
+                        'storagePath' => $storagePath,
+                        'realStoragePath' => $realStoragePath,
+                        'realBasePath' => $realBasePath
+                    ]
+                ]));
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(400);
+            }
+
+            foreach ($files as $file) {
+                if ($file->getError() !== UPLOAD_ERR_OK) {
+                    $errorMessages = [
+                        UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux (limite PHP)',
+                        UPLOAD_ERR_FORM_SIZE => 'Fichier trop volumineux (limite formulaire)',
+                        UPLOAD_ERR_PARTIAL => 'Fichier partiellement uploadé',
+                        UPLOAD_ERR_NO_FILE => 'Aucun fichier envoyé',
+                        UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                        UPLOAD_ERR_CANT_WRITE => 'Échec écriture disque',
+                        UPLOAD_ERR_EXTENSION => 'Extension PHP a bloqué l\'upload',
+                    ];
+                    $errorMsg = $errorMessages[$file->getError()] ?? 'Erreur upload #' . $file->getError();
+                    $results[] = ['success' => false, 'filename' => $file->getClientFilename(), 'error' => $errorMsg];
+                    continue;
+                }
+
+                try {
+                    $originalFilename = $file->getClientFilename();
+                    $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+
+                    // Vérifier l'extension
+                    $allowedExtensions = Config::get('storage.allowed_extensions', ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'doc', 'docx']);
+                    // Si c'est une chaîne (config mal formée), la convertir en tableau
+                    if (is_string($allowedExtensions)) {
+                        $allowedExtensions = array_map('trim', explode(',', $allowedExtensions));
+                    }
+                    if (!is_array($allowedExtensions)) {
+                        $allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'doc', 'docx'];
+                    }
+                    if (!in_array($extension, $allowedExtensions)) {
+                        $results[] = ['success' => false, 'filename' => $originalFilename, 'error' => 'Extension non autorisée: ' . $extension];
+                        continue;
+                    }
+
+                    // Garder le nom original mais éviter les doublons
+                    $filename = $originalFilename;
+                    $filePath = $storagePath . '/' . $filename;
+                    $counter = 1;
+                    while (file_exists($filePath)) {
+                        $filename = pathinfo($originalFilename, PATHINFO_FILENAME) . '_' . $counter . '.' . $extension;
+                        $filePath = $storagePath . '/' . $filename;
+                        $counter++;
+                    }
+
+                    $file->moveTo($filePath);
+
+                    // Calculer le chemin relatif pour storage_path
+                    $relativePath = $targetFolder ? $targetFolder . '/' . $filename : $filename;
+
+                    $documentId = Document::create([
+                        'title' => pathinfo($originalFilename, PATHINFO_FILENAME),
+                        'filename' => $filename,
+                        'original_filename' => $originalFilename,
+                        'file_path' => $filePath,
+                        'storage_path' => $relativePath,
+                        'file_size' => filesize($filePath),
+                        'mime_type' => $file->getClientMediaType(),
+                        'created_by' => $user['id'] ?? null,
+                    ]);
+
+                    // Traiter le document (OCR, thumbnail, etc.)
+                    try {
+                        $processor = new DocumentProcessor();
+                        $processor->processDocument($documentId);
+                    } catch (\Exception $e) {
+                        // Ignorer les erreurs de traitement, le document est quand même créé
+                        error_log("Document processing error for ID $documentId: " . $e->getMessage());
+                    }
+
+                    $results[] = [
+                        'success' => true,
+                        'filename' => $originalFilename,
+                        'id' => $documentId,
+                        'folder' => $targetFolder
+                    ];
+
+                } catch (\Exception $e) {
+                    $results[] = ['success' => false, 'filename' => $file->getClientFilename(), 'error' => $e->getMessage()];
+                }
+            }
+
+            $response->getBody()->write(json_encode([
+                'success' => true,
+                'results' => $results,
+                'folder' => $targetFolder
+            ]));
+            return $response->withHeader('Content-Type', 'application/json');
+
+        } catch (\Exception $e) {
+            error_log("apiUpload exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $response->getBody()->write(json_encode([
+                'success' => false,
+                'error' => 'Erreur serveur: ' . $e->getMessage()
+            ]));
             return $response
                 ->withHeader('Content-Type', 'application/json')
-                ->withStatus(400)
-                ->getBody()->write(json_encode(['success' => false, 'error' => 'Aucun fichier fourni']));
+                ->withStatus(500);
         }
-        
-        $files = $uploadedFiles['files'] ?? $uploadedFiles['files[]'] ?? [];
-        if (!is_array($files)) {
-            $files = [$files];
-        }
-        
-        $storagePath = Config::get('storage.documents');
-        if (!is_dir($storagePath)) {
-            mkdir($storagePath, 0755, true);
-        }
-        
-        foreach ($files as $file) {
-            if ($file->getError() !== UPLOAD_ERR_OK) {
-                $results[] = ['success' => false, 'filename' => $file->getClientFilename(), 'error' => 'Erreur upload'];
-                continue;
-            }
-            
-            try {
-                $originalFilename = $file->getClientFilename();
-                $extension = pathinfo($originalFilename, PATHINFO_EXTENSION);
-                $filename = uniqid() . '.' . $extension;
-                $filePath = $storagePath . '/' . $filename;
-                
-                $file->moveTo($filePath);
-                
-                $documentId = Document::create([
-                    'title' => pathinfo($originalFilename, PATHINFO_FILENAME),
-                    'filename' => $filename,
-                    'original_filename' => $originalFilename,
-                    'file_path' => $filePath,
-                    'file_size' => filesize($filePath),
-                    'mime_type' => $file->getClientMediaType(),
-                    'created_by' => $user['id'],
-                ]);
-                
-                // Traiter le document en arrière-plan
-                try {
-                    $processor = new DocumentProcessor();
-                    $processor->processDocument($documentId);
-                } catch (\Exception $e) {
-                    // Ignorer les erreurs de traitement, le document est quand même créé
-                }
-                
-                $results[] = ['success' => true, 'filename' => $originalFilename, 'id' => $documentId];
-                
-            } catch (\Exception $e) {
-                $results[] = ['success' => false, 'filename' => $file->getClientFilename(), 'error' => $e->getMessage()];
-            }
-        }
-        
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->getBody()->write(json_encode([
-                'success' => true,
-                'results' => $results
-            ]));
     }
     
     /**
