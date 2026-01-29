@@ -107,6 +107,7 @@ use KDocs\Controllers\Api\ClassificationSuggestionsApiController;
 use KDocs\Controllers\Api\InvoiceLineItemsApiController;
 use KDocs\Controllers\Api\ClassificationAuditApiController;
 use KDocs\Controllers\Api\ClassificationFieldOptionsApiController;
+use KDocs\Controllers\Api\ExtractionApiController;
 use KDocs\Controllers\Admin\AttributionRulesController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
@@ -632,7 +633,20 @@ $app->group('', function ($group) {
     $group->get('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'show']);
     $group->put('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'update']);
     $group->delete('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'delete']);
-    
+
+    // API Extraction Templates (système unifié d'extraction avec apprentissage)
+    $group->get('/api/extraction/templates', [ExtractionApiController::class, 'listTemplates']);
+    $group->get('/api/extraction/templates/{id}', [ExtractionApiController::class, 'getTemplate']);
+    $group->post('/api/extraction/templates', [ExtractionApiController::class, 'createTemplate']);
+    $group->put('/api/extraction/templates/{id}', [ExtractionApiController::class, 'updateTemplate']);
+    $group->delete('/api/extraction/templates/{id}', [ExtractionApiController::class, 'deleteTemplate']);
+    $group->post('/api/extraction/templates/{id}/options', [ExtractionApiController::class, 'addOption']);
+    $group->get('/api/extraction/suggestions/{field_code}', [ExtractionApiController::class, 'getSuggestions']);
+    $group->post('/api/documents/{id}/extract', [ExtractionApiController::class, 'extractDocument']);
+    $group->get('/api/documents/{id}/extracted', [ExtractionApiController::class, 'getExtracted']);
+    $group->post('/api/documents/{id}/extracted/{field_code}/confirm', [ExtractionApiController::class, 'confirmValue']);
+    $group->post('/api/documents/{id}/extracted/{field_code}/correct', [ExtractionApiController::class, 'correctValue']);
+
     // Indexation (Contrôle et monitoring)
     $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
     $group->get('/admin/indexing/status', [\KDocs\Controllers\IndexingController::class, 'status']);
