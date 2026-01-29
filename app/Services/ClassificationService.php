@@ -10,6 +10,7 @@ namespace KDocs\Services;
 use KDocs\Core\Config;
 use KDocs\Services\Attribution\AttributionService;
 use KDocs\Services\Learning\ClassificationLearningService;
+use KDocs\Services\ExtractionService;
 
 class ClassificationService
 {
@@ -17,6 +18,7 @@ class ClassificationService
     private ?AIClassifierService $ai = null;
     private ?AttributionService $attribution = null;
     private ?ClassificationLearningService $learning = null;
+    private ?ExtractionService $extraction = null;
     private string $method;
     private bool $autoApply;
     private float $threshold;
@@ -39,7 +41,7 @@ class ClassificationService
             }
         }
 
-        // Initialize attribution and learning services
+        // Initialize attribution, learning and extraction services
         try {
             $this->attribution = new AttributionService();
             $this->learning = new ClassificationLearningService();
@@ -47,6 +49,12 @@ class ClassificationService
             // Services may not be available if tables don't exist yet
             $this->attribution = null;
             $this->learning = null;
+        }
+
+        try {
+            $this->extraction = new ExtractionService();
+        } catch (\Exception $e) {
+            $this->extraction = null;
         }
     }
     
@@ -154,6 +162,20 @@ class ClassificationService
             }
         }
 
+        // Extract data using unified extraction templates (with learning)
+        if ($this->extraction) {
+            try {
+                $extractedData = $this->extraction->extractAll($documentId);
+                $result['extracted_data'] = $extractedData;
+
+                if (!empty($extractedData)) {
+                    $result['method_used'] .= '+extraction';
+                }
+            } catch (\Exception $e) {
+                $result['extraction_error'] = $e->getMessage();
+            }
+        }
+
         return $result;
     }
 
@@ -216,6 +238,7 @@ class ClassificationService
     public function isAIAvailable(): bool { return $this->ai !== null; }
     public function isAttributionAvailable(): bool { return $this->attribution !== null; }
     public function isMLAvailable(): bool { return $this->learning !== null; }
+    public function isExtractionAvailable(): bool { return $this->extraction !== null; }
     
     /**
      * Extrait des tags suggérés depuis le contenu OCR

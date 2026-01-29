@@ -261,6 +261,9 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                     <button type="button" onclick="switchTab('history')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
                         Historique
                     </button>
+                    <button type="button" onclick="switchTab('extraction')" class="tab-button px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+                        Extraction
+                    </button>
                 </nav>
             </div>
             
@@ -495,6 +498,14 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                         <p class="text-gray-500 text-sm">Chargement de l'historique...</p>
                     </div>
                 </div>
+
+                <!-- Onglet Extraction -->
+                <div id="tab-extraction" class="tab-content hidden">
+                    <?php
+                    $documentId = $document['id'];
+                    include __DIR__ . '/../components/extracted_data.php';
+                    ?>
+                </div>
             </div>
         </form>
     </div>
@@ -605,11 +616,16 @@ function switchTab(tabName) {
     
     // Activer le bouton
     const buttons = document.querySelectorAll('.tab-button');
+    const tabLabels = {
+        'details': 'Détails',
+        'content': 'Contenu',
+        'metadata': 'Métadonnées',
+        'notes': 'Notes',
+        'history': 'Historique',
+        'extraction': 'Extraction'
+    };
     buttons.forEach(btn => {
-        if (btn.textContent.trim().includes(tabName === 'details' ? 'Détails' : 
-                                            tabName === 'content' ? 'Contenu' : 
-                                            tabName === 'metadata' ? 'Métadonnées' : 
-                                            tabName === 'notes' ? 'Notes' : 'Historique')) {
+        if (btn.textContent.trim().includes(tabLabels[tabName] || tabName)) {
             btn.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
             btn.classList.remove('text-gray-600');
         }
