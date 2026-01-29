@@ -33,6 +33,7 @@ use KDocs\Workflow\Nodes\Actions\AddTagAction;
 use KDocs\Workflow\Nodes\Actions\SendEmailAction;
 use KDocs\Workflow\Nodes\Actions\WebhookAction;
 use KDocs\Workflow\Nodes\Actions\RequestApprovalAction;
+use KDocs\Workflow\Nodes\Actions\CreateApprovalAction;
 use KDocs\Workflow\Nodes\Actions\AssignToGroupAction;
 use KDocs\Workflow\Nodes\Actions\SetValidationStatusAction;
 
@@ -174,10 +175,19 @@ class NodeExecutorFactory
         
         // === ACTIONS ===
         'actions' => [
+            'action_create_approval' => [
+                'class' => CreateApprovalAction::class,
+                'name' => 'Créer approbation',
+                'description' => 'Génère un token d\'approbation et expose {approval_link}, {reject_link} pour les nœuds suivants',
+                'icon' => 'key',
+                'color' => '#8b5cf6',
+                'outputs' => ['default'],
+                'output_variables' => ['approval_token', 'approval_link', 'reject_link', 'view_link', 'expires_at'],
+            ],
             'action_request_approval' => [
                 'class' => RequestApprovalAction::class,
-                'name' => 'Demande d\'approbation',
-                'description' => 'Envoie une demande d\'approbation par email avec liens',
+                'name' => 'Demande d\'approbation (legacy)',
+                'description' => 'Envoie une demande d\'approbation par email avec liens (mode monolithique)',
                 'icon' => 'badge-check',
                 'color' => '#8b5cf6',
                 'outputs' => ['approved', 'rejected', 'timeout'],
@@ -209,10 +219,11 @@ class NodeExecutorFactory
             'action_send_email' => [
                 'class' => SendEmailAction::class,
                 'name' => 'Envoyer email',
-                'description' => 'Envoie un email de notification',
+                'description' => 'Envoie un email avec support variables: {title}, {approval_link}, {nodeId.key}...',
                 'icon' => 'mail',
                 'color' => '#8b5cf6',
                 'outputs' => ['default'],
+                'input_variables' => ['approval_link', 'reject_link', 'view_link'],
             ],
             'action_webhook' => [
                 'class' => WebhookAction::class,
@@ -237,10 +248,11 @@ class NodeExecutorFactory
             'wait_approval' => [
                 'class' => ApprovalWait::class,
                 'name' => 'Attendre approbation',
-                'description' => 'Attend une décision d\'approbation',
+                'description' => 'Attend une décision d\'approbation (utilise le token de CreateApproval ou mode standalone)',
                 'icon' => 'clock',
                 'color' => '#f97316',
-                'outputs' => ['approved', 'rejected', 'timeout'],
+                'outputs' => ['approved', 'rejected', 'timeout', 'cancelled'],
+                'input_variables' => ['approval_token'],
             ],
         ],
         
@@ -299,6 +311,7 @@ class NodeExecutorFactory
             'action_add_tag' => new AddTagAction(),
             'action_send_email' => new SendEmailAction(),
             'action_webhook' => new WebhookAction(),
+            'action_create_approval' => new CreateApprovalAction(),
             'action_request_approval' => new RequestApprovalAction(),
             'action_assign_group' => new AssignToGroupAction(),
             'action_set_validation' => new SetValidationStatusAction(),
@@ -340,17 +353,44 @@ class NodeExecutorFactory
                 $info = $nodes[$nodeType];
                 $info['type'] = $nodeType;
                 $info['category'] = $category;
-                
-                // Récupérer le schema de config
+
+                // Récupérer le schema de config et output
                 $executor = self::create($nodeType);
                 if ($executor) {
                     $info['config_schema'] = $executor->getConfigSchema();
+
+                    // Récupérer le schema d'output si disponible
+                    if (method_exists($executor, 'getOutputSchema')) {
+                        $info['output_schema'] = $executor->getOutputSchema();
+                    }
                 }
-                
+
                 return $info;
             }
         }
         return null;
+    }
+
+    /**
+     * Retourne toutes les variables disponibles produites par les nœuds
+     * Utile pour l'autocomplétion dans l'UI
+     */
+    public static function getAllOutputVariables(): array
+    {
+        $variables = [];
+
+        foreach (self::NODE_CATALOG as $category => $nodes) {
+            foreach ($nodes as $type => $info) {
+                if (!empty($info['output_variables'])) {
+                    $variables[$type] = [
+                        'name' => $info['name'],
+                        'variables' => $info['output_variables'],
+                    ];
+                }
+            }
+        }
+
+        return $variables;
     }
     
     /**

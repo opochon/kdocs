@@ -559,6 +559,31 @@ class WorkflowDesigner {
                     { type: 'select', name: 'correspondent_id', label: 'Correspondant', options: data.correspondents?.map(c => ({value: c.id, label: c.name})) || [], value: config.correspondent_id },
                 ], config);
                 
+            case 'action_create_approval':
+                return this.buildFormFields([
+                    { type: 'select', name: 'assign_to_group_id', label: 'Groupe approbateur', options: data.groups?.map(g => ({value: g.id, label: g.name})) || [], value: config.assign_to_group_id },
+                    { type: 'select', name: 'assign_to_user_id', label: 'Ou utilisateur', options: data.users?.map(u => ({value: u.id, label: u.full_name || u.username})) || [], value: config.assign_to_user_id },
+                    { type: 'number', name: 'expires_hours', label: 'Expire après (heures)', value: config.expires_hours || 72 },
+                    { type: 'select', name: 'priority', label: 'Priorité', options: [
+                        {value: 'low', label: 'Basse'},
+                        {value: 'normal', label: 'Normale'},
+                        {value: 'high', label: 'Haute'},
+                        {value: 'urgent', label: 'Urgente'},
+                    ], value: config.priority || 'normal' },
+                    { type: 'textarea', name: 'message', label: 'Message (stocké avec le token)', value: config.message },
+                    { type: 'select', name: 'escalate_to_user_id', label: 'Escalader à', options: data.users?.map(u => ({value: u.id, label: u.full_name || u.username})) || [], value: config.escalate_to_user_id },
+                    { type: 'number', name: 'escalate_after_hours', label: 'Escalader après (heures)', value: config.escalate_after_hours },
+                ], config) + `
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg text-xs">
+                        <p class="font-medium text-blue-800 mb-2">Variables exposées :</p>
+                        <ul class="text-blue-700 space-y-1">
+                            <li><code class="bg-blue-100 px-1 rounded">{approval_link}</code> - Lien pour approuver</li>
+                            <li><code class="bg-blue-100 px-1 rounded">{reject_link}</code> - Lien pour refuser</li>
+                            <li><code class="bg-blue-100 px-1 rounded">{view_link}</code> - Lien document</li>
+                            <li><code class="bg-blue-100 px-1 rounded">{expires_at}</code> - Date expiration</li>
+                        </ul>
+                    </div>`;
+
             case 'action_request_approval':
                 return this.buildFormFields([
                     { type: 'select', name: 'assign_to_group_id', label: 'Groupe approbateur', options: data.groups?.map(g => ({value: g.id, label: g.name})) || [], value: config.assign_to_group_id },
@@ -574,7 +599,11 @@ class WorkflowDesigner {
                     ], value: config.priority || 'normal' },
                     { type: 'select', name: 'escalate_to_user_id', label: 'Escalader à', options: data.users?.map(u => ({value: u.id, label: u.full_name || u.username})) || [], value: config.escalate_to_user_id },
                     { type: 'number', name: 'escalate_after_hours', label: 'Escalader après (heures)', value: config.escalate_after_hours },
-                ], config);
+                ], config) + `
+                    <div class="mt-4 p-3 bg-yellow-50 rounded-lg text-xs">
+                        <p class="font-medium text-yellow-800">Mode legacy : ce nœud envoie directement l'email.</p>
+                        <p class="text-yellow-700 mt-1">Pour plus de flexibilité, utilisez "Créer approbation" + "Envoyer email" + "Attendre approbation".</p>
+                    </div>`;
                 
             case 'action_assign_group':
                 return this.buildFormFields([
@@ -604,15 +633,49 @@ class WorkflowDesigner {
                     { type: 'text', name: 'subject', label: 'Sujet', value: config.subject, placeholder: 'Notification: {title}' },
                     { type: 'textarea', name: 'body', label: 'Corps (HTML)', value: config.body },
                     { type: 'checkbox', name: 'include_document', label: 'Joindre le document', value: config.include_document },
-                ], config);
+                ], config) + `
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg text-xs">
+                        <p class="font-medium text-gray-800 mb-2">Variables disponibles :</p>
+                        <div class="grid grid-cols-2 gap-2 text-gray-600">
+                            <div>
+                                <p class="font-medium text-gray-700">Document :</p>
+                                <ul class="space-y-0.5">
+                                    <li><code class="bg-gray-200 px-1 rounded">{title}</code></li>
+                                    <li><code class="bg-gray-200 px-1 rounded">{correspondent}</code></li>
+                                    <li><code class="bg-gray-200 px-1 rounded">{amount}</code></li>
+                                    <li><code class="bg-gray-200 px-1 rounded">{date}</code></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-700">Approbation :</p>
+                                <ul class="space-y-0.5">
+                                    <li><code class="bg-green-100 px-1 rounded">{approval_link}</code></li>
+                                    <li><code class="bg-red-100 px-1 rounded">{reject_link}</code></li>
+                                    <li><code class="bg-blue-100 px-1 rounded">{view_link}</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>`;
                 
+            case 'wait_approval':
+                return this.buildFormFields([
+                    { type: 'number', name: 'timeout_hours', label: 'Timeout (heures)', value: config.timeout_hours, placeholder: 'Optionnel - hérite du token si non défini' },
+                    { type: 'select', name: 'escalate_to_user_id', label: 'Escalader à (si timeout)', options: data.users?.map(u => ({value: u.id, label: u.full_name || u.username})) || [], value: config.escalate_to_user_id },
+                    { type: 'number', name: 'escalate_after_hours', label: 'Escalader après (heures)', value: config.escalate_after_hours },
+                ], config) + `
+                    <div class="mt-4 p-3 bg-green-50 rounded-lg text-xs">
+                        <p class="font-medium text-green-800 mb-2">Ce nœud attend une réponse d'approbation.</p>
+                        <p class="text-green-700">Utilisez "Créer approbation" avant ce nœud pour générer le token.</p>
+                        <p class="text-green-700 mt-2"><strong>Sorties :</strong> approved, rejected, timeout, cancelled</p>
+                    </div>`;
+
             case 'timer_delay':
                 return this.buildFormFields([
                     { type: 'number', name: 'delay_seconds', label: 'Délai (secondes)', value: config.delay_seconds },
                     { type: 'number', name: 'delay_minutes', label: 'Ou minutes', value: config.delay_minutes },
                     { type: 'number', name: 'delay_hours', label: 'Ou heures', value: config.delay_hours },
                 ], config);
-                
+
             default:
                 return '<p class="text-sm text-gray-500 italic">Aucune configuration requise pour ce composant.</p>';
         }
