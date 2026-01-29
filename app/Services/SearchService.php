@@ -50,6 +50,10 @@ class SearchService
             // Build the SQL query
             [$sql, $countSql, $params] = $this->buildSearchSql($query);
             
+            // Debug log
+            error_log("Search SQL: " . $sql);
+            error_log("Search params: " . json_encode($params));
+            
             // Get total count
             $countStmt = $this->db->prepare($countSql);
             $countStmt->execute($params);
@@ -266,8 +270,9 @@ class SearchService
 
         // Category filter (search in correspondent or document type)
         if (!empty($query->category)) {
-            $where[] = "(c.name LIKE :category OR dt.label LIKE :category)";
-            $params['category'] = '%' . $query->category . '%';
+            $where[] = "(c.name LIKE :category_c OR dt.label LIKE :category_dt)";
+            $params['category_c'] = '%' . $query->category . '%';
+            $params['category_dt'] = '%' . $query->category . '%';
         }
         
         // Date filters

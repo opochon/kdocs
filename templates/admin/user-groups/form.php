@@ -5,6 +5,7 @@
 use KDocs\Core\Config;
 $base = Config::basePath();
 $isEdit = !empty($group);
+$isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
 ?>
 
 <div class="max-w-3xl mx-auto">
@@ -29,10 +30,17 @@ $isEdit = !empty($group);
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Code (optionnel)</label>
-                    <input type="text" name="code" value="<?= htmlspecialchars($group['code'] ?? '') ?>" 
+                    <?php if ($isAdminGroup): ?>
+                    <input type="text" value="ADMIN" readonly disabled
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+                    <input type="hidden" name="code" value="ADMIN">
+                    <p class="mt-1 text-xs text-gray-500">Le code ADMIN est réservé et ne peut pas être modifié</p>
+                    <?php else: ?>
+                    <input type="text" name="code" value="<?= htmlspecialchars($group['code'] ?? '') ?>"
                            placeholder="ACCOUNTING, SUPERVISORS..."
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <p class="mt-1 text-xs text-gray-500">Code unique pour référencer ce groupe dans les workflows</p>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -80,14 +88,24 @@ $isEdit = !empty($group);
         </div>
         
         <!-- Permissions -->
+        <?php if ($isAdminGroup): ?>
+        <div class="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
+            <h2 class="text-lg font-medium text-green-900 mb-2">
+                <i class="fas fa-shield-alt mr-2"></i>Permissions
+            </h2>
+            <p class="text-green-700">
+                <i class="fas fa-check-circle mr-2"></i>
+                <strong>Accès complet.</strong> Les membres du groupe Administrateurs ont automatiquement tous les droits sur l'application.
+            </p>
+        </div>
+        <?php else: ?>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-2">Permissions</h2>
             <p class="text-sm text-gray-500 mb-4">
-                Sélectionnez les permissions accordées aux membres de ce groupe. Le groupe "Administrateurs" (code ADMIN) a automatiquement tous les droits.
+                Sélectionnez les permissions accordées aux membres de ce groupe.
             </p>
 
             <?php
-            // Définir les catégories de permissions
             $permissionCategories = [
                 'Documents' => [
                     'documents.view' => 'Voir les documents',
@@ -150,6 +168,7 @@ $isEdit = !empty($group);
                 <?php endforeach; ?>
             </div>
         </div>
+        <?php endif; ?>
         
         <!-- Actions -->
         <div class="flex items-center justify-end gap-3">

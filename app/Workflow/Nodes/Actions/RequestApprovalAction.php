@@ -39,7 +39,7 @@ class RequestApprovalAction extends AbstractNodeExecutor
         
         // Si un code de groupe est fourni, récupérer l'ID
         if ($assignToGroupCode && !$assignToGroupId) {
-            $stmt = $db->prepare("SELECT id FROM user_groups WHERE code = ?");
+            $stmt = $db->prepare("SELECT id FROM groups WHERE code = ?");
             $stmt->execute([$assignToGroupCode]);
             $group = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($group) {

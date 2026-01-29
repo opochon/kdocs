@@ -26,14 +26,14 @@ class AssignToGroupAction extends AbstractNodeExecutor
         
         // Récupérer le groupe par ID ou code
         if ($groupCode && !$groupId) {
-            $stmt = $db->prepare("SELECT id, name FROM user_groups WHERE code = ?");
+            $stmt = $db->prepare("SELECT id, name FROM groups WHERE code = ?");
             $stmt->execute([$groupCode]);
             $group = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($group) {
                 $groupId = $group['id'];
             }
         } elseif ($groupId) {
-            $stmt = $db->prepare("SELECT id, name FROM user_groups WHERE id = ?");
+            $stmt = $db->prepare("SELECT id, name FROM groups WHERE id = ?");
             $stmt->execute([$groupId]);
             $group = $stmt->fetch(\PDO::FETCH_ASSOC);
         }

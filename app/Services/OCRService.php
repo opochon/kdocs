@@ -47,26 +47,25 @@ class OCRService
         $tesseractCmd = escapeshellarg($this->tesseractPath);
         $imageCmd = escapeshellarg($imagePath);
         $outputCmd = escapeshellarg($outputFile);
-        $command = "$tesseractCmd $imageCmd $outputCmd -l fra+eng 2>&1";
+
+        // Déterminer les langues disponibles
+        $langs = $this->getAvailableLangs();
+
+        // Forcer UTF-8 avec l'option -c preserve_interword_spaces=1
+        $command = "$tesseractCmd $imageCmd $outputCmd -l $langs --psm 3 -c preserve_interword_spaces=1 2>&1";
         exec($command, $output, $returnCode);
-        
+
         if ($returnCode !== 0) {
             error_log("Erreur Tesseract (code $returnCode): " . implode("\n", $output));
         }
-        
+
         if ($returnCode === 0 && file_exists($outputFile . '.txt')) {
             $text = file_get_contents($outputFile . '.txt');
             @unlink($outputFile . '.txt');
-            
-            // Fix encodage: Tesseract peut retourner ISO-8859-1 au lieu de UTF-8
-            if ($text && !mb_check_encoding($text, 'UTF-8')) {
-                $detected = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
-                if ($detected && $detected !== 'UTF-8') {
-                    $text = mb_convert_encoding($text, 'UTF-8', $detected);
-                    error_log("OCR: Converti de $detected vers UTF-8");
-                }
-            }
-            
+
+            // Conversion forcée vers UTF-8
+            $text = $this->forceUtf8($text);
+
             return trim($text);
         }
         return null;
@@ -93,7 +92,8 @@ class OCRService
             if ($returnCode === 0 && file_exists($outputFile)) {
                 $text = file_get_contents($outputFile);
                 @unlink($outputFile);
-                $text = trim($text);
+                // Conversion forcée vers UTF-8
+                $text = $this->forceUtf8(trim($text));
                 if (!empty($text)) {
                     error_log("OCR réussi avec pdftotext: " . strlen($text) . " caractères extraits");
                     return $text;
@@ -202,5 +202,49 @@ class OCRService
             is_dir($path) ? $this->deleteDirectory($path) : @unlink($path);
         }
         @rmdir($dir);
+    }
+
+    /**
+     * Force la conversion d'un texte en UTF-8
+     * Gère les cas où Tesseract/pdftotext retournent des encodages non-UTF-8
+     */
+    private function forceUtf8(?string $text): ?string
+    {
+        if ($text === null || $text === '') {
+            return $text;
+        }
+
+        // Si déjà UTF-8 valide, retourner tel quel
+        if (mb_check_encoding($text, 'UTF-8')) {
+            // Vérifier quand même les caractères mal encodés courants
+            if (strpos($text, "\xC3\x83") === false && strpos($text, "\xC2") === false) {
+                return $text;
+            }
+        }
+
+        // Essayer de détecter l'encodage source
+        $encodings = ['UTF-8', 'ISO-8859-1', 'ISO-8859-15', 'Windows-1252', 'CP850', 'ASCII'];
+        $detected = mb_detect_encoding($text, $encodings, true);
+
+        if ($detected && $detected !== 'UTF-8') {
+            $converted = mb_convert_encoding($text, 'UTF-8', $detected);
+            error_log("OCR: Converti de $detected vers UTF-8");
+            return $converted;
+        }
+
+        // Fallback: essayer iconv avec translitération
+        $converted = @iconv('Windows-1252', 'UTF-8//TRANSLIT//IGNORE', $text);
+        if ($converted !== false && !empty($converted)) {
+            error_log("OCR: Converti via iconv Windows-1252 vers UTF-8");
+            return $converted;
+        }
+
+        // Dernier recours: supprimer les caractères non-UTF-8
+        $cleaned = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        if ($cleaned !== $text) {
+            error_log("OCR: Nettoyage caractères non-UTF-8");
+        }
+
+        return $cleaned;
     }
 }

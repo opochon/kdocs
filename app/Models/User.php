@@ -231,8 +231,8 @@ class User
             $db = Database::getInstance();
             $stmt = $db->prepare("
                 SELECT COUNT(*) FROM user_group_memberships ugm
-                INNER JOIN user_groups ug ON ug.id = ugm.group_id
-                WHERE ugm.user_id = ? AND ug.code = 'ADMIN'
+                INNER JOIN groups g ON g.id = ugm.group_id
+                WHERE ugm.user_id = ? AND g.code = 'ADMIN'
             ");
             $stmt->execute([$userId]);
             $cache[$userId] = (int)$stmt->fetchColumn() > 0;
@@ -259,9 +259,9 @@ class User
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare("
-                SELECT ug.permissions, ug.code
-                FROM user_groups ug
-                INNER JOIN user_group_memberships ugm ON ug.id = ugm.group_id
+                SELECT g.permissions, g.code
+                FROM groups g
+                INNER JOIN user_group_memberships ugm ON g.id = ugm.group_id
                 WHERE ugm.user_id = ?
             ");
             $stmt->execute([$userId]);
@@ -304,9 +304,9 @@ class User
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT user_groups.* 
-                FROM user_groups
-                INNER JOIN user_group_memberships ON user_groups.id = user_group_memberships.group_id
+                SELECT groups.*
+                FROM groups
+                INNER JOIN user_group_memberships ON groups.id = user_group_memberships.group_id
                 WHERE user_group_memberships.user_id = ?
             ");
             $stmt->execute([$userId]);

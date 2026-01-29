@@ -107,13 +107,15 @@ $base = Config::basePath();
                                class="text-blue-600 hover:text-blue-900 mr-3">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <?php if (!($group['is_system'] ?? false)): ?>
+                            <?php if (!($group['is_system'] ?? false) && !$isAdminGroup): ?>
                             <form method="POST" action="<?= url('/admin/user-groups/' . $group['id'] . '/delete') ?>" class="inline"
                                   onsubmit="return confirm('Supprimer ce groupe ?')">
                                 <button type="submit" class="text-red-600 hover:text-red-900">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+                            <?php else: ?>
+                            <span class="text-gray-300" title="Groupe protégé"><i class="fas fa-trash"></i></span>
                             <?php endif; ?>
                         </td>
                     </tr>

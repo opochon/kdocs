@@ -17,7 +17,7 @@ $db = \KDocs\Core\Database::getInstance();
 $users = $db->query("SELECT id, username, email, CONCAT(first_name, ' ', last_name) as full_name FROM users WHERE is_active = 1 ORDER BY username")->fetchAll(\PDO::FETCH_ASSOC);
 $groups = [];
 try {
-    $groups = $db->query("SELECT id, name, code FROM user_groups ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
+    $groups = $db->query("SELECT id, name, code FROM groups ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
 } catch (\Exception $e) {}
 
 // Récupérer les types de documents, tags, correspondants

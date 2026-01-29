@@ -35,10 +35,28 @@ class NaturalLanguageQueryService
         // Convert question to search query using AI
         $searchQuery = $this->questionToSearchQuery($question);
 
-        if ($searchQuery === null) {
-            // Fall back to simple text search
-            $searchQuery = new SearchQuery();
-            $searchQuery->text = $question;
+        // Fallback plus robuste
+        if ($searchQuery === null || $this->isEmptyQuery($searchQuery)) {
+            if ($searchQuery === null) {
+                $searchQuery = new SearchQuery();
+            }
+
+            // Toujours essayer d'extraire des termes
+            $extractedTerms = $this->extractSearchTerms($question);
+            if (!empty($extractedTerms)) {
+                $searchQuery->text = $extractedTerms;
+            } else {
+                // Dernier recours: utiliser la question entière simplifiée
+                $searchQuery->text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $question);
+                $searchQuery->text = preg_replace('/\s+/', ' ', trim($searchQuery->text));
+            }
+        }
+        // If AI returned filters but no text, try to extract key terms from question
+        elseif (empty($searchQuery->text) && $this->looksLikeTextSearch($question)) {
+            $extractedTerms = $this->extractSearchTerms($question);
+            if (!empty($extractedTerms)) {
+                $searchQuery->text = $extractedTerms;
+            }
         }
 
         // Apply additional options
@@ -58,10 +76,101 @@ class NaturalLanguageQueryService
         // Execute search
         $result = $this->searchService->advancedSearch($searchQuery);
 
+        // Store original question for response generation
+        $result->query = $searchQuery->text ?: $question;
+
         // Generate AI response summary
         $result->aiResponse = $this->generateResponseSummary($question, $result);
 
         return $result;
+    }
+
+    /**
+     * Check if the query has no meaningful filters
+     */
+    private function isEmptyQuery(SearchQuery $query): bool
+    {
+        return empty($query->text)
+            && empty($query->correspondentId)
+            && empty($query->correspondentName)
+            && empty($query->documentTypeId)
+            && empty($query->documentTypeName)
+            && empty($query->tagIds)
+            && empty($query->tagNames)
+            && empty($query->category)
+            && empty($query->createdAfter)
+            && empty($query->createdBefore);
+    }
+
+    /**
+     * Check if question looks like it needs text search
+     */
+    private function looksLikeTextSearch(string $question): bool
+    {
+        $patterns = [
+            '/contenant|contient|avec le mot|mot|terme|texte|recherche|cherche|trouve/ui',
+            '/combien de fois/ui',
+            '/"[^"]+"/',  // Quoted phrase
+            '/\b(AND|OR|ET|OU)\b/i',  // Boolean operators
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $question)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract search terms from a natural language question
+     */
+    private function extractSearchTerms(string $question): string
+    {
+        // Extract quoted phrases first
+        $terms = [];
+        if (preg_match_all('/"([^"]+)"/', $question, $matches)) {
+            $terms = array_merge($terms, $matches[1]);
+        }
+
+        // Patterns spécifiques pour extraire le terme recherché
+        $extractPatterns = [
+            '/(?:le\s+)?(?:mot|terme|texte)\s+["\']?(\w+)["\']?/ui',
+            '/(?:combien\s+de\s+fois)\s+["\']?(\w+)["\']?/ui',
+            '/(?:apparait|apparaît|existe)\s+["\']?(\w+)["\']?/ui',
+            '/(?:cherche|recherche|trouve)\s+["\']?(\w+)["\']?/ui',
+            '/contenant\s+["\']?(\w+)["\']?/ui',
+        ];
+
+        foreach ($extractPatterns as $pattern) {
+            if (preg_match($pattern, $question, $matches)) {
+                $term = trim($matches[1]);
+                if (mb_strlen($term) > 2 && !in_array(mb_strtolower($term), ['les', 'des', 'une', 'dans', 'mes', 'tous'])) {
+                    $terms[] = $term;
+                }
+            }
+        }
+
+        // Si on a trouvé des termes, les retourner
+        if (!empty($terms)) {
+            return implode(' ', array_unique($terms));
+        }
+
+        // Fallback: nettoyer et extraire les mots significatifs
+        $cleaned = preg_replace('/combien\s+de\s+fois|combien\s+de|nombre\s+de|quels\s+sont|où\s+sont|trouve\s+moi|cherche\s+les|recherche|documents?|fichiers?|contenant|contient|avec\s+le|le\s+mot|le\s+terme|apparait|apparaît/ui', '', $question);
+
+        $stopWords = ['les', 'des', 'une', 'pour', 'dans', 'sur', 'par', 'avec', 'sans', 'sont', 'est', 'qui', 'que', 'dont', 'mais', 'donc', 'car', 'fois', 'tous', 'tout', 'mes', 'mon', 'mes'];
+        $words = preg_split('/\s+/', trim($cleaned));
+
+        foreach ($words as $word) {
+            $word = trim($word, '.,;:!?()[]{}"\' ');
+            if (mb_strlen($word) > 2 && !in_array(mb_strtolower($word), $stopWords)) {
+                $terms[] = $word;
+            }
+        }
+
+        return implode(' ', array_unique($terms));
     }
     
     /**
@@ -114,9 +223,18 @@ class NaturalLanguageQueryService
 
         $questionLower = mb_strtolower($question);
 
-        // Detect counting questions (combien de fois, nombre de, count)
-        if (preg_match('/combien\s+(de\s+fois|d\'occurrences?)|nombre\s+de\s+fois/ui', $questionLower)) {
-            return $this->generateCountingResponse($question, $result);
+        // Detect counting questions - expanded patterns
+        $countingPatterns = [
+            '/combien\s+(de\s+fois|d\'occurrences?)/ui',
+            '/nombre\s+de\s+fois/ui',
+            '/compte\s+(le\s+)?(mot|terme|nombre)/ui',
+            '/compte\s+.*\s+(mot|terme)\s+\w+/ui',
+        ];
+
+        foreach ($countingPatterns as $pattern) {
+            if (preg_match($pattern, $questionLower)) {
+                return $this->generateCountingResponse($question, $result);
+            }
         }
 
         // Detect quantity questions (combien de documents/factures/etc)
@@ -134,14 +252,35 @@ class NaturalLanguageQueryService
     private function generateCountingResponse(string $question, \KDocs\Search\SearchResult $result): string
     {
         // Extract the search term from the question
-        $searchTerm = $result->query;
-        if (empty($searchTerm)) {
-            // Try to extract from question
-            if (preg_match('/(?:mot|terme|texte|expression)\s+["\']?(\w+)["\']?/ui', $question, $matches)) {
-                $searchTerm = $matches[1];
-            } elseif (preg_match('/combien\s+de\s+fois\s+(?:le\s+mot\s+)?["\']?(\w+)["\']?/ui', $question, $matches)) {
-                $searchTerm = $matches[1];
+        $searchTerm = null;
+
+        // Try to extract from question using various patterns - order matters!
+        $patterns = [
+            '/compte\s+(?:le\s+)?(?:mot|terme)\s+(\w+)/ui',
+            '/combien\s+de\s+fois\s+(?:le\s+)?(?:mot|terme)\s+["\']?([^"\'\s,?.!]+)["\']?/ui',
+            '/combien\s+de\s+fois\s+["\']([^"\']+)["\']/ui',
+            '/combien\s+de\s+fois\s+["\']?(\w+)["\']?\s+(?:apparait|apparaît|existe)/ui',
+            '/(?:le\s+)?(?:mot|terme)\s+(\w+)\s+(?:dans|apparait|apparaît)/ui',
+            '/(?:mot|terme)\s+["\']?(\w+)["\']?/ui',
+            '/"([^"]+)"/',  // Quoted term in question
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $question, $matches)) {
+                $candidate = trim($matches[1]);
+                // Skip stop words
+                if (mb_strlen($candidate) > 2 && !in_array(mb_strtolower($candidate), ['les', 'des', 'une', 'dans', 'tous', 'tout'])) {
+                    $searchTerm = $candidate;
+                    break;
+                }
             }
+        }
+
+        // Fallback to result query if no term found
+        if (empty($searchTerm) && !empty($result->query)) {
+            // Clean up result query (remove operators)
+            $searchTerm = preg_replace('/\b(AND|OR|NOT|ET|OU|NON)\b/i', '', $result->query);
+            $searchTerm = trim($searchTerm);
         }
 
         if (empty($searchTerm)) {
@@ -293,7 +432,7 @@ class NaturalLanguageQueryService
         $currentDate = date('Y-m-d');
         $currentYear = date('Y');
         $currentMonth = date('m');
-        
+
         return <<<PROMPT
 Tu es un assistant qui convertit des questions en français sur des documents en filtres de recherche JSON.
 
@@ -303,7 +442,7 @@ Date actuelle: {$currentDate}
 
 Convertis cette question en filtres de recherche JSON. Voici les filtres disponibles:
 
-- text: recherche textuelle dans le contenu et titre
+- text: IMPORTANT - mots-clés à rechercher dans le contenu et titre (TOUJOURS inclure si l'utilisateur cherche un mot/terme spécifique)
 - correspondent_name: nom du correspondant/expéditeur (partiel OK)
 - document_type_name: type de document (facture, contrat, etc.)
 - tag_names: liste de tags ["tag1", "tag2"]
@@ -315,11 +454,17 @@ Convertis cette question en filtres de recherche JSON. Voici les filtres disponi
 - limit: nombre max de résultats (défaut 25)
 - with_aggregations: true pour calculer des totaux
 
+RÈGLE IMPORTANTE: Si la question mentionne un mot ou terme spécifique à rechercher (ex: "contenant le mot X", "avec le terme Y", "combien de fois Z"), tu DOIS inclure "text" avec ce terme.
+
 Exemples de conversions:
 - "Dernière facture Swisscom" → {"correspondent_name": "swisscom", "document_type_name": "facture", "sort": "created_at", "sort_dir": "desc", "limit": 1}
 - "Documents de 2024" → {"created_after": "2024-01-01", "created_before": "2024-12-31"}
 - "Factures énergie ce mois" → {"category": "energie", "document_type_name": "facture", "created_after": "{$currentYear}-{$currentMonth}-01"}
 - "Tout de la banque" → {"category": "banque"}
+- "Documents contenant le mot contrat" → {"text": "contrat"}
+- "Combien de fois le mot facture apparaît" → {"text": "facture"}
+- "Cherche convention" → {"text": "convention"}
+- "Combien de documents ?" → {}
 
 Réponds UNIQUEMENT avec le JSON des filtres, sans explication.
 PROMPT;

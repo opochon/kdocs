@@ -94,16 +94,31 @@ class UserGroupsController
         $id = $args['id'] ?? null;
         $data = $request->getParsedBody();
 
+        // Vérifier si c'est le groupe ADMIN existant
+        $isAdminGroup = false;
+        if ($id) {
+            $existingGroup = $this->model->findById((int)$id);
+            $isAdminGroup = ($existingGroup['code'] ?? '') === 'ADMIN';
+        }
+
         $groupData = [
             'name' => $data['name'] ?? '',
-            'code' => $data['code'] ?? null,
+            'code' => $isAdminGroup ? 'ADMIN' : ($data['code'] ?? null), // Protéger le code ADMIN
             'description' => $data['description'] ?? null,
             'permissions' => []
         ];
 
-        // Permissions
-        if (!empty($data['permissions'])) {
+        // Permissions - le groupe ADMIN a toujours tous les droits
+        if ($isAdminGroup) {
+            $groupData['permissions'] = ['*'];
+        } elseif (!empty($data['permissions'])) {
             $groupData['permissions'] = is_array($data['permissions']) ? $data['permissions'] : json_decode($data['permissions'], true);
+        }
+
+        // Empêcher la création d'un nouveau groupe avec code ADMIN
+        if (!$id && strtoupper($groupData['code'] ?? '') === 'ADMIN') {
+            $_SESSION['flash_error'] = 'Le code ADMIN est réservé';
+            return $response->withHeader('Location', url('/admin/user-groups'))->withStatus(302);
         }
 
         try {
@@ -140,9 +155,9 @@ class UserGroupsController
             return $response->withHeader('Location', url('/admin/user-groups'))->withStatus(302);
         }
 
-        // Verifier si c'est un groupe systeme
-        if ($group['is_system'] ?? false) {
-            $_SESSION['flash_error'] = 'Impossible de supprimer un groupe systeme';
+        // Vérifier si c'est un groupe système (ADMIN)
+        if (($group['is_system'] ?? false) || ($group['code'] ?? '') === 'ADMIN') {
+            $_SESSION['flash_error'] = 'Impossible de supprimer le groupe Administrateurs';
             return $response->withHeader('Location', url('/admin/user-groups'))->withStatus(302);
         }
 

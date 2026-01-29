@@ -108,7 +108,7 @@ class UsersController
             $userModel = new User();
             $userGroups = $id ? $userModel->getUserGroups($id) : [];
         } catch (\Exception $e) {
-            // Table user_groups n'existe peut-être pas encore
+            // Table groups n'existe peut-être pas encore
             error_log("Erreur chargement groupes utilisateurs: " . $e->getMessage());
         }
         

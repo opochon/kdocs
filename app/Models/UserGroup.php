@@ -22,32 +22,10 @@ class UserGroup
      */
     public function getAll(): array
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('UserGroup::getAll', 'Before query', [
-            'table' => 'user_groups'
-        ], 'A');
-        // #endregion
-        
         try {
-            // Vérifier si la table existe et sa structure
-            $columns = $this->db->query("SHOW COLUMNS FROM user_groups")->fetchAll(PDO::FETCH_COLUMN);
-            
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('UserGroup::getAll', 'Table columns', [
-                'columns' => $columns
-            ], 'A');
-            // #endregion
-            
-            // Déterminer la colonne de tri (name ou group_name)
-            $orderColumn = in_array('name', $columns) ? 'name' : (in_array('group_name', $columns) ? 'group_name' : 'id');
-            
-            $stmt = $this->db->query("SELECT * FROM user_groups ORDER BY $orderColumn");
+            $stmt = $this->db->query("SELECT * FROM groups ORDER BY name");
             $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::logException($e, 'UserGroup::getAll', 'A');
-            // #endregion
-            // Table n'existe peut-être pas encore
             return [];
         }
         
@@ -67,7 +45,7 @@ class UserGroup
      */
     public function findById(int $id): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM user_groups WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM groups WHERE id = ?");
         $stmt->execute([$id]);
         $group = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -84,7 +62,7 @@ class UserGroup
     public function create(array $data): int
     {
         $stmt = $this->db->prepare("
-            INSERT INTO user_groups (name, description, permissions, created_at, updated_at)
+            INSERT INTO groups (name, description, permissions, created_at, updated_at)
             VALUES (?, ?, ?, NOW(), NOW())
         ");
         
@@ -125,7 +103,7 @@ class UserGroup
         $fields[] = 'updated_at = NOW()';
         $params[] = $id;
         
-        $sql = "UPDATE user_groups SET " . implode(', ', $fields) . " WHERE id = ?";
+        $sql = "UPDATE groups SET " . implode(', ', $fields) . " WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         
         return $stmt->execute($params);
@@ -136,7 +114,7 @@ class UserGroup
      */
     public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare("DELETE FROM user_groups WHERE id = ?");
+        $stmt = $this->db->prepare("DELETE FROM groups WHERE id = ?");
         return $stmt->execute([$id]);
     }
 

@@ -223,10 +223,11 @@ class AdvancedSearchParser
             $searchValue = '%' . $value . '%';
         }
 
-        $paramName = 'search_' . $paramIndex++;
-        $params[$paramName] = $searchValue;
+        $baseParamName = 'search_' . $paramIndex++;
 
         // Build field conditions based on scope
+        // PDO doesn't allow using the same named parameter multiple times,
+        // so we create a unique parameter for each field
         $fields = [];
         switch ($scope) {
             case 'name':
@@ -242,7 +243,9 @@ class AdvancedSearchParser
         }
 
         $conditions = [];
-        foreach ($fields as $field) {
+        foreach ($fields as $i => $field) {
+            $paramName = $baseParamName . '_' . $i;
+            $params[$paramName] = $searchValue;
             $conditions[] = "$field LIKE :$paramName";
         }
 

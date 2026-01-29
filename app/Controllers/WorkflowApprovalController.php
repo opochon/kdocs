@@ -36,7 +36,7 @@ class WorkflowApprovalController
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
             LEFT JOIN users u ON wat.assigned_user_id = u.id
-            LEFT JOIN user_groups ug ON wat.assigned_group_id = ug.id
+            LEFT JOIN groups ug ON wat.assigned_group_id = ug.id
             WHERE wat.token = ?
         ");
         $stmt->execute([$token]);

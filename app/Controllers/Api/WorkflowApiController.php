@@ -60,7 +60,7 @@ class WorkflowApiController extends ApiController
         // Groupes d'utilisateurs
         $stmt = $db->query("
             SELECT id, name, code, description
-            FROM user_groups
+            FROM groups
             ORDER BY name
         ");
         $groups = $stmt->fetchAll(\PDO::FETCH_ASSOC);

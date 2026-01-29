@@ -82,85 +82,41 @@ $isConfigured = $claudeService->isConfigured();
         </div>
 
         <!-- Messages -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4">
+            <div id="messages-wrapper" class="max-w-3xl mx-auto space-y-4">
             <!-- Welcome message -->
             <div id="welcome-message" class="text-center py-8">
-                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-4">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Recherche intelligente</h3>
-                <p class="text-sm text-gray-500 mb-4">Posez vos questions en langage naturel</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Assistant IA</h3>
+                <p class="text-sm text-gray-500 mb-4">Posez des questions sur vos documents, l'IA analyse et répond</p>
                 <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
-                    <button onclick="askQuestion('Combien de documents ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                    <button onclick="askQuestion('Combien de documents ai-je ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
                         Combien de documents ?
                     </button>
-                    <button onclick="askQuestion('Documents de cette semaine')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
-                        Documents de cette semaine
+                    <button onclick="askQuestion('Combien de fois le mot juge apparait dans mes documents ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Combien de fois "juge" ?
                     </button>
-                    <button onclick="askQuestion('Combien de fois le mot contrat apparait ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
-                        Combien de fois "contrat" ?
+                    <button onclick="askQuestion('Quelle est ma dernière facture Swisscom ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Dernière facture Swisscom ?
+                    </button>
+                    <button onclick="askQuestion('Combien m\\'a coûté mon abonnement téléphone en 2024 ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                        Coût abonnement 2024 ?
                     </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Search Options -->
-        <div id="search-options" class="border-t border-gray-100 px-4 py-2 bg-gray-50">
-            <div class="flex flex-wrap items-center gap-4 text-sm">
-                <!-- Search scope -->
-                <div class="flex items-center gap-1">
-                    <span class="text-gray-500 mr-1">Rechercher dans:</span>
-                    <button type="button" data-scope="all" class="scope-btn px-2 py-1 rounded text-xs bg-gray-900 text-white">Tout</button>
-                    <button type="button" data-scope="name" class="scope-btn px-2 py-1 rounded text-xs bg-gray-200 text-gray-700 hover:bg-gray-300">Nom</button>
-                    <button type="button" data-scope="content" class="scope-btn px-2 py-1 rounded text-xs bg-gray-200 text-gray-700 hover:bg-gray-300">Contenu</button>
-                </div>
-
-                <!-- Date range -->
-                <div class="flex items-center gap-2">
-                    <span class="text-gray-500">Période:</span>
-                    <input type="date" id="date-from" class="px-2 py-1 border border-gray-300 rounded text-xs" placeholder="Du">
-                    <span class="text-gray-400">-</span>
-                    <input type="date" id="date-to" class="px-2 py-1 border border-gray-300 rounded text-xs" placeholder="Au">
-                </div>
-
-                <!-- Folder filter -->
-                <div class="flex items-center gap-2">
-                    <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" id="current-folder-only" class="rounded border-gray-300">
-                        <span class="text-gray-500 text-xs">Dossier actuel</span>
-                    </label>
-                </div>
-
-                <!-- Help tooltip -->
-                <button type="button" id="search-help-btn" class="text-gray-400 hover:text-gray-600" title="Aide syntaxe">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Syntax help popup -->
-            <div id="syntax-help" class="hidden mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg text-xs">
-                <h4 class="font-semibold text-gray-700 mb-2">Syntaxe de recherche avancée</h4>
-                <div class="grid grid-cols-2 gap-2 text-gray-600">
-                    <div><code class="bg-gray-100 px-1 rounded">mot1 AND mot2</code> Les deux termes</div>
-                    <div><code class="bg-gray-100 px-1 rounded">mot1 OR mot2</code> L'un ou l'autre</div>
-                    <div><code class="bg-gray-100 px-1 rounded">"phrase exacte"</code> Expression exacte</div>
-                    <div><code class="bg-gray-100 px-1 rounded">NOT mot</code> Exclure un terme</div>
-                    <div><code class="bg-gray-100 px-1 rounded">fact*</code> Commence par "fact"</div>
-                    <div><code class="bg-gray-100 px-1 rounded">t?st</code> Un caractère variable</div>
-                </div>
-            </div>
+            </div><!-- max-w-3xl -->
         </div>
 
         <!-- Input -->
         <div class="border-t border-gray-100 p-4 bg-gray-50">
             <form id="chat-form" class="flex gap-2">
                 <input type="text" id="chat-input"
-                       class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400 text-sm"
-                       placeholder="Recherchez avec AND, OR, &quot;phrase exacte&quot;, * wildcards..." autocomplete="off">
+                       class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm"
+                       placeholder="Posez une question sur vos documents..." autocomplete="off">
                 <button type="submit" id="send-btn"
                         class="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,24 +135,17 @@ $isConfigured = $claudeService->isConfigured();
 
     const BASE_URL = '<?= $base ?>';
     let currentConversationId = null;
-    let searchScope = 'all';
-    let currentFolderId = null; // Set from URL if on documents page
 
     // Elements
     const sidebar = document.getElementById('chat-sidebar');
     const conversationsList = document.getElementById('conversations-list');
-    const messagesContainer = document.getElementById('chat-messages');
+    const chatMessagesOuter = document.getElementById('chat-messages');
+    const messagesContainer = document.getElementById('messages-wrapper');
     const welcomeMessage = document.getElementById('welcome-message');
     const chatTitle = document.getElementById('chat-title');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const newChatBtn = document.getElementById('new-chat-btn');
-    const scopeBtns = document.querySelectorAll('.scope-btn');
-    const dateFromInput = document.getElementById('date-from');
-    const dateToInput = document.getElementById('date-to');
-    const currentFolderCheckbox = document.getElementById('current-folder-only');
-    const searchHelpBtn = document.getElementById('search-help-btn');
-    const syntaxHelp = document.getElementById('syntax-help');
 
     // Escape HTML
     function escapeHtml(text) {
@@ -221,10 +170,10 @@ $isConfigured = $claudeService->isConfigured();
         messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
 
         const bubble = document.createElement('div');
-        bubble.className = `max-w-2xl px-4 py-3 rounded-lg ${
+        bubble.className = `max-w-xl lg:max-w-2xl px-4 py-3 rounded-2xl text-sm ${
             role === 'user'
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-900'
+                ? 'bg-gray-900 text-white ml-12'
+                : 'bg-gray-100 text-gray-900 mr-12'
         }`;
 
         if (role === 'assistant') {
@@ -279,7 +228,7 @@ $isConfigured = $claudeService->isConfigured();
 
         messageDiv.appendChild(bubble);
         messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        chatMessagesOuter.scrollTop = chatMessagesOuter.scrollHeight;
     }
 
     // Add loading indicator
@@ -297,7 +246,7 @@ $isConfigured = $claudeService->isConfigured();
             </div>
         `;
         messagesContainer.appendChild(loadingDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        chatMessagesOuter.scrollTop = chatMessagesOuter.scrollHeight;
     }
 
     function removeLoadingIndicator() {
@@ -447,20 +396,11 @@ $isConfigured = $claudeService->isConfigured();
         // Show loading
         addLoadingIndicator();
 
-        // Build search options
-        const searchOptions = {
-            message,
-            scope: searchScope,
-            date_from: dateFromInput?.value || null,
-            date_to: dateToInput?.value || null,
-            folder_id: currentFolderCheckbox?.checked ? currentFolderId : null
-        };
-
         try {
             const response = await fetch(`${BASE_URL}/api/chat/conversations/${currentConversationId}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(searchOptions)
+                body: JSON.stringify({ message })
             });
 
             const data = await response.json();
@@ -543,38 +483,6 @@ $isConfigured = $claudeService->isConfigured();
                 e.preventDefault();
                 sendMessage(chatInput.value);
             });
-        }
-
-        // Scope buttons
-        scopeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                scopeBtns.forEach(b => {
-                    b.classList.remove('bg-gray-900', 'text-white');
-                    b.classList.add('bg-gray-200', 'text-gray-700');
-                });
-                btn.classList.remove('bg-gray-200', 'text-gray-700');
-                btn.classList.add('bg-gray-900', 'text-white');
-                searchScope = btn.dataset.scope;
-            });
-        });
-
-        // Syntax help toggle
-        if (searchHelpBtn && syntaxHelp) {
-            searchHelpBtn.addEventListener('click', () => {
-                syntaxHelp.classList.toggle('hidden');
-            });
-            // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (!searchHelpBtn.contains(e.target) && !syntaxHelp.contains(e.target)) {
-                    syntaxHelp.classList.add('hidden');
-                }
-            });
-        }
-
-        // Get current folder from URL if on documents page with folder filter
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('folder_id')) {
-            currentFolderId = parseInt(urlParams.get('folder_id'));
         }
 
         // Load last conversation or create new
