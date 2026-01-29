@@ -1046,7 +1046,7 @@ class DocumentsController
 
                             // Mettre à jour la BDD si miniature générée
                             if ($thumbnailPath) {
-                                $db = \KDocs\Core\Database::getInstance()->getConnection();
+                                $db = \KDocs\Core\Database::getInstance();
                                 $thumbFilename = basename($thumbnailPath);
                                 $db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")->execute([$thumbFilename, $id]);
                             }

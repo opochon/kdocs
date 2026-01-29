@@ -196,6 +196,16 @@ try {
                     <span>Champs de classification</span>
                 </a>
             </li>
+
+            <!-- Attribution Rules -->
+            <li>
+                <a href="<?= url('/admin/attribution-rules') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/attribution-rules', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    <span>Règles d'attribution</span>
+                </a>
+            </li>
             
             <!-- Saved Searches -->
             <?php if ($stats['saved_searches'] > 0): ?>

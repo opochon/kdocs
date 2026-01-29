@@ -33,18 +33,27 @@ $healthOk = $healthResponse !== false && strpos($healthResponse, 'true') !== fal
 echo "   - Réponse healthcheck: " . ($healthResponse ?: 'AUCUNE RÉPONSE') . "\n";
 echo "   - isAvailable(): " . ($onlyOfficeService->isAvailable() ? 'OUI' : 'NON') . "\n";
 
-// 3. LibreOffice pour thumbnails
+// 3. LibreOffice pour miniatures
 echo "\n3. LIBREOFFICE (pour miniatures)\n";
 $libreOfficePath = $config['tools']['libreoffice'] ?? '';
 echo "   - Chemin configuré: $libreOfficePath\n";
 echo "   - Fichier existe: " . (file_exists($libreOfficePath) ? 'OUI' : 'NON') . "\n";
 
 $thumbService = new \KDocs\Services\OfficeThumbnailService();
+$diagInfo = $thumbService->getDiagnosticInfo();
 echo "   - OfficeThumbnailService::isAvailable(): " . ($thumbService->isAvailable() ? 'OUI' : 'NON') . "\n";
+echo "   - Peut générer miniatures Office: " . ($diagInfo['can_generate_thumbnails'] ? 'OUI' : 'NON') . "\n";
+
+// 3b. Ghostscript et pdftoppm
+echo "\n3b. OUTILS PDF\n";
+$gsPath = $config['tools']['ghostscript'] ?? '';
+$pdftoppmPath = $config['tools']['pdftoppm'] ?? '';
+echo "   - Ghostscript: " . (file_exists($gsPath) ? 'OUI' : 'NON') . " ($gsPath)\n";
+echo "   - pdftoppm: " . (file_exists($pdftoppmPath) ? 'OUI' : 'NON') . " ($pdftoppmPath)\n";
 
 // 4. Test avec un document docx existant
 echo "\n4. TEST DOCUMENT DOCX\n";
-$db = \KDocs\Core\Database::getInstance()->getConnection();
+$db = \KDocs\Core\Database::getInstance();
 $docx = $db->query("SELECT id, filename, original_filename, file_path, thumbnail_path FROM documents WHERE filename LIKE '%.docx' OR original_filename LIKE '%.docx' LIMIT 1")->fetch();
 if ($docx) {
     echo "   - Document trouvé: ID " . $docx['id'] . "\n";

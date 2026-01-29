@@ -10,6 +10,21 @@ header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
+// Content Security Policy (CSP)
+// Note: 'unsafe-inline' nécessaire pour les styles inline et certains scripts
+// En production stricte, utiliser des nonces ou hashes
+header("Content-Security-Policy: " .
+    "default-src 'self'; " .
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " .
+    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
+    "img-src 'self' data: blob:; " .
+    "connect-src 'self' https://cdn.jsdelivr.net; " .
+    "frame-src 'self'; " .
+    "object-src 'none'; " .
+    "base-uri 'self';"
+);
+
 // Charger l'autoloader Composer ou l'autoloader simple
 $autoloadPath = __DIR__ . '/vendor/autoload.php';
 if (file_exists($autoloadPath)) {
@@ -87,6 +102,12 @@ use KDocs\Controllers\Api\NotificationsApiController;
 use KDocs\Controllers\Api\UserNotesApiController;
 use KDocs\Controllers\Api\ChatApiController;
 use KDocs\Controllers\Api\OnlyOfficeApiController;
+use KDocs\Controllers\Api\AttributionRulesApiController;
+use KDocs\Controllers\Api\ClassificationSuggestionsApiController;
+use KDocs\Controllers\Api\InvoiceLineItemsApiController;
+use KDocs\Controllers\Api\ClassificationAuditApiController;
+use KDocs\Controllers\Api\ClassificationFieldOptionsApiController;
+use KDocs\Controllers\Admin\AttributionRulesController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
@@ -554,6 +575,63 @@ $app->group('', function ($group) {
     $group->post('/admin/classification-fields/save', [ClassificationFieldsController::class, 'save']);
     $group->post('/admin/classification-fields/{id}/save', [ClassificationFieldsController::class, 'save']);
     $group->post('/admin/classification-fields/{id}/delete', [ClassificationFieldsController::class, 'delete']);
+
+    // Attribution Rules (Règles d'attribution automatique)
+    $group->get('/admin/attribution-rules', [AttributionRulesController::class, 'index']);
+    $group->get('/admin/attribution-rules/create', [AttributionRulesController::class, 'editor']);
+    $group->get('/admin/attribution-rules/{id}/edit', [AttributionRulesController::class, 'editor']);
+    $group->get('/admin/attribution-rules/{id}/logs', [AttributionRulesController::class, 'logs']);
+
+    // API Attribution Rules
+    $group->get('/api/attribution-rules/field-types', [AttributionRulesApiController::class, 'fieldTypes']);
+    $group->get('/api/attribution-rules', [AttributionRulesApiController::class, 'index']);
+    $group->post('/api/attribution-rules', [AttributionRulesApiController::class, 'create']);
+    $group->get('/api/attribution-rules/{id}', [AttributionRulesApiController::class, 'show']);
+    $group->put('/api/attribution-rules/{id}', [AttributionRulesApiController::class, 'update']);
+    $group->delete('/api/attribution-rules/{id}', [AttributionRulesApiController::class, 'delete']);
+    $group->post('/api/attribution-rules/{id}/test', [AttributionRulesApiController::class, 'test']);
+    $group->post('/api/attribution-rules/{id}/duplicate', [AttributionRulesApiController::class, 'duplicate']);
+    $group->get('/api/attribution-rules/{id}/logs', [AttributionRulesApiController::class, 'logs']);
+    $group->post('/api/attribution-rules/process-document', [AttributionRulesApiController::class, 'processDocument']);
+    $group->post('/api/attribution-rules/process-batch', [AttributionRulesApiController::class, 'processBatch']);
+
+    // API Classification Suggestions (ML)
+    $group->get('/api/suggestions/pending', [ClassificationSuggestionsApiController::class, 'listPending']);
+    $group->get('/api/suggestions/stats', [ClassificationSuggestionsApiController::class, 'stats']);
+    $group->get('/api/documents/{id}/suggestions', [ClassificationSuggestionsApiController::class, 'getForDocument']);
+    $group->post('/api/documents/{id}/suggestions/generate', [ClassificationSuggestionsApiController::class, 'generate']);
+    $group->post('/api/documents/{id}/suggestions/apply-all', [ClassificationSuggestionsApiController::class, 'applyAll']);
+    $group->post('/api/documents/{id}/suggestions/ignore-all', [ClassificationSuggestionsApiController::class, 'ignoreAll']);
+    $group->post('/api/documents/{documentId}/suggestions/{suggestionId}/apply', [ClassificationSuggestionsApiController::class, 'apply']);
+    $group->post('/api/documents/{documentId}/suggestions/{suggestionId}/ignore', [ClassificationSuggestionsApiController::class, 'ignore']);
+
+    // API Invoice Line Items
+    $group->get('/api/documents/{id}/line-items', [InvoiceLineItemsApiController::class, 'index']);
+    $group->post('/api/documents/{id}/line-items', [InvoiceLineItemsApiController::class, 'create']);
+    $group->post('/api/documents/{id}/line-items/extract', [InvoiceLineItemsApiController::class, 'extract']);
+    $group->post('/api/documents/{id}/line-items/reorder', [InvoiceLineItemsApiController::class, 'reorder']);
+    $group->delete('/api/documents/{id}/line-items', [InvoiceLineItemsApiController::class, 'deleteAll']);
+    $group->get('/api/documents/{id}/line-items/extraction-history', [InvoiceLineItemsApiController::class, 'extractionHistory']);
+    $group->get('/api/documents/{documentId}/line-items/{lineId}', [InvoiceLineItemsApiController::class, 'show']);
+    $group->put('/api/documents/{documentId}/line-items/{lineId}', [InvoiceLineItemsApiController::class, 'update']);
+    $group->delete('/api/documents/{documentId}/line-items/{lineId}', [InvoiceLineItemsApiController::class, 'delete']);
+
+    // API Classification Audit
+    $group->get('/api/documents/{id}/classification-history', [ClassificationAuditApiController::class, 'documentHistory']);
+    $group->get('/api/documents/{id}/classification-compare', [ClassificationAuditApiController::class, 'compare']);
+    $group->get('/api/audit/classifications', [ClassificationAuditApiController::class, 'globalHistory']);
+    $group->get('/api/audit/classifications/stats', [ClassificationAuditApiController::class, 'stats']);
+    $group->get('/api/audit/classifications/export', [ClassificationAuditApiController::class, 'export']);
+    $group->post('/api/audit/classifications/{id}/revert', [ClassificationAuditApiController::class, 'revert']);
+
+    // API Classification Field Options
+    $group->get('/api/classification-field-options', [ClassificationFieldOptionsApiController::class, 'index']);
+    $group->get('/api/classification-field-options/field/{fieldCode}', [ClassificationFieldOptionsApiController::class, 'getForField']);
+    $group->post('/api/classification-field-options', [ClassificationFieldOptionsApiController::class, 'create']);
+    $group->post('/api/classification-field-options/import', [ClassificationFieldOptionsApiController::class, 'import']);
+    $group->get('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'show']);
+    $group->put('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'update']);
+    $group->delete('/api/classification-field-options/{id}', [ClassificationFieldOptionsApiController::class, 'delete']);
     
     // Indexation (Contrôle et monitoring)
     $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
@@ -575,6 +653,12 @@ $app->group('', function ($group) {
         $res->getBody()->write(json_encode(['success' => true, 'results' => $results]));
         return $res->withHeader('Content-Type', 'application/json');
     });
+
+    // API MSG Import (Outlook .msg avec pièces jointes)
+    $group->get('/api/msg/status', [\KDocs\Controllers\Api\MSGImportApiController::class, 'status']);
+    $group->post('/api/msg/import', [\KDocs\Controllers\Api\MSGImportApiController::class, 'import']);
+    $group->get('/api/msg/{id}/attachments', [\KDocs\Controllers\Api\MSGImportApiController::class, 'getAttachments']);
+    $group->get('/api/msg/thread/{threadId}', [\KDocs\Controllers\Api\MSGImportApiController::class, 'getThread']);
 
     // API Email Ingestion
     $group->get('/api/email-ingestion/logs', function($req, $res) {

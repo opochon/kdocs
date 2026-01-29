@@ -36,22 +36,47 @@ class OfficeThumbnailService
     }
 
     /**
-     * Vérifie si le service est disponible (OnlyOffice OU outils PDF)
+     * Vérifie si le service est disponible pour les fichiers Office
+     * Note: Ghostscript seul ne peut pas convertir les fichiers Office
      */
     public function isAvailable(): bool
     {
-        // Priorité 1: OnlyOffice
+        // OnlyOffice est la seule option pour convertir les fichiers Office
         if ($this->onlyOfficeService->isAvailable()) {
             return true;
         }
 
-        // Fallback: Ghostscript pour PDF
-        $gs = Config::get('tools.ghostscript', '');
-        if (!empty($gs) && file_exists($gs)) {
+        // LibreOffice comme fallback
+        $libreOffice = Config::get('tools.libreoffice', '');
+        if (!empty($libreOffice) && file_exists($libreOffice)) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Vérifie pourquoi le service n'est pas disponible (pour diagnostic)
+     */
+    public function getDiagnosticInfo(): array
+    {
+        $info = [
+            'onlyoffice_enabled' => $this->onlyOfficeService->isEnabled(),
+            'onlyoffice_available' => $this->onlyOfficeService->isAvailable(),
+            'onlyoffice_url' => $this->onlyOfficeService->getServerUrl(),
+            'libreoffice_path' => Config::get('tools.libreoffice', ''),
+            'libreoffice_exists' => false,
+            'can_generate_thumbnails' => false,
+        ];
+
+        $libreOffice = Config::get('tools.libreoffice', '');
+        if (!empty($libreOffice)) {
+            $info['libreoffice_exists'] = file_exists($libreOffice);
+        }
+
+        $info['can_generate_thumbnails'] = $info['onlyoffice_available'] || $info['libreoffice_exists'];
+
+        return $info;
     }
 
     /**
@@ -213,23 +238,103 @@ class OfficeThumbnailService
     }
 
     /**
-     * Fallback: génère miniature via outils PDF (Ghostscript)
-     * Nécessite d'abord une conversion en PDF
+     * Fallback: génère miniature via LibreOffice + Ghostscript
+     * 1. Convertit Office -> PDF avec LibreOffice
+     * 2. Convertit PDF -> PNG avec Ghostscript
      */
     private function generateViaFallback(string $sourcePath, int $documentId, int $width, int $height): ?string
     {
+        $libreOfficePath = Config::get('tools.libreoffice', '');
         $ghostscriptPath = Config::get('tools.ghostscript', '');
 
-        if (empty($ghostscriptPath) || !file_exists($ghostscriptPath)) {
-            error_log("OfficeThumbnailService: No fallback tools available");
+        // LibreOffice est requis pour convertir Office -> PDF
+        if (empty($libreOfficePath) || !file_exists($libreOfficePath)) {
+            error_log("OfficeThumbnailService: LibreOffice not available for fallback");
             return null;
         }
 
-        // Pour le fallback sans LibreOffice, on ne peut pas convertir
-        // les fichiers Office directement. On retourne null.
-        // L'utilisateur devra installer OnlyOffice ou LibreOffice.
-        error_log("OfficeThumbnailService: Fallback requires OnlyOffice for Office files");
-        return null;
+        $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
+        $tempPdfPath = $this->tempPath . '/' . $documentId . '_temp.pdf';
+
+        try {
+            // Étape 1: Convertir en PDF avec LibreOffice
+            $outputDir = dirname($tempPdfPath);
+            $cmd = sprintf(
+                '"%s" --headless --convert-to pdf --outdir "%s" "%s"',
+                $libreOfficePath,
+                $outputDir,
+                $sourcePath
+            );
+
+            exec($cmd . ' 2>&1', $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                error_log("OfficeThumbnailService: LibreOffice conversion failed: " . implode("\n", $output));
+                return null;
+            }
+
+            // Le fichier PDF a le même nom que le source mais avec .pdf
+            $baseName = pathinfo(basename($sourcePath), PATHINFO_FILENAME);
+            $generatedPdf = $outputDir . '/' . $baseName . '.pdf';
+
+            if (!file_exists($generatedPdf)) {
+                error_log("OfficeThumbnailService: PDF not generated at $generatedPdf");
+                return null;
+            }
+
+            // Renommer vers notre chemin temp
+            rename($generatedPdf, $tempPdfPath);
+
+            // Étape 2: Convertir PDF -> PNG avec Ghostscript ou pdftoppm
+            if (!empty($ghostscriptPath) && file_exists($ghostscriptPath)) {
+                $cmd = sprintf(
+                    '"%s" -dNOPAUSE -dBATCH -sDEVICE=png16m -r72 -dFirstPage=1 -dLastPage=1 -sOutputFile="%s" "%s"',
+                    $ghostscriptPath,
+                    $thumbnailPath,
+                    $tempPdfPath
+                );
+                exec($cmd . ' 2>&1', $output2, $returnCode2);
+            } else {
+                // Fallback: pdftoppm
+                $pdftoppm = Config::get('tools.pdftoppm', '');
+                if (!empty($pdftoppm) && file_exists($pdftoppm)) {
+                    $tempPngBase = $this->tempPath . '/' . $documentId . '_temp';
+                    $cmd = sprintf(
+                        '"%s" -png -f 1 -l 1 -scale-to %d "%s" "%s"',
+                        $pdftoppm,
+                        max($width, $height),
+                        $tempPdfPath,
+                        $tempPngBase
+                    );
+                    exec($cmd . ' 2>&1', $output2, $returnCode2);
+
+                    // pdftoppm ajoute un suffixe -1.png
+                    $generatedPng = $tempPngBase . '-1.png';
+                    if (file_exists($generatedPng)) {
+                        rename($generatedPng, $thumbnailPath);
+                    }
+                } else {
+                    error_log("OfficeThumbnailService: No PDF to image converter available");
+                    @unlink($tempPdfPath);
+                    return null;
+                }
+            }
+
+            // Nettoyage
+            @unlink($tempPdfPath);
+
+            if (file_exists($thumbnailPath)) {
+                return $thumbnailPath;
+            }
+
+            error_log("OfficeThumbnailService: Thumbnail not generated");
+            return null;
+
+        } catch (\Exception $e) {
+            error_log("OfficeThumbnailService fallback error: " . $e->getMessage());
+            @unlink($tempPdfPath);
+            return null;
+        }
     }
 
     /**

@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: kdocs-onlyoffice
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # Désactiver JWT pour simplifier le développement local
+      - JWT_ENABLED=false
+      # Ou si vous voulez JWT:
+      # - JWT_SECRET=your-secret-key-here
+      # - JWT_HEADER=Authorization
+    volumes:
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_log:/var/log/onlyoffice
+      - onlyoffice_fonts:/usr/share/fonts/truetype/custom
+    extra_hosts:
+      # Permet au conteneur d'accéder à localhost Windows
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  onlyoffice_data:
+  onlyoffice_log:
+  onlyoffice_fonts:

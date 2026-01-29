@@ -2,29 +2,34 @@
 /**
  * Orchestrateur de classification
  * Gère le choix entre règles et IA selon config
+ * Intègre le système d'attribution et ML
  */
 
 namespace KDocs\Services;
 
 use KDocs\Core\Config;
+use KDocs\Services\Attribution\AttributionService;
+use KDocs\Services\Learning\ClassificationLearningService;
 
 class ClassificationService
 {
     private AutoClassifierService $rules;
     private ?AIClassifierService $ai = null;
+    private ?AttributionService $attribution = null;
+    private ?ClassificationLearningService $learning = null;
     private string $method;
     private bool $autoApply;
     private float $threshold;
-    
+
     public function __construct()
     {
         $config = Config::load();
         $this->method = $config['classification']['method'] ?? 'auto';
         $this->autoApply = $config['classification']['auto_apply'] ?? false;
         $this->threshold = $config['classification']['auto_apply_threshold'] ?? 0.8;
-        
+
         $this->rules = new AutoClassifierService();
-        
+
         if ($this->method !== 'rules') {
             try {
                 $this->ai = new AIClassifierService();
@@ -32,6 +37,16 @@ class ClassificationService
             } catch (\Exception $e) {
                 $this->ai = null;
             }
+        }
+
+        // Initialize attribution and learning services
+        try {
+            $this->attribution = new AttributionService();
+            $this->learning = new ClassificationLearningService();
+        } catch (\Exception $e) {
+            // Services may not be available if tables don't exist yet
+            $this->attribution = null;
+            $this->learning = null;
         }
     }
     
@@ -110,8 +125,53 @@ class ClassificationService
             $this->rules->applyClassification($documentId, $result['final']);
             $result['auto_applied'] = true;
         }
-        
+
+        // Process with attribution rules (new system)
+        if ($this->attribution) {
+            try {
+                $attributionResult = $this->attribution->process($documentId, $this->autoApply);
+                $result['attribution_result'] = $attributionResult;
+
+                if ($attributionResult['actions_applied'] > 0) {
+                    $result['method_used'] .= '+attribution';
+                }
+            } catch (\Exception $e) {
+                $result['attribution_error'] = $e->getMessage();
+            }
+        }
+
+        // Generate ML suggestions for remaining fields
+        if ($this->learning) {
+            try {
+                $mlResult = $this->learning->generateSuggestions($documentId, $this->autoApply);
+                $result['ml_suggestions'] = $mlResult;
+
+                if (!empty($mlResult['auto_applied'])) {
+                    $result['method_used'] .= '+ml';
+                }
+            } catch (\Exception $e) {
+                $result['ml_error'] = $e->getMessage();
+            }
+        }
+
         return $result;
+    }
+
+    /**
+     * Enregistre une classification manuelle comme donnée d'entraînement
+     */
+    public function recordManualClassification(int $documentId, array $fields): void
+    {
+        if (!$this->learning) {
+            return;
+        }
+
+        try {
+            $this->learning->recordDocumentTraining($documentId, $fields, 'manual');
+        } catch (\Exception $e) {
+            // Log but don't fail
+            error_log("ClassificationService: Failed to record training data: " . $e->getMessage());
+        }
     }
     
     /**
@@ -154,6 +214,8 @@ class ClassificationService
     
     public function getMethod(): string { return $this->method; }
     public function isAIAvailable(): bool { return $this->ai !== null; }
+    public function isAttributionAvailable(): bool { return $this->attribution !== null; }
+    public function isMLAvailable(): bool { return $this->learning !== null; }
     
     /**
      * Extrait des tags suggérés depuis le contenu OCR
