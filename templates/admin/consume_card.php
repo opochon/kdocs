@@ -478,6 +478,43 @@
                             </div>
                             <?php endif; ?>
                             
+                            <!-- Données extraites (apprentissage) -->
+                            <?php
+                            $extractedData = [];
+                            try {
+                                $extractionService = new \KDocs\Services\ExtractionService();
+                                $extractedData = $extractionService->getExtractedData($doc['id']);
+                            } catch (\Exception $e) {}
+                            if (!empty($extractedData)):
+                            ?>
+                            <div class="col-span-2 border-t pt-4 mt-2">
+                                <label class="text-xs font-semibold text-gray-700 mb-2 block">
+                                    📊 Données extraites (apprentissage)
+                                </label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <?php foreach ($extractedData as $field): ?>
+                                    <div class="bg-gray-50 rounded p-2 border">
+                                        <div class="text-xs text-gray-500 mb-1"><?= htmlspecialchars($field['field_name']) ?></div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-medium"><?= htmlspecialchars($field['value'] ?? '-') ?></span>
+                                            <?php if ($field['show_confidence'] && $field['confidence']): ?>
+                                            <span class="text-xs px-1.5 py-0.5 rounded <?= $field['confidence'] >= 0.8 ? 'bg-green-100 text-green-700' : ($field['confidence'] >= 0.5 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') ?>">
+                                                <?= round($field['confidence'] * 100) ?>%
+                                            </span>
+                                            <?php endif; ?>
+                                            <?php if ($field['is_confirmed']): ?>
+                                            <span class="text-green-600" title="Confirmé">✓</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="mt-2 text-xs text-gray-500">
+                                    💡 Ces données sont extraites automatiquement et s'améliorent avec vos corrections.
+                                </p>
+                            </div>
+                            <?php endif; ?>
+
                             <!-- Emplacement de stockage -->
                             <div class="col-span-2 border-t pt-4 mt-2">
                                 <label class="text-xs font-semibold text-gray-700 mb-2 block">
