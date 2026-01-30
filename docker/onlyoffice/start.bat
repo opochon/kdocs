@@ -61,12 +61,12 @@ if %errorlevel% equ 0 (
     goto :check_health
 )
 
-REM Creer le conteneur
+REM Creer le conteneur avec IP privees autorisees
 echo Creation du conteneur (premier lancement)...
 %DOCKER_COMPOSE_CMD% up -d 2>nul
 if %errorlevel% neq 0 (
     echo Tentative avec docker run...
-    %DOCKER_EXE% run -d --name kdocs-onlyoffice --restart unless-stopped -p 8080:80 -e JWT_ENABLED=false onlyoffice/documentserver:latest
+    %DOCKER_EXE% run -d --name kdocs-onlyoffice --restart unless-stopped -p 8080:80 -e JWT_ENABLED=false -e ALLOW_PRIVATE_IP_ADDRESS=true -e ALLOW_META_IP_ADDRESS=true --add-host=host.docker.internal:host-gateway onlyoffice/documentserver:latest
 )
 
 :check_health
