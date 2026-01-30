@@ -109,6 +109,10 @@ use KDocs\Controllers\Api\InvoiceLineItemsApiController;
 use KDocs\Controllers\Api\ClassificationAuditApiController;
 use KDocs\Controllers\Api\ClassificationFieldOptionsApiController;
 use KDocs\Controllers\Api\ExtractionApiController;
+use KDocs\Controllers\Api\EmbeddingsApiController;
+use KDocs\Controllers\Api\SemanticSearchApiController;
+use KDocs\Controllers\Api\SnapshotsApiController;
+use KDocs\Controllers\Api\DocumentVersionsApiController;
 use KDocs\Controllers\Admin\AttributionRulesController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
@@ -217,6 +221,27 @@ $app->get('/health', function($request, $response) {
         }
     } catch (\Exception $e) {
         $checks['onlyoffice'] = ['status' => 'error', 'message' => $e->getMessage()];
+    }
+
+    // 8. Qdrant (Vector Search) check
+    try {
+        $vectorService = new \KDocs\Services\VectorSearchService();
+        $embeddingsEnabled = \KDocs\Core\Config::get('embeddings.enabled', false);
+        if ($embeddingsEnabled) {
+            if ($vectorService->isAvailable()) {
+                $info = $vectorService->getCollectionInfo();
+                $checks['qdrant'] = [
+                    'status' => 'ok',
+                    'message' => 'Available' . ($info ? " ({$info['vectors_count']} vectors)" : '')
+                ];
+            } else {
+                $checks['qdrant'] = ['status' => 'warning', 'message' => 'Server not responding'];
+            }
+        } else {
+            $checks['qdrant'] = ['status' => 'warning', 'message' => 'Disabled'];
+        }
+    } catch (\Exception $e) {
+        $checks['qdrant'] = ['status' => 'error', 'message' => $e->getMessage()];
     }
 
     // Build response
@@ -610,6 +635,60 @@ $app->group('', function ($group) {
     $group->get('/api/documents/{id}/extracted', [ExtractionApiController::class, 'getExtracted']);
     $group->post('/api/documents/{id}/extracted/{field_code}/confirm', [ExtractionApiController::class, 'confirmValue']);
     $group->post('/api/documents/{id}/extracted/{field_code}/correct', [ExtractionApiController::class, 'correctValue']);
+
+    // Documents API - Extended endpoints
+    $group->get('/api/documents/{id}/content', [DocumentsApiController::class, 'content']);
+    $group->get('/api/documents/{id}/thumbnail', [DocumentsApiController::class, 'thumbnail']);
+    $group->get('/api/documents/{id}/download', [DocumentsApiController::class, 'download']);
+    $group->post('/api/documents/{id}/ocr', [DocumentsApiController::class, 'triggerOcr']);
+    $group->post('/api/documents/{id}/tags', [DocumentsApiController::class, 'addTags']);
+    $group->delete('/api/documents/{id}/tags/{tagId}', [DocumentsApiController::class, 'removeTag']);
+    $group->put('/api/documents/{id}/type', [DocumentsApiController::class, 'updateType']);
+    $group->put('/api/documents/{id}/correspondent', [DocumentsApiController::class, 'updateCorrespondent']);
+    $group->put('/api/documents/{id}/fields', [DocumentsApiController::class, 'updateFields']);
+    $group->post('/api/documents/{id}/classify', [DocumentsApiController::class, 'classify']);
+
+    // Semantic Search & Embeddings API
+    $group->get('/api/embeddings/status', [EmbeddingsApiController::class, 'status']);
+    $group->post('/api/embeddings/sync', [EmbeddingsApiController::class, 'sync']);
+    $group->post('/api/embeddings/cleanup', [EmbeddingsApiController::class, 'cleanup']);
+    $group->post('/api/search/semantic', [EmbeddingsApiController::class, 'semanticSearch']);
+    $group->post('/api/search/hybrid', [EmbeddingsApiController::class, 'hybridSearch']);
+    $group->get('/api/search/similar/{id}', [EmbeddingsApiController::class, 'similar']);
+    $group->post('/api/documents/{id}/embed', [EmbeddingsApiController::class, 'embedDocument']);
+    $group->delete('/api/documents/{id}/embed', [EmbeddingsApiController::class, 'deleteEmbedding']);
+
+    // Semantic Search API
+    $group->get('/api/semantic-search/status', [SemanticSearchApiController::class, 'status']);
+    $group->post('/api/semantic-search', [SemanticSearchApiController::class, 'search']);
+    $group->get('/api/semantic-search/similar/{documentId}', [SemanticSearchApiController::class, 'similar']);
+    $group->post('/api/semantic-search/index/{documentId}', [SemanticSearchApiController::class, 'indexDocument']);
+    $group->delete('/api/semantic-search/index/{documentId}', [SemanticSearchApiController::class, 'removeDocument']);
+    $group->post('/api/semantic-search/sync', [SemanticSearchApiController::class, 'sync']);
+    $group->get('/api/semantic-search/stats', [SemanticSearchApiController::class, 'stats']);
+    $group->post('/api/semantic-search/feedback', [SemanticSearchApiController::class, 'feedback']);
+
+    // Snapshots API
+    $group->get('/api/snapshots', [SnapshotsApiController::class, 'index']);
+    $group->post('/api/snapshots', [SnapshotsApiController::class, 'create']);
+    $group->get('/api/snapshots/latest', [SnapshotsApiController::class, 'latest']);
+    $group->get('/api/snapshots/compare', [SnapshotsApiController::class, 'compare']);
+    $group->post('/api/snapshots/import', [SnapshotsApiController::class, 'import']);
+    $group->get('/api/snapshots/{id}', [SnapshotsApiController::class, 'show']);
+    $group->delete('/api/snapshots/{id}', [SnapshotsApiController::class, 'delete']);
+    $group->get('/api/snapshots/{id}/items', [SnapshotsApiController::class, 'items']);
+    $group->post('/api/snapshots/{id}/restore', [SnapshotsApiController::class, 'restore']);
+    $group->get('/api/snapshots/{id}/export', [SnapshotsApiController::class, 'export']);
+
+    // Document Versions API
+    $group->get('/api/documents/{documentId}/versions', [DocumentVersionsApiController::class, 'index']);
+    $group->post('/api/documents/{documentId}/versions', [DocumentVersionsApiController::class, 'create']);
+    $group->get('/api/documents/{documentId}/versions/current', [DocumentVersionsApiController::class, 'current']);
+    $group->get('/api/documents/{documentId}/versions/diff', [DocumentVersionsApiController::class, 'diff']);
+    $group->delete('/api/documents/{documentId}/versions/cleanup', [DocumentVersionsApiController::class, 'cleanup']);
+    $group->get('/api/documents/{documentId}/versions/{versionNumber}', [DocumentVersionsApiController::class, 'show']);
+    $group->post('/api/documents/{documentId}/versions/{versionNumber}/restore', [DocumentVersionsApiController::class, 'restore']);
+    $group->get('/api/documents/{documentId}/versions/{versionNumber}/download', [DocumentVersionsApiController::class, 'download']);
 
     $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
     $group->get('/admin/indexing/status', [\KDocs\Controllers\IndexingController::class, 'status']);
