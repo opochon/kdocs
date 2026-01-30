@@ -85,10 +85,70 @@ services:
     profiles:
       - worker
 
+  # Qdrant Vector Database for Semantic Search
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: kdocs-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"  # REST API
+      - "6334:6334"  # gRPC
+    volumes:
+      - ./storage/qdrant:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    networks:
+      - kdocs-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Ollama for Local Embeddings (alternative to OpenAI)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kdocs-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - kdocs-network
+    profiles:
+      - ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Pour machines sans GPU, commenter le bloc deploy ci-dessus
+
+  # OnlyOffice Document Server
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: kdocs-onlyoffice
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - JWT_ENABLED=false
+    networks:
+      - kdocs-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - office
+
 networks:
   kdocs-network:
     driver: bridge
 
 volumes:
   kdocs-db-data:
+    driver: local
+  ollama-data:
     driver: local
