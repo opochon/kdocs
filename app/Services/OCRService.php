@@ -1,10 +1,11 @@
 <?php
 namespace KDocs\Services;
 
+use KDocs\Contracts\OCRServiceInterface;
 use KDocs\Core\Config;
 use KDocs\Helpers\SystemHelper;
 
-class OCRService
+class OCRService implements OCRServiceInterface
 {
     private string $tesseractPath;
     private string $tempDir;
@@ -31,6 +32,10 @@ class OCRService
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         if ($ext === 'pdf') return $this->extractTextFromPDF($filePath);
         if (in_array($ext, ['jpg', 'jpeg', 'png', 'tiff', 'tif'])) return $this->extractTextFromImage($filePath);
+        if (in_array($ext, ['docx', 'doc', 'odt', 'rtf'])) return $this->extractTextFromWord($filePath);
+        if (in_array($ext, ['xlsx', 'xls', 'ods', 'csv'])) return $this->extractTextFromSpreadsheet($filePath);
+        if (in_array($ext, ['pptx', 'ppt', 'odp'])) return $this->extractTextFromPresentation($filePath);
+        if ($ext === 'txt') return file_get_contents($filePath);
         return null;
     }
     
@@ -202,6 +207,320 @@ class OCRService
             is_dir($path) ? $this->deleteDirectory($path) : @unlink($path);
         }
         @rmdir($dir);
+    }
+
+    /**
+     * Extrait le texte d'un document Word (DOCX, DOC, ODT, RTF)
+     */
+    private function extractTextFromWord(string $filePath): ?string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        try {
+            // DOCX - utiliser PhpWord
+            if ($ext === 'docx') {
+                if (!class_exists(\PhpOffice\PhpWord\IOFactory::class)) {
+                    error_log("PhpWord non disponible - installer avec: composer require phpoffice/phpword");
+                    return null;
+                }
+
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath);
+                $text = '';
+
+                foreach ($phpWord->getSections() as $section) {
+                    foreach ($section->getElements() as $element) {
+                        $text .= $this->extractTextFromElement($element) . "\n";
+                    }
+                }
+
+                $text = $this->forceUtf8(trim($text));
+                if (!empty($text)) {
+                    error_log("Texte extrait de DOCX: " . strlen($text) . " caractères");
+                    return $text;
+                }
+            }
+
+            // DOC (ancien format) - essayer avec PhpWord ou extraction basique
+            if ($ext === 'doc') {
+                // PhpWord peut lire certains DOC via MsDoc reader
+                try {
+                    $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath, 'MsDoc');
+                    $text = '';
+                    foreach ($phpWord->getSections() as $section) {
+                        foreach ($section->getElements() as $element) {
+                            $text .= $this->extractTextFromElement($element) . "\n";
+                        }
+                    }
+                    if (!empty(trim($text))) {
+                        return $this->forceUtf8(trim($text));
+                    }
+                } catch (\Exception $e) {
+                    error_log("Lecture DOC via PhpWord échouée: " . $e->getMessage());
+                }
+
+                // Fallback: extraction basique du texte brut
+                return $this->extractTextFromBinaryDoc($filePath);
+            }
+
+            // ODT - utiliser PhpWord
+            if ($ext === 'odt') {
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath, 'ODText');
+                $text = '';
+                foreach ($phpWord->getSections() as $section) {
+                    foreach ($section->getElements() as $element) {
+                        $text .= $this->extractTextFromElement($element) . "\n";
+                    }
+                }
+                return $this->forceUtf8(trim($text));
+            }
+
+            // RTF - utiliser PhpWord
+            if ($ext === 'rtf') {
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath, 'RTF');
+                $text = '';
+                foreach ($phpWord->getSections() as $section) {
+                    foreach ($section->getElements() as $element) {
+                        $text .= $this->extractTextFromElement($element) . "\n";
+                    }
+                }
+                return $this->forceUtf8(trim($text));
+            }
+
+        } catch (\Exception $e) {
+            error_log("Erreur extraction texte Word ($ext): " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Extrait le texte récursivement d'un élément PhpWord
+     */
+    private function extractTextFromElement($element): string
+    {
+        $text = '';
+
+        if (method_exists($element, 'getText')) {
+            $elementText = $element->getText();
+            if (is_string($elementText)) {
+                $text .= $elementText;
+            } elseif (is_array($elementText)) {
+                foreach ($elementText as $item) {
+                    if (is_string($item)) {
+                        $text .= $item;
+                    } elseif (is_object($item) && method_exists($item, 'getText')) {
+                        $text .= $item->getText();
+                    }
+                }
+            }
+        }
+
+        if (method_exists($element, 'getElements')) {
+            foreach ($element->getElements() as $child) {
+                $text .= $this->extractTextFromElement($child) . ' ';
+            }
+        }
+
+        return $text;
+    }
+
+    /**
+     * Extraction basique de texte depuis un fichier DOC binaire
+     */
+    private function extractTextFromBinaryDoc(string $filePath): ?string
+    {
+        $content = file_get_contents($filePath);
+        if ($content === false) return null;
+
+        // Essayer d'extraire le texte ASCII visible
+        $text = '';
+        $inText = false;
+        $buffer = '';
+
+        for ($i = 0; $i < strlen($content); $i++) {
+            $char = $content[$i];
+            $ord = ord($char);
+
+            // Caractères imprimables ASCII + accents courants
+            if (($ord >= 32 && $ord <= 126) || ($ord >= 192 && $ord <= 255) || $ord === 10 || $ord === 13) {
+                $buffer .= $char;
+                $inText = true;
+            } else {
+                if ($inText && strlen($buffer) > 3) {
+                    $text .= $buffer . ' ';
+                }
+                $buffer = '';
+                $inText = false;
+            }
+        }
+
+        if (strlen($buffer) > 3) {
+            $text .= $buffer;
+        }
+
+        // Nettoyer
+        $text = preg_replace('/\s+/', ' ', $text);
+        $text = $this->forceUtf8(trim($text));
+
+        return !empty($text) ? $text : null;
+    }
+
+    /**
+     * Extrait le texte d'un tableur (XLSX, XLS, ODS, CSV)
+     */
+    private function extractTextFromSpreadsheet(string $filePath): ?string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        // CSV - lecture simple
+        if ($ext === 'csv') {
+            $content = file_get_contents($filePath);
+            return $this->forceUtf8($content);
+        }
+
+        // XLSX - extraction via ZIP (sans dépendance supplémentaire)
+        if ($ext === 'xlsx') {
+            return $this->extractTextFromXlsx($filePath);
+        }
+
+        return null;
+    }
+
+    /**
+     * Extrait le texte d'un fichier XLSX (format ZIP avec XML)
+     */
+    private function extractTextFromXlsx(string $filePath): ?string
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            return null;
+        }
+
+        $text = '';
+
+        // Lire les chaînes partagées
+        $sharedStrings = [];
+        $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($sharedStringsXml) {
+            $xml = @simplexml_load_string($sharedStringsXml);
+            if ($xml) {
+                foreach ($xml->si as $si) {
+                    $sharedStrings[] = (string)$si->t;
+                }
+            }
+        }
+
+        // Lire les feuilles
+        for ($i = 1; $i <= 10; $i++) {
+            $sheetXml = $zip->getFromName("xl/worksheets/sheet$i.xml");
+            if (!$sheetXml) break;
+
+            $xml = @simplexml_load_string($sheetXml);
+            if (!$xml) continue;
+
+            foreach ($xml->sheetData->row as $row) {
+                $rowText = [];
+                foreach ($row->c as $cell) {
+                    $value = '';
+                    if (isset($cell['t']) && (string)$cell['t'] === 's') {
+                        // Référence aux chaînes partagées
+                        $idx = (int)$cell->v;
+                        $value = $sharedStrings[$idx] ?? '';
+                    } else {
+                        $value = (string)$cell->v;
+                    }
+                    if (!empty($value)) {
+                        $rowText[] = $value;
+                    }
+                }
+                if (!empty($rowText)) {
+                    $text .= implode(' | ', $rowText) . "\n";
+                }
+            }
+        }
+
+        $zip->close();
+
+        return $this->forceUtf8(trim($text));
+    }
+
+    /**
+     * Extrait le texte d'une présentation (PPTX, PPT, ODP)
+     */
+    private function extractTextFromPresentation(string $filePath): ?string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        // PPTX - extraction via ZIP
+        if ($ext === 'pptx') {
+            return $this->extractTextFromPptx($filePath);
+        }
+
+        return null;
+    }
+
+    /**
+     * Extrait le texte d'un fichier PPTX (format ZIP avec XML)
+     */
+    private function extractTextFromPptx(string $filePath): ?string
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            return null;
+        }
+
+        $text = '';
+
+        // Parcourir les slides
+        for ($i = 1; $i <= 100; $i++) {
+            $slideXml = $zip->getFromName("ppt/slides/slide$i.xml");
+            if (!$slideXml) break;
+
+            // Extraire le texte des balises <a:t>
+            preg_match_all('/<a:t>([^<]*)<\/a:t>/i', $slideXml, $matches);
+            if (!empty($matches[1])) {
+                $text .= "--- Slide $i ---\n";
+                $text .= implode(' ', $matches[1]) . "\n\n";
+            }
+        }
+
+        $zip->close();
+
+        return $this->forceUtf8(trim($text));
+    }
+
+    /**
+     * Récupère les langues Tesseract disponibles
+     */
+    private function getAvailableLangs(): string
+    {
+        static $langs = null;
+
+        if ($langs === null) {
+            $tesseractCmd = escapeshellarg($this->tesseractPath);
+            exec("$tesseractCmd --list-langs 2>&1", $output, $returnCode);
+
+            $available = [];
+            foreach ($output as $line) {
+                $line = trim($line);
+                if (in_array($line, ['fra', 'eng', 'deu', 'ita'])) {
+                    $available[] = $line;
+                }
+            }
+
+            // Prioriser fra+eng si disponibles
+            if (in_array('fra', $available) && in_array('eng', $available)) {
+                $langs = 'fra+eng';
+            } elseif (in_array('fra', $available)) {
+                $langs = 'fra';
+            } elseif (in_array('eng', $available)) {
+                $langs = 'eng';
+            } else {
+                $langs = 'eng'; // Fallback
+            }
+        }
+
+        return $langs;
     }
 
     /**

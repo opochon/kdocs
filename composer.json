@@ -6,7 +6,10 @@
         "php": ">=8.3",
         "slim/slim": "^4.12",
         "slim/psr7": "^1.6",
-        "n0nag0n/simple-job-queue": "^1.2"
+        "n0nag0n/simple-job-queue": "^1.2",
+        "hfig/mapi": "^1.4",
+        "pear/pear-core-minimal": "^1.10",
+        "phpoffice/phpword": "^1.4"
     },
     "autoload": {
         "psr-4": {
