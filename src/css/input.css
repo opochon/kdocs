@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Custom component styles */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background-color 0.15s;
+}
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e5e7eb;
+}
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+}
+.input:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+}

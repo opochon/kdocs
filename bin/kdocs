@@ -1,0 +1,272 @@
+#!/usr/bin/env php
+<?php
+/**
+ * K-Docs CLI - Command Line Interface
+ *
+ * Usage:
+ *   php bin/kdocs embeddings:status
+ *   php bin/kdocs embeddings:sync [--all|--pending]
+ *   php bin/kdocs embeddings:clean
+ *   php bin/kdocs search:semantic "query"
+ */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/autoload.php';
+
+use KDocs\Services\EmbeddingService;
+use KDocs\Services\VectorSearchService;
+use KDocs\Jobs\EmbedDocumentJob;
+use KDocs\Core\Config;
+
+// Parse arguments
+$command = $argv[1] ?? 'help';
+$args = array_slice($argv, 2);
+
+// Color helpers
+function info($msg) { echo "\033[34m[INFO]\033[0m $msg\n"; }
+function success($msg) { echo "\033[32m[OK]\033[0m $msg\n"; }
+function error($msg) { echo "\033[31m[ERROR]\033[0m $msg\n"; }
+function warn($msg) { echo "\033[33m[WARN]\033[0m $msg\n"; }
+
+switch ($command) {
+    case 'embeddings:status':
+        embeddingsStatus();
+        break;
+
+    case 'embeddings:sync':
+        $all = in_array('--all', $args);
+        embeddingsSync($all);
+        break;
+
+    case 'embeddings:clean':
+        embeddingsClean();
+        break;
+
+    case 'search:semantic':
+        $query = $args[0] ?? '';
+        searchSemantic($query);
+        break;
+
+    case 'qdrant:init':
+        qdrantInit();
+        break;
+
+    case 'help':
+    default:
+        showHelp();
+        break;
+}
+
+function showHelp() {
+    echo <<<HELP
+K-Docs CLI - Command Line Interface
+
+Usage: php bin/kdocs <command> [options]
+
+Commands:
+  embeddings:status     Show embedding and vector sync status
+  embeddings:sync       Sync document embeddings
+    --all               Sync all documents (not just pending)
+    --pending           Sync only pending documents (default)
+  embeddings:clean      Remove embeddings for deleted documents
+  search:semantic "q"   Perform semantic search
+  qdrant:init           Initialize Qdrant collection
+  help                  Show this help message
+
+Examples:
+  php bin/kdocs embeddings:status
+  php bin/kdocs embeddings:sync --all
+  php bin/kdocs search:semantic "facture electricite"
+
+HELP;
+}
+
+function embeddingsStatus() {
+    info("Checking embedding status...\n");
+
+    $embeddingService = new EmbeddingService();
+    $vectorService = new VectorSearchService();
+
+    // Model info
+    $model = $embeddingService->getModelInfo();
+    echo "Embedding Model:\n";
+    echo "  Provider: {$model['provider']}\n";
+    echo "  Model: {$model['model']}\n";
+    echo "  Dimensions: {$model['dimensions']}\n";
+    echo "  Available: " . ($model['available'] ? '✓ Yes' : '✗ No') . "\n\n";
+
+    // Qdrant status
+    $qdrantAvailable = $vectorService->isAvailable();
+    echo "Qdrant Status:\n";
+    echo "  Available: " . ($qdrantAvailable ? '✓ Yes' : '✗ No') . "\n";
+
+    if ($qdrantAvailable) {
+        $collection = $vectorService->getCollectionInfo();
+        if ($collection) {
+            echo "  Collection: {$collection['name']}\n";
+            echo "  Vectors: {$collection['vectors_count']}\n";
+            echo "  Status: {$collection['status']}\n";
+        }
+    }
+    echo "\n";
+
+    // Sync status
+    $syncStatus = $vectorService->getSyncStatus();
+    echo "Sync Status:\n";
+    echo "  Documents with content: {$syncStatus['documents_with_content']}\n";
+    echo "  Vectors in Qdrant: {$syncStatus['vectors_in_qdrant']}\n";
+    echo "  Sync percentage: {$syncStatus['sync_percentage']}%\n\n";
+
+    // Breakdown by status
+    echo "Embedding Status Breakdown:\n";
+    foreach ($syncStatus['status_breakdown'] as $status => $count) {
+        $status = $status ?: 'null';
+        echo "  $status: $count\n";
+    }
+    echo "\n";
+
+    // Statistics
+    $stats = $embeddingService->getStatistics();
+    echo "Statistics (24h):\n";
+    echo "  Pending: {$stats['pending']}\n";
+    echo "  Completed: {$stats['completed']}\n";
+    echo "  Failed: {$stats['failed']}\n";
+}
+
+function embeddingsSync($all = false) {
+    $embeddingService = new EmbeddingService();
+    $vectorService = new VectorSearchService();
+
+    if (!$embeddingService->isAvailable()) {
+        error("Embedding service not available. Check your API key.");
+        exit(1);
+    }
+
+    if (!$vectorService->isAvailable()) {
+        error("Qdrant not available. Make sure it's running.");
+        exit(1);
+    }
+
+    info("Initializing Qdrant collection...");
+    $vectorService->initializeCollection();
+    success("Collection ready.\n");
+
+    info("Starting sync" . ($all ? " (all documents)" : " (pending only)") . "...\n");
+
+    $processed = 0;
+    $failed = 0;
+    $skipped = 0;
+    $startTime = time();
+
+    $callback = function($current, $total, $docId) use (&$processed, &$failed) {
+        $pct = $total > 0 ? round(($current / $total) * 100) : 0;
+        echo "\r  [{$pct}%] Processing document #{$docId} ({$current}/{$total})...";
+    };
+
+    try {
+        $result = $vectorService->syncAll($callback);
+        $processed = $result['synced'];
+        $failed = $result['failed'];
+        $skipped = $result['skipped'];
+    } catch (\Exception $e) {
+        error($e->getMessage());
+        exit(1);
+    }
+
+    echo "\n\n";
+    $duration = time() - $startTime;
+    success("Sync completed in {$duration}s");
+    echo "  Synced: $processed\n";
+    echo "  Skipped: $skipped\n";
+    echo "  Failed: $failed\n";
+}
+
+function embeddingsClean() {
+    $vectorService = new VectorSearchService();
+
+    if (!$vectorService->isAvailable()) {
+        error("Qdrant not available. Make sure it's running.");
+        exit(1);
+    }
+
+    info("Cleaning up embeddings for deleted documents...");
+
+    try {
+        $cleaned = $vectorService->cleanupDeleted();
+        success("Cleaned up $cleaned embeddings.");
+    } catch (\Exception $e) {
+        error($e->getMessage());
+        exit(1);
+    }
+}
+
+function searchSemantic($query) {
+    if (empty($query)) {
+        error("Please provide a search query.");
+        echo "Usage: php bin/kdocs search:semantic \"your query\"\n";
+        exit(1);
+    }
+
+    $vectorService = new VectorSearchService();
+
+    if (!$vectorService->isAvailable()) {
+        error("Qdrant not available. Make sure it's running.");
+        exit(1);
+    }
+
+    info("Searching for: \"$query\"\n");
+
+    $startTime = microtime(true);
+    $results = $vectorService->search($query, 10);
+    $searchTime = round((microtime(true) - $startTime) * 1000);
+
+    if (empty($results)) {
+        warn("No results found.");
+        exit(0);
+    }
+
+    echo "Results ({$searchTime}ms):\n\n";
+
+    $db = \KDocs\Core\Database::getInstance();
+
+    foreach ($results as $i => $result) {
+        $rank = $i + 1;
+        $docId = $result['document_id'];
+        $score = round($result['score'] * 100, 1);
+
+        // Get document details
+        $stmt = $db->prepare("SELECT title, original_filename FROM documents WHERE id = ?");
+        $stmt->execute([$docId]);
+        $doc = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        $title = $doc['title'] ?? $doc['original_filename'] ?? "Document #$docId";
+
+        echo "  $rank. [$score%] $title (ID: $docId)\n";
+    }
+}
+
+function qdrantInit() {
+    $vectorService = new VectorSearchService();
+
+    if (!$vectorService->isAvailable()) {
+        error("Qdrant not available. Make sure it's running.");
+        exit(1);
+    }
+
+    info("Initializing Qdrant collection...");
+
+    try {
+        $vectorService->initializeCollection();
+        success("Collection initialized successfully.");
+
+        $info = $vectorService->getCollectionInfo();
+        if ($info) {
+            echo "  Name: {$info['name']}\n";
+            echo "  Vectors: {$info['vectors_count']}\n";
+            echo "  Status: {$info['status']}\n";
+        }
+    } catch (\Exception $e) {
+        error($e->getMessage());
+        exit(1);
+    }
+}
