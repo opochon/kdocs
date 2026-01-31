@@ -1,0 +1,92 @@
+{
+    "_comment": "Configuration des outils K-Docs - Ne pas modifier manuellement",
+    "_generated": "2026-01-30",
+    "tools": {
+        "libreoffice": {
+            "name": "LibreOffice",
+            "version": "24.8.4",
+            "required": false,
+            "description": "Suite bureautique pour conversion Office vers PDF et génération miniatures",
+            "download_url": "https://download.documentfoundation.org/libreoffice/stable/24.8.4/win/x86_64/LibreOffice_24.8.4_Win_x86-64.msi",
+            "install_path": "C:\\Program Files\\LibreOffice",
+            "executable": "program\\soffice.exe",
+            "installer_args": "/qn /norestart"
+        },
+        "tesseract": {
+            "name": "Tesseract OCR",
+            "version": "5.4.0",
+            "required": true,
+            "description": "Moteur OCR pour extraction de texte des images et PDF",
+            "download_url": "https://github.com/UB-Mannheim/tesseract/releases/download/v5.4.0.20240606/tesseract-ocr-w64-setup-5.4.0.20240606.exe",
+            "install_path": "C:\\Program Files\\Tesseract-OCR",
+            "executable": "tesseract.exe",
+            "installer_args": "/S"
+        },
+        "tesseract_fra": {
+            "name": "Tesseract French Language",
+            "version": "4.1.0",
+            "required": true,
+            "description": "Pack de langue française pour Tesseract",
+            "download_url": "https://github.com/tesseract-ocr/tessdata/raw/main/fra.traineddata",
+            "install_path": "C:\\Program Files\\Tesseract-OCR\\tessdata",
+            "file": "fra.traineddata"
+        },
+        "tesseract_deu": {
+            "name": "Tesseract German Language",
+            "version": "4.1.0",
+            "required": false,
+            "description": "Pack de langue allemande pour Tesseract",
+            "download_url": "https://github.com/tesseract-ocr/tessdata/raw/main/deu.traineddata",
+            "install_path": "C:\\Program Files\\Tesseract-OCR\\tessdata",
+            "file": "deu.traineddata"
+        },
+        "ghostscript": {
+            "name": "Ghostscript",
+            "version": "10.03.1",
+            "required": true,
+            "description": "Interpréteur PostScript/PDF pour génération de miniatures",
+            "download_url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10031/gs10031w64.exe",
+            "install_path": "C:\\Program Files\\gs",
+            "executable": "bin\\gswin64c.exe",
+            "installer_args": "/S"
+        },
+        "poppler": {
+            "name": "Poppler",
+            "version": "24.02.0",
+            "required": true,
+            "description": "Outils PDF (pdftotext, pdftoppm) pour extraction de texte",
+            "download_url": "https://github.com/oschwartz10612/poppler-windows/releases/download/v24.02.0-0/Release-24.02.0-0.zip",
+            "install_path": "C:\\Tools\\poppler",
+            "executable": "Library\\bin\\pdftotext.exe",
+            "type": "archive"
+        },
+        "imagemagick": {
+            "name": "ImageMagick",
+            "version": "7.1.1-38",
+            "required": false,
+            "description": "Suite de manipulation d'images (optionnel)",
+            "download_url": "https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-38-portable-Q16-x64.zip",
+            "install_path": "C:\\Tools\\ImageMagick",
+            "executable": "magick.exe",
+            "type": "archive"
+        }
+    },
+    "php_requirements": {
+        "min_version": "8.1.0",
+        "extensions": [
+            "pdo",
+            "pdo_mysql",
+            "mbstring",
+            "json",
+            "gd",
+            "curl",
+            "fileinfo"
+        ]
+    },
+    "database": {
+        "type": "mysql",
+        "min_version": "8.0",
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci"
+    }
+}

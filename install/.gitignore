@@ -1,0 +1,12 @@
+# Fichiers téléchargés (volumineux)
+downloads/*.exe
+downloads/*.zip
+downloads/*.msi
+downloads/*.traineddata
+downloads/checksums.json
+
+# Configuration générée
+config/installed.json
+
+# Outils extraits
+tools/
