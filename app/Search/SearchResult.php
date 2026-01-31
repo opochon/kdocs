@@ -31,6 +31,8 @@ class SearchResult
     public float $searchTime = 0.0;
     public ?string $query = null;
     public ?string $aiResponse = null;
+    public bool $semanticUsed = false;
+    public ?string $error = null;
     
     public function toArray(): array
     {
@@ -55,6 +57,8 @@ class SearchResult
             'search_time' => $this->searchTime,
             'query' => $this->query,
             'ai_response' => $this->aiResponse,
+            'semantic_used' => $this->semanticUsed,
+            'error' => $this->error,
         ];
     }
     
