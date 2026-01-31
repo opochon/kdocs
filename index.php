@@ -63,6 +63,17 @@ if (file_exists($autoloadPath)) {
 // Charger les fonctions helper
 require_once __DIR__ . '/app/helpers.php';
 
+// Charger K-Time (app timesheet)
+require_once __DIR__ . '/apps/timetrack/Models/Client.php';
+require_once __DIR__ . '/apps/timetrack/Models/Project.php';
+require_once __DIR__ . '/apps/timetrack/Models/Entry.php';
+require_once __DIR__ . '/apps/timetrack/Models/Timer.php';
+require_once __DIR__ . '/apps/timetrack/Models/Supply.php';
+require_once __DIR__ . '/apps/timetrack/Services/QuickCodeParser.php';
+require_once __DIR__ . '/apps/timetrack/Controllers/DashboardController.php';
+require_once __DIR__ . '/apps/timetrack/Controllers/EntryController.php';
+require_once __DIR__ . '/apps/timetrack/Controllers/TimerController.php';
+
 // Démarrer l'application Slim via la classe App
 use KDocs\Core\App;
 use KDocs\Controllers\AuthController;
@@ -114,6 +125,7 @@ use KDocs\Controllers\Api\SemanticSearchApiController;
 use KDocs\Controllers\Api\SnapshotsApiController;
 use KDocs\Controllers\Api\DocumentVersionsApiController;
 use KDocs\Controllers\Admin\AttributionRulesController;
+use KDocs\Controllers\Admin\SnapshotsController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
 use KDocs\Middleware\AuthMiddleware;
@@ -125,8 +137,11 @@ $app = App::create();
 
 // Routes publiques (sans authentification)
 $app->get('/login', [AuthController::class, 'showLogin']);
+$app->get('/login/', [AuthController::class, 'showLogin']);
 $app->post('/login', [AuthController::class, 'login']);
+$app->post('/login/', [AuthController::class, 'login']);
 $app->get('/logout', [AuthController::class, 'logout']);
+$app->get('/logout/', [AuthController::class, 'logout']);
 
 // Workflow Approval - Routes publiques accessibles via token email (style Alfresco)
 use KDocs\Controllers\WorkflowApprovalController;
@@ -136,6 +151,9 @@ $app->post('/workflow/approve/{token}', [WorkflowApprovalController::class, 'pro
 // OnlyOffice - Routes publiques pour accès Docker (avec token de sécurité)
 $app->get('/api/onlyoffice/public/download/{documentId}/{token}', [OnlyOfficeApiController::class, 'publicDownload']);
 $app->post('/api/onlyoffice/public/callback/{documentId}/{token}', [OnlyOfficeApiController::class, 'publicCallback']);
+
+// Thumbnails - Route publique (les miniatures ne sont pas sensibles)
+$app->get('/documents/{id}/thumbnail', [DocumentsController::class, 'thumbnail']);
 
 // Health Check - Route publique pour monitoring
 $app->get('/health', function($request, $response) {
@@ -313,11 +331,12 @@ $app->group('', function ($group) {
     $group->get('/documents/{id}', [DocumentsController::class, 'show']);
     $group->get('/documents/{id}/edit', [DocumentsController::class, 'showEdit']);
     $group->post('/documents/{id}/edit', [DocumentsController::class, 'edit']);
+    $group->get('/documents/{id}/onlyoffice', [DocumentsController::class, 'onlyofficeEdit']);
     $group->post('/documents/{id}/delete', [DocumentsController::class, 'delete']);
     $group->post('/documents/{id}/restore', [DocumentsController::class, 'restore']);
     $group->get('/documents/{id}/download', [DocumentsController::class, 'download']);
     $group->get('/documents/{id}/view', [DocumentsController::class, 'view']);
-    $group->get('/documents/{id}/thumbnail', [DocumentsController::class, 'thumbnail']);
+    // Note: thumbnail route is public (defined outside auth group)
     $group->get('/documents/{id}/share', [DocumentsController::class, 'share']);
     $group->get('/documents/{id}/history', [DocumentsController::class, 'history']);
     $group->post('/documents/{id}/notes', [DocumentsController::class, 'addNote']);
@@ -578,6 +597,14 @@ $app->group('', function ($group) {
     $group->get('/admin/attribution-rules/{id}/edit', [AttributionRulesController::class, 'editor']);
     $group->get('/admin/attribution-rules/{id}/logs', [AttributionRulesController::class, 'logs']);
 
+    // Snapshots Admin
+    $group->get('/admin/snapshots', [SnapshotsController::class, 'index']);
+    $group->get('/admin/snapshots/compare', [SnapshotsController::class, 'compare']);
+    $group->get('/admin/snapshots/{id}', [SnapshotsController::class, 'show']);
+    $group->post('/admin/snapshots/create', [SnapshotsController::class, 'create']);
+    $group->post('/admin/snapshots/{id}/delete', [SnapshotsController::class, 'delete']);
+    $group->post('/admin/snapshots/{id}/restore', [SnapshotsController::class, 'restore']);
+
     $group->get('/api/attribution-rules/field-types', [AttributionRulesApiController::class, 'fieldTypes']);
     $group->get('/api/attribution-rules', [AttributionRulesApiController::class, 'index']);
     $group->post('/api/attribution-rules', [AttributionRulesApiController::class, 'create']);
@@ -740,6 +767,29 @@ $app->group('', function ($group) {
         $res->getBody()->write(json_encode($result));
         return $res->withHeader('Content-Type', 'application/json');
     });
+
+    // ========================================
+    // K-Time - Application Timesheet
+    // ========================================
+    $group->get('/time', [\KDocs\Apps\Timetrack\Controllers\DashboardController::class, 'index']);
+    $group->get('/time/', [\KDocs\Apps\Timetrack\Controllers\DashboardController::class, 'index']);
+
+    // Entries
+    $group->get('/time/entries', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'index']);
+    $group->post('/time/entries', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'store']);
+    $group->post('/time/entries/quick', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'quickCreate']);
+    $group->get('/time/entries/parse', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'parsePreview']);
+    $group->put('/time/entries/{id}', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'update']);
+    $group->delete('/time/entries/{id}', [\KDocs\Apps\Timetrack\Controllers\EntryController::class, 'delete']);
+
+    // Timer
+    $group->get('/time/timer', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'status']);
+    $group->post('/time/timer/start', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'start']);
+    $group->post('/time/timer/pause', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'pause']);
+    $group->post('/time/timer/resume', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'resume']);
+    $group->post('/time/timer/stop', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'stop']);
+    $group->post('/time/timer/cancel', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'cancel']);
+
 })->add(new AutoIndexMiddleware())->add(new RateLimitMiddleware(100, 60))->add(new \KDocs\Middleware\CSRFMiddleware())->add(new AuthMiddleware());
 
 // Démarrer l'application

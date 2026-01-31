@@ -811,14 +811,24 @@ class DocumentsController
     public function show(Request $request, Response $response, array $args): Response
     {
         // #region agent log
-        \KDocs\Core\DebugLogger::log('DocumentsController::show', 'Controller entry', [
+        \KDocs\Core\DebugLogger::log('DocumentsController::show', 'Redirecting to documents list with modal', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod()
         ], 'A');
         // #endregion
-        $user = $request->getAttribute('user');
+
+        // P0.4: Rediriger vers la liste avec le paramètre open pour ouvrir la modale
+        // Tout doit être géré dans la modale, pas une page séparée
         $id = (int)$args['id'];
-        
+        $basePath = Config::basePath();
+
+        return $response
+            ->withHeader('Location', $basePath . '/documents?open=' . $id)
+            ->withStatus(302);
+
+        // --- Code legacy conservé ci-dessous (ne sera pas exécuté) ---
+        $user = $request->getAttribute('user');
+
         $db = Database::getInstance();
         
         // Récupérer le document avec storage path et validation
@@ -1019,6 +1029,11 @@ class DocumentsController
         $config = Config::load();
         $thumbBasePath = $config['storage']['thumbnails'] ?? __DIR__ . '/../../storage/thumbnails';
 
+        // S'assurer que le dossier thumbnails existe
+        if (!is_dir($thumbBasePath)) {
+            @mkdir($thumbBasePath, 0755, true);
+        }
+
         // thumbnail_path contient juste le nom du fichier (ex: "123_thumb.png")
         $thumbnailFilename = $document['thumbnail_path'] ?? null;
         $thumbnailPath = null;
@@ -1030,30 +1045,51 @@ class DocumentsController
             }
         }
 
-        // Si pas de miniature, essayer de générer pour fichiers Office
+        // Si pas de miniature, générer automatiquement
         if (!$thumbnailPath) {
-            $filename = $document['filename'] ?? $document['original_filename'] ?? '';
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            $officeExtensions = ['docx', 'doc', 'odt', 'rtf', 'xlsx', 'xls', 'ods', 'pptx', 'ppt', 'odp'];
+            $sourcePath = $this->getDocumentFullPath($document);
 
-            if (in_array($ext, $officeExtensions)) {
+            if ($sourcePath && file_exists($sourcePath)) {
                 try {
-                    $officeThumbnailService = new \KDocs\Services\OfficeThumbnailService();
-                    if ($officeThumbnailService->isAvailable()) {
-                        $sourcePath = $this->getDocumentFullPath($document);
-                        if ($sourcePath && file_exists($sourcePath)) {
-                            $thumbnailPath = $officeThumbnailService->getThumbnailPath($id, $sourcePath);
+                    // Utiliser ThumbnailGenerator pour tous les types de fichiers
+                    $thumbnailGenerator = new ThumbnailGenerator();
+                    $thumbFilename = $thumbnailGenerator->generate($sourcePath, $id);
 
-                            // Mettre à jour la BDD si miniature générée
-                            if ($thumbnailPath) {
-                                $db = \KDocs\Core\Database::getInstance();
-                                $thumbFilename = basename($thumbnailPath);
-                                $db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")->execute([$thumbFilename, $id]);
-                            }
-                        }
+                    if ($thumbFilename) {
+                        $thumbnailPath = $thumbBasePath . DIRECTORY_SEPARATOR . $thumbFilename;
+
+                        // Mettre à jour la BDD
+                        $db = Database::getInstance();
+                        $db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")
+                           ->execute([$thumbFilename, $id]);
                     }
                 } catch (\Exception $e) {
                     error_log("Thumbnail generation error for doc $id: " . $e->getMessage());
+                }
+            }
+
+            // Fallback pour fichiers Office: utiliser OfficeThumbnailService
+            if (!$thumbnailPath) {
+                $filename = $document['filename'] ?? $document['original_filename'] ?? '';
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                $officeExtensions = ['docx', 'doc', 'odt', 'rtf', 'xlsx', 'xls', 'ods', 'pptx', 'ppt', 'odp'];
+
+                if (in_array($ext, $officeExtensions) && $sourcePath) {
+                    try {
+                        $officeThumbnailService = new \KDocs\Services\OfficeThumbnailService();
+                        if ($officeThumbnailService->isAvailable()) {
+                            $thumbnailPath = $officeThumbnailService->getThumbnailPath($id, $sourcePath);
+
+                            if ($thumbnailPath) {
+                                $db = Database::getInstance();
+                                $thumbFilename = basename($thumbnailPath);
+                                $db->prepare("UPDATE documents SET thumbnail_path = ? WHERE id = ?")
+                                   ->execute([$thumbFilename, $id]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        error_log("Office thumbnail error for doc $id: " . $e->getMessage());
+                    }
                 }
             }
         }
@@ -1096,6 +1132,40 @@ class DocumentsController
         }
 
         return null;
+    }
+
+    /**
+     * Affiche l'éditeur OnlyOffice en plein écran (nouvel onglet)
+     */
+    public function onlyofficeEdit(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $basePath = Config::basePath();
+
+        $document = Document::findById($id);
+        if (!$document) {
+            return $response
+                ->withHeader('Location', $basePath . '/documents')
+                ->withStatus(302);
+        }
+
+        // Vérifier si le format est supporté
+        $service = new \KDocs\Services\OnlyOfficeService();
+        $filename = $document['filename'] ?? $document['original_filename'] ?? '';
+
+        if (!$service->isSupported($filename)) {
+            // Rediriger vers le téléchargement si format non supporté
+            return $response
+                ->withHeader('Location', $basePath . '/documents/' . $id . '/download')
+                ->withStatus(302);
+        }
+
+        ob_start();
+        include __DIR__ . '/../../templates/documents/onlyoffice-editor.php';
+        $html = ob_get_clean();
+
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
     /**

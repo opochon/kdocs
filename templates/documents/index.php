@@ -24,6 +24,11 @@ $base = Config::basePath();
                 <h2 id="preview-title" class="font-medium text-gray-900 truncate max-w-lg">Chargement...</h2>
             </div>
             <div class="flex items-center gap-2">
+                <!-- Badge validation -->
+                <span id="preview-validation-badge"></span>
+
+                <span class="mx-1 text-gray-300">|</span>
+
                 <!-- Navigation prev/next -->
                 <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document précédent (←)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +41,9 @@ $base = Config::basePath();
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
+
                 <span class="mx-1 text-gray-300">|</span>
+
                 <!-- Actions -->
                 <a href="#" id="preview-download-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Télécharger">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,6 +55,16 @@ $base = Config::basePath();
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                     </svg>
                 </a>
+                <button onclick="reprocessDocumentPreview()" id="preview-reprocess-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Retraiter (OCR)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+                <button onclick="deleteDocumentPreview()" id="preview-delete-btn" class="p-1.5 hover:bg-red-100 text-red-600 rounded" title="Supprimer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -500,7 +517,7 @@ function loadDocumentPreview(docId) {
         .then(r => r.json())
         .then(data => {
             if (!data.success || !data.data) {
-                throw new Error(data.error || 'Document non trouvé');
+                throw new Error(data.message || 'Document non trouvé');
             }
 
             const doc = data.data;
@@ -527,7 +544,39 @@ function loadDocumentPreview(docId) {
         });
 }
 
-// Afficher le document (PDF ou image)
+// Vérifie si c'est un document Office
+// Vérifie si c'est un document Office (par MIME type OU par extension)
+function isOfficeDocument(mimeType, filename) {
+    const officeTypes = [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PPTX
+        'application/msword', // DOC
+        'application/vnd.ms-excel', // XLS
+        'application/vnd.ms-powerpoint', // PPT
+        'application/vnd.oasis.opendocument.text', // ODT
+        'application/vnd.oasis.opendocument.spreadsheet', // ODS
+        'application/vnd.oasis.opendocument.presentation', // ODP
+        'application/rtf' // RTF
+    ];
+
+    // Vérifier par MIME type
+    if (officeTypes.includes(mimeType)) return true;
+
+    // Fallback: vérifier par extension de fichier (pour les MIME type = application/octet-stream)
+    if (filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        return ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf'].includes(ext);
+    }
+    return false;
+}
+
+// Ouvre OnlyOffice dans un nouvel onglet
+function openOnlyOffice(docId) {
+    window.open(`${BASE_PATH}/documents/${docId}/onlyoffice`, '_blank');
+}
+
+// Afficher le document (PDF, image, Office ou autre)
 function renderDocumentViewer(doc) {
     const viewer = document.getElementById('preview-viewer');
     const mimeType = doc.mime_type || '';
@@ -548,17 +597,47 @@ function renderDocumentViewer(doc) {
                      class="max-w-full max-h-full object-contain rounded shadow">
             </div>
         `;
-    } else {
-        // Autres types - afficher la miniature
+    } else if (isOfficeDocument(mimeType, doc.filename || doc.original_filename)) {
+        // Documents Office - miniature + bouton "Ouvrir dans l'éditeur"
         viewer.innerHTML = `
-            <div class="flex flex-col items-center justify-center w-full h-full text-center">
+            <div class="flex flex-col items-center justify-center w-full h-full text-center gap-4 p-4">
                 <img src="${BASE_PATH}/documents/${doc.id}/thumbnail"
                      alt="${doc.title || doc.filename}"
-                     class="max-w-64 max-h-64 object-contain rounded shadow mb-4"
+                     class="max-h-64 shadow-lg rounded border"
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 120%22><rect fill=%22%23f3f4f6%22 width=%22100%22 height=%22120%22/><text x=%2250%22 y=%2260%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2212%22>Document</text></svg>'">
+                <p class="text-gray-500 text-sm">Document Office</p>
+                <div class="flex gap-2">
+                    <button onclick="openOnlyOffice(${doc.id})"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Ouvrir dans l'éditeur
+                    </button>
+                    <a href="${BASE_PATH}/documents/${doc.id}/download"
+                       class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Télécharger
+                    </a>
+                </div>
+            </div>
+        `;
+    } else {
+        // Autres types - afficher la miniature + téléchargement
+        viewer.innerHTML = `
+            <div class="flex flex-col items-center justify-center w-full h-full text-center gap-4 p-4">
+                <img src="${BASE_PATH}/documents/${doc.id}/thumbnail"
+                     alt="${doc.title || doc.filename}"
+                     class="max-w-64 max-h-64 object-contain rounded shadow mb-2"
                      onerror="this.style.display='none'">
                 <p class="text-gray-500">Aperçu non disponible pour ce type de fichier</p>
                 <a href="${BASE_PATH}/documents/${doc.id}/download"
-                   class="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                   class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
                     Télécharger le fichier
                 </a>
             </div>
@@ -569,7 +648,7 @@ function renderDocumentViewer(doc) {
 // Variable globale pour le document actuel
 let currentPreviewDocument = null;
 
-// Afficher les métadonnées (version éditable complète)
+// Afficher les métadonnées (version éditable complète avec onglets)
 function renderDocumentMetadata(doc) {
     currentPreviewDocument = doc;
     const metadata = document.getElementById('preview-metadata');
@@ -589,12 +668,65 @@ function renderDocumentMetadata(doc) {
 
     // Options pour les selects
     const correspondentOptions = (meta.correspondents || []).map(c =>
-        `<option value="${c.id}" ${doc.correspondent_id == c.id ? 'selected' : ''}>${c.name}</option>`
+        `<option value="${c.id}" ${doc.correspondent_id == c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
     ).join('');
 
     const typeOptions = (meta.document_types || []).map(t =>
-        `<option value="${t.id}" ${doc.document_type_id == t.id ? 'selected' : ''}>${t.label}</option>`
+        `<option value="${t.id}" ${doc.document_type_id == t.id ? 'selected' : ''}>${escapeHtml(t.label)}</option>`
     ).join('');
+
+    // Options pour dossier logique
+    const logicalFolderOptions = (meta.logical_folders || []).map(f =>
+        `<option value="${f.id}" ${doc.logical_folder_id == f.id ? 'selected' : ''}>${escapeHtml(f.name)}</option>`
+    ).join('');
+
+    // Champs personnalisés
+    const customFields = meta.custom_fields || [];
+    const customFieldValues = doc.custom_field_values || {};
+    const renderCustomFields = () => {
+        if (customFields.length === 0) return '';
+        return customFields.map(field => {
+            const value = customFieldValues[field.id] || '';
+            let input = '';
+            switch(field.field_type) {
+                case 'text':
+                    input = `<input type="text" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                    break;
+                case 'number':
+                    input = `<input type="number" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}" step="any"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                    break;
+                case 'date':
+                    input = `<input type="date" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                    break;
+                case 'select':
+                    const options = (field.options || '').split(',').filter(o => o.trim());
+                    const optionsHtml = options.map(o =>
+                        `<option value="${escapeHtml(o.trim())}" ${value === o.trim() ? 'selected' : ''}>${escapeHtml(o.trim())}</option>`
+                    ).join('');
+                    input = `<select id="preview-custom-field-${field.id}" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                               <option value="">Non défini</option>${optionsHtml}</select>`;
+                    break;
+                case 'checkbox':
+                    input = `<input type="checkbox" id="preview-custom-field-${field.id}" ${value === '1' || value === 'true' ? 'checked' : ''}
+                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">`;
+                    break;
+                case 'textarea':
+                    input = `<textarea id="preview-custom-field-${field.id}" rows="2"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">${escapeHtml(value)}</textarea>`;
+                    break;
+                default:
+                    input = `<input type="text" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+            }
+            return `<div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">${escapeHtml(field.name)}${field.required ? ' *' : ''}</label>
+                ${input}
+            </div>`;
+        }).join('');
+    };
 
     // Tags sélectionnés
     const selectedTagIds = (doc.tags || []).map(t => t.id);
@@ -603,142 +735,228 @@ function renderDocumentMetadata(doc) {
             <input type="checkbox" name="preview_tags" value="${t.id}" ${selectedTagIds.includes(t.id) ? 'checked' : ''}
                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
             <span class="px-1.5 py-0.5 rounded" style="background-color: ${t.color || '#e5e7eb'}20; color: ${t.color || '#6b7280'}">
-                ${t.name}
+                ${escapeHtml(t.name)}
             </span>
         </label>
     `).join('');
 
     // Statut de validation
     const validationStatus = doc.validation_status || 'pending';
-    const validationBadge = {
-        'approved': '<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Validé</span>',
-        'rejected': '<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">Rejeté</span>',
-        'na': '<span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">N/A</span>',
-        'pending': '<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">En attente</span>'
+
+    // Mettre à jour le badge dans le header
+    const validationBadgeHeader = {
+        'approved': `<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Validé</span>`,
+        'rejected': `<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">Rejeté</span>`,
+        'na': `<span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">N/A</span>`,
+        'pending': `<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">En attente</span>`
     }[validationStatus] || '';
+    document.getElementById('preview-validation-badge').innerHTML = validationBadgeHeader;
 
     // Notes
-    const notesHtml = (doc.notes || []).length > 0
+    const notesCount = (doc.notes || []).length;
+    const notesHtml = notesCount > 0
         ? doc.notes.map(note => `
             <div class="bg-gray-50 rounded p-2 text-xs border">
                 <div class="flex justify-between items-start">
-                    <p class="text-gray-700 whitespace-pre-wrap flex-1">${note.note || note.content || ''}</p>
+                    <p class="text-gray-700 whitespace-pre-wrap flex-1">${escapeHtml(note.note || note.content || '')}</p>
                     <button onclick="deleteNotePreview(${note.id})" class="text-red-500 hover:text-red-700 ml-2">×</button>
                 </div>
-                <p class="text-gray-400 mt-1">${note.user_name || ''} • ${formatDisplayDate(note.created_at)}</p>
+                <p class="text-gray-400 mt-1">${escapeHtml(note.user_name || '')} • ${formatDisplayDate(note.created_at)}</p>
             </div>
         `).join('')
-        : '<p class="text-xs text-gray-400">Aucune note</p>';
+        : '<p class="text-xs text-gray-400 py-4 text-center">Aucune note</p>';
 
-    // OCR/Résumé (premiers 500 caractères)
-    const ocrPreview = doc.ocr_text
-        ? (doc.ocr_text.length > 500 ? doc.ocr_text.substring(0, 500) + '...' : doc.ocr_text)
-        : '';
+    // OCR texte complet
+    const ocrText = doc.ocr_text || '';
+    const ocrPreview = ocrText.length > 300 ? ocrText.substring(0, 300) + '...' : ocrText;
 
     metadata.innerHTML = `
-        <div class="space-y-3 text-sm">
-            <!-- Header avec AI et validation -->
-            <div class="flex items-center justify-between pb-2 border-b">
-                ${doc.ai_available ? `
-                <button onclick="getAISuggestionsPreview(${doc.id})" class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50">
+        <div class="text-sm">
+            <!-- Header avec AI et validation rapide -->
+            <div class="flex items-center justify-between pb-2 mb-2 border-b">
+                <button onclick="getAISuggestionsPreview(${doc.id})"
+                        id="ai-suggest-btn"
+                        class="px-3 py-1.5 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50 flex items-center gap-1.5 font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
                     Suggestions IA
                 </button>
-                ` : '<span></span>'}
-                <div>${validationBadge}</div>
-            </div>
-
-            <!-- Validation rapide -->
-            ${doc.can_validate ? `
-            <div class="flex gap-1 pb-2 border-b">
-                <button onclick="setValidationStatus(${doc.id}, 'approved')"
-                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'approved' ? 'bg-green-600 text-white' : 'border border-green-300 text-green-700 hover:bg-green-50'}">
-                    Valider
-                </button>
-                <button onclick="setValidationStatus(${doc.id}, 'rejected')"
-                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'rejected' ? 'bg-red-600 text-white' : 'border border-red-300 text-red-700 hover:bg-red-50'}">
-                    Rejeter
-                </button>
-                <button onclick="setValidationStatus(${doc.id}, 'na')"
-                        class="flex-1 px-2 py-1 text-xs rounded ${validationStatus === 'na' ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
-                    N/A
-                </button>
-            </div>
-            ` : ''}
-
-            <!-- Titre -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Titre</label>
-                <input type="text" id="preview-title-input" value="${doc.title || ''}" placeholder="${doc.filename || ''}"
-                       class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-
-            <!-- Type de document -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                <select id="preview-type-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
-                    <option value="">Non défini</option>
-                    ${typeOptions}
-                </select>
-            </div>
-
-            <!-- Correspondant -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Correspondant</label>
-                <select id="preview-correspondent-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
-                    <option value="">Non défini</option>
-                    ${correspondentOptions}
-                </select>
-            </div>
-
-            <!-- Date -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Date du document</label>
-                <input type="date" id="preview-date-input" value="${formatDate(doc.document_date)}"
-                       class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
-            </div>
-
-            <!-- Tags -->
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Tags</label>
-                <div class="max-h-24 overflow-y-auto space-y-1 p-2 border rounded bg-gray-50">
-                    ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucun tag disponible</p>'}
+                <div class="flex gap-1">
+                    <button onclick="setValidationStatus(${doc.id}, 'approved')" title="Valider"
+                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'bg-green-600 text-white' : 'border border-green-300 text-green-700 hover:bg-green-50'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </button>
+                    <button onclick="setValidationStatus(${doc.id}, 'rejected')" title="Rejeter"
+                            class="p-1.5 rounded transition ${validationStatus === 'rejected' ? 'bg-red-600 text-white' : 'border border-red-300 text-red-700 hover:bg-red-50'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <button onclick="setValidationStatus(${doc.id}, 'na')" title="N/A"
+                            class="p-1.5 rounded transition ${validationStatus === 'na' ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>
+                    </button>
                 </div>
             </div>
 
-            <!-- Notes -->
-            <div class="pt-2 border-t">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Notes</label>
-                <div class="space-y-2 max-h-32 overflow-y-auto mb-2">
+            <!-- Onglets -->
+            <div class="border-b border-gray-200 mb-3">
+                <nav class="flex -mb-px text-xs" id="preview-tabs">
+                    <button type="button" onclick="switchPreviewTab('details')" class="preview-tab-btn active px-3 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+                        Détails
+                    </button>
+                    <button type="button" onclick="switchPreviewTab('notes')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Notes ${notesCount > 0 ? `<span class="ml-1 px-1.5 py-0.5 bg-gray-200 rounded text-xs">${notesCount}</span>` : ''}
+                    </button>
+                    <button type="button" onclick="switchPreviewTab('content')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Contenu
+                    </button>
+                    <button type="button" onclick="switchPreviewTab('info')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Info
+                    </button>
+                    <button type="button" onclick="switchPreviewTab('history')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Historique
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Onglet Détails -->
+            <div id="preview-tab-details" class="preview-tab-content space-y-3">
+                <!-- Titre -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Titre</label>
+                    <input type="text" id="preview-title-input" value="${escapeHtml(doc.title || '')}" placeholder="${escapeHtml(doc.filename || '')}"
+                           class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Type de document -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                    <select id="preview-type-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="">Non défini</option>
+                        ${typeOptions}
+                    </select>
+                </div>
+
+                <!-- Correspondant -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Correspondant</label>
+                    <select id="preview-correspondent-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="">Non défini</option>
+                        ${correspondentOptions}
+                    </select>
+                </div>
+
+                <!-- Date et Montant sur la même ligne -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                        <input type="date" id="preview-date-input" value="${formatDate(doc.document_date)}"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Montant (CHF)</label>
+                        <input type="number" id="preview-amount-input" value="${doc.amount || ''}" step="0.01" placeholder="0.00"
+                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tags</label>
+                    <div class="max-h-20 overflow-y-auto space-y-1 p-2 border rounded bg-gray-50">
+                        ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucun tag disponible</p>'}
+                    </div>
+                </div>
+
+                <!-- Dossier logique -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Dossier logique</label>
+                    <select id="preview-logical-folder-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="">Non défini</option>
+                        ${logicalFolderOptions}
+                    </select>
+                </div>
+
+                <!-- Chemin de stockage -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Chemin de stockage</label>
+                    <input type="text" id="preview-storage-path-input" value="${escapeHtml(doc.storage_path || doc.relative_path || '')}"
+                           class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-gray-50 text-gray-600"
+                           readonly title="Chemin relatif du fichier">
+                </div>
+
+                <!-- Champs personnalisés -->
+                ${customFields.length > 0 ? `
+                <div class="border-t pt-3 mt-3">
+                    <label class="block text-xs font-semibold text-gray-600 mb-2">Champs personnalisés</label>
+                    <div class="space-y-2">
+                        ${renderCustomFields()}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- Aperçu OCR compact -->
+                ${ocrPreview ? `
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Aperçu du contenu</label>
+                    <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-16 overflow-hidden whitespace-pre-wrap">${escapeHtml(ocrPreview)}</div>
+                </div>
+                ` : ''}
+            </div>
+
+            <!-- Onglet Notes -->
+            <div id="preview-tab-notes" class="preview-tab-content hidden">
+                <div class="space-y-2 max-h-64 overflow-y-auto mb-3">
                     ${notesHtml}
                 </div>
                 <div class="flex gap-1">
                     <input type="text" id="preview-new-note" placeholder="Ajouter une note..."
-                           class="flex-1 px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"
+                           class="flex-1 px-2 py-1.5 text-xs border rounded focus:ring-1 focus:ring-blue-500"
                            onkeypress="if(event.key==='Enter')addNotePreview(${doc.id})">
-                    <button onclick="addNotePreview(${doc.id})" class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">+</button>
+                    <button onclick="addNotePreview(${doc.id})" class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter</button>
                 </div>
             </div>
 
-            <!-- Résumé/OCR -->
-            ${ocrPreview ? `
-            <div class="pt-2 border-t">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Contenu extrait</label>
-                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">${ocrPreview}</div>
-            </div>
-            ` : ''}
-
-            <!-- Infos fichier -->
-            <div class="pt-2 border-t text-xs text-gray-500">
-                <p><span class="font-medium">Fichier:</span> ${doc.original_filename || doc.filename}</p>
-                <p><span class="font-medium">Créé:</span> ${formatDisplayDate(doc.created_at)}</p>
-                ${doc.asn ? `<p><span class="font-medium">ASN:</span> ${doc.asn}</p>` : ''}
+            <!-- Onglet Contenu (OCR éditable) -->
+            <div id="preview-tab-content" class="preview-tab-content hidden">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Contenu extrait (OCR)</label>
+                    <textarea id="preview-ocr-text" rows="15"
+                              class="w-full px-2 py-1.5 text-xs font-mono border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                              placeholder="Aucun texte extrait">${escapeHtml(ocrText)}</textarea>
+                    <p class="text-xs text-gray-400 mt-1">${ocrText.length} caractères</p>
+                </div>
             </div>
 
-            <!-- Actions -->
-            <div class="pt-3 border-t space-y-2">
+            <!-- Onglet Info -->
+            <div id="preview-tab-info" class="preview-tab-content hidden">
+                <table class="w-full text-xs">
+                    <tbody class="divide-y divide-gray-100">
+                        <tr><td class="py-1.5 text-gray-500 w-28">ID</td><td class="py-1.5 font-mono">${doc.id}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Fichier</td><td class="py-1.5 font-mono truncate" title="${escapeHtml(doc.original_filename || doc.filename)}">${escapeHtml(doc.original_filename || doc.filename)}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Taille</td><td class="py-1.5">${formatFileSize(doc.file_size)}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Type MIME</td><td class="py-1.5 font-mono text-xs">${escapeHtml(doc.mime_type || '-')}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">ASN</td><td class="py-1.5">${doc.asn || '-'}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Créé le</td><td class="py-1.5">${formatDisplayDate(doc.created_at)}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Modifié le</td><td class="py-1.5">${formatDisplayDate(doc.updated_at)}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Checksum</td><td class="py-1.5 font-mono text-xs truncate" title="${doc.checksum || ''}">${doc.checksum ? doc.checksum.substring(0, 16) + '...' : '-'}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Chemin</td><td class="py-1.5 font-mono text-xs truncate" title="${escapeHtml(doc.storage_path || doc.file_path || '')}">${escapeHtml(doc.storage_path || doc.file_path || '-')}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Onglet Historique -->
+            <div id="preview-tab-history" class="preview-tab-content hidden">
+                <div id="preview-history-content" class="text-xs">
+                    <p class="text-gray-400 py-4 text-center">Chargement...</p>
+                </div>
+            </div>
+
+            <!-- Actions (toujours visibles) -->
+            <div class="pt-3 mt-3 border-t space-y-2">
                 <div class="flex gap-2">
                     <button onclick="closeDocumentPreview()" class="flex-1 px-3 py-2 text-sm border rounded hover:bg-gray-50">
-                        Annuler
+                        Fermer
                     </button>
                     <button onclick="saveDocumentPreview(${doc.id})" class="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
                         Enregistrer
@@ -752,16 +970,177 @@ function renderDocumentMetadata(doc) {
     `;
 }
 
+// Gestion des onglets de la modale
+function switchPreviewTab(tabName) {
+    // Masquer tous les contenus
+    document.querySelectorAll('.preview-tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    // Désactiver tous les boutons
+    document.querySelectorAll('.preview-tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'border-b-2', 'border-blue-600', 'text-blue-600', 'font-medium');
+        btn.classList.add('text-gray-500');
+    });
+
+    // Afficher le contenu sélectionné
+    const content = document.getElementById('preview-tab-' + tabName);
+    if (content) {
+        content.classList.remove('hidden');
+    }
+
+    // Activer le bouton correspondant
+    document.querySelectorAll('.preview-tab-btn').forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(tabName.substring(0, 4))) {
+            btn.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600', 'font-medium');
+            btn.classList.remove('text-gray-500');
+        }
+    });
+
+    // Charger l'historique si nécessaire
+    if (tabName === 'history' && currentPreviewDocument) {
+        loadPreviewHistory(currentPreviewDocument.id);
+    }
+}
+
+// Charger l'historique du document
+async function loadPreviewHistory(docId) {
+    const container = document.getElementById('preview-history-content');
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/documents/${docId}/history`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (response.ok) {
+            const html = await response.text();
+            container.innerHTML = html || '<p class="text-gray-400 py-4 text-center">Aucun historique</p>';
+        } else {
+            container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de chargement</p>';
+        }
+    } catch (error) {
+        console.error('History error:', error);
+        container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de connexion</p>';
+    }
+}
+
+// Retraiter le document (OCR)
+async function reprocessDocumentPreview() {
+    if (!currentPreviewDocument) return;
+
+    if (!confirm('Retraiter ce document avec l\'OCR ? Cette opération peut prendre un moment.')) return;
+
+    const btn = document.getElementById('preview-reprocess-btn');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${currentPreviewDocument.id}/ocr`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showNotification('Document retraité avec succès', 'success');
+            loadDocumentPreview(currentPreviewDocument.id);
+        } else {
+            showNotification(result.message || 'Erreur lors du retraitement', 'error');
+        }
+    } catch (error) {
+        console.error('Reprocess error:', error);
+        showNotification('Erreur de connexion', 'error');
+    } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
+}
+
+// Supprimer le document
+async function deleteDocumentPreview() {
+    if (!currentPreviewDocument) return;
+
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${currentPreviewDocument.title || currentPreviewDocument.filename}" ?`)) return;
+
+    try {
+        const response = await fetch(`${BASE_PATH}/api/documents/${currentPreviewDocument.id}`, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showNotification('Document supprimé', 'success');
+            closeDocumentPreview();
+            // Retirer la carte du document de la grille
+            const card = document.querySelector(`[data-doc-id="${currentPreviewDocument.id}"]`);
+            if (card) {
+                card.style.transition = 'opacity 0.3s, transform 0.3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => card.remove(), 300);
+            }
+        } else {
+            showNotification(result.message || 'Erreur lors de la suppression', 'error');
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
 // Sauvegarder le document depuis le preview
 async function saveDocumentPreview(docId, goNext = false) {
     const title = document.getElementById('preview-title-input')?.value || '';
     const documentTypeId = document.getElementById('preview-type-select')?.value || null;
     const correspondentId = document.getElementById('preview-correspondent-select')?.value || null;
     const documentDate = document.getElementById('preview-date-input')?.value || null;
+    const amount = document.getElementById('preview-amount-input')?.value || null;
+    const ocrText = document.getElementById('preview-ocr-text')?.value || null;
+    const logicalFolderId = document.getElementById('preview-logical-folder-select')?.value || null;
 
     // Récupérer les tags sélectionnés
     const tagCheckboxes = document.querySelectorAll('input[name="preview_tags"]:checked');
     const tagIds = Array.from(tagCheckboxes).map(cb => parseInt(cb.value));
+
+    // Récupérer les champs personnalisés
+    const customFieldValues = {};
+    const customFieldInputs = document.querySelectorAll('[id^="preview-custom-field-"]');
+    customFieldInputs.forEach(input => {
+        const fieldId = input.id.replace('preview-custom-field-', '');
+        if (input.type === 'checkbox') {
+            customFieldValues[fieldId] = input.checked ? '1' : '0';
+        } else {
+            customFieldValues[fieldId] = input.value || '';
+        }
+    });
+
+    // Construire le payload
+    const payload = {
+        title: title,
+        document_type_id: documentTypeId || null,
+        correspondent_id: correspondentId || null,
+        document_date: documentDate || null,
+        logical_folder_id: logicalFolderId || null,
+        tags: tagIds
+    };
+
+    // Ajouter montant si présent
+    if (amount !== null && amount !== '') {
+        payload.amount = parseFloat(amount);
+    }
+
+    // Ajouter champs personnalisés si présents
+    if (Object.keys(customFieldValues).length > 0) {
+        payload.custom_field_values = customFieldValues;
+    }
+
+    // Ajouter OCR si modifié (onglet contenu visité)
+    if (ocrText !== null && document.getElementById('preview-tab-content')?.classList.contains('hidden') === false) {
+        payload.ocr_text = ocrText;
+    }
 
     try {
         const response = await fetch(`${BASE_PATH}/api/documents/${docId}`, {
@@ -770,21 +1149,17 @@ async function saveDocumentPreview(docId, goNext = false) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({
-                title: title,
-                document_type_id: documentTypeId || null,
-                correspondent_id: correspondentId || null,
-                document_date: documentDate || null,
-                tags: tagIds
-            })
+            body: JSON.stringify(payload)
         });
 
         const result = await response.json();
         if (result.success) {
+            showNotification('Document enregistré', 'success');
+
             // Mettre à jour l'affichage dans la grille si visible
             const card = document.querySelector(`[data-doc-id="${docId}"]`);
             if (card) {
-                const titleEl = card.querySelector('.doc-title');
+                const titleEl = card.querySelector('h3');
                 if (titleEl) titleEl.textContent = title || currentPreviewDocument?.filename || '';
             }
 
@@ -795,11 +1170,11 @@ async function saveDocumentPreview(docId, goNext = false) {
                 loadDocumentPreview(docId);
             }
         } else {
-            alert('Erreur: ' + (result.error || 'Échec de la sauvegarde'));
+            showNotification('Erreur: ' + (result.message || 'Échec de la sauvegarde'), 'error');
         }
     } catch (error) {
         console.error('Save error:', error);
-        alert('Erreur lors de la sauvegarde');
+        showNotification('Erreur lors de la sauvegarde', 'error');
     }
 }
 
@@ -820,7 +1195,7 @@ async function setValidationStatus(docId, status) {
             // Recharger le document
             loadDocumentPreview(docId);
         } else {
-            alert('Erreur: ' + (result.error || 'Échec de la validation'));
+            alert('Erreur: ' + (result.message || 'Échec de la validation'));
         }
     } catch (error) {
         console.error('Validation error:', error);
@@ -828,11 +1203,37 @@ async function setValidationStatus(docId, status) {
     }
 }
 
+// Toggle validation status - cycle through states: pending → approved → rejected → na → pending
+function toggleValidationStatus(docId, currentStatus) {
+    const states = ['pending', 'approved', 'rejected', 'na'];
+    const currentIndex = states.indexOf(currentStatus);
+    const nextStatus = states[(currentIndex + 1) % states.length];
+    setValidationStatus(docId, nextStatus);
+}
+
+// Helper: échapper le HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Helper: formater la taille de fichier
+function formatFileSize(bytes) {
+    if (!bytes) return '-';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
 // Suggestions IA
 async function getAISuggestionsPreview(docId) {
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = 'Analyse...';
+    const btn = document.getElementById('ai-suggest-btn');
+    if (!btn) return;
+
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Analyse...';
     btn.disabled = true;
 
     try {
@@ -848,39 +1249,73 @@ async function getAISuggestionsPreview(docId) {
         if (result.success && result.data?.suggestions) {
             const s = result.data.suggestions;
             const matched = s.matched || {};
+            let appliedCount = 0;
 
             // Appliquer les suggestions aux champs
             if (s.title_suggestion) {
-                document.getElementById('preview-title-input').value = s.title_suggestion;
+                const titleInput = document.getElementById('preview-title-input');
+                if (titleInput) {
+                    titleInput.value = s.title_suggestion;
+                    titleInput.classList.add('ring-2', 'ring-purple-300');
+                    appliedCount++;
+                }
             }
             if (matched.document_type_id) {
-                document.getElementById('preview-type-select').value = matched.document_type_id;
+                const typeSelect = document.getElementById('preview-type-select');
+                if (typeSelect) {
+                    typeSelect.value = matched.document_type_id;
+                    typeSelect.classList.add('ring-2', 'ring-purple-300');
+                    appliedCount++;
+                }
             }
             if (matched.correspondent_id) {
-                document.getElementById('preview-correspondent-select').value = matched.correspondent_id;
+                const corrSelect = document.getElementById('preview-correspondent-select');
+                if (corrSelect) {
+                    corrSelect.value = matched.correspondent_id;
+                    corrSelect.classList.add('ring-2', 'ring-purple-300');
+                    appliedCount++;
+                }
             }
             if (s.document_date) {
-                document.getElementById('preview-date-input').value = s.document_date;
+                const dateInput = document.getElementById('preview-date-input');
+                if (dateInput) {
+                    dateInput.value = s.document_date;
+                    dateInput.classList.add('ring-2', 'ring-purple-300');
+                    appliedCount++;
+                }
+            }
+            if (s.amount) {
+                const amountInput = document.getElementById('preview-amount-input');
+                if (amountInput) {
+                    amountInput.value = s.amount;
+                    amountInput.classList.add('ring-2', 'ring-purple-300');
+                    appliedCount++;
+                }
             }
             if (matched.tag_ids && matched.tag_ids.length > 0) {
-                // Cocher les tags suggérés
+                // Cocher et mettre en surbrillance les tags suggérés
                 document.querySelectorAll('input[name="preview_tags"]').forEach(cb => {
-                    cb.checked = matched.tag_ids.includes(parseInt(cb.value));
+                    if (matched.tag_ids.includes(parseInt(cb.value))) {
+                        cb.checked = true;
+                        cb.parentElement.classList.add('ring-2', 'ring-purple-300', 'bg-purple-50');
+                        appliedCount++;
+                    }
                 });
             }
 
-            // Afficher un message avec le résumé si disponible
-            if (s.summary) {
-                console.log('Résumé IA:', s.summary);
+            if (appliedCount > 0) {
+                showNotification(`${appliedCount} suggestion(s) IA appliquée(s)`, 'success');
+            } else {
+                showNotification('Aucune suggestion applicable', 'info');
             }
         } else {
-            alert(result.error || 'Aucune suggestion disponible');
+            showNotification(result.message || 'Aucune suggestion disponible', 'info');
         }
     } catch (error) {
         console.error('AI error:', error);
-        alert('Erreur lors de l\'analyse IA');
+        showNotification('Erreur lors de l\'analyse IA', 'error');
     } finally {
-        btn.textContent = originalText;
+        btn.innerHTML = originalHtml;
         btn.disabled = false;
     }
 }
@@ -906,7 +1341,7 @@ async function addNotePreview(docId) {
             input.value = '';
             loadDocumentPreview(docId);
         } else {
-            alert('Erreur: ' + (result.error || 'Échec de l\'ajout'));
+            alert('Erreur: ' + (result.message || 'Échec de l\'ajout'));
         }
     } catch (error) {
         console.error('Note error:', error);
@@ -1536,12 +1971,28 @@ function stopIndexingPolling() {
     const folderParam = urlParams.get('folder');
     const emptyState = document.getElementById('empty-state');
     const contentEl = document.getElementById('documents-content');
-    
+
     // Si on a un path (dossier filesystem sélectionné), TOUJOURS charger via AJAX
     // Car PHP ne scan pas le filesystem, seulement la DB
     if (pathParam || folderParam) {
         // Charger via AJAX pour avoir les fichiers physiques + DB
         loadFolderDocuments(pathParam || '', false);
+    }
+})();
+
+// P0.4: Ouvrir automatiquement la modale si paramètre ?open={id} présent
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const openId = urlParams.get('open');
+
+    if (openId) {
+        // Ouvrir la modale pour ce document
+        setTimeout(() => {
+            openDocumentPreview(parseInt(openId), 0);
+            // Nettoyer l'URL sans recharger la page
+            const newUrl = window.location.pathname + (urlParams.get('path') ? '?path=' + urlParams.get('path') : '');
+            window.history.replaceState({}, '', newUrl);
+        }, 100);
     }
 })();
 
@@ -1856,7 +2307,7 @@ function stopIndexingPolling() {
                 }
             } else {
                 addFileProgress(file.name, 'error');
-                showNotification(`${file.name}: ${result.error || 'Erreur inconnue'}`, 'error');
+                showNotification(`${file.name}: ${result.message || 'Erreur inconnue'}`, 'error');
             }
         }
 

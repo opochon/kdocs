@@ -198,12 +198,31 @@ class ConsumeFolderService
         $filename = basename($path);
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $unique = date('Ymd_His') . '_' . uniqid() . '.' . $ext;
-        
+
         // Utiliser directement le fichier de consume/ jusqu'à validation
         // Plus besoin de copier vers toclassify/ - c'est redondant
         // Le fichier sera déplacé directement vers son chemin final après validation
         $filePath = $path; // Utiliser directement le chemin du fichier dans consume/
-        
+
+        // Détection MIME avec fallback par extension
+        $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+        if ($mimeType === 'application/octet-stream') {
+            $mimeMap = [
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'odt' => 'application/vnd.oasis.opendocument.text',
+                'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+                'odp' => 'application/vnd.oasis.opendocument.presentation',
+                'rtf' => 'application/rtf',
+                'pdf' => 'application/pdf',
+            ];
+            $mimeType = $mimeMap[$ext] ?? $mimeType;
+        }
+
         $stmt = $this->db->prepare("
             INSERT INTO documents (title, filename, original_filename, file_path, file_size, mime_type, checksum, status, consume_subfolder, uploaded_at, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, NOW(), NOW(), NOW())
@@ -212,7 +231,7 @@ class ConsumeFolderService
             pathinfo($filename, PATHINFO_FILENAME),
             $unique, $filename, $filePath,
             filesize($filePath),
-            mime_content_type($filePath) ?: 'application/octet-stream',
+            $mimeType,
             md5_file($filePath),
             $subfolder
         ]);
