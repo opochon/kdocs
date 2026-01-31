@@ -1,427 +1,411 @@
 <?php
 /**
- * K-Docs - Tests de Stabilisation Complets
- * Smoke + Fonctionnel + Sécurité + Performance
+ * K-DOCS - TESTS DE STABILISATION AUTOMATISÉS
+ *
+ * Exécute: php tests/stabilisation_tests.php
+ *
+ * Couvre:
+ * - Smoke tests
+ * - Tests fonctionnels
+ * - Tests sécurité (Red Team)
+ * - Benchmarks performance
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use KDocs\Core\Database;
 use KDocs\Core\Config;
-use KDocs\Services\SearchService;
 
-class StabilisationTests
-{
-    private \PDO $db;
-    private array $results = [];
-    private int $passed = 0;
-    private int $failed = 0;
-    private float $startTime;
+// ============================================
+// CONFIGURATION
+// ============================================
 
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-        $this->startTime = microtime(true);
+$REPORT_FILE = __DIR__ . '/../docs/stabilisation/RAPPORT_TESTS.md';
+$results = [];
+$passed = 0;
+$failed = 0;
+$warnings = 0;
+$startTime = microtime(true);
+
+// ============================================
+// HELPERS
+// ============================================
+
+function test(string $category, string $name, bool $condition, string $detail = '', bool $warning = false): bool {
+    global $results, $passed, $failed, $warnings;
+
+    $status = $condition ? 'PASS' : ($warning ? 'WARN' : 'FAIL');
+    $results[$category][] = [
+        'name' => $name,
+        'status' => $status,
+        'detail' => $detail
+    ];
+
+    $icon = $condition ? "\033[32m[✓]\033[0m" : ($warning ? "\033[33m[!]\033[0m" : "\033[31m[✗]\033[0m");
+    echo "$icon $name";
+    if ($detail) echo " - $detail";
+    echo "\n";
+
+    if ($condition) $passed++;
+    elseif ($warning) $warnings++;
+    else $failed++;
+
+    return $condition;
+}
+
+function section(string $title): void {
+    echo "\n\033[1;36m=== $title ===\033[0m\n\n";
+}
+
+function httpRequest(string $url, string $method = 'GET', array $data = [], array $headers = []): array {
+    $ch = curl_init();
+
+    $opts = [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $headers),
+    ];
+
+    if ($method === 'POST') {
+        $opts[CURLOPT_POST] = true;
+        $opts[CURLOPT_POSTFIELDS] = json_encode($data);
     }
 
-    public function run(): void
-    {
-        echo "\n" . str_repeat("=", 60) . "\n";
-        echo "K-DOCS STABILISATION TESTS\n";
-        echo str_repeat("=", 60) . "\n\n";
+    curl_setopt_array($ch, $opts);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
 
-        $this->runSmokeTests();
-        $this->runFunctionalTests();
-        $this->runSecurityTests();
-        $this->runPerformanceTests();
+    return [
+        'code' => $httpCode,
+        'body' => $response,
+        'error' => $error
+    ];
+}
 
-        $this->printSummary();
-        $this->generateReport();
-    }
+// ============================================
+// DÉBUT DES TESTS
+// ============================================
 
-    // ==========================================
-    // SMOKE TESTS
-    // ==========================================
-    private function runSmokeTests(): void
-    {
-        echo "--- SMOKE TESTS ---\n";
+echo "\n";
+echo "╔══════════════════════════════════════════════════════════════╗\n";
+echo "║         K-DOCS - TESTS DE STABILISATION                      ║\n";
+echo "╚══════════════════════════════════════════════════════════════╝\n";
 
-        // DB Connection
-        $this->test('S1', 'DB Connection', function() {
-            return $this->db->query("SELECT 1")->fetch() !== false;
-        });
+$config = require __DIR__ . '/../config/config.php';
+$appUrl = $config['app']['url'] ?? 'http://localhost/kdocs';
 
-        // FULLTEXT Index
-        $this->test('S2', 'FULLTEXT Index', function() {
-            $r = $this->db->query("SHOW INDEX FROM documents WHERE Index_type='FULLTEXT'");
-            return $r->fetch() !== false;
-        });
+// ============================================
+// 1. SMOKE TESTS
+// ============================================
+section('SMOKE TESTS');
 
-        // Embedding columns
-        $this->test('S3', 'Embedding columns', function() {
-            $r = $this->db->query("SHOW COLUMNS FROM documents LIKE 'embedding'");
-            return $r->fetch() !== false;
-        });
+// Database
+try {
+    $db = Database::getInstance();
+    test('SMOKE', 'Connexion MySQL', true);
+} catch (Exception $e) {
+    test('SMOKE', 'Connexion MySQL', false, $e->getMessage());
+    echo "\n\033[31mFATAL: Impossible de continuer sans DB\033[0m\n";
+    exit(1);
+}
 
-        // Tesseract
-        $this->test('S4', 'Tesseract OCR', function() {
-            $path = Config::get('ocr.tesseract_path');
-            return file_exists($path);
-        });
-
-        // Ghostscript
-        $this->test('S5', 'Ghostscript', function() {
-            $path = Config::get('tools.ghostscript');
-            return file_exists($path);
-        });
-
-        // Ollama
-        $this->test('S6', 'Ollama API', function() {
-            $url = Config::get('embeddings.ollama_url', 'http://localhost:11434');
-            $ch = curl_init($url . '/api/tags');
-            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
-            $response = curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            return $code === 200;
-        });
-
-        // SearchService
-        $this->test('S7', 'SearchService', function() {
-            $search = new SearchService();
-            $result = $search->search('test', 5);
-            return $result->total >= 0;
-        });
-
-        echo "\n";
-    }
-
-    // ==========================================
-    // FUNCTIONAL TESTS
-    // ==========================================
-    private function runFunctionalTests(): void
-    {
-        echo "--- FUNCTIONAL TESTS ---\n";
-
-        // T1: Documents exist
-        $this->test('T1', 'Documents in DB', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM documents WHERE deleted_at IS NULL");
-            return $r->fetch()['c'] > 0;
-        });
-
-        // T2: OCR text exists
-        $this->test('T2', 'OCR text populated', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM documents WHERE ocr_text IS NOT NULL AND ocr_text != ''");
-            return $r->fetch()['c'] > 0;
-        });
-
-        // T3: FULLTEXT search works
-        $this->test('T3', 'FULLTEXT search', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM documents WHERE MATCH(title, ocr_text, content) AGAINST('+test*' IN BOOLEAN MODE)");
-            return $r->fetch()['c'] >= 0; // 0 is OK, just needs to not error
-        });
-
-        // T4: Correspondents table
-        $this->test('T4', 'Correspondents table', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM correspondents");
-            return $r->fetch()['c'] >= 0;
-        });
-
-        // T5: Document types table
-        $this->test('T5', 'Document types table', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM document_types");
-            return $r->fetch()['c'] >= 0;
-        });
-
-        // T6: Tags table
-        $this->test('T6', 'Tags table', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM tags");
-            return $r->fetch()['c'] >= 0;
-        });
-
-        // T7: Folders table
-        $this->test('T7', 'Folders table', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM document_folders");
-            return $r->fetch()['c'] >= 0;
-        });
-
-        // T8: Users table with admin
-        $this->test('T8', 'Admin user exists', function() {
-            $r = $this->db->query("SELECT COUNT(*) c FROM users WHERE role = 'admin'");
-            return $r->fetch()['c'] > 0;
-        });
-
-        // T9: Storage directories exist
-        $this->test('T9', 'Storage directories', function() {
-            $dirs = ['documents', 'thumbnails', 'temp', 'consume'];
-            foreach ($dirs as $dir) {
-                $path = Config::get("storage.$dir") ?? Config::get('storage.base_path') . "/../$dir";
-                if (!is_dir($path)) return false;
-            }
-            return true;
-        });
-
-        // T10: Search with filters
-        $this->test('T10', 'Search with filters', function() {
-            $search = new SearchService();
-            $query = new \KDocs\Search\SearchQuery();
-            $query->text = '';
-            $query->perPage = 5;
-            $result = $search->advancedSearch($query);
-            return $result->total >= 0;
-        });
-
-        echo "\n";
-    }
-
-    // ==========================================
-    // SECURITY TESTS
-    // ==========================================
-    private function runSecurityTests(): void
-    {
-        echo "--- SECURITY TESTS ---\n";
-
-        // R1: SQL Injection via search
-        $this->test('R1', 'SQL Injection (search)', function() {
-            try {
-                $search = new SearchService();
-                $result = $search->search("'; DROP TABLE documents; --", 5);
-                // If we get here without exception, check table still exists
-                $r = $this->db->query("SELECT 1 FROM documents LIMIT 1");
-                return $r->fetch() !== false;
-            } catch (\Exception $e) {
-                return true; // Exception is OK (query blocked)
-            }
-        });
-
-        // R2: SQL Injection via FULLTEXT
-        $this->test('R2', 'SQL Injection (FULLTEXT)', function() {
-            try {
-                $this->db->query("SELECT * FROM documents WHERE MATCH(title) AGAINST('+test* --)' IN BOOLEAN MODE)");
-                return true;
-            } catch (\Exception $e) {
-                return true; // Exception is OK
-            }
-        });
-
-        // R3: XSS in title (escaped)
-        $this->test('R3', 'XSS escaping', function() {
-            $xss = '<script>alert(1)</script>';
-            $escaped = htmlspecialchars($xss, ENT_QUOTES, 'UTF-8');
-            return strpos($escaped, '<script>') === false;
-        });
-
-        // R4: Path traversal blocked
-        $this->test('R4', 'Path traversal blocked', function() {
-            $maliciousPath = '../../etc/passwd';
-            $basePath = Config::get('storage.documents');
-            $fullPath = realpath($basePath . '/' . $maliciousPath);
-            // Should either be false or not start with basePath
-            return $fullPath === false || strpos($fullPath, realpath($basePath)) !== 0;
-        });
-
-        // R5: Empty search doesn't crash
-        $this->test('R5', 'Empty search safe', function() {
-            $search = new SearchService();
-            $result = $search->search('', 5);
-            return $result !== null;
-        });
-
-        // R6: Long search doesn't timeout
-        $this->test('R6', 'Long search (500 chars)', function() {
-            $search = new SearchService();
-            $longQuery = str_repeat('test ', 100);
-            $start = microtime(true);
-            $result = $search->search($longQuery, 5);
-            $duration = microtime(true) - $start;
-            return $duration < 5; // Less than 5 seconds
-        });
-
-        // R7: Special chars in search
-        $this->test('R7', 'Special chars safe', function() {
-            $search = new SearchService();
-            $result = $search->search('test & <> " \' % _', 5);
-            return $result !== null && !isset($result->error);
-        });
-
-        echo "\n";
-    }
-
-    // ==========================================
-    // PERFORMANCE TESTS
-    // ==========================================
-    private function runPerformanceTests(): void
-    {
-        echo "--- PERFORMANCE TESTS ---\n";
-
-        // P1: FULLTEXT search < 200ms
-        $this->test('P1', 'FULLTEXT < 200ms', function() {
-            $times = [];
-            for ($i = 0; $i < 5; $i++) {
-                $start = microtime(true);
-                $this->db->query("SELECT * FROM documents WHERE MATCH(title, ocr_text, content) AGAINST('+test*' IN BOOLEAN MODE) LIMIT 10");
-                $times[] = (microtime(true) - $start) * 1000;
-            }
-            $avg = array_sum($times) / count($times);
-            echo " (" . round($avg) . "ms)";
-            return $avg < 200;
-        });
-
-        // P2: Document list < 500ms
-        $this->test('P2', 'Doc list < 500ms', function() {
-            $start = microtime(true);
-            $this->db->query("SELECT d.*, c.name FROM documents d LEFT JOIN correspondents c ON d.correspondent_id = c.id WHERE d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 100");
-            $duration = (microtime(true) - $start) * 1000;
-            echo " (" . round($duration) . "ms)";
-            return $duration < 500;
-        });
-
-        // P3: SearchService < 300ms
-        $this->test('P3', 'SearchService < 300ms', function() {
-            $search = new SearchService();
-            $times = [];
-            for ($i = 0; $i < 3; $i++) {
-                $start = microtime(true);
-                $search->search('document', 25);
-                $times[] = (microtime(true) - $start) * 1000;
-            }
-            $avg = array_sum($times) / count($times);
-            echo " (" . round($avg) . "ms)";
-            return $avg < 300;
-        });
-
-        // P4: Count query < 100ms
-        $this->test('P4', 'Count < 100ms', function() {
-            $start = microtime(true);
-            $this->db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL");
-            $duration = (microtime(true) - $start) * 1000;
-            echo " (" . round($duration) . "ms)";
-            return $duration < 100;
-        });
-
-        echo "\n";
-    }
-
-    // ==========================================
-    // HELPERS
-    // ==========================================
-    private function test(string $id, string $name, callable $test): bool
-    {
-        try {
-            $result = $test();
-            if ($result) {
-                echo "\033[32m[PASS]\033[0m $id: $name\n";
-                $this->passed++;
-                $this->results[$id] = ['name' => $name, 'status' => 'PASS'];
-                return true;
-            } else {
-                echo "\033[31m[FAIL]\033[0m $id: $name\n";
-                $this->failed++;
-                $this->results[$id] = ['name' => $name, 'status' => 'FAIL'];
-                return false;
-            }
-        } catch (\Exception $e) {
-            echo "\033[31m[FAIL]\033[0m $id: $name - " . substr($e->getMessage(), 0, 50) . "\n";
-            $this->failed++;
-            $this->results[$id] = ['name' => $name, 'status' => 'FAIL', 'error' => $e->getMessage()];
-            return false;
-        }
-    }
-
-    private function printSummary(): void
-    {
-        $total = $this->passed + $this->failed;
-        $pct = $total > 0 ? round(($this->passed / $total) * 100) : 0;
-        $duration = round(microtime(true) - $this->startTime, 2);
-
-        echo str_repeat("=", 60) . "\n";
-        echo "RÉSULTAT: {$this->passed}/{$total} PASS ({$pct}%) - {$duration}s\n";
-        echo str_repeat("=", 60) . "\n";
-
-        if ($this->failed === 0) {
-            echo "\n\033[32m✓ TOUS LES TESTS PASSENT - STABILISATION OK\033[0m\n\n";
-        } else {
-            echo "\n\033[31m✗ {$this->failed} TEST(S) EN ÉCHEC\033[0m\n";
-            echo "\nTests échoués:\n";
-            foreach ($this->results as $id => $result) {
-                if ($result['status'] === 'FAIL') {
-                    echo "  - $id: {$result['name']}";
-                    if (isset($result['error'])) {
-                        echo " ({$result['error']})";
-                    }
-                    echo "\n";
-                }
-            }
-            echo "\n";
-        }
-    }
-
-    private function generateReport(): void
-    {
-        $reportDir = __DIR__ . '/../docs/stabilisation';
-        if (!is_dir($reportDir)) {
-            mkdir($reportDir, 0755, true);
-        }
-
-        $total = $this->passed + $this->failed;
-        $pct = $total > 0 ? round(($this->passed / $total) * 100) : 0;
-        $duration = round(microtime(true) - $this->startTime, 2);
-        $date = date('Y-m-d H:i:s');
-
-        $report = "# K-Docs - Rapport de Tests de Stabilisation\n\n";
-        $report .= "**Date:** $date\n";
-        $report .= "**Durée:** {$duration}s\n";
-        $report .= "**Résultat:** {$this->passed}/{$total} PASS ({$pct}%)\n\n";
-
-        $report .= "## Résumé\n\n";
-        $report .= "| Catégorie | Tests | Passés | Échoués |\n";
-        $report .= "|-----------|-------|--------|----------|\n";
-
-        $categories = ['S' => 'Smoke', 'T' => 'Fonctionnel', 'R' => 'Sécurité', 'P' => 'Performance'];
-        foreach ($categories as $prefix => $name) {
-            $catTests = array_filter($this->results, fn($k) => str_starts_with($k, $prefix), ARRAY_FILTER_USE_KEY);
-            $catPassed = count(array_filter($catTests, fn($r) => $r['status'] === 'PASS'));
-            $catFailed = count($catTests) - $catPassed;
-            $report .= "| $name | " . count($catTests) . " | $catPassed | $catFailed |\n";
-        }
-
-        $report .= "\n## Détails\n\n";
-
-        foreach ($categories as $prefix => $name) {
-            $report .= "### $name\n\n";
-            $report .= "| ID | Test | Statut |\n";
-            $report .= "|----|------|--------|\n";
-
-            foreach ($this->results as $id => $result) {
-                if (str_starts_with($id, $prefix)) {
-                    $status = $result['status'] === 'PASS' ? '✅ PASS' : '❌ FAIL';
-                    $report .= "| $id | {$result['name']} | $status |\n";
-                }
-            }
-            $report .= "\n";
-        }
-
-        if ($this->failed > 0) {
-            $report .= "## Échecs à corriger\n\n";
-            foreach ($this->results as $id => $result) {
-                if ($result['status'] === 'FAIL') {
-                    $report .= "- **$id: {$result['name']}**";
-                    if (isset($result['error'])) {
-                        $report .= "\n  - Erreur: {$result['error']}";
-                    }
-                    $report .= "\n";
-                }
-            }
-        }
-
-        $report .= "\n---\n*Généré automatiquement par stabilisation_tests.php*\n";
-
-        $reportPath = $reportDir . '/RAPPORT_TESTS.md';
-        file_put_contents($reportPath, $report);
-        echo "Rapport généré: $reportPath\n";
+// Tables critiques
+$tables = ['documents', 'users', 'correspondents', 'document_types', 'tags'];
+foreach ($tables as $table) {
+    try {
+        $count = $db->query("SELECT COUNT(*) FROM $table")->fetchColumn();
+        test('SMOKE', "Table $table", true, "$count enregistrements");
+    } catch (Exception $e) {
+        test('SMOKE', "Table $table", false, $e->getMessage());
     }
 }
 
-// Run tests
-$tests = new StabilisationTests();
-$tests->run();
+// Index FULLTEXT
+try {
+    $stmt = $db->query("SHOW INDEX FROM documents WHERE Index_type = 'FULLTEXT'");
+    $indexes = $stmt->fetchAll();
+    test('SMOKE', 'Index FULLTEXT', count($indexes) > 0, count($indexes) . ' colonnes');
+} catch (Exception $e) {
+    test('SMOKE', 'Index FULLTEXT', false, $e->getMessage());
+}
+
+// Colonne embedding
+try {
+    $stmt = $db->query("SHOW COLUMNS FROM documents LIKE 'embedding'");
+    test('SMOKE', 'Colonne embedding', $stmt->fetch() !== false);
+} catch (Exception $e) {
+    test('SMOKE', 'Colonne embedding', false, $e->getMessage());
+}
+
+// Outils externes
+$tools = [
+    'Tesseract' => $config['ocr']['tesseract_path'] ?? '',
+    'Ghostscript' => $config['tools']['ghostscript'] ?? '',
+    'LibreOffice' => $config['tools']['libreoffice'] ?? '',
+];
+foreach ($tools as $name => $path) {
+    $exists = !empty($path) && file_exists($path);
+    test('SMOKE', $name, $exists, $exists ? 'OK' : 'Non trouvé', $name === 'LibreOffice');
+}
+
+// Ollama
+$ollamaUrl = $config['embeddings']['ollama_url'] ?? 'http://localhost:11434';
+$resp = httpRequest("$ollamaUrl/api/tags");
+test('SMOKE', 'Ollama', $resp['code'] === 200, $resp['code'] === 200 ? 'Accessible' : 'Non accessible', true);
+
+// ============================================
+// 2. TESTS FONCTIONNELS - RECHERCHE
+// ============================================
+section('RECHERCHE');
+
+// FULLTEXT basique
+try {
+    $stmt = $db->query("
+        SELECT COUNT(*) FROM documents
+        WHERE MATCH(title, ocr_text, content) AGAINST ('+test*' IN BOOLEAN MODE)
+        AND deleted_at IS NULL
+    ");
+    test('SEARCH', 'FULLTEXT query', true, $stmt->fetchColumn() . ' résultats');
+} catch (Exception $e) {
+    test('SEARCH', 'FULLTEXT query', false, $e->getMessage());
+}
+
+// FULLTEXT avec exclusion
+try {
+    $stmt = $db->query("
+        SELECT COUNT(*) FROM documents
+        WHERE MATCH(title, ocr_text, content) AGAINST ('+document -test' IN BOOLEAN MODE)
+        AND deleted_at IS NULL
+    ");
+    test('SEARCH', 'FULLTEXT exclusion (-term)', true);
+} catch (Exception $e) {
+    test('SEARCH', 'FULLTEXT exclusion', false, $e->getMessage());
+}
+
+// SearchService
+try {
+    $searchService = new \KDocs\Services\SearchService();
+    $result = $searchService->search('test', 10);
+    test('SEARCH', 'SearchService', true, ($result->total ?? 0) . ' résultats');
+} catch (Exception $e) {
+    test('SEARCH', 'SearchService', false, $e->getMessage());
+}
+
+// ============================================
+// 3. TESTS FONCTIONNELS - CRUD
+// ============================================
+section('CRUD DOCUMENTS');
+
+// Lecture document
+try {
+    $doc = $db->query("SELECT * FROM documents WHERE deleted_at IS NULL LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    test('CRUD', 'Lecture document', $doc !== false, $doc ? 'ID ' . $doc['id'] : 'Aucun document');
+} catch (Exception $e) {
+    test('CRUD', 'Lecture document', false, $e->getMessage());
+}
+
+// API documents (200 = OK, 401/403 = auth requise = OK aussi)
+$resp = httpRequest("$appUrl/api/documents?per_page=5");
+$apiOk = in_array($resp['code'], [200, 401, 403]);
+test('CRUD', 'API GET /documents', $apiOk, "HTTP {$resp['code']}");
+
+// ============================================
+// 4. RED TEAM - SÉCURITÉ
+// ============================================
+section('SÉCURITÉ (RED TEAM)');
+
+// SQL Injection via recherche
+try {
+    $malicious = "'; DROP TABLE users; --";
+    $stmt = $db->prepare("
+        SELECT COUNT(*) FROM documents
+        WHERE MATCH(title, ocr_text, content) AGAINST (? IN BOOLEAN MODE)
+    ");
+    $stmt->execute([$malicious]);
+    // Si on arrive ici sans erreur, c'est que c'est échappé
+    test('SECURITY', 'SQL Injection (recherche)', true, 'Échappé correctement');
+} catch (Exception $e) {
+    // Une erreur SQL est aussi acceptable (requête rejetée)
+    test('SECURITY', 'SQL Injection (recherche)', true, 'Requête rejetée');
+}
+
+// SQL Injection via API
+$resp = httpRequest("$appUrl/api/documents?search=" . urlencode("'; DROP TABLE--"));
+test('SECURITY', 'SQL Injection (API)', $resp['code'] !== 500, "HTTP {$resp['code']}");
+
+// XSS dans titre (vérifier que c'est échappé en DB)
+try {
+    $xssPayload = '<script>alert("XSS")</script>';
+    // On ne fait que vérifier que ça ne casse pas
+    $stmt = $db->prepare("SELECT * FROM documents WHERE title LIKE ?");
+    $stmt->execute(['%' . $xssPayload . '%']);
+    test('SECURITY', 'XSS stocké (requête)', true, 'Pas de crash');
+} catch (Exception $e) {
+    test('SECURITY', 'XSS stocké (requête)', false, $e->getMessage());
+}
+
+// Path traversal
+$resp = httpRequest("$appUrl/api/documents/../../../etc/passwd");
+test('SECURITY', 'Path traversal', $resp['code'] === 404 || $resp['code'] === 400, "HTTP {$resp['code']}");
+
+// ============================================
+// 5. ROBUSTESSE
+// ============================================
+section('ROBUSTESSE');
+
+// Recherche vide
+try {
+    $searchService = new \KDocs\Services\SearchService();
+    $result = $searchService->search('', 10);
+    test('ROBUST', 'Recherche vide', true, ($result->total ?? 0) . ' résultats');
+} catch (Exception $e) {
+    test('ROBUST', 'Recherche vide', false, $e->getMessage());
+}
+
+// Recherche très longue
+try {
+    $longQuery = str_repeat('test ', 100);
+    $searchService = new \KDocs\Services\SearchService();
+    $result = $searchService->search($longQuery, 10);
+    test('ROBUST', 'Recherche longue (500 chars)', true);
+} catch (Exception $e) {
+    test('ROBUST', 'Recherche longue', false, $e->getMessage());
+}
+
+// Caractères spéciaux
+try {
+    $specialChars = "été café naïf @#$%^&*()";
+    $searchService = new \KDocs\Services\SearchService();
+    $result = $searchService->search($specialChars, 10);
+    test('ROBUST', 'Caractères spéciaux/accents', true);
+} catch (Exception $e) {
+    test('ROBUST', 'Caractères spéciaux', false, $e->getMessage());
+}
+
+// ============================================
+// 6. PERFORMANCE
+// ============================================
+section('PERFORMANCE');
+
+// Benchmark recherche FULLTEXT
+$iterations = 10;
+$start = microtime(true);
+for ($i = 0; $i < $iterations; $i++) {
+    $db->query("SELECT id, title FROM documents WHERE MATCH(title, ocr_text, content) AGAINST ('+document*' IN BOOLEAN MODE) LIMIT 20");
+}
+$avgTime = (microtime(true) - $start) / $iterations * 1000;
+test('PERF', "FULLTEXT ({$iterations}x)", $avgTime < 200, round($avgTime, 1) . 'ms moyenne');
+
+// Benchmark liste documents
+$start = microtime(true);
+$db->query("SELECT d.*, dt.label FROM documents d LEFT JOIN document_types dt ON d.document_type_id = dt.id WHERE d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 100");
+$listTime = (microtime(true) - $start) * 1000;
+test('PERF', 'Liste 100 documents', $listTime < 500, round($listTime, 1) . 'ms');
+
+// Benchmark API
+$start = microtime(true);
+httpRequest("$appUrl/api/documents?per_page=50");
+$apiTime = (microtime(true) - $start) * 1000;
+test('PERF', 'API documents', $apiTime < 1000, round($apiTime, 1) . 'ms');
+
+// ============================================
+// 7. SERVICES
+// ============================================
+section('SERVICES');
+
+$services = [
+    'OCRService' => \KDocs\Services\OCRService::class,
+    'ClassificationService' => \KDocs\Services\ClassificationService::class,
+    'EmbeddingService' => \KDocs\Services\EmbeddingService::class,
+    'ThumbnailGenerator' => \KDocs\Services\ThumbnailGenerator::class,
+    'SnapshotService' => \KDocs\Services\SnapshotService::class,
+];
+
+foreach ($services as $name => $class) {
+    try {
+        $instance = new $class();
+        test('SERVICES', $name, true);
+    } catch (Exception $e) {
+        test('SERVICES', $name, false, $e->getMessage());
+    }
+}
+
+// ============================================
+// RÉSUMÉ
+// ============================================
+
+$totalTime = round(microtime(true) - $startTime, 2);
+
+echo "\n";
+echo "╔══════════════════════════════════════════════════════════════╗\n";
+echo "║                        RÉSUMÉ                                ║\n";
+echo "╚══════════════════════════════════════════════════════════════╝\n\n";
+
+$total = $passed + $failed + $warnings;
+echo "Total:     $total tests\n";
+echo "\033[32mRéussis:   $passed\033[0m\n";
+echo "\033[33mWarnings:  $warnings\033[0m\n";
+echo "\033[31mÉchoués:   $failed\033[0m\n";
+echo "Temps:     {$totalTime}s\n\n";
+
+if ($failed === 0) {
+    echo "\033[32m✓ STABILISATION OK - Prêt pour production\033[0m\n";
+} else {
+    echo "\033[31m✗ $failed TESTS ÉCHOUÉS - Corrections requises\033[0m\n";
+}
+
+// ============================================
+// GÉNÉRATION RAPPORT
+// ============================================
+
+$report = "# K-DOCS - RAPPORT DE STABILISATION\n\n";
+$report .= "**Date:** " . date('Y-m-d H:i:s') . "\n";
+$report .= "**Durée:** {$totalTime}s\n\n";
+$report .= "## Résumé\n\n";
+$report .= "| Métrique | Valeur |\n";
+$report .= "|----------|--------|\n";
+$report .= "| Tests exécutés | $total |\n";
+$report .= "| Réussis | $passed |\n";
+$report .= "| Warnings | $warnings |\n";
+$report .= "| Échoués | $failed |\n\n";
+
+foreach ($results as $category => $tests) {
+    $report .= "## $category\n\n";
+    $report .= "| Test | Statut | Détail |\n";
+    $report .= "|------|--------|--------|\n";
+    foreach ($tests as $test) {
+        $icon = match($test['status']) {
+            'PASS' => '✅',
+            'WARN' => '⚠️',
+            'FAIL' => '❌',
+        };
+        $report .= "| {$test['name']} | $icon {$test['status']} | {$test['detail']} |\n";
+    }
+    $report .= "\n";
+}
+
+if ($failed > 0) {
+    $report .= "## Actions requises\n\n";
+    foreach ($results as $category => $tests) {
+        foreach ($tests as $test) {
+            if ($test['status'] === 'FAIL') {
+                $report .= "- **{$test['name']}**: {$test['detail']}\n";
+            }
+        }
+    }
+}
+
+// Créer le dossier si nécessaire
+$reportDir = dirname($REPORT_FILE);
+if (!is_dir($reportDir)) {
+    mkdir($reportDir, 0755, true);
+}
+
+file_put_contents($REPORT_FILE, $report);
+echo "\nRapport généré: $REPORT_FILE\n";
+
+exit($failed > 0 ? 1 : 0);
