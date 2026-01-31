@@ -207,15 +207,20 @@ curl_close($ch);
 $ooOk = $ooResponse && strpos($ooResponse, 'true') !== false;
 test('25. OnlyOffice', $ooOk, $ooOk ? 'healthcheck OK' : 'non accessible');
 
-// Qdrant
-$qdHost = $config['qdrant']['host'] ?? 'localhost';
-$qdPort = $config['qdrant']['port'] ?? 6333;
-$ch = curl_init("http://{$qdHost}:{$qdPort}/collections");
-curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5]);
-$qdResponse = curl_exec($ch);
-curl_close($ch);
-$qdOk = $qdResponse && strpos($qdResponse, 'result') !== false;
-test('26. Qdrant', $qdOk, $qdOk ? 'API accessible' : 'non accessible');
+// Qdrant (optionnel - désactivé par défaut)
+$qdEnabled = $config['qdrant']['enabled'] ?? false;
+if ($qdEnabled) {
+    $qdHost = $config['qdrant']['host'] ?? 'localhost';
+    $qdPort = $config['qdrant']['port'] ?? 6333;
+    $ch = curl_init("http://{$qdHost}:{$qdPort}/collections");
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5]);
+    $qdResponse = curl_exec($ch);
+    curl_close($ch);
+    $qdOk = $qdResponse && strpos($qdResponse, 'result') !== false;
+    test('26. Qdrant', $qdOk, $qdOk ? 'API accessible' : 'non accessible', true);
+} else {
+    test('26. Qdrant', true, 'désactivé (MySQL+Ollama utilisé)', false);
+}
 
 // Ollama
 $ollamaUrl = $config['embeddings']['ollama_url'] ?? 'http://localhost:11434';
