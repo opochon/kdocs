@@ -21,34 +21,11 @@ services:
       retries: 3
       start_period: 60s
 
-  # ══════════════════════════════════════════════════════════════
-  # Qdrant Vector Database
-  # Recherche sémantique par embeddings
-  # ══════════════════════════════════════════════════════════════
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: kdocs-qdrant
-    ports:
-      - "6333:6333"   # REST API
-      - "6334:6334"   # gRPC
-    volumes:
-      - kdocs_qdrant_storage:/qdrant/storage
-    environment:
-      - QDRANT__LOG_LEVEL=INFO
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
 volumes:
   kdocs_onlyoffice_data:
     name: kdocs_onlyoffice_data
   kdocs_onlyoffice_logs:
     name: kdocs_onlyoffice_logs
-  kdocs_qdrant_storage:
-    name: kdocs_qdrant_storage
 
 networks:
   default:
