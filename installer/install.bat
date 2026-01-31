@@ -5,13 +5,6 @@ setlocal EnableDelayedExpansion
 REM ============================================================
 REM K-Docs - Installateur Principal Windows
 REM ============================================================
-REM Ce script installe toutes les dépendances nécessaires :
-REM - Docker Desktop (pour OnlyOffice)
-REM - LibreOffice (pour miniatures et conversion)
-REM - Tesseract OCR (pour reconnaissance de texte)
-REM - Ghostscript (pour traitement PDF)
-REM - Poppler (pdftotext, pdftoppm)
-REM ============================================================
 
 title K-Docs Installer
 cd /d "%~dp0"
@@ -36,26 +29,40 @@ if %errorlevel% neq 0 (
 REM Menu principal
 :menu
 echo.
-echo Que souhaitez-vous faire ?
-echo.
-echo   [1] Vérifier les dépendances installées
-echo   [2] Installer TOUT (recommandé)
-echo   [3] Installer Docker Desktop uniquement
-echo   [4] Installer LibreOffice uniquement
-echo   [5] Installer Tesseract OCR uniquement
-echo   [6] Installer outils PDF (Ghostscript, Poppler)
-echo   [7] Configurer OnlyOffice (après Docker)
-echo   [0] Quitter
+echo ┌──────────────────────────────────────────────────────────┐
+echo │  Que souhaitez-vous faire ?                              │
+echo ├──────────────────────────────────────────────────────────┤
+echo │                                                          │
+echo │   [1] Vérifier les dépendances installées                │
+echo │                                                          │
+echo │   [2] Installer TOUT (recommandé)                        │
+echo │                                                          │
+echo │  ─── Installation individuelle ───                       │
+echo │   [3] Docker Desktop                                     │
+echo │   [4] Services Docker (OnlyOffice + Qdrant)              │
+echo │   [5] LibreOffice                                        │
+echo │   [6] Tesseract OCR                                      │
+echo │   [7] Outils PDF (Ghostscript, Poppler)                  │
+echo │                                                          │
+echo │  ─── Gestion Docker ───                                  │
+echo │   [8] Démarrer les services Docker                       │
+echo │   [9] Arrêter les services Docker                        │
+echo │                                                          │
+echo │   [0] Quitter                                            │
+echo │                                                          │
+echo └──────────────────────────────────────────────────────────┘
 echo.
 set /p choice="Votre choix: "
 
 if "%choice%"=="1" call :check_all & goto menu
 if "%choice%"=="2" call :install_all & goto menu
 if "%choice%"=="3" call scripts\install-docker.bat & goto menu
-if "%choice%"=="4" call scripts\install-libreoffice.bat & goto menu
-if "%choice%"=="5" call scripts\install-tesseract.bat & goto menu
-if "%choice%"=="6" call scripts\install-pdf-tools.bat & goto menu
-if "%choice%"=="7" call scripts\setup-onlyoffice.bat & goto menu
+if "%choice%"=="4" call scripts\setup-docker-services.bat & goto menu
+if "%choice%"=="5" call scripts\install-libreoffice.bat & goto menu
+if "%choice%"=="6" call scripts\install-tesseract.bat & goto menu
+if "%choice%"=="7" call scripts\install-pdf-tools.bat & goto menu
+if "%choice%"=="8" call :docker_start & goto menu
+if "%choice%"=="9" call :docker_stop & goto menu
 if "%choice%"=="0" goto end
 
 echo Choix invalide.
@@ -78,6 +85,7 @@ echo ═════════════════════════
 echo.
 echo Cette opération va installer :
 echo   - Docker Desktop
+echo   - Services Docker (OnlyOffice + Qdrant)
 echo   - LibreOffice
 echo   - Tesseract OCR
 echo   - Ghostscript
@@ -90,17 +98,54 @@ call scripts\install-docker.bat
 call scripts\install-libreoffice.bat
 call scripts\install-tesseract.bat
 call scripts\install-pdf-tools.bat
-call scripts\setup-onlyoffice.bat
 
 echo.
 echo ══════════════════════════════════════════════════════════
-echo   INSTALLATION TERMINÉE
+echo   INSTALLATION DES LOGICIELS TERMINÉE
 echo ══════════════════════════════════════════════════════════
 echo.
-echo Redémarrez votre ordinateur pour finaliser l'installation.
-echo Puis lancez Docker Desktop et exécutez :
-echo   docker\onlyoffice\start.bat
+echo IMPORTANT: Redémarrez votre ordinateur, puis:
 echo.
+echo   1. Lancez Docker Desktop
+echo   2. Attendez que Docker soit prêt (icône baleine stable)
+echo   3. Relancez ce script et choisissez [4] Services Docker
+echo.
+echo Ou exécutez directement:
+echo   cd %~dp0..
+echo   docker-compose up -d
+echo.
+goto :eof
+
+:docker_start
+echo.
+echo Démarrage des services Docker K-Docs...
+cd /d "%~dp0.."
+docker-compose up -d
+if %errorlevel% equ 0 (
+    echo.
+    echo [OK] Services démarrés
+    echo.
+    docker-compose ps
+) else (
+    echo [ERREUR] Échec du démarrage. Docker Desktop est-il lancé ?
+)
+echo.
+pause
+goto :eof
+
+:docker_stop
+echo.
+echo Arrêt des services Docker K-Docs...
+cd /d "%~dp0.."
+docker-compose down
+if %errorlevel% equ 0 (
+    echo.
+    echo [OK] Services arrêtés
+) else (
+    echo [ERREUR] Échec de l'arrêt.
+)
+echo.
+pause
 goto :eof
 
 :end

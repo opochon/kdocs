@@ -104,7 +104,13 @@ class OfficeThumbnailService
             return null;
         }
 
-        // Méthode 1: OnlyOffice (préféré)
+        // Méthode 1: Extraire miniature intégrée dans le fichier Office (rapide)
+        $result = $this->extractEmbeddedThumbnail($sourcePath, $documentId, $width, $height);
+        if ($result) {
+            return $result;
+        }
+
+        // Méthode 2: OnlyOffice (préféré si disponible)
         if ($this->onlyOfficeService->isAvailable()) {
             $result = $this->generateViaOnlyOffice($sourcePath, $documentId, $width, $height);
             if ($result) {
@@ -113,14 +119,195 @@ class OfficeThumbnailService
             error_log("OfficeThumbnailService: OnlyOffice conversion failed, trying fallback");
         }
 
-        // Méthode 2: Fallback PDF tools (si disponibles)
-        return $this->generateViaFallback($sourcePath, $documentId, $width, $height);
+        // Méthode 3: Fallback PDF tools via LibreOffice (si disponibles)
+        $result = $this->generateViaFallback($sourcePath, $documentId, $width, $height);
+        if ($result) {
+            return $result;
+        }
+
+        // Méthode 4: Générer une icône de type fichier
+        return $this->generateFileTypeIcon($sourcePath, $documentId, $width, $height);
     }
 
     /**
      * Génère une miniature via OnlyOffice Conversion API
+     * Essaie d'abord l'upload direct (multipart), puis fallback sur URL
      */
     private function generateViaOnlyOffice(string $sourcePath, int $documentId, int $width, int $height): ?string
+    {
+        // Méthode 1: Upload direct via multipart (ne nécessite pas de callback URL)
+        $result = $this->generateViaOnlyOfficeUpload($sourcePath, $documentId, $width, $height);
+        if ($result) {
+            return $result;
+        }
+
+        // Méthode 2: Via URL de callback (fallback)
+        return $this->generateViaOnlyOfficeUrl($sourcePath, $documentId, $width, $height);
+    }
+
+    /**
+     * Génère une miniature via OnlyOffice avec upload direct du fichier
+     */
+    private function generateViaOnlyOfficeUpload(string $sourcePath, int $documentId, int $width, int $height): ?string
+    {
+        $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
+        $ext = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
+        $serverUrl = $this->onlyOfficeService->getServerUrl();
+
+        // OnlyOffice Document Server supporte l'upload via /ConvertService.ashx avec multipart
+        // On doit d'abord uploader le fichier, puis demander la conversion
+
+        // Utiliser cURL pour l'upload multipart
+        $ch = curl_init();
+
+        // Créer le payload JSON pour la conversion
+        $conversionPayload = [
+            'async' => false,
+            'filetype' => $ext,
+            'key' => 'thumb_' . $documentId . '_' . time() . '_' . mt_rand(1000, 9999),
+            'outputtype' => 'png',
+            'thumbnail' => [
+                'aspect' => 2, // 2 = fit (conserve proportions)
+                'first' => true,
+                'height' => $height,
+                'width' => $width
+            ]
+        ];
+
+        // Ajouter JWT si configuré
+        $config = Config::load();
+        $jwtSecret = $config['onlyoffice']['jwt_secret'] ?? '';
+        $headers = [];
+
+        if (!empty($jwtSecret)) {
+            $token = $this->generateJWT($conversionPayload, $jwtSecret);
+            $conversionPayload['token'] = $token;
+            $headers[] = 'Authorization: Bearer ' . $token;
+        }
+
+        // Lire le fichier
+        $fileContent = file_get_contents($sourcePath);
+        if ($fileContent === false) {
+            error_log("OfficeThumbnailService: Cannot read file: " . $sourcePath);
+            return null;
+        }
+
+        // Encoder en base64 pour l'inclure dans le JSON (méthode alternative)
+        // Mais OnlyOffice préfère l'upload direct...
+
+        // Essayons la méthode avec fichier temporaire accessible via data URI
+        // OnlyOffice accepte aussi les data URIs pour les petits fichiers
+
+        // Pour les fichiers > quelques MB, on doit utiliser l'upload
+        $fileSize = filesize($sourcePath);
+
+        // Si fichier < 5MB, essayer avec data URI
+        if ($fileSize < 5 * 1024 * 1024) {
+            $base64Content = base64_encode($fileContent);
+            $dataUri = 'data:application/octet-stream;base64,' . $base64Content;
+
+            // Malheureusement OnlyOffice ne supporte pas les data URI...
+            // On doit donc utiliser un serveur temporaire ou héberger le fichier
+        }
+
+        // Alternative: Copier le fichier dans un dossier web accessible temporairement
+        $tempWebPath = $this->tempPath . '/onlyoffice_' . $documentId . '_' . time() . '.' . $ext;
+        if (!copy($sourcePath, $tempWebPath)) {
+            error_log("OfficeThumbnailService: Cannot copy to temp: " . $tempWebPath);
+            return null;
+        }
+
+        // Construire l'URL temporaire accessible par Docker
+        // Essayer plusieurs méthodes
+        $possibleUrls = [];
+
+        // 1. Via host.docker.internal
+        $appUrl = $config['onlyoffice']['callback_url'] ?? $config['app']['url'] ?? '';
+        $appUrl = rtrim($appUrl, '/');
+        $tempFileName = basename($tempWebPath);
+
+        // Le fichier temp est dans storage/temp, on doit le rendre accessible
+        // Créer un lien symbolique ou copier dans public
+        $publicTempDir = dirname(__DIR__, 2) . '/public/temp';
+        if (!is_dir($publicTempDir)) {
+            @mkdir($publicTempDir, 0755, true);
+        }
+        $publicTempPath = $publicTempDir . '/' . $tempFileName;
+        @copy($tempWebPath, $publicTempPath);
+
+        // URL accessible
+        $tempUrl = $appUrl . '/temp/' . $tempFileName;
+        $conversionPayload['url'] = $tempUrl;
+
+        // Recalculer JWT avec l'URL
+        if (!empty($jwtSecret)) {
+            $token = $this->generateJWT($conversionPayload, $jwtSecret);
+            $conversionPayload['token'] = $token;
+            $headers = ['Authorization: Bearer ' . $token];
+        }
+
+        $convertUrl = $serverUrl . '/ConvertService.ashx';
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $convertUrl,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($conversionPayload),
+            CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $headers),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        // Nettoyer les fichiers temporaires
+        @unlink($tempWebPath);
+        @unlink($publicTempPath);
+
+        if ($response === false) {
+            error_log("OfficeThumbnailService: cURL error: " . $curlError);
+            return null;
+        }
+
+        // Parser la réponse (peut être JSON ou XML)
+        $result = json_decode($response, true);
+        if (!$result) {
+            // Essayer XML
+            if (preg_match('/<FileUrl>(.+?)<\/FileUrl>/i', $response, $matches)) {
+                $result = ['fileUrl' => html_entity_decode($matches[1])];
+            } elseif (preg_match('/<Error>(.+?)<\/Error>/i', $response, $matches)) {
+                error_log("OfficeThumbnailService: OnlyOffice XML error: " . $matches[1]);
+                return null;
+            }
+        }
+
+        if (isset($result['error']) && $result['error'] !== 0) {
+            error_log("OfficeThumbnailService: OnlyOffice error code: " . $result['error'] . " - Response: " . $response);
+            return null;
+        }
+
+        $fileUrl = $result['fileUrl'] ?? $result['FileUrl'] ?? null;
+        if ($fileUrl) {
+            // Télécharger l'image générée
+            $imageData = @file_get_contents($fileUrl);
+            if ($imageData !== false && strlen($imageData) > 100) {
+                file_put_contents($thumbnailPath, $imageData);
+                error_log("OfficeThumbnailService: Thumbnail generated successfully via upload method");
+                return $thumbnailPath;
+            }
+        }
+
+        error_log("OfficeThumbnailService: Upload method failed, response: " . substr($response, 0, 500));
+        return null;
+    }
+
+    /**
+     * Génère une miniature via OnlyOffice avec URL de callback (méthode originale)
+     */
+    private function generateViaOnlyOfficeUrl(string $sourcePath, int $documentId, int $width, int $height): ?string
     {
         $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
 
@@ -381,5 +568,233 @@ class OfficeThumbnailService
             return @unlink($thumbnailPath);
         }
         return true;
+    }
+
+    /**
+     * Extrait la miniature intégrée dans les fichiers Office (DOCX, XLSX, PPTX sont des ZIP)
+     */
+    private function extractEmbeddedThumbnail(string $sourcePath, int $documentId, int $width, int $height): ?string
+    {
+        $ext = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
+
+        // Seuls les formats Office Open XML ont des miniatures intégrées
+        if (!in_array($ext, ['docx', 'xlsx', 'pptx'])) {
+            return null;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($sourcePath) !== true) {
+            return null;
+        }
+
+        $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
+        $tempPath = $this->tempPath . '/' . $documentId . '_temp_thumb';
+        $thumbnailFound = false;
+
+        // Chercher la miniature intégrée (docProps/thumbnail.*)
+        $embeddedPaths = [
+            'docProps/thumbnail.jpeg',
+            'docProps/thumbnail.png',
+            'docProps/thumbnail.wmf',
+            'docProps/thumbnail.emf',
+        ];
+
+        foreach ($embeddedPaths as $path) {
+            $content = $zip->getFromName($path);
+            if ($content !== false && strlen($content) > 100) {
+                $tempFile = $tempPath . '.' . pathinfo($path, PATHINFO_EXTENSION);
+                file_put_contents($tempFile, $content);
+
+                // Convertir en PNG si nécessaire
+                if ($this->convertToThumbnail($tempFile, $thumbnailPath, $width, $height)) {
+                    @unlink($tempFile);
+                    $thumbnailFound = true;
+                    break;
+                }
+                @unlink($tempFile);
+            }
+        }
+
+        // Si pas de miniature intégrée, essayer avec la première image du document
+        if (!$thumbnailFound) {
+            $firstImage = $this->findFirstImageInZip($zip);
+            if ($firstImage) {
+                $content = $zip->getFromName($firstImage);
+                if ($content !== false && strlen($content) > 1000) {
+                    $tempFile = $tempPath . '.' . pathinfo($firstImage, PATHINFO_EXTENSION);
+                    file_put_contents($tempFile, $content);
+
+                    if ($this->convertToThumbnail($tempFile, $thumbnailPath, $width, $height)) {
+                        @unlink($tempFile);
+                        $thumbnailFound = true;
+                    }
+                    @unlink($tempFile);
+                }
+            }
+        }
+
+        $zip->close();
+
+        return $thumbnailFound && file_exists($thumbnailPath) ? $thumbnailPath : null;
+    }
+
+    /**
+     * Trouve la meilleure image dans un fichier ZIP Office
+     * Préfère les images plus grandes (vraies images, pas des icônes)
+     */
+    private function findFirstImageInZip(\ZipArchive $zip): ?string
+    {
+        $candidates = [];
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            // Chercher dans word/media/, xl/media/, ppt/media/
+            if (preg_match('/^(word|xl|ppt)\/media\/image\d+\.(png|jpg|jpeg)$/i', $name)) {
+                $stat = $zip->statIndex($i);
+                $size = $stat['size'] ?? 0;
+                // Ignorer les images trop petites (< 5KB = probablement des icônes)
+                if ($size > 5000) {
+                    $candidates[] = ['name' => $name, 'size' => $size];
+                }
+            }
+        }
+
+        if (empty($candidates)) {
+            return null;
+        }
+
+        // Trier par taille décroissante (préférer les grandes images)
+        usort($candidates, fn($a, $b) => $b['size'] <=> $a['size']);
+
+        // Prendre la plus grande image, mais pas trop grande (limiter à 500KB)
+        foreach ($candidates as $c) {
+            if ($c['size'] < 500000) {
+                return $c['name'];
+            }
+        }
+
+        // Sinon prendre la première grande image
+        return $candidates[0]['name'];
+    }
+
+    /**
+     * Convertit une image en miniature PNG redimensionnée
+     */
+    private function convertToThumbnail(string $sourcePath, string $destPath, int $width, int $height): bool
+    {
+        if (!file_exists($sourcePath)) {
+            return false;
+        }
+
+        // Essayer avec GD (toujours disponible en PHP)
+        $imageInfo = @getimagesize($sourcePath);
+        if ($imageInfo === false) {
+            return false;
+        }
+
+        $sourceWidth = $imageInfo[0];
+        $sourceHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+
+        // Charger l'image source
+        $sourceImage = match($mimeType) {
+            'image/jpeg' => @imagecreatefromjpeg($sourcePath),
+            'image/png' => @imagecreatefrompng($sourcePath),
+            'image/gif' => @imagecreatefromgif($sourcePath),
+            default => false
+        };
+
+        if ($sourceImage === false) {
+            return false;
+        }
+
+        // Calculer les dimensions en préservant le ratio
+        $ratio = min($width / $sourceWidth, $height / $sourceHeight);
+        $newWidth = (int)($sourceWidth * $ratio);
+        $newHeight = (int)($sourceHeight * $ratio);
+
+        // Créer la miniature
+        $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Préserver la transparence pour PNG
+        imagealphablending($thumbnail, false);
+        imagesavealpha($thumbnail, true);
+        $transparent = imagecolorallocatealpha($thumbnail, 255, 255, 255, 127);
+        imagefilledrectangle($thumbnail, 0, 0, $newWidth, $newHeight, $transparent);
+        imagealphablending($thumbnail, true);
+
+        // Redimensionner
+        imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $sourceWidth, $sourceHeight);
+
+        // Sauvegarder en PNG
+        $result = imagepng($thumbnail, $destPath, 8);
+
+        imagedestroy($sourceImage);
+        imagedestroy($thumbnail);
+
+        return $result;
+    }
+
+    /**
+     * Génère une icône de type fichier comme fallback final
+     */
+    private function generateFileTypeIcon(string $sourcePath, int $documentId, int $width, int $height): ?string
+    {
+        $ext = strtoupper(pathinfo($sourcePath, PATHINFO_EXTENSION));
+        $thumbnailPath = $this->thumbnailsPath . '/' . $documentId . '_thumb.png';
+
+        // Couleurs par type de fichier
+        $colors = [
+            'DOCX' => ['bg' => [41, 98, 255], 'fg' => [255, 255, 255]],   // Bleu Word
+            'DOC'  => ['bg' => [41, 98, 255], 'fg' => [255, 255, 255]],
+            'ODT'  => ['bg' => [41, 98, 255], 'fg' => [255, 255, 255]],
+            'RTF'  => ['bg' => [41, 98, 255], 'fg' => [255, 255, 255]],
+            'XLSX' => ['bg' => [33, 115, 70], 'fg' => [255, 255, 255]],   // Vert Excel
+            'XLS'  => ['bg' => [33, 115, 70], 'fg' => [255, 255, 255]],
+            'ODS'  => ['bg' => [33, 115, 70], 'fg' => [255, 255, 255]],
+            'CSV'  => ['bg' => [33, 115, 70], 'fg' => [255, 255, 255]],
+            'PPTX' => ['bg' => [209, 71, 38], 'fg' => [255, 255, 255]],   // Orange PowerPoint
+            'PPT'  => ['bg' => [209, 71, 38], 'fg' => [255, 255, 255]],
+            'ODP'  => ['bg' => [209, 71, 38], 'fg' => [255, 255, 255]],
+        ];
+
+        $color = $colors[$ext] ?? ['bg' => [128, 128, 128], 'fg' => [255, 255, 255]];
+
+        // Créer l'image
+        $image = imagecreatetruecolor($width, $height);
+
+        // Fond blanc
+        $white = imagecolorallocate($image, 255, 255, 255);
+        imagefilledrectangle($image, 0, 0, $width, $height, $white);
+
+        // Rectangle coloré au centre (style icône)
+        $bgColor = imagecolorallocate($image, $color['bg'][0], $color['bg'][1], $color['bg'][2]);
+        $fgColor = imagecolorallocate($image, $color['fg'][0], $color['fg'][1], $color['fg'][2]);
+
+        $padding = 20;
+        $iconWidth = $width - (2 * $padding);
+        $iconHeight = $height - (2 * $padding);
+
+        // Rectangle arrondi simulé (rectangle simple pour compatibilité)
+        imagefilledrectangle($image, $padding, $padding, $width - $padding, $height - $padding, $bgColor);
+
+        // Texte de l'extension au centre
+        $fontSize = 5; // Taille de police GD intégrée (1-5)
+        $textWidth = imagefontwidth($fontSize) * strlen($ext);
+        $textHeight = imagefontheight($fontSize);
+        $textX = ($width - $textWidth) / 2;
+        $textY = ($height - $textHeight) / 2;
+
+        imagestring($image, $fontSize, (int)$textX, (int)$textY, $ext, $fgColor);
+
+        // Bordure légère
+        $borderColor = imagecolorallocate($image, 200, 200, 200);
+        imagerectangle($image, 0, 0, $width - 1, $height - 1, $borderColor);
+
+        // Sauvegarder
+        $result = imagepng($image, $thumbnailPath);
+        imagedestroy($image);
+
+        return $result ? $thumbnailPath : null;
     }
 }

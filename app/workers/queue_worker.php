@@ -19,6 +19,7 @@ require_once __DIR__ . '/../autoload.php';
 use n0nag0n\Job_Queue;
 use KDocs\Core\Database;
 use KDocs\Services\IndexingService;
+use KDocs\Jobs\EmbedDocumentJob;
 use KDocs\Core\Config;
 
 // Configuration
@@ -51,6 +52,22 @@ $indexing = new IndexingService();
 
 $jobsProcessed = 0;
 $startTime = time();
+$lockFile = __DIR__ . '/../../storage/queue_worker.lock';
+$lastLockUpdate = 0;
+
+// Créer le fichier lock initial
+file_put_contents($lockFile, json_encode([
+    'pid' => getmypid(),
+    'started' => date('c'),
+    'jobs' => 0
+]));
+
+// Nettoyer le lock à la fin du script
+register_shutdown_function(function() use ($lockFile) {
+    if (file_exists($lockFile)) {
+        @unlink($lockFile);
+    }
+});
 
 echo "[QueueWorker] Démarré - PID: " . getmypid() . "\n";
 echo "[QueueWorker] Pipelines: " . implode(', ', $config['pipelines']) . "\n";
@@ -203,11 +220,33 @@ while ($jobsProcessed < $config['max_jobs']) {
         }
     }
     
+    // =====================================================
+    // 3. Process embedding jobs
+    // =====================================================
+    if (!$jobFound) {
+        try {
+            $embeddingResult = EmbedDocumentJob::processPending(5);
+            if ($embeddingResult['total'] > 0) {
+                $jobFound = true;
+                $jobsProcessed += $embeddingResult['processed'];
+                echo "[QueueWorker] Embeddings: processed={$embeddingResult['processed']}, failed={$embeddingResult['failed']}\n";
+            }
+        } catch (\Exception $e) {
+            error_log("[QueueWorker] Embedding processing error: " . $e->getMessage());
+        }
+    }
+
     // Pause si aucun job trouvé
     if (!$jobFound) {
         usleep($config['sleep_time']);
     }
-    
+
+    // Mettre à jour le fichier lock toutes les 30 secondes
+    if (time() - $lastLockUpdate > 30) {
+        @touch($lockFile);
+        $lastLockUpdate = time();
+    }
+
     // Vérifier le temps d'exécution (arrêter après 1 heure pour éviter les memory leaks)
     if (time() - $startTime > 3600) {
         echo "[QueueWorker] Arrêt après 1 heure d'exécution\n";

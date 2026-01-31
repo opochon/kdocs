@@ -1,25 +1,19 @@
-version: '3.8'
-
 services:
+  # ══════════════════════════════════════════════════════════════
+  # OnlyOffice Document Server
+  # Prévisualisation et édition de documents Office
+  # ══════════════════════════════════════════════════════════════
   onlyoffice:
     image: onlyoffice/documentserver:latest
     container_name: kdocs-onlyoffice
-    restart: unless-stopped
     ports:
       - "8080:80"
     environment:
-      # Désactiver JWT pour simplifier le développement local
       - JWT_ENABLED=false
-      # Ou si vous voulez JWT:
-      # - JWT_SECRET=your-secret-key-here
-      # - JWT_HEADER=Authorization
     volumes:
-      - onlyoffice_data:/var/www/onlyoffice/Data
-      - onlyoffice_log:/var/log/onlyoffice
-      - onlyoffice_fonts:/usr/share/fonts/truetype/custom
-    extra_hosts:
-      # Permet au conteneur d'accéder à localhost Windows
-      - "host.docker.internal:host-gateway"
+      - kdocs_onlyoffice_data:/var/www/onlyoffice/Data
+      - kdocs_onlyoffice_logs:/var/log/onlyoffice
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/healthcheck"]
       interval: 30s
@@ -27,7 +21,35 @@ services:
       retries: 3
       start_period: 60s
 
+  # ══════════════════════════════════════════════════════════════
+  # Qdrant Vector Database
+  # Recherche sémantique par embeddings
+  # ══════════════════════════════════════════════════════════════
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: kdocs-qdrant
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - kdocs_qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
-  onlyoffice_data:
-  onlyoffice_log:
-  onlyoffice_fonts:
+  kdocs_onlyoffice_data:
+    name: kdocs_onlyoffice_data
+  kdocs_onlyoffice_logs:
+    name: kdocs_onlyoffice_logs
+  kdocs_qdrant_storage:
+    name: kdocs_qdrant_storage
+
+networks:
+  default:
+    name: kdocs_network

@@ -351,6 +351,7 @@ class EmbeddingService
 
     /**
      * Embed text using Ollama (local embedding)
+     * Uses adaptive truncation if context limit is exceeded
      */
     private function embedWithLocal(string $text): ?array
     {
@@ -359,40 +360,68 @@ class EmbeddingService
 
         $url = rtrim($ollamaUrl, '/') . '/api/embeddings';
 
-        $payload = [
-            'model' => $model,
-            'prompt' => $text,
-        ];
+        // Clean text for JSON encoding (fix invalid UTF-8)
+        $text = $this->sanitizeForJson($text);
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-            CURLOPT_TIMEOUT => 60,
-        ]);
+        // Adaptive truncation: try with decreasing sizes if context limit exceeded
+        $sizes = [mb_strlen($text), 5000, 4000, 3000, 2000];
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        foreach ($sizes as $maxSize) {
+            $truncatedText = mb_strlen($text) > $maxSize
+                ? mb_substr($text, 0, $maxSize) . '...'
+                : $text;
 
-        if ($error) {
-            throw new \Exception('Ollama connection error: ' . $error);
+            $payload = [
+                'model' => $model,
+                'prompt' => $truncatedText,
+            ];
+
+            $json = json_encode($payload, JSON_INVALID_UTF8_SUBSTITUTE);
+            if ($json === false) {
+                throw new \Exception('JSON encoding failed: ' . json_last_error_msg());
+            }
+
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $json,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_TIMEOUT => 120,
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error) {
+                throw new \Exception('Ollama connection error: ' . $error);
+            }
+
+            // If context limit exceeded, try smaller size
+            if ($httpCode === 500) {
+                $data = json_decode($response, true);
+                if (isset($data['error']) && str_contains($data['error'], 'context length')) {
+                    continue; // Try next smaller size
+                }
+                throw new \Exception('Ollama API error: HTTP ' . $httpCode);
+            }
+
+            if ($httpCode !== 200) {
+                throw new \Exception('Ollama API error: HTTP ' . $httpCode);
+            }
+
+            $data = json_decode($response, true);
+
+            if (!isset($data['embedding'])) {
+                throw new \Exception('Invalid Ollama response format');
+            }
+
+            return $data['embedding'];
         }
 
-        if ($httpCode !== 200) {
-            throw new \Exception('Ollama API error: HTTP ' . $httpCode);
-        }
-
-        $data = json_decode($response, true);
-
-        if (!isset($data['embedding'])) {
-            throw new \Exception('Invalid Ollama response format');
-        }
-
-        return $data['embedding'];
+        throw new \Exception('Text too long for embedding even at minimum size');
     }
 
     /**
@@ -446,14 +475,37 @@ class EmbeddingService
      */
     private function truncateText(string $text, int $maxTokens): string
     {
-        // Rough estimation: 1 token ≈ 4 characters for English, 2-3 for French
-        $maxChars = $maxTokens * 3;
+        // For nomic-embed-text (Ollama):
+        // - Context window: 8192 tokens
+        // - French/non-ASCII text: ~1 char per token (aggressive tokenization)
+        // - Safe limit: 6000 chars for Ollama (tested empirically)
+        if ($this->provider === 'ollama' || $this->provider === 'local') {
+            $maxChars = 6000;
+        } else {
+            // OpenAI: ~4 chars per token, 8192 token limit
+            $maxChars = min($maxTokens, 8000) * 4;
+        }
 
         if (mb_strlen($text) <= $maxChars) {
             return $text;
         }
 
         return mb_substr($text, 0, $maxChars) . '...';
+    }
+
+    /**
+     * Sanitize text for JSON encoding
+     * Fixes invalid UTF-8 sequences and removes control characters
+     */
+    private function sanitizeForJson(string $text): string
+    {
+        // Convert to UTF-8 and remove invalid sequences
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+
+        // Remove control characters except newline and tab
+        $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text);
+
+        return $text;
     }
 
     /**

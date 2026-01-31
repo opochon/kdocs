@@ -3,6 +3,8 @@ namespace KDocs\Controllers\Api;
 
 use KDocs\Services\AISearchService;
 use KDocs\Services\NaturalLanguageQueryService;
+use KDocs\Services\VectorSearchService;
+use KDocs\Core\Config;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -10,11 +12,13 @@ class SearchApiController extends ApiController
 {
     private AISearchService $searchService;
     private NaturalLanguageQueryService $nlQueryService;
-    
+    private VectorSearchService $vectorService;
+
     public function __construct()
     {
         $this->searchService = new AISearchService();
         $this->nlQueryService = new NaturalLanguageQueryService();
+        $this->vectorService = new VectorSearchService();
     }
     
     /**

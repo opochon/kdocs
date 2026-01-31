@@ -9,7 +9,7 @@
     <meta name="base-url" content="<?= \KDocs\Core\Config::basePath() ?>">
     <?= \KDocs\Core\CSRF::metaTag() ?>
     <title><?= htmlspecialchars($title ?? 'K-Docs') ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/kdocs/public/css/tailwind.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/kdocs/public/css/app.css">
     <script src="/kdocs/public/js/app.js"></script>

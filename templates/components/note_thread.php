@@ -121,7 +121,7 @@ async function replyToThread(event) {
             document.getElementById('replyMessage').value = '';
             location.reload(); // Refresh to show new reply
         } else {
-            alert(result.error || 'Erreur lors de l\'envoi');
+            alert(result.message || 'Erreur lors de l\'envoi');
         }
     } catch (error) {
         console.error('Error replying:', error);
@@ -141,7 +141,7 @@ async function markNoteActionComplete(noteId) {
         if (result.success) {
             location.reload();
         } else {
-            alert(result.error || 'Erreur');
+            alert(result.message || 'Erreur');
         }
     } catch (error) {
         console.error('Error completing action:', error);

@@ -6,11 +6,12 @@
 
 namespace KDocs\Services;
 
+use KDocs\Contracts\WebhookServiceInterface;
 use KDocs\Models\Webhook;
 use KDocs\Core\Database;
 use PDO;
 
-class WebhookService
+class WebhookService implements WebhookServiceInterface
 {
     private $webhookModel;
     private $db;

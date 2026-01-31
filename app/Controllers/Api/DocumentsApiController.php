@@ -182,11 +182,31 @@ class DocumentsApiController extends ApiController
         $formatted['can_validate'] = $canValidate;
         $formatted['ai_available'] = $aiAvailable;
 
+        // Récupérer les dossiers logiques
+        $logicalFolders = [];
+        try {
+            $logicalFolders = \KDocs\Models\LogicalFolder::getAll();
+        } catch (\Exception $e) {}
+
+        // Récupérer les champs personnalisés
+        $customFields = [];
+        $customFieldValues = [];
+        try {
+            $customFields = \KDocs\Models\CustomField::all();
+            $customFieldValues = \KDocs\Models\CustomField::getValuesForDocument($id);
+        } catch (\Exception $e) {}
+
+        $formatted['custom_field_values'] = $customFieldValues;
+        $formatted['logical_folder_id'] = $document['logical_folder_id'] ?? null;
+        $formatted['storage_path'] = $document['storage_path'] ?? $document['relative_path'] ?? null;
+
         // Ajouter les listes de référence
         $formatted['_meta'] = [
             'correspondents' => $correspondents,
             'document_types' => $documentTypes,
-            'all_tags' => $allTags
+            'all_tags' => $allTags,
+            'logical_folders' => $logicalFolders,
+            'custom_fields' => $customFields
         ];
 
         return $this->successResponse($response, $formatted);
@@ -279,7 +299,24 @@ class DocumentsApiController extends ApiController
                 $updateFields[] = 'currency = ?';
                 $updateParams[] = $data['currency'];
             }
-            
+
+            if (isset($data['ocr_text'])) {
+                $updateFields[] = 'ocr_text = ?';
+                $updateFields[] = 'content = ?';
+                $updateParams[] = $data['ocr_text'];
+                $updateParams[] = $data['ocr_text'];
+            }
+
+            if (isset($data['logical_folder_id'])) {
+                $updateFields[] = 'logical_folder_id = ?';
+                $updateParams[] = $data['logical_folder_id'] ? (int)$data['logical_folder_id'] : null;
+            }
+
+            if (isset($data['storage_path'])) {
+                $updateFields[] = 'storage_path = ?';
+                $updateParams[] = $data['storage_path'] ?: null;
+            }
+
             if (!empty($updateFields)) {
                 $updateFields[] = 'updated_at = NOW()';
                 $updateParams[] = $id;
@@ -299,7 +336,17 @@ class DocumentsApiController extends ApiController
                     }
                 }
             }
-            
+
+            // Gérer les champs personnalisés
+            if (isset($data['custom_field_values']) && is_array($data['custom_field_values'])) {
+                foreach ($data['custom_field_values'] as $fieldId => $value) {
+                    $fieldId = (int)$fieldId;
+                    if ($fieldId > 0) {
+                        \KDocs\Models\CustomField::setValue($id, $fieldId, $value);
+                    }
+                }
+            }
+
             $db->commit();
             
             $updated = Document::findById($id);
@@ -596,10 +643,355 @@ class DocumentsApiController extends ApiController
     }
     
     /**
+     * GET /api/documents/{id}/content
+     * Get document text content (OCR)
+     */
+    public function content(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare("SELECT id, ocr_text, content FROM documents WHERE id = ? AND deleted_at IS NULL");
+        $stmt->execute([$id]);
+        $doc = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$doc) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        return $this->successResponse($response, [
+            'document_id' => $id,
+            'content' => $doc['ocr_text'] ?? $doc['content'] ?? '',
+            'has_content' => !empty($doc['ocr_text']) || !empty($doc['content']),
+        ]);
+    }
+
+    /**
+     * GET /api/documents/{id}/thumbnail
+     * Get document thumbnail URL or redirect
+     */
+    public function thumbnail(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $thumbPath = __DIR__ . '/../../../storage/thumbnails/' . $id . '_thumb.png';
+
+        if (!file_exists($thumbPath)) {
+            return $this->errorResponse($response, 'Thumbnail non trouvé', 404);
+        }
+
+        // Return the thumbnail file
+        $response = $response->withHeader('Content-Type', 'image/png');
+        $response = $response->withHeader('Cache-Control', 'public, max-age=86400');
+        $response->getBody()->write(file_get_contents($thumbPath));
+
+        return $response;
+    }
+
+    /**
+     * GET /api/documents/{id}/download
+     * Download document file
+     */
+    public function download(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $doc = Document::findById($id);
+
+        if (!$doc || $doc['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        $filePath = $doc['file_path'];
+        if (!file_exists($filePath)) {
+            return $this->errorResponse($response, 'Fichier non trouvé', 404);
+        }
+
+        $filename = $doc['original_filename'] ?? basename($filePath);
+        $mimeType = $doc['mime_type'] ?? mime_content_type($filePath) ?? 'application/octet-stream';
+
+        $response = $response->withHeader('Content-Type', $mimeType);
+        $response = $response->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response = $response->withHeader('Content-Length', filesize($filePath));
+        $response->getBody()->write(file_get_contents($filePath));
+
+        return $response;
+    }
+
+    /**
+     * POST /api/documents/{id}/ocr
+     * Trigger OCR processing for a document
+     */
+    public function triggerOcr(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $doc = Document::findById($id);
+
+        if (!$doc || $doc['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        $filePath = $doc['file_path'];
+        if (!file_exists($filePath)) {
+            return $this->errorResponse($response, 'Fichier non trouvé', 404);
+        }
+
+        try {
+            $ocrService = new \KDocs\Services\OCRService();
+            $text = $ocrService->extractText($filePath);
+
+            if ($text) {
+                $db = Database::getInstance();
+                $stmt = $db->prepare("UPDATE documents SET ocr_text = ?, content = ?, updated_at = NOW() WHERE id = ?");
+                $stmt->execute([$text, $text, $id]);
+
+                return $this->successResponse($response, [
+                    'document_id' => $id,
+                    'text_length' => strlen($text),
+                    'preview' => mb_substr($text, 0, 500) . (strlen($text) > 500 ? '...' : ''),
+                ], 'OCR terminé avec succès');
+            }
+
+            return $this->errorResponse($response, 'OCR n\'a pas pu extraire de texte');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, 'Erreur OCR: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/documents/{id}/tags
+     * Add tags to a document
+     */
+    public function addTags(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $data = json_decode($request->getBody()->getContents(), true);
+        $tagIds = $data['tag_ids'] ?? [];
+
+        if (!is_array($tagIds) || empty($tagIds)) {
+            return $this->errorResponse($response, 'tag_ids requis (array)');
+        }
+
+        $db = Database::getInstance();
+
+        try {
+            foreach ($tagIds as $tagId) {
+                $tagId = (int)$tagId;
+                if ($tagId > 0) {
+                    $stmt = $db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)");
+                    $stmt->execute([$id, $tagId]);
+                }
+            }
+
+            // Get updated tags
+            $stmt = $db->prepare("SELECT t.id, t.name, t.color FROM tags t INNER JOIN document_tags dt ON t.id = dt.tag_id WHERE dt.document_id = ?");
+            $stmt->execute([$id]);
+            $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->successResponse($response, ['tags' => $tags], 'Tags ajoutés');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * DELETE /api/documents/{id}/tags/{tagId}
+     * Remove a tag from a document
+     */
+    public function removeTag(Request $request, Response $response, array $args): Response
+    {
+        $docId = (int)$args['id'];
+        $tagId = (int)$args['tagId'];
+
+        $db = Database::getInstance();
+
+        try {
+            $stmt = $db->prepare("DELETE FROM document_tags WHERE document_id = ? AND tag_id = ?");
+            $stmt->execute([$docId, $tagId]);
+
+            return $this->successResponse($response, null, 'Tag retiré');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * PUT /api/documents/{id}/type
+     * Update document type
+     */
+    public function updateType(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $data = json_decode($request->getBody()->getContents(), true);
+        $typeId = isset($data['document_type_id']) ? (int)$data['document_type_id'] : null;
+
+        $db = Database::getInstance();
+
+        try {
+            $stmt = $db->prepare("UPDATE documents SET document_type_id = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$typeId ?: null, $id]);
+
+            return $this->successResponse($response, ['document_type_id' => $typeId], 'Type mis à jour');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * PUT /api/documents/{id}/correspondent
+     * Update document correspondent
+     */
+    public function updateCorrespondent(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $data = json_decode($request->getBody()->getContents(), true);
+        $correspondentId = isset($data['correspondent_id']) ? (int)$data['correspondent_id'] : null;
+
+        $db = Database::getInstance();
+
+        try {
+            $stmt = $db->prepare("UPDATE documents SET correspondent_id = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$correspondentId ?: null, $id]);
+
+            return $this->successResponse($response, ['correspondent_id' => $correspondentId], 'Correspondant mis à jour');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * PUT /api/documents/{id}/fields
+     * Update multiple document fields at once
+     */
+    public function updateFields(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        $allowedFields = ['title', 'document_type_id', 'correspondent_id', 'document_date', 'amount', 'currency'];
+        $updates = [];
+        $params = [];
+
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updates[] = "$field = ?";
+                $value = $data[$field];
+
+                // Handle nullable integers
+                if (in_array($field, ['document_type_id', 'correspondent_id'])) {
+                    $value = $value ? (int)$value : null;
+                }
+                // Handle nullable floats
+                if ($field === 'amount') {
+                    $value = $value ? (float)$value : null;
+                }
+
+                $params[] = $value;
+            }
+        }
+
+        if (empty($updates)) {
+            return $this->errorResponse($response, 'Aucun champ à mettre à jour');
+        }
+
+        $updates[] = 'updated_at = NOW()';
+        $params[] = $id;
+
+        $db = Database::getInstance();
+
+        try {
+            $sql = "UPDATE documents SET " . implode(', ', $updates) . " WHERE id = ?";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+
+            $updated = Document::findById($id);
+            return $this->successResponse($response, $this->formatDocument($updated), 'Document mis à jour');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/documents/{id}/classify
+     * Trigger classification for a document
+     */
+    public function classify(Request $request, Response $response, array $args): Response
+    {
+        $id = (int)$args['id'];
+        $data = json_decode($request->getBody()->getContents(), true) ?? [];
+        $apply = $data['apply'] ?? false;
+
+        $doc = Document::findById($id);
+        if (!$doc || $doc['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        try {
+            $classificationService = new \KDocs\Services\ClassificationService();
+            $result = $classificationService->classify($id);
+
+            if ($apply && !empty($result['final'])) {
+                // Apply classification
+                $db = Database::getInstance();
+                $updates = [];
+                $params = [];
+
+                if (!empty($result['final']['document_type_id'])) {
+                    $updates[] = 'document_type_id = ?';
+                    $params[] = $result['final']['document_type_id'];
+                }
+                if (!empty($result['final']['correspondent_id'])) {
+                    $updates[] = 'correspondent_id = ?';
+                    $params[] = $result['final']['correspondent_id'];
+                }
+                if (!empty($result['final']['doc_date'])) {
+                    $updates[] = 'document_date = ?';
+                    $params[] = $result['final']['doc_date'];
+                }
+
+                if (!empty($updates)) {
+                    $updates[] = 'classification_suggestions = ?';
+                    $params[] = json_encode($result);
+                    $updates[] = 'updated_at = NOW()';
+                    $params[] = $id;
+
+                    $sql = "UPDATE documents SET " . implode(', ', $updates) . " WHERE id = ?";
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute($params);
+                }
+
+                // Add tags if any
+                if (!empty($result['final']['tag_ids'])) {
+                    foreach ($result['final']['tag_ids'] as $tagId) {
+                        $stmt = $db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)");
+                        $stmt->execute([$id, $tagId]);
+                    }
+                }
+            }
+
+            return $this->successResponse($response, [
+                'document_id' => $id,
+                'classification' => $result,
+                'applied' => $apply,
+            ], $apply ? 'Classification appliquée' : 'Classification terminée');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, 'Erreur classification: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Formate un document pour l'API
      */
     private function formatDocument(array $document): array
     {
+        $config = \KDocs\Core\Config::load();
+        $basePath = rtrim($config['app']['url'] ?? '', '/');
+
         return [
             'id' => (int)$document['id'],
             'title' => $document['title'],
@@ -618,6 +1010,9 @@ class DocumentsApiController extends ApiController
             'created_at' => $document['created_at'],
             'updated_at' => $document['updated_at'],
             'asn' => $document['asn'] ? (int)$document['asn'] : null,
+            'thumbnail_url' => $basePath . '/documents/' . $document['id'] . '/thumbnail',
+            'view_url' => $basePath . '/documents/' . $document['id'] . '/view',
+            'download_url' => $basePath . '/documents/' . $document['id'] . '/download',
         ];
     }
 }

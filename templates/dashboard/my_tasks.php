@@ -13,7 +13,7 @@ $base = Config::basePath();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'Mes Tâches') ?> - K-Docs</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/kdocs/public/css/tailwind.css">
 </head>
 <body class="bg-gray-50">
     <div class="flex min-h-screen">
@@ -241,7 +241,7 @@ $base = Config::basePath();
                 closeNoteModal();
                 showToast('Note envoyée avec succès', 'success');
             } else {
-                showToast(result.error || 'Erreur lors de l\'envoi', 'error');
+                showToast(result.message || 'Erreur lors de l\'envoi', 'error');
             }
         } catch (error) {
             showToast('Erreur de connexion', 'error');
@@ -265,7 +265,7 @@ $base = Config::basePath();
                 showToast('Document approuvé', 'success');
                 location.reload();
             } else {
-                showToast(result.error || 'Erreur', 'error');
+                showToast(result.message || 'Erreur', 'error');
             }
         } catch (error) {
             showToast('Erreur de connexion', 'error');
@@ -290,7 +290,7 @@ $base = Config::basePath();
                 showToast('Document rejeté', 'success');
                 location.reload();
             } else {
-                showToast(result.error || 'Erreur', 'error');
+                showToast(result.message || 'Erreur', 'error');
             }
         } catch (error) {
             showToast('Erreur de connexion', 'error');
@@ -311,7 +311,7 @@ $base = Config::basePath();
                 showToast('Action marquée comme terminée', 'success');
                 location.reload();
             } else {
-                showToast(result.error || 'Erreur', 'error');
+                showToast(result.message || 'Erreur', 'error');
             }
         } catch (error) {
             showToast('Erreur de connexion', 'error');

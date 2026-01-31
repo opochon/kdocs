@@ -106,7 +106,26 @@ class DocumentMapper
         
         $fileModified = @filemtime($fullPath) ?: null;
         $mimeType = @mime_content_type($fullPath) ?: 'application/octet-stream';
-        
+
+        // Fallback par extension si MIME type générique
+        if ($mimeType === 'application/octet-stream' || empty($mimeType)) {
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $mimeMap = [
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'odt' => 'application/vnd.oasis.opendocument.text',
+                'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+                'odp' => 'application/vnd.oasis.opendocument.presentation',
+                'rtf' => 'application/rtf',
+                'pdf' => 'application/pdf',
+            ];
+            $mimeType = $mimeMap[$ext] ?? $mimeType;
+        }
+
         // Chercher le document en DB
         $stmt = $this->db->prepare("SELECT id, checksum, file_modified_at FROM documents WHERE relative_path = ? AND deleted_at IS NULL");
         $stmt->execute([$relativePath]);
@@ -167,7 +186,26 @@ class DocumentMapper
         
         $fileModified = @filemtime($filePath) ?: null;
         $mimeType = @mime_content_type($filePath) ?: 'application/octet-stream';
-        
+
+        // Fallback par extension si MIME type générique
+        if ($mimeType === 'application/octet-stream' || empty($mimeType)) {
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $mimeMap = [
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'odt' => 'application/vnd.oasis.opendocument.text',
+                'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+                'odp' => 'application/vnd.oasis.opendocument.presentation',
+                'rtf' => 'application/rtf',
+                'pdf' => 'application/pdf',
+            ];
+            $mimeType = $mimeMap[$ext] ?? $mimeType;
+        }
+
         // Chercher le document en DB par checksum ou chemin
         $stmt = $this->db->prepare("
             SELECT id, checksum, file_modified_at 

@@ -234,6 +234,8 @@ class OnlyOfficeApiController
         $documentId = (int)$args['documentId'];
         $token = $args['token'] ?? '';
 
+        error_log("OnlyOffice publicDownload: Request for document $documentId from " . ($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'));
+
         // Vérifier le token de sécurité
         if (!$this->verifyAccessToken($documentId, $token)) {
             error_log("OnlyOffice publicDownload: Invalid token for document $documentId");
@@ -242,30 +244,75 @@ class OnlyOfficeApiController
 
         $document = Document::findById($documentId);
         if (!$document) {
+            error_log("OnlyOffice publicDownload: Document $documentId not found in database");
             return $response->withStatus(404);
         }
 
-        $filePath = $document['file_path'] ?? null;
-        if (!$filePath || !file_exists($filePath)) {
-            $storagePath = Config::get('storage.documents');
-            $filePath = $storagePath . '/' . ($document['storage_path'] ?? $document['filename']);
+        // Essayer plusieurs chemins possibles
+        $filePath = null;
+        $pathsToTry = [];
 
-            if (!file_exists($filePath)) {
-                error_log("OnlyOffice publicDownload: File not found at $filePath");
-                return $response->withStatus(404);
+        // 1. Chemin stocké en base
+        if (!empty($document['file_path'])) {
+            $pathsToTry[] = $document['file_path'];
+            // Version normalisée
+            $pathsToTry[] = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $document['file_path']);
+        }
+
+        // 2. Chemin basé sur storage_path
+        if (!empty($document['storage_path'])) {
+            $storagePath = realpath(Config::get('storage.documents')) ?: Config::get('storage.documents');
+            $pathsToTry[] = $storagePath . DIRECTORY_SEPARATOR . $document['storage_path'];
+        }
+
+        // 3. Chemin basé sur relative_path
+        if (!empty($document['relative_path'])) {
+            $storagePath = realpath(Config::get('storage.documents')) ?: Config::get('storage.documents');
+            $pathsToTry[] = $storagePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $document['relative_path']);
+        }
+
+        // 4. Chemin basé sur filename uniquement
+        if (!empty($document['filename'])) {
+            $storagePath = realpath(Config::get('storage.documents')) ?: Config::get('storage.documents');
+            $pathsToTry[] = $storagePath . DIRECTORY_SEPARATOR . $document['filename'];
+        }
+
+        // Tester chaque chemin
+        foreach ($pathsToTry as $path) {
+            if ($path && file_exists($path) && is_file($path)) {
+                $filePath = $path;
+                break;
             }
         }
+
+        if (!$filePath) {
+            error_log("OnlyOffice publicDownload: File not found. Tried paths: " . json_encode($pathsToTry));
+            error_log("OnlyOffice publicDownload: Document data: " . json_encode([
+                'file_path' => $document['file_path'] ?? null,
+                'storage_path' => $document['storage_path'] ?? null,
+                'relative_path' => $document['relative_path'] ?? null,
+                'filename' => $document['filename'] ?? null
+            ]));
+            return $response->withStatus(404);
+        }
+
+        error_log("OnlyOffice publicDownload: Serving file from $filePath");
 
         $mimeType = $document['mime_type'] ?? mime_content_type($filePath) ?? 'application/octet-stream';
         $filename = $document['original_filename'] ?? $document['filename'] ?? basename($filePath);
 
         $stream = fopen($filePath, 'rb');
+        if (!$stream) {
+            error_log("OnlyOffice publicDownload: Cannot open file $filePath");
+            return $response->withStatus(500);
+        }
         $body = new \Slim\Psr7\Stream($stream);
 
         return $response
             ->withHeader('Content-Type', $mimeType)
             ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->withHeader('Content-Length', (string)filesize($filePath))
+            ->withHeader('Access-Control-Allow-Origin', '*')
             ->withBody($body);
     }
 

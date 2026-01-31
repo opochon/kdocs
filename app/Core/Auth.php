@@ -11,6 +11,38 @@ use PDO;
 class Auth
 {
     /**
+     * Liste des mots de passe faibles courants
+     */
+    private static array $weakPasswords = [
+        'admin123', 'password', '123456', '12345678', 'admin', 'root',
+        'password123', 'azerty', 'qwerty', '111111', '123123', 'admin1234',
+        'motdepasse', 'abc123', 'iloveyou', 'welcome', 'monkey', 'dragon'
+    ];
+
+    /**
+     * Vérifie si un mot de passe est faible
+     */
+    public static function isWeakPassword(string $password): bool
+    {
+        // Vide = faible
+        if (empty($password)) {
+            return true;
+        }
+
+        // Dans la liste des mots de passe faibles
+        if (in_array(strtolower($password), self::$weakPasswords, true)) {
+            return true;
+        }
+
+        // Trop court (moins de 8 caractères)
+        if (strlen($password) < 8) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Vérifie les identifiants de connexion
      * 
      * @param string $username Nom d'utilisateur
@@ -53,16 +85,24 @@ class Auth
             // Mettre à jour la dernière connexion
             $updateStmt = $db->prepare("UPDATE users SET last_login = NOW(), last_login_at = NOW() WHERE id = :id");
             $updateStmt->execute(['id' => $user['id']]);
-            
+
+            // Marquer comme mot de passe faible
+            $user['_weak_password'] = true;
+
             return $user;
         }
-        
+
         // Vérifier le mot de passe avec password_verify
         if (!empty($user['password_hash']) && password_verify($password, $user['password_hash'])) {
             // Mettre à jour la dernière connexion
             $updateStmt = $db->prepare("UPDATE users SET last_login = NOW(), last_login_at = NOW() WHERE id = :id");
             $updateStmt->execute(['id' => $user['id']]);
-            
+
+            // Vérifier si le mot de passe est faible
+            if (self::isWeakPassword($password)) {
+                $user['_weak_password'] = true;
+            }
+
             return $user;
         }
         

@@ -1,215 +1,145 @@
-# K-Docs - Gestion Électronique de Documents
+# K-Docs
 
-## Installation
+Gestion Electronique de Documents (GED) modulaire avec applications metier integrees.
 
-### Prérequis
-- PHP 8.3+
-- MariaDB 11.5+ sur port 3307
-- Composer
-- Apache avec mod_rewrite
+## Vision
 
-### Étapes d'installation
+- **Filesystem-first** : Documents dans une arborescence classique
+- **Leger** : Pas de Docker pour les apps (PHP natif)
+- **Portable** : Embarquable dans une app desktop (Tauri)
+- **Intelligent** : Classification IA, recherche semantique
 
-1. **Installer les dépendances Composer**
-   ```bash
-   composer install
-   ```
-
-2. **Créer la base de données**
-   ```bash
-   php database/install.php
-   ```
-
-3. **Vérifier la configuration**
-   - Vérifier le fichier `config/config.php`
-   - Port MariaDB : 3307 (pas 3306)
-   - User BDD : root (mot de passe vide)
-
-4. **Accéder à l'application**
-   - URL : http://localhost/kdocs
-   - Compte par défaut : username=`root`, password=(vide)
-
-## Structure du projet
+## Structure
 
 ```
 kdocs/
-├── app/              # Code PHP
-│   ├── Core/         # Classes fondamentales
-│   ├── Models/       # Modèles BDD
-│   ├── Controllers/  # Contrôleurs
-│   ├── Services/     # Logique métier
-│   └── Middleware/   # Middleware
-├── config/           # Configuration
-├── database/         # Schémas SQL
-├── templates/        # Vues PHP
-├── public/           # Assets statiques
-├── storage/          # Fichiers uploadés
-└── index.php         # Point d'entrée
+├── app/              # GED Core
+├── apps/             # Applications integrees (PHP natif)
+│   ├── mail/        # Client mail + agenda
+│   ├── timetrack/   # Saisie horaire
+│   └── invoices/    # Gestion factures fournisseurs
+├── connectors/      # Connecteurs ERP
+│   └── winbiz/      # WinBiz (ODBC)
+├── bin/             # Binaires (qdrant, etc.)
+├── shared/          # Code partage
+│   ├── Auth/        # Authentification unifiee
+│   ├── ApiClient/   # Client API K-Docs
+│   ├── UI/          # Composants UI
+│   └── Helpers/     # Fonctions utilitaires
+├── config/          # Configuration
+├── docs/            # Documentation
+├── public/          # Assets statiques
+├── storage/         # Fichiers stockes
+├── templates/       # Vues PHP
+├── tests/           # Tests
+└── tools/           # Installation et maintenance
 ```
 
-## Développement
+## Stack technique
 
-L'application utilise :
-- **Backend** : PHP 8.3 + Slim Framework
-- **Frontend** : PHP templates + Tailwind CSS (CDN)
-- **BDD** : MariaDB avec PDO
+| Composant | Technologie |
+|-----------|-------------|
+| Backend | PHP 8.2+ natif |
+| Base GED | MySQL 8.0 / MariaDB 11.5 |
+| Base Apps | MySQL (partagee) ou SQLite |
+| Vectorisation | Qdrant (binaire, PAS Docker) |
+| IA | Claude API / Ollama local |
+| OCR | Tesseract |
+| Office | OnlyOffice (Docker, GED seulement) |
 
-## Statut
+## Installation
 
-✅ **Phase 1 - Fondations** : Complétée
-- Structure de base créée
-- Base de données initialisée (18+ tables)
-- Classes Core implémentées (Config, Database, App, Auth)
+### Prerequis
+- PHP 8.2+
+- MariaDB 11.5+ sur port 3307
+- Composer
+- Apache avec mod_rewrite
+- Tesseract OCR (optionnel)
+- Qdrant binaire (optionnel, pour recherche semantique)
 
-✅ **Phase 2 - Authentification** : Complétée
-- Page de login (`/login`)
-- Système d'authentification avec sessions
-- Middleware de protection des routes
-- Dashboard (`/dashboard`)
-- Gestion des utilisateurs
+### Installation rapide
 
-✅ **Phase 3 - Gestion de Documents** : Complétée
-- CRUD complet des documents
-- Upload et traitement automatique
-- OCR avec Tesseract (fallback pdftotext)
-- Génération de miniatures
-- Extraction de métadonnées
-- Vue grille/liste/tableau
-- Recherche simple et avancée
-- Filtrage par dossier, correspondant, tag, type
-- Partage et historique
+```bash
+# 1. Installer les dependances
+composer install
 
-✅ **Phase 4 - Consume Folder** : Complétée
-- Scan automatique du dossier `storage/consume/`
-- Classification automatique (3 modes : rules, ai, auto)
-- Champs de classification configurables
-- Validation manuelle des documents
-- Génération de chemins de stockage dynamiques
-- Découpage intelligent de PDFs multi-pages (IA)
+# 2. Creer la base de donnees
+php database/install.php
 
-✅ **Phase 5 - Workflows** : Complétée
-- Designer visuel de workflows
-- 14 types de nodes (Triggers, Processing, Conditions, Actions, Waits, Timers)
-- Exécution automatique des workflows
-- Système d'approbation
-- Timers avec cron job
+# 3. Acceder a l'application
+# URL: http://localhost/kdocs
+# Compte: root (mot de passe vide)
+```
 
-✅ **Phase 6 - IA/Claude** : Complétée
-- Classification intelligente des documents
-- Recherche en langage naturel
-- Chat IA intégré
-- Extraction de données avec prompts personnalisés
+## Fonctionnalites GED Core
 
-✅ **Phase 7 - Administration** : Complétée
-- 18 pages d'administration
-- Gestion des correspondants, tags, types de documents
-- Champs personnalisés et de classification
-- Chemins de stockage
-- Workflows et webhooks
-- Utilisateurs et permissions
-- Statistiques API
+- [x] Gestion documents (CRUD, arborescence)
+- [x] OCR multi-langue (Tesseract)
+- [x] Extraction texte PDF natif (pdftotext)
+- [x] Extraction texte DOCX/Office
+- [x] Miniatures automatiques
+- [x] Classification par regles + IA
+- [x] Tags, correspondants, types
+- [x] Recherche fulltext + semantique
+- [x] API REST complete
+- [x] Workflows visuels
+- [x] Dossier consume (ingestion auto)
+- [x] Corbeille (soft delete)
+- [x] Audit logs
 
-**État général** : **95% fonctionnel**, architecture moderne, prêt pour production
+## Applications integrees
+
+| App | Description | Statut |
+|-----|-------------|--------|
+| K-Mail | Client mail + agenda IMAP | A faire |
+| K-Time | Saisie horaire + factures | A faire |
+| K-Invoices | Gestion factures fournisseurs | A faire |
+
+**Contrainte** : Toutes les apps sont 100% PHP natif (PAS de Docker).
+
+## Connecteurs
+
+| Connecteur | Type | Statut |
+|------------|------|--------|
+| WinBiz | ODBC/FoxPro | A faire |
+| kDrive | WebDAV | Planifie |
+| SharePoint | Graph API | Planifie |
+
+## API REST
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/documents` | Liste documents |
+| `GET /api/documents/{id}` | Details document |
+| `POST /api/documents/upload` | Upload document |
+| `GET /api/search` | Recherche |
+| `GET /api/health` | Etat du systeme |
+
+Voir [docs/API.md](docs/API.md) pour la documentation complete.
+
+## Documentation
+
+- [Feuille de route](ROADMAP.md)
+- [Structure apps](docs/KDOCS_STRUCTURE_APPS.md)
+- [Spec K-Time](docs/KTIME_SPECIFICATION.md)
+- [Corrections prioritaires](docs/CORRECTIONS_PRIORITAIRES.md)
 
 ## Tests
-
-K-Docs utilise PHPUnit 10 pour les tests automatisés.
-
-### Exécuter les tests
 
 ```bash
 # Tous les tests
 php vendor/bin/phpunit
 
-# Tests avec détails
+# Tests avec details
 php vendor/bin/phpunit --testdox
 
-# Tests unitaires uniquement
-php vendor/bin/phpunit --testsuite Unit
-
-# Tests Feature/API
-php vendor/bin/phpunit --testsuite Feature
+# Suite de tests complete
+php tests/full_test_suite.php
 ```
-
-### Structure des tests
-
-```
-tests/
-├── bootstrap.php           # Configuration tests
-├── TestCase.php            # Classe de base
-├── Unit/                   # Tests unitaires
-│   ├── Core/               # Tests classes Core (CSRF, Validator)
-│   └── Services/           # Tests Services
-└── Feature/                # Tests d'intégration API
-    ├── ApiTestCase.php     # Base pour tests API
-    └── *ApiTest.php        # Tests endpoints
-```
-
-## API REST
-
-K-Docs expose une API REST complète. Voir [docs/API.md](docs/API.md) pour la documentation détaillée.
-
-### Endpoints principaux
-
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/api/documents` | GET | Liste des documents |
-| `/api/documents/{id}` | GET | Détails document |
-| `/api/documents` | POST | Créer document |
-| `/api/documents/{id}` | PUT | Modifier document |
-| `/api/documents/{id}` | DELETE | Supprimer document |
-| `/api/search` | GET | Recherche documents |
-| `/api/validation/pending` | GET | Documents à valider |
-| `/api/validation/{id}/status` | POST | Définir statut validation |
-| `/api/notifications` | GET | Notifications utilisateur |
-
-## Configuration
-
-### Variables d'environnement
-
-Éditer `config/config.php` :
-
-```php
-'database' => [
-    'host' => 'localhost',
-    'port' => 3307,           // MariaDB port
-    'name' => 'kdocs',
-    'user' => 'root',
-    'password' => '',
-    'charset' => 'utf8mb4'
-],
-'claude' => [
-    'api_key' => 'sk-ant-...'  // Clé API Claude (optionnel)
-],
-'ocr' => [
-    'engine' => 'tesseract',   // ou 'pdftotext'
-    'language' => 'fra+eng'
-]
-```
-
-### Dossier Consume
-
-Les documents placés dans `storage/consume/` sont automatiquement traités :
-1. OCR et extraction de texte
-2. Classification automatique (IA si configurée)
-3. Déplacement vers le bon dossier
-
-## Sécurité
-
-- **CSRF** : Protection automatique sur tous les formulaires
-- **Validation** : Validation centralisée des entrées utilisateur
-- **Rate Limiting** : 100 requêtes/minute par IP sur l'API
-- **Authentification** : Sessions PHP sécurisées
-
-## Contribution
-
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/ma-feature`)
-3. Exécuter les tests (`php vendor/bin/phpunit`)
-4. Commit (`git commit -am 'Add feature'`)
-5. Push (`git push origin feature/ma-feature`)
-6. Créer une Pull Request
 
 ## Licence
 
-Propriétaire - Usage interne uniquement
+Proprietaire - Karbonic Sarl
+
+---
+*K-Docs - GED modulaire, intelligente, portable*

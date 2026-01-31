@@ -8,6 +8,7 @@ namespace KDocs\Services;
 
 use KDocs\Core\Database;
 use KDocs\Core\Config;
+use KDocs\Jobs\EmbedDocumentJob;
 
 class TrashService
 {
@@ -77,15 +78,24 @@ class TrashService
             }
             
             $this->db->commit();
+
+            // Supprimer l'embedding du document dans Qdrant
+            try {
+                EmbedDocumentJob::dispatchDelete($documentId);
+            } catch (\Exception $e) {
+                // Ne pas bloquer si la suppression embedding échoue
+                error_log("TrashService: Erreur suppression embedding: " . $e->getMessage());
+            }
+
             return true;
-            
+
         } catch (\Exception $e) {
             $this->db->rollBack();
             error_log("Erreur TrashService: " . $e->getMessage());
             return false;
         }
     }
-    
+
     /**
      * Restaure un document depuis la corbeille
      */
@@ -93,11 +103,25 @@ class TrashService
     {
         try {
             $stmt = $this->db->prepare("
-                UPDATE documents 
+                UPDATE documents
                 SET deleted_at = NULL, deleted_by = NULL
                 WHERE id = ? AND deleted_at IS NOT NULL
             ");
-            return $stmt->execute([$documentId]);
+            $result = $stmt->execute([$documentId]);
+
+            if ($result) {
+                // Ré-indexer l'embedding du document restauré
+                try {
+                    $embeddingsEnabled = Config::get('embeddings.enabled', false);
+                    if ($embeddingsEnabled) {
+                        EmbedDocumentJob::dispatch($documentId);
+                    }
+                } catch (\Exception $e) {
+                    error_log("restoreFromTrash: Erreur ré-indexation embedding: " . $e->getMessage());
+                }
+            }
+
+            return $result;
         } catch (\Exception $e) {
             error_log("Erreur restauration: " . $e->getMessage());
             return false;
@@ -125,13 +149,20 @@ class TrashService
                 @unlink($doc['file_path']);
             }
             
+            // Supprimer l'embedding du document dans Qdrant (au cas où)
+            try {
+                EmbedDocumentJob::dispatchDelete($documentId);
+            } catch (\Exception $e) {
+                error_log("deletePermanently: Erreur suppression embedding: " . $e->getMessage());
+            }
+
             // Supprimer de la base de données
             $stmt = $this->db->prepare("DELETE FROM documents WHERE id = ?");
             $stmt->execute([$documentId]);
-            
+
             $this->db->commit();
             return true;
-            
+
         } catch (\Exception $e) {
             $this->db->rollBack();
             error_log("Erreur suppression définitive: " . $e->getMessage());

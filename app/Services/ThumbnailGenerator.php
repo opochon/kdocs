@@ -11,10 +11,11 @@
 
 namespace KDocs\Services;
 
+use KDocs\Contracts\ThumbnailGeneratorInterface;
 use KDocs\Core\Config;
 use KDocs\Helpers\SystemHelper;
 
-class ThumbnailGenerator
+class ThumbnailGenerator implements ThumbnailGeneratorInterface
 {
     private string $thumbnailPath;
     private string $ghostscriptPath;

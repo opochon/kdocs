@@ -6,13 +6,14 @@
 
 namespace KDocs\Services;
 
+use KDocs\Contracts\SearchServiceInterface;
 use KDocs\Core\Database;
 use KDocs\Search\SearchQuery;
 use KDocs\Search\SearchResult;
 use KDocs\Search\AdvancedSearchParser;
 use PDO;
 
-class SearchService
+class SearchService implements SearchServiceInterface
 {
     private \PDO $db;
     private AdvancedSearchParser $parser;

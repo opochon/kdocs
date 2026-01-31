@@ -120,8 +120,17 @@ try {
                     <span>Recherche avancée</span>
                 </a>
             </li>
-            
-            
+
+            <!-- K-Time (Timesheet) -->
+            <li>
+                <a href="<?= url('/time') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/time', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>K-Time</span>
+                </a>
+            </li>
+
             <!-- Séparateur -->
             <li class="pt-3 pb-1.5">
                 <div class="px-2 text-xs font-medium text-gray-400 uppercase tracking-wider">Gestion</div>

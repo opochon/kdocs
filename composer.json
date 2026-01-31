@@ -13,7 +13,10 @@
     },
     "autoload": {
         "psr-4": {
-            "KDocs\\": "app/"
+            "KDocs\\": "app/",
+            "KDocs\\Apps\\": "apps/",
+            "KDocs\\Connectors\\": "connectors/",
+            "KDocs\\Shared\\": "shared/"
         }
     },
     "config": {

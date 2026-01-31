@@ -212,29 +212,336 @@ $errorMsg = $_GET['error'] ?? null;
         });
         </script>
 
-        <!-- Section OCR -->
+        <!-- Section Outils & Services (statut uniquement) -->
+        <?php
+        // Récupérer les chemins depuis config
+        $toolsConfig = $defaultConfig['tools'] ?? [];
+        $ghostscriptPath = $toolsConfig['ghostscript'] ?? '';
+        $pdftotextPath = $toolsConfig['pdftotext'] ?? '';
+        $pdftoppmPath = $toolsConfig['pdftoppm'] ?? '';
+        $libreofficePath = $toolsConfig['libreoffice'] ?? '';
+        $imagemagickPath = $toolsConfig['imagemagick'] ?? '';
+
+        // OnlyOffice config
+        $onlyofficeConfig = $defaultConfig['onlyoffice'] ?? [];
+        $onlyofficeEnabled = $onlyofficeConfig['enabled'] ?? false;
+        $onlyofficeUrl = $onlyofficeConfig['server_url'] ?? 'http://localhost:8080';
+
+        // Embeddings config
+        $embeddingsConfig = $defaultConfig['embeddings'] ?? [];
+        $embeddingsEnabled = $embeddingsConfig['enabled'] ?? false;
+        $ollamaUrl = $embeddingsConfig['ollama_url'] ?? 'http://localhost:11434';
+        $ollamaModel = $embeddingsConfig['ollama_model'] ?? 'nomic-embed-text';
+
+        // Qdrant config
+        $qdrantConfig = $defaultConfig['qdrant'] ?? [];
+        $qdrantHost = $qdrantConfig['host'] ?? 'localhost';
+        $qdrantPort = $qdrantConfig['port'] ?? 6333;
+
+        // Fonction helper pour tester les services HTTP
+        function testHttpService(string $url, int $timeout = 2): array {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_CONNECTTIMEOUT => $timeout,
+                CURLOPT_NOBODY => false,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            return [
+                'ok' => $httpCode >= 200 && $httpCode < 400,
+                'code' => $httpCode,
+                'response' => $response,
+                'error' => $error
+            ];
+        }
+
+        // Test OnlyOffice
+        $onlyofficeStatus = ['ok' => false, 'message' => 'Non testé'];
+        if ($onlyofficeEnabled) {
+            $healthUrl = rtrim($onlyofficeUrl, '/') . '/healthcheck';
+            $result = testHttpService($healthUrl);
+            if ($result['ok'] && trim($result['response']) === 'true') {
+                $onlyofficeStatus = ['ok' => true, 'message' => 'Serveur en ligne'];
+            } elseif ($result['code'] > 0) {
+                $onlyofficeStatus = ['ok' => false, 'message' => "HTTP {$result['code']}"];
+            } else {
+                $onlyofficeStatus = ['ok' => false, 'message' => $result['error'] ?: 'Connexion échouée'];
+            }
+        }
+
+        // Test Ollama
+        $ollamaStatus = ['ok' => false, 'message' => 'Non testé', 'models' => []];
+        if ($embeddingsEnabled) {
+            $result = testHttpService($ollamaUrl . '/api/tags');
+            if ($result['ok']) {
+                $data = json_decode($result['response'], true);
+                $models = array_column($data['models'] ?? [], 'name');
+                $hasModel = in_array($ollamaModel, $models) || in_array($ollamaModel . ':latest', $models);
+                $ollamaStatus = [
+                    'ok' => $hasModel,
+                    'message' => $hasModel ? 'Modèle disponible' : "Modèle '$ollamaModel' non trouvé",
+                    'models' => $models
+                ];
+            } else {
+                $ollamaStatus = ['ok' => false, 'message' => $result['error'] ?: 'Connexion échouée', 'models' => []];
+            }
+        }
+
+        // Test Qdrant
+        $qdrantStatus = ['ok' => false, 'message' => 'Non testé', 'collections' => 0];
+        if ($embeddingsEnabled) {
+            $qdrantUrl = "http://{$qdrantHost}:{$qdrantPort}/collections";
+            $result = testHttpService($qdrantUrl);
+            if ($result['ok']) {
+                $data = json_decode($result['response'], true);
+                $collections = $data['result']['collections'] ?? [];
+                $qdrantStatus = [
+                    'ok' => true,
+                    'message' => count($collections) . ' collection(s)',
+                    'collections' => count($collections)
+                ];
+            } else {
+                $qdrantStatus = ['ok' => false, 'message' => $result['error'] ?: 'Connexion échouée', 'collections' => 0];
+            }
+        }
+        ?>
+
         <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 OCR</h2>
-            
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">🔧 Outils système</h2>
+            <p class="text-sm text-gray-500 mb-4">Statut des outils externes utilisés par K-Docs. Les chemins sont configurés dans <code>config/config.php</code>.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Tesseract OCR -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">Tesseract OCR</span>
+                        <?php if ($tesseractPath && file_exists($tesseractPath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($tesseractPath) ?>">
+                        <?= htmlspecialchars($tesseractPath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Extraction de texte des images et PDFs scannés</p>
+                </div>
+
+                <!-- Ghostscript -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">Ghostscript</span>
+                        <?php if ($ghostscriptPath && file_exists($ghostscriptPath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($ghostscriptPath) ?>">
+                        <?= htmlspecialchars($ghostscriptPath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Conversion et rendu PDF, génération de miniatures</p>
+                </div>
+
+                <!-- pdftotext -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">pdftotext (Poppler)</span>
+                        <?php if ($pdftotextPath && file_exists($pdftotextPath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($pdftotextPath) ?>">
+                        <?= htmlspecialchars($pdftotextPath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Extraction de texte natif des PDFs</p>
+                </div>
+
+                <!-- pdftoppm -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">pdftoppm (Poppler)</span>
+                        <?php if ($pdftoppmPath && file_exists($pdftoppmPath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($pdftoppmPath) ?>">
+                        <?= htmlspecialchars($pdftoppmPath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Conversion PDF vers images (miniatures)</p>
+                </div>
+
+                <!-- LibreOffice -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">LibreOffice</span>
+                        <?php if ($libreofficePath && file_exists($libreofficePath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">⚠️ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($libreofficePath) ?>">
+                        <?= htmlspecialchars($libreofficePath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Conversion documents Office (fallback)</p>
+                </div>
+
+                <!-- ImageMagick -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">ImageMagick</span>
+                        <?php if ($imagemagickPath && file_exists($imagemagickPath)): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">⚠️ Non trouvé</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($imagemagickPath) ?>">
+                        <?= htmlspecialchars($imagemagickPath ?: 'Non configuré') ?>
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Manipulation et conversion d'images</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section OnlyOffice -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">📄 OnlyOffice Document Server</h2>
+                <?php if (!$onlyofficeEnabled): ?>
+                <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">Désactivé</span>
+                <?php elseif ($onlyofficeStatus['ok']): ?>
+                <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ <?= htmlspecialchars($onlyofficeStatus['message']) ?></span>
+                <?php else: ?>
+                <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌ <?= htmlspecialchars($onlyofficeStatus['message']) ?></span>
+                <?php endif; ?>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">URL du serveur</span>
+                    <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= htmlspecialchars($onlyofficeUrl) ?></code>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">JWT Secret</span>
+                    <span class="text-xs <?= empty($onlyofficeConfig['jwt_secret']) ? 'text-yellow-600' : 'text-green-600' ?>">
+                        <?= empty($onlyofficeConfig['jwt_secret']) ? '⚠️ Non configuré' : '✅ Configuré' ?>
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-600">Callback URL (Docker)</span>
+                    <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= htmlspecialchars($onlyofficeConfig['callback_url'] ?? 'Non configuré') ?></code>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <strong>Usage :</strong> Prévisualisation et édition des documents Office (Word, Excel, PowerPoint) directement dans le navigateur.
+                <br><span class="text-blue-600">Configuration : <code>config/config.php</code> section <code>onlyoffice</code></span>
+            </div>
+        </div>
+
+        <!-- Section Recherche Sémantique (Ollama + Qdrant) -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">🔮 Recherche Sémantique</h2>
+                <?php if (!$embeddingsEnabled): ?>
+                <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">Désactivé</span>
+                <?php elseif ($ollamaStatus['ok'] && $qdrantStatus['ok']): ?>
+                <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Opérationnel</span>
+                <?php else: ?>
+                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">⚠️ Partiellement configuré</span>
+                <?php endif; ?>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Ollama -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">Ollama (Embeddings)</span>
+                        <?php if ($ollamaStatus['ok']): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅</span>
+                        <?php elseif ($embeddingsEnabled): ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">-</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500">URL : <code><?= htmlspecialchars($ollamaUrl) ?></code></p>
+                    <p class="text-xs text-gray-500">Modèle : <code><?= htmlspecialchars($ollamaModel) ?></code></p>
+                    <p class="text-xs mt-1 <?= $ollamaStatus['ok'] ? 'text-green-600' : 'text-red-600' ?>">
+                        <?= htmlspecialchars($ollamaStatus['message']) ?>
+                    </p>
+                    <?php if (!empty($ollamaStatus['models'])): ?>
+                    <details class="mt-2">
+                        <summary class="text-xs text-blue-600 cursor-pointer">Modèles installés (<?= count($ollamaStatus['models']) ?>)</summary>
+                        <ul class="text-xs text-gray-500 mt-1 ml-4 list-disc">
+                            <?php foreach (array_slice($ollamaStatus['models'], 0, 10) as $model): ?>
+                            <li><?= htmlspecialchars($model) ?></li>
+                            <?php endforeach; ?>
+                            <?php if (count($ollamaStatus['models']) > 10): ?>
+                            <li>... et <?= count($ollamaStatus['models']) - 10 ?> autres</li>
+                            <?php endif; ?>
+                        </ul>
+                    </details>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Qdrant -->
+                <div class="border rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-700">Qdrant (Vector DB)</span>
+                        <?php if ($qdrantStatus['ok']): ?>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅</span>
+                        <?php elseif ($embeddingsEnabled): ?>
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">❌</span>
+                        <?php else: ?>
+                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">-</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-xs text-gray-500">URL : <code>http://<?= htmlspecialchars($qdrantHost) ?>:<?= htmlspecialchars($qdrantPort) ?></code></p>
+                    <p class="text-xs text-gray-500">Collection : <code><?= htmlspecialchars($qdrantConfig['collection'] ?? 'kdocs_documents') ?></code></p>
+                    <p class="text-xs mt-1 <?= $qdrantStatus['ok'] ? 'text-green-600' : 'text-red-600' ?>">
+                        <?= htmlspecialchars($qdrantStatus['message']) ?>
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-800">
+                <strong>Usage :</strong> Recherche par sens et contexte (pas seulement mots-clés). Nécessite Ollama + Qdrant.
+                <br><span class="text-purple-600">Configuration : <code>config/config.php</code> sections <code>embeddings</code> et <code>qdrant</code></span>
+                <?php if (!$ollamaStatus['ok'] && $embeddingsEnabled): ?>
+                <br><span class="text-red-600 mt-1 block">💡 Pour installer le modèle : <code>ollama pull <?= htmlspecialchars($ollamaModel) ?></code></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Section OCR (champ éditable conservé) -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">🔍 Configuration OCR</h2>
+
             <div class="space-y-4">
                 <div>
                     <label for="ocr_tesseract_path" class="block text-sm font-medium text-gray-700 mb-2">
-                        Chemin vers Tesseract
+                        Chemin vers Tesseract (personnalisé)
                     </label>
-                    <input type="text" 
-                           id="ocr_tesseract_path" 
-                           name="ocr[tesseract_path]" 
+                    <input type="text"
+                           id="ocr_tesseract_path"
+                           name="ocr[tesseract_path]"
                            value="<?= htmlspecialchars($tesseractPath) ?>"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            placeholder="C:\Program Files\Tesseract-OCR\tesseract.exe">
                     <p class="mt-1 text-sm text-gray-500">
-                        Chemin complet vers l'exécutable Tesseract. Laissez vide pour utiliser la valeur par défaut.
+                        Laissez vide pour utiliser le chemin par défaut de <code>config/config.php</code>.
                     </p>
-                    <?php if ($tesseractPath && file_exists($tesseractPath)): ?>
-                    <p class="mt-1 text-sm text-green-600">✅ L'exécutable existe</p>
-                    <?php elseif ($tesseractPath): ?>
-                    <p class="mt-1 text-sm text-red-600">❌ L'exécutable n'existe pas</p>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>

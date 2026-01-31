@@ -161,9 +161,9 @@ async function sendNote(event) {
             }
         } else {
             if (typeof showToast === 'function') {
-                showToast(result.error || 'Erreur lors de l\'envoi', 'error');
+                showToast(result.message || 'Erreur lors de l\'envoi', 'error');
             } else {
-                alert(result.error || 'Erreur lors de l\'envoi');
+                alert(result.message || 'Erreur lors de l\'envoi');
             }
         }
     } catch (error) {

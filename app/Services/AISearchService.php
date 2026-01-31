@@ -2,16 +2,39 @@
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
+use KDocs\Core\Config;
 
 class AISearchService
 {
     private ClaudeService $claude;
+    private ?VectorSearchService $vectorSearch = null;
     private $db;
-    
+    private bool $useSemanticSearch = false;
+
     public function __construct()
     {
         $this->claude = new ClaudeService();
         $this->db = Database::getInstance();
+
+        // Initialiser la recherche sémantique si disponible
+        $embeddingsEnabled = Config::get('embeddings.enabled', false);
+        if ($embeddingsEnabled) {
+            try {
+                $this->vectorSearch = new VectorSearchService();
+                $this->useSemanticSearch = $this->vectorSearch->isAvailable();
+            } catch (\Exception $e) {
+                error_log("AISearchService: VectorSearchService init failed: " . $e->getMessage());
+                $this->useSemanticSearch = false;
+            }
+        }
+    }
+
+    /**
+     * Vérifie si la recherche sémantique est disponible
+     */
+    public function isSemanticSearchAvailable(): bool
+    {
+        return $this->useSemanticSearch && $this->vectorSearch !== null;
     }
     
     /**
@@ -407,11 +430,46 @@ PROMPT;
     
     /**
      * Recherche rapide (pour la barre de recherche)
+     * Utilise la recherche hybride si Qdrant est disponible
      */
     public function quickSearch(string $query, int $limit = 10): array
     {
+        // Utiliser la recherche hybride si disponible
+        if ($this->isSemanticSearchAvailable()) {
+            try {
+                $results = $this->vectorSearch->hybridSearch($query, $limit, [], 0.6);
+                if (!empty($results)) {
+                    // Formater pour compatibilité avec l'ancien format
+                    return array_map(function ($item) {
+                        $doc = $item['document'];
+                        return [
+                            'id' => $doc['id'],
+                            'title' => $doc['title'],
+                            'original_filename' => $doc['original_filename'],
+                            'document_date' => $doc['document_date'] ?? null,
+                            'amount' => $doc['amount'] ?? null,
+                            'correspondent_name' => $doc['correspondent_name'] ?? null,
+                            '_search_score' => $item['score'] ?? 0,
+                            '_semantic_score' => $item['semantic_score'] ?? 0,
+                        ];
+                    }, $results);
+                }
+            } catch (\Exception $e) {
+                error_log("quickSearch semantic failed, falling back to SQL: " . $e->getMessage());
+            }
+        }
+
+        // Fallback sur la recherche SQL classique
+        return $this->quickSearchSQL($query, $limit);
+    }
+
+    /**
+     * Recherche SQL classique (fallback)
+     */
+    private function quickSearchSQL(string $query, int $limit = 10): array
+    {
         $search = '%' . $query . '%';
-        
+
         $sql = "
             SELECT d.id, d.title, d.original_filename, d.document_date, d.amount,
                    c.name as correspondent_name
@@ -424,11 +482,64 @@ PROMPT;
             ORDER BY d.document_date DESC
             LIMIT ?
         ";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$search, $search, $search, $search, $limit]);
-        
+
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Recherche sémantique pure (sans fallback)
+     */
+    public function semanticSearch(string $query, int $limit = 10, array $filters = []): array
+    {
+        if (!$this->isSemanticSearchAvailable()) {
+            return [];
+        }
+
+        try {
+            return $this->vectorSearch->search($query, $limit, $filters);
+        } catch (\Exception $e) {
+            error_log("semanticSearch error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Recherche hybride (sémantique + keyword)
+     */
+    public function hybridSearch(string $query, int $limit = 10, array $filters = [], float $semanticWeight = 0.7): array
+    {
+        if (!$this->isSemanticSearchAvailable()) {
+            // Fallback sur recherche SQL pure
+            return $this->executeSearch(['text_search' => $query, 'limit' => $limit]);
+        }
+
+        try {
+            return $this->vectorSearch->hybridSearch($query, $limit, $filters, $semanticWeight);
+        } catch (\Exception $e) {
+            error_log("hybridSearch error: " . $e->getMessage());
+            // Fallback sur recherche SQL
+            return $this->executeSearch(['text_search' => $query, 'limit' => $limit]);
+        }
+    }
+
+    /**
+     * Trouve des documents similaires à un document donné
+     */
+    public function findSimilarDocuments(int $documentId, int $limit = 5): array
+    {
+        if (!$this->isSemanticSearchAvailable()) {
+            return [];
+        }
+
+        try {
+            return $this->vectorSearch->findSimilar($documentId, $limit);
+        } catch (\Exception $e) {
+            error_log("findSimilarDocuments error: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**

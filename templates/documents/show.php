@@ -1023,7 +1023,7 @@ async function sendNote(event) {
             closeNoteModal();
             alert('Note envoyée avec succès');
         } else {
-            alert(result.error || 'Erreur lors de l\'envoi');
+            alert(result.message || 'Erreur lors de l\'envoi');
         }
     } catch (error) {
         console.error('Error sending note:', error);

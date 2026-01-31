@@ -3,6 +3,10 @@
 /node_modules/
 composer.phar
 
+# Tailwind CLI (download with build-tailwind.bat)
+tailwindcss.exe
+tailwindcss-windows-x64.exe
+
 # Configuration locale
 /config/config.local.php
 /config/config.php
@@ -86,3 +90,18 @@ WEBHOOKS_*.md
 DEBUG_*.md
 
 claude_api_key.txt
+
+# Binaires (telecharger manuellement)
+/bin/qdrant*
+/bin/ollama*
+/bin/*.exe
+
+# Apps storage
+/storage/apps/
+
+# Archive
+/_archive/
+
+# Connectors data
+/connectors/*/data/
+/connectors/*/*.cache

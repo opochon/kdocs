@@ -76,8 +76,16 @@
                 <div class="text-sm text-gray-500 mt-1">Créer, modifier ou supprimer des utilisateurs</div>
             </a>
             <a href="<?= url('/admin/settings') ?>" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <div class="font-semibold text-gray-800">⚙️ Paramètres</div>
-                <div class="text-sm text-gray-500 mt-1">Configuration du système</div>
+                <div class="font-semibold text-gray-800">⚙️ Parametres</div>
+                <div class="text-sm text-gray-500 mt-1">Configuration du systeme</div>
+            </a>
+            <a href="<?= url('/admin/snapshots') ?>" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div class="font-semibold text-gray-800">📸 Snapshots</div>
+                <div class="text-sm text-gray-500 mt-1">Sauvegardes et restauration</div>
+            </a>
+            <a href="<?= url('/admin/attribution-rules') ?>" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div class="font-semibold text-gray-800">🎯 Regles d'attribution</div>
+                <div class="text-sm text-gray-500 mt-1">Classification automatique</div>
             </a>
         </div>
     </div>

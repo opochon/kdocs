@@ -160,6 +160,13 @@ class Document
      */
     public static function delete(int $id, int $userId): bool
     {
+        // Delete embedding from vector store (delta sync)
+        try {
+            \KDocs\Jobs\EmbedDocumentJob::dispatchDelete($id);
+        } catch (\Exception $e) {
+            error_log("Failed to delete embedding on document delete: " . $e->getMessage());
+        }
+
         $trash = new \KDocs\Services\TrashService();
         return $trash->moveToTrash($id, $userId);
     }

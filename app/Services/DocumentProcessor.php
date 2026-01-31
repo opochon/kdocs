@@ -114,10 +114,18 @@ class DocumentProcessor
                     $results['ocr'] = true;
                     error_log("OCR réussi pour document {$documentId}, " . strlen($content) . " caractères extraits");
                 } else {
-                    error_log("OCR échoué pour document {$documentId}: contenu vide ou null");
-                    // Stocker un message d'erreur pour indiquer que l'OCR a été tenté mais a échoué
+                    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                    $errorMsg = match($ext) {
+                        'pdf' => "OCR échoué: aucun outil disponible (pdftotext, pdftoppm ou ImageMagick requis)",
+                        'docx', 'doc', 'odt', 'rtf' => "OCR échoué: impossible d'extraire le texte (fichier corrompu ou PhpWord non disponible)",
+                        'xlsx', 'xls', 'ods', 'csv' => "OCR échoué: impossible d'extraire le texte du tableur",
+                        'pptx', 'ppt', 'odp' => "OCR échoué: impossible d'extraire le texte de la présentation",
+                        'jpg', 'jpeg', 'png', 'tiff', 'tif' => "OCR échoué: Tesseract non disponible ou image illisible",
+                        default => "OCR échoué: type de fichier non supporté ($ext)"
+                    };
+                    error_log("OCR échoué pour document {$documentId} ($ext): contenu vide ou null");
                     $stmt = $this->db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
-                    $stmt->execute(["OCR échoué: aucun outil disponible (pdftotext, pdftoppm ou ImageMagick requis)", $documentId]);
+                    $stmt->execute([$errorMsg, $documentId]);
                 }
             } catch (\Exception $e) {
                 error_log("Erreur OCR document {$documentId}: " . $e->getMessage());
@@ -219,7 +227,20 @@ class DocumentProcessor
         // 6. Marquer comme indexé
         $this->db->prepare("UPDATE documents SET is_indexed = TRUE, indexed_at = NOW() WHERE id = ?")
            ->execute([$documentId]);
-        
+
+        // 6.5. Queue embedding generation (delta sync for semantic search)
+        try {
+            $embeddingsEnabled = Config::get('embeddings.enabled', false);
+            $autoSync = Config::get('embeddings.auto_sync', true);
+            if ($embeddingsEnabled && $autoSync) {
+                \KDocs\Jobs\EmbedDocumentJob::dispatch($documentId);
+                $results['embedding_queued'] = true;
+            }
+        } catch (\Exception $e) {
+            error_log("Erreur queue embedding document {$documentId}: " . $e->getMessage());
+            $results['embedding_queued'] = false;
+        }
+
         // 7. Déclencher webhook document.processed
         try {
             $webhookService = new WebhookService();

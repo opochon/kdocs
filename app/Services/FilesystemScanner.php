@@ -152,7 +152,33 @@ class FilesystemScanner
         }
         
         $mimeType = @mime_content_type($fullPath) ?: 'application/octet-stream';
-        
+
+        // Fallback par extension si MIME type générique
+        if ($mimeType === 'application/octet-stream' || empty($mimeType)) {
+            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $mimeMap = [
+                'doc' => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'odt' => 'application/vnd.oasis.opendocument.text',
+                'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+                'odp' => 'application/vnd.oasis.opendocument.presentation',
+                'rtf' => 'application/rtf',
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'tiff' => 'image/tiff',
+                'tif' => 'image/tiff',
+            ];
+            $mimeType = $mimeMap[$ext] ?? $mimeType;
+        }
+
         // Vérifie si le document existe déjà
         $stmt = $this->db->prepare("SELECT id, checksum FROM documents WHERE relative_path = ?");
         $stmt->execute([$relativePath]);

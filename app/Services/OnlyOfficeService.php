@@ -193,10 +193,12 @@ class OnlyOfficeService
 
     /**
      * Génère une clé unique pour le document (utilisée pour le cache OnlyOffice)
+     * Note: Inclut l'heure (arrondie 10 min) pour forcer le rafraîchissement du cache
      */
     private function generateKey(array $document): string
     {
-        $data = ($document['id'] ?? 0) . '_' . ($document['checksum'] ?? $document['updated_at'] ?? $document['created_at'] ?? time());
+        $timeSlot = floor(time() / 600);
+        $data = ($document['id'] ?? 0) . '_' . ($document['checksum'] ?? $document['updated_at'] ?? '') . '_' . $timeSlot;
         return substr(md5($data), 0, 20);
     }
 

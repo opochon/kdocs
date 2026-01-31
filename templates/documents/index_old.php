@@ -813,7 +813,7 @@ async function uploadFiles(files) {
             alert(`Upload réussi : ${result.results.filter(r => r.success).length} fichier(s)`);
             location.reload();
         } else {
-            alert('Erreur lors de l\'upload : ' + (result.error || 'Erreur inconnue'));
+            alert('Erreur lors de l\'upload : ' + (result.message || 'Erreur inconnue'));
         }
     } catch (error) {
         alert('Erreur lors de l\'upload : ' + error.message);

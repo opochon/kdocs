@@ -118,14 +118,25 @@ class AuthController
 
         // Définir le cookie de session avec Slim
         $basePath = Config::basePath();
-        $response = $response->withHeader(
-            'Set-Cookie',
+        $cookies = [
             sprintf(
                 'kdocs_session=%s; Path=%s; Max-Age=3600; HttpOnly; SameSite=Lax',
                 $sessionId,
                 $basePath
             )
-        );
+        ];
+
+        // Si mot de passe faible, ajouter un cookie d'avertissement
+        if (!empty($user['_weak_password'])) {
+            $cookies[] = sprintf(
+                'kdocs_weak_password=1; Path=%s; Max-Age=3600; HttpOnly; SameSite=Lax',
+                $basePath
+            );
+        }
+
+        foreach ($cookies as $cookie) {
+            $response = $response->withAddedHeader('Set-Cookie', $cookie);
+        }
 
         // Rediriger vers le dashboard
         return $response
