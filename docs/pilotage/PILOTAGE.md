@@ -117,7 +117,16 @@ php test_all.php
 
 ## HISTORIQUE RÉCENT
 
-### 2026-02-01 (soir)
+### 2026-02-01 (soir - MERGE)
+- **MERGE POC → K-DOCS réussi**
+- AIHelper.php: parseJsonResponse, ensureUtf8, cosineSimilarity
+- TrainingService.php: corrections storage, learned rules, similarity matching
+- AIProviderService: cascade Training → Claude → Ollama → Rules
+- PDFSplitterService: page indicators (Page 1/2), date extraction, heuristics
+- Config: ai.training, ollama sections
+- Default model: llama3.1:8b (tested)
+
+### 2026-02-01 (après-midi)
 - **POC validé à 100%** (59/59 tests)
 - Classification CASCADE : Anthropic → Ollama (llama3.1:8b) → Règles
 - Extraction champs via IA : montant, date, IBAN, référence, correspondant
