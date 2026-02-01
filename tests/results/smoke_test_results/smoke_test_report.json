@@ -1,0 +1,468 @@
+{
+  "timestamp": "2026-01-28T12:24:39.258046",
+  "base_url": "http://localhost/kdocs",
+  "pages": [
+    {
+      "name": "Login",
+      "path": "/login",
+      "url": "http://localhost/kdocs/login",
+      "status": "passed",
+      "load_time_ms": 187,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599481672
+        },
+        {
+          "level": "DEBUG",
+          "message": "http://localhost/kdocs/login - [DOM] Input elements should have autocomplete attributes (suggested: \"current-password\"): (More info: https://goo.gl/9p2vKq) %o",
+          "timestamp": 1769599481749
+        },
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599482937
+        },
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599485403
+        }
+      ],
+      "screenshot": "page__login_122446.png",
+      "actions": []
+    },
+    {
+      "name": "Dashboard",
+      "path": "/",
+      "url": "http://localhost/kdocs/",
+      "status": "passed",
+      "load_time_ms": 108,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599486578
+        }
+      ],
+      "screenshot": "page___122447.png",
+      "actions": []
+    },
+    {
+      "name": "Documents",
+      "path": "/documents",
+      "url": "http://localhost/kdocs/documents",
+      "status": "failed",
+      "load_time_ms": 180,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/documents/48/thumbnail - Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599487779
+        },
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/documents/48/thumbnail - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599487829
+        }
+      ],
+      "screenshot": "page__documents_122448.png",
+      "actions": [
+        {
+          "name": "Bouton Uploader",
+          "type": "click",
+          "status": "failed",
+          "error": "Message: Aucun élément trouvé pour: button:contains('Uploader'); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#nosuchelementexception\n",
+          "screenshot": null
+        }
+      ]
+    },
+    {
+      "name": "Recherche avancée",
+      "path": "/chat",
+      "url": "http://localhost/kdocs/chat",
+      "status": "passed",
+      "load_time_ms": 191,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599494081
+        }
+      ],
+      "screenshot": "page__chat_122455.png",
+      "actions": [
+        {
+          "name": "Champ recherche",
+          "type": "input",
+          "status": "passed",
+          "error": null,
+          "screenshot": "action_Champ_recherche_122456.png"
+        }
+      ]
+    },
+    {
+      "name": "Indexation",
+      "path": "/indexation",
+      "url": "http://localhost/kdocs/indexation",
+      "status": "failed",
+      "load_time_ms": 36,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/indexation - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Page contient: 'exception'",
+        "Page contient: '404 not found'"
+      ],
+      "console_logs": [
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/indexation - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599496408
+        }
+      ],
+      "screenshot": "page__indexation_122457.png",
+      "actions": []
+    },
+    {
+      "name": "Mes Tâches",
+      "path": "/tasks",
+      "url": "http://localhost/kdocs/tasks",
+      "status": "passed",
+      "load_time_ms": 135,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599497547
+        }
+      ],
+      "screenshot": "page__tasks_122458.png",
+      "actions": []
+    },
+    {
+      "name": "Fichiers à valider",
+      "path": "/admin/consume",
+      "url": "http://localhost/kdocs/admin/consume",
+      "status": "passed",
+      "load_time_ms": 171,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599498718
+        }
+      ],
+      "screenshot": "page__admin_consume_122459.png",
+      "actions": []
+    },
+    {
+      "name": "Étiquettes",
+      "path": "/admin/tags",
+      "url": "http://localhost/kdocs/admin/tags",
+      "status": "passed",
+      "load_time_ms": 172,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599499980
+        }
+      ],
+      "screenshot": "page__admin_tags_122501.png",
+      "actions": [
+        {
+          "name": "Bouton Créer",
+          "type": "click",
+          "status": "passed",
+          "error": null,
+          "screenshot": "action_Bouton_Créer_122512.png"
+        }
+      ]
+    },
+    {
+      "name": "Correspondants",
+      "path": "/admin/correspondents",
+      "url": "http://localhost/kdocs/admin/correspondents",
+      "status": "passed",
+      "load_time_ms": 83,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599512516
+        }
+      ],
+      "screenshot": "page__admin_correspondents_122513.png",
+      "actions": []
+    },
+    {
+      "name": "Types de document",
+      "path": "/admin/document-types",
+      "url": "http://localhost/kdocs/admin/document-types",
+      "status": "passed",
+      "load_time_ms": 159,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599513679
+        }
+      ],
+      "screenshot": "page__admin_document-types_122514.png",
+      "actions": []
+    },
+    {
+      "name": "Champs personnalisés",
+      "path": "/admin/custom-fields",
+      "url": "http://localhost/kdocs/admin/custom-fields",
+      "status": "passed",
+      "load_time_ms": 153,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599514872
+        }
+      ],
+      "screenshot": "page__admin_custom-fields_122515.png",
+      "actions": []
+    },
+    {
+      "name": "Chemins de stockage",
+      "path": "/admin/storage-paths",
+      "url": "http://localhost/kdocs/admin/storage-paths",
+      "status": "passed",
+      "load_time_ms": 84,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599516075
+        }
+      ],
+      "screenshot": "page__admin_storage-paths_122517.png",
+      "actions": []
+    },
+    {
+      "name": "Workflows",
+      "path": "/admin/workflows",
+      "url": "http://localhost/kdocs/admin/workflows",
+      "status": "passed",
+      "load_time_ms": 657,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599517232
+        }
+      ],
+      "screenshot": "page__admin_workflows_122518.png",
+      "actions": []
+    },
+    {
+      "name": "Webhooks",
+      "path": "/admin/webhooks",
+      "url": "http://localhost/kdocs/admin/webhooks",
+      "status": "passed",
+      "load_time_ms": 87,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599518932
+        }
+      ],
+      "screenshot": "page__admin_webhooks_122519.png",
+      "actions": []
+    },
+    {
+      "name": "Journaux",
+      "path": "/admin/logs",
+      "url": "http://localhost/kdocs/admin/logs",
+      "status": "failed",
+      "load_time_ms": 34,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/admin/logs - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Page contient: 'exception'",
+        "Page contient: '404 not found'"
+      ],
+      "console_logs": [
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/admin/logs - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599520067
+        }
+      ],
+      "screenshot": "page__admin_logs_122521.png",
+      "actions": []
+    },
+    {
+      "name": "Export/Import",
+      "path": "/admin/export",
+      "url": "http://localhost/kdocs/admin/export",
+      "status": "failed",
+      "load_time_ms": 24,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/admin/export - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Page contient: 'exception'",
+        "Page contient: '404 not found'"
+      ],
+      "console_logs": [
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/admin/export - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599521149
+        }
+      ],
+      "screenshot": "page__admin_export_122522.png",
+      "actions": []
+    },
+    {
+      "name": "Paramètres",
+      "path": "/admin/settings",
+      "url": "http://localhost/kdocs/admin/settings",
+      "status": "passed",
+      "load_time_ms": 123,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599522253
+        },
+        {
+          "level": "DEBUG",
+          "message": "http://localhost/kdocs/admin/settings - [DOM] Multiple forms should be contained in their own form elements; break up complex forms into ones that represent a single action: (More info: https://goo.gl/9p2vKq) %o",
+          "timestamp": 1769599522327
+        }
+      ],
+      "screenshot": "page__admin_settings_122523.png",
+      "actions": []
+    },
+    {
+      "name": "Statistiques API",
+      "path": "/admin/api-stats",
+      "url": "http://localhost/kdocs/admin/api-stats",
+      "status": "failed",
+      "load_time_ms": 32,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/admin/api-stats - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Page contient: 'exception'",
+        "Page contient: '404 not found'"
+      ],
+      "console_logs": [
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/admin/api-stats - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599523415
+        }
+      ],
+      "screenshot": "page__admin_api-stats_122524.png",
+      "actions": []
+    },
+    {
+      "name": "Utilisateurs",
+      "path": "/admin/users",
+      "url": "http://localhost/kdocs/admin/users",
+      "status": "passed",
+      "load_time_ms": 86,
+      "errors": [],
+      "console_logs": [
+        {
+          "level": "WARNING",
+          "message": "https://cdn.tailwindcss.com/ 63:1710 \"cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation\"",
+          "timestamp": 1769599524510
+        }
+      ],
+      "screenshot": "page__admin_users_122525.png",
+      "actions": []
+    },
+    {
+      "name": "Groupes",
+      "path": "/admin/groups",
+      "url": "http://localhost/kdocs/admin/groups",
+      "status": "failed",
+      "load_time_ms": 41,
+      "errors": [
+        "Console SEVERE: http://localhost/kdocs/admin/groups - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Page contient: 'exception'",
+        "Page contient: '404 not found'"
+      ],
+      "console_logs": [
+        {
+          "level": "SEVERE",
+          "message": "http://localhost/kdocs/admin/groups - Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "timestamp": 1769599525647
+        }
+      ],
+      "screenshot": "page__admin_groups_122526.png",
+      "actions": []
+    },
+    {
+      "name": "Health Check",
+      "path": "/health",
+      "url": "http://localhost/kdocs/health",
+      "status": "passed",
+      "load_time_ms": 124,
+      "errors": [],
+      "console_logs": [],
+      "screenshot": "page__health_122527.png",
+      "actions": []
+    }
+  ],
+  "errors": [],
+  "console_logs": [],
+  "summary": {
+    "total_pages": 21,
+    "passed": 15,
+    "failed": 6,
+    "warnings": 0
+  },
+  "upload_test": {
+    "name": "File Upload",
+    "status": "skipped",
+    "error": "Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"input[type='file']\"}\n  (Session info: chrome=144.0.7559.60); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#nosuchelementexception\nStacktrace:\nSymbols not available. Dumping unresolved backtrace:\n\t0xde8543\n\t0xde8584\n\t0xbdb4e0\n\t0xc2594a\n\t0xc25beb\n\t0xc67bb2\n\t0xc48264\n\t0xc653a1\n\t0xc47fb6\n\t0xc196f9\n\t0xc1a4b4\n\t0x103d034\n\t0x10382c9\n\t0x1056460\n\t0xe01a68\n\t0xe0988d\n\t0xdf0df8\n\t0xdf0fc2\n\t0xddab3a\n\t0x75d35d49\n\t0x7727d5db\n\t0x7727d561\n",
+    "screenshot": null
+  },
+  "api_tests": [
+    {
+      "name": "Health",
+      "path": "/health",
+      "status": "passed",
+      "response_valid": true
+    },
+    {
+      "name": "Documents API",
+      "path": "/api/documents?per_page=1",
+      "status": "passed",
+      "response_valid": true
+    },
+    {
+      "name": "Tags API",
+      "path": "/api/tags",
+      "status": "passed",
+      "response_valid": true
+    },
+    {
+      "name": "Correspondents API",
+      "path": "/api/correspondents",
+      "status": "passed",
+      "response_valid": true
+    }
+  ]
+}

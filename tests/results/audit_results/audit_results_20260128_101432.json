@@ -1,0 +1,251 @@
+{
+    "timestamp": "2026-01-28T10:14:33+00:00",
+    "base_url": "http:\/\/localhost\/kdocs",
+    "summary": {
+        "total": 9,
+        "passed": 8,
+        "failed": 0,
+        "warnings": 1
+    },
+    "code_analysis": {
+        "files": {
+            "php_total": 2080,
+            "js_files": 9,
+            "templates": 73
+        },
+        "lines": 42368,
+        "controllers": 47,
+        "services": 45,
+        "models": 23,
+        "issues": [
+            {
+                "file": "templates\\admin\\classification_fields.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\classification_field_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\consume.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\consume_card.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\correspondents.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\correspondent_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\custom_fields.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\custom_field_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\document_types.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\document_type_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\export_import.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\mail_accounts.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\mail_account_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\settings.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\storage_paths.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\storage_path_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\tags.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\tag_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\user-groups\\form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\user-groups\\index.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\users_list.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\user_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\webhooks.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\webhook_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\workflows.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\admin\\workflow_form.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\auth\\login.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\documents\\edit.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\documents\\show.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\documents\\show_old.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\documents\\show_paperless.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\documents\\upload.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\tasks\\create.php",
+                "issue": "Form without CSRF token"
+            },
+            {
+                "file": "templates\\tasks\\list.php",
+                "issue": "Form without CSRF token"
+            }
+        ]
+    },
+    "tests": [
+        {
+            "category": "Public",
+            "name": "Health Check",
+            "method": "GET",
+            "endpoint": "\/health",
+            "status_code": 200,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 117.35
+        },
+        {
+            "category": "Public",
+            "name": "Login Page",
+            "method": "GET",
+            "endpoint": "\/login",
+            "status_code": 200,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 20.63
+        },
+        {
+            "category": "Auth",
+            "name": "Login",
+            "method": "POST",
+            "endpoint": "\/login",
+            "status_code": 200,
+            "status": "PASS",
+            "details": "Session etablie",
+            "duration_ms": 16.79
+        },
+        {
+            "category": "Security",
+            "name": "Config expose",
+            "method": "GET",
+            "endpoint": "\/.env",
+            "status_code": 404,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 25.8
+        },
+        {
+            "category": "Security",
+            "name": "Composer.json expose",
+            "method": "GET",
+            "endpoint": "\/composer.json",
+            "status_code": 200,
+            "status": "WARN",
+            "details": "",
+            "duration_ms": 1.16
+        },
+        {
+            "category": "Security",
+            "name": "Storage accessible",
+            "method": "GET",
+            "endpoint": "\/storage\/",
+            "status_code": 403,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 0.97
+        },
+        {
+            "category": "Security",
+            "name": "X-Content-Type-Options header",
+            "method": "GET",
+            "endpoint": "\/",
+            "status_code": 0,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 0
+        },
+        {
+            "category": "Security",
+            "name": "X-Frame-Options header",
+            "method": "GET",
+            "endpoint": "\/",
+            "status_code": 0,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 0
+        },
+        {
+            "category": "Security",
+            "name": "X-XSS-Protection header",
+            "method": "GET",
+            "endpoint": "\/",
+            "status_code": 0,
+            "status": "PASS",
+            "details": "",
+            "duration_ms": 0
+        }
+    ]
+}
