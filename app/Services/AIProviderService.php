@@ -27,7 +27,8 @@ class AIProviderService
     public function __construct()
     {
         $this->ollamaUrl = Config::get('api.ollama_url', 'http://localhost:11434');
-        $this->ollamaModel = Config::get('ollama.model', 'llama3.2');
+        // llama3.1:8b tested and proven working in POC
+        $this->ollamaModel = Config::get('ollama.model', 'llama3.1:8b');
     }
     
     /**
@@ -158,24 +159,52 @@ class AIProviderService
     }
     
     /**
-     * Classification de document via IA
+     * Classification de document via IA avec cascade:
+     * Training (corrections) → Claude → Ollama → Rules
      */
     public function classifyDocument(string $content, string $filename, array $context = []): ?array
     {
+        // 1. Check training data first (learned corrections)
+        try {
+            $trainingService = new TrainingService();
+
+            // Try similarity-based match from past corrections
+            $trainedResult = $trainingService->getTrainedClassification($content);
+            if ($trainedResult && ($trainedResult['confidence'] ?? 0) >= 0.85) {
+                $trainedResult['provider'] = 'training';
+                return $trainedResult;
+            }
+
+            // Try learned rules
+            $rulesResult = $trainingService->applyLearnedRules($content);
+            if ($rulesResult && ($rulesResult['confidence'] ?? 0) >= 0.75) {
+                $rulesResult['provider'] = 'learned_rules';
+                return $rulesResult;
+            }
+        } catch (\Exception $e) {
+            // Training not available, continue with AI
+        }
+
+        // 2. Try AI providers (Claude → Ollama)
         $provider = $this->getBestProvider();
-        
+
         if ($provider === self::PROVIDER_NONE) {
             return null;
         }
-        
+
         $prompt = $this->buildClassificationPrompt($content, $filename, $context);
         $response = $this->complete($prompt, ['max_tokens' => 1500]);
-        
+
         if (!$response || empty($response['text'])) {
             return null;
         }
-        
-        return $this->parseClassificationResponse($response['text']);
+
+        $result = $this->parseClassificationResponse($response['text']);
+        if ($result) {
+            $result['provider'] = $response['provider'] ?? $provider;
+        }
+
+        return $result;
     }
     
     /**
@@ -498,16 +527,16 @@ PROMPT;
     {
         return [
             'llm' => [
-                'name' => 'llama3.2',
-                'command' => 'ollama pull llama3.2',
-                'size' => '~2GB',
-                'description' => 'Modèle LLM performant pour classification et chat',
+                'name' => 'llama3.1:8b',
+                'command' => 'ollama pull llama3.1:8b',
+                'size' => '~4.7GB',
+                'description' => 'Modèle LLM performant pour classification et chat (testé POC)',
             ],
             'embedding' => [
                 'name' => 'nomic-embed-text',
                 'command' => 'ollama pull nomic-embed-text',
                 'size' => '~275MB',
-                'description' => 'Modèle embedding pour recherche sémantique',
+                'description' => 'Modèle embedding pour recherche sémantique (768d)',
             ],
         ];
     }
