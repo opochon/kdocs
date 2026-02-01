@@ -310,10 +310,18 @@ PYTHON;
     
     /**
      * Analyse une page avec Claude IA pour déterminer son type de document
+     * Enhanced with POC heuristics for page indicators and date extraction
      */
     private function analyzePageWithAI(string $pageText, int $pageNumber): ?array
     {
+        // POC Enhancement: Always extract heuristics first (works without AI)
+        $heuristics = $this->extractPageHeuristics($pageText);
+
         if (!$this->claude->isConfigured()) {
+            // Return heuristics-only analysis if AI unavailable
+            if (!empty($heuristics)) {
+                return $heuristics;
+            }
             return null;
         }
         
@@ -363,12 +371,13 @@ PROMPT;
             }
             
             if (isset($result['is_relevant']) && $result['is_relevant']) {
-                return [
+                // Merge AI result with heuristics
+                return array_merge($heuristics, [
                     'correspondent' => $result['correspondent'] ?? null,
                     'document_type' => $result['document_type'] ?? null,
-                    'date' => $result['date'] ?? null,
+                    'date' => $result['date'] ?? $heuristics['date'] ?? null,
                     'amount' => isset($result['amount']) ? (float)$result['amount'] : null,
-                ];
+                ]);
             }
         } catch (\Exception $e) {
             // Erreur lors de l'appel API (timeout, rate limit, etc.)
@@ -421,23 +430,42 @@ PROMPT;
     
     /**
      * Détermine si deux analyses correspondent au même document
+     * Enhanced with POC heuristics (page indicators, date detection)
      */
     private function areSameDocument(array $analysis1, array $analysis2): bool
     {
+        // POC Heuristic 1: Check page indicators (e.g., "Page 1/2")
+        // If current page is marked as "first page", it's a new document
+        if (!empty($analysis2['is_first_page'])) {
+            return false;
+        }
+
+        // POC Heuristic 2: If current has continuation indicator (page x/y where x > 1)
+        if (!empty($analysis2['doc_page']) && $analysis2['doc_page'] > 1) {
+            return true; // Continuation of previous document
+        }
+
+        // POC Heuristic 3: Previous was last page of multi-page doc
+        $prevPage = $analysis1['doc_page'] ?? 0;
+        $prevTotal = $analysis1['doc_total'] ?? 0;
+        if ($prevPage > 0 && $prevPage === $prevTotal) {
+            return false; // Previous was the last page, this is a new doc
+        }
+
         // Critère 1: Même correspondant
         $corr1 = strtolower(trim($analysis1['correspondent'] ?? ''));
         $corr2 = strtolower(trim($analysis2['correspondent'] ?? ''));
         if ($corr1 && $corr2 && $corr1 !== $corr2) {
             return false;
         }
-        
+
         // Critère 2: Même type de document
         $type1 = strtolower(trim($analysis1['document_type'] ?? ''));
         $type2 = strtolower(trim($analysis2['document_type'] ?? ''));
         if ($type1 && $type2 && $type1 !== $type2) {
             return false;
         }
-        
+
         // Critère 3: Dates proches (même jour ou jour suivant)
         $date1 = $analysis1['date'] ?? null;
         $date2 = $analysis2['date'] ?? null;
@@ -453,9 +481,123 @@ PROMPT;
                 // Dates invalides, ignorer ce critère
             }
         }
-        
+
         // Si on arrive ici et qu'on a au moins le correspondant, c'est le même document
         return !empty($corr1) || !empty($corr2);
+    }
+
+    /**
+     * Detect page indicator patterns like "Page 1/2", "1 of 3", "Seite 1 von 2"
+     * From POC 06_consume_flow.php
+     */
+    private function detectPageIndicator(string $text): array
+    {
+        $patterns = [
+            '/page\s*:?\s*(\d+)\s*[\/\|]\s*(\d+)/i',        // Page 1/2, Page: 1|2
+            '/page\s*(\d+)\s+(?:of|sur|de)\s+(\d+)/i',      // Page 1 of 2
+            '/seite\s*(\d+)\s*von\s*(\d+)/i',               // Seite 1 von 2 (German)
+            '/(\d+)\s*[\/\|]\s*(\d+)\s*$/m',                // 1/2 at end of line
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $text, $m)) {
+                $current = (int)$m[1];
+                $total = (int)$m[2];
+                if ($current > 0 && $total > 0 && $current <= $total) {
+                    return [
+                        'current' => $current,
+                        'total' => $total,
+                        'is_first' => ($current === 1),
+                    ];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Extract date from text with 2-digit year support
+     * From POC helpers
+     */
+    private function extractDateFromText(string $text): ?string
+    {
+        // Pattern 1: DD/MM/YYYY or DD.MM.YYYY or DD-MM-YYYY
+        if (preg_match('/(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})/', $text, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+        }
+
+        // Pattern 2: DD/MM/YY (2-digit year)
+        if (preg_match('/(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2})(?!\d)/', $text, $m)) {
+            $year = (int)$m[3];
+            $year = $year <= 30 ? 2000 + $year : 1900 + $year;
+            return sprintf('%04d-%02d-%02d', $year, $m[2], $m[1]);
+        }
+
+        // Pattern 3: YYYY-MM-DD (ISO format)
+        if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $text, $m)) {
+            return sprintf('%s-%s-%s', $m[1], $m[2], $m[3]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract heuristics from page text (works without AI)
+     * From POC 06_consume_flow.php
+     */
+    private function extractPageHeuristics(string $text): array
+    {
+        $heuristics = [];
+
+        // Detect page indicators
+        $pageIndicator = $this->detectPageIndicator($text);
+        if (!empty($pageIndicator)) {
+            $heuristics['doc_page'] = $pageIndicator['current'];
+            $heuristics['doc_total'] = $pageIndicator['total'];
+            $heuristics['is_first_page'] = $pageIndicator['is_first'];
+        }
+
+        // Extract date
+        $date = $this->extractDateFromText($text);
+        if ($date) {
+            $heuristics['date'] = $date;
+        }
+
+        // Detect sender/correspondent from common patterns
+        $senderPatterns = [
+            '/(?:de|from|von|expéditeur)\s*:\s*(.+)/i',
+            '/^([A-Z][a-zA-Z\s]+(?:SA|AG|GmbH|SARL|SAS|Inc|Ltd))/m',
+        ];
+        foreach ($senderPatterns as $pattern) {
+            if (preg_match($pattern, $text, $m)) {
+                $sender = trim($m[1]);
+                if (strlen($sender) > 3 && strlen($sender) < 100) {
+                    $heuristics['correspondent'] = $sender;
+                    break;
+                }
+            }
+        }
+
+        // Detect document type from keywords
+        $typeKeywords = [
+            'facture' => ['facture', 'invoice', 'rechnung'],
+            'contrat' => ['contrat', 'contract', 'vertrag', 'convention'],
+            'courrier' => ['madame', 'monsieur', 'cher', 'dear', 'sehr geehrte'],
+            'rapport' => ['rapport', 'report', 'bericht', 'analyse'],
+            'devis' => ['devis', 'offre', 'quotation', 'angebot'],
+        ];
+        $textLower = mb_strtolower($text);
+        foreach ($typeKeywords as $type => $keywords) {
+            foreach ($keywords as $kw) {
+                if (str_contains($textLower, $kw)) {
+                    $heuristics['document_type'] = $type;
+                    break 2;
+                }
+            }
+        }
+
+        return $heuristics;
     }
     
     /**
