@@ -96,6 +96,11 @@ claude_api_key.txt
 /bin/ollama*
 /bin/*.exe
 
+# Large installer files (> 100MB GitHub limit)
+/installer/*.msi
+/installer/*.exe
+/installer/downloads/
+
 # Apps storage
 /storage/apps/
 
