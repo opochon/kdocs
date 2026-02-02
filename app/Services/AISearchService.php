@@ -1,30 +1,38 @@
 <?php
+/**
+ * K-Docs - AISearchService
+ * Service de recherche intelligent avec RAG
+ *
+ * Architecture:
+ * - Retrieval: MySQL FULLTEXT + Vecteurs MySQL (embeddings)
+ * - Generation: CASCADE Claude > Ollama > Règles
+ * - Context: Enrichi avec extraits pertinents
+ */
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
 use KDocs\Core\Config;
+use KDocs\Helpers\AIHelper;
 
 class AISearchService
 {
-    private ClaudeService $claude;
-    private ?VectorSearchService $vectorSearch = null;
+    private AIProviderService $aiProvider;
+    private ?EmbeddingService $embeddings = null;
     private $db;
-    private bool $useSemanticSearch = false;
+    private bool $embeddingsAvailable = false;
 
     public function __construct()
     {
-        $this->claude = new ClaudeService();
+        $this->aiProvider = new AIProviderService();
         $this->db = Database::getInstance();
 
-        // Initialiser la recherche sémantique si disponible
-        $embeddingsEnabled = Config::get('embeddings.enabled', false);
-        if ($embeddingsEnabled) {
+        // Initialiser les embeddings si disponibles
+        if (Config::get('embeddings.enabled', false)) {
             try {
-                $this->vectorSearch = new VectorSearchService();
-                $this->useSemanticSearch = $this->vectorSearch->isAvailable();
+                $this->embeddings = new EmbeddingService();
+                $this->embeddingsAvailable = $this->embeddings->isAvailable();
             } catch (\Exception $e) {
-                error_log("AISearchService: VectorSearchService init failed: " . $e->getMessage());
-                $this->useSemanticSearch = false;
+                error_log("AISearchService: EmbeddingService init failed: " . $e->getMessage());
             }
         }
     }
@@ -34,7 +42,15 @@ class AISearchService
      */
     public function isSemanticSearchAvailable(): bool
     {
-        return $this->useSemanticSearch && $this->vectorSearch !== null;
+        return $this->embeddingsAvailable;
+    }
+
+    /**
+     * Vérifie si la génération IA est disponible
+     */
+    public function isGenerationAvailable(): bool
+    {
+        return $this->aiProvider->isAIAvailable();
     }
     
     /**
@@ -61,12 +77,12 @@ class AISearchService
     }
     
     /**
-     * Convertit une question en filtres SQL via Claude
+     * Convertit une question en filtres SQL via IA (Claude > Ollama)
      */
     private function questionToFilters(string $question): array
     {
-        // Si Claude n'est pas configuré, utiliser une recherche simple
-        if (!$this->claude->isConfigured()) {
+        // Si aucune IA disponible, utiliser une recherche simple
+        if (!$this->aiProvider->isAIAvailable()) {
             return ['text_search' => $question];
         }
         
@@ -127,19 +143,15 @@ PROMPT;
                 [$corrList, $typeList, $tagList, $question],
                 $systemPrompt
             );
-            
-            $response = $this->claude->sendMessage($prompt);
-            if (!$response) {
+
+            // CASCADE: Claude > Ollama
+            $response = $this->aiProvider->complete($prompt, ['max_tokens' => 1000]);
+            if (!$response || empty($response['text'])) {
                 return ['text_search' => $question]; // Fallback
             }
-            
-            $text = $this->claude->extractText($response);
-            
-            // Parser le JSON
-            $text = preg_replace('/^```json\s*/', '', $text);
-            $text = preg_replace('/\s*```$/', '', $text);
-            
-            $filters = json_decode($text, true);
+
+            // Parser le JSON avec AIHelper
+            $filters = AIHelper::parseJsonResponse($response['text']);
             return $filters ?: ['text_search' => $question];
         } catch (\Exception $e) {
             error_log("AISearchService::questionToFilters error: " . $e->getMessage());
@@ -340,122 +352,199 @@ PROMPT;
     
     /**
      * Génère une réponse en langage naturel
+     * CASCADE: Claude > Ollama > Règles simples
      */
     private function generateAnswer(string $question, array $documents, array $filters): string
     {
-        if (empty($documents)) {
+        $count = count($documents);
+
+        if ($count === 0) {
             return "Je n'ai trouvé aucun document correspondant à votre recherche.";
         }
-        
-        // Si Claude n'est pas configuré, retourner une réponse simple
-        if (!$this->claude->isConfigured()) {
-            $count = count($documents);
-            $answer = "J'ai trouvé $count document(s) correspondant à votre recherche.";
-            
-            // Ajouter quelques détails
-            if ($count > 0 && $count <= 5) {
-                $answer .= "\n\nDocuments trouvés :\n";
-                foreach ($documents as $i => $doc) {
-                    $title = $doc['title'] ?? $doc['original_filename'] ?? 'Sans titre';
-                    $answer .= ($i + 1) . ". $title\n";
-                }
-            }
-            
-            return $answer;
+
+        // Calculer des statistiques
+        $stats = $this->computeStats($documents, $filters);
+
+        // Construire le contexte enrichi
+        $context = $this->buildEnrichedContext($documents, $filters, $stats);
+
+        // 3. RÈGLES SIMPLES (toujours disponible comme fallback final)
+        $rulesAnswer = $this->generateRulesAnswer($count, $documents, $stats);
+
+        // Si aucune IA disponible, retourner réponse règles
+        if (!$this->aiProvider->isAIAvailable()) {
+            return $rulesAnswer;
         }
-        
-        // Calculer des statistiques si demandé
-        $stats = [];
-        if (!empty($filters['aggregation'])) {
-            switch ($filters['aggregation']) {
-                case 'sum_amount':
-                    $total = array_sum(array_column($documents, 'amount'));
-                    $stats['total'] = number_format($total, 2, '.', ' ') . ' CHF';
-                    break;
-                case 'avg_amount':
-                    $amounts = array_filter(array_column($documents, 'amount'));
-                    $avg = count($amounts) > 0 ? array_sum($amounts) / count($amounts) : 0;
-                    $stats['average'] = number_format($avg, 2, '.', ' ') . ' CHF';
-                    break;
-            }
-        }
-        
+
+        // 1. & 2. CASCADE: Claude > Ollama
         try {
-            // Construire le contexte pour Claude
-            $context = "Documents trouvés (" . count($documents) . ") :\n\n";
-            foreach (array_slice($documents, 0, 10) as $i => $doc) {
-                $context .= ($i + 1) . ". " . ($doc['title'] ?? $doc['original_filename']) . "\n";
-                $context .= "   - Correspondant: " . ($doc['correspondent_name'] ?? 'N/A') . "\n";
-                $context .= "   - Date: " . ($doc['document_date'] ?? 'N/A') . "\n";
-                $context .= "   - Montant: " . ($doc['amount'] ? number_format($doc['amount'], 2) . ' CHF' : 'N/A') . "\n";
-                if (!empty($doc['tags'])) {
-                    $context .= "   - Tags: " . implode(', ', $doc['tags']) . "\n";
-                }
-                $context .= "\n";
-            }
-            
-            if (!empty($stats)) {
-                $context .= "Statistiques:\n";
-                foreach ($stats as $key => $value) {
-                    $context .= "- $key: $value\n";
-                }
-            }
-            
             $prompt = <<<PROMPT
-Question de l'utilisateur: $question
+Tu es un assistant de gestion documentaire. Réponds à la question de l'utilisateur en te basant UNIQUEMENT sur les documents fournis.
+
+Question: $question
 
 $context
 
-Génère une réponse concise et utile en français qui:
-1. Répond directement à la question
-2. Cite les documents pertinents
-3. Donne des statistiques si demandé (totaux, moyennes)
-4. Reste factuel et précis
-
-Réponds directement, sans formatage markdown excessif.
+Instructions:
+1. Réponds directement et de façon concise en français
+2. Cite les documents pertinents par leur titre
+3. Si des statistiques sont demandées, utilise les chiffres fournis
+4. Reste factuel, ne suppose pas d'informations absentes
+5. Si la réponse n'est pas dans les documents, dis-le clairement
 PROMPT;
 
-            $response = $this->claude->sendMessage($prompt);
-            if (!$response) {
-                // Fallback simple
-                return "J'ai trouvé " . count($documents) . " document(s) correspondant à votre recherche.";
+            $response = $this->aiProvider->complete($prompt, [
+                'max_tokens' => 1500,
+                'temperature' => 0.3
+            ]);
+
+            if ($response && !empty($response['text'])) {
+                $provider = $response['provider'] ?? 'unknown';
+                $answer = trim($response['text']);
+                // Ajouter indicateur du provider utilisé
+                return $answer . "\n\n_[Source: {$provider}]_";
             }
-            
-            return $this->claude->extractText($response);
         } catch (\Exception $e) {
-            error_log("AISearchService::generateAnswer error: " . $e->getMessage());
-            return "J'ai trouvé " . count($documents) . " document(s) correspondant à votre recherche.";
+            error_log("AISearchService::generateAnswer AI error: " . $e->getMessage());
         }
+
+        // Fallback sur règles si IA échoue
+        return $rulesAnswer . "\n\n_[Source: rules]_";
+    }
+
+    /**
+     * Calcule les statistiques des documents
+     */
+    private function computeStats(array $documents, array $filters): array
+    {
+        $stats = [
+            'count' => count($documents),
+        ];
+
+        $amounts = array_filter(array_column($documents, 'amount'));
+        if (!empty($amounts)) {
+            $stats['total_amount'] = array_sum($amounts);
+            $stats['avg_amount'] = $stats['total_amount'] / count($amounts);
+            $stats['min_amount'] = min($amounts);
+            $stats['max_amount'] = max($amounts);
+        }
+
+        // Dates
+        $dates = array_filter(array_column($documents, 'document_date'));
+        if (!empty($dates)) {
+            sort($dates);
+            $stats['date_range'] = [
+                'from' => reset($dates),
+                'to' => end($dates)
+            ];
+        }
+
+        // Agrégation spécifique si demandée
+        if (!empty($filters['aggregation'])) {
+            $stats['aggregation_type'] = $filters['aggregation'];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Construit un contexte enrichi avec extraits pertinents
+     */
+    private function buildEnrichedContext(array $documents, array $filters, array $stats): string
+    {
+        $context = "=== DOCUMENTS TROUVÉS ({$stats['count']}) ===\n\n";
+
+        foreach (array_slice($documents, 0, 8) as $i => $doc) {
+            $num = $i + 1;
+            $title = $doc['title'] ?? $doc['original_filename'] ?? 'Sans titre';
+            $context .= "--- Document $num: $title ---\n";
+            $context .= "Correspondant: " . ($doc['correspondent_name'] ?? 'N/A') . "\n";
+            $context .= "Date: " . ($doc['document_date'] ?? 'N/A') . "\n";
+
+            if (!empty($doc['amount'])) {
+                $context .= "Montant: " . number_format($doc['amount'], 2, '.', ' ') . " CHF\n";
+            }
+
+            if (!empty($doc['tags'])) {
+                $tags = is_array($doc['tags']) ? implode(', ', $doc['tags']) : $doc['tags'];
+                $context .= "Tags: $tags\n";
+            }
+
+            // Extrait pertinent (matches ou résumé)
+            if (!empty($doc['matches'])) {
+                $context .= "Extraits pertinents:\n";
+                foreach (array_slice($doc['matches'], 0, 2) as $match) {
+                    $text = strip_tags($match['excerpt'] ?? $match['text'] ?? '');
+                    $context .= "  > " . mb_substr($text, 0, 150) . "\n";
+                }
+            } elseif (!empty($doc['summary'])) {
+                $context .= "Résumé: " . mb_substr($doc['summary'], 0, 200) . "\n";
+            }
+
+            $context .= "\n";
+        }
+
+        // Statistiques
+        if (isset($stats['total_amount'])) {
+            $context .= "=== STATISTIQUES ===\n";
+            $context .= "Total montants: " . number_format($stats['total_amount'], 2, '.', ' ') . " CHF\n";
+            $context .= "Moyenne: " . number_format($stats['avg_amount'], 2, '.', ' ') . " CHF\n";
+            if (isset($stats['date_range'])) {
+                $context .= "Période: {$stats['date_range']['from']} à {$stats['date_range']['to']}\n";
+            }
+        }
+
+        return $context;
+    }
+
+    /**
+     * Génère une réponse basée sur des règles simples (fallback final)
+     */
+    private function generateRulesAnswer(int $count, array $documents, array $stats): string
+    {
+        $answer = "J'ai trouvé $count document(s) correspondant à votre recherche.";
+
+        // Lister les premiers documents
+        if ($count > 0 && $count <= 5) {
+            $answer .= "\n\nDocuments trouvés :\n";
+            foreach ($documents as $i => $doc) {
+                $title = $doc['title'] ?? $doc['original_filename'] ?? 'Sans titre';
+                $date = $doc['document_date'] ?? '';
+                $amount = !empty($doc['amount']) ? ' - ' . number_format($doc['amount'], 2) . ' CHF' : '';
+                $answer .= ($i + 1) . ". $title" . ($date ? " ($date)" : "") . "$amount\n";
+            }
+        } elseif ($count > 5) {
+            $answer .= "\n\nPremiers documents :\n";
+            foreach (array_slice($documents, 0, 5) as $i => $doc) {
+                $title = $doc['title'] ?? $doc['original_filename'] ?? 'Sans titre';
+                $answer .= ($i + 1) . ". $title\n";
+            }
+            $answer .= "... et " . ($count - 5) . " autres.\n";
+        }
+
+        // Ajouter statistiques si disponibles
+        if (isset($stats['total_amount'])) {
+            $answer .= "\nMontant total: " . number_format($stats['total_amount'], 2, '.', ' ') . " CHF";
+        }
+
+        return $answer;
     }
     
     /**
      * Recherche rapide (pour la barre de recherche)
-     * Utilise la recherche hybride si Qdrant est disponible
+     * Utilise recherche hybride: FULLTEXT + Vecteurs MySQL
      */
     public function quickSearch(string $query, int $limit = 10): array
     {
-        // Utiliser la recherche hybride si disponible
+        // Recherche hybride si embeddings disponibles
         if ($this->isSemanticSearchAvailable()) {
             try {
-                $results = $this->vectorSearch->hybridSearch($query, $limit, [], 0.6);
+                $results = $this->hybridSearchMySQL($query, $limit);
                 if (!empty($results)) {
-                    // Formater pour compatibilité avec l'ancien format
-                    return array_map(function ($item) {
-                        $doc = $item['document'];
-                        return [
-                            'id' => $doc['id'],
-                            'title' => $doc['title'],
-                            'original_filename' => $doc['original_filename'],
-                            'document_date' => $doc['document_date'] ?? null,
-                            'amount' => $doc['amount'] ?? null,
-                            'correspondent_name' => $doc['correspondent_name'] ?? null,
-                            '_search_score' => $item['score'] ?? 0,
-                            '_semantic_score' => $item['semantic_score'] ?? 0,
-                        ];
-                    }, $results);
+                    return $results;
                 }
             } catch (\Exception $e) {
-                error_log("quickSearch semantic failed, falling back to SQL: " . $e->getMessage());
+                error_log("quickSearch hybrid failed, falling back to SQL: " . $e->getMessage());
             }
         }
 
@@ -464,7 +553,7 @@ PROMPT;
     }
 
     /**
-     * Recherche SQL classique (fallback)
+     * Recherche SQL FULLTEXT classique
      */
     private function quickSearchSQL(string $query, int $limit = 10): array
     {
@@ -477,20 +566,20 @@ PROMPT;
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             WHERE d.deleted_at IS NULL
             AND (d.status IS NULL OR d.status != 'pending')
-              AND (d.title LIKE ? OR d.content LIKE ? OR d.original_filename LIKE ?
-                   OR c.name LIKE ?)
+            AND (d.title LIKE ? OR d.content LIKE ? OR d.ocr_text LIKE ?
+                 OR d.original_filename LIKE ? OR c.name LIKE ?)
             ORDER BY d.document_date DESC
             LIMIT ?
         ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$search, $search, $search, $search, $limit]);
+        $stmt->execute([$search, $search, $search, $search, $search, $limit]);
 
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     /**
-     * Recherche sémantique pure (sans fallback)
+     * Recherche sémantique via embeddings MySQL
      */
     public function semanticSearch(string $query, int $limit = 10, array $filters = []): array
     {
@@ -499,7 +588,7 @@ PROMPT;
         }
 
         try {
-            return $this->vectorSearch->search($query, $limit, $filters);
+            return $this->vectorSearchMySQL($query, $limit, 0.3);
         } catch (\Exception $e) {
             error_log("semanticSearch error: " . $e->getMessage());
             return [];
@@ -507,22 +596,117 @@ PROMPT;
     }
 
     /**
-     * Recherche hybride (sémantique + keyword)
+     * Recherche hybride MySQL (FULLTEXT + Vecteurs)
      */
-    public function hybridSearch(string $query, int $limit = 10, array $filters = [], float $semanticWeight = 0.7): array
+    public function hybridSearch(string $query, int $limit = 10, array $filters = [], float $semanticWeight = 0.6): array
     {
-        if (!$this->isSemanticSearchAvailable()) {
-            // Fallback sur recherche SQL pure
-            return $this->executeSearch(['text_search' => $query, 'limit' => $limit]);
+        return $this->hybridSearchMySQL($query, $limit, $semanticWeight);
+    }
+
+    /**
+     * Recherche vectorielle dans MySQL
+     * Utilise les embeddings stockés dans documents.embedding (BLOB)
+     */
+    private function vectorSearchMySQL(string $query, int $limit = 10, float $threshold = 0.3): array
+    {
+        if (!$this->embeddings) {
+            return [];
         }
 
-        try {
-            return $this->vectorSearch->hybridSearch($query, $limit, $filters, $semanticWeight);
-        } catch (\Exception $e) {
-            error_log("hybridSearch error: " . $e->getMessage());
-            // Fallback sur recherche SQL
-            return $this->executeSearch(['text_search' => $query, 'limit' => $limit]);
+        // Générer embedding de la requête
+        $queryVector = $this->embeddings->embed($query);
+        if (!$queryVector) {
+            return [];
         }
+
+        // Charger les documents avec embeddings
+        $stmt = $this->db->query("
+            SELECT d.id, d.title, d.original_filename, d.document_date, d.amount,
+                   d.embedding, c.name as correspondent_name
+            FROM documents d
+            LEFT JOIN correspondents c ON d.correspondent_id = c.id
+            WHERE d.deleted_at IS NULL
+            AND (d.status IS NULL OR d.status != 'pending')
+            AND d.embedding IS NOT NULL
+        ");
+
+        $results = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $docVector = $this->unpackEmbedding($row['embedding']);
+            if (!$docVector) continue;
+
+            $similarity = AIHelper::cosineSimilarity($queryVector, $docVector);
+            if ($similarity >= $threshold) {
+                unset($row['embedding']); // Ne pas retourner le blob
+                $row['_semantic_score'] = round($similarity, 4);
+                $results[] = $row;
+            }
+        }
+
+        // Trier par score décroissant
+        usort($results, fn($a, $b) => $b['_semantic_score'] <=> $a['_semantic_score']);
+
+        return array_slice($results, 0, $limit);
+    }
+
+    /**
+     * Recherche hybride MySQL: combine FULLTEXT et vecteurs
+     */
+    private function hybridSearchMySQL(string $query, int $limit = 10, float $semanticWeight = 0.6): array
+    {
+        // 1. Recherche FULLTEXT
+        $fulltextResults = $this->quickSearchSQL($query, $limit * 2);
+        $fulltextIds = array_column($fulltextResults, 'id');
+
+        // 2. Recherche sémantique
+        $semanticResults = [];
+        if ($this->isSemanticSearchAvailable()) {
+            $semanticResults = $this->vectorSearchMySQL($query, $limit * 2, 0.25);
+        }
+
+        // 3. Fusion des scores
+        $combined = [];
+        $keywordWeight = 1 - $semanticWeight;
+
+        // Ajouter résultats FULLTEXT
+        foreach ($fulltextResults as $i => $doc) {
+            $id = $doc['id'];
+            $ftScore = 1 - ($i / count($fulltextResults)); // Score basé sur position
+            $combined[$id] = [
+                'doc' => $doc,
+                'ft_score' => $ftScore,
+                'sem_score' => 0,
+            ];
+        }
+
+        // Fusionner avec résultats sémantiques
+        foreach ($semanticResults as $doc) {
+            $id = $doc['id'];
+            if (isset($combined[$id])) {
+                $combined[$id]['sem_score'] = $doc['_semantic_score'];
+            } else {
+                $combined[$id] = [
+                    'doc' => $doc,
+                    'ft_score' => 0,
+                    'sem_score' => $doc['_semantic_score'],
+                ];
+            }
+        }
+
+        // Calculer score final
+        foreach ($combined as $id => &$item) {
+            $item['final_score'] = ($item['ft_score'] * $keywordWeight) + ($item['sem_score'] * $semanticWeight);
+            $item['doc']['_search_score'] = round($item['final_score'], 4);
+            $item['doc']['_semantic_score'] = round($item['sem_score'], 4);
+        }
+
+        // Trier par score final
+        usort($combined, fn($a, $b) => $b['final_score'] <=> $a['final_score']);
+
+        // Extraire les documents
+        $results = array_map(fn($item) => $item['doc'], array_slice($combined, 0, $limit));
+
+        return $results;
     }
 
     /**
@@ -535,11 +719,66 @@ PROMPT;
         }
 
         try {
-            return $this->vectorSearch->findSimilar($documentId, $limit);
+            // Récupérer l'embedding du document source
+            $stmt = $this->db->prepare("SELECT embedding FROM documents WHERE id = ? AND embedding IS NOT NULL");
+            $stmt->execute([$documentId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$row || !$row['embedding']) {
+                return [];
+            }
+
+            $sourceVector = $this->unpackEmbedding($row['embedding']);
+            if (!$sourceVector) {
+                return [];
+            }
+
+            // Chercher documents similaires
+            $stmt = $this->db->prepare("
+                SELECT d.id, d.title, d.original_filename, d.document_date, d.amount,
+                       d.embedding, c.name as correspondent_name
+                FROM documents d
+                LEFT JOIN correspondents c ON d.correspondent_id = c.id
+                WHERE d.deleted_at IS NULL
+                AND d.id != ?
+                AND d.embedding IS NOT NULL
+            ");
+            $stmt->execute([$documentId]);
+
+            $results = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $docVector = $this->unpackEmbedding($row['embedding']);
+                if (!$docVector) continue;
+
+                $similarity = AIHelper::cosineSimilarity($sourceVector, $docVector);
+                if ($similarity >= 0.5) { // Seuil plus élevé pour similarité
+                    unset($row['embedding']);
+                    $row['_similarity'] = round($similarity, 4);
+                    $results[] = $row;
+                }
+            }
+
+            usort($results, fn($a, $b) => $b['_similarity'] <=> $a['_similarity']);
+
+            return array_slice($results, 0, $limit);
         } catch (\Exception $e) {
             error_log("findSimilarDocuments error: " . $e->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Décompresse un embedding stocké en BLOB
+     */
+    private function unpackEmbedding(?string $blob): ?array
+    {
+        if (!$blob) return null;
+
+        // Format: packed floats (32-bit)
+        $unpacked = unpack('f*', $blob);
+        if (!$unpacked) return null;
+
+        return array_values($unpacked);
     }
     
     /**
@@ -568,36 +807,66 @@ PROMPT;
     }
     
     /**
-     * Résume un document
+     * Résume un document via IA (CASCADE: Claude > Ollama)
      */
     public function summarizeDocument(int $documentId): ?string
     {
         $stmt = $this->db->prepare("SELECT * FROM documents WHERE id = ?");
         $stmt->execute([$documentId]);
-        $doc = $stmt->fetch();
-        
-        if (!$doc || empty($doc['content'])) {
+        $doc = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$doc) {
             return null;
         }
-        
-        $content = substr($doc['content'], 0, 10000); // Limiter
-        
+
+        // Utiliser ocr_text ou content
+        $content = $doc['ocr_text'] ?? $doc['content'] ?? '';
+        if (empty(trim($content))) {
+            return null;
+        }
+
+        $content = mb_substr($content, 0, 8000); // Limiter pour tokens
+
         $prompt = <<<PROMPT
-Résume ce document de manière concise (3-5 phrases) :
+Résume ce document de manière concise (3-5 phrases) en français :
 
 Titre: {$doc['title']}
-Type: Document administratif
 Contenu:
 $content
 
-Résumé:
+Fournis uniquement le résumé, sans introduction ni commentaire.
 PROMPT;
 
-        $response = $this->claude->sendMessage($prompt);
-        if (!$response) {
+        // CASCADE: Claude > Ollama
+        $response = $this->aiProvider->complete($prompt, ['max_tokens' => 500]);
+        if (!$response || empty($response['text'])) {
             return null;
         }
-        
-        return $this->claude->extractText($response);
+
+        return trim($response['text']);
+    }
+
+    /**
+     * Retourne le statut du service RAG
+     */
+    public function getStatus(): array
+    {
+        $aiStatus = $this->aiProvider->getStatus();
+
+        return [
+            'embeddings_available' => $this->embeddingsAvailable,
+            'generation_available' => $this->aiProvider->isAIAvailable(),
+            'active_provider' => $aiStatus['active_provider'] ?? 'none',
+            'providers' => [
+                'claude' => $aiStatus['claude'] ?? [],
+                'ollama' => $aiStatus['ollama'] ?? [],
+            ],
+            'features' => [
+                'semantic_search' => $this->embeddingsAvailable,
+                'hybrid_search' => $this->embeddingsAvailable,
+                'rag_answers' => $this->aiProvider->isAIAvailable(),
+                'document_summary' => $this->aiProvider->isAIAvailable(),
+            ],
+        ];
     }
 }

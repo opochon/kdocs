@@ -146,16 +146,32 @@ class AIProviderService
     
     /**
      * Envoie un prompt au meilleur provider disponible
+     * CASCADE: Claude > Ollama (avec fallback automatique)
      */
     public function complete(string $prompt, array $options = []): ?array
     {
         $provider = $this->getBestProvider();
-        
-        return match ($provider) {
-            self::PROVIDER_CLAUDE => $this->completeWithClaude($prompt, $options),
-            self::PROVIDER_OLLAMA => $this->completeWithOllama($prompt, $options),
-            default => null,
-        };
+
+        // Essayer Claude d'abord si c'est le provider principal
+        if ($provider === self::PROVIDER_CLAUDE) {
+            $result = $this->completeWithClaude($prompt, $options);
+            if ($result !== null) {
+                return $result;
+            }
+            // Fallback sur Ollama si Claude échoue
+            error_log("AIProviderService: Claude failed, falling back to Ollama");
+            if ($this->isOllamaAvailable()) {
+                return $this->completeWithOllama($prompt, $options);
+            }
+            return null;
+        }
+
+        // Ollama direct si c'est le provider principal
+        if ($provider === self::PROVIDER_OLLAMA) {
+            return $this->completeWithOllama($prompt, $options);
+        }
+
+        return null;
     }
     
     /**
