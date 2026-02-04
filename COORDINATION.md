@@ -29,6 +29,7 @@
 | 2 | Sidebar + étiquettes + correspondants enrichis | Agent-2 | 🔄 en cours |
 | 3 | Fix fallback Ollama (crédit Claude épuisé) | Agent-3 | ✅ terminé |
 | 5 | Corrections document 52 (boutons V/X, validation) | Agent-3 | ✅ terminé |
+| 6 | Correction date suggestion IA + texte bouton | Agent-3 | ✅ terminé |
 | 4 | Fix OnlyOffice éditeur | Agent-4 | 🔄 en cours |
 
 ---
@@ -47,6 +48,7 @@
 [2026-02-04 19:00] Agent-3 : FIX TERMINÉ - Fallback Ollama automatique implémenté
 [2026-02-04 19:30] Agent-3 : ANALYSE - Problèmes document 52 : boutons V/X, toggle validation
 [2026-02-04 20:00] Agent-3 : FIX TERMINÉ - Corrections document 52 : boutons V/X, toggle validation, debug IA
+[2026-02-04 20:15] Agent-3 : FIX TERMINÉ - Correction date suggestion IA + texte bouton 'Suggestion : analyser'
 ```
 
 ---
