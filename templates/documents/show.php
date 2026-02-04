@@ -237,7 +237,7 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                     <button type="button" onclick="getAISuggestions(<?= $document['id'] ?>)"
                             class="px-2 py-1 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50"
                             title="Analyse le document avec l'IA pour suggérer titre, type, correspondant et tags">
-                        Suggestions IA
+                        Suggestion : analyser
                     </button>
                     <?php endif; ?>
                 </div>
@@ -300,7 +300,16 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Date du document</label>
-                            <input type="date" name="document_date" value="<?= ($document['document_date'] ?? $document['doc_date'] ?? null) ? date('Y-m-d', strtotime($document['document_date'] ?? $document['doc_date'])) : '' ?>"
+                            <?php
+                            // Déterminer la date à afficher : document_date > doc_date > date fichier > vide
+                            $docDate = $document['document_date'] ?? $document['doc_date'] ?? null;
+                            if (!$docDate && !empty($document['file_path']) && file_exists($document['file_path'])) {
+                                // Fallback : date de modification du fichier
+                                $fileTime = filemtime($document['file_path']);
+                                $docDate = date('Y-m-d', $fileTime);
+                            }
+                            ?>
+                            <input type="date" name="document_date" value="<?= $docDate ? date('Y-m-d', strtotime($docDate)) : '' ?>"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         
@@ -456,6 +465,40 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                                 <td class="py-2 text-gray-900 font-mono text-xs"><?= htmlspecialchars($document['checksum']) ?></td>
                             </tr>
                             <?php endif; ?>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Indexé</td>
+                                <td class="py-2 text-gray-900">
+                                    <?php if (!empty($document['is_indexed'])): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Oui</span>
+                                        <?php if (!empty($document['indexed_at'])): ?>
+                                            <span class="text-xs text-gray-500 ml-2">(<?= date('d/m/Y à H:i', strtotime($document['indexed_at'])) ?>)</span>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Non</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600 font-medium">Vectorisé</td>
+                                <td class="py-2 text-gray-900">
+                                    <?php
+                                    $embeddingStatus = $document['embedding_status'] ?? null;
+                                    if ($embeddingStatus === 'completed'): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Oui</span>
+                                        <?php if (!empty($document['vector_updated_at'])): ?>
+                                            <span class="text-xs text-gray-500 ml-2">(<?= date('d/m/Y à H:i', strtotime($document['vector_updated_at'])) ?>)</span>
+                                        <?php endif; ?>
+                                    <?php elseif ($embeddingStatus === 'failed'): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Erreur</span>
+                                    <?php elseif ($embeddingStatus === 'processing'): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">En cours</span>
+                                    <?php elseif ($embeddingStatus === 'pending'): ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">En attente</span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Non</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
