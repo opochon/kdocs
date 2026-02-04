@@ -405,6 +405,48 @@ class DocumentsApiController extends ApiController
         $aiStatus = $aiProvider->getStatus();
         $usingFallback = $aiStatus['fallback_active'] ?? false;
         
+        // FAIRE L'OCR AVANT L'ANALYSE IA si le contenu est vide ou insuffisant
+        $hasContent = !empty($document['content']) && strlen(trim($document['content'])) > 10;
+        $hasOcrText = !empty($document['ocr_text']) && strlen(trim($document['ocr_text'])) > 10;
+        
+        if (!$hasContent && !$hasOcrText) {
+            $filePath = $document['file_path'] ?? null;
+            if ($filePath && file_exists($filePath)) {
+                error_log("DocumentsApiController::classifyWithAI: Pas de contenu OCR, extraction avant analyse IA pour document {$id}");
+                try {
+                    $ocrService = new \KDocs\Services\OCRService();
+                    $ocrText = $ocrService->extractText($filePath);
+                    
+                    if (!empty($ocrText) && strlen(trim($ocrText)) > 10) {
+                        // Nettoyer le texte OCR
+                        $ocrText = mb_convert_encoding($ocrText, 'UTF-8', 'UTF-8');
+                        $ocrText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $ocrText);
+                        
+                        // Tronquer le texte si nécessaire avant insertion
+                        if (mb_strlen($ocrText) > 65000) {
+                            $originalLength = mb_strlen($ocrText);
+                            $ocrText = mb_substr($ocrText, 0, 65000);
+                            error_log("DocumentsApiController::classifyWithAI: OCR text tronqué de {$originalLength} à 65000 caractères pour document {$id}");
+                        }
+                        
+                        // Mettre à jour le document avec le nouveau contenu OCR
+                        $db = Database::getInstance();
+                        $updateStmt = $db->prepare("UPDATE documents SET ocr_text = ?, content = ? WHERE id = ?");
+                        $updateStmt->execute([$ocrText, $ocrText, $id]);
+                        
+                        // Recharger le document avec le nouveau contenu
+                        $document = Document::findById($id);
+                        error_log("DocumentsApiController::classifyWithAI: OCR réussi avant analyse IA pour document {$id} (" . strlen($ocrText) . " caractères)");
+                    } else {
+                        error_log("DocumentsApiController::classifyWithAI: OCR n'a pas extrait de texte significatif pour document {$id}");
+                    }
+                } catch (\Exception $e) {
+                    error_log("DocumentsApiController::classifyWithAI: Erreur OCR avant analyse IA pour document {$id}: " . $e->getMessage());
+                    // Continuer quand même avec l'analyse IA (peut utiliser le fichier directement)
+                }
+            }
+        }
+        
         $suggestions = $classifier->classify($id);
         
         if (!$suggestions) {
