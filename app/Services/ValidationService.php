@@ -133,6 +133,9 @@ class ValidationService
 
         $previousStatus = $document['validation_status'];
 
+        // Mapper 'na' → NULL pour la DB (l'ENUM ne supporte pas 'na')
+        $dbStatus = ($decision === 'na') ? null : $decision;
+
         try {
             $this->db->beginTransaction();
 
@@ -146,7 +149,7 @@ class ValidationService
                     requires_approval = FALSE
                 WHERE id = ?
             ");
-            $stmt->execute([$decision, $validatedBy, $comment, $documentId]);
+            $stmt->execute([$dbStatus, $validatedBy, $comment, $documentId]);
 
             // Enregistrer dans l'historique
             $stmt = $this->db->prepare("

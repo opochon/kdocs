@@ -794,16 +794,16 @@ function renderDocumentMetadata(doc) {
                     Suggestions IA
                 </button>
                 <div class="flex gap-1">
-                    <button onclick="setValidationStatus(${doc.id}, 'approved')" title="Valider"
-                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'bg-green-600 text-white' : 'border border-green-300 text-green-700 hover:bg-green-50'}">
+                    <button onclick="saveDocumentPreview(${doc.id})" title="Enregistrer les modifications"
+                            class="p-1.5 rounded transition border border-green-300 text-green-700 hover:bg-green-50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </button>
-                    <button onclick="setValidationStatus(${doc.id}, 'rejected')" title="Rejeter"
-                            class="p-1.5 rounded transition ${validationStatus === 'rejected' ? 'bg-red-600 text-white' : 'border border-red-300 text-red-700 hover:bg-red-50'}">
+                    <button onclick="closeDocumentPreview()" title="Fermer"
+                            class="p-1.5 rounded transition border border-red-300 text-red-700 hover:bg-red-50">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    <button onclick="setValidationStatus(${doc.id}, 'na')" title="N/A"
-                            class="p-1.5 rounded transition ${validationStatus === 'na' ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
+                    <button onclick="toggleValidationStatus(${doc.id}, '${validationStatus || 'pending'}')" title="Toggle validation (Validé/Rejeté/N/A)"
+                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'bg-green-600 text-white' : validationStatus === 'rejected' ? 'bg-red-600 text-white' : validationStatus === 'na' || !validationStatus ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>
                     </button>
                 </div>
@@ -871,11 +871,11 @@ function renderDocumentMetadata(doc) {
                     </div>
                 </div>
 
-                <!-- Tags -->
+                <!-- Étiquettes -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tags</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Étiquettes</label>
                     <div class="max-h-20 overflow-y-auto space-y-1 p-2 border rounded bg-gray-50">
-                        ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucun tag disponible</p>'}
+                        ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucune étiquette disponible</p>'}
                     </div>
                 </div>
 
@@ -1215,10 +1215,11 @@ async function setValidationStatus(docId, status) {
 
         const result = await response.json();
         if (result.success) {
-            // Recharger le document
+            // Recharger le document pour mettre à jour l'affichage
             loadDocumentPreview(docId);
+            showNotification('Statut de validation mis à jour', 'success');
         } else {
-            alert('Erreur: ' + (result.message || 'Échec de la validation'));
+            showNotification('Erreur: ' + (result.message || result.error || 'Échec de la validation'), 'error');
         }
     } catch (error) {
         console.error('Validation error:', error);
@@ -1226,11 +1227,19 @@ async function setValidationStatus(docId, status) {
     }
 }
 
-// Toggle validation status - cycle through states: pending → approved → rejected → na → pending
+// Toggle validation status - cycle through states: NULL → approved → rejected → NULL
 function toggleValidationStatus(docId, currentStatus) {
-    const states = ['pending', 'approved', 'rejected', 'na'];
-    const currentIndex = states.indexOf(currentStatus);
-    const nextStatus = states[(currentIndex + 1) % states.length];
+    // Cycle: null/pending → approved → rejected → null
+    let nextStatus;
+    if (!currentStatus || currentStatus === 'pending' || currentStatus === 'na' || currentStatus === null) {
+        nextStatus = 'approved';
+    } else if (currentStatus === 'approved') {
+        nextStatus = 'rejected';
+    } else if (currentStatus === 'rejected') {
+        nextStatus = 'na'; // Sera mappé à NULL en backend
+    } else {
+        nextStatus = 'approved'; // Fallback
+    }
     setValidationStatus(docId, nextStatus);
 }
 
@@ -1269,9 +1278,18 @@ async function getAISuggestionsPreview(docId) {
         });
 
         const result = await response.json();
+        
+        // Debug: Logger les suggestions reçues
+        console.log('AI Suggestions Response:', result);
+        
         if (result.success && result.data?.suggestions) {
             const s = result.data.suggestions;
             const matched = s.matched || {};
+            
+            // Debug: Logger les suggestions et matched
+            console.log('Suggestions:', s);
+            console.log('Matched IDs:', matched);
+            
             let appliedCount = 0;
 
             // Appliquer les suggestions aux champs
@@ -1329,10 +1347,29 @@ async function getAISuggestionsPreview(docId) {
             if (appliedCount > 0) {
                 showNotification(`${appliedCount} suggestion(s) IA appliquée(s)`, 'success');
             } else {
-                showNotification('Aucune suggestion applicable', 'info');
+                // Debug: Logger pourquoi aucune suggestion n'a été appliquée
+                console.warn('Aucune suggestion appliquée:', {
+                    hasTitle: !!s.title_suggestion,
+                    hasMatchedType: !!matched.document_type_id,
+                    hasMatchedCorr: !!matched.correspondent_id,
+                    hasMatchedTags: !!(matched.tag_ids && matched.tag_ids.length > 0),
+                    hasDate: !!s.document_date,
+                    matched: matched
+                });
+                
+                // Message plus détaillé
+                let reason = 'Aucune suggestion applicable';
+                if (!s.title_suggestion && !matched.document_type_id && !matched.correspondent_id && !matched.tag_ids?.length) {
+                    reason = 'L\'IA n\'a pas pu extraire de suggestions pour ce document';
+                } else if (!matched.document_type_id && !matched.correspondent_id && !matched.tag_ids?.length) {
+                    reason = 'Les suggestions ne correspondent à aucune entité existante';
+                }
+                showNotification(reason, 'info');
             }
         } else {
-            showNotification(result.message || 'Aucune suggestion disponible', 'info');
+            const errorMsg = result.message || result.error || 'Aucune suggestion disponible';
+            console.error('AI Suggestions Error:', errorMsg, result);
+            showNotification(errorMsg, 'error');
         }
     } catch (error) {
         console.error('AI error:', error);

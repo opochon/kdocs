@@ -168,6 +168,11 @@ class ValidationApiController
             return $this->jsonResponse($response, ['error' => 'Document non trouvé'], 404);
         }
 
+        // Mapper NULL → 'na' pour l'API (l'ENUM DB ne supporte pas 'na' mais on l'utilise côté API)
+        if ($document['validation_status'] === null) {
+            $document['validation_status'] = 'na';
+        }
+
         // Récupérer le validateur
         $validator = null;
         if ($document['validated_by']) {
