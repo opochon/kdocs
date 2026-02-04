@@ -460,12 +460,20 @@ class DocumentProcessor
                     $extractedText = mb_convert_encoding($extractedText, 'UTF-8', 'UTF-8');
                     $extractedText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $extractedText);
                     
+                    // Tronquer le texte extrait si nécessaire avant insertion
+                    $textToStore = $extractedText;
+                    if ($textToStore && mb_strlen($textToStore) > 65000) {
+                        $originalLength = mb_strlen($textToStore);
+                        $textToStore = mb_substr($textToStore, 0, 65000);
+                        error_log("DocumentProcessor: Texte IA tronqué de {$originalLength} à 65000 caractères pour document {$documentId}");
+                    }
+                    
                     $updateFields[] = 'content = ?';
                     $updateFields[] = 'ocr_text = ?';
-                    $updateParams[] = $extractedText;
-                    $updateParams[] = $extractedText;
+                    $updateParams[] = $textToStore;
+                    $updateParams[] = $textToStore;
                     
-                    error_log("Document {$documentId}: Contenu OCR mis à jour depuis l'analyse IA complexe (" . strlen($extractedText) . " caractères)");
+                    error_log("Document {$documentId}: Contenu OCR mis à jour depuis l'analyse IA complexe (" . strlen($textToStore) . " caractères)");
                 }
                 
                 $updateParams[] = $documentId;
