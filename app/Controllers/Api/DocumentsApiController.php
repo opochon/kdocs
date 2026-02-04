@@ -301,10 +301,18 @@ class DocumentsApiController extends ApiController
             }
 
             if (isset($data['ocr_text'])) {
+                // Tronquer le texte si nécessaire avant insertion (limite TEXT MySQL: 65,535)
+                $ocrText = $data['ocr_text'];
+                if (mb_strlen($ocrText) > 65000) {
+                    $originalLength = mb_strlen($ocrText);
+                    $ocrText = mb_substr($ocrText, 0, 65000);
+                    error_log("DocumentsApiController: OCR text tronqué de {$originalLength} à 65000 caractères pour document {$id}");
+                }
+                
                 $updateFields[] = 'ocr_text = ?';
                 $updateFields[] = 'content = ?';
-                $updateParams[] = $data['ocr_text'];
-                $updateParams[] = $data['ocr_text'];
+                $updateParams[] = $ocrText;
+                $updateParams[] = $ocrText;
             }
 
             if (isset($data['logical_folder_id'])) {

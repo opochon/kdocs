@@ -625,14 +625,56 @@ PROMPT;
             'tag_ids' => []
         ];
         
-        // Matcher correspondent
+        // Matcher correspondent avec matching amélioré
         if (!empty($result['correspondent'])) {
+            $suggestedCorr = mb_strtolower(trim($result['correspondent']));
+            
+            // Normaliser les noms (supprimer accents, espaces multiples, etc.)
+            $normalize = function($str) {
+                $str = mb_strtolower($str);
+                $str = preg_replace('/\s+/', ' ', $str); // Espaces multiples → un seul
+                $str = trim($str);
+                return $str;
+            };
+            
+            $normalizedSuggested = $normalize($suggestedCorr);
+            
+            // Essayer plusieurs stratégies de matching
             foreach ($correspondents as $corr) {
-                if (stripos($corr['name'], $result['correspondent']) !== false ||
-                    stripos($result['correspondent'], $corr['name']) !== false) {
+                $corrName = mb_strtolower(trim($corr['name']));
+                $normalizedCorr = $normalize($corrName);
+                
+                // 1. Match exact (normalisé)
+                if ($normalizedSuggested === $normalizedCorr) {
                     $matched['correspondent_id'] = $corr['id'];
                     break;
                 }
+                
+                // 2. Match partiel (un contient l'autre)
+                if (stripos($corrName, $suggestedCorr) !== false ||
+                    stripos($suggestedCorr, $corrName) !== false) {
+                    $matched['correspondent_id'] = $corr['id'];
+                    break;
+                }
+                
+                // 3. Match par mots-clés (si "Tribunal cantonal" suggéré, matcher "Tribunal" ou "cantonal")
+                $suggestedWords = array_filter(explode(' ', $normalizedSuggested), fn($w) => mb_strlen($w) > 3);
+                $corrWords = array_filter(explode(' ', $normalizedCorr), fn($w) => mb_strlen($w) > 3);
+                
+                if (!empty($suggestedWords) && !empty($corrWords)) {
+                    $commonWords = array_intersect($suggestedWords, $corrWords);
+                    // Si au moins 2 mots en commun ou 1 mot long (>5 chars)
+                    if (count($commonWords) >= 2 || 
+                        (count($commonWords) >= 1 && max(array_map('mb_strlen', $commonWords)) > 5)) {
+                        $matched['correspondent_id'] = $corr['id'];
+                        break;
+                    }
+                }
+            }
+            
+            // Log si aucun match trouvé
+            if (!$matched['correspondent_id']) {
+                error_log("AIClassifierService: Aucun correspondant trouvé pour suggestion '{$result['correspondent']}'");
             }
         }
         

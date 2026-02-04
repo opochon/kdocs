@@ -106,6 +106,15 @@ class DocumentProcessor
                     $content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $content);
                     $content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
                     
+                    // Limiter la taille à 65,000 caractères pour éviter l'erreur "Data too long for column 'content'"
+                    // TEXT MySQL a une limite de 65,535 caractères, on garde une marge de sécurité
+                    $maxLength = 65000;
+                    $originalLength = mb_strlen($content);
+                    if ($originalLength > $maxLength) {
+                        $content = mb_substr($content, 0, $maxLength);
+                        error_log("DocumentProcessor: Contenu OCR tronqué de {$originalLength} à {$maxLength} caractères pour document {$documentId}");
+                    }
+                    
                     // Stocker dans 'content' (colonne principale) et aussi dans 'ocr_text' pour compatibilité
                     $stmt = $this->db->prepare("UPDATE documents SET content = ?, ocr_text = ? WHERE id = ?");
                     $stmt->execute([$content, $content, $documentId]);
@@ -141,11 +150,23 @@ class DocumentProcessor
         } else {
             // Si le contenu existe déjà, s'assurer que les deux colonnes sont synchronisées
             if (!empty($document['content']) && empty($document['ocr_text'])) {
+                // Tronquer si nécessaire avant synchronisation
+                $content = $document['content'];
+                if (mb_strlen($content) > 65000) {
+                    $content = mb_substr($content, 0, 65000);
+                    error_log("DocumentProcessor: Contenu synchronisé tronqué à 65000 caractères pour document {$documentId}");
+                }
                 $stmt = $this->db->prepare("UPDATE documents SET ocr_text = ? WHERE id = ?");
-                $stmt->execute([$document['content'], $documentId]);
+                $stmt->execute([$content, $documentId]);
             } elseif (!empty($document['ocr_text']) && empty($document['content'])) {
+                // Tronquer si nécessaire avant synchronisation
+                $ocrText = $document['ocr_text'];
+                if (mb_strlen($ocrText) > 65000) {
+                    $ocrText = mb_substr($ocrText, 0, 65000);
+                    error_log("DocumentProcessor: OCR text synchronisé tronqué à 65000 caractères pour document {$documentId}");
+                }
                 $stmt = $this->db->prepare("UPDATE documents SET content = ? WHERE id = ?");
-                $stmt->execute([$document['ocr_text'], $documentId]);
+                $stmt->execute([$ocrText, $documentId]);
             }
         }
         
@@ -319,6 +340,13 @@ class DocumentProcessor
     
     private function updateDocument(int $documentId, ?string $text, array $metadata): void
     {
+        // Tronquer le texte si nécessaire avant insertion
+        if ($text && mb_strlen($text) > 65000) {
+            $originalLength = mb_strlen($text);
+            $text = mb_substr($text, 0, 65000);
+            error_log("DocumentProcessor::updateDocument: Contenu tronqué de {$originalLength} à 65000 caractères pour document {$documentId}");
+        }
+        
         $stmt = $this->db->prepare("UPDATE documents SET title = COALESCE(?, title), content = ?, document_date = ?, amount = ?, is_indexed = TRUE, indexed_at = NOW() WHERE id = ?");
         $stmt->execute([$metadata['title'] ?? null, $text, $metadata['date'] ?? null, $metadata['amount'] ?? null, $documentId]);
         
