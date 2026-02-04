@@ -111,7 +111,7 @@ $pendingDocuments = $pendingDocuments ?? 0;
                     <span class="font-bold"><?= number_format($stats['total_correspondents'] ?? 0) ?></span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Tags</span>
+                    <span class="text-gray-600">Étiquettes</span>
                     <span class="font-bold"><?= number_format($stats['total_tags'] ?? 0) ?></span>
                 </div>
             </div>

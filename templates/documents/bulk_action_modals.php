@@ -3,15 +3,15 @@
 // $tags, $documentTypes, $correspondents sont passés depuis le contrôleur
 ?>
 
-<!-- Modal Sélection Tag -->
+<!-- Modal Sélection Étiquette -->
 <div id="bulk-tag-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="bg-gray-800 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
-            <h3 class="text-lg font-semibold">Ajouter un tag</h3>
+            <h3 class="text-lg font-semibold">Ajouter une étiquette</h3>
             <button onclick="closeBulkTagModal()" class="text-white hover:text-gray-300">&times;</button>
         </div>
         <div class="p-6">
-            <p class="text-sm text-gray-600 mb-4">Sélectionnez le tag à ajouter aux documents sélectionnés :</p>
+            <p class="text-sm text-gray-600 mb-4">Sélectionnez l'étiquette à ajouter aux documents sélectionnés :</p>
             <div id="bulk-tag-list" class="space-y-2 max-h-64 overflow-y-auto">
                 <?php foreach ($tags ?? [] as $tag): ?>
                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">

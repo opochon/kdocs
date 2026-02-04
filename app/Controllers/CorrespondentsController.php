@@ -118,56 +118,111 @@ class CorrespondentsController
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
-        
+
         $data = $request->getParsedBody();
+
+        // Champs de base
         $name = trim($data['name'] ?? '');
-        $slug = trim($data['slug'] ?? '');
         $match = trim($data['match'] ?? '');
-        $matchingAlgorithm = (int)($data['matching_algorithm'] ?? 0);
+        $matchingAlgorithm = $data['matching_algorithm'] ?? 'none';
         $isInsensitive = isset($data['is_insensitive']) ? 1 : 0;
-        
-        if (empty($name)) {
+
+        // Nouveaux champs enrichis
+        $type = $data['type'] ?? 'personne';
+        $nomEntreprise = trim($data['nom_entreprise'] ?? '');
+        $prenom = trim($data['prenom'] ?? '');
+        $email = trim($data['email'] ?? '');
+        $address = trim($data['address'] ?? '');
+        $npa = trim($data['npa'] ?? '');
+        $ville = trim($data['ville'] ?? '');
+        $pays = trim($data['pays'] ?? 'Suisse');
+        $telephone = trim($data['telephone'] ?? '');
+        $typeContact = $data['type_contact'] ?? null;
+        $referenceErp = trim($data['reference_erp'] ?? '');
+        $notes = trim($data['notes'] ?? '');
+
+        // Validation: nom requis pour personne, nom_entreprise requis pour entreprise/administration
+        if ($type === 'personne' && empty($name)) {
             $basePath = \KDocs\Core\Config::basePath();
             return $response
-                ->withHeader('Location', $basePath . '/admin/correspondents')
+                ->withHeader('Location', $basePath . '/admin/correspondents?error=name_required')
                 ->withStatus(302);
         }
-        
-        // Générer le slug si vide
-        if (empty($slug)) {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+        if (($type === 'entreprise' || $type === 'administration') && empty($nomEntreprise)) {
+            $basePath = \KDocs\Core\Config::basePath();
+            return $response
+                ->withHeader('Location', $basePath . '/admin/correspondents?error=company_name_required')
+                ->withStatus(302);
         }
-        
+
+        // type_contact null si vide
+        if (empty($typeContact)) {
+            $typeContact = null;
+        }
+
         if ($id) {
             // Récupérer l'ancien correspondant pour l'audit
             $oldCorrStmt = $db->prepare("SELECT * FROM correspondents WHERE id = ?");
             $oldCorrStmt->execute([$id]);
             $oldCorrespondent = $oldCorrStmt->fetch(PDO::FETCH_ASSOC);
-            
-            // Mise à jour
-            $stmt = $db->prepare("UPDATE correspondents SET name = ?, slug = ?, match = ?, matching_algorithm = ?, is_insensitive = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$name, $slug, $match, $matchingAlgorithm, $isInsensitive, $id]);
-            
+
+            // Mise à jour avec tous les champs
+            $stmt = $db->prepare("
+                UPDATE correspondents SET
+                    name = ?,
+                    type = ?,
+                    nom_entreprise = ?,
+                    prenom = ?,
+                    email = ?,
+                    address = ?,
+                    npa = ?,
+                    ville = ?,
+                    pays = ?,
+                    telephone = ?,
+                    type_contact = ?,
+                    reference_erp = ?,
+                    notes = ?,
+                    `match` = ?,
+                    matching_algorithm = ?,
+                    is_insensitive = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $name, $type, $nomEntreprise, $prenom, $email, $address,
+                $npa, $ville, $pays, $telephone, $typeContact, $referenceErp, $notes,
+                $match, $matchingAlgorithm, $isInsensitive, $id
+            ]);
+
             // Audit log
             if ($oldCorrespondent) {
                 $changes = [];
                 if ($oldCorrespondent['name'] !== $name) $changes['name'] = ['old' => $oldCorrespondent['name'], 'new' => $name];
-                if ($oldCorrespondent['slug'] !== $slug) $changes['slug'] = ['old' => $oldCorrespondent['slug'], 'new' => $slug];
+                if (($oldCorrespondent['type'] ?? '') !== $type) $changes['type'] = ['old' => $oldCorrespondent['type'] ?? '', 'new' => $type];
                 if (($oldCorrespondent['match'] ?? '') !== $match) $changes['match'] = ['old' => $oldCorrespondent['match'] ?? '', 'new' => $match];
                 if (!empty($changes)) {
-                    AuditService::logUpdate('correspondent', $id, $name, $changes, $user['id']);
+                    AuditService::logUpdate('correspondent', $id, $name ?: $nomEntreprise, $changes, $user['id']);
                 }
             }
         } else {
-            // Création
-            $stmt = $db->prepare("INSERT INTO correspondents (name, slug, match, matching_algorithm, is_insensitive, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
-            $stmt->execute([$name, $slug, $match, $matchingAlgorithm, $isInsensitive]);
+            // Création avec tous les champs
+            $stmt = $db->prepare("
+                INSERT INTO correspondents (
+                    name, type, nom_entreprise, prenom, email, address,
+                    npa, ville, pays, telephone, type_contact, reference_erp, notes,
+                    `match`, matching_algorithm, is_insensitive, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            $stmt->execute([
+                $name, $type, $nomEntreprise, $prenom, $email, $address,
+                $npa, $ville, $pays, $telephone, $typeContact, $referenceErp, $notes,
+                $match, $matchingAlgorithm, $isInsensitive
+            ]);
             $newId = (int)$db->lastInsertId();
-            
+
             // Audit log
-            AuditService::logCreate('correspondent', $newId, $name, $user['id']);
+            AuditService::logCreate('correspondent', $newId, $name ?: $nomEntreprise, $user['id']);
         }
-        
+
         $basePath = \KDocs\Core\Config::basePath();
         return $response
             ->withHeader('Location', $basePath . '/admin/correspondents')

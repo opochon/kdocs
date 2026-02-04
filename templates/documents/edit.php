@@ -104,10 +104,10 @@ $base = Config::basePath();
             </div>
         </div>
 
-        <!-- Tags -->
+        <!-- Étiquettes -->
         <?php if (!empty($allTags)): ?>
         <div class="tags-container">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Étiquettes</label>
             <div class="flex flex-wrap gap-2">
                 <?php 
                 $documentTagIds = array_column($tags ?? [], 'id');

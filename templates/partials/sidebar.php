@@ -186,7 +186,8 @@ try {
                 </a>
             </li>
             
-            <!-- Storage Paths -->
+            <!-- Storage Paths (masqué - non utilisé, 0 entrées en DB) -->
+            <?php /*
             <li>
                 <a href="<?= url('/admin/storage-paths') ?>" class="flex items-center px-2 py-1.5 rounded text-sm transition-colors <?= isActive('/admin/storage-paths', $currentRoute, $basePath) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
                     <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,6 +196,7 @@ try {
                     <span>Chemins de stockage</span>
                 </a>
             </li>
+            */ ?>
             
             <!-- Classification Fields -->
             <li>

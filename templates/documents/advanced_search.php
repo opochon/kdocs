@@ -56,9 +56,9 @@
                         </select>
                     </div>
                     
-                    <!-- Tags -->
+                    <!-- Étiquettes -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Étiquettes</label>
                         <div id="search-tags-container" class="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg min-h-[60px]">
                             <?php foreach ($tags ?? [] as $tag): ?>
                             <label class="inline-flex items-center px-3 py-1 rounded-full text-sm cursor-pointer hover:opacity-80"
