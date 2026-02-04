@@ -26,11 +26,20 @@ function get_classification_prompt(string $text): string {
     return <<<PROMPT
 Analyse ce document et extrais les informations suivantes. Réponds UNIQUEMENT en JSON valide, sans texte avant ni après.
 
+IMPORTANT - EXTRACTION DU CORRESPONDANT:
+Le champ "correspondent" est CRITIQUE. Tu DOIS identifier l'expéditeur/entreprise émettrice du document.
+Cherche dans cet ordre:
+1. Le nom d'entreprise en en-tête ou logo (souvent en haut du document)
+2. Les mentions "De:", "From:", "Expéditeur:", "Absender:", "Von:"
+3. Les noms avec suffixes: SA, AG, Sàrl, GmbH, SAS, SARL, Ltd, Inc, SE, NV, BV
+4. L'adresse de l'expéditeur (case postale, siège social)
+5. La signature ou le pied de page
+
 Format de réponse attendu :
 {
   "type": "facture|contrat|courrier|rapport|releve|attestation|devis|autre",
   "confidence": 0.0 à 1.0,
-  "correspondent": "Nom de l'entreprise/expéditeur ou null",
+  "correspondent": "Nom EXACT de l'entreprise/expéditeur (OBLIGATOIRE si présent)",
   "tags": ["tag1", "tag2", "tag3"],
   "fields": {
     "montant": 1234.56 ou null,
@@ -50,6 +59,12 @@ Types possibles :
 - attestation : certificat, attestation officielle
 - devis : offre de prix, proposition commerciale
 - autre : si aucun type ne correspond
+
+Exemples de correspondants attendus:
+- "Swisscom (Suisse) SA" (pas juste "Swisscom")
+- "UBS Switzerland AG"
+- "La Mobilière Assurances"
+- "Office cantonal des véhicules"
 
 Document à analyser :
 $truncatedText
@@ -228,16 +243,87 @@ function classify_with_rules(string $text): array {
         $fields['reference'] = $m[1];
     }
 
-    // Correspondant (patterns courants)
+    // Correspondant (patterns courants) - AMÉLIORÉ
     $correspondent = null;
-    $correspondentPatterns = [
-        '/(?:^|\n)([A-Z][A-Za-zÀ-ÿ\s]+(?:SA|AG|Sàrl|GmbH|SAS|SARL|Ltd|Inc))/m',
-        '/De\s*:\s*([A-Z][A-Za-zÀ-ÿ\s]+)/m',
-    ];
-    foreach ($correspondentPatterns as $pattern) {
-        if (preg_match($pattern, $text, $m)) {
-            $correspondent = trim($m[1]);
-            break;
+
+    // Fonction de nettoyage et validation du correspondant
+    $cleanCorrespondent = function($candidate) {
+        // Nettoyer
+        $candidate = preg_replace('/\s+/', ' ', $candidate);
+        $candidate = trim($candidate, " \t\n\r\0\x0B.,;:");
+
+        // Supprimer les préfixes parasites (FACTURE N°, etc.)
+        $candidate = preg_replace('/^(?:FACTURE|INVOICE|RECHNUNG|DEVIS|CONTRAT|OFFRE)\s*(?:N[°o]?\s*[\d\-\/]+\s*)?/i', '', $candidate);
+        $candidate = trim($candidate);
+
+        // Mots interdits comme correspondant seul
+        $skipWords = ['FACTURE', 'INVOICE', 'RECHNUNG', 'CONTRAT', 'DEVIS', 'OFFRE',
+                      'MADAME', 'MONSIEUR', 'DATE', 'TOTAL', 'OBJET', 'REF', 'URGENT',
+                      'CONFIDENTIEL', 'RAPPEL', 'RELANCE', 'AVIS'];
+
+        if (strlen($candidate) < 3 || in_array(strtoupper($candidate), $skipWords)) {
+            return null;
+        }
+
+        // Doit contenir au moins 2 lettres consécutives
+        if (!preg_match('/[A-Za-zÀ-ÿ]{2,}/', $candidate)) {
+            return null;
+        }
+
+        return $candidate;
+    };
+
+    // Pattern 1: Format "Nom (Pays) SA" - le plus précis
+    if (preg_match('/([A-Z][A-Za-zÀ-ÿ]+\s*\([A-Za-zÀ-ÿ]+\)\s*(?:SA|AG|Ltd|Sàrl|GmbH))/m', $text, $m)) {
+        $correspondent = $cleanCorrespondent($m[1]);
+    }
+
+    // Pattern 2: Nom suivi directement de Case postale/adresse
+    if (!$correspondent && preg_match('/^([A-Z][A-Za-zÀ-ÿ\s\(\)\-\.&]{3,50})\n(?:Case postale|CP|Rue|Avenue|Chemin|Route|Postfach|PO Box)/m', $text, $m)) {
+        $correspondent = $cleanCorrespondent($m[1]);
+    }
+
+    // Pattern 3: Suffixes légaux suisses/européens (plus restrictif)
+    if (!$correspondent && preg_match('/(?:^|\n)([A-Z][A-Za-zÀ-ÿ\s\(\)\-\.&]{2,40}(?:SA|AG|Sàrl|GmbH|SAS|SARL|Ltd|Inc|SE))(?:\s|$|,|\n)/m', $text, $m)) {
+        $correspondent = $cleanCorrespondent($m[1]);
+    }
+
+    // Pattern 4: Headers d'email/courrier (De:, From:, etc.)
+    if (!$correspondent) {
+        $senderPatterns = [
+            '/(?:De|From|Von|Expéditeur|Mittente|Sender|Absender|Émetteur)\s*:\s*([A-Z][A-Za-zÀ-ÿ\s\(\)\-\.&]+?)(?:\n|<|$)/im',
+        ];
+        foreach ($senderPatterns as $pattern) {
+            if (preg_match($pattern, $text, $m)) {
+                $candidate = $cleanCorrespondent($m[1]);
+                if ($candidate) {
+                    $correspondent = $candidate;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Pattern 5: Noms d'institutions/banques communes suisses (dernier recours)
+    if (!$correspondent) {
+        $knownEntities = [
+            '/\b(Swisscom(?:\s*\([^)]+\))?\s*(?:SA|AG)?)\b/i',
+            '/\b(UBS(?:\s+(?:Switzerland|Suisse))?\s*(?:SA|AG)?)\b/i',
+            '/\b(Credit\s*Suisse(?:\s*\([^)]+\))?\s*(?:SA|AG)?)\b/i',
+            '/\b(La\s+Poste|PostFinance)\b/i',
+            '/\b(Mobilière|La\s+Mobilière)\b/i',
+            '/\b(Migros|Coop|Manor)\b/i',
+            '/\b(SBB|CFF|FFS)\b/i',
+            '/\b(Office\s+(?:cantonal|fédéral)[A-Za-zÀ-ÿ\s]{3,30})\b/i',
+        ];
+        foreach ($knownEntities as $pattern) {
+            if (preg_match($pattern, $text, $m)) {
+                $candidate = $cleanCorrespondent($m[1]);
+                if ($candidate) {
+                    $correspondent = $candidate;
+                    break;
+                }
+            }
         }
     }
 
