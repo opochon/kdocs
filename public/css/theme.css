@@ -1,0 +1,521 @@
+/**
+ * K-Docs Theme - Styles centralisés IBM Carbon Design
+ * Variables CSS et composants réutilisables
+ */
+
+/* =========================================
+   VARIABLES CSS
+   ========================================= */
+:root {
+    /* Colors - IBM Carbon palette */
+    --color-primary: #0f62fe;
+    --color-primary-hover: #0353e9;
+    --color-primary-active: #002d9c;
+
+    --color-text: #161616;
+    --color-text-secondary: #525252;
+    --color-text-placeholder: #a8a8a8;
+    --color-text-inverse: #ffffff;
+
+    --color-border: #e0e0e0;
+    --color-border-strong: #8d8d8d;
+
+    --color-bg: #ffffff;
+    --color-bg-hover: #f4f4f4;
+    --color-bg-active: #e0e0e0;
+    --color-bg-subtle: #f4f4f4;
+    --color-bg-muted: #e8e8e8;
+
+    --color-success: #24a148;
+    --color-success-bg: #defbe6;
+    --color-warning: #f1c21b;
+    --color-warning-bg: #fcf4d6;
+    --color-danger: #da1e28;
+    --color-danger-bg: #fff1f1;
+    --color-info: #0043ce;
+    --color-info-bg: #edf5ff;
+
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+
+    /* Sidebar */
+    --sidebar-width: 240px;
+    --sidebar-min-width: 200px;
+    --sidebar-max-width: 400px;
+    --sidebar-collapsed-width: 52px;
+
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-xs: 0.75rem;     /* 12px */
+    --font-size-sm: 0.875rem;    /* 14px */
+    --font-size-base: 1rem;      /* 16px */
+    --font-size-lg: 1.125rem;    /* 18px */
+    --font-size-xl: 1.25rem;     /* 20px */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Border radius */
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 8px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.12);
+
+    /* Transitions */
+    --transition-fast: 110ms;
+    --transition-normal: 200ms;
+    --transition-slow: 300ms;
+}
+
+/* =========================================
+   BUTTONS - IBM Carbon Style
+   ========================================= */
+
+/* Base button styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast),
+                border-color var(--transition-fast),
+                color var(--transition-fast);
+    white-space: nowrap;
+}
+
+.btn:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Primary button - filled background */
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+    background-color: var(--color-primary-active);
+    border-color: var(--color-primary-active);
+}
+
+/* Secondary button - outlined */
+.btn-secondary {
+    background-color: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-strong);
+}
+
+.btn-secondary:active:not(:disabled) {
+    background-color: var(--color-bg-active);
+}
+
+/* Ghost button - no border */
+.btn-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--color-text);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background-color: var(--color-bg-hover);
+}
+
+.btn-ghost:active:not(:disabled) {
+    background-color: var(--color-bg-active);
+}
+
+/* Danger button */
+.btn-danger {
+    background-color: var(--color-danger);
+    border-color: var(--color-danger);
+    color: var(--color-text-inverse);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #b81921;
+    border-color: #b81921;
+}
+
+/* Success button */
+.btn-success {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-text-inverse);
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #198038;
+    border-color: #198038;
+}
+
+/* Button sizes */
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+}
+
+.btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
+}
+
+/* Icon only button */
+.btn-icon {
+    padding: var(--spacing-sm);
+}
+
+.btn-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* =========================================
+   SIDEBAR STYLES
+   ========================================= */
+
+/* Sidebar container */
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-min-width);
+    max-width: var(--sidebar-max-width);
+    background-color: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: width var(--transition-normal) ease;
+}
+
+/* Collapsed state */
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+    min-width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .sidebar-count {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-section-title {
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.collapsed .sidebar-section-title span {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+}
+
+.sidebar.collapsed .sidebar-item svg {
+    margin-right: 0;
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 30;
+    transition: background-color var(--transition-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.sidebar-toggle svg {
+    width: 12px;
+    height: 12px;
+    color: var(--color-text-secondary);
+    transition: transform var(--transition-normal);
+}
+
+.sidebar.collapsed .sidebar-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* Sidebar resize handle */
+.sidebar-resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: col-resize;
+    z-index: 20;
+    background: transparent;
+    transition: background-color var(--transition-fast);
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer.active {
+    background-color: rgba(15, 98, 254, 0.1);
+}
+
+.sidebar-resizer::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 32px;
+    border-radius: 2px;
+    background-color: var(--color-border);
+    opacity: 0;
+    transition: opacity var(--transition-fast), background-color var(--transition-fast);
+}
+
+.sidebar-resizer:hover::after,
+.sidebar-resizer.active::after {
+    opacity: 1;
+    background-color: var(--color-primary);
+}
+
+/* Sidebar scrollable content */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Sidebar section titles */
+.sidebar-section-title {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Sidebar items */
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin: 2px var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+}
+
+.sidebar-item:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.sidebar-item.active {
+    background-color: var(--color-bg-active);
+    font-weight: var(--font-weight-semibold);
+}
+
+.sidebar-item svg {
+    width: 16px;
+    height: 16px;
+    margin-right: var(--spacing-sm);
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+.sidebar-item .sidebar-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-item .sidebar-count {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-text-secondary);
+    margin-left: var(--spacing-xs);
+}
+
+/* =========================================
+   FORMS
+   ========================================= */
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.form-input::placeholder {
+    color: var(--color-text-placeholder);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+}
+
+/* =========================================
+   BADGES
+   ========================================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-sm);
+}
+
+.badge-success {
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+.badge-warning {
+    background-color: var(--color-warning-bg);
+    color: #8a6d3b;
+}
+
+.badge-danger {
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+.badge-info {
+    background-color: var(--color-info-bg);
+    color: var(--color-info);
+}
+
+.badge-neutral {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-secondary);
+}
+
+/* =========================================
+   UTILITIES
+   ========================================= */
+
+/* Text colors */
+.text-primary { color: var(--color-text); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-placeholder); }
+
+/* Background colors */
+.bg-subtle { background-color: var(--color-bg-subtle); }
+.bg-muted { background-color: var(--color-bg-muted); }
+
+/* Font weights */
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+/* Scrollbar styling for sidebar */
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-border-strong);
+}
+
+/* =========================================
+   DARK MODE SUPPORT (future)
+   ========================================= */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Can be overridden when dark mode is implemented */
+    }
+}

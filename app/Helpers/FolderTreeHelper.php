@@ -49,21 +49,20 @@ class FolderTreeHelper
             // Extrait le dossier parent avec SUBSTRING_INDEX et compte directement en SQL
             // Note: Pour "a/b/c/file.pdf", on veut "a/b/c" comme folder_path
             // Pour "dossier/file.pdf", on veut "dossier"
+            // FIX: Inclure les documents avec relative_path NULL ou vide dans la racine ('')
             $stmt = $db->query("
-                SELECT 
-                    CASE 
-                        WHEN relative_path IS NULL OR relative_path = '' OR relative_path NOT LIKE '%/%' 
+                SELECT
+                    CASE
+                        WHEN relative_path IS NULL OR relative_path = '' OR relative_path NOT LIKE '%/%'
                         THEN ''
-                        WHEN relative_path LIKE '%/%/%' 
-                        THEN SUBSTRING(relative_path, 1, 
+                        WHEN relative_path LIKE '%/%/%'
+                        THEN SUBSTRING(relative_path, 1,
                             LENGTH(relative_path) - LENGTH(SUBSTRING_INDEX(relative_path, '/', -1)) - 1)
                         ELSE SUBSTRING_INDEX(relative_path, '/', 1)
                     END as folder_path,
                     COUNT(*) as doc_count
-                FROM documents 
-                WHERE deleted_at IS NULL 
-                AND relative_path IS NOT NULL
-                AND relative_path != ''
+                FROM documents
+                WHERE deleted_at IS NULL
                 GROUP BY folder_path
             ");
             

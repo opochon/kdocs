@@ -95,66 +95,77 @@ $base = Config::basePath();
 </div>
 
 <div class="flex min-h-screen bg-white w-full overflow-hidden">
-    
-    <!-- Sidebar gauche - Minimaliste avec redimensionnement -->
-    <aside id="documents-sidebar" class="bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0 relative" style="max-height: 100vh; min-width: 180px; width: 240px;">
+
+    <!-- Sidebar gauche - Sticky avec redimensionnement et collapse -->
+    <aside id="documents-sidebar" class="bg-white border-r border-gray-100 flex-shrink-0 relative flex flex-col sticky top-0" style="height: 100vh; min-width: 200px; width: 240px; max-width: 400px;">
+        <!-- Bouton toggle collapse -->
+        <button id="sidebar-toggle" class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer z-30 shadow-sm hover:bg-gray-50 transition-colors" title="Rétracter/Déployer le panneau">
+            <svg id="sidebar-toggle-icon" class="w-3 h-3 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </button>
+
         <!-- Poignée de redimensionnement -->
         <div id="sidebar-resize-handle" class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize z-20 group" style="margin-right: -3px;">
             <div class="absolute inset-y-0 left-0 w-full bg-transparent hover:bg-blue-400 active:bg-blue-500 transition-colors"></div>
             <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-8 rounded-full bg-gray-300 group-hover:bg-blue-400 transition-colors opacity-0 group-hover:opacity-100"></div>
         </div>
-        <!-- Dossiers logiques -->
-        <?php if (!empty($logicalFolders)): ?>
-        <div class="px-3 py-2 border-b border-gray-100">
-            <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider">Dossiers logiques</h2>
+
+        <!-- Contenu scrollable du sidebar -->
+        <div id="sidebar-content" class="flex-1 overflow-y-auto overflow-x-hidden">
+            <!-- Dossiers logiques -->
+            <?php if (!empty($logicalFolders)): ?>
+            <div class="px-3 py-2 border-b border-gray-100">
+                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Dossiers logiques</h2>
+            </div>
+            <nav class="px-1 py-1">
+                <?php foreach ($logicalFolders as $lfolder): ?>
+                <?php
+                $isActive = ($logicalFolderId == $lfolder['id']);
+                $count = LogicalFolder::countDocuments($lfolder['id']);
+                ?>
+                <a href="<?= url('/documents?logical_folder=' . $lfolder['id']) ?>"
+                   class="sidebar-item flex items-center px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
+                          <?= $isActive ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    <span class="sidebar-text flex-1 truncate"><?= htmlspecialchars(preg_replace('/^[📁📄📋📧📦]\s*/u', '', $lfolder['name'])) ?></span>
+                    <?php if ($count > 0): ?>
+                    <span class="sidebar-count text-xs text-gray-500 ml-1"><?= $count ?></span>
+                    <?php endif; ?>
+                </a>
+                <?php endforeach; ?>
+            </nav>
+            <?php endif; ?>
+
+            <!-- Dossiers filesystem - Rendu côté serveur (RAPIDE) -->
+            <div class="px-3 py-2 border-t border-gray-100">
+                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Dossiers</h2>
+            </div>
+            <?= $folderTreeHtml ?? '' ?>
+
+            <!-- Types -->
+            <?php if (!empty($documentTypes)): ?>
+            <div class="px-3 py-2 border-t border-gray-100">
+                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Types</h2>
+            </div>
+            <nav class="px-1 py-1">
+                <a href="<?= url('/documents') ?>"
+                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
+                          <?= (!$typeId) ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                    <span class="sidebar-text">Tous</span>
+                </a>
+                <?php foreach ($documentTypes as $type): ?>
+                <a href="<?= url('/documents?type=' . $type['id']) ?>"
+                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
+                          <?= ($typeId == $type['id']) ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                    <span class="sidebar-text"><?= htmlspecialchars($type['label']) ?></span>
+                </a>
+                <?php endforeach; ?>
+            </nav>
+            <?php endif; ?>
         </div>
-        <nav class="px-1 py-1">
-            <?php foreach ($logicalFolders as $lfolder): ?>
-            <?php 
-            $isActive = ($logicalFolderId == $lfolder['id']);
-            $count = LogicalFolder::countDocuments($lfolder['id']);
-            ?>
-            <a href="<?= url('/documents?logical_folder=' . $lfolder['id']) ?>" 
-               class="flex items-center px-2 py-1 text-sm rounded hover:bg-gray-50
-                      <?= $isActive ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600' ?>">
-                <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                </svg>
-                <span class="flex-1 truncate"><?= htmlspecialchars(preg_replace('/^[📁📄📋📧📦]\s*/u', '', $lfolder['name'])) ?></span>
-                <?php if ($count > 0): ?>
-                <span class="text-xs text-gray-400 ml-1"><?= $count ?></span>
-                <?php endif; ?>
-            </a>
-            <?php endforeach; ?>
-        </nav>
-        <?php endif; ?>
-        
-        <!-- Dossiers filesystem - Rendu côté serveur (RAPIDE) -->
-        <div class="px-3 py-2 border-t border-gray-100">
-            <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider">Dossiers</h2>
-        </div>
-        <?= $folderTreeHtml ?? '' ?>
-        
-        <!-- Types -->
-        <?php if (!empty($documentTypes)): ?>
-        <div class="px-3 py-2 border-t border-gray-100">
-            <h2 class="text-xs font-medium text-gray-400 uppercase tracking-wider">Types</h2>
-        </div>
-        <nav class="px-1 py-1">
-            <a href="<?= url('/documents') ?>" 
-               class="block px-2 py-1 text-sm rounded hover:bg-gray-50
-                      <?= (!$typeId) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600' ?>">
-                Tous
-            </a>
-            <?php foreach ($documentTypes as $type): ?>
-            <a href="<?= url('/documents?type=' . $type['id']) ?>" 
-               class="block px-2 py-1 text-sm rounded hover:bg-gray-50
-                      <?= ($typeId == $type['id']) ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-600' ?>">
-                <?= htmlspecialchars($type['label']) ?>
-            </a>
-            <?php endforeach; ?>
-        </nav>
-        <?php endif; ?>
     </aside>
     
     <!-- Zone principale - Épurée -->
@@ -941,6 +952,18 @@ function renderDocumentMetadata(doc) {
                         <tr><td class="py-1.5 text-gray-500">Modifié le</td><td class="py-1.5">${formatDisplayDate(doc.updated_at)}</td></tr>
                         <tr><td class="py-1.5 text-gray-500">Checksum</td><td class="py-1.5 font-mono text-xs truncate" title="${doc.checksum || ''}">${doc.checksum ? doc.checksum.substring(0, 16) + '...' : '-'}</td></tr>
                         <tr><td class="py-1.5 text-gray-500">Chemin</td><td class="py-1.5 font-mono text-xs truncate" title="${escapeHtml(doc.storage_path || doc.file_path || '')}">${escapeHtml(doc.storage_path || doc.file_path || '-')}</td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Indexé</td><td class="py-1.5">
+                            ${doc.is_indexed ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
+                            ${doc.indexed_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.indexed_at)})</span>` : ''}
+                        </td></tr>
+                        <tr><td class="py-1.5 text-gray-500">Vectorisé</td><td class="py-1.5">
+                            ${doc.embedding_status === 'completed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : 
+                              doc.embedding_status === 'failed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-800">Erreur</span>` :
+                              doc.embedding_status === 'processing' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800">En cours</span>` :
+                              doc.embedding_status === 'pending' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">En attente</span>` :
+                              `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
+                            ${doc.vector_updated_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.vector_updated_at)})</span>` : ''}
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
@@ -2151,6 +2174,74 @@ function stopIndexingPolling() {
     });
 })();
 
+// ===== SIDEBAR COLLAPSE/EXPAND =====
+(function() {
+    const sidebar = document.getElementById('documents-sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const toggleIcon = document.getElementById('sidebar-toggle-icon');
+    const resizeHandle = document.getElementById('sidebar-resize-handle');
+
+    if (!sidebar || !toggleBtn) return;
+
+    const COLLAPSED_WIDTH = 52;
+    const STORAGE_KEY_COLLAPSED = 'documents-sidebar-collapsed';
+    const STORAGE_KEY_WIDTH = 'documents-sidebar-width';
+
+    // Charger l'état initial depuis localStorage
+    const isCollapsed = localStorage.getItem(STORAGE_KEY_COLLAPSED) === 'true';
+    const savedWidth = localStorage.getItem(STORAGE_KEY_WIDTH);
+
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        sidebar.style.width = COLLAPSED_WIDTH + 'px';
+        sidebar.style.minWidth = COLLAPSED_WIDTH + 'px';
+        toggleIcon.style.transform = 'rotate(180deg)';
+        if (resizeHandle) resizeHandle.style.display = 'none';
+    } else if (savedWidth) {
+        sidebar.style.width = savedWidth + 'px';
+    }
+
+    // Toggle collapse/expand
+    toggleBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+
+        if (isCurrentlyCollapsed) {
+            // Expand
+            sidebar.classList.remove('collapsed');
+            const width = localStorage.getItem(STORAGE_KEY_WIDTH) || '240';
+            sidebar.style.width = width + 'px';
+            sidebar.style.minWidth = '200px';
+            toggleIcon.style.transform = 'rotate(0deg)';
+            if (resizeHandle) resizeHandle.style.display = '';
+            localStorage.setItem(STORAGE_KEY_COLLAPSED, 'false');
+        } else {
+            // Collapse
+            // Sauvegarder la largeur actuelle avant de collapse
+            localStorage.setItem(STORAGE_KEY_WIDTH, sidebar.offsetWidth.toString());
+            sidebar.classList.add('collapsed');
+            sidebar.style.width = COLLAPSED_WIDTH + 'px';
+            sidebar.style.minWidth = COLLAPSED_WIDTH + 'px';
+            toggleIcon.style.transform = 'rotate(180deg)';
+            if (resizeHandle) resizeHandle.style.display = 'none';
+            localStorage.setItem(STORAGE_KEY_COLLAPSED, 'true');
+        }
+    });
+
+    // Désactiver le resize quand collapsed
+    if (resizeHandle) {
+        const originalMousedown = resizeHandle.onmousedown;
+        resizeHandle.addEventListener('mousedown', function(e) {
+            if (sidebar.classList.contains('collapsed')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+    }
+})();
+
 // ===== DRAG & DROP DE FICHIERS =====
 (function() {
     // Extensions autorisées
@@ -2605,5 +2696,113 @@ body.sidebar-resizing * {
 /* Indicateur de drop sur les dossiers */
 .folder-link {
     transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+/* ===== SIDEBAR STICKY & COLLAPSE STYLES ===== */
+
+/* Sidebar sticky position */
+#documents-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    transition: width 0.2s ease, min-width 0.2s ease;
+    overflow: hidden;
+}
+
+/* Sidebar content scrollable */
+#sidebar-content {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+#sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#sidebar-content::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 3px;
+}
+
+#sidebar-content::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+}
+
+/* Collapsed state */
+#documents-sidebar.collapsed {
+    overflow: hidden;
+}
+
+#documents-sidebar.collapsed .sidebar-text,
+#documents-sidebar.collapsed .sidebar-count,
+#documents-sidebar.collapsed .sidebar-section-title {
+    opacity: 0;
+    visibility: hidden;
+    white-space: nowrap;
+}
+
+#documents-sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+#documents-sidebar.collapsed .sidebar-item svg {
+    margin-right: 0;
+}
+
+#documents-sidebar.collapsed nav a {
+    justify-content: center;
+}
+
+#documents-sidebar.collapsed .px-3 {
+    padding-left: 8px;
+    padding-right: 8px;
+    text-align: center;
+}
+
+/* Toggle button styling */
+#sidebar-toggle {
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.15s;
+}
+
+#documents-sidebar:hover #sidebar-toggle,
+#sidebar-toggle:focus {
+    opacity: 1;
+}
+
+#documents-sidebar.collapsed #sidebar-toggle {
+    opacity: 1;
+}
+
+/* Section titles - bold black typography */
+.sidebar-section-title {
+    color: #111827 !important;
+    font-weight: 700 !important;
+}
+
+/* Sidebar items - medium weight black text */
+.sidebar-item {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.sidebar-item.font-semibold {
+    font-weight: 600;
+}
+
+/* Folder tree items in sidebar */
+#documents-sidebar .folder-link {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+#documents-sidebar .folder-link:hover {
+    background-color: #f3f4f6;
 }
 </style>
