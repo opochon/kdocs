@@ -528,6 +528,13 @@ class DocumentsApiController extends ApiController
                         $ocrText = mb_convert_encoding($ocrText, 'UTF-8', 'UTF-8');
                         $ocrText = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $ocrText);
                         
+                        // Tronquer le texte si nécessaire avant insertion
+                        if (mb_strlen($ocrText) > 65000) {
+                            $originalLength = mb_strlen($ocrText);
+                            $ocrText = mb_substr($ocrText, 0, 65000);
+                            error_log("DocumentsApiController: OCR text tronqué de {$originalLength} à 65000 caractères pour document {$documentId}");
+                        }
+                        
                         $updateStmt = $db->prepare("UPDATE documents SET ocr_text = ?, content = ? WHERE id = ?");
                         $updateStmt->execute([$ocrText, $ocrText, $documentId]);
                     }
@@ -777,6 +784,13 @@ class DocumentsApiController extends ApiController
             $text = $ocrService->extractText($filePath);
 
             if ($text) {
+                // Tronquer le texte si nécessaire avant insertion
+                if (mb_strlen($text) > 65000) {
+                    $originalLength = mb_strlen($text);
+                    $text = mb_substr($text, 0, 65000);
+                    error_log("DocumentsApiController::ocr: Texte tronqué de {$originalLength} à 65000 caractères pour document {$id}");
+                }
+                
                 $db = Database::getInstance();
                 $stmt = $db->prepare("UPDATE documents SET ocr_text = ?, content = ?, updated_at = NOW() WHERE id = ?");
                 $stmt->execute([$text, $text, $id]);

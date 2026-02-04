@@ -303,6 +303,13 @@ class MSGImportService
                 )
             ");
             
+            // Tronquer le contenu si nécessaire avant insertion (limite TEXT MySQL: 65,535)
+            if (mb_strlen($content) > 65000) {
+                $originalLength = mb_strlen($content);
+                $content = mb_substr($content, 0, 65000);
+                error_log("MSGImportService: Contenu email tronqué de {$originalLength} à 65000 caractères");
+            }
+            
             $stmt->execute([
                 $title,
                 $filename,

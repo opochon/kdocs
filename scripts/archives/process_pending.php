@@ -298,6 +298,13 @@ if (!$options['thumbnails-only']) {
                 // Nettoyer le texte
                 $content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
                 $content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $content);
+                
+                // Tronquer le texte si nécessaire avant insertion (limite TEXT MySQL: 65,535)
+                if (mb_strlen($content) > 65000) {
+                    $originalLength = mb_strlen($content);
+                    $content = mb_substr($content, 0, 65000);
+                    error_log("process_pending.php: Contenu OCR tronqué de {$originalLength} à 65000 caractères pour document {$doc['id']}");
+                }
 
                 $db->prepare("UPDATE documents SET content = ?, ocr_text = ? WHERE id = ?")
                    ->execute([$content, $content, $doc['id']]);
