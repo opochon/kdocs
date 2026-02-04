@@ -27,7 +27,8 @@
 |---|-------|-----------|--------|
 | 1 | Test flux complet E2E consume → validation | Agent-1 | 🔄 en cours |
 | 2 | Sidebar + étiquettes + correspondants enrichis | Agent-2 | 🔄 en cours |
-| 3 | Fix fallback Ollama (crédit Claude épuisé) | Agent-3 | 🔄 en cours |
+| 3 | Fix fallback Ollama (crédit Claude épuisé) | Agent-3 | ✅ terminé |
+| 5 | Corrections document 52 (boutons V/X, validation) | Agent-3 | ✅ terminé |
 | 4 | Fix OnlyOffice éditeur | Agent-4 | 🔄 en cours |
 
 ---
@@ -43,6 +44,9 @@
 [2026-02-04 16:50] Agent-3 : DIAGNOSTIC - Crédit Claude épuisé → fallback Ollama
 [2026-02-04 17:00] Agent-2 : UPDATE - Ajout tâches étiquettes + correspondants enrichis
 [2026-02-04 17:05] Agent-4 : Démarrage - Fix OnlyOffice éditeur
+[2026-02-04 19:00] Agent-3 : FIX TERMINÉ - Fallback Ollama automatique implémenté
+[2026-02-04 19:30] Agent-3 : ANALYSE - Problèmes document 52 : boutons V/X, toggle validation
+[2026-02-04 20:00] Agent-3 : FIX TERMINÉ - Corrections document 52 : boutons V/X, toggle validation, debug IA
 ```
 
 ---
@@ -52,7 +56,8 @@
 | # | Bug | Agent | Status |
 |---|-----|-------|--------|
 | 1 | Compteur 21 vs 36 incohérent | Agent-1 | ✅ Fixé |
-| 2 | Fallback Ollama silencieux | Agent-3 | 🔄 En cours |
+| 2 | Fallback Ollama silencieux | Agent-3 | ✅ Fixé |
+| 5 | Boutons V/X document modal | Agent-3 | ✅ Fixé |
 | 3 | OnlyOffice non fonctionnel | Agent-4 | 🔄 En cours |
 | 4 | Encodage UTF-8 (Ã©) | - | 📋 À assigner |
 
@@ -78,4 +83,15 @@ Agent-4 : Intégrations / OnlyOffice
 
 ---
 
-*Dernière mise à jour : 2026-02-04 17:05*
+---
+
+## ✅ TÂCHES TERMINÉES
+
+| # | Tâche | Assigné à | Date | Commit |
+|---|-------|-----------|------|--------|
+| 3 | Fix fallback Ollama | Agent-3 | 2026-02-04 19:00 | `0173582` |
+| 5 | Corrections document 52 | Agent-3 | 2026-02-04 20:00 | `3ee32a9` |
+
+---
+
+*Dernière mise à jour : 2026-02-04 20:00*
