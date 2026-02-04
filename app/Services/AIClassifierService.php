@@ -7,22 +7,25 @@
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
+use KDocs\Services\OCRService;
 
 class AIClassifierService
 {
     private ClaudeService $claude;
+    private AIProviderService $aiProvider;
     
     public function __construct()
     {
         $this->claude = new ClaudeService();
+        $this->aiProvider = new AIProviderService();
     }
     
     /**
-     * Vérifie si la classification IA est disponible
+     * Vérifie si la classification IA est disponible (Claude OU Ollama)
      */
     public function isAvailable(): bool
     {
-        return $this->claude->isConfigured();
+        return $this->aiProvider->isAIAvailable();
     }
     
     /**
@@ -47,14 +50,28 @@ class AIClassifierService
         }
         
         // Utiliser le contenu OCR ou le titre comme texte à analyser
-        $documentText = $document['content'] ?? $document['ocr_text'] ?? '';
-        if (empty($documentText)) {
-            // Si pas de contenu OCR, utiliser le titre et le nom de fichier
-            $documentText = ($document['title'] ?? '') . ' ' . ($document['original_filename'] ?? '');
-        }
+        $documentText = trim($document['content'] ?? $document['ocr_text'] ?? '');
         
-        if (empty($documentText)) {
-            return null;
+        // Si pas de contenu texte significatif, essayer avec le fichier directement
+        if (empty($documentText) || strlen($documentText) < 10) {
+            // Si pas de contenu OCR, utiliser le titre et le nom de fichier comme dernier recours
+            $documentText = trim(($document['title'] ?? '') . ' ' . ($document['original_filename'] ?? ''));
+            
+            // Si toujours vide ou très court, essayer avec le fichier directement (Claude peut lire PDF/images)
+            if (empty($documentText) || strlen($documentText) < 10) {
+                $filePath = $document['file_path'] ?? null;
+                if ($filePath && file_exists($filePath)) {
+                    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                    // Si c'est un PDF ou une image, utiliser classifyWithFile qui envoie le fichier directement
+                    if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                        error_log("AIClassifierService: No text content, using file-based classification for document {$documentId}");
+                        return $this->classifyWithFile($documentId);
+                    }
+                }
+                // Si pas de fichier ou format non supporté, retourner null
+                error_log("AIClassifierService: No text content and cannot use file-based classification for document {$documentId}");
+                return null;
+            }
         }
         
         // Récupérer les entités existantes pour le contexte
@@ -137,14 +154,28 @@ IMPORTANT :
 Réponds uniquement en JSON, sans texte supplémentaire.
 PROMPT;
 
-        $response = $this->claude->sendMessage($prompt, $systemPrompt);
-        if (!$response) {
+        // Utiliser AIProviderService qui gère automatiquement la cascade Claude > Ollama
+        // Construire le prompt complet avec system prompt
+        $fullPrompt = $prompt;
+        if (!empty($systemPrompt)) {
+            $fullPrompt = $systemPrompt . "\n\n" . $prompt;
+        }
+        
+        $aiResponse = $this->aiProvider->complete($fullPrompt, ['max_tokens' => 2048]);
+        
+        if (!$aiResponse || empty($aiResponse['text'])) {
+            error_log("AIClassifierService: All AI providers failed (Claude and Ollama)");
             return null;
         }
         
-        $text = $this->claude->extractText($response);
-        if (empty($text)) {
-            return null;
+        $text = $aiResponse['text'];
+        $usedProvider = $aiResponse['provider'] ?? 'unknown';
+        
+        // Logger le provider utilisé
+        if ($usedProvider === 'ollama') {
+            error_log("AIClassifierService: Classification successful via Ollama (Claude unavailable)");
+        } else {
+            error_log("AIClassifierService: Classification successful via " . $usedProvider);
         }
         
         // Parser le JSON de la réponse
@@ -281,13 +312,69 @@ PROMPT;
 
         // Envoyer le fichier directement à Claude
         $response = $this->claude->sendMessageWithFile($prompt, $filePath, $systemPrompt);
-        if (!$response) {
-            return null;
-        }
         
-        $text = $this->claude->extractText($response);
-        if (empty($text)) {
-            return null;
+        // Vérifier si Claude a retourné une erreur structurée
+        if (!$response || (isset($response['error']) && $response['error'] === true)) {
+            $shouldFallback = isset($response['should_fallback']) && $response['should_fallback'] === true;
+            $httpCode = $response['http_code'] ?? 0;
+            $errorMsg = $response['message'] ?? 'Unknown error';
+            
+            if ($shouldFallback) {
+                error_log("AIClassifierService: Claude file upload failed (HTTP $httpCode: $errorMsg), trying text extraction + Ollama");
+            } else {
+                error_log("AIClassifierService: Claude file upload failed (HTTP $httpCode: $errorMsg)");
+            }
+            
+            // Si fallback recommandé ou si Claude a échoué, essayer avec Ollama
+            if ($shouldFallback || !$response) {
+                // Essayer d'extraire le texte du fichier pour utiliser Ollama
+                $ocrService = new OCRService();
+                $extractedText = $ocrService->extractText($filePath);
+                
+                if (!empty($extractedText) && strlen(trim($extractedText)) > 10) {
+                    // Utiliser le texte extrait avec Ollama via AIProviderService
+                    $fullPrompt = $prompt . "\n\nCONTENU DU FICHIER:\n" . substr($extractedText, 0, 8000);
+                    if (!empty($systemPrompt)) {
+                        $fullPrompt = $systemPrompt . "\n\n" . $fullPrompt;
+                    }
+                    $aiResponse = $this->aiProvider->complete($fullPrompt, ['max_tokens' => 2048]);
+                    if ($aiResponse && !empty($aiResponse['text'])) {
+                        $text = $aiResponse['text'];
+                        $provider = $aiResponse['provider'] ?? 'unknown';
+                        error_log("AIClassifierService: Successfully using $provider provider with extracted text");
+                    } else {
+                        error_log("AIClassifierService: Ollama fallback also failed");
+                        return null;
+                    }
+                } else {
+                    error_log("AIClassifierService: Cannot extract text from file for Ollama fallback");
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            $text = $this->claude->extractText($response);
+            if (empty($text)) {
+                error_log("AIClassifierService: Claude response empty, trying Ollama fallback");
+                // Essayer Ollama avec extraction texte
+                $ocrService = new OCRService();
+                $extractedText = $ocrService->extractText($filePath);
+                if (!empty($extractedText) && strlen(trim($extractedText)) > 10) {
+                    $fullPrompt = $prompt . "\n\nCONTENU DU FICHIER:\n" . substr($extractedText, 0, 8000);
+                    if (!empty($systemPrompt)) {
+                        $fullPrompt = $systemPrompt . "\n\n" . $fullPrompt;
+                    }
+                    $aiResponse = $this->aiProvider->complete($fullPrompt, ['max_tokens' => 2048]);
+                    if ($aiResponse && !empty($aiResponse['text'])) {
+                        $text = $aiResponse['text'];
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
         }
         
         // Parser le JSON de la réponse
@@ -302,7 +389,7 @@ PROMPT;
             return null;
         }
         
-        error_log("AIClassifierService: Claude response (with file) - " . json_encode($result, JSON_UNESCAPED_UNICODE));
+        error_log("AIClassifierService: AI response (with file) - " . json_encode($result, JSON_UNESCAPED_UNICODE));
         
         // Matcher avec les entités existantes
         $result['matched'] = $this->matchWithExisting($result, $tags, $correspondents, $types);
@@ -436,13 +523,69 @@ PROMPT;
 
         // Envoyer le fichier directement à Claude
         $response = $this->claude->sendMessageWithFile($prompt, $filePath, $systemPrompt);
-        if (!$response) {
-            return null;
-        }
         
-        $text = $this->claude->extractText($response);
-        if (empty($text)) {
-            return null;
+        // Vérifier si Claude a retourné une erreur structurée
+        if (!$response || (isset($response['error']) && $response['error'] === true)) {
+            $shouldFallback = isset($response['should_fallback']) && $response['should_fallback'] === true;
+            $httpCode = $response['http_code'] ?? 0;
+            $errorMsg = $response['message'] ?? 'Unknown error';
+            
+            if ($shouldFallback) {
+                error_log("AIClassifierService: Claude complex file upload failed (HTTP $httpCode: $errorMsg), trying text extraction + Ollama");
+            } else {
+                error_log("AIClassifierService: Claude complex file upload failed (HTTP $httpCode: $errorMsg)");
+            }
+            
+            // Si fallback recommandé ou si Claude a échoué, essayer avec Ollama
+            if ($shouldFallback || !$response) {
+                // Essayer d'extraire le texte du fichier pour utiliser Ollama
+                $ocrService = new OCRService();
+                $extractedText = $ocrService->extractText($filePath);
+                
+                if (!empty($extractedText) && strlen(trim($extractedText)) > 10) {
+                    // Utiliser le texte extrait avec Ollama via AIProviderService
+                    $fullPrompt = $prompt . "\n\nCONTENU DU FICHIER:\n" . substr($extractedText, 0, 12000);
+                    if (!empty($systemPrompt)) {
+                        $fullPrompt = $systemPrompt . "\n\n" . $fullPrompt;
+                    }
+                    $aiResponse = $this->aiProvider->complete($fullPrompt, ['max_tokens' => 4096]);
+                    if ($aiResponse && !empty($aiResponse['text'])) {
+                        $text = $aiResponse['text'];
+                        $provider = $aiResponse['provider'] ?? 'unknown';
+                        error_log("AIClassifierService: Successfully using $provider provider for complex analysis");
+                    } else {
+                        error_log("AIClassifierService: Ollama fallback also failed for complex analysis");
+                        return null;
+                    }
+                } else {
+                    error_log("AIClassifierService: Cannot extract text from file for Ollama complex analysis fallback");
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            $text = $this->claude->extractText($response);
+            if (empty($text)) {
+                error_log("AIClassifierService: Claude complex response empty, trying Ollama fallback");
+                // Essayer Ollama avec extraction texte
+                $ocrService = new OCRService();
+                $extractedText = $ocrService->extractText($filePath);
+                if (!empty($extractedText) && strlen(trim($extractedText)) > 10) {
+                    $fullPrompt = $prompt . "\n\nCONTENU DU FICHIER:\n" . substr($extractedText, 0, 12000);
+                    if (!empty($systemPrompt)) {
+                        $fullPrompt = $systemPrompt . "\n\n" . $fullPrompt;
+                    }
+                    $aiResponse = $this->aiProvider->complete($fullPrompt, ['max_tokens' => 4096]);
+                    if ($aiResponse && !empty($aiResponse['text'])) {
+                        $text = $aiResponse['text'];
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
         }
         
         // Parser le JSON de la réponse
@@ -457,7 +600,7 @@ PROMPT;
             return null;
         }
         
-        error_log("AIClassifierService: Claude response (complex analysis) - " . json_encode($result, JSON_UNESCAPED_UNICODE));
+        error_log("AIClassifierService: AI response (complex analysis) - " . json_encode($result, JSON_UNESCAPED_UNICODE));
         
         // Matcher avec les entités existantes
         $result['matched'] = $this->matchWithExisting($result, $tags, $correspondents, $types);

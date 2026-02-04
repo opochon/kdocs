@@ -155,13 +155,19 @@ class AIProviderService
         // Essayer Claude d'abord si c'est le provider principal
         if ($provider === self::PROVIDER_CLAUDE) {
             $result = $this->completeWithClaude($prompt, $options);
-            if ($result !== null) {
+            if ($result !== null && !isset($result['error'])) {
                 return $result;
             }
             // Fallback sur Ollama si Claude échoue
-            error_log("AIProviderService: Claude failed, falling back to Ollama");
             if ($this->isOllamaAvailable()) {
-                return $this->completeWithOllama($prompt, $options);
+                error_log("AIProviderService: Claude failed, switching to Ollama fallback");
+                $ollamaResult = $this->completeWithOllama($prompt, $options);
+                if ($ollamaResult) {
+                    error_log("AIProviderService: Successfully switched to Ollama");
+                }
+                return $ollamaResult;
+            } else {
+                error_log("AIProviderService: Claude failed and Ollama not available");
             }
             return null;
         }
@@ -263,6 +269,7 @@ class AIProviderService
     
     /**
      * Complétion via Claude
+     * Retourne null si erreur, ou un tableau avec 'error' => true si erreur HTTP détectée
      */
     private function completeWithClaude(string $prompt, array $options = []): ?array
     {
@@ -271,6 +278,25 @@ class AIProviderService
             $response = $claudeService->sendMessage($prompt);
             
             if (!$response) {
+                return null;
+            }
+            
+            // Vérifier si c'est une erreur structurée retournée par ClaudeService
+            if (isset($response['error']) && $response['error'] === true) {
+                $httpCode = $response['http_code'] ?? 0;
+                $errorMessage = $response['message'] ?? 'Unknown error';
+                $shouldFallback = $response['should_fallback'] ?? false;
+                
+                // Logger selon le type d'erreur
+                if ($response['is_payment_error'] ?? false) {
+                    error_log("AIProviderService: Claude API error HTTP $httpCode (Payment Required) - $errorMessage - Switching to Ollama");
+                } elseif ($response['is_rate_limit'] ?? false) {
+                    error_log("AIProviderService: Claude API error HTTP $httpCode (Rate Limit) - $errorMessage - Switching to Ollama");
+                } else {
+                    error_log("AIProviderService: Claude API error HTTP $httpCode - $errorMessage");
+                }
+                
+                // Retourner null pour déclencher le fallback si nécessaire
                 return null;
             }
             

@@ -72,7 +72,7 @@ class ClaudeService implements AIServiceInterface
      * 
      * @param string $prompt Le prompt utilisateur
      * @param string|null $systemPrompt Le prompt système (optionnel)
-     * @return array|null Réponse de l'API ou null en cas d'erreur
+     * @return array|null Réponse de l'API ou null en cas d'erreur. En cas d'erreur HTTP, retourne ['error' => true, 'http_code' => int, 'message' => string]
      */
     public function sendMessage(string $prompt, ?string $systemPrompt = null): ?array
     {
@@ -129,10 +129,40 @@ class ClaudeService implements AIServiceInterface
         }
         
         if ($httpCode !== 200) {
-            error_log("Claude API error: HTTP $httpCode - $response");
+            $errorData = json_decode($response, true);
+            $errorMessage = $errorData['error']['message'] ?? $response;
+            
+            // Détecter le type d'erreur pour permettre fallback approprié
+            $isPaymentError = ($httpCode === 402) || 
+                              ($httpCode === 400 && (
+                                  strpos($errorMessage, 'credit balance') !== false ||
+                                  strpos($errorMessage, 'insufficient') !== false ||
+                                  strpos($errorMessage, 'too low') !== false ||
+                                  strpos($errorMessage, 'payment') !== false
+                              ));
+            $isRateLimit = ($httpCode === 429);
+            
+            // Logger avec niveau de détail selon le type d'erreur
+            if ($isPaymentError) {
+                error_log("Claude API error: HTTP $httpCode (Payment Required) - $errorMessage - Switching to Ollama fallback");
+            } elseif ($isRateLimit) {
+                error_log("Claude API error: HTTP $httpCode (Rate Limit) - $errorMessage - Switching to Ollama fallback");
+            } else {
+                error_log("Claude API error: HTTP $httpCode - $errorMessage");
+            }
+            
             // Enregistrer l'erreur
-            $this->logUsage(null, 'text', null, null, "HTTP $httpCode");
-            return null;
+            $this->logUsage(null, 'text', null, null, "HTTP $httpCode: $errorMessage");
+            
+            // Retourner un tableau d'erreur structuré pour permettre le fallback
+            return [
+                'error' => true,
+                'http_code' => $httpCode,
+                'message' => $errorMessage,
+                'is_payment_error' => $isPaymentError,
+                'is_rate_limit' => $isRateLimit,
+                'should_fallback' => $isPaymentError || $isRateLimit
+            ];
         }
         
         $decoded = json_decode($response, true);
@@ -243,10 +273,39 @@ class ClaudeService implements AIServiceInterface
         }
 
         if ($httpCode !== 200) {
-            error_log("Claude API error: HTTP $httpCode - $response");
+            $errorData = json_decode($response, true);
+            $errorMessage = $errorData['error']['message'] ?? $response;
+            
+            // Détecter le type d'erreur pour permettre fallback approprié
+            $isPaymentError = ($httpCode === 402) || 
+                              ($httpCode === 400 && (
+                                  strpos($errorMessage, 'credit balance') !== false ||
+                                  strpos($errorMessage, 'insufficient') !== false ||
+                                  strpos($errorMessage, 'too low') !== false ||
+                                  strpos($errorMessage, 'payment') !== false
+                              ));
+            $isRateLimit = ($httpCode === 429);
+            
+            if ($isPaymentError) {
+                error_log("Claude API error (file): HTTP $httpCode (Payment Required) - $errorMessage - Switching to Ollama fallback");
+            } elseif ($isRateLimit) {
+                error_log("Claude API error (file): HTTP $httpCode (Rate Limit) - $errorMessage - Switching to Ollama fallback");
+            } else {
+                error_log("Claude API error (file): HTTP $httpCode - $errorMessage");
+            }
+            
             // Enregistrer l'erreur
-            $this->logUsage(null, 'file', null, null, "HTTP $httpCode");
-            return null;
+            $this->logUsage(null, 'file', null, null, "HTTP $httpCode: $errorMessage");
+            
+            // Retourner un tableau d'erreur structuré pour permettre le fallback
+            return [
+                'error' => true,
+                'http_code' => $httpCode,
+                'message' => $errorMessage,
+                'is_payment_error' => $isPaymentError,
+                'is_rate_limit' => $isRateLimit,
+                'should_fallback' => $isPaymentError || $isRateLimit
+            ];
         }
 
         $decoded = json_decode($response, true);

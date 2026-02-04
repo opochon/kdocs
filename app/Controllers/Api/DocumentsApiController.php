@@ -389,13 +389,43 @@ class DocumentsApiController extends ApiController
         $classifier = new \KDocs\Services\AIClassifierService();
         
         if (!$classifier->isAvailable()) {
-            return $this->errorResponse($response, 'Claude API non configurée');
+            return $this->errorResponse($response, 'Aucun service IA disponible (Claude ou Ollama). Vérifiez la configuration.');
         }
+        
+        // Vérifier le statut des providers avant classification
+        $aiProvider = new \KDocs\Services\AIProviderService();
+        $aiStatus = $aiProvider->getStatus();
+        $usingFallback = $aiStatus['fallback_active'] ?? false;
         
         $suggestions = $classifier->classify($id);
         
         if (!$suggestions) {
-            return $this->errorResponse($response, 'Impossible de classifier le document. Vérifiez que le document contient du texte.');
+            // Vérifier si c'est un problème de contenu ou d'IA
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT content, ocr_text, file_path FROM documents WHERE id = ?");
+            $stmt->execute([$id]);
+            $doc = $stmt->fetch();
+            $hasContent = !empty($doc['content']) || !empty($doc['ocr_text']);
+            $hasFile = !empty($doc['file_path']) && file_exists($doc['file_path']);
+            
+            if (!$hasContent && !$hasFile) {
+                return $this->errorResponse($response, 'Impossible de classifier le document. Vérifiez que le document contient du texte.');
+            } else {
+                $errorMsg = 'Impossible de classifier le document. ';
+                if ($usingFallback) {
+                    $errorMsg .= 'Claude indisponible et Ollama a échoué. Vérifiez que Ollama est démarré (ollama serve).';
+                } else {
+                    $errorMsg .= 'Les services IA (Claude et Ollama) ont échoué. Vérifiez les logs.';
+                }
+                return $this->errorResponse($response, $errorMsg);
+            }
+        }
+        
+        // Ajouter une info sur le provider utilisé dans la réponse
+        $suggestions['_provider'] = $aiStatus['active_provider'] ?? 'unknown';
+        if ($usingFallback) {
+            $suggestions['_fallback_used'] = true;
+            $suggestions['_message'] = 'Classification effectuée via Ollama (Claude indisponible)';
         }
         
         // Stocker temporairement les suggestions en session
@@ -1013,6 +1043,10 @@ class DocumentsApiController extends ApiController
             'thumbnail_url' => $basePath . '/documents/' . $document['id'] . '/thumbnail',
             'view_url' => $basePath . '/documents/' . $document['id'] . '/view',
             'download_url' => $basePath . '/documents/' . $document['id'] . '/download',
+            'is_indexed' => !empty($document['is_indexed']),
+            'indexed_at' => $document['indexed_at'] ?? null,
+            'embedding_status' => $document['embedding_status'] ?? null,
+            'vector_updated_at' => $document['vector_updated_at'] ?? null,
         ];
     }
 }
