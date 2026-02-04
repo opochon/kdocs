@@ -22,6 +22,7 @@
 | 1 | Test flux complet consume → validation | Agent-1 | 🔄 en cours | Test E2E |
 | 2 | Refonte sidebar + styles IBM | Agent-2 | 🔄 en cours | - |
 | 3 | Fix fallback Ollama (crédit Claude épuisé) | Agent-3 | ✅ terminé | Fallback automatique implémenté |
+| 4 | Analyse problèmes document 52 (Rapport_Hydrogene) | Agent-3 | 🔄 en cours | Boutons V/X, validation toggle, métadonnées |
 
 ---
 
@@ -39,6 +40,7 @@
 [2026-02-04 19:00] Agent-3 : FIX TERMINÉ - Fallback Ollama automatique implémenté
 [2026-02-04 19:00] Agent-3 : Modifications: ClaudeService, AIProviderService, AIClassifierService, DocumentsApiController
 [2026-02-04 19:00] Agent-3 : Détection HTTP 402/429, logs explicites, messages utilisateur améliorés
+[2026-02-04 19:30] Agent-3 : ANALYSE - Problèmes document 52 : boutons V/X, toggle validation, métadonnées manquantes
 ```
 
 ---
