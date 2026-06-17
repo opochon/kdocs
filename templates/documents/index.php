@@ -555,7 +555,23 @@ function loadDocumentPreview(docId) {
         });
 }
 
-// Vérifie si c'est un document Office
+// Badge validation cliquable dans le header de la modale
+function renderValidationBadgeHeader(docId, status) {
+    const states = {
+        'pending': { label: '⏳ En attente', class: 'bg-yellow-100 text-yellow-800 hover:opacity-80', },
+        'approved': { label: '✅ Validé', class: 'bg-green-100 text-green-800 hover:opacity-80' },
+        'validated': { label: '✅ Validé', class: 'bg-green-100 text-green-800 hover:opacity-80' },
+        'rejected': { label: '❌ Rejeté', class: 'bg-red-100 text-red-800 hover:opacity-80' },
+        'na': { label: 'N/A', class: 'bg-gray-100 text-gray-600 hover:opacity-80' },
+    };
+    const current = states[status] || states['pending'];
+    return `<button type="button" onclick="toggleValidationStatus(${docId}, '${status || 'pending'}')"
+            class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition ${current.class}"
+            title="Cliquer pour changer le statut de validation">
+        ${current.label}
+    </button>`;
+}
+
 // Vérifie si c'est un document Office (par MIME type OU par extension)
 function isOfficeDocument(mimeType, filename) {
     const officeTypes = [
@@ -751,17 +767,10 @@ function renderDocumentMetadata(doc) {
         </label>
     `).join('');
 
-    // Statut de validation
+    // Statut de validation — badge cliquable dans le header
     const validationStatus = doc.validation_status || 'pending';
-
-    // Mettre à jour le badge dans le header
-    const validationBadgeHeader = {
-        'approved': `<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Validé</span>`,
-        'rejected': `<span class="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-800">Rejeté</span>`,
-        'na': `<span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">N/A</span>`,
-        'pending': `<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-800">En attente</span>`
-    }[validationStatus] || '';
-    document.getElementById('preview-validation-badge').innerHTML = validationBadgeHeader;
+    document.getElementById('preview-validation-badge').innerHTML =
+        renderValidationBadgeHeader(doc.id, validationStatus);
 
     // Notes
     const notesCount = (doc.notes || []).length;

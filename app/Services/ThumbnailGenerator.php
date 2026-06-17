@@ -3,7 +3,7 @@
  * K-Docs - Service de génération de miniatures
  *
  * Supporte:
- * - PDF (via Ghostscript ou ImageMagick)
+ * - PDF (via Ghostscript ou pdftoppm)
  * - Images (JPG, PNG, GIF, TIFF, WebP, BMP via GD)
  * - Documents Office (via LibreOffice headless si installé)
  * - Placeholder stylisé pour les formats non supportés
@@ -19,7 +19,7 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
 {
     private string $thumbnailPath;
     private string $ghostscriptPath;
-    private string $imageMagickPath;
+    private string $pdftoppmPath;
     private string $libreOfficePath;
     private string $tempPath;
 
@@ -33,7 +33,7 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
         $config = Config::load();
         $this->thumbnailPath = $config['storage']['thumbnails'] ?? __DIR__ . '/../../storage/thumbnails';
         $this->ghostscriptPath = $config['tools']['ghostscript'] ?? $this->findGhostscript();
-        $this->imageMagickPath = $config['tools']['imagemagick'] ?? 'convert';
+        $this->pdftoppmPath = $config['tools']['pdftoppm'] ?? $this->findPdftoppm();
         $this->libreOfficePath = $config['tools']['libreoffice'] ?? $this->findLibreOffice();
         $this->tempPath = sys_get_temp_dir();
 
@@ -50,6 +50,15 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
     {
         $found = SystemHelper::findGhostscript();
         return $found ?? 'gs';
+    }
+
+    /**
+     * Trouve pdftoppm (cross-platform)
+     */
+    private function findPdftoppm(): string
+    {
+        $found = SystemHelper::findExecutable('pdftoppm', SystemHelper::getDefaultPaths('pdftoppm'));
+        return $found ?? 'pdftoppm';
     }
 
     /**
@@ -105,7 +114,7 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
      */
     private function generateFromPdf(string $source, string $dest): bool
     {
-        // Méthode 1: Ghostscript
+        // Méthode 1: Ghostscript (priorité)
         if (file_exists($this->ghostscriptPath)) {
             $cmd = sprintf(
                 '"%s" -dNOPAUSE -dBATCH -sDEVICE=png16m -dFirstPage=1 -dLastPage=1 -r72 -dPDFFitPage -g300x400 -sOutputFile="%s" "%s" 2>&1',
@@ -120,20 +129,57 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
             }
         }
 
-        // Méthode 2: ImageMagick (fallback)
-        $cmd = sprintf(
-            '%s -density 72 %s[0] -resize 300x400 -background white -flatten %s 2>&1',
-            escapeshellarg($this->imageMagickPath),
-            escapeshellarg($source),
-            escapeshellarg($dest)
-        );
-        exec($cmd, $output, $returnCode);
+        // Méthode 2: pdftoppm (fallback Poppler)
+        if ($this->checkPdftoppm()) {
+            $tempDir = $this->tempPath . DIRECTORY_SEPARATOR . 'kdocs_pdf_' . uniqid();
+            @mkdir($tempDir, 0755, true);
 
-        if ($returnCode === 0 && file_exists($dest)) {
-            return true;
+            $cmd = sprintf(
+                '%s -png -f 1 -l 1 -r 72 -scale-to 400 %s %s/page 2>&1',
+                escapeshellarg($this->pdftoppmPath),
+                escapeshellarg($source),
+                escapeshellarg($tempDir)
+            );
+            exec($cmd, $output, $returnCode);
+
+            if ($returnCode === 0) {
+                // pdftoppm génère page-1.png ou page-01.png
+                $pngFiles = glob($tempDir . '/page*.png');
+                if (!empty($pngFiles)) {
+                    // Copier et redimensionner si nécessaire
+                    $tempPng = $pngFiles[0];
+                    if ($this->resizePngFile($tempPng, $dest, 300, 400)) {
+                        // Nettoyer
+                        @array_map('unlink', $pngFiles);
+                        @rmdir($tempDir);
+                        return true;
+                    }
+                }
+            }
+
+            // Nettoyer en cas d'échec
+            @array_map('unlink', glob($tempDir . '/*'));
+            @rmdir($tempDir);
         }
 
         return false;
+    }
+
+    /**
+     * Redimensionne un fichier PNG
+     */
+    private function resizePngFile(string $source, string $dest, int $maxWidth, int $maxHeight): bool
+    {
+        $srcImg = @imagecreatefrompng($source);
+        if (!$srcImg) {
+            // Copier directement si impossible de charger
+            return copy($source, $dest);
+        }
+
+        $srcWidth = imagesx($srcImg);
+        $srcHeight = imagesy($srcImg);
+
+        return $this->resizeAndSave($srcImg, $srcWidth, $srcHeight, $dest);
     }
 
     /**
@@ -194,15 +240,16 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
                 break;
             case IMAGETYPE_TIFF_II:
             case IMAGETYPE_TIFF_MM:
-                // TIFF nécessite ImageMagick
-                return $this->generateFromImageMagick($source, $dest);
+                // TIFF: essayer avec GD (PHP 8+ peut gérer certains TIFF)
+                // Sinon générer un placeholder
+                return $this->generatePlaceholder($dest, $ext);
             default:
                 return false;
         }
 
         if (!$srcImg) {
-            // Fallback sur ImageMagick
-            return $this->generateFromImageMagick($source, $dest);
+            // Impossible de charger l'image, générer un placeholder
+            return $this->generatePlaceholder($dest, $ext);
         }
 
         return $this->resizeAndSave($srcImg, $srcWidth, $srcHeight, $dest);
@@ -239,19 +286,50 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
     }
 
     /**
-     * Génère miniature via ImageMagick
+     * Extrait une image embarquée depuis un fichier Office (ZIP OOXML)
      */
-    private function generateFromImageMagick(string $source, string $dest): bool
+    private function generateFromOfficeZip(string $source, string $dest, string $ext): bool
     {
-        $cmd = sprintf(
-            '%s %s -resize 300x400 -background white -flatten %s 2>&1',
-            escapeshellarg($this->imageMagickPath),
-            escapeshellarg($source),
-            escapeshellarg($dest)
-        );
-        exec($cmd, $output, $returnCode);
+        if (!in_array($ext, ['docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'], true)) {
+            return false;
+        }
+        if (!class_exists(\ZipArchive::class)) {
+            return false;
+        }
 
-        return $returnCode === 0 && file_exists($dest);
+        $zip = new \ZipArchive();
+        if ($zip->open($source) !== true) {
+            return false;
+        }
+
+        $candidates = ['docProps/thumbnail.jpeg', 'docProps/thumbnail.jpg', 'docProps/thumbnail.png'];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (preg_match('#^(word|xl|ppt)/media/.+\.(png|jpe?g|gif|webp)$#i', $name)) {
+                $candidates[] = $name;
+            }
+        }
+
+        foreach ($candidates as $entry) {
+            $data = $zip->getFromName($entry);
+            if ($data === false) {
+                continue;
+            }
+            $tempImg = $this->tempPath . DIRECTORY_SEPARATOR . 'kdocs_zip_' . uniqid() . '.img';
+            if (file_put_contents($tempImg, $data) === false) {
+                continue;
+            }
+            $ok = $this->generateFromImage($tempImg, $dest);
+            @unlink($tempImg);
+            $zip->close();
+            if ($ok) {
+                return true;
+            }
+            $zip->open($source);
+        }
+
+        $zip->close();
+        return false;
     }
 
     /**
@@ -259,8 +337,11 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
      */
     private function generateFromOffice(string $source, string $dest, string $ext): bool
     {
+        if ($this->generateFromOfficeZip($source, $dest, $ext)) {
+            return true;
+        }
+
         if (!file_exists($this->libreOfficePath)) {
-            // LibreOffice non disponible, utiliser le placeholder
             return false;
         }
 
@@ -420,6 +501,10 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
             // PDF
             'pdf' => ['bg' => [255, 235, 238], 'fg' => [211, 47, 47], 'text' => [255, 255, 255]],
 
+            // Images TIFF
+            'tiff' => ['bg' => [240, 240, 250], 'fg' => [100, 100, 150], 'text' => [255, 255, 255]],
+            'tif' => ['bg' => [240, 240, 250], 'fg' => [100, 100, 150], 'text' => [255, 255, 255]],
+
             // Archives
             'zip' => ['bg' => [243, 229, 245], 'fg' => [142, 36, 170], 'text' => [255, 255, 255]],
             'rar' => ['bg' => [243, 229, 245], 'fg' => [142, 36, 170], 'text' => [255, 255, 255]],
@@ -484,8 +569,8 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
         return [
             'ghostscript' => file_exists($this->ghostscriptPath),
             'ghostscript_path' => $this->ghostscriptPath,
-            'imagemagick' => $this->checkImageMagick(),
-            'imagemagick_path' => $this->imageMagickPath,
+            'pdftoppm' => $this->checkPdftoppm(),
+            'pdftoppm_path' => $this->pdftoppmPath,
             'libreoffice' => file_exists($this->libreOfficePath),
             'libreoffice_path' => $this->libreOfficePath,
             'gd' => extension_loaded('gd'),
@@ -495,11 +580,11 @@ class ThumbnailGenerator implements ThumbnailGeneratorInterface
     }
 
     /**
-     * Vérifie si ImageMagick est disponible
+     * Vérifie si pdftoppm est disponible
      */
-    private function checkImageMagick(): bool
+    private function checkPdftoppm(): bool
     {
-        exec($this->imageMagickPath . ' -version 2>&1', $output, $returnCode);
-        return $returnCode === 0;
+        exec(escapeshellarg($this->pdftoppmPath) . ' -v 2>&1', $output, $returnCode);
+        return $returnCode === 0 || $returnCode === 1; // pdftoppm retourne 1 pour -v
     }
 }

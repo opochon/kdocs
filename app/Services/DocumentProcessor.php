@@ -125,7 +125,7 @@ class DocumentProcessor
                 } else {
                     $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
                     $errorMsg = match($ext) {
-                        'pdf' => "OCR échoué: aucun outil disponible (pdftotext, pdftoppm ou ImageMagick requis)",
+                        'pdf' => "OCR échoué: aucun outil disponible (pdftotext ou pdftoppm requis)",
                         'docx', 'doc', 'odt', 'rtf' => "OCR échoué: impossible d'extraire le texte (fichier corrompu ou PhpWord non disponible)",
                         'xlsx', 'xls', 'ods', 'csv' => "OCR échoué: impossible d'extraire le texte du tableur",
                         'pptx', 'ppt', 'odp' => "OCR échoué: impossible d'extraire le texte de la présentation",

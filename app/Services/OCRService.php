@@ -135,34 +135,8 @@ class OCRService implements OCRServiceInterface
             }
         }
         
-        // Fallback ImageMagick si pdftoppm n'est pas disponible ou a échoué
         if (!$conversionSuccess) {
-            $configImageMagick = $config['tools']['imagemagick'] ?? null;
-            $imageMagickPath = SystemHelper::findExecutable('magick',
-                $configImageMagick ? [$configImageMagick, ...SystemHelper::getDefaultPaths('imagemagick')] : SystemHelper::getDefaultPaths('imagemagick')
-            );
-
-            if ($imageMagickPath) {
-                $imageMagickCmd = escapeshellarg($imageMagickPath);
-            } else {
-                $imageMagickCmd = null;
-            }
-            
-            if ($imageMagickCmd) {
-                $magickCmd = is_string($imageMagickCmd) && strpos($imageMagickCmd, ' ') !== false ? $imageMagickCmd : escapeshellarg($imageMagickCmd);
-                exec("$magickCmd convert -density 200 $pdfCmd $tempCmd/page-%02d.png 2>&1", $output, $returnCode);
-                if ($returnCode === 0) {
-                    $conversionSuccess = true;
-                } else {
-                    error_log("Erreur ImageMagick (code $returnCode): " . implode("\n", $output));
-                }
-            } else {
-                error_log("ImageMagick non disponible, impossible de convertir le PDF en images");
-            }
-        }
-        
-        if (!$conversionSuccess) {
-            error_log("Aucun outil de conversion PDF disponible (pdftoppm ou ImageMagick requis)");
+            error_log("pdftoppm non disponible ou a échoué - impossible de convertir le PDF en images pour OCR");
             $this->deleteDirectory($tempDir);
             return null;
         }
