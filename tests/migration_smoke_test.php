@@ -103,6 +103,20 @@ foreach (['docs/ORACLES.md', 'docs/ARCHITECTURE.md', 'SESSION-STATUS.md'] as $do
     assert_true($doc, is_file(KDOCS_ROOT . '/' . $doc));
 }
 
+echo "\nModules chantier GEDv1\n";
+assert_true('ConnectorInterface', is_file(KDOCS_ROOT . '/app/Connectors/ConnectorInterface.php'));
+assert_true('PluginRegistry', is_file(KDOCS_ROOT . '/app/Core/PluginRegistry.php'));
+assert_true('.env.example', is_file(KDOCS_ROOT . '/.env.example'));
+assert_true('apps/invoices/Controllers/InvoiceController.php', is_file(KDOCS_ROOT . '/apps/invoices/Controllers/InvoiceController.php'));
+assert_true('apps/invoices/Controllers/MatchingController.php', is_file(KDOCS_ROOT . '/apps/invoices/Controllers/MatchingController.php'));
+assert_true('tests Unit MatchingServiceInvoiceTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/MatchingServiceInvoiceTest.php'));
+assert_true('tests Unit WinBizConnectorTest', is_file(KDOCS_ROOT . '/tests/Unit/Connectors/WinBizConnectorTest.php'));
+
+if ($vendorOk) {
+    assert_true('Helper env() disponible', function_exists('env'));
+    assert_true('Classe PluginRegistry chargeable', class_exists('KDocs\\Core\\PluginRegistry'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);
