@@ -381,6 +381,76 @@ class MatchingService
         
         return $results;
     }
+
+    /**
+     * Rapproche les lignes d'une facture avec les lignes d'un bon de livraison WinBiz.
+     *
+     * @param list<array<string, mixed>> $invoiceLines
+     * @param list<array<string, mixed>> $blLines
+     * @return list<array<string, mixed>>
+     */
+    public static function matchInvoiceToBL(array $invoiceLines, array $blLines, float $tolerancePercent = 5.0): array
+    {
+        $matches = [];
+
+        foreach ($invoiceLines as $index => $line) {
+            $best = null;
+            $bestScore = 0.0;
+            $articleCode = (string)($line['article_code'] ?? $line['code'] ?? '');
+            $qty = (float)($line['quantity'] ?? $line['qty'] ?? 0);
+            $price = (float)($line['unit_price'] ?? $line['price'] ?? 0);
+            $designation = mb_strtolower((string)($line['description'] ?? $line['designation'] ?? ''), 'UTF-8');
+
+            foreach ($blLines as $blIndex => $blLine) {
+                $score = 0.0;
+                $blCode = (string)($blLine['article_code'] ?? $blLine['code'] ?? '');
+                $blDesignation = mb_strtolower((string)($blLine['description'] ?? $blLine['designation'] ?? ''), 'UTF-8');
+                $blQty = (float)($blLine['quantity'] ?? $blLine['qty'] ?? 0);
+                $blPrice = (float)($blLine['unit_price'] ?? $blLine['price'] ?? 0);
+
+                if ($articleCode !== '' && strcasecmp($articleCode, $blCode) === 0) {
+                    $score += 50.0;
+                }
+
+                if ($designation !== '' && $blDesignation !== '') {
+                    similar_text($designation, $blDesignation, $pct);
+                    $score += $pct * 0.4;
+                }
+
+                if ($qty > 0 && $blQty > 0) {
+                    $qtyDelta = abs($qty - $blQty) / max($qty, $blQty) * 100;
+                    if ($qtyDelta <= 10) {
+                        $score += 10.0;
+                    }
+                }
+
+                if ($price > 0 && $blPrice > 0) {
+                    $priceDelta = abs($price - $blPrice) / max($price, $blPrice) * 100;
+                    if ($priceDelta <= $tolerancePercent) {
+                        $score += 15.0;
+                    }
+                }
+
+                if ($score > $bestScore) {
+                    $bestScore = $score;
+                    $best = [
+                        'bl_index' => $blIndex,
+                        'bl_line' => $blLine,
+                        'score' => round($score, 1),
+                    ];
+                }
+            }
+
+            $matches[] = [
+                'invoice_index' => $index,
+                'invoice_line' => $line,
+                'suggestion' => $bestScore >= 40.0 ? $best : null,
+                'confidence' => min(100.0, round($bestScore, 1)),
+            ];
+        }
+
+        return $matches;
+    }
     
     /**
      * Méthode de compatibilité avec l'ancien code
