@@ -56,13 +56,40 @@ composer update
 php database/install.php
 ```
 
-## Apache / URL
+## Apache / URL (WAMP)
 
-Configurer WAMP pour pointer vers GEDv1 ou créer alias :
+Configurer WAMP pour servir GEDv1 :
 
-- Option A : copier/symlink vers `C:\wamp64\www\gedv1`
-- Option B : VirtualHost dédié
-- URL tests par défaut : `http://localhost/kdocs` (adapter dans `run-tests.bat`)
+1. Copier ou lier le dossier vers `C:\wamp64\www\gedv1`
+2. Créer `config/config.php` depuis `config/config.example.php`
+3. Copier `.env.example` vers `.env` et adapter `APP_URL`
+4. Vérifier Apache `mod_rewrite` activé (Slim front controller)
+5. URL recommandée : `http://localhost/gedv1`
+
+```apache
+# Exemple VirtualHost (httpd-vhosts.conf)
+<VirtualHost *:80>
+    DocumentRoot "F:/DATA/DEVELOPPEMENT/GEDv1"
+    ServerName gedv1.local
+    <Directory "F:/DATA/DEVELOPPEMENT/GEDv1">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Harness offline (sans serveur) :
+
+```cmd
+cd F:\DATA\DEVELOPPEMENT\GEDv1
+php tests\migration_smoke_test.php
+```
+
+Harness HTTP (serveur requis) :
+
+```cmd
+run-tests.bat smoke
+```
 
 ---
 *Dernière mise à jour : 2026-06-17*

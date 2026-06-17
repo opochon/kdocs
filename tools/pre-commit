@@ -1,0 +1,42 @@
+#!/bin/sh
+# GEDv1 Pre-commit — gate offline migration_smoke_test.php
+
+echo ""
+echo "╔══════════════════════════════════════╗"
+echo "║   GEDv1 PRE-COMMIT VALIDATION        ║"
+echo "╚══════════════════════════════════════╝"
+echo ""
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+ERRORS=0
+
+echo "→ Migration smoke tests..."
+php tests/migration_smoke_test.php > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "${RED}   ✗ Migration smoke tests FAILED${NC}"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "${GREEN}   ✓ Migration smoke tests passed${NC}"
+fi
+
+echo "→ PHP syntax check..."
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$')
+if [ -n "$STAGED_PHP" ]; then
+    for FILE in $STAGED_PHP; do
+        if [ -f "$FILE" ]; then
+            php -l "$FILE" > /dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo "${RED}   ✗ Syntax error: $FILE${NC}"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    done
+fi
+
+if [ $ERRORS -gt 0 ]; then
+    exit 1
+fi
+echo "${GREEN}✓ All pre-commit checks passed${NC}"
+exit 0
