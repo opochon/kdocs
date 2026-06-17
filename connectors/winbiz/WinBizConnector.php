@@ -8,7 +8,9 @@
 
 namespace KDocs\Connectors\WinBiz;
 
-class WinBizConnector
+use KDocs\Connectors\ConnectorInterface;
+
+class WinBizConnector implements ConnectorInterface
 {
     private $connection = null;
     private array $config;
@@ -60,6 +62,14 @@ class WinBizConnector
             $this->connection = null;
             $this->connected = false;
         }
+    }
+
+    /**
+     * Indique si la connexion ODBC est active
+     */
+    public function isConnected(): bool
+    {
+        return $this->connected && $this->connection !== null;
     }
 
     /**

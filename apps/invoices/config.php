@@ -7,7 +7,7 @@ return [
     'app' => [
         'name' => 'K-Invoices',
         'version' => '0.1.0',
-        'enabled' => false, // A activer quand pret
+        'enabled' => filter_var(env('INVOICES_APP_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
     // Tables prefixees app_invoices_*

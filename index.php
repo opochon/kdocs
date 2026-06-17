@@ -122,6 +122,7 @@ use KDocs\Controllers\Api\ClassificationFieldOptionsApiController;
 use KDocs\Controllers\Api\ExtractionApiController;
 use KDocs\Controllers\Api\EmbeddingsApiController;
 use KDocs\Controllers\Api\SemanticSearchApiController;
+use KDocs\Controllers\Api\AIStatusApiController;
 use KDocs\Controllers\Api\SnapshotsApiController;
 use KDocs\Controllers\Api\DocumentVersionsApiController;
 use KDocs\Controllers\Admin\AttributionRulesController;
@@ -260,6 +261,26 @@ $app->get('/health', function($request, $response) {
         }
     } catch (\Exception $e) {
         $checks['qdrant'] = ['status' => 'error', 'message' => $e->getMessage()];
+    }
+
+    // 9. WinBiz ODBC (optionnel)
+    try {
+        $wbConfig = is_file(__DIR__ . '/connectors/winbiz/config.php')
+            ? require __DIR__ . '/connectors/winbiz/config.php'
+            : [];
+        if ($wbConfig['connector']['enabled'] ?? false) {
+            require_once __DIR__ . '/connectors/winbiz/WinBizConnector.php';
+            $wb = new \KDocs\Connectors\WinBiz\WinBizConnector();
+            $test = $wb->testConnection();
+            $checks['winbiz'] = [
+                'status' => ($test['success'] ?? false) ? 'ok' : 'warning',
+                'message' => $test['message'] ?? 'Test inconnu',
+            ];
+        } else {
+            $checks['winbiz'] = ['status' => 'warning', 'message' => 'Disabled'];
+        }
+    } catch (\Throwable $e) {
+        $checks['winbiz'] = ['status' => 'warning', 'message' => $e->getMessage()];
     }
 
     // Build response
@@ -471,6 +492,11 @@ $app->group('', function ($group) {
     $group->get('/api/onlyoffice/config/{documentId}', [OnlyOfficeApiController::class, 'getConfig']);
     $group->get('/api/onlyoffice/download/{documentId}', [OnlyOfficeApiController::class, 'download']);
     $group->post('/api/onlyoffice/callback/{documentId}', [OnlyOfficeApiController::class, 'saveCallback']);
+    // OnlyOffice diagnostic endpoints
+    $group->get('/api/onlyoffice/test-connectivity', [OnlyOfficeApiController::class, 'testConnectivity']);
+    $group->get('/api/onlyoffice/logs', [OnlyOfficeApiController::class, 'getLogs']);
+    $group->post('/api/onlyoffice/logs/clear', [OnlyOfficeApiController::class, 'clearLogs']);
+    $group->get('/api/onlyoffice/debug-config', [OnlyOfficeApiController::class, 'debugConfig']);
 
     $group->get('/tasks', [TasksController::class, 'index']);
     $group->get('/tasks/create', [TasksController::class, 'showCreate']);
@@ -478,6 +504,7 @@ $app->group('', function ($group) {
     $group->post('/tasks/{id}/status', [TasksController::class, 'updateStatus']);
     
     $group->get('/admin', [AdminController::class, 'index']);
+    $group->get('/admin/diagnostic', [AdminController::class, 'diagnostic']);
     $group->get('/admin/api-usage', [AdminController::class, 'apiUsage']);
     
     $group->get('/admin/users', [UsersController::class, 'index']);
@@ -675,6 +702,11 @@ $app->group('', function ($group) {
     $group->put('/api/documents/{id}/fields', [DocumentsApiController::class, 'updateFields']);
     $group->post('/api/documents/{id}/classify', [DocumentsApiController::class, 'classify']);
 
+    // AI Status API
+    $group->get('/api/ai/status', [AIStatusApiController::class, 'status']);
+    $group->post('/api/ai/test', [AIStatusApiController::class, 'test']);
+    $group->post('/api/ai/refresh', [AIStatusApiController::class, 'refresh']);
+
     // Semantic Search & Embeddings API
     $group->get('/api/embeddings/status', [EmbeddingsApiController::class, 'status']);
     $group->post('/api/embeddings/sync', [EmbeddingsApiController::class, 'sync']);
@@ -789,6 +821,9 @@ $app->group('', function ($group) {
     $group->post('/time/timer/resume', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'resume']);
     $group->post('/time/timer/stop', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'stop']);
     $group->post('/time/timer/cancel', [\KDocs\Apps\Timetrack\Controllers\TimerController::class, 'cancel']);
+
+    // Apps satellites (invoices, mail, …) via PluginRegistry
+    \KDocs\Core\PluginRegistry::registerAppRoutes($group);
 
 })->add(new AutoIndexMiddleware())->add(new RateLimitMiddleware(100, 60))->add(new \KDocs\Middleware\CSRFMiddleware())->add(new AuthMiddleware());
 
