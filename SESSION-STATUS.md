@@ -169,3 +169,14 @@ run-tests.bat                         REM migration + PHPUnit unit
 
 *Dernière mise à jour : 2026-06-17 — spec plugin WinBiz liaison + consultation*
 
+
+## Blocage push GitHub (2026-06-17)
+
+| Élément | Détail |
+|---------|--------|
+| Remote | `https://github.com/opochon/kdocs.git` |
+| Commit local non poussé | `33106ab` — `docs(ged): spec plugin WinBiz liaison et consultation` |
+| Erreur | HTTP 403 — PAT fine-grained sans accès écriture sur `kdocs` |
+| Diagnostic | `docs/PUSH-DIAGNOSTIC.md` |
+| Action utilisateur | Ajouter `opochon/kdocs` au PAT (Contents write) ou PAT classic `repo`, puis `gh auth login --with-token` |
+
