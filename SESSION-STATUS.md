@@ -112,23 +112,36 @@ run-tests.bat                         REM migration + PHPUnit unit
 
 
 
-### Prochaine fonction à traiter — Liaison WinBiz (module distinct)
+### Prochaine fonction à traiter — Plugin WinBiz (liaison + consultation)
 
-**Priorité P1** — intégration ERP via projet externe, pas duplication dans le core.
+**Deux missions distinctes** du même plugin, via WinbizIntegrator (pas de duplication ODBC dans le core).
+
+| Capacité | Priorité | Rôle |
+|----------|----------|------|
+| **`winbiz-matching`** | **P1** | Liaison document GED analysé ↔ références WinBiz (factures, BL, offres, stock) |
+| **`winbiz-viewer`** | **P2** | Consultation lecture documents WinBiz depuis la GED (sans matching obligatoire) |
 
 | Élément | Détail |
 |---------|--------|
 | Module externe | `F:\DATA\DEVELOPPEMENT\WinbizIntegrator` (`k-winbiz-bridge/`) |
 | Stubs GEDv1 | `connectors/winbiz/`, `apps/invoices/` |
 | Doc | `docs/WINBIZ-MODULE.md`, `docs/PLUGIN-SYSTEM.md` |
+| Périmètre lecture | Factures (fourn. prioritaire), BL, offres, stock |
 
-**Sous-tâches :**
+**Sous-tâches P1 — winbiz-matching :**
 
-1. Finaliser `ConnectorInterface` côté GEDv1 (contrat stable)
-2. Créer `WinBizBridgeClient` — client HTTP vers `k-winbiz-bridge` (port 5100)
-3. Brancher `PluginRegistry` / `apps/invoices/` sur le bridge (pas ODBC direct en prod)
-4. Activer app invoices : `INVOICES_APP_ENABLED=true` après health check bridge
-5. Valider matching facture ↔ BL avec données terrain WinBiz
+1. Créer `WinBizBridgeClient` — HTTP vers `k-winbiz-bridge` :5100 (prod ; ODBC = fallback dev)
+2. Implémenter `WinBizMatchingService::matchDocumentToWinBiz()` — orchestration mission 1
+3. Recherche croisée factures fournisseurs (`DO_COMPTE=2000`, `DO_TYPE` 20/30…)
+4. Étendre matching BL (existant `matchInvoiceToBL`) + offres (`DO_TYPE` 1) + lignes stock
+5. Persistance résultats (`persistMatch`, `getMatchStatus`) + UI écarts / date introduction WinBiz
+6. Activer app invoices : `INVOICES_APP_ENABLED=true` après health check bridge
+
+**Sous-tâches P2 — winbiz-viewer :**
+
+7. Routes consultation : `/winbiz/documents`, `/winbiz/stock`, `/winbiz/search`
+8. `WinBizViewerService` + templates lecture document (en-tête, lignes, partenaire, écritures)
+9. Demander / consommer endpoints bridge dédiés (`GET /api/v1/documents/{numero}`, `/search`)
 
 ### Autres prochaines étapes
 
@@ -154,5 +167,5 @@ run-tests.bat                         REM migration + PHPUnit unit
 
 ---
 
-*Dernière mise à jour : 2026-06-17 — chantier lots 0–6*
+*Dernière mise à jour : 2026-06-17 — spec plugin WinBiz liaison + consultation*
 

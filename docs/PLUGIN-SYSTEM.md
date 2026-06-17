@@ -66,12 +66,30 @@ WinBiz est un **plugin / connecteur externe** au sens architecture, même si des
 
 | Dépôt | Rôle |
 |-------|------|
-| **GEDv1** (`connectors/winbiz/`, `apps/invoices/`) | Interface plugin, UI rapprochement, `MatchingService` |
-| **WinbizIntegrator** (`F:\DATA\DEVELOPPEMENT\WinbizIntegrator`) | Connecteur complet ODBC/OLEDB, matching, sync, écriture sécurisée |
+| **GEDv1** (`connectors/winbiz/`, `apps/invoices/`) | Plugin WinBiz : orchestration UI, matching métier, consultation |
+| **WinbizIntegrator** (`F:\DATA\DEVELOPPEMENT\WinbizIntegrator`) | Connecteur complet ODBC/OLEDB, schéma reverse, écriture sécurisée |
 
 > **Ne pas fusionner** `k-winbiz-bridge` dans le core PHP. Intégration par `ConnectorInterface` + client HTTP vers le microservice Python (port 5100).
 
 Documentation dédiée : **`docs/WINBIZ-MODULE.md`**.
+
+### Deux capacités du plugin WinBiz
+
+Un seul plugin, **deux sous-modules logiques** (priorités distinctes) :
+
+| Capacité | ID | Priorité | Description |
+|----------|-----|----------|-------------|
+| **`winbiz-matching`** | liaison | **P1** | Document GED analysé → recherche croisée WinBiz (factures, BL, offres, stock) → correspondance, date introduction, écarts |
+| **`winbiz-viewer`** | consultation | **P2** | Lecture factures / BL / offres / stock depuis la GED, sans flux matching obligatoire |
+
+```
+WinBizPlugin
+├── Bridge/WinBizBridgeClient.php     # HTTP → k-winbiz-bridge (pas ODBC en prod)
+├── Matching/WinBizMatchingService.php
+└── Viewer/WinBizViewerService.php
+```
+
+Périmètre lecture WinBiz : factures (fournisseurs prioritaire), bulletins de livraison, offres, stock.
 
 ## Connecteur WinBiz — état détaillé (stubs GEDv1)
 
@@ -108,8 +126,10 @@ Documentation dédiée : **`docs/WINBIZ-MODULE.md`**.
 
 | Point d'intégration | Fichier | Description |
 |---------------------|---------|-------------|
-| Rapprochement factures | `app/Services/MatchingService.php` | Matching lignes facture ↔ WinBiz |
-| Routes invoices | `apps/invoices/routes.php` | `/invoices/{id}/matching`, `/winbiz/bl`, `/export/winbiz` |
+| Liaison document ↔ WinBiz (P1) | `WinBizMatchingService` | `matchDocumentToWinBiz()`, recherche croisée |
+| Rapprochement lignes facture ↔ BL | `MatchingService::matchInvoiceToBL()` | MVP existant — à intégrer dans winbiz-matching |
+| Consultation documents (P2) | `WinBizViewerService` | Listes et détail factures / BL / offres / stock |
+| Routes invoices | `apps/invoices/routes.php` | `/invoices/{id}/matching`, `/winbiz/bl`, `/winbiz/documents` |
 | Migration BDD | `database/migrations/007_add_matching_columns.sql` | Colonnes matching |
 
 ### Module externe (source de vérité terrain)
@@ -148,8 +168,8 @@ Hooks suggérés :
 | Hook | Usage |
 |------|-------|
 | `document.uploaded` | Sync ERP, classification externe |
-| `document.classified` | Export comptable WinBiz |
-| `invoice.validated` | Création écriture WinBiz |
+| `document.classified` | Déclencher `winbiz-matching` si type facture/BL |
+| `invoice.validated` | Persister liaison WinBiz confirmée |
 | `workflow.completed` | Notification externe |
 
 ### Phase 3 — Apps comme plugins
@@ -190,4 +210,4 @@ foreach (glob(__DIR__ . '/../apps/*/routes.php') as $routes) {
 - Timeout ODBC court, pool connexion unique par requête
 
 ---
-*Dernière mise à jour : 2026-06-17*
+*Dernière mise à jour : 2026-06-17 — deux capacités plugin WinBiz (matching + viewer)*

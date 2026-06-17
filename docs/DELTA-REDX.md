@@ -48,27 +48,35 @@
 
 
 
-### P1 — Intégration ERP WinBiz (vision REDX Factures)
+### P1 — Intégration ERP WinBiz (plugin `winbiz-matching` + `winbiz-viewer`)
 
-> **Stratégie 2026-06-17** : les gaps ODBC/ERP restants sont traités via le **module externe WinbizIntegrator** (`F:\DATA\DEVELOPPEMENT\WinbizIntegrator\k-winbiz-bridge\`), pas par duplication dans le core GEDv1. Voir `docs/WINBIZ-MODULE.md`.
+> **Stratégie 2026-06-17** : plugin GEDv1 = orchestration UI + matching métier ; accès données via **WinbizIntegrator** (`k-winbiz-bridge`). Périmètre lecture : **factures** (fourn. prioritaire), **BL**, **offres**, **stock**. Voir `docs/WINBIZ-MODULE.md`.
 
 | ID | Fonction | Module | Statut GEDv1 |
 
 |----|----------|--------|--------------|
 
-| GAP-010 | `ConnectorInterface` + `isConnected()` | `connectors/winbiz/` | ✅ (`11fba6d`) — bridge HTTP à brancher |
+| GAP-010 | `ConnectorInterface` + `WinBizBridgeClient` | `connectors/winbiz/` | 🟡 Interface ✅ — client HTTP bridge à créer |
 
-| GAP-011 | `getFacturesFournisseur()` | WinbizIntegrator bridge | 🟡 **À traiter via module** (`data_layer.py`) |
+| GAP-011 | Factures fournisseurs — lecture + matching | `winbiz-matching`, bridge `document` | 🟡 **P1** — `matchDocumentToWinBiz()`, `searchWinBizCandidates()` |
 
-| GAP-012 | UI rapprochement facture ↔ BL | `MatchingService`, `apps/invoices/` | ✅ MVP (`585bbb5`) |
+| GAP-012 | UI rapprochement facture ↔ BL | `MatchingService`, `apps/invoices/` | ✅ MVP (`585bbb5`) — à étendre offres/stock |
 
-| GAP-013 | `InvoicesController::showMatchingUI()` | `apps/invoices/` | 🟡 Stub — activer après bridge |
+| GAP-013 | Liaison document GED ↔ date introduction WinBiz | `WinBizMatchingService` | 🟡 **P1** — écarts montant/lignes, persistance |
 
-| GAP-014 | `registerInvoicesRoutes()` | `index.php` + `PluginRegistry` | ✅ (`11fba6d`) |
+| GAP-014 | `registerInvoicesRoutes()` + hooks plugin | `PluginRegistry`, `apps/invoices/` | ✅ (`11fba6d`) — étendre hooks `document.classified` |
 
-| GAP-015 | Workflow seed facture fournisseur | workflows + bridge | ❌ **À traiter via module** |
+| GAP-015 | Recherche croisée offres (`DO_TYPE` 1) | `winbiz-matching` | ❌ **P1** — `matchToOffer()` |
 
 | GAP-016 | Health check WinBiz | `GET /health` GED + bridge `/api/v1/health` | 🟡 GED ✅ — bridge à déployer |
+
+| GAP-017 | Matching lignes ↔ stock / articles | `winbiz-matching` | ❌ **P1** — `matchLineToStock()`, `searchArticles` bridge |
+
+| GAP-018 | Consultation factures / BL / offres depuis GED | `winbiz-viewer` | ❌ **P2** — `listDocuments()`, `getDocumentDetail()` |
+
+| GAP-019 | Consultation stock WinBiz depuis GED | `winbiz-viewer` | ❌ **P2** — `searchStock()`, routes `/winbiz/stock` |
+
+| GAP-01A | Endpoints bridge dédiés documents/search | `k-winbiz-bridge` API | 🟡 Flask explorer existe — REST `/api/v1/documents` à ajouter |
 
 
 
@@ -162,15 +170,17 @@
 
 
 
-1. **Liaison WinBiz P1** — bridge `WinbizIntegrator/k-winbiz-bridge` + `WinBizBridgeClient` GEDv1 (`docs/WINBIZ-MODULE.md`)
+1. **Plugin WinBiz P1 (`winbiz-matching`)** — `matchDocumentToWinBiz()` : factures fourn., BL, offres, stock (`docs/WINBIZ-MODULE.md`)
 
-2. Lot archivage légal Olico (GAP-020+)
+2. **Plugin WinBiz P2 (`winbiz-viewer`)** — consultation lecture documents WinBiz depuis GED (séparée du matching)
 
-3. `getFacturesFournisseur()` + workflow seed facture (via module, pas core PHP ODBC)
+3. **Bridge** — `WinBizBridgeClient` + endpoints REST documents/search côté `k-winbiz-bridge`
+
+4. Lot archivage légal Olico (GAP-020+)
 
 
 
 ---
 
-*Dernière mise à jour : 2026-06-17 — chantier lots 0–6*
+*Dernière mise à jour : 2026-06-17 — gaps WinBiz alignés factures/BL/offres/stock + consultation*
 
