@@ -306,7 +306,7 @@ HTML
                     </div>
                     
                     <!-- Message -->
-                    {$message ? '<div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg"><p class="text-sm text-yellow-800"><strong>Message:</strong> ' . $message . '</p></div>' : ''}
+                    ' . ($message ? '<div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg"><p class="text-sm text-yellow-800"><strong>Message:</strong> ' . htmlspecialchars($message) . '</p></div>' : '') . '
                     
                     <!-- Actions -->
                     <div class="flex gap-4">

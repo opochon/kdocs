@@ -60,13 +60,26 @@ apps/{name}/
 
 **Chargement** : les `routes.php` devraient être inclus depuis `index.php` ou un bootstrap apps — **non fait** sauf routes K-Time en dur.
 
-## Connecteur WinBiz — état détaillé
+## WinBiz = module distinct (pas monolithique)
+
+WinBiz est un **plugin / connecteur externe** au sens architecture, même si des stubs vivent dans ce dépôt.
+
+| Dépôt | Rôle |
+|-------|------|
+| **GEDv1** (`connectors/winbiz/`, `apps/invoices/`) | Interface plugin, UI rapprochement, `MatchingService` |
+| **WinbizIntegrator** (`F:\DATA\DEVELOPPEMENT\WinbizIntegrator`) | Connecteur complet ODBC/OLEDB, matching, sync, écriture sécurisée |
+
+> **Ne pas fusionner** `k-winbiz-bridge` dans le core PHP. Intégration par `ConnectorInterface` + client HTTP vers le microservice Python (port 5100).
+
+Documentation dédiée : **`docs/WINBIZ-MODULE.md`**.
+
+## Connecteur WinBiz — état détaillé (stubs GEDv1)
 
 ### Fichiers
 
 | Fichier | Rôle |
 |---------|------|
-| `connectors/winbiz/WinBizConnector.php` | Classe ODBC (~240 lignes) |
+| `connectors/winbiz/WinBizConnector.php` | Classe ODBC (~240 lignes) — fallback dev ; prod → bridge |
 | `connectors/winbiz/config.php` | DSN, tables FoxPro, field_mapping |
 | `connectors/winbiz/README.md` | Doc utilisateur |
 
@@ -99,9 +112,14 @@ apps/{name}/
 | Routes invoices | `apps/invoices/routes.php` | `/invoices/{id}/matching`, `/winbiz/bl`, `/export/winbiz` |
 | Migration BDD | `database/migrations/007_add_matching_columns.sql` | Colonnes matching |
 
-### Référence externe utile
+### Module externe (source de vérité terrain)
 
-Projet connexe : `F:\DATA\DEVELOPPEMENT\WinbizIntegrator\k-winbiz-bridge\` (Python, OLEDB/ODBC, schéma WinBiz documenté dans `docs/SCHEMA.md`). Peut servir de **oracle de données** pour valider le connecteur PHP.
+**WinbizIntegrator** — `F:\DATA\DEVELOPPEMENT\WinbizIntegrator\k-winbiz-bridge\`
+
+- Microservice REST 32-bit (OLE DB VFP) pour apps 64-bit (GED, K-Time)
+- Schéma reverse : `reverse/schema.json`, `docs/SCHEMA.md`
+- Écriture : `service/write_layer.py` (règles immuables, backup CDX)
+- Voir `docs/WINBIZ-MODULE.md` pour le plan de bridge GEDv1 ↔ WinbizIntegrator
 
 ## Vision plugin system (à implémenter)
 

@@ -149,7 +149,7 @@ class SettingsController
             'indexing_batch_pause',
             'indexing_turbo_mode',
         ];
-        
+
         foreach ($indexingKeys as $key) {
             if (isset($data[$key])) {
                 $value = $data[$key];
@@ -164,7 +164,25 @@ class SettingsController
                 }
             }
         }
-        
+
+        // Sauvegarder les paramètres OnlyOffice
+        if (isset($data['onlyoffice'])) {
+            foreach ($data['onlyoffice'] as $key => $value) {
+                $fullKey = 'onlyoffice.' . $key;
+                // Convertir checkboxes en boolean
+                if (in_array($key, ['ssl_verify', 'debug_log'])) {
+                    $value = ($value === '1' || $value === 'on' || $value === true) ? '1' : '0';
+                }
+                if (Setting::set($fullKey, $value, 'string', $user['id'])) {
+                    $success[] = "Paramètre $fullKey sauvegardé";
+                } else {
+                    $errors[] = "Erreur lors de la sauvegarde de $fullKey";
+                }
+            }
+            // Réinitialiser le cache de disponibilité OnlyOffice
+            \KDocs\Services\OnlyOfficeService::resetAvailabilityCache();
+        }
+
         // Réinitialiser le cache de configuration pour recharger les nouveaux paramètres
         Config::reset();
 

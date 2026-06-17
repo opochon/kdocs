@@ -1,0 +1,22 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+    level: 5
+    paths:
+        - app
+    excludePaths:
+        - app/vendor
+        - app/cache
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    reportUnmatchedIgnoredErrors: false
+    
+    ignoreErrors:
+        # Slim Framework dynamic calls
+        - '#Call to an undefined method Psr\\Http\\Message\\ResponseInterface::#'
+        - '#Call to an undefined method Psr\\Http\\Message\\ServerRequestInterface::#'
+        # PDO dynamic
+        - '#Cannot call method [a-zA-Z]+\(\) on PDOStatement\|false#'
+        # Config arrays
+        - '#Cannot access offset .* on mixed#'

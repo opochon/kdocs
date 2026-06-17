@@ -94,7 +94,7 @@ class EmbeddingService
 
         // Get document content
         $stmt = $db->prepare("
-            SELECT id, title, original_filename, ocr_text, content, content_hash
+            SELECT id, title, original_filename, ocr_text, content, content_hash, embedding
             FROM documents
             WHERE id = ? AND deleted_at IS NULL
         ");
@@ -115,8 +115,8 @@ class EmbeddingService
         // Calculate content hash
         $newHash = hash('sha256', $text);
 
-        // Skip if content hasn't changed
-        if ($doc['content_hash'] === $newHash) {
+        // Skip if content hasn't changed AND embedding already exists
+        if ($doc['content_hash'] === $newHash && !empty($doc['embedding'])) {
             return null;
         }
 
@@ -131,16 +131,20 @@ class EmbeddingService
             if ($embedding) {
                 $processingTime = (int)((microtime(true) - $startTime) * 1000);
 
-                // Update document status
+                // Pack embedding as BLOB for MySQL storage
+                $embeddingBlob = pack('f*', ...$embedding);
+
+                // Update document with embedding and status
                 $stmt = $db->prepare("
                     UPDATE documents
-                    SET embedding_status = 'completed',
+                    SET embedding = ?,
+                        embedding_status = 'completed',
                         vector_updated_at = NOW(),
                         content_hash = ?,
                         embedding_error = NULL
                     WHERE id = ?
                 ");
-                $stmt->execute([$newHash, $documentId]);
+                $stmt->execute([$embeddingBlob, $newHash, $documentId]);
 
                 // Log success
                 $this->logEmbedding($documentId, 'create', $this->countTokens($text), $processingTime);

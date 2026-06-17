@@ -1,213 +1,171 @@
 <?php
 /**
- * K-Docs - Rate Limit Middleware
- * Protection contre les abus par limitation de requêtes
+ * K-DOCS - Rate Limiter
+ * Protection contre les abus d'API
  */
 
 namespace KDocs\Middleware;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use Slim\Psr7\Response as SlimResponse;
 
 class RateLimitMiddleware implements MiddlewareInterface
 {
+    private int $maxRequests;
+    private int $windowSeconds;
+    private string $storagePath;
+    
     /**
-     * Configuration par défaut
+     * @param int $maxRequests Nombre max de requêtes par fenêtre
+     * @param int $windowSeconds Durée de la fenêtre en secondes
      */
-    private int $maxRequests;      // Nombre max de requêtes
-    private int $windowSeconds;    // Fenêtre de temps en secondes
-    private string $storageDir;    // Répertoire de stockage
-
-    public function __construct(
-        int $maxRequests = 100,
-        int $windowSeconds = 60,
-        ?string $storageDir = null
-    ) {
+    public function __construct(int $maxRequests = 100, int $windowSeconds = 60)
+    {
         $this->maxRequests = $maxRequests;
         $this->windowSeconds = $windowSeconds;
-        // Utiliser storage/ratelimit au lieu de sys_get_temp_dir()
-        $this->storageDir = $storageDir ?? dirname(__DIR__, 2) . '/storage/ratelimit';
-
-        if (!is_dir($this->storageDir)) {
-            @mkdir($this->storageDir, 0755, true);
+        $this->storagePath = dirname(__DIR__, 2) . '/storage/cache/ratelimit';
+        
+        if (!is_dir($this->storagePath)) {
+            mkdir($this->storagePath, 0755, true);
         }
     }
-
-    public function process(Request $request, RequestHandler $handler): Response
+    
+    public function process(Request $request, Handler $handler): Response
     {
         $identifier = $this->getIdentifier($request);
-        $record = $this->getRecord($identifier);
-
-        // Nettoyer les anciennes entrées
-        $record = $this->cleanOldEntries($record);
-
+        $key = $this->getKey($identifier);
+        
+        $data = $this->getData($key);
+        $now = time();
+        
+        // Nettoyer les vieilles entrées
+        $data = array_filter($data, fn($ts) => $ts > ($now - $this->windowSeconds));
+        
         // Vérifier la limite
-        if (count($record['requests']) >= $this->maxRequests) {
-            return $this->tooManyRequests($record);
+        if (count($data) >= $this->maxRequests) {
+            $retryAfter = min($data) + $this->windowSeconds - $now;
+            
+            $response = new \Slim\Psr7\Response();
+            $response->getBody()->write(json_encode([
+                'error' => 'Rate limit exceeded',
+                'retry_after' => $retryAfter,
+                'limit' => $this->maxRequests,
+                'window' => $this->windowSeconds,
+            ]));
+            
+            return $response
+                ->withStatus(429)
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('Retry-After', (string) $retryAfter)
+                ->withHeader('X-RateLimit-Limit', (string) $this->maxRequests)
+                ->withHeader('X-RateLimit-Remaining', '0')
+                ->withHeader('X-RateLimit-Reset', (string) (min($data) + $this->windowSeconds));
         }
-
-        // Ajouter la requête actuelle
-        $record['requests'][] = time();
-        $this->saveRecord($identifier, $record);
-
-        // Calculer les headers
-        $remaining = $this->maxRequests - count($record['requests']);
-        $resetTime = !empty($record['requests'])
-            ? min($record['requests']) + $this->windowSeconds
-            : time() + $this->windowSeconds;
-
-        // Exécuter la requête
+        
+        // Enregistrer cette requête
+        $data[] = $now;
+        $this->setData($key, $data);
+        
+        // Continuer
         $response = $handler->handle($request);
-
-        // Ajouter les headers de rate limit
+        
+        // Ajouter headers informatifs
         return $response
-            ->withHeader('X-RateLimit-Limit', (string)$this->maxRequests)
-            ->withHeader('X-RateLimit-Remaining', (string)max(0, $remaining))
-            ->withHeader('X-RateLimit-Reset', (string)$resetTime);
+            ->withHeader('X-RateLimit-Limit', (string) $this->maxRequests)
+            ->withHeader('X-RateLimit-Remaining', (string) ($this->maxRequests - count($data)))
+            ->withHeader('X-RateLimit-Reset', (string) ($now + $this->windowSeconds));
     }
-
+    
     /**
-     * Identifie le client (IP + User-Agent hash)
+     * Vérifie sans bloquer (pour usage manuel)
      */
+    public function check(string $identifier): array
+    {
+        $key = $this->getKey($identifier);
+        $data = $this->getData($key);
+        $now = time();
+        
+        $data = array_filter($data, fn($ts) => $ts > ($now - $this->windowSeconds));
+        
+        return [
+            'allowed' => count($data) < $this->maxRequests,
+            'remaining' => max(0, $this->maxRequests - count($data)),
+            'limit' => $this->maxRequests,
+            'reset' => $now + $this->windowSeconds,
+        ];
+    }
+    
+    /**
+     * Reset le compteur pour un identifiant
+     */
+    public function reset(string $identifier): void
+    {
+        $key = $this->getKey($identifier);
+        $filepath = $this->storagePath . '/' . $key . '.json';
+        
+        if (file_exists($filepath)) {
+            unlink($filepath);
+        }
+    }
+    
+    /**
+     * Nettoie les vieux fichiers de rate limit
+     */
+    public function cleanup(): int
+    {
+        $files = glob($this->storagePath . '/*.json');
+        $deleted = 0;
+        $cutoff = time() - ($this->windowSeconds * 2);
+        
+        foreach ($files as $file) {
+            if (filemtime($file) < $cutoff) {
+                unlink($file);
+                $deleted++;
+            }
+        }
+        
+        return $deleted;
+    }
+    
     private function getIdentifier(Request $request): string
     {
-        $ip = $this->getClientIp($request);
-        $userAgent = $request->getHeaderLine('User-Agent');
-
-        // Utiliser l'ID utilisateur si connecté
+        // Priorité: User ID > API Key > IP
         $userId = $request->getAttribute('user_id');
         if ($userId) {
             return 'user_' . $userId;
         }
-
-        return 'ip_' . md5($ip . $userAgent);
-    }
-
-    /**
-     * Récupère l'IP du client
-     */
-    private function getClientIp(Request $request): string
-    {
-        $headers = [
-            'X-Forwarded-For',
-            'X-Real-IP',
-            'CF-Connecting-IP',
-        ];
-
-        foreach ($headers as $header) {
-            $value = $request->getHeaderLine($header);
-            if (!empty($value)) {
-                // Prendre la première IP si plusieurs
-                $ips = explode(',', $value);
-                return trim($ips[0]);
-            }
+        
+        $apiKey = $request->getHeaderLine('X-API-Key');
+        if ($apiKey) {
+            return 'api_' . substr(md5($apiKey), 0, 16);
         }
-
-        $serverParams = $request->getServerParams();
-        return $serverParams['REMOTE_ADDR'] ?? '127.0.0.1';
+        
+        $ip = $request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0';
+        return 'ip_' . $ip;
     }
-
-    /**
-     * Récupère l'enregistrement de rate limit
-     */
-    private function getRecord(string $identifier): array
+    
+    private function getKey(string $identifier): string
     {
-        $file = $this->getFilePath($identifier);
-
-        if (file_exists($file)) {
-            $content = @file_get_contents($file);
-            if ($content !== false) {
-                $data = json_decode($content, true);
-                if (is_array($data)) {
-                    return $data;
-                }
-            }
+        return md5($identifier);
+    }
+    
+    private function getData(string $key): array
+    {
+        $filepath = $this->storagePath . '/' . $key . '.json';
+        
+        if (!file_exists($filepath)) {
+            return [];
         }
-
-        return ['requests' => []];
+        
+        $data = json_decode(file_get_contents($filepath), true);
+        return is_array($data) ? $data : [];
     }
-
-    /**
-     * Sauvegarde l'enregistrement
-     */
-    private function saveRecord(string $identifier, array $record): void
+    
+    private function setData(string $key, array $data): void
     {
-        $file = $this->getFilePath($identifier);
-        @file_put_contents($file, json_encode($record), LOCK_EX);
-    }
-
-    /**
-     * Retourne le chemin du fichier pour un identifiant
-     */
-    private function getFilePath(string $identifier): string
-    {
-        return $this->storageDir . '/' . $identifier . '.json';
-    }
-
-    /**
-     * Nettoie les entrées expirées
-     */
-    private function cleanOldEntries(array $record): array
-    {
-        $cutoff = time() - $this->windowSeconds;
-
-        $record['requests'] = array_filter(
-            $record['requests'],
-            fn($timestamp) => $timestamp > $cutoff
-        );
-
-        return $record;
-    }
-
-    /**
-     * Retourne une réponse 429 Too Many Requests
-     */
-    private function tooManyRequests(array $record): Response
-    {
-        $response = new SlimResponse();
-
-        $resetTime = !empty($record['requests'])
-            ? min($record['requests']) + $this->windowSeconds
-            : time() + $this->windowSeconds;
-
-        $retryAfter = max(1, $resetTime - time());
-
-        $body = json_encode([
-            'success' => false,
-            'error' => 'Trop de requêtes. Veuillez réessayer dans ' . $retryAfter . ' secondes.',
-            'code' => 429,
-            'retry_after' => $retryAfter
-        ]);
-
-        $response->getBody()->write($body);
-
-        return $response
-            ->withStatus(429)
-            ->withHeader('Content-Type', 'application/json')
-            ->withHeader('Retry-After', (string)$retryAfter)
-            ->withHeader('X-RateLimit-Limit', (string)$this->maxRequests)
-            ->withHeader('X-RateLimit-Remaining', '0')
-            ->withHeader('X-RateLimit-Reset', (string)$resetTime);
-    }
-
-    /**
-     * Nettoie les fichiers expirés (à appeler périodiquement)
-     */
-    public function cleanup(): int
-    {
-        $count = 0;
-        $cutoff = time() - ($this->windowSeconds * 2);
-
-        foreach (glob($this->storageDir . '/*.json') as $file) {
-            if (filemtime($file) < $cutoff) {
-                @unlink($file);
-                $count++;
-            }
-        }
-
-        return $count;
+        $filepath = $this->storagePath . '/' . $key . '.json';
+        file_put_contents($filepath, json_encode(array_values($data)));
     }
 }

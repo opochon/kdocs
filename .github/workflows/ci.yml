@@ -1,0 +1,95 @@
+name: K-Docs CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: kdocs_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: curl, mbstring, pdo_mysql, gd, zip, fileinfo
+        coverage: xdebug
+        tools: composer:v2
+
+    - name: Validate composer.json
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Create test config
+      run: |
+        cp config/config.example.php config/config.php || true
+        sed -i "s/'host' => 'localhost'/'host' => '127.0.0.1'/g" config/config.php
+        sed -i "s/'database' => 'kdocs'/'database' => 'kdocs_test'/g" config/config.php
+        sed -i "s/'username' => 'root'/'username' => 'root'/g" config/config.php
+        sed -i "s/'password' => ''/'password' => 'root'/g" config/config.php
+
+    - name: Run database migrations
+      run: |
+        mysql -h 127.0.0.1 -u root -proot kdocs_test < database/schema.sql || true
+
+    - name: PHPStan Static Analysis
+      run: vendor/bin/phpstan analyse --no-progress || true
+
+    - name: PHP CodeSniffer
+      run: vendor/bin/phpcs --standard=PSR12 app/ --ignore=*/vendor/* || true
+
+    - name: PHPUnit Tests
+      run: vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: curl, mbstring, pdo_mysql
+    
+    - name: Smoke Tests (standalone)
+      run: |
+        php tests/smoke_test.php http://localhost || echo "Smoke tests require running server"

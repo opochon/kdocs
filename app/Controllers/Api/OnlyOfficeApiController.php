@@ -16,10 +16,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class OnlyOfficeApiController
 {
     private OnlyOfficeService $service;
+    private \KDocs\Services\OnlyOfficeLogger $logger;
 
     public function __construct()
     {
         $this->service = new OnlyOfficeService();
+        $this->logger = \KDocs\Services\OnlyOfficeLogger::getInstance();
     }
 
     /**
@@ -233,12 +235,19 @@ class OnlyOfficeApiController
     {
         $documentId = (int)$args['documentId'];
         $token = $args['token'] ?? '';
+        $remoteIp = $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
 
-        error_log("OnlyOffice publicDownload: Request for document $documentId from " . ($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'));
+        $this->logger->logRequest('publicDownload', $documentId, [
+            'token_length' => strlen($token),
+            'remote_ip' => $remoteIp,
+        ]);
 
         // Vérifier le token de sécurité
         if (!$this->verifyAccessToken($documentId, $token)) {
-            error_log("OnlyOffice publicDownload: Invalid token for document $documentId");
+            $this->logger->error("Token verification failed", [
+                'document_id' => $documentId,
+                'remote_ip' => $remoteIp,
+            ]);
             return $response->withStatus(403);
         }
 
@@ -286,17 +295,18 @@ class OnlyOfficeApiController
         }
 
         if (!$filePath) {
-            error_log("OnlyOffice publicDownload: File not found. Tried paths: " . json_encode($pathsToTry));
-            error_log("OnlyOffice publicDownload: Document data: " . json_encode([
+            $this->logger->logDownload($documentId, 'NOT_FOUND', false, 'File not found after trying all paths');
+            $this->logger->debug("Tried paths", ['paths' => $pathsToTry]);
+            $this->logger->debug("Document data", [
                 'file_path' => $document['file_path'] ?? null,
                 'storage_path' => $document['storage_path'] ?? null,
                 'relative_path' => $document['relative_path'] ?? null,
                 'filename' => $document['filename'] ?? null
-            ]));
+            ]);
             return $response->withStatus(404);
         }
 
-        error_log("OnlyOffice publicDownload: Serving file from $filePath");
+        $this->logger->logDownload($documentId, $filePath, true);
 
         $mimeType = $document['mime_type'] ?? mime_content_type($filePath) ?? 'application/octet-stream';
         $filename = $document['original_filename'] ?? $document['filename'] ?? basename($filePath);
@@ -324,21 +334,26 @@ class OnlyOfficeApiController
     {
         $documentId = (int)$args['documentId'];
         $token = $args['token'] ?? '';
+        $remoteIp = $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
+
+        $this->logger->logRequest('publicCallback', $documentId, ['remote_ip' => $remoteIp]);
 
         // Vérifier le token de sécurité
         if (!$this->verifyAccessToken($documentId, $token)) {
-            error_log("OnlyOffice publicCallback: Invalid token for document $documentId");
+            $this->logger->error("Callback token verification failed", [
+                'document_id' => $documentId,
+                'remote_ip' => $remoteIp,
+            ]);
             return $this->jsonResponse($response, ['error' => 1], 403);
         }
 
         $body = json_decode($request->getBody()->getContents(), true);
-        error_log('OnlyOffice public callback for document ' . $documentId . ': ' . json_encode($body));
-
         $status = $body['status'] ?? 0;
+        $downloadUrl = $body['url'] ?? null;
+
+        $this->logger->logCallback($documentId, $status, $downloadUrl, $body);
 
         if (in_array($status, [2, 6])) {
-            $downloadUrl = $body['url'] ?? null;
-
             if ($downloadUrl) {
                 $document = Document::findById($documentId);
 
@@ -349,8 +364,22 @@ class OnlyOfficeApiController
                         $filePath = $storagePath . '/' . ($document['storage_path'] ?? $document['filename']);
                     }
 
+                    // Utiliser ssl_verify de la config
+                    $sslVerify = Config::get('onlyoffice.ssl_verify', false);
                     $context = stream_context_create([
-                        'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
+                        'ssl' => [
+                            'verify_peer' => $sslVerify,
+                            'verify_peer_name' => $sslVerify,
+                        ],
+                        'http' => [
+                            'timeout' => Config::get('onlyoffice.timeout', 30),
+                        ]
+                    ]);
+
+                    $this->logger->info("Downloading modified file", [
+                        'document_id' => $documentId,
+                        'download_url' => $downloadUrl,
+                        'ssl_verify' => $sslVerify,
                     ]);
 
                     $newContent = @file_get_contents($downloadUrl, false, $context);
@@ -362,9 +391,26 @@ class OnlyOfficeApiController
                         $stmt = $db->prepare("UPDATE documents SET checksum = ?, file_size = ?, updated_at = NOW() WHERE id = ?");
                         $stmt->execute([md5_file($filePath), filesize($filePath), $documentId]);
 
-                        error_log('OnlyOffice: Document ' . $documentId . ' saved via public callback');
+                        $this->logger->info("Document saved successfully", [
+                            'document_id' => $documentId,
+                            'file_path' => $filePath,
+                            'new_size' => filesize($filePath),
+                        ]);
+                    } else {
+                        $this->logger->error("Failed to download modified file", [
+                            'document_id' => $documentId,
+                            'download_url' => $downloadUrl,
+                            'error' => error_get_last()['message'] ?? 'Unknown error',
+                        ]);
                     }
+                } else {
+                    $this->logger->error("Document not found in database", ['document_id' => $documentId]);
                 }
+            } else {
+                $this->logger->warning("Callback status requires save but no download URL provided", [
+                    'document_id' => $documentId,
+                    'status' => $status,
+                ]);
             }
         }
 
@@ -398,6 +444,69 @@ class OnlyOfficeApiController
         }
 
         return false;
+    }
+
+    /**
+     * GET /api/onlyoffice/test-connectivity
+     * Test la connectivité OnlyOffice (serveur + callback)
+     */
+    public function testConnectivity(Request $request, Response $response): Response
+    {
+        $this->logger->info("Connectivity test initiated");
+
+        $results = $this->service->testConnectivity();
+
+        return $this->jsonResponse($response, [
+            'success' => $results['server_health'] && ($results['callback_reachable'] !== false),
+            'data' => $results,
+        ]);
+    }
+
+    /**
+     * GET /api/onlyoffice/logs
+     * Retourne les logs OnlyOffice récents
+     */
+    public function getLogs(Request $request, Response $response): Response
+    {
+        $queryParams = $request->getQueryParams();
+        $lines = min((int)($queryParams['lines'] ?? 100), 500);
+
+        $logs = $this->service->getRecentLogs($lines);
+
+        return $this->jsonResponse($response, [
+            'success' => true,
+            'data' => [
+                'logs' => $logs,
+                'count' => count($logs),
+            ],
+        ]);
+    }
+
+    /**
+     * POST /api/onlyoffice/logs/clear
+     * Efface les logs OnlyOffice
+     */
+    public function clearLogs(Request $request, Response $response): Response
+    {
+        $this->service->clearLogs();
+        $this->logger->info("Logs cleared by user");
+
+        return $this->jsonResponse($response, [
+            'success' => true,
+            'message' => 'Logs effacés',
+        ]);
+    }
+
+    /**
+     * GET /api/onlyoffice/debug-config
+     * Retourne la configuration OnlyOffice (sans secrets)
+     */
+    public function debugConfig(Request $request, Response $response): Response
+    {
+        return $this->jsonResponse($response, [
+            'success' => true,
+            'data' => $this->service->getDebugConfig(),
+        ]);
     }
 
     /**

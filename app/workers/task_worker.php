@@ -4,7 +4,7 @@
  * À exécuter périodiquement via cron ou tâche planifiée Windows
  * 
  * Exemple cron (Linux) :
- * */5 * * * * cd /path/to/kdocs && php app/workers/task_worker.php
+ * *\/5 * * * * cd /path/to/kdocs && php app/workers/task_worker.php
  * 
  * Exemple tâche planifiée Windows :
  * php.exe C:\wamp64\www\kdocs\app\workers\task_worker.php

@@ -72,10 +72,6 @@ class SystemHelper
                 'Windows' => [], // Utiliser glob pour trouver la version
                 'Linux' => ['/usr/bin/gs', '/usr/local/bin/gs'],
             ],
-            'imagemagick' => [
-                'Windows' => ['C:\\Program Files\\ImageMagick-7.1.2-Q16-HDRI\\magick.exe'],
-                'Linux' => ['/usr/bin/convert', '/usr/bin/magick'],
-            ],
             'pdftotext' => [
                 'Windows' => [
                     'C:\\Program Files\\Git\\mingw64\\bin\\pdftotext.exe',

@@ -1,0 +1,17 @@
+# K-Docs - Protection du dossier storage
+# Bloquer l'accès direct aux fichiers
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# Fallback si mod_rewrite absent
+<IfModule !mod_rewrite.c>
+    Deny from all
+</IfModule>
+
+# Bloquer tous les types de fichiers
+<FilesMatch ".*">
+    Require all denied
+</FilesMatch>

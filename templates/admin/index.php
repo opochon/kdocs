@@ -87,6 +87,10 @@
                 <div class="font-semibold text-gray-800">🎯 Regles d'attribution</div>
                 <div class="text-sm text-gray-500 mt-1">Classification automatique</div>
             </a>
+            <a href="<?= url('/admin/diagnostic') ?>" class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <div class="font-semibold text-gray-800">🔧 Diagnostic</div>
+                <div class="text-sm text-gray-500 mt-1">Status IA, outils, services</div>
+            </a>
         </div>
     </div>
 </div>

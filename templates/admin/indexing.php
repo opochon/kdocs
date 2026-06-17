@@ -138,6 +138,100 @@ $isRunning = $status['is_running'] ?? false;
         </div>
     </div>
 
+    <!-- Moteur Sémantique / Embeddings -->
+    <?php
+    $semantic = $semanticInfo ?? [];
+    $modelInfo = $semantic['model_info'] ?? [];
+    $stats = $semantic['statistics'] ?? [];
+    ?>
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="font-medium text-gray-900">🔮 Moteur Sémantique / Recherche par Embeddings</h2>
+            <?php if ($semantic['enabled'] ?? false): ?>
+            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✓ Activé</span>
+            <?php else: ?>
+            <span class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">○ Désactivé</span>
+            <?php endif; ?>
+        </div>
+        <div class="p-4">
+            <?php if ($semantic['enabled'] ?? false): ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Provider & Modèle -->
+                    <div class="border rounded-lg p-3">
+                        <div class="text-xs text-gray-500 mb-1">Provider</div>
+                        <div class="text-sm font-semibold text-gray-800">
+                            <?= ucfirst($modelInfo['provider'] ?? 'unknown') ?>
+                            <?php if ($modelInfo['provider'] === 'ollama' || $modelInfo['provider'] === 'local'): ?>
+                            <span class="text-xs text-gray-500">(Local)</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">Modèle</div>
+                        <code class="text-xs text-gray-700"><?= htmlspecialchars($modelInfo['model'] ?? 'N/A') ?></code>
+                        <div class="text-xs text-gray-500 mt-2">Dimensions</div>
+                        <div class="text-sm font-semibold text-gray-800"><?= $modelInfo['dimensions'] ?? 'N/A' ?></div>
+                        <?php if (!empty($modelInfo['ollama_url'])): ?>
+                        <div class="text-xs text-gray-500 mt-2">URL Ollama</div>
+                        <code class="text-xs text-gray-700"><?= htmlspecialchars($modelInfo['ollama_url']) ?></code>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Statistiques -->
+                    <div class="border rounded-lg p-3">
+                        <div class="text-xs text-gray-500 mb-2">Statistiques</div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Documents avec embedding:</span>
+                                <span class="font-semibold text-gray-800">
+                                    <?= number_format($stats['completed'] ?? 0) ?> / <?= number_format($stats['total_documents'] ?? 0) ?>
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">En attente:</span>
+                                <span class="font-semibold text-orange-600"><?= number_format($stats['pending'] ?? 0) ?></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Échecs:</span>
+                                <span class="font-semibold text-red-600"><?= number_format($stats['failed'] ?? 0) ?></span>
+                            </div>
+                            <?php if (!empty($stats['recent_activity'])): ?>
+                            <div class="mt-3 pt-2 border-t border-gray-200">
+                                <div class="text-xs text-gray-500 mb-1">Activité 24h</div>
+                                <?php foreach ($stats['recent_activity'] as $activity): ?>
+                                <div class="text-xs text-gray-600">
+                                    <?= htmlspecialchars($activity['action']) ?>: 
+                                    <?= number_format($activity['count'] ?? 0) ?> opérations
+                                    <?php if (!empty($activity['total_tokens'])): ?>
+                                    (<?= number_format($activity['total_tokens']) ?> tokens)
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-xs text-gray-600 bg-purple-50 border border-purple-200 rounded p-2">
+                    <strong>💡 Recherche sémantique:</strong> Permet de rechercher par sens et contexte, pas seulement par mots-clés.
+                    Les embeddings sont générés automatiquement lors de l'indexation si le moteur est activé.
+                    <br><span class="text-purple-700">Configuration: <code>config/config.php</code> section <code>embeddings</code></span>
+                </div>
+            <?php else: ?>
+                <div class="text-sm text-gray-600">
+                    <p class="mb-2">Le moteur sémantique est désactivé. Pour l'activer:</p>
+                    <ol class="list-decimal list-inside space-y-1 ml-2">
+                        <li>Configurez les embeddings dans <code class="bg-gray-100 px-1 rounded">config/config.php</code></li>
+                        <li>Assurez-vous qu'Ollama est démarré (pour embeddings locaux)</li>
+                        <li>Installez un modèle d'embedding: <code class="bg-gray-100 px-1 rounded">ollama pull nomic-embed-text</code></li>
+                    </ol>
+                    <p class="mt-2 text-xs text-gray-500">
+                        La recherche fonctionne toujours avec FULLTEXT MySQL, mais sans recherche sémantique.
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <!-- Logs recents -->
     <div class="bg-white rounded-lg border border-gray-200">
         <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">

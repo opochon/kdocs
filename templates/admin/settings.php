@@ -220,7 +220,6 @@ $errorMsg = $_GET['error'] ?? null;
         $pdftotextPath = $toolsConfig['pdftotext'] ?? '';
         $pdftoppmPath = $toolsConfig['pdftoppm'] ?? '';
         $libreofficePath = $toolsConfig['libreoffice'] ?? '';
-        $imagemagickPath = $toolsConfig['imagemagick'] ?? '';
 
         // OnlyOffice config
         $onlyofficeConfig = $defaultConfig['onlyoffice'] ?? [];
@@ -380,11 +379,23 @@ $errorMsg = $_GET['error'] ?? null;
                 </div>
 
                 <!-- LibreOffice -->
+                <?php
+                // Version récupérée en cache pour éviter le blocage
+                $libreofficeVersion = '';
+                $libreversionCache = sys_get_temp_dir() . '/kdocs_libreoffice_version.txt';
+                if ($libreofficePath && file_exists($libreofficePath)) {
+                    // Utiliser le cache si < 1 heure
+                    if (file_exists($libreversionCache) && (time() - filemtime($libreversionCache)) < 3600) {
+                        $libreofficeVersion = trim(file_get_contents($libreversionCache));
+                    }
+                    // Sinon on affiche juste "Disponible" sans bloquer
+                }
+                ?>
                 <div class="border rounded-lg p-4">
                     <div class="flex items-center justify-between mb-2">
                         <span class="font-medium text-gray-700">LibreOffice</span>
                         <?php if ($libreofficePath && file_exists($libreofficePath)): ?>
-                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ <?= $libreofficeVersion ? 'v' . htmlspecialchars($libreofficeVersion) : 'Disponible' ?></span>
                         <?php else: ?>
                         <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">⚠️ Non trouvé</span>
                         <?php endif; ?>
@@ -392,28 +403,18 @@ $errorMsg = $_GET['error'] ?? null;
                     <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($libreofficePath) ?>">
                         <?= htmlspecialchars($libreofficePath ?: 'Non configuré') ?>
                     </p>
-                    <p class="text-xs text-gray-400 mt-1">Conversion documents Office (fallback)</p>
+                    <p class="text-xs text-gray-400 mt-1">Conversion DOCX, XLSX, PPTX → PDF/miniatures</p>
                 </div>
 
-                <!-- ImageMagick -->
-                <div class="border rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-medium text-gray-700">ImageMagick</span>
-                        <?php if ($imagemagickPath && file_exists($imagemagickPath)): ?>
-                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">✅ Disponible</span>
-                        <?php else: ?>
-                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">⚠️ Non trouvé</span>
-                        <?php endif; ?>
-                    </div>
-                    <p class="text-xs text-gray-500 truncate" title="<?= htmlspecialchars($imagemagickPath) ?>">
-                        <?= htmlspecialchars($imagemagickPath ?: 'Non configuré') ?>
-                    </p>
-                    <p class="text-xs text-gray-400 mt-1">Manipulation et conversion d'images</p>
-                </div>
             </div>
         </div>
 
         <!-- Section OnlyOffice -->
+        <?php
+        $onlyofficeSslVerify = $onlyofficeConfig['ssl_verify'] ?? false;
+        $onlyofficeDebugLog = $onlyofficeConfig['debug_log'] ?? false;
+        $onlyofficeCallbackUrl = $onlyofficeConfig['callback_url'] ?? '';
+        ?>
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-800">📄 OnlyOffice Document Server</h2>
@@ -426,28 +427,188 @@ $errorMsg = $_GET['error'] ?? null;
                 <?php endif; ?>
             </div>
 
-            <div class="space-y-3">
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">URL du serveur</span>
-                    <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= htmlspecialchars($onlyofficeUrl) ?></code>
+            <div class="space-y-4">
+                <!-- Statut actuel -->
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">URL du serveur</span>
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= htmlspecialchars($onlyofficeUrl) ?></code>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">JWT Secret</span>
+                        <span class="text-xs <?= empty($onlyofficeConfig['jwt_secret']) ? 'text-yellow-600' : 'text-green-600' ?>">
+                            <?= empty($onlyofficeConfig['jwt_secret']) ? '⚠️ Non configuré' : '✅ Configuré' ?>
+                        </span>
+                    </div>
                 </div>
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">JWT Secret</span>
-                    <span class="text-xs <?= empty($onlyofficeConfig['jwt_secret']) ? 'text-yellow-600' : 'text-green-600' ?>">
-                        <?= empty($onlyofficeConfig['jwt_secret']) ? '⚠️ Non configuré' : '✅ Configuré' ?>
-                    </span>
+
+                <!-- Configuration Callback URL -->
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Callback URL (pour Docker)
+                    </label>
+                    <input type="text"
+                           id="onlyoffice_callback_url"
+                           name="onlyoffice[callback_url]"
+                           value="<?= htmlspecialchars($onlyofficeCallbackUrl) ?>"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="http://192.168.1.x/kdocs ou http://host.docker.internal/kdocs">
+                    <p class="mt-1 text-xs text-gray-500">
+                        URL que le container Docker OnlyOffice utilise pour atteindre K-Docs.
+                        <strong>Ne pas utiliser localhost</strong> - utilisez votre IP locale ou <code>host.docker.internal</code>.
+                    </p>
                 </div>
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">Callback URL (Docker)</span>
-                    <code class="text-xs bg-gray-100 px-2 py-1 rounded"><?= htmlspecialchars($onlyofficeConfig['callback_url'] ?? 'Non configuré') ?></code>
+
+                <!-- Options -->
+                <div class="grid grid-cols-2 gap-4 border-t pt-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="onlyoffice[ssl_verify]" value="1"
+                               <?= $onlyofficeSslVerify ? 'checked' : '' ?>
+                               class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">Vérification SSL</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="onlyoffice[debug_log]" value="1"
+                               <?= $onlyofficeDebugLog ? 'checked' : '' ?>
+                               class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">Logs détaillés</span>
+                    </label>
+                </div>
+                <p class="text-xs text-gray-500 -mt-2">
+                    ⚠️ Désactivez la vérification SSL en développement si vous avez des erreurs de certificat.
+                    Logs stockés dans <code>storage/logs/onlyoffice.log</code>
+                </p>
+
+                <!-- Boutons de diagnostic -->
+                <div class="flex gap-3 border-t pt-4">
+                    <button type="button"
+                            id="btn-test-onlyoffice"
+                            onclick="testOnlyOfficeConnectivity()"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                        🔍 Tester la connectivité
+                    </button>
+                    <button type="button"
+                            id="btn-view-onlyoffice-logs"
+                            onclick="toggleOnlyOfficeLogs()"
+                            class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm">
+                        📋 Voir les logs
+                    </button>
+                    <button type="button"
+                            id="btn-clear-onlyoffice-logs"
+                            onclick="clearOnlyOfficeLogs()"
+                            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">
+                        🗑️ Effacer logs
+                    </button>
+                </div>
+
+                <!-- Résultat du test -->
+                <div id="onlyoffice-test-result" class="hidden p-3 rounded border text-sm"></div>
+
+                <!-- Logs -->
+                <div id="onlyoffice-logs-container" class="hidden">
+                    <div class="p-3 bg-gray-900 text-green-400 rounded font-mono text-xs max-h-64 overflow-y-auto">
+                        <pre id="onlyoffice-logs-content">Chargement...</pre>
+                    </div>
                 </div>
             </div>
 
             <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
                 <strong>Usage :</strong> Prévisualisation et édition des documents Office (Word, Excel, PowerPoint) directement dans le navigateur.
-                <br><span class="text-blue-600">Configuration : <code>config/config.php</code> section <code>onlyoffice</code></span>
+                <br><span class="text-blue-600">Configuration avancée : <code>config/config.php</code> section <code>onlyoffice</code></span>
+            </div>
+
+            <div class="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200 text-xs text-yellow-800">
+                <strong>🔧 Dépannage :</strong> Si "Échec du téléchargement" apparaît, vérifiez que :
+                <ul class="list-disc ml-4 mt-1">
+                    <li>Le callback URL est accessible depuis le container Docker</li>
+                    <li>Votre firewall autorise les connexions entrantes</li>
+                    <li>Utilisez votre IP locale (pas localhost) pour le callback</li>
+                </ul>
             </div>
         </div>
+
+        <script>
+        async function testOnlyOfficeConnectivity() {
+            const btn = document.getElementById('btn-test-onlyoffice');
+            const resultDiv = document.getElementById('onlyoffice-test-result');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Test en cours...';
+            resultDiv.classList.remove('hidden', 'bg-green-50', 'bg-red-50', 'border-green-200', 'border-red-200');
+            resultDiv.textContent = '';
+
+            try {
+                const response = await fetch('<?= url("/api/onlyoffice/test-connectivity") ?>');
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'p-3 rounded border text-sm bg-green-50 border-green-200 text-green-800';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Connectivité OK</strong>
+                        <ul class="mt-2 list-disc ml-4">
+                            <li>Serveur OnlyOffice: ${data.data.server_health ? '✓ OK' : '✗ Inaccessible'}</li>
+                            <li>Callback URL: ${data.data.callback_reachable === true ? '✓ Accessible' : (data.data.callback_reachable === false ? '✗ Inaccessible' : '? Non testé')}</li>
+                        </ul>
+                        ${data.data.warnings?.length ? '<p class="mt-2 text-yellow-700">⚠️ ' + data.data.warnings.join('<br>⚠️ ') + '</p>' : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'p-3 rounded border text-sm bg-red-50 border-red-200 text-red-800';
+                    let errorHtml = '<strong>❌ Problème de connectivité</strong><ul class="mt-2 list-disc ml-4">';
+                    (data.data.errors || []).forEach(err => {
+                        errorHtml += '<li>' + err + '</li>';
+                    });
+                    errorHtml += '</ul>';
+                    resultDiv.innerHTML = errorHtml;
+                }
+            } catch (e) {
+                resultDiv.className = 'p-3 rounded border text-sm bg-red-50 border-red-200 text-red-800';
+                resultDiv.innerHTML = '<strong>❌ Erreur réseau:</strong> ' + e.message;
+            }
+
+            resultDiv.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = '🔍 Tester la connectivité';
+        }
+
+        async function toggleOnlyOfficeLogs() {
+            const container = document.getElementById('onlyoffice-logs-container');
+            const content = document.getElementById('onlyoffice-logs-content');
+
+            if (!container.classList.contains('hidden')) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            content.textContent = 'Chargement...';
+
+            try {
+                const response = await fetch('<?= url("/api/onlyoffice/logs") ?>?lines=100');
+                const data = await response.json();
+
+                if (data.success && data.data.logs.length > 0) {
+                    content.textContent = data.data.logs.join('\n');
+                } else {
+                    content.textContent = '(Aucun log disponible)';
+                }
+            } catch (e) {
+                content.textContent = 'Erreur: ' + e.message;
+            }
+        }
+
+        async function clearOnlyOfficeLogs() {
+            if (!confirm('Effacer tous les logs OnlyOffice ?')) return;
+
+            try {
+                await fetch('<?= url("/api/onlyoffice/logs/clear") ?>', { method: 'POST' });
+                const content = document.getElementById('onlyoffice-logs-content');
+                if (content) content.textContent = '(Logs effacés)';
+                alert('Logs effacés');
+            } catch (e) {
+                alert('Erreur: ' + e.message);
+            }
+        }
+        </script>
 
         <!-- Section Recherche Sémantique (Ollama + Qdrant) -->
         <div class="bg-white rounded-lg shadow p-6">
@@ -546,47 +707,316 @@ $errorMsg = $_GET['error'] ?? null;
             </div>
         </div>
 
-        <!-- Section AI -->
+        <!-- Section AI avec Cascade -->
+        <?php
+        // Récupérer le statut IA complet
+        $aiProvider = new \KDocs\Services\AIProviderService();
+        $aiStatus = $aiProvider->getStatus();
+        
+        // Comptage règles
+        $db = \KDocs\Core\Database::getInstance();
+        $rulesCount = 0;
+        try {
+            $rulesCount = (int)$db->query("SELECT COUNT(*) FROM attribution_rules WHERE active = 1")->fetchColumn();
+        } catch (\Exception $e) {
+            // Table peut ne pas exister
+        }
+        
+        // Détails Ollama
+        $ollamaDetails = [
+            'available' => $aiStatus['ollama']['available'] ?? false,
+            'url' => $aiStatus['ollama']['url'] ?? 'http://localhost:11434',
+            'model' => $aiStatus['ollama']['model'] ?? 'llama3.1:8b',
+            'models' => $aiStatus['ollama']['models'] ?? [],
+            'has_llm' => $aiStatus['ollama']['has_llm'] ?? false,
+            'has_embedding' => $aiStatus['ollama']['has_embedding'] ?? false,
+        ];
+        ?>
+        
         <div id="ai" class="bg-white rounded-lg shadow p-6 border-2 border-gray-200">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">🤖 Intelligence Artificielle (Claude API)</h2>
-                <?php if (empty($claudeApiKey)): ?>
-                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Non configuré</span>
+                <h2 class="text-xl font-semibold text-gray-800">🤖 Intelligence Artificielle - Cascade de Classification</h2>
+                <?php if ($aiStatus['ai_available']): ?>
+                <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">IA Disponible</span>
                 <?php else: ?>
-                <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Configuré</span>
+                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">Mode Règles uniquement</span>
                 <?php endif; ?>
             </div>
             
-            <div class="space-y-4">
-                <div>
-                    <label for="ai_claude_api_key" class="block text-sm font-medium text-gray-700 mb-2">
-                        Clé API Claude <span class="text-red-500">*</span>
-                    </label>
-                    <input type="password" 
-                           id="ai_claude_api_key" 
-                           name="ai[claude_api_key]" 
-                           value="<?= htmlspecialchars($claudeApiKey ?? '') ?>"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="sk-ant-api03-...">
-                    <p class="mt-1 text-sm text-gray-500">
-                        Clé API Claude pour l'extraction intelligente de métadonnées et le chat IA. 
-                        <a href="https://console.anthropic.com/" target="_blank" class="text-blue-600 hover:underline">Obtenir une clé API</a>
-                    </p>
-                    <?php if (!empty($claudeApiKey)): ?>
-                    <p class="mt-1 text-sm text-green-600">✅ Clé API configurée (masquée pour sécurité)</p>
-                    <?php else: ?>
-                    <p class="mt-1 text-sm text-yellow-600">⚠️ La clé API est requise pour utiliser le Chat IA</p>
+            <!-- Cascade visuelle -->
+            <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Ordre de priorité (fallback automatique)</h3>
+                <div class="flex items-center justify-between gap-2">
+                    <?php
+                    $cascadeSteps = [
+                        [
+                            'name' => 'Claude/Anthropic',
+                            'status' => $aiStatus['claude']['available'] ? 'active' : ($aiStatus['claude']['configured'] ? 'configured' : 'inactive'),
+                            'icon' => '🤖',
+                            'description' => 'Meilleure qualité',
+                        ],
+                        [
+                            'name' => 'Ollama (Local)',
+                            'status' => $ollamaDetails['available'] ? 'active' : 'inactive',
+                            'icon' => '🖥️',
+                            'description' => 'Gratuit, local',
+                        ],
+                        [
+                            'name' => 'Règles',
+                            'status' => 'always',
+                            'icon' => '📋',
+                            'description' => 'Toujours disponible',
+                        ],
+                    ];
+                    
+                    foreach ($cascadeSteps as $index => $step):
+                        if ($index > 0):
+                    ?>
+                        <div class="flex-1 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    <?php endif; ?>
+                    <div class="flex-1 text-center">
+                        <div class="p-3 rounded-lg border-2 <?php
+                            if ($step['status'] === 'active') echo 'border-green-500 bg-green-50';
+                            elseif ($step['status'] === 'configured') echo 'border-yellow-500 bg-yellow-50';
+                            elseif ($step['status'] === 'always') echo 'border-blue-500 bg-blue-50';
+                            else echo 'border-gray-300 bg-gray-50';
+                        ?>">
+                            <div class="text-2xl mb-1"><?= $step['icon'] ?></div>
+                            <div class="text-xs font-semibold text-gray-700"><?= htmlspecialchars($step['name']) ?></div>
+                            <div class="text-xs text-gray-500 mt-1"><?= htmlspecialchars($step['description']) ?></div>
+                            <?php if ($step['status'] === 'active'): ?>
+                            <div class="mt-1 text-xs text-green-600 font-medium">✓ Actif</div>
+                            <?php elseif ($step['status'] === 'configured'): ?>
+                            <div class="mt-1 text-xs text-yellow-600 font-medium">⚠ Configuré</div>
+                            <?php elseif ($step['status'] === 'always'): ?>
+                            <div class="mt-1 text-xs text-blue-600 font-medium">✓ Toujours</div>
+                            <?php else: ?>
+                            <div class="mt-1 text-xs text-gray-500">○ Inactif</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <div class="mt-4 text-xs text-gray-600 bg-white p-2 rounded border border-gray-200">
+                    <strong>Provider actuel:</strong> 
+                    <span class="font-mono text-blue-600">
+                        <?php
+                        $activeProvider = $aiStatus['active_provider'] ?? 'none';
+                        echo match($activeProvider) {
+                            'claude' => 'Claude/Anthropic',
+                            'ollama' => 'Ollama (Local)',
+                            default => 'Règles uniquement',
+                        };
+                        ?>
+                    </span>
+                    <?php if ($aiStatus['fallback_active'] ?? false): ?>
+                    <span class="text-yellow-600 ml-2">(Mode fallback: Claude non disponible)</span>
                     <?php endif; ?>
                 </div>
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 class="text-sm font-medium text-blue-900 mb-2">Utilisation</h3>
-                    <ul class="text-xs text-blue-800 space-y-1 list-disc list-inside">
-                        <li>Classification automatique des documents</li>
-                        <li>Extraction intelligente de métadonnées</li>
-                        <li>Chat IA pour interroger vos documents</li>
-                    </ul>
+                <!-- Bouton Tester la Cascade -->
+                <div class="mt-4 border-t pt-4">
+                    <button type="button" 
+                            id="btn-test-cascade"
+                            onclick="testCascade()"
+                            class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">
+                        🧪 Tester la cascade
+                    </button>
+                    <span id="cascade-test-result" class="ml-4 text-sm"></span>
                 </div>
+
+                <div id="cascade-test-details" class="mt-3 hidden p-3 bg-gray-50 rounded border text-xs">
+                    <div><strong>Provider utilisé :</strong> <span id="test-provider" class="font-mono text-blue-600"></span></div>
+                    <div class="mt-1"><strong>Modèle :</strong> <span id="test-model" class="font-mono text-gray-600"></span></div>
+                    <div class="mt-1"><strong>Réponse :</strong> <span id="test-response" class="text-green-600"></span></div>
+                    <div class="mt-1"><strong>Temps :</strong> <span id="test-time" class="text-gray-600"></span></div>
+                </div>
+            </div>
+            
+            <script>
+            async function testCascade() {
+                const btn = document.getElementById('btn-test-cascade');
+                const result = document.getElementById('cascade-test-result');
+                const details = document.getElementById('cascade-test-details');
+                
+                btn.disabled = true;
+                btn.textContent = '⏳ Test en cours...';
+                result.textContent = '';
+                details.classList.add('hidden');
+                
+                try {
+                    const response = await fetch('<?= url("/api/ai/test") ?>', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        result.innerHTML = '<span class="text-green-600">✅ ' + data.data.provider + ' a répondu en ' + data.data.duration_ms + 'ms</span>';
+                        document.getElementById('test-provider').textContent = data.data.provider;
+                        document.getElementById('test-model').textContent = data.data.model || 'N/A';
+                        document.getElementById('test-response').textContent = data.data.response || 'OK';
+                        document.getElementById('test-time').textContent = data.data.duration_ms + ' ms';
+                        details.classList.remove('hidden');
+                    } else {
+                        result.innerHTML = '<span class="text-red-600">❌ ' + (data.error || 'Erreur inconnue') + '</span>';
+                    }
+                } catch (e) {
+                    result.innerHTML = '<span class="text-red-600">❌ Erreur réseau: ' + e.message + '</span>';
+                }
+                
+                btn.disabled = false;
+                btn.textContent = '🧪 Tester la cascade';
+            }
+            </script>
+            
+            <!-- Configuration Claude -->
+            <div class="mb-6 p-4 border rounded-lg <?= $aiStatus['claude']['available'] ? 'border-green-300 bg-green-50' : ($aiStatus['claude']['configured'] ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 bg-gray-50') ?>">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-700">1️⃣ Claude/Anthropic API</h3>
+                    <?php if ($aiStatus['claude']['available']): ?>
+                    <span class="px-2 py-1 text-xs bg-green-500 text-white rounded">✓ Disponible</span>
+                    <?php elseif ($aiStatus['claude']['configured']): ?>
+                    <span class="px-2 py-1 text-xs bg-yellow-500 text-white rounded">⚠ Configuré</span>
+                    <?php else: ?>
+                    <span class="px-2 py-1 text-xs bg-gray-400 text-white rounded">○ Non configuré</span>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label for="ai_claude_api_key" class="block text-sm font-medium text-gray-700 mb-1">
+                            Clé API Claude
+                        </label>
+                        <input type="password" 
+                               id="ai_claude_api_key" 
+                               name="ai[claude_api_key]" 
+                               value="<?= htmlspecialchars($claudeApiKey ?? '') ?>"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="sk-ant-api03-...">
+                        <p class="mt-1 text-xs text-gray-500">
+                            <a href="https://console.anthropic.com/" target="_blank" class="text-blue-600 hover:underline">Obtenir une clé API</a>
+                        </p>
+                    </div>
+                    
+                    <div class="text-xs text-gray-600">
+                        <strong>Modèle:</strong> <?= htmlspecialchars($aiStatus['claude']['model'] ?? 'claude-sonnet-4-20250514') ?>
+                        <?php if (isset($aiStatus['claude']['error'])): ?>
+                        <br><span class="text-red-600">Erreur: <?= htmlspecialchars($aiStatus['claude']['error']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuration Ollama -->
+            <div class="mb-6 p-4 border rounded-lg <?= $ollamaDetails['available'] ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50' ?>">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-700">2️⃣ Ollama (Local)</h3>
+                    <?php if ($ollamaDetails['available']): ?>
+                    <span class="px-2 py-1 text-xs bg-green-500 text-white rounded">✓ Connecté</span>
+                    <?php else: ?>
+                    <span class="px-2 py-1 text-xs bg-gray-400 text-white rounded">○ Déconnecté</span>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <strong class="text-gray-600">URL:</strong>
+                            <code class="text-gray-700"><?= htmlspecialchars($ollamaDetails['url']) ?></code>
+                        </div>
+                        <div>
+                            <strong class="text-gray-600">Modèle configuré:</strong>
+                            <code class="text-gray-700"><?= htmlspecialchars($ollamaDetails['model']) ?></code>
+                        </div>
+                    </div>
+                    
+                    <?php if ($ollamaDetails['available']): ?>
+                        <div class="mt-2 p-2 bg-white rounded border border-gray-200">
+                            <strong class="text-gray-600">Modèles installés:</strong> <?= count($ollamaDetails['models']) ?>
+                            <?php if (!empty($ollamaDetails['models'])): ?>
+                            <details class="mt-1">
+                                <summary class="text-blue-600 cursor-pointer hover:underline">Voir la liste</summary>
+                                <ul class="mt-1 ml-4 list-disc text-gray-600">
+                                    <?php foreach (array_slice($ollamaDetails['models'], 0, 10) as $model): ?>
+                                    <li class="font-mono text-xs"><?= htmlspecialchars($model) ?></li>
+                                    <?php endforeach; ?>
+                                    <?php if (count($ollamaDetails['models']) > 10): ?>
+                                    <li class="text-gray-400">... et <?= count($ollamaDetails['models']) - 10 ?> autres</li>
+                                    <?php endif; ?>
+                                </ul>
+                            </details>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div class="p-2 bg-white rounded border <?= $ollamaDetails['has_llm'] ? 'border-green-300' : 'border-yellow-300' ?>">
+                                <strong class="text-gray-600">Modèle LLM:</strong>
+                                <?php if ($ollamaDetails['has_llm']): ?>
+                                <span class="text-green-600">✓ Disponible</span>
+                                <?php else: ?>
+                                <span class="text-yellow-600">⚠ Non trouvé</span>
+                                <?php endif; ?>
+                                <p class="text-xs text-gray-500 mt-1">Pour classification/chat</p>
+                            </div>
+                            <div class="p-2 bg-white rounded border <?= $ollamaDetails['has_embedding'] ? 'border-green-300' : 'border-yellow-300' ?>">
+                                <strong class="text-gray-600">Modèle Embedding:</strong>
+                                <?php if ($ollamaDetails['has_embedding']): ?>
+                                <span class="text-green-600">✓ Disponible</span>
+                                <?php else: ?>
+                                <span class="text-yellow-600">⚠ Non trouvé</span>
+                                <?php endif; ?>
+                                <p class="text-xs text-gray-500 mt-1">Pour recherche sémantique</p>
+                            </div>
+                        </div>
+                        
+                        <?php
+                        // Vérifier si le modèle configuré est installé
+                        $modelInstalled = in_array($ollamaDetails['model'], $ollamaDetails['models']) 
+                            || in_array($ollamaDetails['model'] . ':latest', $ollamaDetails['models']);
+                        if (!$modelInstalled && $ollamaDetails['available']):
+                        ?>
+                        <div class="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-xs">
+                            <strong class="text-yellow-800">⚠ Modèle non installé:</strong>
+                            <code class="text-yellow-700"><?= htmlspecialchars($ollamaDetails['model']) ?></code>
+                            <p class="text-yellow-700 mt-1">
+                                Installez-le avec: <code class="bg-yellow-100 px-1 rounded">ollama pull <?= htmlspecialchars($ollamaDetails['model']) ?></code>
+                            </p>
+                        </div>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <div class="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                            <strong>Ollama n'est pas accessible.</strong> Assurez-vous qu'Ollama est démarré et accessible à l'URL configurée.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Règles -->
+            <div class="mb-4 p-4 border border-blue-300 bg-blue-50 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">3️⃣ Règles d'Attribution</h3>
+                    <span class="px-2 py-1 text-xs bg-blue-500 text-white rounded">✓ Toujours actif</span>
+                </div>
+                <div class="text-xs text-gray-600">
+                    <strong><?= $rulesCount ?> règles actives</strong> - Fallback garanti même sans IA
+                    <a href="<?= url('/admin/attribution-rules') ?>" class="text-blue-600 hover:underline ml-2">Gérer les règles →</a>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-blue-900 mb-2">Utilisation</h3>
+                <ul class="text-xs text-blue-800 space-y-1 list-disc list-inside">
+                    <li>Classification automatique des documents</li>
+                    <li>Extraction intelligente de métadonnées</li>
+                    <li>Chat IA pour interroger vos documents</li>
+                </ul>
             </div>
         </div>
 

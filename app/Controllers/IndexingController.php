@@ -51,6 +51,14 @@ class IndexingController
 
         $logs = $this->getRecentLogs(30);
         $settings = $this->getIndexingSettings();
+        
+        // Informations sur le moteur sémantique
+        $embeddingService = new \KDocs\Services\EmbeddingService();
+        $semanticInfo = [
+            'enabled' => $embeddingService->isAvailable(),
+            'model_info' => $embeddingService->getModelInfo(),
+            'statistics' => $embeddingService->getStatistics(),
+        ];
 
         $user = $request->getAttribute('user');
         $pageTitle = 'Indexation';

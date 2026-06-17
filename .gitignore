@@ -16,6 +16,7 @@ tailwindcss-windows-x64.exe
 # Logs
 *.log
 /logs/
+/storage/logs/
 .cursor/debug.log
 
 # Cache
@@ -23,8 +24,48 @@ tailwindcss-windows-x64.exe
 /storage/cache/
 /storage/temp/
 
+# Backups
+/storage/backups/
+
 # Uploads temporaires
 /storage/uploads/temp/
+
+# Storage runtime (données utilisateur — jamais versionner)
+/storage/documents/**
+/storage/consume/**
+/storage/processed/**
+/storage/crawl_queue/**
+/storage/ratelimit/**
+/storage/trash/**
+/storage/*.json
+/storage/*.pid
+/storage/*.lock
+/storage/crawler_last_run.txt
+/storage/.indexing_*.json
+/storage/training.json
+!/storage/.htaccess
+
+# Cache PHPUnit
+.phpunit.cache/
+
+# Fichier parasite Windows
+nul
+**/nul
+
+# Backups horodatés (code ou config)
+*.backup_*
+/config/*.bak
+/config/*.backup_*
+
+# Agents / IDE locaux
+.claude/
+.cursor/
+
+# Tests locaux / artefacts
+/tests/debug/
+/tests/test_results/
+/tests/api_test.zip
+/tests/screenshots/
 
 # IDE
 .vscode/
@@ -40,7 +81,15 @@ desktop.ini
 
 # Tests
 /tests/_output/
-phpunit.xml
+/tests/output/
+/tests/results/
+/tests/samples/*.pdf
+/tests/samples/*.docx
+/tests/samples/*.msg
+/tests/screenshots/current/
+/tests/screenshots/diff/
+/tests/screenshots/*.json
+/tests/screenshots/*.html
 
 # Documentation générée
 /docs/_build/

@@ -6,6 +6,7 @@
  * Variables attendues:
  * - $document: array - Le document à prévisualiser
  * - $editMode: bool - Mode édition (optionnel, défaut: false)
+ * - $user: array - Utilisateur courant (optionnel)
  */
 
 $editMode = $editMode ?? false;
@@ -20,50 +21,103 @@ $onlyOfficeAvailable = $onlyOfficeService->isAvailable();
 $filename = $document['filename'] ?? $document['original_filename'] ?? '';
 $isSupported = $onlyOfficeService->isSupported($filename);
 $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+// Générer la config directement (plus fiable que l'appel AJAX)
+$editorConfig = null;
+$serverUrl = '';
+if ($onlyOfficeAvailable && $isSupported) {
+    $userId = $user['id'] ?? 1;
+    $userName = $user['username'] ?? $user['first_name'] ?? 'Utilisateur';
+    $editorConfig = $onlyOfficeService->generateConfig($document, $userId, $userName, $editMode);
+    $serverUrl = $onlyOfficeService->getServerUrl();
+}
 ?>
 
-<?php if ($onlyOfficeAvailable && $isSupported): ?>
+<?php if ($onlyOfficeAvailable && $isSupported && $editorConfig): ?>
 <!-- OnlyOffice Preview Container -->
-<div id="onlyoffice-preview-container" class="w-full bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style="height: 600px;">
-    <!-- Loading state -->
-    <div id="onlyoffice-loading" class="flex items-center justify-center h-full">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p class="text-gray-600 dark:text-gray-400">Chargement de la prévisualisation...</p>
-        </div>
-    </div>
-</div>
+<div id="onlyoffice-editor" class="w-full h-full"></div>
 
-<!-- OnlyOffice Viewer Script -->
-<script src="<?= $basePath ?>/public/js/onlyoffice-viewer.js"></script>
+<!-- Charger l'API OnlyOffice -->
+<script src="<?= htmlspecialchars($serverUrl) ?>/web-apps/apps/api/documents/api.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const viewer = new OnlyOfficeViewer('onlyoffice-preview-container', <?= $documentId ?>, {
-        mode: '<?= $editMode ? 'edit' : 'view' ?>',
-        basePath: '<?= $basePath ?>',
-        onReady: function() {
-            console.log('OnlyOffice document loaded');
-            document.getElementById('onlyoffice-loading')?.remove();
-        },
-        onError: function(error) {
-            console.error('OnlyOffice error:', error);
-        },
-        onSave: function() {
-            console.log('Document saved');
-            // Rafraîchir les métadonnées si nécessaire
-        }
-    });
-    viewer.init();
+(function() {
+    // Configuration générée côté serveur
+    const config = <?= json_encode($editorConfig, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
-    // Nettoyer quand on quitte la page
-    window.addEventListener('beforeunload', function() {
-        viewer.destroy();
-    });
-});
+    // Ajouter les événements
+    config.events = {
+        onAppReady: function() {
+            console.log('OnlyOffice: App ready');
+        },
+        onReady: function() {
+            console.log('OnlyOffice: Document ready');
+        },
+        onDocumentReady: function() {
+            console.log('OnlyOffice: Document loaded');
+        },
+        onError: function(event) {
+            console.error('OnlyOffice error:', event.data);
+        },
+        onWarning: function(event) {
+            console.warn('OnlyOffice warning:', event.data);
+        },
+        onDocumentStateChange: function(event) {
+            if (event.data === false) {
+                console.log('OnlyOffice: Document saved');
+            }
+        }
+    };
+
+    // Initialiser l'éditeur
+    function initEditor() {
+        if (typeof DocsAPI === 'undefined') {
+            console.error('OnlyOffice: DocsAPI not loaded');
+            document.getElementById('onlyoffice-editor').innerHTML =
+                '<div class="flex items-center justify-center h-full text-red-500">' +
+                '<p>Erreur: Impossible de charger OnlyOffice</p></div>';
+            return;
+        }
+
+        try {
+            const editor = new DocsAPI.DocEditor('onlyoffice-editor', config);
+            console.log('OnlyOffice: Editor initialized');
+
+            // Nettoyer à la fermeture
+            window.addEventListener('beforeunload', function() {
+                if (editor && typeof editor.destroyEditor === 'function') {
+                    editor.destroyEditor();
+                }
+            });
+        } catch (e) {
+            console.error('OnlyOffice init error:', e);
+        }
+    }
+
+    // Attendre que DocsAPI soit chargé
+    if (typeof DocsAPI !== 'undefined') {
+        initEditor();
+    } else {
+        // Attendre le chargement du script
+        const checkInterval = setInterval(function() {
+            if (typeof DocsAPI !== 'undefined') {
+                clearInterval(checkInterval);
+                initEditor();
+            }
+        }, 100);
+
+        // Timeout après 10 secondes
+        setTimeout(function() {
+            clearInterval(checkInterval);
+            if (typeof DocsAPI === 'undefined') {
+                console.error('OnlyOffice: Timeout loading DocsAPI');
+            }
+        }, 10000);
+    }
+})();
 </script>
 
 <?php elseif (!$onlyOfficeAvailable): ?>
-<!-- OnlyOffice non disponible (non configuré ou serveur inaccessible) -->
+<!-- OnlyOffice non disponible -->
 <?php
     $isEnabled = $onlyOfficeService->isEnabled();
     $message = $isEnabled
@@ -78,16 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
         </svg>
     </div>
     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Prévisualisation Office non disponible</h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <?= htmlspecialchars($message) ?>
-    </p>
-    <a href="<?= $basePath ?>/api/documents/<?= $documentId ?>/download"
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><?= htmlspecialchars($message) ?></p>
+    <a href="<?= $basePath ?>/documents/<?= $documentId ?>/download"
        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
         </svg>
-        Télécharger le fichier
+        Télécharger
     </a>
 </div>
 
@@ -103,18 +154,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Format non supporté</h3>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Le format <code class="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">.<?= htmlspecialchars($extension) ?></code>
-        n'est pas supporté pour la prévisualisation.
+        n'est pas supporté.
     </p>
-    <p class="text-xs text-gray-400 mb-4">
-        Formats supportés: <?= implode(', ', $onlyOfficeService->getSupportedFormats()) ?>
-    </p>
-    <a href="<?= $basePath ?>/api/documents/<?= $documentId ?>/download"
+    <a href="<?= $basePath ?>/documents/<?= $documentId ?>/download"
        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
         </svg>
-        Télécharger le fichier
+        Télécharger
     </a>
 </div>
 <?php endif; ?>

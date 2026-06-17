@@ -14,6 +14,7 @@ class OnlyOfficeService
     private static ?bool $serverAvailable = null;
     private static int $lastCheck = 0;
     private const CHECK_INTERVAL = 300; // 5 minutes cache
+    private OnlyOfficeLogger $logger;
 
     private array $supportedFormats = [
         'docx', 'doc', 'odt', 'rtf', 'txt',
@@ -25,6 +26,7 @@ class OnlyOfficeService
     public function __construct()
     {
         $this->config = Config::get('onlyoffice', []);
+        $this->logger = OnlyOfficeLogger::getInstance();
     }
 
     /**
@@ -66,28 +68,45 @@ class OnlyOfficeService
     {
         $serverUrl = $this->getServerUrl();
         if (empty($serverUrl)) {
+            $this->logger->warning('Health check skipped: no server URL configured');
             return false;
         }
 
         $healthUrl = $serverUrl . '/healthcheck';
+        $sslVerify = $this->config['ssl_verify'] ?? false;
+        $timeout = $this->config['timeout'] ?? 10;
+
+        $this->logger->debug('Health check starting', [
+            'url' => $healthUrl,
+            'ssl_verify' => $sslVerify,
+            'timeout' => $timeout,
+        ]);
 
         $context = stream_context_create([
             'http' => [
-                'timeout' => 3, // Timeout court pour ne pas bloquer
+                'timeout' => $timeout,
                 'ignore_errors' => true,
             ],
             'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
+                'verify_peer' => $sslVerify,
+                'verify_peer_name' => $sslVerify,
             ]
         ]);
 
         try {
             $response = @file_get_contents($healthUrl, false, $context);
-            // OnlyOffice healthcheck retourne "true" si OK
-            return $response !== false && (trim($response) === 'true' || strpos($response, 'true') !== false);
+            $isHealthy = $response !== false && (trim($response) === 'true' || strpos($response, 'true') !== false);
+
+            $this->logger->logConnectivityTest($healthUrl, $isHealthy, [
+                'response' => substr($response ?: '', 0, 100),
+            ]);
+
+            return $isHealthy;
         } catch (\Exception $e) {
-            error_log("OnlyOffice health check failed: " . $e->getMessage());
+            $this->logger->error('Health check failed', [
+                'url' => $healthUrl,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -152,6 +171,13 @@ class OnlyOfficeService
                 'key' => $this->generateKey($document),
                 'title' => $document['title'] ?? $document['original_filename'] ?? basename($document['filename']),
                 'url' => $fileUrl,
+                'permissions' => [
+                    'chat' => false, // Déplacé de customization (déprécié)
+                    'comment' => true,
+                    'download' => true,
+                    'edit' => $editMode,
+                    'print' => true,
+                ],
             ],
             'documentType' => $this->getDocumentType($document['filename'] ?? $document['original_filename']),
             'editorConfig' => [
@@ -164,7 +190,6 @@ class OnlyOfficeService
                 ],
                 'customization' => [
                     'autosave' => true,
-                    'chat' => false,
                     'comments' => true,
                     'compactHeader' => true,
                     'compactToolbar' => false,
@@ -172,7 +197,10 @@ class OnlyOfficeService
                     'forcesave' => true,
                     'help' => false,
                     'hideRightMenu' => true,
-                    'toolbarNoTabs' => true,
+                    'features' => [
+                        'tabStyle' => 'fill', // Remplace toolbarNoTabs (déprécié)
+                        'tabBackground' => '#f1f1f1',
+                    ],
                     'logo' => [
                         'image' => $appUrl . '/public/images/logo.png',
                         'imageDark' => $appUrl . '/public/images/logo-dark.png',
@@ -276,5 +304,111 @@ class OnlyOfficeService
     public function getSupportedFormats(): array
     {
         return $this->supportedFormats;
+    }
+
+    /**
+     * Retourne l'URL de callback (pour Docker)
+     */
+    public function getCallbackUrl(): string
+    {
+        return rtrim($this->config['callback_url'] ?? $this->config['app_url'] ?? '', '/');
+    }
+
+    /**
+     * Test de connectivité complet
+     * Vérifie que OnlyOffice peut atteindre le callback URL
+     */
+    public function testConnectivity(): array
+    {
+        $results = [
+            'server_health' => false,
+            'callback_reachable' => null, // null = non testé depuis Docker, true/false depuis le serveur
+            'server_url' => $this->getServerUrl(),
+            'callback_url' => $this->getCallbackUrl(),
+            'ssl_verify' => $this->config['ssl_verify'] ?? false,
+            'errors' => [],
+            'warnings' => [],
+        ];
+
+        // Test 1: OnlyOffice server health
+        $results['server_health'] = $this->checkServerHealth();
+        if (!$results['server_health']) {
+            $results['errors'][] = "OnlyOffice server non accessible à {$results['server_url']}";
+        }
+
+        // Test 2: Vérifier que l'URL de callback est configurée
+        if (empty($results['callback_url'])) {
+            $results['errors'][] = "URL de callback non configurée";
+        } else {
+            // On ne peut pas tester depuis PHP si Docker peut atteindre l'URL
+            // Mais on peut vérifier que c'est une IP/hostname accessible
+            $parsed = parse_url($results['callback_url']);
+            $host = $parsed['host'] ?? '';
+
+            if ($host === 'localhost' || $host === '127.0.0.1') {
+                $results['warnings'][] = "callback_url utilise localhost - Docker ne pourra pas y accéder. Utilisez host.docker.internal ou l'IP locale.";
+            }
+
+            // Vérifier si on peut atteindre notre propre callback (test local)
+            $testUrl = $results['callback_url'] . '/api/onlyoffice/status';
+            $sslVerify = $this->config['ssl_verify'] ?? false;
+
+            $ch = curl_init($testUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_SSL_VERIFYPEER => $sslVerify,
+                CURLOPT_SSL_VERIFYHOST => $sslVerify ? 2 : 0,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($httpCode >= 200 && $httpCode < 400) {
+                $results['callback_reachable'] = true;
+            } else {
+                $results['callback_reachable'] = false;
+                $results['errors'][] = "Callback URL non accessible (HTTP $httpCode): $error";
+            }
+        }
+
+        // Log le résultat
+        $this->logger->info('Connectivity test completed', $results);
+
+        return $results;
+    }
+
+    /**
+     * Retourne les logs récents
+     */
+    public function getRecentLogs(int $lines = 50): array
+    {
+        return $this->logger->getRecentLogs($lines);
+    }
+
+    /**
+     * Efface les logs
+     */
+    public function clearLogs(): void
+    {
+        $this->logger->clear();
+    }
+
+    /**
+     * Retourne la configuration actuelle (sans les secrets)
+     */
+    public function getDebugConfig(): array
+    {
+        return [
+            'enabled' => $this->config['enabled'] ?? false,
+            'server_url' => $this->config['server_url'] ?? '',
+            'app_url' => $this->config['app_url'] ?? '',
+            'callback_url' => $this->config['callback_url'] ?? '',
+            'jwt_configured' => !empty($this->config['jwt_secret']),
+            'ssl_verify' => $this->config['ssl_verify'] ?? false,
+            'debug_log' => $this->config['debug_log'] ?? false,
+            'timeout' => $this->config['timeout'] ?? 10,
+        ];
     }
 }

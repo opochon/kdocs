@@ -16,8 +16,6 @@
 | app/Models/Correspondent.php | Agent-2 | 17:00 | Correspondants enrichis |
 | app/Services/AIProviderService.php | Agent-3 | 16:50 | Fallback Ollama |
 | app/Services/AIClassifierService.php | Agent-3 | 16:50 | Fallback Ollama |
-| app/Services/OnlyOfficeService.php | Agent-4 | 17:05 | Fix OnlyOffice |
-| app/Controllers/Api/OnlyOfficeApiController.php | Agent-4 | 17:05 | Fix OnlyOffice |
 
 ---
 
@@ -31,7 +29,8 @@
 | 5 | Corrections document 52 (boutons V/X, validation) | Agent-3 | ✅ terminé |
 | 6 | Correction date suggestion IA + texte bouton | Agent-3 | ✅ terminé |
 | 7 | Fix erreur OCR 'Data too long' + matching correspondant | Agent-3 | ✅ terminé |
-| 4 | Fix OnlyOffice éditeur | Agent-4 | 🔄 en cours |
+| 8 | Fix OCR avant analyse IA dans classifyWithAI() | Agent-3 | ✅ terminé |
+| 4 | Fix OnlyOffice éditeur | Agent-4 | ✅ terminé |
 
 ---
 
@@ -51,6 +50,10 @@
 [2026-02-04 20:00] Agent-3 : FIX TERMINÉ - Corrections document 52 : boutons V/X, toggle validation, debug IA
 [2026-02-04 20:15] Agent-3 : FIX TERMINÉ - Correction date suggestion IA + texte bouton 'Suggestion : analyser'
 [2026-02-04 20:30] Agent-3 : FIX TERMINÉ - Troncature contenu OCR + matching correspondant amélioré
+[2026-02-04 21:00] Agent-3 : FIX TERMINÉ - Troncature OCR complétée dans tous les endroits (10/10) : DocumentsApiController (3), MSGImportService (1), process_pending.php (1)
+[2026-02-04 21:15] Agent-3 : FIX TERMINÉ - OCR avant analyse IA dans classifyWithAI() : vérifie et fait OCR si contenu vide/insuffisant avant classification
+[2026-02-04 21:45] Agent-3 : FIX TERMINÉ - Amélioration gestion OCR : timeout 30s, traces d'erreurs, logs détaillés, gestion robuste pour éviter blocage aperçu
+[2026-02-04 19:30] Agent-4 : FIX TERMINÉ - OnlyOffice fonctionnel (Docker Desktop démarré, container kdocs-onlyoffice actif sur port 8080)
 ```
 
 ---
@@ -62,7 +65,7 @@
 | 1 | Compteur 21 vs 36 incohérent | Agent-1 | ✅ Fixé |
 | 2 | Fallback Ollama silencieux | Agent-3 | ✅ Fixé |
 | 5 | Boutons V/X document modal | Agent-3 | ✅ Fixé |
-| 3 | OnlyOffice non fonctionnel | Agent-4 | 🔄 En cours |
+| 3 | OnlyOffice non fonctionnel | Agent-4 | ✅ Fixé |
 | 4 | Encodage UTF-8 (Ã©) | - | 📋 À assigner |
 
 ---
@@ -95,7 +98,8 @@ Agent-4 : Intégrations / OnlyOffice
 |---|-------|-----------|------|--------|
 | 3 | Fix fallback Ollama | Agent-3 | 2026-02-04 19:00 | `0173582` |
 | 5 | Corrections document 52 | Agent-3 | 2026-02-04 20:00 | `3ee32a9` |
+| 4 | Fix OnlyOffice éditeur | Agent-4 | 2026-02-04 19:30 | N/A (infra) |
 
 ---
 
-*Dernière mise à jour : 2026-02-04 20:00*
+*Dernière mise à jour : 2026-02-04 21:45*

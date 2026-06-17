@@ -1,64 +1,80 @@
 # K-DOCS — PILOTAGE
 
-> **Claude : lis ce fichier en entier avant de faire quoi que ce soit.**
+> **Claude : lis BEFORE_YOU_START.md en premier, puis ce fichier.**
 
 ---
 
-## LA LOI
+## MATURITÉ PROJET : 95%
 
-```
-1. Les fichiers utilisateur ne sont JAMAIS déplacés sans demande explicite
-2. UTF-8 partout, requêtes SQL préparées, pas de credentials dans le code
-3. PHP 8.x, MySQL, pas de framework lourd
-4. Mode 100% local toujours disponible (Ollama, Tesseract)
-5. Controllers = HTTP, Services = logique, Repositories = données
-```
-
----
-
-## OÙ ON EN EST
-
-**POC validé à 100%** — `proofofconcept/`
-
-| Composant | Status | Fichier |
-|-----------|--------|---------|
-| Extraction PDF natif | ✅ | 02_ocr_extract.php |
-| Extraction PDF scanné (OCR) | ✅ | 02_ocr_extract.php |
-| Extraction DOCX/XLSX/PPTX | ✅ | 02_ocr_extract.php |
-| Extraction MSG Outlook | ✅ | 02_ocr_extract.php |
-| Miniatures | ✅ | 05_thumbnail.php |
-| Split PDF multi-docs | ✅ | 06_consume_flow.php |
-| Classification CASCADE | ✅ | 04_suggest_classify.php |
-| Classification Anthropic | ⚠️ SSL Windows | 04_suggest_classify.php |
-| Classification Ollama | ✅ llama3.1:8b | 04_suggest_classify.php |
-| Classification Règles | ✅ | 04_suggest_classify.php |
-| Extraction champs | ✅ | 04_suggest_classify.php |
-| Embeddings Ollama | ✅ | helpers.php |
-| Training/Apprentissage | ✅ | 08_training.php |
-| Recherche FULLTEXT | ✅ | 04_search.php |
-| Recherche sémantique | ✅ | 04_search.php |
-| Flux consume | ✅ | 06_consume_flow.php |
-| Flux détection | ✅ | 07_detect_flow.php |
-
-**Cascade classification:** Anthropic → Ollama → Règles (fallback automatique)
-
-**Prochain :** Intégration POC → GED, interface validation UI
+| Critère | Status |
+|---------|--------|
+| Gouvernance | ✅ BEFORE_YOU_START + REGLES_IMMUABLES + PROCESS_DEV |
+| Mémoire inter-sessions | ✅ SESSION_STATE.md (lecture/écriture via MCP) |
+| Tests automatisés | ✅ smoke + api + integration + ui |
+| Anti-régression | ✅ Pre-commit hook + test.bat check |
+| Error tracking | ✅ ErrorTracker centralisé |
+| DB Migrations | ✅ Versionnées + rollback |
+| Backups | ✅ Auto + vérification + restore |
+| Rate limiting | ✅ API protégée |
+| Input validation | ✅ Validator strict |
+| Config validation | ✅ ConfigValidator au boot |
+| CLI tools | ✅ kdocs.bat |
 
 ---
 
-## LES 3 FLUX
+## COMPOSANTS CORE
 
-```
-CONSUME (scanner)
-storage/consume/ → Extraction → Analyse page/page → Split → Validation UI → Classement
-Status: pending → validated → indexed
+### Sécurité & Fiabilité
+| Fichier | Rôle |
+|---------|------|
+| `app/Core/ConfigValidator.php` | Valide config au démarrage |
+| `app/Core/ErrorTracker.php` | Centralise toutes les erreurs |
+| `app/Core/Migrations.php` | Migrations DB versionnées |
+| `app/Core/Validator.php` | Validation stricte inputs |
+| `app/Services/BackupService.php` | Backup/restore avec vérification |
+| `app/Middleware/RateLimitMiddleware.php` | Protection contre abus |
 
-FILESYSTEM (dépôt direct)  
-storage/documents/ → Détection hash → Extraction → Indexation auto
-Status: indexed (pas de validation)
+### IA & Classification
+| Fichier | Rôle |
+|---------|------|
+| `app/Services/AIProviderService.php` | Cascade Claude → Ollama → Rules |
+| `app/Services/ClassificationService.php` | Classification documents |
+| `app/Services/TrainingService.php` | Apprentissage corrections |
+| `app/Helpers/AIHelper.php` | Utilitaires IA |
 
-DROP UI (interface web)
-Upload HTTP → Selon préférence user → CONSUME ou FILESYSTEM
+### Extraction & Traitement
+| Fichier | Rôle |
+|---------|------|
+| `app/Services/ExtractionService.php` | PDF, DOCX, MSG |
+| `app/Services/ThumbnailService.php` | Miniatures |
+| `app/Services/ConsumeFolderService.php` | Flux consume |
+
+---
+
+## COMMANDES CLI
+
+```cmd
+REM Tests
+test.bat check          # Validation rapide (obligatoire)
+test.bat all            # Suite complète
+
+REM Administration
+kdocs.bat migrate           # Exécuter migrations
+kdocs.bat migrate:status    # État migrations
+kdocs.bat migrate:rollback  # Annuler dernière
+kdocs.bat migrate:create X  # Créer migration
+
+kdocs.bat backup            # Créer backup
+kdocs.bat backup:list       # Lister
+kdocs.bat backup:verify X   # Vérifier
+kdocs.bat backup:restore X  # Restaurer
+
+kdocs.bat config:check      # Valider config
+kdocs.bat errors            # Erreurs récentes
+kdocs.bat errors:clear      # Nettoyer logs
+
+REM Nettoyage
+clean.bat                   # Clean + check
 ```
 
 ---
@@ -67,86 +83,87 @@ Upload HTTP → Selon préférence user → CONSUME ou FILESYSTEM
 
 ```
 kdocs/
-├── app/                    # GED (à enrichir avec le POC)
-├── proofofconcept/         # POC validé
-│   ├── 01_detect_changes.php
-│   ├── 02_ocr_extract.php
-│   ├── 03_semantic_embed.php
-│   ├── 04_suggest_classify.php
-│   ├── 05_thumbnail.php
-│   ├── 06_consume_flow.php
-│   ├── 07_detect_flow.php
-│   ├── test_all.php
-│   ├── config.php
-│   └── helpers.php
+├── app/
+│   ├── Controllers/        # HTTP
+│   ├── Services/           # Logique métier
+│   ├── Core/               # Framework (DB, Config, Validator, Migrations, ErrorTracker)
+│   ├── Middleware/         # RateLimit, Auth, CSRF
+│   └── Helpers/            # Utilitaires
+├── config/
+├── database/
+│   └── migrations/         # Migrations versionnées
 ├── storage/
-│   ├── documents/          # Fichiers indexés
-│   ├── consume/            # Dossier scanner
-│   └── thumbnails/
-└── docs/pilotage/          # Ce dossier
+│   ├── backups/            # Backups auto
+│   ├── logs/               # Error tracking
+│   └── documents/          # Fichiers utilisateur
+├── tests/
+│   └── samples/            # Fichiers de test
+├── docs/
+│   ├── REGLES_IMMUABLES.md
+│   ├── PROCESS_DEV.md
+│   └── pilotage/PILOTAGE.md
+├── tools/
+│   └── pre-commit          # Git hook
+├── BEFORE_YOU_START.md     # Point d'entrée
+├── test.bat                # Tests
+├── kdocs.bat               # CLI admin
+└── clean.bat               # Nettoyage
 ```
 
 ---
 
-## OUTILS CONFIGURÉS
+## TESTS
 
-| Outil | Chemin |
-|-------|--------|
-| Tesseract | C:/Program Files/Tesseract-OCR/tesseract.exe |
-| Ghostscript | C:/Program Files/gs/gs10.03.0/bin/gswin64c.exe |
-| LibreOffice | C:/Program Files/LibreOffice/program/soffice.exe |
-| Ollama | localhost:11434 (nomic-embed-text) |
-| MySQL | localhost:3307 / kdocs |
+### Seuils
+| Suite | Minimum | Cible |
+|-------|---------|-------|
+| Smoke | 100% | 100% |
+| API | 95% | 100% |
+| Integration | 90% | 95% |
 
----
-
-## TESTS DE RÉGRESSION
-
-Avant de valider une modification :
-
-```bash
-cd C:\wamp64\www\kdocs\proofofconcept
-php test_all.php
+### Commandes
+```cmd
+test.bat check       # OBLIGATOIRE avant commit
+test.bat all         # Avant release
+test.bat report      # Rapport HTML
 ```
 
-**Critères de validation :**
-- Taux ≥ 85%
-- Pas de régression sur ce qui marchait
+---
+
+## HISTORIQUE
+
+### 2026-02-04 (MATURITÉ 95%)
+- ConfigValidator : validation config au boot
+- ErrorTracker : centralisation erreurs
+- Migrations : système complet avec rollback
+- BackupService : backup/restore + vérification
+- RateLimitMiddleware : protection API
+- Validator : validation stricte inputs
+- kdocs.bat : CLI admin
+- Pre-commit hook amélioré
+
+### 2026-02-04 (MATURITÉ 80%)
+- Suite de tests complète
+- Anti-régression basique
+- Documentation
+
+### 2026-02-01-03
+- POC validé 100%
+- Merge dans app/
+- Cascade IA fonctionnelle
 
 ---
 
-## HISTORIQUE RÉCENT
+## WORKFLOW
 
-### 2026-02-01 (soir - MERGE)
-- **MERGE POC → K-DOCS réussi**
-- AIHelper.php: parseJsonResponse, ensureUtf8, cosineSimilarity
-- TrainingService.php: corrections storage, learned rules, similarity matching
-- AIProviderService: cascade Training → Claude → Ollama → Rules
-- PDFSplitterService: page indicators (Page 1/2), date extraction, heuristics
-- Config: ai.training, ollama sections
-- Default model: llama3.1:8b (tested)
-
-### 2026-02-01 (après-midi)
-- **POC validé à 100%** (59/59 tests)
-- Classification CASCADE : Anthropic → Ollama (llama3.1:8b) → Règles
-- Extraction champs via IA : montant, date, IBAN, référence, correspondant
-- Training : stockage corrections + apprentissage patterns
-- Recherche FULLTEXT + sémantique
-- Fix UTF-8, rapport HTML avec miniatures
-
-### 2026-02-01 (matin)
-- POC créé et validé (91%)
-- 3 flux implémentés
-- Split PDF intelligent (12 pages → 2 documents)
+1. `kdocs.bat config:check` → OK ?
+2. `test.bat check` → OK ?
+3. Créer branche
+4. Coder
+5. `test.bat check` → OK ?
+6. Commit conventionnel
+7. Push
 
 ---
 
-## SI TU MODIFIES QUELQUE CHOSE
-
-1. Teste avec `php test_all.php`
-2. Mets à jour la section "OÙ ON EN EST" ci-dessus
-3. Ajoute une ligne dans "HISTORIQUE RÉCENT"
-
----
-
-*Dernière mise à jour : 2026-02-01 14:30*
+*Dernière mise à jour : 2026-02-04*

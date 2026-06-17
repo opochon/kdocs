@@ -129,6 +129,157 @@ class AdminController
     }
     
     /**
+     * Page de diagnostic système
+     */
+    public function diagnostic(Request $request, Response $response): Response
+    {
+        $user = $request->getAttribute('user');
+        $config = \KDocs\Core\Config::getInstance();
+        $db = Database::getInstance();
+
+        // Status IA
+        $aiProvider = new \KDocs\Services\AIProviderService();
+        $aiStatus = $aiProvider->getStatus();
+
+        // Comptage règles
+        $rulesCount = 0;
+        try {
+            $rulesCount = (int)$db->query("SELECT COUNT(*) FROM attribution_rules WHERE active = 1")->fetchColumn();
+        } catch (\Exception $e) {
+            // Table peut ne pas exister
+        }
+
+        // Training status
+        $training = [
+            'enabled' => $config->get('ai.training.enabled', false),
+            'corrections' => 0,
+            'min_similarity' => $config->get('ai.training.min_similarity', 0.85),
+        ];
+        $trainingFile = $config->get('ai.training.file');
+        if ($trainingFile && file_exists($trainingFile)) {
+            $data = json_decode(file_get_contents($trainingFile), true);
+            $training['corrections'] = count($data['corrections'] ?? []);
+        }
+
+        // Embeddings status
+        $embeddings = [
+            'enabled' => $config->get('embeddings.enabled', false),
+            'provider' => $config->get('embeddings.provider', 'ollama'),
+            'dimensions' => $config->get('embeddings.dimensions', 768),
+            'total_docs' => 0,
+            'docs_with_embedding' => 0,
+        ];
+        try {
+            $embeddings['total_docs'] = (int)$db->query("SELECT COUNT(*) FROM documents")->fetchColumn();
+            $embeddings['docs_with_embedding'] = (int)$db->query("SELECT COUNT(*) FROM documents WHERE embedding IS NOT NULL")->fetchColumn();
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
+        // Tools status
+        $tools = [];
+        $toolsConfig = [
+            'Tesseract OCR' => $config->get('ocr.tesseract_path'),
+            'Ghostscript' => $config->get('tools.ghostscript'),
+            'LibreOffice' => $config->get('tools.libreoffice'),
+            'pdftotext' => $config->get('tools.pdftotext'),
+            'pdftoppm' => $config->get('tools.pdftoppm'),
+        ];
+
+        foreach ($toolsConfig as $name => $path) {
+            $installed = file_exists($path);
+            $version = null;
+
+            if ($installed) {
+                switch ($name) {
+                    case 'Tesseract OCR':
+                        $output = shell_exec("\"$path\" --version 2>&1");
+                        preg_match('/tesseract\s+([\d.]+)/i', $output, $m);
+                        $version = $m[1] ?? 'unknown';
+                        break;
+                    case 'Ghostscript':
+                        $version = trim(shell_exec("\"$path\" --version 2>&1"));
+                        break;
+                    case 'LibreOffice':
+                        $output = shell_exec("\"$path\" --version 2>&1");
+                        preg_match('/LibreOffice\s+([\d.]+)/i', $output, $m);
+                        $version = $m[1] ?? 'unknown';
+                        break;
+                    default:
+                        $version = 'installed';
+                }
+            }
+
+            $tools[$name] = [
+                'installed' => $installed,
+                'path' => $path,
+                'version' => $version,
+            ];
+        }
+
+        // Services status
+        $services = [];
+
+        // MySQL
+        try {
+            $mysqlVersion = $db->query("SELECT VERSION()")->fetchColumn();
+            $services['mysql'] = ['connected' => true, 'version' => $mysqlVersion];
+        } catch (\Exception $e) {
+            $services['mysql'] = ['connected' => false, 'error' => $e->getMessage()];
+        }
+
+        // OnlyOffice
+        $onlyOfficeEnabled = $config->get('onlyoffice.enabled', false);
+        if ($onlyOfficeEnabled) {
+            $url = $config->get('onlyoffice.server_url');
+            $ch = curl_init(rtrim($url, '/') . '/healthcheck');
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            $services['onlyoffice'] = [
+                'status' => ($httpCode === 200 && $result === 'true') ? 'connected' : 'error',
+                'url' => $url,
+            ];
+        } else {
+            $services['onlyoffice'] = ['status' => 'disabled', 'url' => null];
+        }
+
+        // Ollama
+        $ollamaUrl = $config->get('ollama.url', 'http://localhost:11434');
+        $ch = curl_init("$ollamaUrl/api/tags");
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $ollamaData = json_decode($result, true);
+        $services['ollama'] = [
+            'connected' => $httpCode === 200,
+            'url' => $ollamaUrl,
+            'models_count' => count($ollamaData['models'] ?? []),
+        ];
+
+        $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/diagnostic.php', [
+            'aiStatus' => $aiStatus,
+            'rulesCount' => $rulesCount,
+            'training' => $training,
+            'embeddings' => $embeddings,
+            'tools' => $tools,
+            'services' => $services,
+        ]);
+
+        $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
+            'title' => 'Diagnostic - K-Docs',
+            'content' => $content,
+            'user' => $user,
+            'pageTitle' => 'Diagnostic Système'
+        ]);
+
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
      * Statistiques d'utilisation de l'API Claude
      */
     public function apiUsage(Request $request, Response $response): Response

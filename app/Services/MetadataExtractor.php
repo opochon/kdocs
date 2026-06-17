@@ -72,10 +72,57 @@ class MetadataExtractor
     private function extractBasicMetadata(string $text, string $filename): array
     {
         $metadata = ['title' => pathinfo($filename, PATHINFO_FILENAME), 'date' => null, 'amount' => null, 'correspondent' => null, 'document_type' => null, 'tags' => []];
-        if (preg_match('/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/', $text, $matches)) {
-            $date = \DateTime::createFromFormat('d/m/Y', $matches[1]) ?: \DateTime::createFromFormat('Y-m-d', $matches[1]);
-            if ($date) $metadata['date'] = $date->format('Y-m-d');
+        
+        // Extraction de date améliorée - formats multiples
+        $datePatterns = [
+            // Format français: "Arrêt du 5 juin 2024", "Contrat signé le 20 décembre 2023", "le 05/06/2024"
+            '/(?:arrêt|décision|document|facture|contrat|lettre).*?(?:du|le|en)\s+(\d{1,2})\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s+(\d{4})/i',
+            // Format ISO: "2024-06-05" (à tester en premier pour éviter confusion)
+            '/(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/',
+            // Format numérique: "05/06/2024", "05-06-2024", "05.06.2024"
+            '/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/',
+        ];
+        
+        $months = [
+            'janvier' => 1, 'février' => 2, 'mars' => 3, 'avril' => 4,
+            'mai' => 5, 'juin' => 6, 'juillet' => 7, 'août' => 8,
+            'septembre' => 9, 'octobre' => 10, 'novembre' => 11, 'décembre' => 12
+        ];
+        
+        foreach ($datePatterns as $pattern) {
+            if (preg_match($pattern, $text, $matches)) {
+                if (isset($matches[3]) && isset($months[strtolower($matches[2])])) {
+                    // Format français avec mois en lettres
+                    $day = (int)$matches[1];
+                    $month = $months[strtolower($matches[2])];
+                    $year = (int)$matches[3];
+                    try {
+                        $date = new \DateTime("$year-$month-$day");
+                        $metadata['date'] = $date->format('Y-m-d');
+                        break;
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+                } else {
+                    // Format numérique - détecter si c'est ISO (YYYY-MM-DD) ou européen (DD-MM-YYYY)
+                    $dateStr = $matches[1];
+                    // Si commence par 4 chiffres, c'est probablement ISO
+                    if (preg_match('/^\d{4}/', $dateStr)) {
+                        $formats = ['Y-m-d', 'Y/m/d', 'Y.m.d'];
+                    } else {
+                        $formats = ['d/m/Y', 'd-m-Y', 'd.Y.Y'];
+                    }
+                    foreach ($formats as $format) {
+                        $date = \DateTime::createFromFormat($format, $dateStr);
+                        if ($date && $date->format($format) === $dateStr) {
+                            $metadata['date'] = $date->format('Y-m-d');
+                            break 2;
+                        }
+                    }
+                }
+            }
         }
+        
         if (preg_match('/(?:total|montant)[\s:]*([\d\s,\.]+)\s*€/i', $text, $matches)) {
             $metadata['amount'] = (float)str_replace(',', '.', preg_replace('/[^\d,.]/', '', $matches[1]));
         }

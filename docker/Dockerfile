@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-fra \
     tesseract-ocr-eng \
     poppler-utils \
-    imagemagick \
     ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
