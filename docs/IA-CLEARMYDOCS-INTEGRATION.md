@@ -105,10 +105,12 @@ Config utilisateur Windows : `%APPDATA%\ClearMyDocs\config.json`.
 1. ~~Démarrer sidecar minimal (`ged_sidecar.py`) avec endpoint `/segment`~~ — **fait** (lot IA-3).
 2. ~~Brancher `PdfSplitService::detectPageGroups()`~~ — **fait** si `CLEARMYDOCS_ENABLED=true`.
 3. Tester sur corpus GED (PDF multi-factures) vs `PDFSplitterService` seul.
-4. Lot suivant : brancher `UnifiedClassifier` sur ingest + enrich sidecar.
+4. ~~Brancher `UnifiedClassifier` sur ingest~~ — **fait** (lot IA-7).
+5. **Lot IA-8** : étendre sidecar `/extract` + `/ingest` (pipeline complet `indexer.py` sans DB CMD) — voir `IA-CLEARMYDOCS-INGESTION.md`.
 
 ## Références
 
+- `docs/IA-CLEARMYDOCS-INGESTION.md` — analyse ingest complète vs GED
 - `docs/IA-ROADMAP.md`
 - `docs/AUDIT-IA-CLASSIFICATEUR.md`
 - ClearMyDocs README : `clearmydocs-v3/README.md`

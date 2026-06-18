@@ -8,8 +8,14 @@ Unifier la classification documentaire GEDv1 en s'appuyant sur :
 
 - la **cascade GED existante** (training → Claude → Ollama → règles) ;
 - la **taxonomie HTMLEDITOR** (`_variables.json`, sections, tags) ;
-- les **patterns ClearMyDocs** (segmentation PDF, enrichissement, Infomaniak) ;
-- **Infomaniak kDrive** (API déjà partielle dans GED) et modèles **frontier** (Claude API présente).
+- l'**ingestion ClearMyDocs v3** (extraction, enrich, segment — voir `IA-CLEARMYDOCS-INGESTION.md`) ;
+- **Infomaniak kDrive** (stockage GED) + **Infomaniak AI Tools** (provider ClearMyDocs / POC HTMLEDITOR) ;
+- modèles **frontier** (Claude API présente).
+
+> **Flowy** : cité dans la requête utilisateur initiale (« HTMLEDITOR ou FLOWY > Infomaniak »).
+> Aucun dépôt Flowy localisé sur le poste dev ; pas de référence dans HTMLEDITOR.
+> **Non bloquant** pour cette roadmap — remplacé par ClearMyDocs (ingest) + taxonomie HTMLEDITOR.
+> Réouvrir seulement si un repo ou API Flowy est fourni (cf. `AUDIT-IA-CLASSIFICATEUR.md`).
 
 ## Architecture cible
 
@@ -51,7 +57,7 @@ Unifier la classification documentaire GEDv1 en s'appuyant sur :
 |----------|-------|----------|
 | Claude (Anthropic) | Classification JSON, analyse pages PDF | Ollama local |
 | Ollama | `llama3.1:8b`, embeddings `nomic-embed-text` | Règles regex |
-| Infomaniak AI | Via ClearMyDocs `providers_infomaniak.py` | Claude |
+| Infomaniak AI Tools | ClearMyDocs `providers_infomaniak.py` (`llm_backend=infomaniak`) | Claude |
 | Training local | Corrections utilisateur + embeddings | — |
 
 Variables `.env` : voir `.env.example` (`ANTHROPIC_API_KEY`, `OLLAMA_URL`, `IA_*`).
@@ -84,14 +90,16 @@ Pipeline cible (ingest) :
 4. Split → N jobs enfants ; sinon `UnifiedClassifier::classifyDocument()`
 5. Persistance `classification_suggestions` + `ai_additional_categories`
 
-Providers : Claude (frontier) → Ollama (fallback `AIProviderService`) → Infomaniak AI (**stub** — API non documentée côté Infomaniak hébergement ; voir `ARCHITECTURE-INFOMANIAK.md` ; classification via ClearMyDocs `providers_infomaniak.py` quand activé).
+Providers : Claude (frontier) → Ollama (fallback `AIProviderService`) → Infomaniak AI Tools via sidecar ClearMyDocs (`providers_infomaniak.py`). Hébergement Infomaniak : voir `htmleditor/Release/ARCHITECTURE-INFOMANIAK.md` (kDrive + Cloud Server ; pas un produit « Flowy »).
 
 ## Lots suivants
 
 | Lot | Contenu | Priorité |
 |-----|---------|----------|
 | IA-2 | Endpoint `POST /api/classification/sync-taxonomy` | **Fait** |
-| IA-3 | Sidecar ClearMyDocs (HTTP ou CLI) pour segment + enrich | **Fait** (segment) |
+| IA-3 | Sidecar ClearMyDocs (HTTP) pour `/segment` | **Fait** |
+| IA-8 | Sidecar `/extract` + `/ingest` (full ingest worker) | P1 |
+| IA-9 | Mapper réponse ingest CMD → champs GED + taxonomie | P1 |
 | IA-4 | Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` | P1 |
 | IA-5 | Enregistrement plugin dans `PluginRegistry` | P2 |
 | IA-6 | Tests unit `UnifiedClassifier`, `HtmleditorTaxonomyAdapter` | **Fait** |
@@ -101,5 +109,7 @@ Providers : Claude (frontier) → Ollama (fallback `AIProviderService`) → Info
 
 - `docs/AUDIT-IA-CLASSIFICATEUR.md`
 - `docs/IA-CLEARMYDOCS-INTEGRATION.md`
+- `docs/IA-CLEARMYDOCS-INGESTION.md`
+- `htmleditor/Release/ARCHITECTURE-INFOMANIAK.md` (hébergement + kDrive)
 - HTMLEDITOR : `htmleditor/src/server/variables/store.js` (`_variables.json`)
 - ClearMyDocs : `F:\DATA\DEVELOPPEMENT\clearmydocs-v3`
