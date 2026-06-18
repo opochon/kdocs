@@ -14,6 +14,8 @@
 
 | Hash | Message |
 |------|---------|
+| `9158411` | feat(ged): sync taxonomie HTMLEDITOR pour classificateur |
+| `d7943d3` | feat(ged): sidecar ClearMyDocs segment PDF multi-doc |
 | `1705658` | docs(ged): roadmap IA ClearMyDocs HTMLEDITOR split PDF |
 | `61de7cd` | feat(ged): fondations plugin classificateur et split PDF |
 | `24b2c93` | fix(ged): P0 UI chrome et dashboard |
@@ -24,17 +26,17 @@
 | `f7cf469` | fix(ged): redirect /kdocs sans slash vers /kdocs/ |
 | `be14812` | docs(ged): diagnostic push 403 et mise a jour session |
 
-**Branch** : `main` — **10 commits** en avance sur `origin/main` (403 persistant).
+**Branch** : `main` — **13 commits** en avance sur `origin/main` (403 persistant).
 
 ### Harness tests
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-php tests\migration_smoke_test.php    REM 37/37 offline
+php tests\migration_smoke_test.php    REM 48/48 offline
 run-tests.bat                         REM migration + PHPUnit unit
 ```
 
-**Dernier run** : **37 passés, 0 échoués** (migration_smoke_test, 2026-06-18)
+**Dernier run** : **48 passés, 0 échoués** (migration_smoke_test, 2026-06-18)
 
 ### P0 UI — fait / reste
 
@@ -53,21 +55,23 @@ Docs audit : `docs/AUDIT-UI-UX.md`, `docs/AUDIT-SYNTHESE-EXECUTIVE.md`.
 
 | Livrable | Fichier / commit |
 |----------|------------------|
-| Roadmap architecture | `docs/IA-ROADMAP.md` (`1705658`) |
-| Analyse ClearMyDocs v3 | `docs/IA-CLEARMYDOCS-INTEGRATION.md` (`1705658`) |
+| Roadmap architecture | `docs/IA-ROADMAP.md` |
+| Analyse ClearMyDocs v3 | `docs/IA-CLEARMYDOCS-INTEGRATION.md` |
+| Sidecar segment PDF | `clearmydocs-v3/src/clearmydocs/api/ged_sidecar.py` + `ClearMyDocsSidecarClient.php` (`d7943d3`) |
+| `PdfSplitService::detectPageGroups()` | branché sidecar si `CLEARMYDOCS_ENABLED=true` (`d7943d3`) |
+| Sync taxonomie HTMLEDITOR | `TaxonomySyncService` + `POST /api/classification/sync-taxonomy` (`9158411`) |
 | `ClassifierInterface` | `app/Contracts/ClassifierInterface.php` |
-| `PdfSplitInterface` + `PdfSplitService` | `app/Services/PdfSplit/PdfSplitService.php` |
 | `UnifiedClassifier` (façade) | `app/Services/Classifiers/UnifiedClassifier.php` |
-| `HtmleditorTaxonomyAdapter` | `app/Adapters/HtmleditorTaxonomyAdapter.php` |
-| Config `.env.example` | `HTMLEDITOR_TAXONOMY_PATH`, `CLEARMYDOCS_*`, `IA_*` |
+| `HtmleditorTaxonomyAdapter` | `app/Adapters/HtmleditorTaxonomyAdapter.php` (variables, sets, sections, tags, externalIds) |
+| Config `.env.example` | `HTMLEDITOR_TAXONOMY_PATH`, `CLEARMYDOCS_SIDECAR_URL`, `CLEARMYDOCS_*`, `IA_*` |
 
-**ClearMyDocs** : trouvé à `F:\DATA\DEVELOPPEMENT\clearmydocs-v3` (Python v3, pipeline ingest→enrich→relations).
+**ClearMyDocs** : sidecar GED port **5101** (`python -m clearmydocs.api.ged_sidecar`).
 
-**Prochain lot IA recommandé (IA-2/IA-3)** :
+**Prochain lot IA recommandé (IA-4/IA-5)** :
 
-1. Sidecar ClearMyDocs endpoint `/segment` (wrapper `segmenter.py`)
-2. Brancher `PdfSplitService::detectPageGroups()` si `CLEARMYDOCS_ENABLED=true`
-3. Endpoint GED `POST /api/classification/sync-taxonomy` + export HTMLEDITOR
+1. Brancher `UnifiedClassifier` sur ingest (enregistrer adapters + taxonomie syncée)
+2. Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` (push automatique)
+3. Enregistrement plugin dans `PluginRegistry`
 
 ### Push GitHub
 
@@ -75,7 +79,7 @@ Docs audit : `docs/AUDIT-UI-UX.md`, `docs/AUDIT-SYNTHESE-EXECUTIVE.md`.
 |---------|--------|
 | Remote | `https://github.com/opochon/kdocs.git` |
 | Tentative 2026-06-18 | HTTP **403** — `Permission to opochon/kdocs.git denied` |
-| Commits non poussés | `33106ab` … `1705658` (10 commits) |
+| Commits non poussés | `33106ab` … `9158411` (13 commits) |
 | Action | Voir `docs/PUSH-DIAGNOSTIC.md` — PAT Contents write sur `kdocs` |
 
 ---
