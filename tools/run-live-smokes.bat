@@ -1,6 +1,6 @@
 @echo off
-REM GEDv1 — Smokes live (serveur + HTTP + login + pages)
-setlocal
+REM GEDv1 - Smokes live (serveur + HTTP + login + pages)
+setlocal EnableDelayedExpansion
 cd /d "%~dp0.."
 
 set BASE=http://127.0.0.1:8765/kdocs
@@ -16,13 +16,28 @@ REM 1. Offline migration smoke
 php tests\migration_smoke_test.php
 if errorlevel 1 exit /b 1
 
-REM 2. Demarrer serveur si port ferme
-php -r "$c=@curl_init('http://127.0.0.1:8765/kdocs/health');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>2,CURLOPT_NOBODY=>1]);curl_exec($c);$h=curl_getinfo($c,CURLINFO_HTTP_CODE);exit($h>0?0:1);"
-if errorlevel 1 (
-    echo [INFO] Demarrage serveur: php -S 127.0.0.1:8765 router.php
-    start "GEDv1-dev" /MIN cmd /c "set GEDV1_DEBUG_SESSION=4af063 && php -S 127.0.0.1:8765 router.php"
-    timeout /t 3 /nobreak >nul
+REM 2. Demarrer serveur si health pas 200
+php -r "$c=@curl_init('http://127.0.0.1:8765/kdocs/health');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>10,CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_NOBODY=>1]);curl_exec($c);$h=curl_getinfo($c,CURLINFO_HTTP_CODE);exit($h===200?0:1);"
+if not errorlevel 1 goto server_ready
+
+echo [INFO] Nettoyage port 8765 puis demarrage serveur
+call "%~dp0kill-dev-port.bat" 8765
+echo [INFO] Demarrage serveur: php -S 127.0.0.1:8765 router.php
+start "GEDv1-dev" /MIN cmd /c "set GEDV1_DEBUG_SESSION=4af063 && php -S 127.0.0.1:8765 router.php"
+set WAIT_SEC=0
+:wait_health
+php -r "$c=@curl_init('http://127.0.0.1:8765/kdocs/health');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>10,CURLOPT_CONNECTTIMEOUT=>3]);curl_exec($c);$h=curl_getinfo($c,CURLINFO_HTTP_CODE);exit($h===200?0:1);"
+if not errorlevel 1 goto server_ready
+ping 127.0.0.1 -n 2 >nul
+set /a WAIT_SEC+=1
+if !WAIT_SEC! geq 15 (
+    echo [ERROR] Health timeout apres 15s
+    exit /b 2
 )
+goto wait_health
+
+:server_ready
+echo [OK] Health 200 - serveur pret
 
 REM 3. Smoke HTTP (routes publiques + env)
 php tests\smoke_test.php %BASE%
