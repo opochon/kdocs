@@ -8,6 +8,78 @@
 
 
 
+## État au 2026-06-18 (chantier GEDv1 — audits, P0 UI, fondations IA)
+
+### Commits session 2026-06-18
+
+| Hash | Message |
+|------|---------|
+| `1705658` | docs(ged): roadmap IA ClearMyDocs HTMLEDITOR split PDF |
+| `61de7cd` | feat(ged): fondations plugin classificateur et split PDF |
+| `24b2c93` | fix(ged): P0 UI chrome et dashboard |
+| `a927a8e` | feat(ged): servir assets publics helper asset et outils audit |
+| `14b7d23` | docs(ged): audits UI UX IA ingestion et synthese executive |
+| `b55a49c` | fix(dev): nettoyer le port 8765 avant demarrage serveur |
+| `fc9cbac` | fix(ged): diagnostic non-bloquant et snapshots total_size_bytes |
+| `f7cf469` | fix(ged): redirect /kdocs sans slash vers /kdocs/ |
+| `be14812` | docs(ged): diagnostic push 403 et mise a jour session |
+
+**Branch** : `main` — **10 commits** en avance sur `origin/main` (403 persistant).
+
+### Harness tests
+
+```cmd
+cd F:\DATA\DEVELOPPEMENT\GEDv1
+php tests\migration_smoke_test.php    REM 37/37 offline
+run-tests.bat                         REM migration + PHPUnit unit
+```
+
+**Dernier run** : **37 passés, 0 échoués** (migration_smoke_test, 2026-06-18)
+
+### P0 UI — fait / reste
+
+| Fait (lot `24b2c93` + `a927a8e`) | Reste (P0 audit) |
+|-----------------------------------|------------------|
+| Helper `asset()` + route `/public/*` — CSS/JS chargent sous base path | Séparer chrome user / admin (hub `/admin`) |
+| Favicon SVG, pages 404/500 pro | Retirer emojis admin settings / documents |
+| Masquer bannière sécurité root hors `APP_DEBUG` | Fix miniatures vides (placeholder uniforme) |
+| Filtrer docs `test_*` dashboard + sidebar hors debug | Refactor `documents/index.php` (JS modale) |
+| Compteur « En attente » aligné sidebar (`pending`/`needs_review`) | Design system composants Button/Card/Badge |
+| Dashboard : icônes SVG à la place des emojis stats/actions | |
+
+Docs audit : `docs/AUDIT-UI-UX.md`, `docs/AUDIT-SYNTHESE-EXECUTIVE.md`.
+
+### IA — roadmap et fondations
+
+| Livrable | Fichier / commit |
+|----------|------------------|
+| Roadmap architecture | `docs/IA-ROADMAP.md` (`1705658`) |
+| Analyse ClearMyDocs v3 | `docs/IA-CLEARMYDOCS-INTEGRATION.md` (`1705658`) |
+| `ClassifierInterface` | `app/Contracts/ClassifierInterface.php` |
+| `PdfSplitInterface` + `PdfSplitService` | `app/Services/PdfSplit/PdfSplitService.php` |
+| `UnifiedClassifier` (façade) | `app/Services/Classifiers/UnifiedClassifier.php` |
+| `HtmleditorTaxonomyAdapter` | `app/Adapters/HtmleditorTaxonomyAdapter.php` |
+| Config `.env.example` | `HTMLEDITOR_TAXONOMY_PATH`, `CLEARMYDOCS_*`, `IA_*` |
+
+**ClearMyDocs** : trouvé à `F:\DATA\DEVELOPPEMENT\clearmydocs-v3` (Python v3, pipeline ingest→enrich→relations).
+
+**Prochain lot IA recommandé (IA-2/IA-3)** :
+
+1. Sidecar ClearMyDocs endpoint `/segment` (wrapper `segmenter.py`)
+2. Brancher `PdfSplitService::detectPageGroups()` si `CLEARMYDOCS_ENABLED=true`
+3. Endpoint GED `POST /api/classification/sync-taxonomy` + export HTMLEDITOR
+
+### Push GitHub
+
+| Élément | Détail |
+|---------|--------|
+| Remote | `https://github.com/opochon/kdocs.git` |
+| Tentative 2026-06-18 | HTTP **403** — `Permission to opochon/kdocs.git denied` |
+| Commits non poussés | `33106ab` … `1705658` (10 commits) |
+| Action | Voir `docs/PUSH-DIAGNOSTIC.md` — PAT Contents write sur `kdocs` |
+
+---
+
 ## État au 2026-06-17 (chantier lots 0–6)
 
 
@@ -167,7 +239,7 @@ run-tests.bat                         REM migration + PHPUnit unit
 
 ---
 
-*Dernière mise à jour : 2026-06-17 — spec plugin WinBiz liaison + consultation*
+*Dernière mise à jour : 2026-06-18 — P0 UI crédibilité, fondations IA, audits*
 
 
 ## Blocage push GitHub (2026-06-17)
