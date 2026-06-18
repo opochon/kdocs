@@ -14,6 +14,8 @@
 
 | Hash | Message |
 |------|---------|
+| *(ce commit)* | feat(ged): brancher UnifiedClassifier sur ingest documentaire |
+| `bc6a641` | docs(ged): session status lot IA sidecar et taxonomie |
 | `9158411` | feat(ged): sync taxonomie HTMLEDITOR pour classificateur |
 | `d7943d3` | feat(ged): sidecar ClearMyDocs segment PDF multi-doc |
 | `1705658` | docs(ged): roadmap IA ClearMyDocs HTMLEDITOR split PDF |
@@ -26,17 +28,17 @@
 | `f7cf469` | fix(ged): redirect /kdocs sans slash vers /kdocs/ |
 | `be14812` | docs(ged): diagnostic push 403 et mise a jour session |
 
-**Branch** : `main` — **13 commits** en avance sur `origin/main` (403 persistant).
+**Branch** : `main` — **15 commits** en avance sur `origin/main` (403 persistant).
 
 ### Harness tests
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-php tests\migration_smoke_test.php    REM 48/48 offline
+php tests\migration_smoke_test.php    REM 58/58 offline
 run-tests.bat                         REM migration + PHPUnit unit
 ```
 
-**Dernier run** : **48 passés, 0 échoués** (migration_smoke_test, 2026-06-18)
+**Dernier run** : **58 passés, 0 échoués** (migration_smoke_test) · **5/5 PHPUnit** (UnifiedClassifier + IngestClassificationService, 2026-06-18)
 
 ### P0 UI — fait / reste
 
@@ -61,7 +63,11 @@ Docs audit : `docs/AUDIT-UI-UX.md`, `docs/AUDIT-SYNTHESE-EXECUTIVE.md`.
 | `PdfSplitService::detectPageGroups()` | branché sidecar si `CLEARMYDOCS_ENABLED=true` (`d7943d3`) |
 | Sync taxonomie HTMLEDITOR | `TaxonomySyncService` + `POST /api/classification/sync-taxonomy` (`9158411`) |
 | `ClassifierInterface` | `app/Contracts/ClassifierInterface.php` |
-| `UnifiedClassifier` (façade) | `app/Services/Classifiers/UnifiedClassifier.php` |
+| `UnifiedClassifier` (façade) | `app/Services/Classifiers/UnifiedClassifier.php` — adapters GED + HTMLEDITOR + Infomaniak stub |
+| `IngestClassificationService` | `app/Services/Classification/IngestClassificationService.php` — hook ingest unique |
+| `ClassifyDocumentJob` | `app/Jobs/ClassifyDocumentJob.php` — pipeline `classification` |
+| `ClassificationResult` DTO | `app/DTO/ClassificationResult.php` |
+| Hook ingest | `DocumentProcessor::process()` §1.5 → `IngestClassificationService::queue()` |
 | `HtmleditorTaxonomyAdapter` | `app/Adapters/HtmleditorTaxonomyAdapter.php` (variables, sets, sections, tags, externalIds) |
 | Config `.env.example` | `HTMLEDITOR_TAXONOMY_PATH`, `CLEARMYDOCS_SIDECAR_URL`, `CLEARMYDOCS_*`, `IA_*` |
 
@@ -69,9 +75,9 @@ Docs audit : `docs/AUDIT-UI-UX.md`, `docs/AUDIT-SYNTHESE-EXECUTIVE.md`.
 
 **Prochain lot IA recommandé (IA-4/IA-5)** :
 
-1. Brancher `UnifiedClassifier` sur ingest (enregistrer adapters + taxonomie syncée)
-2. Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` (push automatique)
-3. Enregistrement plugin dans `PluginRegistry`
+1. Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` (push automatique)
+2. Enregistrement plugin dans `PluginRegistry`
+3. Activer `InfomaniakClassifierAdapter` quand spec API Flowy/Infomaniak IA disponible
 
 ### Push GitHub
 

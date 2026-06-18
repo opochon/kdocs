@@ -76,12 +76,15 @@ Chemin export : `HTMLEDITOR_TAXONOMY_PATH` (fichier JSON partagé ou copie).
 | Façade | `PdfSplitService` | Stub lot 1 |
 | ClearMyDocs | `segmenter.py` — heuristiques en-têtes + profils | À intégrer sidecar |
 
-Pipeline cible :
+Pipeline cible (ingest) :
 
-1. Ingest PDF → OCR si besoin
-2. `PdfSplitService::detectPageGroups()` — heuristiques + LLM
-3. Split physique → N enregistrements `documents`
-4. `UnifiedClassifier::classify()` sur chaque pièce
+1. Upload / consume / index → `DocumentProcessor::process()` (OCR, matching, thumbnail)
+2. Hook unique post-OCR : `IngestClassificationService::queue()` (`DocumentProcessor` §1.5)
+3. Worker `classify_document` → `PdfSplitService::detectPageGroups()` si PDF
+4. Split → N jobs enfants ; sinon `UnifiedClassifier::classifyDocument()`
+5. Persistance `classification_suggestions` + `ai_additional_categories`
+
+Providers : Claude (frontier) → Ollama (fallback `AIProviderService`) → Infomaniak AI (**stub** — API non documentée côté Infomaniak hébergement ; voir `ARCHITECTURE-INFOMANIAK.md` ; classification via ClearMyDocs `providers_infomaniak.py` quand activé).
 
 ## Lots suivants
 
@@ -91,7 +94,8 @@ Pipeline cible :
 | IA-3 | Sidecar ClearMyDocs (HTTP ou CLI) pour segment + enrich | **Fait** (segment) |
 | IA-4 | Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` | P1 |
 | IA-5 | Enregistrement plugin dans `PluginRegistry` | P2 |
-| IA-6 | Tests unit `UnifiedClassifier`, `HtmleditorTaxonomyAdapter` | P2 |
+| IA-6 | Tests unit `UnifiedClassifier`, `HtmleditorTaxonomyAdapter` | **Fait** |
+| IA-7 | Brancher `UnifiedClassifier` sur ingest documentaire | **Fait** |
 
 ## Références
 

@@ -20,6 +20,8 @@ use n0nag0n\Job_Queue;
 use KDocs\Core\Database;
 use KDocs\Services\IndexingService;
 use KDocs\Jobs\EmbedDocumentJob;
+use KDocs\Jobs\ClassifyDocumentJob;
+use KDocs\Services\Classification\IngestClassificationService;
 use KDocs\Core\Config;
 
 // Configuration
@@ -27,7 +29,7 @@ $config = [
     'memory_limit' => '256M',
     'max_jobs' => 100,        // Arrêter après X jobs (pour éviter memory leaks)
     'sleep_time' => 500000,   // 500ms entre chaque vérification
-    'pipelines' => ['indexing_high', 'indexing', 'ocr', 'thumbnails']
+    'pipelines' => ['indexing_high', 'indexing', 'ocr', 'thumbnails', 'classification']
 ];
 
 ini_set('memory_limit', $config['memory_limit']);
@@ -188,6 +190,15 @@ while ($jobsProcessed < $config['max_jobs']) {
                                 echo "[QueueWorker] Thumbnail pour document #$docId (non implémenté)\n";
                             }
                             break;
+
+                        case 'classify_document':
+                            $docId = (int) ($payload['document_id'] ?? 0);
+                            if ($docId > 0) {
+                                $service = new IngestClassificationService();
+                                $service->classify($docId);
+                                echo "[QueueWorker] Classification UnifiedClassifier document #$docId\n";
+                            }
+                            break;
                             
                         default:
                             echo "[QueueWorker] Type inconnu: $type\n";
@@ -223,6 +234,19 @@ while ($jobsProcessed < $config['max_jobs']) {
     // =====================================================
     // 3. Process embedding jobs
     // =====================================================
+    if (!$jobFound) {
+        try {
+            $classificationResult = ClassifyDocumentJob::processPending(5);
+            if ($classificationResult['total'] > 0) {
+                $jobFound = true;
+                $jobsProcessed += $classificationResult['processed'];
+                echo "[QueueWorker] Classification fallback: processed={$classificationResult['processed']}, failed={$classificationResult['failed']}\n";
+            }
+        } catch (\Exception $e) {
+            error_log("[QueueWorker] Classification fallback error: " . $e->getMessage());
+        }
+    }
+
     if (!$jobFound) {
         try {
             $embeddingResult = EmbedDocumentJob::processPending(5);

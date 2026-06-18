@@ -170,6 +170,19 @@ class DocumentProcessor
             }
         }
         
+        // 1.5 Classification UnifiedClassifier (async — ne bloque pas la requête HTTP)
+        try {
+            if (filter_var(env('IA_UNIFIED_CLASSIFY_ENABLED', true), FILTER_VALIDATE_BOOLEAN)) {
+                $ingestClassifier = new \KDocs\Services\Classification\IngestClassificationService();
+                if ($ingestClassifier->queue($documentId)) {
+                    $results['classification_queued'] = true;
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("Erreur queue classification document {$documentId}: " . $e->getMessage());
+            $results['classification_queued'] = false;
+        }
+        
         // 2. Matching automatique
         $documentText = ($document['title'] ?? '') . ' ' . ($document['ocr_text'] ?? '') . ' ' . ($document['content'] ?? '');
         if (!empty($documentText)) {

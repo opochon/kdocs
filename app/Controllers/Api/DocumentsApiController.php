@@ -1067,45 +1067,31 @@ class DocumentsApiController extends ApiController
         }
 
         try {
-            $classificationService = new \KDocs\Services\ClassificationService();
-            $result = $classificationService->classify($id);
+            $async = filter_var($data['async'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            $ingest = new \KDocs\Services\Classification\IngestClassificationService();
 
-            if ($apply && !empty($result['final'])) {
-                // Apply classification
+            if ($async) {
+                $queued = $ingest->queue($id);
+                return $this->successResponse($response, [
+                    'document_id' => $id,
+                    'queued' => $queued,
+                    'pending_classification' => true,
+                    'message' => $queued
+                        ? 'Classification UnifiedClassifier enfilée'
+                        : 'Échec enqueue classification',
+                ]);
+            }
+
+            $result = $ingest->classify($id);
+
+            if ($apply && !empty($result['classification']['category'])) {
                 $db = Database::getInstance();
-                $updates = [];
-                $params = [];
-
-                if (!empty($result['final']['document_type_id'])) {
-                    $updates[] = 'document_type_id = ?';
-                    $params[] = $result['final']['document_type_id'];
-                }
-                if (!empty($result['final']['correspondent_id'])) {
-                    $updates[] = 'correspondent_id = ?';
-                    $params[] = $result['final']['correspondent_id'];
-                }
-                if (!empty($result['final']['doc_date'])) {
-                    $updates[] = 'document_date = ?';
-                    $params[] = $result['final']['doc_date'];
-                }
-
-                if (!empty($updates)) {
-                    $updates[] = 'classification_suggestions = ?';
-                    $params[] = json_encode($result);
-                    $updates[] = 'updated_at = NOW()';
-                    $params[] = $id;
-
-                    $sql = "UPDATE documents SET " . implode(', ', $updates) . " WHERE id = ?";
-                    $stmt = $db->prepare($sql);
-                    $stmt->execute($params);
-                }
-
-                // Add tags if any
-                if (!empty($result['final']['tag_ids'])) {
-                    foreach ($result['final']['tag_ids'] as $tagId) {
-                        $stmt = $db->prepare("INSERT IGNORE INTO document_tags (document_id, tag_id) VALUES (?, ?)");
-                        $stmt->execute([$id, $tagId]);
-                    }
+                $typeStmt = $db->prepare('SELECT id FROM document_types WHERE label LIKE ? LIMIT 1');
+                $typeStmt->execute(['%' . $result['classification']['category'] . '%']);
+                $type = $typeStmt->fetch(PDO::FETCH_ASSOC);
+                if ($type) {
+                    $db->prepare('UPDATE documents SET document_type_id = ? WHERE id = ?')
+                        ->execute([$type['id'], $id]);
                 }
             }
 

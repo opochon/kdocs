@@ -29,20 +29,44 @@ class HtmleditorTaxonomyAdapter implements ClassifierInterface
 
     public function classify(array $context): array
     {
-        $taxonomy = $this->loadTaxonomy();
+        $taxonomy = $this->resolveTaxonomy($context);
+        $text = mb_strtolower(trim((string) ($context['text'] ?? '')));
+
+        $matchedTags = $this->matchTaxonomyTags($taxonomy['tags'] ?? [], $text);
+        $category = $this->matchSectionCategory($taxonomy['sections'] ?? [], $text);
+        $externalIds = $this->matchExternalIds($taxonomy, $text);
+
+        $confidence = 0.0;
+        if ($this->isAvailable() || !empty($taxonomy['available'])) {
+            $confidence = 0.55;
+            if ($matchedTags !== []) {
+                $confidence += min(0.25, count($matchedTags) * 0.05);
+            }
+            if ($category !== null) {
+                $confidence += 0.15;
+            }
+            $confidence = min(0.95, $confidence);
+        }
 
         return [
+            'category' => $category,
+            'tags' => $matchedTags,
+            'externalIds' => $externalIds,
             'suggestions' => [
                 'variables' => $taxonomy['variables'] ?? [],
                 'sets' => $taxonomy['sets'] ?? [],
                 'sections' => $taxonomy['sections'] ?? [],
                 'tags' => $taxonomy['tags'] ?? [],
                 'externalIds' => $taxonomy['externalIds'] ?? [],
+                'matched_tags' => $matchedTags,
                 'project_key' => $context['project_key'] ?? null,
             ],
-            'confidence' => $this->isAvailable() ? 0.6 : 0.0,
+            'confidence' => $confidence,
             'source' => $this->getName(),
-            'audit' => ['path' => $this->taxonomyPath()],
+            'audit' => [
+                'path' => $taxonomy['source_path'] ?? $this->taxonomyPath(),
+                'taxonomy_source' => $context['taxonomy_source'] ?? 'file',
+            ],
         ];
     }
 
@@ -106,6 +130,76 @@ class HtmleditorTaxonomyAdapter implements ClassifierInterface
         $this->cachedPath = $path;
 
         return $this->cached = $this->normalizeExport($raw, $path);
+    }
+
+    /** @param array<string, mixed> $context */
+    /** @return array<string, mixed> */
+    private function resolveTaxonomy(array $context): array
+    {
+        if (!empty($context['taxonomy']) && is_array($context['taxonomy'])) {
+            return $context['taxonomy'];
+        }
+
+        return $this->loadTaxonomy();
+    }
+
+    /** @param list<string|mixed> $tags */
+    /** @return list<string> */
+    private function matchTaxonomyTags(array $tags, string $text): array
+    {
+        if ($text === '') {
+            return [];
+        }
+
+        $matched = [];
+        foreach ($tags as $tag) {
+            $label = is_array($tag) ? (string) ($tag['name'] ?? $tag['label'] ?? '') : (string) $tag;
+            $label = trim($label);
+            if ($label !== '' && mb_strpos($text, mb_strtolower($label)) !== false) {
+                $matched[] = $label;
+            }
+        }
+
+        return array_values(array_unique($matched));
+    }
+
+    /** @param list<array<string, mixed>|mixed> $sections */
+    private function matchSectionCategory(array $sections, string $text): ?string
+    {
+        if ($text === '') {
+            return null;
+        }
+
+        foreach ($sections as $section) {
+            if (!is_array($section)) {
+                continue;
+            }
+            $title = trim((string) ($section['title'] ?? $section['name'] ?? ''));
+            if ($title !== '' && mb_strpos($text, mb_strtolower($title)) !== false) {
+                return $title;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $taxonomy */
+    /** @return array<string, string> */
+    private function matchExternalIds(array $taxonomy, string $text): array
+    {
+        if ($text === '') {
+            return [];
+        }
+
+        $matched = [];
+        foreach ($taxonomy['externalIds'] ?? [] as $name => $externalId) {
+            $needle = mb_strtolower((string) $name);
+            if ($needle !== '' && mb_strpos($text, $needle) !== false) {
+                $matched[(string) $name] = (string) $externalId;
+            }
+        }
+
+        return $matched;
     }
 
     /** @return array<string, mixed> */

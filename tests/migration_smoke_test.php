@@ -136,6 +136,20 @@ if ($vendorOk) {
     assert_true('Classe ClassificationTaxonomyApiController chargeable', class_exists('KDocs\\Controllers\\Api\\ClassificationTaxonomyApiController'));
 }
 
+echo "\nLot IA — UnifiedClassifier ingest\n";
+assert_true('ClassificationResult.php', is_file(KDOCS_ROOT . '/app/DTO/ClassificationResult.php'));
+assert_true('GedNativeClassifierAdapter.php', is_file(KDOCS_ROOT . '/app/Adapters/GedNativeClassifierAdapter.php'));
+assert_true('InfomaniakClassifierAdapter.php', is_file(KDOCS_ROOT . '/app/Adapters/InfomaniakClassifierAdapter.php'));
+assert_true('IngestClassificationService.php', is_file(KDOCS_ROOT . '/app/Services/Classification/IngestClassificationService.php'));
+assert_true('ClassifyDocumentJob.php', is_file(KDOCS_ROOT . '/app/Jobs/ClassifyDocumentJob.php'));
+assert_true('tests Unit UnifiedClassifierTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/Classifiers/UnifiedClassifierTest.php'));
+assert_true('tests Unit IngestClassificationServiceTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/Classification/IngestClassificationServiceTest.php'));
+if ($vendorOk) {
+    assert_true('Classe UnifiedClassifier chargeable', class_exists('KDocs\\Services\\Classifiers\\UnifiedClassifier'));
+    assert_true('Classe IngestClassificationService chargeable', class_exists('KDocs\\Services\\Classification\\IngestClassificationService'));
+    assert_true('Classe ClassifyDocumentJob chargeable', class_exists('KDocs\\Jobs\\ClassifyDocumentJob'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);

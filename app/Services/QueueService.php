@@ -117,6 +117,30 @@ class QueueService
             return false;
         }
     }
+
+    /**
+     * Ajoute un job de classification UnifiedClassifier pour un document.
+     */
+    public static function queueClassification(int $documentId): bool
+    {
+        try {
+            $queue = self::getInstance();
+            $queue->selectPipeline('classification');
+
+            $jobData = [
+                'type' => 'classify_document',
+                'document_id' => $documentId,
+                'created_at' => time(),
+            ];
+
+            $queue->addJob(json_encode($jobData));
+
+            return true;
+        } catch (\Exception $e) {
+            error_log("QueueService::queueClassification - Erreur: " . $e->getMessage());
+            return false;
+        }
+    }
     
     /**
      * Compte les jobs en attente dans un pipeline

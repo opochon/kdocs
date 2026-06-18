@@ -254,75 +254,9 @@ class ConsumeFolderService
             $smartTitle = $this->extractTitle($filename, $ocrContent);
             $this->db->prepare("UPDATE documents SET title = ? WHERE id = ?")->execute([$smartTitle, $docId]);
             
-            // Vérifier si c'est un PDF multi-pages à séparer (mode AI uniquement)
-            $config = Config::load();
-            $classificationMode = $config['classification']['method'] ?? 'auto';
-            $splitEnabled = $config['classification']['ai_split_enabled'] ?? false;
-            
-            if ($splitEnabled && ($classificationMode === 'ai' || $classificationMode === 'auto')) {
-                try {
-                    $splitter = new PDFSplitterService();
-                    $splitResult = $splitter->analyzeAndSplit($docId);
-                    
-                    if ($splitResult && !empty($splitResult['documents'])) {
-                        // Le PDF a été séparé, retourner les nouveaux documents
-                        $result['split'] = true;
-                        $result['split_count'] = $splitResult['split_count'];
-                        $result['split_documents'] = array_map(function($doc) {
-                            return $doc['id'];
-                        }, $splitResult['documents']);
-                        
-                        // Traiter chaque document séparé
-                        foreach ($splitResult['documents'] as $splitDoc) {
-                            try {
-                                $processor->process($splitDoc['id']);
-                                $classifier = new ClassificationService();
-                                $classification = $classifier->classify($splitDoc['id']);
-                                $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
-                                    ->execute([json_encode($classification), $splitDoc['id']]);
-                            } catch (\Exception $e) {
-                                error_log("Erreur traitement document séparé {$splitDoc['id']}: " . $e->getMessage());
-                            }
-                        }
-                        
-                        // Le document parent n'a pas besoin de classification puisqu'il a été splité
-                        $result['status'] = 'split';
-                        return $result;
-                    }
-                    // Si $splitResult est null, c'est normal (pas de séparation nécessaire ou API non disponible)
-                    // Le traitement continue normalement ci-dessous
-                } catch (\Exception $e) {
-                    // Erreur lors de la séparation (API non disponible, timeout, etc.)
-                    // Logger mais continuer avec le traitement normal du document
-                    error_log("Erreur séparation PDF document {$docId}: " . $e->getMessage() . " - Traitement normal du document");
-                    // Ne pas retourner ici, continuer avec la classification normale
-                }
-            }
-            
-            // Classification normale (selon mode configuré)
-            $classifier = new ClassificationService();
-            $classification = $classifier->classify($docId);
-            
-            // Sauvegarder suggestions
-            $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
-                ->execute([json_encode($classification), $docId]);
-            
-            // Sauvegarder les catégories supplémentaires extraites par IA
-            $additionalCategories = [];
-            if (!empty($classification['ai_result']['additional_categories'])) {
-                $additionalCategories = $classification['ai_result']['additional_categories'];
-            } elseif (!empty($classification['final']['additional_categories'])) {
-                $additionalCategories = $classification['final']['additional_categories'];
-            }
-            
-            if (!empty($additionalCategories)) {
-                $this->db->prepare("UPDATE documents SET ai_additional_categories = ? WHERE id = ?")
-                    ->execute([json_encode($additionalCategories), $docId]);
-            }
-            
-            $result['classification'] = $classification;
-            $result['additional_categories'] = $additionalCategories;
-            $result['status'] = $classification['auto_applied'] ? 'auto_validated' : ($classification['should_review'] ? 'needs_review' : 'pending');
+            // Classification + split PDF : délégué à IngestClassificationService via queue (hook DocumentProcessor)
+            $result['status'] = 'pending';
+            $result['pending_classification'] = true;
             
         } catch (\Exception $e) {
             $result['status'] = 'error';
@@ -593,30 +527,9 @@ class ConsumeFolderService
                 $updateStmt = $this->db->prepare("UPDATE documents SET checksum = ? WHERE id = ?");
                 $updateStmt->execute([$checksum, $doc['id']]);
                 
-                // Re-traiter le document (OCR, classification)
+                // Re-traiter le document (OCR + queue classification via DocumentProcessor)
                 $processor = new DocumentProcessor();
                 $processor->process($doc['id']);
-                
-                // Re-classifier avec les nouveaux tags/champs
-                $classifier = new ClassificationService();
-                $classification = $classifier->classify($doc['id']);
-                
-                // Sauvegarder les nouvelles suggestions
-                $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
-                    ->execute([json_encode($classification), $doc['id']]);
-                
-                // Sauvegarder les catégories supplémentaires extraites par IA
-                $additionalCategories = [];
-                if (!empty($classification['ai_result']['additional_categories'])) {
-                    $additionalCategories = $classification['ai_result']['additional_categories'];
-                } elseif (!empty($classification['final']['additional_categories'])) {
-                    $additionalCategories = $classification['final']['additional_categories'];
-                }
-                
-                if (!empty($additionalCategories)) {
-                    $this->db->prepare("UPDATE documents SET ai_additional_categories = ? WHERE id = ?")
-                        ->execute([json_encode($additionalCategories), $doc['id']]);
-                }
                 
                 $results['processed']++;
                 
