@@ -133,8 +133,24 @@ use KDocs\Middleware\AuthMiddleware;
 use KDocs\Middleware\AutoIndexMiddleware;
 use KDocs\Middleware\RateLimitMiddleware;
 use KDocs\Core\Config;
+use KDocs\Core\PublicAssets;
+use Slim\Exception\HttpNotFoundException;
 
 $app = App::create();
+
+// Assets statiques public/ — secours si le serveur PHP built-in n'utilise pas router.php
+$app->get('/public/{path:.*}', function ($request, $response, array $args) {
+    $file = PublicAssets::resolveFile($args['path'] ?? '');
+    if ($file === null) {
+        throw new HttpNotFoundException($request);
+    }
+
+    $response->getBody()->write((string) file_get_contents($file));
+
+    return $response
+        ->withHeader('Content-Type', PublicAssets::mimeType($file))
+        ->withHeader('Cache-Control', 'public, max-age=3600');
+});
 
 // Routes publiques (sans authentification)
 $app->get('/login', [AuthController::class, 'showLogin']);

@@ -55,3 +55,39 @@ if (!function_exists('url')) {
         return $basePath . ($path ? '/' . $path : '');
     }
 }
+
+if (!function_exists('asset')) {
+    /**
+     * URL d'un asset statique sous public/ (CSS, JS, images).
+     * Ex. asset('css/tailwind.css') → /kdocs/public/css/tailwind.css
+     */
+    function asset(string $path): string
+    {
+        return url('public/' . ltrim($path, '/'));
+    }
+}
+
+if (!function_exists('isAppDebug')) {
+    function isAppDebug(): bool
+    {
+        return filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN);
+    }
+}
+
+if (!function_exists('documentVisibilitySql')) {
+    /**
+     * Filtre SQL excluant les documents de test (test_*) hors mode debug.
+     *
+     * @param string $alias Alias table documents (ex. "d")
+     */
+    function documentVisibilitySql(string $alias = 'documents'): string
+    {
+        if (isAppDebug()) {
+            return '1=1';
+        }
+
+        $t = preg_replace('/[^a-zA-Z0-9_]/', '', $alias) ?: 'documents';
+
+        return "({$t}.title NOT LIKE 'test\\_%' AND ({$t}.original_filename IS NULL OR {$t}.original_filename NOT LIKE 'test\\_%'))";
+    }
+}

@@ -1,8 +1,8 @@
 # GEDv1 — Rapport smoke complet
 
-Date : 2026-06-18 05:30:00
-Base URL : `http://127.0.0.1:8771/kdocs`
-Run ID : `full-smoke-20260618-052931`
+Date : 2026-06-18 06:02:28
+Base URL : `http://127.0.0.1:8765/kdocs`
+Run ID : `full-smoke-20260618-060143`
 
 ## Résumé
 

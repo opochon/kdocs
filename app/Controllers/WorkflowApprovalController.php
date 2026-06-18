@@ -433,6 +433,7 @@ HTML
     
     private function getPageLayout(string $title, string $content): string
     {
+        $assetCss = Config::basePath() . '/public/css/tailwind.css';
         return <<<HTML
 <!DOCTYPE html>
 <html lang="fr">
@@ -440,7 +441,7 @@ HTML
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{$title} - K-Docs</title>
-    <link rel="stylesheet" href="/kdocs/public/css/tailwind.css">
+    <link rel="stylesheet" href="{$assetCss}">
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen py-12 px-4">
     {$content}

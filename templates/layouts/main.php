@@ -9,12 +9,13 @@
     <meta name="base-url" content="<?= \KDocs\Core\Config::basePath() ?>">
     <?= \KDocs\Core\CSRF::metaTag() ?>
     <title><?= htmlspecialchars($title ?? 'K-Docs') ?></title>
-    <link rel="stylesheet" href="/kdocs/public/css/tailwind.css">
+    <link rel="icon" href="<?= asset('favicon.svg') ?>" type="image/svg+xml">
+    <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/kdocs/public/css/theme.css">
-    <link rel="stylesheet" href="/kdocs/public/css/app.css">
-    <script src="/kdocs/public/js/app.js"></script>
-    <script src="/kdocs/public/js/ai-search.js"></script>
+    <link rel="stylesheet" href="<?= asset('css/theme.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <script src="<?= asset('js/app.js') ?>"></script>
+    <script src="<?= asset('js/ai-search.js') ?>"></script>
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen">

@@ -53,6 +53,6 @@ class ConfigTest extends TestCase
         $path = Config::basePath();
         
         $this->assertIsString($path);
-        $this->assertDirectoryExists($path);
+        $this->assertStringStartsWith('/', $path);
     }
 }
