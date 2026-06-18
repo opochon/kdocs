@@ -12,11 +12,10 @@
 
 ### Commits session 2026-06-18 (dual-mode)
 
-| Lot | Message (prévu) |
-|-----|-----------------|
-| IA-8 | `feat(cmd): sidecar v3 extract analyze ingest pour GED` (clearmydocs-v3) |
-| IA-9 | `feat(ged): moteur ingest dual-mode ClearMyDocs v3` |
-| IA-10 | `docs(ged): guide ingest dual-mode CMD v3` |
+| Lot | Commit |
+|-----|--------|
+| IA-8 | `f2be266` — `feat(cmd): sidecar v3 extract analyze ingest pour GED` (clearmydocs-v3) |
+| IA-9/10 | `693b2dc` — `feat(ged): moteur ingest dual-mode ClearMyDocs v3` (+ doc INGEST-DUAL-MODE, admin, harness) |
 
 ### Commits session 2026-06-18 (précédents)
 
