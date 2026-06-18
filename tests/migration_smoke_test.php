@@ -117,6 +117,15 @@ if ($vendorOk) {
     assert_true('Classe PluginRegistry chargeable', class_exists('KDocs\\Core\\PluginRegistry'));
 }
 
+echo "\nLot IA — sidecar ClearMyDocs\n";
+assert_true('ClearMyDocsSidecarClient.php', is_file(KDOCS_ROOT . '/app/Services/ClearMyDocsSidecarClient.php'));
+assert_true('PdfSplitService.php', is_file(KDOCS_ROOT . '/app/Services/PdfSplit/PdfSplitService.php'));
+assert_true('tests Unit ClearMyDocsSidecarClientTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/ClearMyDocsSidecarClientTest.php'));
+if ($vendorOk) {
+    assert_true('Classe ClearMyDocsSidecarClient chargeable', class_exists('KDocs\\Services\\ClearMyDocsSidecarClient'));
+    assert_true('Classe PdfSplitService chargeable', class_exists('KDocs\\Services\\PdfSplit\\PdfSplitService'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);

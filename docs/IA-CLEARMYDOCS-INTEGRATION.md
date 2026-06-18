@@ -47,26 +47,41 @@ Fichiers clés :
 | Evaluateur | `classification_audit_logs` | Inspiration checks, pas port direct |
 | Infomaniak AI | kDrive partiel GED | Unifier config `.env` |
 
-## Sidecar proposé (lot IA-3)
+## Sidecar GED (implémenté — lot IA-3)
 
 ```
-GEDv1 (PHP)                          ClearMyDocs (Python)
+GEDv1 (PHP)                          ClearMyDocs (Python :5101)
      │                                      │
      │  POST /segment  {pdf_path, profile}  │
-     ├─────────────────────────────────────►│ segmenter.py
+     ├─────────────────────────────────────►│ ged_sidecar.py → segmenter.py
      │◄─────────────────────────────────────┤ {page_groups[]}
-     │                                      │
-     │  POST /classify {text, profile}      │
-     ├─────────────────────────────────────►│ enrich + profile
-     │◄─────────────────────────────────────┤ {fields, confidence}
 ```
 
-Configuration :
+### Lancer le sidecar
+
+```bash
+cd F:\DATA\DEVELOPPEMENT\clearmydocs-v3
+pip install -e ".[dev]"
+python -m clearmydocs.api.ged_sidecar
+# ou : uvicorn clearmydocs.api.ged_sidecar:app --host 127.0.0.1 --port 5101
+```
+
+### Tester
+
+```cmd
+curl -s http://127.0.0.1:5101/health
+curl -s -X POST http://127.0.0.1:5101/segment -H "Content-Type: application/json" -d "{\"pdf_path\":\"F:\\\\chemin\\\\scan.pdf\",\"options\":{\"use_llm_confirm\":false}}"
+```
+
+Indices de pages **0-based**. Client PHP : `app/Services/ClearMyDocsSidecarClient.php`.
+
+Configuration GED `.env` :
 
 ```env
 CLEARMYDOCS_PATH=F:\DATA\DEVELOPPEMENT\clearmydocs-v3
-CLEARMYDOCS_API_URL=http://127.0.0.1:8790
+CLEARMYDOCS_SIDECAR_URL=http://127.0.0.1:5101
 CLEARMYDOCS_ENABLED=false
+IA_PDF_SPLIT_ENABLED=true
 ```
 
 ## Ce qu'on ne porte pas en PHP
@@ -87,9 +102,10 @@ Config utilisateur Windows : `%APPDATA%\ClearMyDocs\config.json`.
 
 ## Prochaine étape recommandée
 
-1. Démarrer sidecar minimal (`server.py`) avec endpoint `/segment` wrapping `segmenter.py`.
-2. Brancher `PdfSplitService::detectPageGroups()` sur cet endpoint si `CLEARMYDOCS_ENABLED=true`.
+1. ~~Démarrer sidecar minimal (`ged_sidecar.py`) avec endpoint `/segment`~~ — **fait** (lot IA-3).
+2. ~~Brancher `PdfSplitService::detectPageGroups()`~~ — **fait** si `CLEARMYDOCS_ENABLED=true`.
 3. Tester sur corpus GED (PDF multi-factures) vs `PDFSplitterService` seul.
+4. Lot suivant : brancher `UnifiedClassifier` sur ingest + enrich sidecar.
 
 ## Références
 
