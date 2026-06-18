@@ -44,7 +44,7 @@ class SnapshotsController
             'auto' => Snapshot::count('auto'),
             'backup' => Snapshot::count('backup'),
             'total_size' => $this->formatBytes((int)$db->query("
-                SELECT COALESCE(SUM(total_size), 0) FROM snapshots
+                SELECT COALESCE(SUM(total_size_bytes), 0) FROM snapshots
             ")->fetchColumn()),
             'latest' => $db->query("
                 SELECT name, created_at FROM snapshots ORDER BY created_at DESC LIMIT 1

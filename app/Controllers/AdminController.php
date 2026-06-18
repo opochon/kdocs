@@ -24,6 +24,44 @@ class AdminController
     }
 
     /**
+     * Exécute une commande shell avec timeout (évite blocage LibreOffice/Ghostscript en dev).
+     */
+    private function runShellWithTimeout(string $command, int $timeoutSeconds = 3): ?string
+    {
+        $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+        $process = @proc_open($command, $descriptors, $pipes);
+        if (!is_resource($process)) {
+            return null;
+        }
+
+        fclose($pipes[0]);
+        stream_set_blocking($pipes[1], false);
+        stream_set_blocking($pipes[2], false);
+
+        $output = '';
+        $start = time();
+        while (true) {
+            $output .= (string) stream_get_contents($pipes[1]);
+            $output .= (string) stream_get_contents($pipes[2]);
+            $status = proc_get_status($process);
+            if (!$status['running']) {
+                break;
+            }
+            if ((time() - $start) >= $timeoutSeconds) {
+                proc_terminate($process);
+                break;
+            }
+            usleep(100_000);
+        }
+
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        return $output !== '' ? $output : null;
+    }
+
+    /**
      * Page d'accueil de l'administration
      */
     public function index(Request $request, Response $response): Response
@@ -134,7 +172,6 @@ class AdminController
     public function diagnostic(Request $request, Response $response): Response
     {
         $user = $request->getAttribute('user');
-        $config = \KDocs\Core\Config::getInstance();
         $db = Database::getInstance();
 
         // Status IA
@@ -151,11 +188,11 @@ class AdminController
 
         // Training status
         $training = [
-            'enabled' => $config->get('ai.training.enabled', false),
+            'enabled' => Config::get('ai.training.enabled', false),
             'corrections' => 0,
-            'min_similarity' => $config->get('ai.training.min_similarity', 0.85),
+            'min_similarity' => Config::get('ai.training.min_similarity', 0.85),
         ];
-        $trainingFile = $config->get('ai.training.file');
+        $trainingFile = Config::get('ai.training.file');
         if ($trainingFile && file_exists($trainingFile)) {
             $data = json_decode(file_get_contents($trainingFile), true);
             $training['corrections'] = count($data['corrections'] ?? []);
@@ -163,9 +200,9 @@ class AdminController
 
         // Embeddings status
         $embeddings = [
-            'enabled' => $config->get('embeddings.enabled', false),
-            'provider' => $config->get('embeddings.provider', 'ollama'),
-            'dimensions' => $config->get('embeddings.dimensions', 768),
+            'enabled' => Config::get('embeddings.enabled', false),
+            'provider' => Config::get('embeddings.provider', 'ollama'),
+            'dimensions' => Config::get('embeddings.dimensions', 768),
             'total_docs' => 0,
             'docs_with_embedding' => 0,
         ];
@@ -179,11 +216,11 @@ class AdminController
         // Tools status
         $tools = [];
         $toolsConfig = [
-            'Tesseract OCR' => $config->get('ocr.tesseract_path'),
-            'Ghostscript' => $config->get('tools.ghostscript'),
-            'LibreOffice' => $config->get('tools.libreoffice'),
-            'pdftotext' => $config->get('tools.pdftotext'),
-            'pdftoppm' => $config->get('tools.pdftoppm'),
+            'Tesseract OCR' => Config::get('ocr.tesseract_path'),
+            'Ghostscript' => Config::get('tools.ghostscript'),
+            'LibreOffice' => Config::get('tools.libreoffice'),
+            'pdftotext' => Config::get('tools.pdftotext'),
+            'pdftoppm' => Config::get('tools.pdftoppm'),
         ];
 
         foreach ($toolsConfig as $name => $path) {
@@ -193,17 +230,16 @@ class AdminController
             if ($installed) {
                 switch ($name) {
                     case 'Tesseract OCR':
-                        $output = shell_exec("\"$path\" --version 2>&1");
+                        $output = $this->runShellWithTimeout("\"$path\" --version 2>&1") ?? '';
                         preg_match('/tesseract\s+([\d.]+)/i', $output, $m);
                         $version = $m[1] ?? 'unknown';
                         break;
                     case 'Ghostscript':
-                        $version = trim(shell_exec("\"$path\" --version 2>&1"));
+                        $version = trim($this->runShellWithTimeout("\"$path\" --version 2>&1") ?? 'unknown');
                         break;
                     case 'LibreOffice':
-                        $output = shell_exec("\"$path\" --version 2>&1");
-                        preg_match('/LibreOffice\s+([\d.]+)/i', $output, $m);
-                        $version = $m[1] ?? 'unknown';
+                        // soffice.exe --version peut bloquer indéfiniment sous Windows
+                        $version = $installed ? 'installed' : null;
                         break;
                     default:
                         $version = 'installed';
@@ -229,9 +265,9 @@ class AdminController
         }
 
         // OnlyOffice
-        $onlyOfficeEnabled = $config->get('onlyoffice.enabled', false);
+        $onlyOfficeEnabled = Config::get('onlyoffice.enabled', false);
         if ($onlyOfficeEnabled) {
-            $url = $config->get('onlyoffice.server_url');
+            $url = Config::get('onlyoffice.server_url');
             $ch = curl_init(rtrim($url, '/') . '/healthcheck');
             curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
             $result = curl_exec($ch);
@@ -246,7 +282,7 @@ class AdminController
         }
 
         // Ollama
-        $ollamaUrl = $config->get('ollama.url', 'http://localhost:11434');
+        $ollamaUrl = Config::get('ollama.url', 'http://localhost:11434');
         $ch = curl_init("$ollamaUrl/api/tags");
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
         $result = curl_exec($ch);
