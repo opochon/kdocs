@@ -14,7 +14,7 @@
 
 | Hash | Message |
 |------|---------|
-| *(ce commit)* | feat(ged): brancher UnifiedClassifier sur ingest documentaire |
+| `347d125` | feat(ged): brancher UnifiedClassifier sur ingest documentaire |
 | `bc6a641` | docs(ged): session status lot IA sidecar et taxonomie |
 | `9158411` | feat(ged): sync taxonomie HTMLEDITOR pour classificateur |
 | `d7943d3` | feat(ged): sidecar ClearMyDocs segment PDF multi-doc |
