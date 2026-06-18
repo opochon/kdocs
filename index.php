@@ -118,6 +118,7 @@ use KDocs\Controllers\Api\AttributionRulesApiController;
 use KDocs\Controllers\Api\ClassificationSuggestionsApiController;
 use KDocs\Controllers\Api\InvoiceLineItemsApiController;
 use KDocs\Controllers\Api\ClassificationAuditApiController;
+use KDocs\Controllers\Api\ClassificationTaxonomyApiController;
 use KDocs\Controllers\Api\ClassificationFieldOptionsApiController;
 use KDocs\Controllers\Api\ExtractionApiController;
 use KDocs\Controllers\Api\EmbeddingsApiController;
@@ -685,6 +686,9 @@ $app->group('', function ($group) {
     $group->get('/api/audit/classifications/stats', [ClassificationAuditApiController::class, 'stats']);
     $group->get('/api/audit/classifications/export', [ClassificationAuditApiController::class, 'export']);
     $group->post('/api/audit/classifications/{id}/revert', [ClassificationAuditApiController::class, 'revert']);
+
+    $group->post('/api/classification/sync-taxonomy', [ClassificationTaxonomyApiController::class, 'sync']);
+    $group->get('/api/classification/taxonomy', [ClassificationTaxonomyApiController::class, 'show']);
 
     $group->get('/api/classification-field-options', [ClassificationFieldOptionsApiController::class, 'index']);
     $group->get('/api/classification-field-options/field/{fieldCode}', [ClassificationFieldOptionsApiController::class, 'getForField']);

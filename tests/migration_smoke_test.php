@@ -126,6 +126,16 @@ if ($vendorOk) {
     assert_true('Classe PdfSplitService chargeable', class_exists('KDocs\\Services\\PdfSplit\\PdfSplitService'));
 }
 
+echo "\nLot IA — sync taxonomie HTMLEDITOR\n";
+assert_true('HtmleditorTaxonomyAdapter.php', is_file(KDOCS_ROOT . '/app/Adapters/HtmleditorTaxonomyAdapter.php'));
+assert_true('TaxonomySyncService.php', is_file(KDOCS_ROOT . '/app/Services/Classification/TaxonomySyncService.php'));
+assert_true('ClassificationTaxonomyApiController.php', is_file(KDOCS_ROOT . '/app/Controllers/Api/ClassificationTaxonomyApiController.php'));
+assert_true('tests Unit HtmleditorTaxonomyAdapterTest', is_file(KDOCS_ROOT . '/tests/Unit/Adapters/HtmleditorTaxonomyAdapterTest.php'));
+if ($vendorOk) {
+    assert_true('Classe TaxonomySyncService chargeable', class_exists('KDocs\\Services\\Classification\\TaxonomySyncService'));
+    assert_true('Classe ClassificationTaxonomyApiController chargeable', class_exists('KDocs\\Controllers\\Api\\ClassificationTaxonomyApiController'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);

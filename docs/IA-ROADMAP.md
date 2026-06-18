@@ -87,8 +87,8 @@ Pipeline cible :
 
 | Lot | Contenu | Priorité |
 |-----|---------|----------|
-| IA-2 | Endpoint `POST /api/classification/sync-taxonomy` | P1 |
-| IA-3 | Sidecar ClearMyDocs (HTTP ou CLI) pour segment + enrich | P1 |
+| IA-2 | Endpoint `POST /api/classification/sync-taxonomy` | **Fait** |
+| IA-3 | Sidecar ClearMyDocs (HTTP ou CLI) pour segment + enrich | **Fait** (segment) |
 | IA-4 | Pont HTMLEDITOR `GET /api/projects/{id}/taxonomy-export` | P1 |
 | IA-5 | Enregistrement plugin dans `PluginRegistry` | P2 |
 | IA-6 | Tests unit `UnifiedClassifier`, `HtmleditorTaxonomyAdapter` | P2 |
