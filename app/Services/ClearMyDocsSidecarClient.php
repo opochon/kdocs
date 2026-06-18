@@ -34,8 +34,100 @@ class ClearMyDocsSidecarClient
             return false;
         }
 
-        $response = $this->request('GET', '/health');
-        return ($response['status'] ?? null) === 'ok';
+        $health = $this->health();
+        return ($health['status'] ?? null) === 'ok';
+    }
+
+    /** @return array<string, mixed>|null */
+    public function health(): ?array
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        return $this->request('GET', '/health');
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>|null
+     */
+    public function extractFile(string $filePath, array $options = []): ?array
+    {
+        if (!$this->isEnabled() || !is_readable($filePath)) {
+            return null;
+        }
+
+        $payload = [
+            'file_path' => str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath),
+            'options' => array_merge(['profile' => 'legal_ch'], $options),
+        ];
+
+        $response = $this->request('POST', '/extract', $payload);
+
+        return is_array($response) ? $response : null;
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>|null
+     */
+    public function analyzeDocument(string $filePath, array $options = [], ?string $text = null, ?string $filename = null): ?array
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        $payload = [
+            'options' => array_merge([
+                'profile' => 'legal_ch',
+                'use_llm_confirm' => false,
+                'llm_backend' => 'ollama',
+                'chat_model' => 'qwen2.5:7b-instruct',
+            ], $options),
+        ];
+
+        if ($text !== null && trim($text) !== '') {
+            $payload['text'] = $text;
+            $payload['filename'] = $filename ?? basename($filePath);
+        } elseif (is_readable($filePath)) {
+            $payload['file_path'] = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath);
+        } else {
+            return null;
+        }
+
+        $response = $this->request('POST', '/analyze', $payload);
+
+        return is_array($response) ? $response : null;
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>|null
+     */
+    public function ingestFile(string $filePath, array $options = []): ?array
+    {
+        if (!$this->isEnabled() || !is_readable($filePath)) {
+            return null;
+        }
+
+        $payload = [
+            'file_path' => str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath),
+            'options' => array_merge([
+                'profile' => 'legal_ch',
+                'min_pages_per_segment' => 1,
+                'use_llm_confirm' => false,
+                'run_segment' => true,
+                'run_analyze' => true,
+            ], $options),
+        ];
+
+        $response = $this->request('POST', '/ingest', $payload);
+
+        return is_array($response) ? $response : null;
     }
 
     /**

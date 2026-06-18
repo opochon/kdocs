@@ -8,9 +8,17 @@
 
 
 
-## État au 2026-06-18 (chantier GEDv1 — audits, P0 UI, fondations IA)
+## État au 2026-06-18 (chantier GEDv1 — ingest dual-mode CMD v3)
 
-### Commits session 2026-06-18
+### Commits session 2026-06-18 (dual-mode)
+
+| Lot | Message (prévu) |
+|-----|-----------------|
+| IA-8 | `feat(cmd): sidecar v3 extract analyze ingest pour GED` (clearmydocs-v3) |
+| IA-9 | `feat(ged): moteur ingest dual-mode ClearMyDocs v3` |
+| IA-10 | `docs(ged): guide ingest dual-mode CMD v3` |
+
+### Commits session 2026-06-18 (précédents)
 
 | Hash | Message |
 |------|---------|
@@ -34,11 +42,23 @@
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-php tests\migration_smoke_test.php    REM 58/58 offline
+php tests\migration_smoke_test.php    REM 73/73 offline
 run-tests.bat                         REM migration + PHPUnit unit
 ```
 
-**Dernier run** : **58 passés, 0 échoués** (migration_smoke_test) · **5/5 PHPUnit** (UnifiedClassifier + IngestClassificationService, 2026-06-18)
+**Dernier run** : **73 passés, 0 échoués** (migration_smoke_test) · **4/4 PHPUnit ingest dual-mode** · Python sidecar 3/3 (2026-06-18)
+
+### Ingest dual-mode CMD v3 — livré
+
+| Composant | Fichier |
+|-----------|---------|
+| Sidecar `/health` `/extract` `/analyze` `/ingest` | `clearmydocs-v3/src/clearmydocs/api/ged_sidecar.py` |
+| Router + probe + mapper | `app/Services/Ingest/*` |
+| Branch DocumentProcessor | `DocumentProcessor::process()` §1 dual-mode |
+| Client multi-endpoint | `ClearMyDocsSidecarClient.php` |
+| Admin diagnostic CMD | `templates/admin/diagnostic.php` |
+| Doc opérationnelle | `docs/INGEST-DUAL-MODE.md`, `tools/start-cmd-sidecar.bat` |
+| Config | `INGEST_ENGINE`, `CLEARMYDOCS_MIN_VERSION` dans `.env.example` |
 
 ### P0 UI — fait / reste
 

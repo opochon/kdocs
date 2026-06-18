@@ -105,6 +105,40 @@
         </div>
     </div>
 
+    <!-- Ingest dual-mode ClearMyDocs v3 -->
+    <?php $ingest = $ingestEngine ?? []; ?>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Ingest dual-mode (ClearMyDocs v3)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="border rounded-lg p-4 <?= ($ingest['active_engine'] ?? '') === 'coupled' ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-gray-50' ?>">
+                <span class="text-sm text-gray-500">Moteur actif</span>
+                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['active_engine'] ?? 'native')) ?></p>
+            </div>
+            <div class="border rounded-lg p-4">
+                <span class="text-sm text-gray-500">Mode configuré</span>
+                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['configured_mode'] ?? 'auto')) ?></p>
+            </div>
+            <div class="border rounded-lg p-4 <?= !empty($ingest['sidecar_ok']) ? 'border-green-500 bg-green-50' : 'border-yellow-500 bg-yellow-50' ?>">
+                <span class="text-sm text-gray-500">Sidecar</span>
+                <p class="text-lg font-semibold"><?= !empty($ingest['sidecar_ok']) ? 'OK' : 'Indisponible' ?></p>
+                <p class="text-xs text-gray-500"><?= htmlspecialchars((string) ($ingest['sidecar_url'] ?? '')) ?></p>
+            </div>
+            <div class="border rounded-lg p-4">
+                <span class="text-sm text-gray-500">Version CMD</span>
+                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['sidecar_version'] ?? 'N/A')) ?></p>
+                <p class="text-xs text-gray-500">min <?= htmlspecialchars((string) ($ingest['min_version'] ?? '3.0.0')) ?></p>
+            </div>
+        </div>
+        <ul class="text-sm text-gray-600 space-y-1">
+            <li>Chemin install : <?= htmlspecialchars((string) ($ingest['install_path'] ?? 'non configuré')) ?></li>
+            <li>Couplage disponible : <?= !empty($ingest['coupled_available']) ? 'oui' : 'non' ?></li>
+            <?php if (!empty($ingest['capabilities'])): ?>
+                <li>Capacités sidecar : <?= htmlspecialchars(implode(', ', (array) $ingest['capabilities'])) ?></li>
+            <?php endif; ?>
+        </ul>
+        <p class="text-xs text-gray-500 mt-3">Voir docs/INGEST-DUAL-MODE.md — démarrer le sidecar via tools/start-cmd-sidecar.bat</p>
+    </div>
+
     <!-- Training -->
     <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Training / Apprentissage</h2>

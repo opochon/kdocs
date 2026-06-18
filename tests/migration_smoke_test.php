@@ -150,6 +150,30 @@ if ($vendorOk) {
     assert_true('Classe ClassifyDocumentJob chargeable', class_exists('KDocs\\Jobs\\ClassifyDocumentJob'));
 }
 
+echo "\nLot IA — ingest dual-mode CMD v3\n";
+$dualModeFiles = [
+    'app/Services/Ingest/IngestEngineRouter.php',
+    'app/Services/Ingest/ClearMyDocsIngestEngine.php',
+    'app/Services/Ingest/GedNativeIngestEngine.php',
+    'app/Services/Ingest/CmdResultMapper.php',
+    'app/Services/Ingest/ClearMyDocsCapabilityProbe.php',
+    'docs/INGEST-DUAL-MODE.md',
+    'tools/start-cmd-sidecar.bat',
+    'tests/Unit/Services/Ingest/IngestEngineRouterTest.php',
+    'tests/Unit/Services/Ingest/ClearMyDocsCapabilityProbeTest.php',
+    'tests/Unit/Services/Ingest/CmdResultMapperTest.php',
+];
+foreach ($dualModeFiles as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if ($vendorOk) {
+    assert_true('Classe IngestEngineRouter chargeable', class_exists('KDocs\\Services\\Ingest\\IngestEngineRouter'));
+    assert_true('Classe ClearMyDocsCapabilityProbe chargeable', class_exists('KDocs\\Services\\Ingest\\ClearMyDocsCapabilityProbe'));
+    assert_true('Classe CmdResultMapper chargeable', class_exists('KDocs\\Services\\Ingest\\CmdResultMapper'));
+    assert_true('.env.example INGEST_ENGINE', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'INGEST_ENGINE'));
+    assert_true('.env.example CLEARMYDOCS_MIN_VERSION', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'CLEARMYDOCS_MIN_VERSION'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);

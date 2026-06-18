@@ -90,13 +90,34 @@ class DocumentProcessor
         if (!$filePath || !file_exists($filePath)) {
             throw new \Exception("Fichier introuvable: " . ($filePath ?? 'chemin non défini'));
         }
+
+        // 1. Ingest dual-mode (ClearMyDocs v3 sidecar ou pipeline natif GED)
+        $ingestRouter = new \KDocs\Services\Ingest\IngestEngineRouter();
+        $ingestOutcome = $ingestRouter->process($documentId, $filePath, $document);
+        $results['ingest_engine'] = $ingestOutcome['engine'] ?? 'native';
+        $results['ingest'] = $ingestOutcome;
+        if (!empty($ingestOutcome['ocr'])) {
+            $results['ocr'] = true;
+            $document = Document::findById($documentId) ?? $document;
+        }
+        if (!empty($ingestOutcome['classification_queued'])) {
+            $results['classification_queued'] = true;
+        }
+        if (!empty($ingestOutcome['split'])) {
+            $results['pdf_split'] = $ingestOutcome;
+        }
+
+        $skipLegacyOcr = !empty($ingestOutcome['extract_done']);
+        $skipClassificationQueue = !empty($ingestOutcome['classification_skipped'])
+            || !empty($ingestOutcome['classification_queued'])
+            || !empty($ingestOutcome['split']);
         
-        // 1. OCR si pas de contenu OU si erreur OCR précédente détectée
+        // 1b. OCR legacy si le moteur ingest n'a pas extrait le texte
         $hasOcrError = !empty($document['ocr_text']) && 
                       (strpos($document['ocr_text'], 'OCR échoué') !== false || 
                        strpos($document['ocr_text'], 'Erreur OCR') !== false);
         
-        if ((empty($document['content']) && empty($document['ocr_text'])) || $hasOcrError) {
+        if (!$skipLegacyOcr && ((empty($document['content']) && empty($document['ocr_text'])) || $hasOcrError)) {
             try {
                 $content = $this->ocrService->extractText($filePath);
                 if ($content && !empty(trim($content))) {
@@ -170,17 +191,19 @@ class DocumentProcessor
             }
         }
         
-        // 1.5 Classification UnifiedClassifier (async — ne bloque pas la requête HTTP)
-        try {
-            if (filter_var(env('IA_UNIFIED_CLASSIFY_ENABLED', true), FILTER_VALIDATE_BOOLEAN)) {
-                $ingestClassifier = new \KDocs\Services\Classification\IngestClassificationService();
-                if ($ingestClassifier->queue($documentId)) {
-                    $results['classification_queued'] = true;
+        // 1.5 Classification UnifiedClassifier (async — skip si CMD couplé déjà confiant)
+        if (!$skipClassificationQueue) {
+            try {
+                if (filter_var(env('IA_UNIFIED_CLASSIFY_ENABLED', true), FILTER_VALIDATE_BOOLEAN)) {
+                    $ingestClassifier = new \KDocs\Services\Classification\IngestClassificationService();
+                    if ($ingestClassifier->queue($documentId)) {
+                        $results['classification_queued'] = true;
+                    }
                 }
+            } catch (\Exception $e) {
+                error_log("Erreur queue classification document {$documentId}: " . $e->getMessage());
+                $results['classification_queued'] = false;
             }
-        } catch (\Exception $e) {
-            error_log("Erreur queue classification document {$documentId}: " . $e->getMessage());
-            $results['classification_queued'] = false;
         }
         
         // 2. Matching automatique

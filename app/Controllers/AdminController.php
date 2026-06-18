@@ -302,6 +302,7 @@ class AdminController
             'embeddings' => $embeddings,
             'tools' => $tools,
             'services' => $services,
+            'ingestEngine' => (new \KDocs\Services\Ingest\IngestEngineRouter())->getStatus(),
         ]);
 
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [

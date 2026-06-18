@@ -106,7 +106,8 @@ Config utilisateur Windows : `%APPDATA%\ClearMyDocs\config.json`.
 2. ~~Brancher `PdfSplitService::detectPageGroups()`~~ — **fait** si `CLEARMYDOCS_ENABLED=true`.
 3. Tester sur corpus GED (PDF multi-factures) vs `PDFSplitterService` seul.
 4. ~~Brancher `UnifiedClassifier` sur ingest~~ — **fait** (lot IA-7).
-5. **Lot IA-8** : étendre sidecar `/extract` + `/ingest` (pipeline complet `indexer.py` sans DB CMD) — voir `IA-CLEARMYDOCS-INGESTION.md`.
+5. ~~Lot IA-8/9/10 : sidecar `/extract` `/analyze` `/ingest` + router dual-mode GED~~ — **fait** — voir `docs/INGEST-DUAL-MODE.md`.
+6. **Lot IA-11 (optionnel)** : recherche couplée proxy CMD vs `AISearchService` natif.
 
 ## Références
 
