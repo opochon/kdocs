@@ -24,7 +24,7 @@ if ($user && !empty($_COOKIE['kdocs_weak_password'])) {
 }
 ?>
 
-<?php if ($showEmptyPasswordWarning): ?>
+<?php if ($showEmptyPasswordWarning && isAppDebug()): ?>
 <div class="bg-amber-500 text-white px-4 py-2 text-sm flex items-center justify-between">
     <div class="flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +33,7 @@ if ($user && !empty($_COOKIE['kdocs_weak_password'])) {
         <span><strong>Sécurité :</strong> Le compte root n'a pas de mot de passe. <a href="<?= url('/admin/users') ?>" class="underline font-medium">Définissez-en un rapidement</a></span>
     </div>
 </div>
-<?php elseif ($showWeakPasswordWarning): ?>
+<?php elseif ($showWeakPasswordWarning && isAppDebug()): ?>
 <div class="bg-red-500 text-white px-4 py-2 text-sm flex items-center justify-between">
     <div class="flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

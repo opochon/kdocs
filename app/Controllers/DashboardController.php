@@ -37,11 +37,13 @@ class DashboardController
         
         $user = $request->getAttribute('user');
         $db = Database::getInstance();
+        $docFilter = documentVisibilitySql('d');
+        $docWhere = "d.deleted_at IS NULL AND {$docFilter}";
         
         // Statistiques générales
         $stats = [
-            'total_documents' => (int)$db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL")->fetchColumn(),
-            'indexed_documents' => (int)$db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND is_indexed = 1")->fetchColumn(),
+            'total_documents' => (int)$db->query("SELECT COUNT(*) FROM documents d WHERE {$docWhere}")->fetchColumn(),
+            'indexed_documents' => (int)$db->query("SELECT COUNT(*) FROM documents d WHERE {$docWhere} AND d.is_indexed = 1")->fetchColumn(),
             'total_tasks' => (int)$db->query("SELECT COUNT(*) FROM tasks")->fetchColumn(),
             'pending_tasks' => (int)$db->query("SELECT COUNT(*) FROM tasks WHERE status = 'pending'")->fetchColumn(),
             'total_correspondents' => (int)$db->query("SELECT COUNT(*) FROM correspondents")->fetchColumn(),
@@ -53,9 +55,10 @@ class DashboardController
             SELECT 
                 DATE_FORMAT(created_at, '%Y-%m') as month,
                 COUNT(*) as count
-            FROM documents
-            WHERE deleted_at IS NULL
-            AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            FROM documents d
+            LEFT JOIN document_types dt ON d.document_type_id = dt.id
+            WHERE {$docWhere}
+            AND d.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
             GROUP BY DATE_FORMAT(created_at, '%Y-%m')
             ORDER BY month
         ")->fetchAll();
@@ -67,7 +70,7 @@ class DashboardController
                 COUNT(d.id) as count
             FROM documents d
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
-            WHERE d.deleted_at IS NULL
+            WHERE {$docWhere}
             GROUP BY dt.id, dt.label
             ORDER BY count DESC
             LIMIT 10
@@ -80,7 +83,7 @@ class DashboardController
                 COUNT(d.id) as count
             FROM documents d
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
-            WHERE d.deleted_at IS NULL
+            WHERE {$docWhere}
             AND c.id IS NOT NULL
             GROUP BY c.id, c.name
             ORDER BY count DESC
@@ -90,15 +93,15 @@ class DashboardController
         // Montants totaux par mois
         $amountsByMonth = $db->query("
             SELECT 
-                DATE_FORMAT(document_date, '%Y-%m') as month,
-                SUM(amount) as total,
-                currency
-            FROM documents
-            WHERE deleted_at IS NULL
-            AND amount IS NOT NULL
-            AND amount > 0
-            AND document_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(document_date, '%Y-%m'), currency
+                DATE_FORMAT(d.document_date, '%Y-%m') as month,
+                SUM(d.amount) as total,
+                d.currency
+            FROM documents d
+            WHERE {$docWhere}
+            AND d.amount IS NOT NULL
+            AND d.amount > 0
+            AND d.document_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(d.document_date, '%Y-%m'), d.currency
             ORDER BY month, currency
         ")->fetchAll();
         
@@ -108,17 +111,17 @@ class DashboardController
             FROM documents d
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
-            WHERE d.deleted_at IS NULL
+            WHERE {$docWhere}
             ORDER BY d.created_at DESC
             LIMIT 10
         ")->fetchAll();
         
-        // Documents en attente de traitement
+        // Documents en attente de validation (aligné sidebar)
         $pendingDocuments = $db->query("
             SELECT COUNT(*) as count
-            FROM documents
-            WHERE deleted_at IS NULL
-            AND is_indexed = 0
+            FROM documents d
+            WHERE {$docWhere}
+            AND d.status IN ('pending', 'needs_review')
         ")->fetchColumn();
         
         $content = $this->renderTemplate(__DIR__ . '/../../templates/dashboard/index.php', [

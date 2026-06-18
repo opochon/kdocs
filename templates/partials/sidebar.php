@@ -20,8 +20,9 @@ $stats = [
     'pending_validation' => 0
 ];
 try {
+    $docFilter = documentVisibilitySql('documents');
     // Exclure les documents en attente de validation (pending) du compteur principal
-    $stats['documents'] = $db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND (status IS NULL OR status != 'pending')")->fetchColumn();
+    $stats['documents'] = $db->query("SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND (status IS NULL OR status != 'pending') AND {$docFilter}")->fetchColumn();
     $stats['tags'] = $db->query("SELECT COUNT(*) FROM tags")->fetchColumn();
     $stats['correspondents'] = $db->query("SELECT COUNT(*) FROM correspondents")->fetchColumn();
     $stats['saved_searches'] = $db->query("SELECT COUNT(*) FROM saved_searches")->fetchColumn();

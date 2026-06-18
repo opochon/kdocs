@@ -57,7 +57,9 @@
         </div>
     </form>
 
+    <?php if (isAppDebug()): ?>
     <div class="mt-6 text-center text-sm text-gray-600">
         <p>Compte par défaut : <code class="bg-gray-100 px-2 py-1 rounded">root</code> / mot de passe vide</p>
     </div>
+    <?php endif; ?>
 </div>
