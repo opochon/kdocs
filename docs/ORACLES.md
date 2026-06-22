@@ -82,6 +82,14 @@ Documentation détaillée existante : `docs/API.md`.
 3. **P0 corrections** : voir `docs/CORRECTIONS_PRIORITAIRES.md` (miniatures, aperçu modale, OCR).
 4. **Connecteur WinBiz** : code présent, statut « à valider en conditions réelles » (ODBC 32-bit).
 
+## Oracles produit (shell, plugins, chrome)
+
+Invariants navigation, `PluginRegistry`, ingest workers-only et règles chrome user/admin :
+**`docs/ORACLES-KDOCS-PRODUCT.md`**
+
+Spec simplification REDX : `docs/superpowers/specs/2026-06-18-kdocs-redx-simplification-design.md`  
+Roadmap phases B0→P2 : `docs/ROADMAP-KDOCS-PRODUCT.md`
+
 ## Fichiers de référence
 
 | Fichier | Rôle |
@@ -89,8 +97,11 @@ Documentation détaillée existante : `docs/API.md`.
 | `config/config.php` | Configuration active |
 | `database/schema_consolidated.sql` | Schéma BDD canonique |
 | `connectors/README.md` | Contrat connecteurs |
-| `docs/ROADMAP.md` | Feuille de route |
+| `docs/ROADMAP.md` | Feuille de route technique (legacy) |
+| `docs/ROADMAP-KDOCS-PRODUCT.md` | Feuille de route produit B0→P2 |
+| `docs/ORACLES-KDOCS-PRODUCT.md` | Invariants shell/plugins/chrome |
+| `docs/DETTE-UI-ORPHELINS.md` | Menus masqués / stubs |
 | `docs/CORRECTIONS_PRIORITAIRES.md` | Bugs bloquants |
 
 ---
-*Dernière mise à jour : migration GEDv1 — 2026-06-17*
+*Dernière mise à jour : 2026-06-22 — oracle produit B0*
