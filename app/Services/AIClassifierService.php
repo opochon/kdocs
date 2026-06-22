@@ -2,6 +2,12 @@
 /**
  * K-Docs - Service de Classification IA
  * Utilise Claude pour classifier automatiquement les documents
+ *
+ * @deprecated since B0.12 (2026-06-22) — Ne plus instancier directement pour l'ingest.
+ *             Point d'entrée canonique : {@see \KDocs\Services\Classifiers\UnifiedClassifier}
+ *             via {@see \KDocs\Services\Classification\IngestClassificationService}.
+ *             Ce service reste utilisé en interne par GedNativeClassifierAdapter (sans rupture).
+ *             Voir docs/DEPRECATED-AI-CLASSIFIER.md
  */
 
 namespace KDocs\Services;
