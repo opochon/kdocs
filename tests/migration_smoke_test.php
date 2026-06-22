@@ -239,6 +239,48 @@ if ($vendorOk) {
     assert_true('.env.example CLEARMYDOCS_MIN_VERSION', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'CLEARMYDOCS_MIN_VERSION'));
 }
 
+echo "\nLot B1 — GED pro (shell, recherche, admin)\n";
+$b1Files = [
+    'routes/web.php',
+    'app/Controllers/SearchController.php',
+    'templates/search/index.php',
+    'public/js/document-preview-modal.js',
+    'public/img/document-placeholder.svg',
+    'templates/components/document_thumbnail.php',
+    'templates/components/ui/button.php',
+    'templates/components/ui/card.php',
+    'templates/components/ui/badge.php',
+    'public/css/design-system.css',
+    'tools/bench-ingest.php',
+];
+foreach ($b1Files as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if (is_file(KDOCS_ROOT . '/templates/partials/sidebar_user.php')) {
+    $sidebarUser = (string) file_get_contents(KDOCS_ROOT . '/templates/partials/sidebar_user.php');
+    assert_true('sidebar user lien /search', str_contains($sidebarUser, '/search'));
+    assert_true('sidebar user sans /chat direct', !preg_match('#url\([\'"]/chat#', $sidebarUser));
+}
+if (is_file(KDOCS_ROOT . '/index.php')) {
+    $indexPhp = (string) file_get_contents(KDOCS_ROOT . '/index.php');
+    assert_true('index.php charge routes/web.php', str_contains($indexPhp, 'routes/web.php'));
+    assert_true('health winbiz_bridge check', str_contains($indexPhp, 'winbiz_bridge'));
+}
+if ($vendorOk) {
+    assert_true('Helper shellSidebarStats()', function_exists('shellSidebarStats'));
+    assert_true('Helper documentThumbnailPlaceholderUrl()', function_exists('documentThumbnailPlaceholderUrl'));
+    assert_true('Classe SearchController chargeable', class_exists('KDocs\\Controllers\\SearchController'));
+    assert_true('Classe WinBizBridgeClient chargeable', class_exists('KDocs\\Services\\WinBiz\\WinBizBridgeClient'));
+    assert_true('Classe WinBizMatchingService chargeable', class_exists('KDocs\\Services\\WinBiz\\WinBizMatchingService'));
+    assert_true('Classe LegalArchiveService chargeable', class_exists('KDocs\\Services\\Compliance\\LegalArchiveService'));
+}
+assert_true('apps/smq scaffold', is_file(KDOCS_ROOT . '/apps/smq/routes.php'));
+assert_true('apps/rh scaffold', is_file(KDOCS_ROOT . '/apps/rh/routes.php'));
+if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
+    $adminIdx = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/index.php');
+    assert_true('admin hub sans emoji', !preg_match('/[\x{1F300}-\x{1FAFF}]/u', $adminIdx));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);
