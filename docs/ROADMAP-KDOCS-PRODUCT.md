@@ -21,11 +21,11 @@ Objectif : socle utilisable, docs produit, stubs masqués, morts retirés.
 | B0.5 | Documenter stubs UI masqués (`docs/DETTE-UI-ORPHELINS.md`) | [x] |
 | B0.6 | Supprimer templates morts `index_old.php`, `show_old.php` | [x] |
 | B0.7 | SESSION-STATUS aligné roadmap B0 | [x] |
-| B0.8 | Séparer sidebar user (5 entrées) vs admin hub | [ ] |
-| B0.9 | Retirer post-traitement sync document dans `index.php` | [ ] |
-| B0.10 | Masquer Qdrant / recherche sémantique si infra absente | [ ] |
-| B0.11 | Supprimer `show_paperless.php` si grep = 0 | [ ] |
-| B0.12 | Geler appels directs `AIClassifierService` → `UnifiedClassifier` | [ ] |
+| B0.8 | Séparer sidebar user (5 entrées) vs admin hub | [x] |
+| B0.9 | Retirer post-traitement sync document dans `index.php` | [x] |
+| B0.10 | Masquer Qdrant / recherche sémantique si infra absente | [x] |
+| B0.11 | Supprimer `show_paperless.php` si grep = 0 | [x] |
+| B0.12 | Geler appels directs `AIClassifierService` → `UnifiedClassifier` | [x] |
 
 ---
 
@@ -122,6 +122,7 @@ Objectif : WORM, rétention 10 ans, TSA — niveau REDX long terme (GAP-020–02
 
 | Date | Lot | Commits |
 |------|-----|---------|
+| 2026-06-22 | B0.8–B0.12 crédibilité chrome + workers | `5ad203b`, `9f976a9`, `21f80d8`, `84defb4`, `94bf36d` |
 | 2026-06-22 | B0 docs + oracle + roadmap + harness | `d4fff49`, `cae5f19`, `089cf8c`, `e897044` |
 | 2026-06-18 | Ingest dual-mode CMD v3 | `693b2dc`, `f2be266` |
 | 2026-06-18 | UnifiedClassifier ingest | `347d125` |

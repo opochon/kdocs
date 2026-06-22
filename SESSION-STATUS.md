@@ -9,16 +9,16 @@
 
 | Phase | Avancement | Document |
 |-------|------------|----------|
-| **B0** Crédibilité | **7/12** | `docs/ROADMAP-KDOCS-PRODUCT.md` |
+| **B0** Crédibilité | **12/12** | `docs/ROADMAP-KDOCS-PRODUCT.md` |
 | B1 GED pro | 0/10 | idem |
 | A Factures | 0/8 | idem |
 | C SMQ | 0/4 | idem |
 | D RH | 0/4 | idem |
 | P2 Conformité CH | 0/5 | idem |
 
-**B0 complété cette session** : B0.1–B0.7 (spec, oracle, roadmap, harness, DETTE-UI, morts retirés, SESSION-STATUS).
+**B0 complété cette session** : B0.1–B0.12 (spec, oracle, roadmap, harness, DETTE-UI, morts retirés, sidebar 5 entrées, workers-only, Qdrant UI, gel AIClassifier).
 
-**Prochain lot B0** : B0.8 sidebar 5 entrées + hub admin.
+**Prochain lot** : B1 — GED pro (hub admin tuiles, `/search`, refactor fiche doc).
 
 ### Commits session 2026-06-22 (B0)
 
@@ -27,7 +27,12 @@
 | B0.1 | `d4fff49` | `docs(ged): spec produit K-Docs vs REDX et roadmap B0` |
 | B0.2 | `cae5f19` | `docs(ged): dette UI stubs invoices et mail masques` |
 | B0.3 | `089cf8c` | `chore(ged): retirer templates documents morts` |
-| B0.4 | `e897044` | `chore(ged): oracle produit et harness roadmap B0` |
+| B0.7 | `5b8631b` | `docs(ged): SESSION-STATUS aligné roadmap B0` |
+| B0.8 | `5ad203b` | `feat(ged): séparer sidebar user 5 entrées et hub admin B0.8` |
+| B0.9 | `9f976a9` | `fix(ged): retirer traitement sync document de index.php B0.9` |
+| B0.10 | `21f80d8` | `fix(ged): masquer UI Qdrant si infra absente B0.10` |
+| B0.11 | `84defb4` | `chore(ged): supprimer show_paperless.php orphelin B0.11` |
+| B0.12 | `94bf36d` | `docs(ged): geler cascade directe AIClassifierService B0.12` |
 
 ### Commits session 2026-06-18 (dual-mode)
 
@@ -41,11 +46,11 @@
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-php tests\migration_smoke_test.php    REM 84/84 offline (post-B0)
+php tests\migration_smoke_test.php    REM 102/102 offline (post-B0.12)
 vendor\bin\phpunit tests/Unit/Services/Ingest/ ...  REM 15/15 ingest+classifiers (lot ciblé)
 ```
 
-**Dernier run** : **84 passés, 0 échoués** (migration_smoke_test) · **15/15** PHPUnit ingest/classifiers (2026-06-22)
+**Dernier run** : **102 passés, 0 échoués** (migration_smoke_test) · **15/15** PHPUnit ingest/classifiers (2026-06-22)
 
 ### Docs produit B0 (nouveaux)
 
@@ -71,12 +76,15 @@ vendor\bin\phpunit tests/Unit/Services/Ingest/ ...  REM 15/15 ingest+classifiers
 
 | Fait | Reste (roadmap B0/B1) |
 |------|------------------------|
-| Helper `asset()` + route `/public/*` | Sidebar 5 entrées user (B0.8) |
-| Favicon SVG, pages 404/500 pro | Hub `/admin` séparé (B1.2) |
-| Masquer bannière sécurité hors `APP_DEBUG` | Refactor `documents/index.php` (B1.5) |
-| Filtrer docs `test_*` dashboard + sidebar | Design system composants (B1.6) |
-| Compteur « En attente » aligné sidebar | Retirer sync ingest `index.php` (B0.9) |
-| Dashboard icônes SVG | `show_paperless.php` à retirer (B0.11) |
+| Helper `asset()` + route `/public/*` | Hub admin tuiles enrichi (B1.2) |
+| Favicon SVG, pages 404/500 pro | Refactor `documents/index.php` (B1.5) |
+| Masquer bannière sécurité hors `APP_DEBUG` | Design system composants (B1.6) |
+| Filtrer docs `test_*` dashboard + sidebar | Route `/search` unifiée (B1.3) |
+| Compteur « En attente » aligné sidebar | — |
+| Dashboard icônes SVG | — |
+| Sidebar 5 entrées user + hub admin (B0.8) | — |
+| Ingest workers-only, sans sync index.php (B0.9) | — |
+| UI Qdrant masquée si infra absente (B0.10) | — |
 
 ### Push GitHub
 
@@ -104,4 +112,4 @@ vendor\bin\phpunit tests/Unit/Services/Ingest/ ...  REM 15/15 ingest+classifiers
 
 ---
 
-*Dernière mise à jour : 2026-06-22 — lot B0 crédibilité produit*
+*Dernière mise à jour : 2026-06-22 — lot B0 crédibilité produit (12/12)*
