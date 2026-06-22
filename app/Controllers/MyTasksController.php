@@ -60,7 +60,7 @@ class MyTasksController
             'counts' => $counts,
             'activeTab' => $activeTab,
             'recipients' => $recipients,
-            'pageTitle' => 'Mes Tâches'
+            'pageTitle' => 'À traiter'
         ];
 
         // Rendu du template

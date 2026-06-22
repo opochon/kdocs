@@ -12,7 +12,7 @@ $base = Config::basePath();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'Mes Tâches') ?> - K-Docs</title>
+    <title><?= htmlspecialchars($pageTitle ?? 'À traiter') ?> - K-Docs</title>
     <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
 </head>
 <body class="bg-gray-50">
@@ -30,9 +30,9 @@ $base = Config::basePath();
                 <div class="max-w-7xl mx-auto">
                     <!-- Page header -->
                     <div class="mb-6">
-                        <h1 class="text-2xl font-semibold text-gray-900">Mes Tâches</h1>
+                        <h1 class="text-2xl font-semibold text-gray-900">À traiter</h1>
                         <p class="text-sm text-gray-500 mt-1">
-                            <?= $counts['total'] ?> tâche(s) en attente
+                            Validation, classement et workflows — <?= $counts['total'] ?> élément(s)
                             <?php if ($counts['urgent'] > 0): ?>
                             <span class="text-red-600 font-medium">(<?= $counts['urgent'] ?> urgente(s))</span>
                             <?php endif; ?>

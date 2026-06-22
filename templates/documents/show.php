@@ -151,49 +151,16 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                 </div>
             </div>
             
-            <div class="relative" id="custom-fields-dropdown">
-                <button onclick="toggleDropdown('custom-fields-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50">
-                    <span class="hidden lg:inline">Champs personnalisés</span>
-                    <span class="lg:hidden">Champs</span>
-                </button>
-                <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[250px] p-3">
-                    <p class="text-sm text-gray-600 mb-2">Ajouter un champ personnalisé</p>
-                    <select id="custom-field-select" class="w-full text-sm border border-gray-300 rounded px-2 py-1 mb-2">
-                        <option value="">Sélectionner un champ...</option>
-                        <?php
-                        try {
-                            $customFields = \KDocs\Models\CustomField::all();
-                            foreach ($customFields as $cf) {
-                                echo '<option value="' . $cf['id'] . '">' . htmlspecialchars($cf['name']) . '</option>';
-                            }
-                        } catch (\Exception $e) {}
-                        ?>
-                    </select>
-                    <button onclick="addCustomField()" class="w-full px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Ajouter
-                    </button>
-                </div>
-            </div>
-            
             <div class="relative" id="send-dropdown">
                 <button onclick="toggleDropdown('send-dropdown')" class="px-3 py-1.5 text-sm border border-blue-300 text-blue-700 rounded hover:bg-blue-50 flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                     </svg>
                     <span class="hidden lg:inline">Envoyer</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
                 </button>
                 <div class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10 min-w-[200px]">
                     <button onclick="openNoteModal(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         Envoyer une note
-                    </button>
-                    <button onclick="openShareLinks(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        Liens de partage
-                    </button>
-                    <button onclick="openEmailDocument(<?= $document['id'] ?>)" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        Email
                     </button>
                 </div>
             </div>
@@ -711,13 +678,33 @@ document.getElementById('tag-select')?.addEventListener('change', function() {
 });
 
 function addTag(tagId) {
-    // TODO: Implémenter l'ajout de tag via API
-    console.log('Ajouter tag:', tagId);
+    fetch('<?= url('/api/documents/' . $document['id'] . '/tags') ?>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag_ids: [parseInt(tagId, 10)] })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message || 'Erreur lors de l\'ajout du tag');
+        }
+    });
 }
 
 function removeTag(tagId) {
-    // TODO: Implémenter la suppression de tag via API
-    console.log('Supprimer tag:', tagId);
+    fetch('<?= url('/api/documents/' . $document['id'] . '/tags/') ?>' + tagId, {
+        method: 'DELETE'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message || 'Erreur lors de la suppression du tag');
+        }
+    });
 }
 
 // Gestion des notes
@@ -991,33 +978,25 @@ async function getAISuggestions(docId) {
     }
 }
 
-function addCustomField() {
-    // TODO: Implémenter ajout champ personnalisé
-    alert('Ajout champ personnalisé à implémenter');
-}
-
-function removeCustomField(fieldValueId) {
-    // TODO: Implémenter suppression champ personnalisé
-    alert('Suppression champ personnalisé à implémenter');
-}
-
 function reprocessDocument(docId) {
-    // TODO: Implémenter retraitement
-    alert('Retraitement à implémenter');
+    if (!confirm('Retraiter ce document avec l\'OCR ?')) return;
+    fetch('<?= url('/api/documents/') ?>' + docId + '/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Retraitement lancé. La page va se recharger.');
+            window.location.reload();
+        } else {
+            alert(data.message || 'Erreur lors du retraitement');
+        }
+    });
 }
 
 function printDocument() {
     window.print();
-}
-
-function openShareLinks(docId) {
-    // TODO: Implémenter liens de partage
-    alert('Liens de partage à implémenter');
-}
-
-function openEmailDocument(docId) {
-    // TODO: Implémenter email
-    alert('Email à implémenter');
 }
 
 // Note modal functions
