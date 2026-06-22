@@ -130,6 +130,7 @@ use KDocs\Controllers\Admin\AttributionRulesController;
 use KDocs\Controllers\Admin\SnapshotsController;
 use KDocs\Controllers\MyTasksController;
 use KDocs\Controllers\ChatController;
+use KDocs\Controllers\SearchController;
 use KDocs\Middleware\AuthMiddleware;
 use KDocs\Middleware\AutoIndexMiddleware;
 use KDocs\Middleware\RateLimitMiddleware;
@@ -300,6 +301,23 @@ $app->get('/health', function($request, $response) {
         $checks['winbiz'] = ['status' => 'warning', 'message' => $e->getMessage()];
     }
 
+    // 10. WinBiz HTTP bridge (k-winbiz-bridge — phase A)
+    $bridgeUrl = rtrim((string) env('WINBIZ_BRIDGE_URL', ''), '/');
+    if ($bridgeUrl !== '') {
+        $ch = curl_init($bridgeUrl . '/health');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
+        curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $checks['winbiz_bridge'] = [
+            'status' => $httpCode === 200 ? 'ok' : 'warning',
+            'message' => $httpCode === 200 ? 'Bridge reachable' : "HTTP {$httpCode}",
+            'url' => $bridgeUrl,
+        ];
+    } else {
+        $checks['winbiz_bridge'] = ['status' => 'warning', 'message' => 'WINBIZ_BRIDGE_URL not configured'];
+    }
+
     // Build response
     $result = [
         'status' => $status,
@@ -324,20 +342,10 @@ function renderTemplate($templatePath, $data = []) {
 
 // Routes protégées (avec authentification)
 $app->group('', function ($group) {
-    // Dashboard (Priorité 2.5)
-    $group->get('/', [DashboardController::class, 'index']);
-    $group->get('/dashboard', [DashboardController::class, 'index']);
-    
-    // Chat IA
-    $group->get('/chat', [ChatController::class, 'index']);
+    $registerShellRoutes = require __DIR__ . '/routes/web.php';
+    $registerShellRoutes($group);
 
-    // Mes Tâches (centralisé)
-    $group->get('/mes-taches', [MyTasksController::class, 'index']);
-
-    // Documents
-    $group->get('/documents', [DocumentsController::class, 'index']);
-    $group->get('/documents/upload', [DocumentsController::class, 'showUpload']);
-    $group->post('/documents/upload', [DocumentsController::class, 'upload']);
+    // Documents (détail et actions — hors routes/web.php shell)
     $group->get('/documents/{id}', [DocumentsController::class, 'show']);
     $group->get('/documents/{id}/edit', [DocumentsController::class, 'showEdit']);
     $group->post('/documents/{id}/edit', [DocumentsController::class, 'edit']);
