@@ -46,11 +46,11 @@
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-php tests\migration_smoke_test.php    REM 102/102 offline (post-B0.12)
+php tests\migration_smoke_test.php    REM 101/101 offline (post-B0.12)
 vendor\bin\phpunit tests/Unit/Services/Ingest/ ...  REM 15/15 ingest+classifiers (lot ciblé)
 ```
 
-**Dernier run** : **102 passés, 0 échoués** (migration_smoke_test) · **15/15** PHPUnit ingest/classifiers (2026-06-22)
+**Dernier run** : **101 passés, 0 échoués** (migration_smoke_test) · **15/15** PHPUnit ingest/classifiers (2026-06-22)
 
 ### Docs produit B0 (nouveaux)
 
