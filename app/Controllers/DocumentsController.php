@@ -1095,6 +1095,14 @@ class DocumentsController
         }
 
         if (!$thumbnailPath || !file_exists($thumbnailPath)) {
+            $placeholder = dirname(__DIR__, 2) . '/public/img/document-placeholder.svg';
+            if (is_file($placeholder)) {
+                $response->getBody()->write((string) file_get_contents($placeholder));
+                return $response
+                    ->withHeader('Content-Type', 'image/svg+xml')
+                    ->withHeader('Cache-Control', 'public, max-age=300');
+            }
+
             return $response->withStatus(404);
         }
 

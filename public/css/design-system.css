@@ -1,0 +1,32 @@
+/**
+ * Design system minimal K-Docs (B1.6) — complète Tailwind inline.
+ */
+:root {
+  --kdocs-card-radius: 0.5rem;
+  --kdocs-badge-radius: 9999px;
+}
+
+.kdocs-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--kdocs-card-radius);
+  padding: 1rem;
+}
+
+.kdocs-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--kdocs-badge-radius);
+}
+
+.kdocs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+}

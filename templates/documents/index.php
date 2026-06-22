@@ -345,16 +345,14 @@ $base = Config::basePath();
                     <!-- Thumbnail -->
                     <div class="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden relative">
                         <?php if (!empty($doc['id'])): ?>
-                        <img src="<?= url('/documents/' . $doc['id'] . '/thumbnail') ?>" 
-                             alt="<?= htmlspecialchars($doc['title'] ?? $doc['filename']) ?>"
-                             class="w-full h-full object-cover"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <?php endif; ?>
-                        <div class="w-full h-full flex items-center justify-center <?= !empty($doc['id']) ? 'hidden' : '' ?>">
+                        <?php $documentId = (int) $doc['id']; $alt = $doc['title'] ?? $doc['filename'] ?? 'Document'; include __DIR__ . '/../components/document_thumbnail.php'; ?>
+                        <?php else: ?>
+                        <div class="w-full h-full flex items-center justify-center">
                             <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
+                        <?php endif; ?>
                     </div>
                     
                     <!-- Info -->
@@ -434,88 +432,9 @@ $base = Config::basePath();
 }
 </style>
 
+<script src="<?= asset('js/document-preview-modal.js') ?>"></script>
 <script>
-// ===== MODALE DE PRÉVISUALISATION =====
-let currentPreviewIndex = 0;
-let documentsList = [];
-
-// Collecter tous les IDs des documents affichés
-function collectDocumentIds() {
-    documentsList = [];
-    document.querySelectorAll('.document-card[data-doc-id]').forEach(card => {
-        const id = parseInt(card.dataset.docId);
-        if (id > 0) {
-            documentsList.push(id);
-        }
-    });
-}
-
-// Ouvrir la modale de prévisualisation
-function openDocumentPreview(docId, index) {
-    if (!docId) return;
-
-    collectDocumentIds();
-    currentPreviewIndex = index;
-
-    const modal = document.getElementById('document-preview-modal');
-    const panel = document.getElementById('preview-panel');
-
-    // Afficher la modale
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-
-    // Animer le panneau
-    setTimeout(() => {
-        panel.classList.remove('translate-x-full');
-    }, 10);
-
-    // Charger le document
-    loadDocumentPreview(docId);
-
-    // Mettre à jour la navigation
-    updatePreviewNavigation();
-}
-
-// Fermer la modale
-function closeDocumentPreview() {
-    const modal = document.getElementById('document-preview-modal');
-    const panel = document.getElementById('preview-panel');
-
-    panel.classList.add('translate-x-full');
-
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-        // Nettoyer le viewer
-        document.getElementById('preview-viewer').innerHTML = '';
-        document.getElementById('preview-viewer').classList.add('hidden');
-        document.getElementById('preview-loading').classList.remove('hidden');
-    }, 300);
-}
-
-// Naviguer entre les documents
-function navigatePreview(direction) {
-    const newIndex = currentPreviewIndex + direction;
-    if (newIndex >= 0 && newIndex < documentsList.length) {
-        currentPreviewIndex = newIndex;
-        const docId = documentsList[newIndex];
-        loadDocumentPreview(docId);
-        updatePreviewNavigation();
-    }
-}
-
-// Mettre à jour les boutons de navigation
-function updatePreviewNavigation() {
-    const prevBtn = document.getElementById('preview-prev-btn');
-    const nextBtn = document.getElementById('preview-next-btn');
-    const position = document.getElementById('preview-position');
-
-    prevBtn.disabled = currentPreviewIndex <= 0;
-    nextBtn.disabled = currentPreviewIndex >= documentsList.length - 1;
-    position.textContent = `${currentPreviewIndex + 1} / ${documentsList.length}`;
-}
-
-// Charger les détails du document
+// ===== MODALE DE PRÉVISUALISATION (load/render dans ce fichier) =====
 function loadDocumentPreview(docId) {
     const loading = document.getElementById('preview-loading');
     const viewer = document.getElementById('preview-viewer');
