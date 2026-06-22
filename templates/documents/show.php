@@ -478,6 +478,7 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                                     <?php endif; ?>
                                 </td>
                             </tr>
+                            <?php if (isQdrantUiEnabled()): ?>
                             <tr>
                                 <td class="py-2 text-gray-600 font-medium">Vectorisé</td>
                                 <td class="py-2 text-gray-900">
@@ -499,6 +500,7 @@ $canPreview = $isPDF || $isImage || $canPreviewOffice;
                                     <?php endif; ?>
                                 </td>
                             </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

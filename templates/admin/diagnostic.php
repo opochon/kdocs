@@ -160,7 +160,8 @@
         </div>
     </div>
 
-    <!-- Embeddings -->
+    <!-- Embeddings — visible si infra Qdrant activée -->
+    <?php if (isQdrantUiEnabled()): ?>
     <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Embeddings / Recherche sémantique</h2>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -184,6 +185,7 @@
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Outils externes -->
     <div class="bg-white rounded-lg shadow p-6">

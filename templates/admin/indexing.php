@@ -138,7 +138,8 @@ $isRunning = $status['is_running'] ?? false;
         </div>
     </div>
 
-    <!-- Moteur Sémantique / Embeddings -->
+    <!-- Moteur Sémantique / Embeddings — visible si infra Qdrant activée -->
+    <?php if (isQdrantUiEnabled()): ?>
     <?php
     $semantic = $semanticInfo ?? [];
     $modelInfo = $semantic['model_info'] ?? [];
@@ -231,6 +232,7 @@ $isRunning = $status['is_running'] ?? false;
             <?php endif; ?>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Logs recents -->
     <div class="bg-white rounded-lg border border-gray-200">

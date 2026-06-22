@@ -610,7 +610,8 @@ $errorMsg = $_GET['error'] ?? null;
         }
         </script>
 
-        <!-- Section Recherche Sémantique (Ollama + Qdrant) -->
+        <!-- Section Recherche Sémantique (Ollama + Qdrant) — visible si infra Qdrant activée -->
+        <?php if (isQdrantUiEnabled()): ?>
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-800">🔮 Recherche Sémantique</h2>
@@ -684,6 +685,7 @@ $errorMsg = $_GET['error'] ?? null;
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Section OCR (champ éditable conservé) -->
         <div class="bg-white rounded-lg shadow p-6">

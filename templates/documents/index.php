@@ -965,14 +965,14 @@ function renderDocumentMetadata(doc) {
                             ${doc.is_indexed ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
                             ${doc.indexed_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.indexed_at)})</span>` : ''}
                         </td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Vectorisé</td><td class="py-1.5">
+                        ${QDRANT_UI_ENABLED ? `<tr><td class="py-1.5 text-gray-500">Vectorisé</td><td class="py-1.5">
                             ${doc.embedding_status === 'completed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : 
                               doc.embedding_status === 'failed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-800">Erreur</span>` :
                               doc.embedding_status === 'processing' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800">En cours</span>` :
                               doc.embedding_status === 'pending' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">En attente</span>` :
                               `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
                             ${doc.vector_updated_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.vector_updated_at)})</span>` : ''}
-                        </td></tr>
+                        </td></tr>` : ''}
                     </tbody>
                 </table>
             </div>
@@ -1807,6 +1807,7 @@ function showNotification(message, type = 'info') {
 
 // ===== CHARGEMENT AJAX DES DOCUMENTS =====
 const BASE_PATH = '<?= $base ?>';
+const QDRANT_UI_ENABLED = <?= isQdrantUiEnabled() ? 'true' : 'false' ?>;
 
 // Charger les documents d'un dossier via AJAX (appelé par les liens de la sidebar)
 function loadFolderDocuments(path, updateUrl = true) {
