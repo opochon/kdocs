@@ -322,34 +322,6 @@ function renderTemplate($templatePath, $data = []) {
     return ob_get_clean();
 }
 
-// Traitement automatique en arrière-plan (non bloquant)
-// Traite les documents en attente (OCR + métadonnées)
-try {
-    $processor = new \KDocs\Services\DocumentProcessor();
-    $processor->processPendingDocuments(5);
-} catch (\Exception $e) {
-    // Ignorer les erreurs silencieusement en production
-    $config = Config::load();
-    if ($config['app']['debug'] ?? false) {
-        error_log("Background processing error: " . $e->getMessage());
-    }
-}
-
-// Déclenchement automatique du crawler (toutes les 10 minutes)
-// Vérifie s'il y a des queues et si le dernier crawl date de plus de 10 minutes
-try {
-    $autoTrigger = new \KDocs\Services\CrawlerAutoTrigger();
-    if ($autoTrigger->shouldRun() && $autoTrigger->hasQueues()) {
-        $autoTrigger->trigger();
-    }
-} catch (\Exception $e) {
-    // Ignorer les erreurs silencieusement
-    $config = Config::load();
-    if ($config['app']['debug'] ?? false) {
-        error_log("CrawlerAutoTrigger error: " . $e->getMessage());
-    }
-}
-
 // Routes protégées (avec authentification)
 $app->group('', function ($group) {
     // Dashboard (Priorité 2.5)

@@ -141,6 +141,22 @@ if ($vendorOk) {
     assert_true('Helper isAdminChromeRoute()', function_exists('isAdminChromeRoute'));
 }
 
+echo "\nLot B0.9 — ingest workers-only (index.php)\n";
+if (is_file(KDOCS_ROOT . '/index.php')) {
+    $indexPhp = (string) file_get_contents(KDOCS_ROOT . '/index.php');
+    assert_true('index.php sans processPendingDocuments sync', !str_contains($indexPhp, 'processPendingDocuments'));
+    assert_true('index.php sans CrawlerAutoTrigger sync', !str_contains($indexPhp, 'CrawlerAutoTrigger'));
+}
+
+echo "\nLot B0.10 — UI Qdrant conditionnelle\n";
+if ($vendorOk) {
+    assert_true('Helper isQdrantUiEnabled()', function_exists('isQdrantUiEnabled'));
+}
+if (is_file(KDOCS_ROOT . '/templates/admin/settings.php')) {
+    $settingsTpl = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/settings.php');
+    assert_true('settings.php gate isQdrantUiEnabled', str_contains($settingsTpl, 'isQdrantUiEnabled()'));
+}
+
 echo "\nModules chantier GEDv1\n";
 assert_true('ConnectorInterface', is_file(KDOCS_ROOT . '/app/Connectors/ConnectorInterface.php'));
 assert_true('PluginRegistry', is_file(KDOCS_ROOT . '/app/Core/PluginRegistry.php'));
