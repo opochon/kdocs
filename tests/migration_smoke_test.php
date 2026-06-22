@@ -127,6 +127,20 @@ if (is_file(KDOCS_ROOT . '/docs/ORACLES-KDOCS-PRODUCT.md')) {
 assert_true('templates/documents/index_old.php absent', !is_file(KDOCS_ROOT . '/templates/documents/index_old.php'));
 assert_true('templates/documents/show_old.php absent', !is_file(KDOCS_ROOT . '/templates/documents/show_old.php'));
 
+echo "\nLot B0.8 — sidebar user vs admin\n";
+assert_true('partials/sidebar_user.php', is_file(KDOCS_ROOT . '/templates/partials/sidebar_user.php'));
+assert_true('partials/sidebar_admin.php', is_file(KDOCS_ROOT . '/templates/partials/sidebar_admin.php'));
+if (is_file(KDOCS_ROOT . '/templates/partials/sidebar_user.php')) {
+    $sidebarUser = (string) file_get_contents(KDOCS_ROOT . '/templates/partials/sidebar_user.php');
+    foreach (['Bibliothèque', 'Recherche', 'À traiter', 'Importer', 'Administration'] as $label) {
+        assert_true("sidebar user contient « {$label} »", str_contains($sidebarUser, $label));
+    }
+    assert_true('sidebar user sans lien admin/tags', !str_contains($sidebarUser, '/admin/tags'));
+}
+if ($vendorOk) {
+    assert_true('Helper isAdminChromeRoute()', function_exists('isAdminChromeRoute'));
+}
+
 echo "\nModules chantier GEDv1\n";
 assert_true('ConnectorInterface', is_file(KDOCS_ROOT . '/app/Connectors/ConnectorInterface.php'));
 assert_true('PluginRegistry', is_file(KDOCS_ROOT . '/app/Core/PluginRegistry.php'));

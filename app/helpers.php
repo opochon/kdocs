@@ -74,6 +74,37 @@ if (!function_exists('isAppDebug')) {
     }
 }
 
+if (!function_exists('isAdminChromeRoute')) {
+    /**
+     * Détermine si la route courante utilise le chrome admin (sidebar admin).
+     */
+    function isAdminChromeRoute(?string $currentRoute = null, ?string $basePath = null): bool
+    {
+        $currentRoute = $currentRoute ?? ($_SERVER['REQUEST_URI'] ?? '/');
+        $basePath = $basePath ?? Config::basePath();
+        $prefixes = [
+            $basePath . '/admin',
+            $basePath . '/time',
+        ];
+        foreach ($prefixes as $prefix) {
+            if ($prefix !== $basePath && str_starts_with($currentRoute, $prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+if (!function_exists('isQdrantUiEnabled')) {
+    /**
+     * Afficher l'UI Qdrant / recherche vectorielle (infra déployée et activée).
+     */
+    function isQdrantUiEnabled(): bool
+    {
+        return filter_var(Config::get('qdrant.enabled', false), FILTER_VALIDATE_BOOLEAN);
+    }
+}
+
 if (!function_exists('documentVisibilitySql')) {
     /**
      * Filtre SQL excluant les documents de test (test_*) hors mode debug.
