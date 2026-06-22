@@ -103,6 +103,30 @@ foreach (['docs/ORACLES.md', 'docs/ARCHITECTURE.md', 'SESSION-STATUS.md'] as $do
     assert_true($doc, is_file(KDOCS_ROOT . '/' . $doc));
 }
 
+echo "\nLot B0 — spec produit K-Docs vs REDX\n";
+$productDocs = [
+    'docs/superpowers/specs/2026-06-18-kdocs-redx-simplification-design.md',
+    'docs/ORACLES-KDOCS-PRODUCT.md',
+    'docs/ROADMAP-KDOCS-PRODUCT.md',
+    'docs/DETTE-UI-ORPHELINS.md',
+];
+foreach ($productDocs as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if (is_file(KDOCS_ROOT . '/docs/ROADMAP-KDOCS-PRODUCT.md')) {
+    $roadmap = (string) file_get_contents(KDOCS_ROOT . '/docs/ROADMAP-KDOCS-PRODUCT.md');
+    assert_true('ROADMAP phase B0', str_contains($roadmap, '## Phase B0'));
+    assert_true('ROADMAP phase B1', str_contains($roadmap, '## Phase B1'));
+    assert_true('ROADMAP phase A Factures', str_contains($roadmap, '## Phase A'));
+}
+if (is_file(KDOCS_ROOT . '/docs/ORACLES-KDOCS-PRODUCT.md')) {
+    $oracle = (string) file_get_contents(KDOCS_ROOT . '/docs/ORACLES-KDOCS-PRODUCT.md');
+    assert_true('Oracle PluginRegistry', str_contains($oracle, 'PluginRegistry'));
+    assert_true('Oracle workers-only ingest', str_contains($oracle, 'workers'));
+}
+assert_true('templates/documents/index_old.php absent', !is_file(KDOCS_ROOT . '/templates/documents/index_old.php'));
+assert_true('templates/documents/show_old.php absent', !is_file(KDOCS_ROOT . '/templates/documents/show_old.php'));
+
 echo "\nModules chantier GEDv1\n";
 assert_true('ConnectorInterface', is_file(KDOCS_ROOT . '/app/Connectors/ConnectorInterface.php'));
 assert_true('PluginRegistry', is_file(KDOCS_ROOT . '/app/Core/PluginRegistry.php'));
