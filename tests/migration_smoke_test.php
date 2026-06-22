@@ -157,6 +157,17 @@ if (is_file(KDOCS_ROOT . '/templates/admin/settings.php')) {
     assert_true('settings.php gate isQdrantUiEnabled', str_contains($settingsTpl, 'isQdrantUiEnabled()'));
 }
 
+echo "\nLot B0.11 — template show_paperless retiré\n";
+assert_true('templates/documents/show_paperless.php absent', !is_file(KDOCS_ROOT . '/templates/documents/show_paperless.php'));
+
+echo "\nLot B0.12 — gel AIClassifierService\n";
+assert_true('docs/DEPRECATED-AI-CLASSIFIER.md', is_file(KDOCS_ROOT . '/docs/DEPRECATED-AI-CLASSIFIER.md'));
+if (is_file(KDOCS_ROOT . '/app/Services/AIClassifierService.php')) {
+    $aiCls = (string) file_get_contents(KDOCS_ROOT . '/app/Services/AIClassifierService.php');
+    assert_true('AIClassifierService marqué @deprecated', str_contains($aiCls, '@deprecated'));
+    assert_true('AIClassifierService pointe UnifiedClassifier', str_contains($aiCls, 'UnifiedClassifier'));
+}
+
 echo "\nModules chantier GEDv1\n";
 assert_true('ConnectorInterface', is_file(KDOCS_ROOT . '/app/Connectors/ConnectorInterface.php'));
 assert_true('PluginRegistry', is_file(KDOCS_ROOT . '/app/Core/PluginRegistry.php'));
