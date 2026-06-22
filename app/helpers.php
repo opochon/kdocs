@@ -122,3 +122,67 @@ if (!function_exists('documentVisibilitySql')) {
         return "({$t}.title NOT LIKE 'test\\_%' AND ({$t}.original_filename IS NULL OR {$t}.original_filename NOT LIKE 'test\\_%'))";
     }
 }
+
+if (!function_exists('shellSidebarStats')) {
+    /**
+     * Compteurs sidebar user — source unique (Bibliothèque, À traiter).
+     *
+     * @return array{documents: int, pending_validation: int, tasks: int, inbox_badge: int}
+     */
+    function shellSidebarStats(?int $userId = null): array
+    {
+        static $cache = [];
+
+        $key = $userId ?? 0;
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
+        $stats = [
+            'documents' => 0,
+            'pending_validation' => 0,
+            'tasks' => 0,
+            'inbox_badge' => 0,
+        ];
+
+        try {
+            $db = \KDocs\Core\Database::getInstance();
+            $docFilter = documentVisibilitySql('documents');
+            $stats['documents'] = (int) $db->query(
+                "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND (status IS NULL OR status != 'pending') AND {$docFilter}"
+            )->fetchColumn();
+            $stats['pending_validation'] = (int) $db->query(
+                "SELECT COUNT(*) FROM documents WHERE status IN ('pending', 'needs_review')"
+            )->fetchColumn();
+
+            if ($userId !== null && $userId > 0) {
+                $taskService = new \KDocs\Services\TaskUnifiedService();
+                $taskCounts = $taskService->getTaskCounts($userId);
+                $stats['tasks'] = (int) ($taskCounts['total'] ?? 0);
+            }
+        } catch (\Exception $e) {
+            // Setup minimal sans BDD
+        }
+
+        $stats['inbox_badge'] = max($stats['pending_validation'], $stats['tasks']);
+        $cache[$key] = $stats;
+
+        return $stats;
+    }
+}
+
+if (!function_exists('documentThumbnailUrl')) {
+    /** URL miniature document (fallback géré côté composant). */
+    function documentThumbnailUrl(int $documentId): string
+    {
+        return url('/documents/' . $documentId . '/thumbnail');
+    }
+}
+
+if (!function_exists('documentThumbnailPlaceholderUrl')) {
+    /** SVG placeholder uniforme quand la miniature est absente. */
+    function documentThumbnailPlaceholderUrl(): string
+    {
+        return asset('img/document-placeholder.svg');
+    }
+}
