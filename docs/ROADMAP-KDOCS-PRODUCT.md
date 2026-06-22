@@ -122,7 +122,7 @@ Objectif : WORM, rétention 10 ans, TSA — niveau REDX long terme (GAP-020–02
 
 | Date | Lot | Commits |
 |------|-----|---------|
-| 2026-06-22 | B0 docs + oracle + roadmap + harness | `d4fff49`, `cae5f19`, `089cf8c` |
+| 2026-06-22 | B0 docs + oracle + roadmap + harness | `d4fff49`, `cae5f19`, `089cf8c`, `e897044` |
 | 2026-06-18 | Ingest dual-mode CMD v3 | `693b2dc`, `f2be266` |
 | 2026-06-18 | UnifiedClassifier ingest | `347d125` |
 

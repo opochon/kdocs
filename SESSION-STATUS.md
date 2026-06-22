@@ -27,7 +27,7 @@
 | B0.1 | `d4fff49` | `docs(ged): spec produit K-Docs vs REDX et roadmap B0` |
 | B0.2 | `cae5f19` | `docs(ged): dette UI stubs invoices et mail masques` |
 | B0.3 | `089cf8c` | `chore(ged): retirer templates documents morts` |
-| B0.4 | *(ce commit)* | `chore(ged): oracle produit et harness roadmap B0` |
+| B0.4 | `e897044` | `chore(ged): oracle produit et harness roadmap B0` |
 
 ### Commits session 2026-06-18 (dual-mode)
 
