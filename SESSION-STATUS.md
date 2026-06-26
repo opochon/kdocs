@@ -11,6 +11,7 @@
 - **2 bugs réels attrapés par le harness** : (1) dashboard `created_at` ambigu (1052) → 500 sur `/`, qualifié `d.created_at` ; (2) `ApiController::successResponse` param implicitement nullable → **déprecation PHP 8.4 polluait toutes les réponses API** (cassait `JSON.parse`, dont la modale) → `?string`.
 - **Dette debug retirée** : instrumentation cross-projet `4af063` / `htmleditor_v3` délogée → `DebugLogger` écrit dans `storage/logs/` ; `router.php`, `.bat` dev, smokes live, `audit_with_log.php` nettoyés.
 - **Docs/build** : oracle `/search` canonique + fiche-modale/versioning, `ROADMAP.md` obsolète marqué, `BEFORE_YOU_START` état réel, `Makefile`, **design system Karbonic** (`docs/DESIGN-SYSTEM-KARBONIC.md`, lot d'uniformisation futur).
+- **`Validator` core complété + suites vertes** : `ValidatorTest` passait de **25 erreurs → 0** (ajout `passes/fails/error/sanitize` + règles `between/confirmed/nullable` + `validated()` filtré sur les champs réglés ; `make()` valide à la construction). `DocumentServiceTest` orphelin (service inexistant) neutralisé (`markTestSkipped`).
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1\tests\visual
@@ -18,9 +19,29 @@ npm install && npm run install-browser   REM une fois
 npm test                                  REM 7/7 — ou `make test-visual` depuis la racine
 ```
 
-**À noter** : `templates/documents/show.php` est **legacy mort** (`DocumentsController::show` redirige toujours vers `/documents?open={id}` — la fiche est la modale). Candidat suppression (lot futur).
+### Sécurités — lancer toute la batterie (dernier run 2026-06-26 : **tout vert**)
 
-**Prochain pas** : C.3 (quittance lecture SMQ) ou uniformisation UI design system. Phase A factures reste 🟡 (bridge WinBiz externe non déployé).
+```cmd
+php tests\migration_smoke_test.php        REM 133/133 offline structurel
+vendor\bin\phpunit --testsuite=unit       REM 236 tests, 0 err/fail, 6 skipped
+vendor\bin\phpunit --testsuite=feature    REM 58 tests, 0 err/fail, 3 skipped
+tools\run-live-smokes.bat                 REM smoke 24 + live 9 + full 64 OK (serveur auto)
+cd tests\visual && npm test               REM 7/7 Playwright (SMQ on via webServer env)
+```
+
+0 Deprecated/Warning/Fatal dans les réponses (la déprecation API était le seul leak, corrigée).
+
+**À noter (dette / connu)** :
+- `templates/documents/show.php` = **legacy mort** (`DocumentsController::show` redirige toujours vers `/documents?open={id}` — la fiche est la modale). Candidat suppression — **non fait** (règle « pas de suppression de fichier sans demande explicite »).
+- **PHPStan non installé** (`vendor/bin/phpstan` absent) → `make analyse` ne tourne pas. À ajouter en dev-dep si analyse statique voulue.
+- 6 tests skippés (`DocumentServiceTest`, service retiré) ; 2 déprecations PHPUnit non bloquantes.
+
+**Prochains pas** :
+1. **C.3 quittance lecture SMQ** — table `document_read_receipts` (`user_id`, `document_id`, `version_number`, `read_at`) + endpoint POST quittance + badge « à lire » dans la modale. **Décision schéma persistant requise** → à valider avant implémentation.
+2. **C.4** vues filtrées qualité dans la Bibliothèque (plugin SMQ).
+3. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` (lot transverse, clair+sombre).
+4. Supprimer `show.php` legacy (sur accord explicite).
+5. Phase A factures reste 🟡 — bridge WinBiz externe non déployé.
 
 ---
 
