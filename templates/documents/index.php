@@ -755,6 +755,9 @@ function renderDocumentMetadata(doc) {
                     <button type="button" onclick="switchPreviewTab('history')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
                         Historique
                     </button>
+                    ${SMQ_ENABLED ? `<button type="button" onclick="switchPreviewTab('versions')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                        Versions
+                    </button>` : ''}
                 </nav>
             </div>
 
@@ -903,6 +906,21 @@ function renderDocumentMetadata(doc) {
                 </div>
             </div>
 
+            ${SMQ_ENABLED ? `<!-- Onglet Versions (plugin SMQ) -->
+            <div id="preview-tab-versions" class="preview-tab-content hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium text-gray-500">Versions documentaires</span>
+                    <label class="px-2 py-1 text-xs border border-blue-300 text-blue-700 rounded hover:bg-blue-50 cursor-pointer" title="Téléverser une nouvelle version">
+                        + Nouvelle version
+                        <input type="file" class="hidden" onchange="uploadNewVersionPreview(${doc.id}, this)">
+                    </label>
+                </div>
+                <div id="preview-versions-content" class="text-xs">
+                    <p class="text-gray-400 py-4 text-center">Chargement...</p>
+                </div>
+                <div id="preview-version-diff" class="hidden mt-3 pt-3 border-t border-gray-200 text-xs"></div>
+            </div>` : ''}
+
             <!-- Actions (toujours visibles) -->
             <div class="pt-3 mt-3 border-t space-y-2">
                 <div class="flex gap-2">
@@ -952,6 +970,9 @@ function switchPreviewTab(tabName) {
     if (tabName === 'history' && currentPreviewDocument) {
         loadPreviewHistory(currentPreviewDocument.id);
     }
+    if (tabName === 'versions' && currentPreviewDocument) {
+        loadVersionsPreview(currentPreviewDocument.id);
+    }
 }
 
 // Charger l'historique du document
@@ -974,6 +995,132 @@ async function loadPreviewHistory(docId) {
         console.error('History error:', error);
         container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de connexion</p>';
     }
+}
+
+// === Versions documentaires (plugin SMQ) ===
+let previewVersionsCurrent = null;
+
+async function loadVersionsPreview(docId) {
+    const box = document.getElementById('preview-versions-content');
+    if (!box) return;
+    box.innerHTML = '<p class="text-gray-400 py-4 text-center">Chargement...</p>';
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions`, { headers: { 'Accept': 'application/json' } });
+        const payload = await r.json();
+        const versions = (payload.data && payload.data.versions) || [];
+        if (!versions.length) {
+            box.innerHTML = '<p class="text-gray-400 py-4 text-center">Aucune version enregistrée.</p>';
+            return;
+        }
+        renderVersionsPreview(docId, versions);
+    } catch (e) {
+        box.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de chargement des versions.</p>';
+    }
+}
+
+function renderVersionsPreview(docId, versions) {
+    const current = versions.find(v => v.is_current == 1 || v.is_current === true);
+    previewVersionsCurrent = current ? current.version_number : null;
+    const rows = versions.map(v => {
+        const isCurrent = (v.is_current == 1 || v.is_current === true);
+        const num = parseInt(v.version_number, 10);
+        const badge = isCurrent ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-800">courante</span>' : '';
+        let actions = `<a href="${BASE_PATH}/api/documents/${docId}/versions/${num}/download" class="text-blue-600 hover:underline">Télécharger</a>`;
+        if (!isCurrent) {
+            actions += ` · <button type="button" onclick="restoreVersionPreview(${docId}, ${num})" class="text-blue-600 hover:underline">Restaurer</button>`;
+            if (previewVersionsCurrent) {
+                actions += ` · <button type="button" onclick="showVersionDiffPreview(${docId}, ${num})" class="text-blue-600 hover:underline">Diff</button>`;
+            }
+        }
+        return `<tr class="border-t border-gray-100">
+            <td class="py-1.5 pr-2 font-medium text-gray-900">v${num}${badge}</td>
+            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml(v.created_by_username || '—')}</td>
+            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml((v.created_at || '').substring(0, 16))}</td>
+            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml(v.comment || v.changes_summary || '—')}</td>
+            <td class="py-1.5 text-right whitespace-nowrap">${actions}</td>
+        </tr>`;
+    }).join('');
+    document.getElementById('preview-versions-content').innerHTML =
+        `<table class="w-full"><thead><tr class="text-left text-gray-400">
+            <th class="py-1 pr-2 font-medium">Version</th><th class="py-1 pr-2 font-medium">Auteur</th>
+            <th class="py-1 pr-2 font-medium">Date</th><th class="py-1 pr-2 font-medium">Commentaire</th>
+            <th class="py-1 text-right font-medium">Actions</th>
+        </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function restoreVersionPreview(docId, versionNumber) {
+    if (!confirm('Restaurer la version v' + versionNumber + ' comme version courante ?')) return;
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/${versionNumber}/restore`, {
+            method: 'POST', headers: { 'Accept': 'application/json' }
+        });
+        const data = await r.json();
+        if (data.success) {
+            loadDocumentPreview(docId);
+        } else {
+            alert(data.message || 'Erreur lors de la restauration');
+        }
+    } catch (e) { alert('Erreur de connexion lors de la restauration'); }
+}
+
+async function uploadNewVersionPreview(docId, input) {
+    if (!input.files || !input.files.length) return;
+    const comment = prompt('Commentaire pour cette nouvelle version (optionnel) :', '');
+    if (comment === null) { input.value = ''; return; }
+    const fd = new FormData();
+    fd.append('file', input.files[0]);
+    fd.append('comment', comment);
+    const box = document.getElementById('preview-versions-content');
+    if (box) box.innerHTML = '<p class="text-gray-400 py-4 text-center">Téléversement...</p>';
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions`, { method: 'POST', body: fd });
+        const data = await r.json();
+        if (data.success) {
+            loadDocumentPreview(docId);
+        } else {
+            alert(data.message || 'Erreur lors du téléversement');
+            loadVersionsPreview(docId);
+        }
+    } catch (e) {
+        alert('Erreur de connexion lors du téléversement');
+        loadVersionsPreview(docId);
+    } finally { input.value = ''; }
+}
+
+async function showVersionDiffPreview(docId, fromVersion) {
+    if (!previewVersionsCurrent) return;
+    const panel = document.getElementById('preview-version-diff');
+    panel.classList.remove('hidden');
+    panel.innerHTML = '<p class="text-gray-400 py-2">Calcul du diff...</p>';
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/diff?from=${fromVersion}&to=${previewVersionsCurrent}&type=text`, { headers: { 'Accept': 'application/json' } });
+        const payload = await r.json();
+        if (payload.error) { panel.innerHTML = `<p class="text-red-500 py-2">${escapeHtml(payload.message)}</p>`; return; }
+        renderVersionDiffPreview(panel, fromVersion, previewVersionsCurrent, payload.data || {});
+    } catch (e) {
+        panel.innerHTML = '<p class="text-red-500 py-2">Erreur lors du calcul du diff.</p>';
+    }
+}
+
+function renderVersionDiffPreview(panel, fromVersion, toVersion, data) {
+    const diff = data.diff || {};
+    const stats = diff.diff_stats || {};
+    let lines = [];
+    try { lines = JSON.parse(diff.diff_content || '[]'); } catch (e) { lines = []; }
+    const header = `<div class="flex items-center justify-between mb-1">
+        <span class="font-medium text-gray-700">Diff v${fromVersion} → v${toVersion}</span>
+        <button type="button" onclick="document.getElementById('preview-version-diff').classList.add('hidden')" class="text-gray-400 hover:text-gray-700">Fermer</button>
+    </div><p class="text-gray-400 mb-1">+${stats.added || 0} / -${stats.removed || 0} / ~${stats.changed || 0}</p>`;
+    if (!Array.isArray(lines) || !lines.length) {
+        panel.innerHTML = header + '<p class="text-gray-400">Aucune différence textuelle.</p>';
+        return;
+    }
+    const body = lines.map(l => {
+        const cls = l.type === 'add' ? 'bg-green-50 text-green-800' : l.type === 'remove' ? 'bg-red-50 text-red-800' : 'text-gray-500';
+        const sign = l.type === 'add' ? '+' : l.type === 'remove' ? '-' : ' ';
+        return `<div class="${cls} px-1 font-mono whitespace-pre-wrap">${sign} ${escapeHtml(l.line)}</div>`;
+    }).join('');
+    panel.innerHTML = header + `<div class="border border-gray-200 rounded max-h-56 overflow-auto">${body}</div>`;
 }
 
 // Retraiter le document (OCR)
@@ -1727,6 +1874,7 @@ function showNotification(message, type = 'info') {
 // ===== CHARGEMENT AJAX DES DOCUMENTS =====
 const BASE_PATH = '<?= $base ?>';
 const QDRANT_UI_ENABLED = <?= isQdrantUiEnabled() ? 'true' : 'false' ?>;
+const SMQ_ENABLED = <?= \KDocs\Core\PluginRegistry::isEnabled('smq') ? 'true' : 'false' ?>;
 
 // Charger les documents d'un dossier via AJAX (appelé par les liens de la sidebar)
 function loadFolderDocuments(path, updateUrl = true) {

@@ -47,4 +47,24 @@ class PluginRegistry
 
         return $loaded;
     }
+
+    /**
+     * Indique si une app satellite est activée (gating UI côté templates).
+     * Source de vérité : apps/{name}/config.php → app.enabled.
+     */
+    public static function isEnabled(string $appName): bool
+    {
+        if (!function_exists('env')) {
+            require_once dirname(__DIR__) . '/helpers.php';
+        }
+
+        $configFile = dirname(__DIR__, 2) . '/apps/' . $appName . '/config.php';
+        if (!is_file($configFile)) {
+            return false;
+        }
+
+        $config = require $configFile;
+
+        return (bool) ($config['app']['enabled'] ?? false);
+    }
 }
