@@ -53,13 +53,13 @@ class DashboardController
         // Documents par mois (12 derniers mois)
         $documentsByMonth = $db->query("
             SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as month,
+                DATE_FORMAT(d.created_at, '%Y-%m') as month,
                 COUNT(*) as count
             FROM documents d
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
             WHERE {$docWhere}
             AND d.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            GROUP BY DATE_FORMAT(d.created_at, '%Y-%m')
             ORDER BY month
         ")->fetchAll();
         
