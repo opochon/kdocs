@@ -125,4 +125,15 @@ Remplace `tests/screenshot_runner.ps1` (capture sans gestion d'auth, retirée).
 
 ---
 
-*Dernière mise à jour : 2026-06-26 — /search canonique (B1) + harness visuel Playwright*
+## 8. Fiche document & versioning (C.2)
+
+| Invariant | Détail |
+|-----------|--------|
+| Fiche = **modale** | `GET /documents/{id}` → 302 `…/documents?open={id}` ; le détail s'ouvre en modale construite en JS dans `templates/documents/index.php`. **`templates/documents/show.php` est legacy mort** (jamais rendu). |
+| Versioning SMQ | onglet **Versions** contextuel dans la modale, gated `SMQ_ENABLED` (`PluginRegistry::isEnabled('smq')`). Pas de page `/smq` parallèle. |
+| Backend | `DocumentVersionsApiController` + `DocumentVersion` (list/restore/diff/download/upload) — déjà complet, exposé en UI seulement. |
+| Réponses API | JSON strict : aucun warning/HTML ne doit précéder le corps (sinon `JSON.parse` casse côté front). |
+
+---
+
+*Dernière mise à jour : 2026-06-26 — C.2 versioning SMQ (modale) + harness visuel*

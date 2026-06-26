@@ -6,18 +6,21 @@
 ## Session 2026-06-26 — harness visuel + nettoyage dette
 
 **Fait :**
-- Harness visuel **Playwright** (`tests/visual/`) — smoke DOM + captures des 6 routes shell, login auto, serveur auto. **6/6 vert**. Remplace `screenshot_runner.ps1`.
-- **Bug dashboard corrigé** : `created_at` ambigu (SQLSTATE 1052) → 500 sur `/`. Qualifié `d.created_at` (`DashboardController.php:54`). Régression couverte par le harness visuel.
-- **Dette debug retirée** : instrumentation cross-projet `4af063` / `htmleditor_v3` délogée → `DebugLogger` écrit dans `storage/logs/` (projet-local) ; `router.php`, `.bat` dev, smokes live et `audit_with_log.php` nettoyés.
-- **Docs/build** : oracle `/search` canonique, `docs/ROADMAP.md` marqué obsolète, `BEFORE_YOU_START` état réel, `Makefile` (`serve` via router.php, cible `test-visual`).
+- Harness visuel **Playwright** (`tests/visual/`) — smoke DOM + captures, login auto, serveur auto. **7/7 vert** (6 routes shell + fiche SMQ). Remplace `screenshot_runner.ps1`.
+- **C.2 — versioning documentaire SMQ livré** : onglet **Versions** dans la **modale fiche** (`templates/documents/index.php`), gated `SMQ_ENABLED`. Liste + restore + download + diff + upload nouvelle version, sur l'API existante (`DocumentVersionsApiController`). Pas de page `/smq` parallèle (principe REDX).
+- **2 bugs réels attrapés par le harness** : (1) dashboard `created_at` ambigu (1052) → 500 sur `/`, qualifié `d.created_at` ; (2) `ApiController::successResponse` param implicitement nullable → **déprecation PHP 8.4 polluait toutes les réponses API** (cassait `JSON.parse`, dont la modale) → `?string`.
+- **Dette debug retirée** : instrumentation cross-projet `4af063` / `htmleditor_v3` délogée → `DebugLogger` écrit dans `storage/logs/` ; `router.php`, `.bat` dev, smokes live, `audit_with_log.php` nettoyés.
+- **Docs/build** : oracle `/search` canonique + fiche-modale/versioning, `ROADMAP.md` obsolète marqué, `BEFORE_YOU_START` état réel, `Makefile`, **design system Karbonic** (`docs/DESIGN-SYSTEM-KARBONIC.md`, lot d'uniformisation futur).
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1\tests\visual
 npm install && npm run install-browser   REM une fois
-npm test                                  REM 6/6 — ou `make test-visual` depuis la racine
+npm test                                  REM 7/7 — ou `make test-visual` depuis la racine
 ```
 
-**Prochain pas** : verticale **C.2** (versioning documentaire SMQ).
+**À noter** : `templates/documents/show.php` est **legacy mort** (`DocumentsController::show` redirige toujours vers `/documents?open={id}` — la fiche est la modale). Candidat suppression (lot futur).
+
+**Prochain pas** : C.3 (quittance lecture SMQ) ou uniformisation UI design system. Phase A factures reste 🟡 (bridge WinBiz externe non déployé).
 
 ---
 
