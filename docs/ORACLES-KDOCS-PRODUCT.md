@@ -12,7 +12,7 @@ Le shell GED expose **5 intentions** (4 entrées sidebar + hub admin séparé) :
 | Intention | Route canonique | Contrôleur / template |
 |-----------|-----------------|----------------------|
 | Bibliothèque | `GET /documents` | `DocumentsController`, `templates/documents/index.php` |
-| Recherche | `GET /chat` (B0) → `GET /search` (B1) | `ChatController` / futur `SearchController` |
+| Recherche | `GET /search` (canonique B1) ; `GET /chat` → redirect legacy | `SearchController` |
 | À traiter | `GET /mes-taches` | `TaskController` + badge `pending`/`needs_review` |
 | Importer | `GET /documents/upload` | upload + lien consume (`/admin/consume` admin-only) |
 | Admin hub | `GET /admin` | hub tuiles — **hors navigation user principale** |
@@ -104,7 +104,25 @@ Dette UI documentée : `docs/DETTE-UI-ORPHELINS.md`.
 | `docs/ROADMAP-KDOCS-PRODUCT.md` | Avancement phases |
 | `docs/PLUGIN-SYSTEM.md` | Architecture connecteurs/apps |
 | `SESSION-STATUS.md` | État session + harness |
+| `tests/visual/` | Harness visuel Playwright (smoke DOM + captures) |
 
 ---
 
-*Dernière mise à jour : 2026-06-22 — lot B0 crédibilité produit*
+## 7. Tests visuels (Playwright)
+
+Smoke **DOM + captures** du shell authentifié, complément des smokes PHP (qui restent la vérif structurelle/fonctionnelle).
+
+| Invariant | Détail |
+|-----------|--------|
+| Emplacement | `tests/visual/` (Node dev-only, isolé du cœur PHP) |
+| Portée | routes canoniques section 1 : réponse HTTP < 400, pas de redirection `/login`, aucun marqueur d'erreur PHP, capture pleine page |
+| Lancement | `make test-visual` ou `npm --prefix tests/visual test` — **non bloquant** (hors pre-commit) |
+| Serveur | démarré par Playwright (`php -S … router.php`), réutilisé si déjà actif |
+| Auth | login `root`/vide → `storageState` réutilisé |
+| Évolution | baseline pixel (`toHaveScreenshot`) activable sans refonte |
+
+Remplace `tests/screenshot_runner.ps1` (capture sans gestion d'auth, retirée).
+
+---
+
+*Dernière mise à jour : 2026-06-26 — /search canonique (B1) + harness visuel Playwright*

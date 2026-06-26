@@ -1,5 +1,9 @@
 # K-Docs - Feuille de Route
 
+> **DOCUMENT OBSOLETE (vision janv. 2026)** — source de verite courante :
+> `docs/ROADMAP-KDOCS-PRODUCT.md` (phases B/A/C/D/P2) + `SESSION-STATUS.md`.
+> Conserve pour memoire des phases historiques K-Time / K-Invoices / K-Mail.
+
 ## Contrainte globale
 
 **PAS DE DOCKER pour les apps** - Tout doit etre portable et embarquable.

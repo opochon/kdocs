@@ -3,6 +3,24 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-06-26 — harness visuel + nettoyage dette
+
+**Fait :**
+- Harness visuel **Playwright** (`tests/visual/`) — smoke DOM + captures des 6 routes shell, login auto, serveur auto. **6/6 vert**. Remplace `screenshot_runner.ps1`.
+- **Bug dashboard corrigé** : `created_at` ambigu (SQLSTATE 1052) → 500 sur `/`. Qualifié `d.created_at` (`DashboardController.php:54`). Régression couverte par le harness visuel.
+- **Dette debug retirée** : instrumentation cross-projet `4af063` / `htmleditor_v3` délogée → `DebugLogger` écrit dans `storage/logs/` (projet-local) ; `router.php`, `.bat` dev, smokes live et `audit_with_log.php` nettoyés.
+- **Docs/build** : oracle `/search` canonique, `docs/ROADMAP.md` marqué obsolète, `BEFORE_YOU_START` état réel, `Makefile` (`serve` via router.php, cible `test-visual`).
+
+```cmd
+cd F:\DATA\DEVELOPPEMENT\GEDv1\tests\visual
+npm install && npm run install-browser   REM une fois
+npm test                                  REM 6/6 — ou `make test-visual` depuis la racine
+```
+
+**Prochain pas** : verticale **C.2** (versioning documentaire SMQ).
+
+---
+
 ## État au 2026-06-22 (chantier B1 — GED pro K-Docs vs REDX)
 
 ### Roadmap produit
@@ -29,7 +47,7 @@ php tools\bench-ingest.php            REM structure
 php tools\bench-ingest.php --live     REM BDD requise
 ```
 
-**Dernier run** : **125 passés, 0 échoués** (migration_smoke_test) · **15/15** PHPUnit ingest/classifiers (2026-06-22)
+**Dernier run** : **125/125** migration_smoke · **15/15** PHPUnit ingest/classifiers · **6/6** harness visuel Playwright (2026-06-26)
 
 ### Commits session 2026-06-22 (B1 + scaffold)
 
@@ -68,4 +86,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-22 — lot B1 GED pro (10/10)*
+*Dernière mise à jour : 2026-06-26 — harness visuel Playwright + nettoyage dette debug*

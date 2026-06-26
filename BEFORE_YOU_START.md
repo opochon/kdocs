@@ -8,7 +8,7 @@
 
 ## 📍 ÉTAT ACTUEL
 
-**Maturité : 95%** — Production-ready
+**GED core mûre** — roadmap produit REDX en cours (B1 terminé, ~60 % parité). Source de vérité : `docs/ROADMAP-KDOCS-PRODUCT.md` + `SESSION-STATUS.md`.
 
 > **🔒 Multi-instances ?** Consulter [COORDINATION.md](COORDINATION.md) AVANT de commencer
 
@@ -45,7 +45,7 @@ Branche: main
 ## ✅ PREMIÈRE ACTION
 
 ```cmd
-cd C:\wamp64\www\kdocs
+cd F:\DATA\DEVELOPPEMENT\GEDv1
 ```
 
 1. **Lire** `docs/pilotage/SESSION_STATE.md` (ou `get_session_state` via MCP)
