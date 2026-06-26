@@ -41,7 +41,7 @@ abstract class ApiController
     /**
      * Retourne une réponse de succès JSON
      */
-    protected function successResponse(Response $response, $data, string $message = null, int $statusCode = 200): Response
+    protected function successResponse(Response $response, $data, ?string $message = null, int $statusCode = 200): Response
     {
         $responseData = [
             'success' => true,
