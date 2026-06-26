@@ -10,15 +10,72 @@ class Validator
 {
     private array $errors = [];
     private array $data = [];
-    
-    public function __construct(array $data)
+    private array $rules = [];
+
+    public function __construct(array $data, array $rules = [])
     {
         $this->data = $data;
+        $this->rules = $rules;
     }
-    
-    public static function make(array $data): self
+
+    public static function make(array $data, array $rules = []): self
     {
-        return new self($data);
+        $validator = new self($data, $rules);
+        if (!empty($rules)) {
+            $validator->validate($rules);
+        }
+        return $validator;
+    }
+
+    /**
+     * Indique si la validation (règles de make() ou validate()) a réussi.
+     */
+    public function passes(): bool
+    {
+        return empty($this->errors);
+    }
+
+    public function fails(): bool
+    {
+        return !empty($this->errors);
+    }
+
+    /**
+     * Premier message d'erreur pour un champ (null si aucun).
+     */
+    public function error(string $field): ?string
+    {
+        if (empty($this->errors[$field])) {
+            return null;
+        }
+        $e = $this->errors[$field];
+        return is_array($e) ? ($e[0] ?? null) : $e;
+    }
+
+    /**
+     * Nettoie des données selon des règles (trim, strip_tags). Statique.
+     */
+    public static function sanitize(array $data, array $rules): array
+    {
+        $result = $data;
+
+        foreach ($rules as $field => $fieldRules) {
+            if (!array_key_exists($field, $result) || !is_string($result[$field])) {
+                continue;
+            }
+            $ruleList = is_string($fieldRules) ? explode('|', $fieldRules) : $fieldRules;
+            $value = $result[$field];
+            foreach ($ruleList as $rule) {
+                if ($rule === 'trim') {
+                    $value = trim($value);
+                } elseif ($rule === 'strip_tags') {
+                    $value = strip_tags($value);
+                }
+            }
+            $result[$field] = $value;
+        }
+
+        return $result;
     }
     
     /**
@@ -26,13 +83,22 @@ class Validator
      */
     public function validate(array $rules): bool
     {
+        $this->rules = $rules;
         $this->errors = [];
         
         foreach ($rules as $field => $fieldRules) {
             $value = $this->data[$field] ?? null;
             $ruleList = is_string($fieldRules) ? explode('|', $fieldRules) : $fieldRules;
-            
+
+            // nullable : valeur vide autorisée -> on n'applique pas les autres règles
+            if (in_array('nullable', $ruleList, true) && ($value === null || $value === '')) {
+                continue;
+            }
+
             foreach ($ruleList as $rule) {
+                if ($rule === 'nullable') {
+                    continue;
+                }
                 $this->applyRule($field, $value, $rule);
             }
         }
@@ -54,8 +120,14 @@ class Validator
     public function validated(): array
     {
         $validated = [];
-        
-        foreach ($this->data as $key => $value) {
+        // Seuls les champs ayant une règle sont « validés » ; repli sur toutes les données si aucune règle connue.
+        $keys = !empty($this->rules) ? array_keys($this->rules) : array_keys($this->data);
+
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $this->data)) {
+                continue;
+            }
+            $value = $this->data[$key];
             if (is_string($value)) {
                 $validated[$key] = trim($value);
             } elseif (is_array($value)) {
@@ -64,7 +136,7 @@ class Validator
                 $validated[$key] = $value;
             }
         }
-        
+
         return $validated;
     }
     
@@ -174,6 +246,37 @@ class Validator
         if ($value !== null && $value !== '' && !in_array($value, $params, true)) {
             $allowed = implode(', ', $params);
             $this->addError($field, "Le champ $field doit être parmi: $allowed");
+        }
+    }
+
+    private function ruleBetween(string $field, $value, array $params): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+        $min = (int) ($params[0] ?? 0);
+        $max = (int) ($params[1] ?? PHP_INT_MAX);
+
+        if (is_string($value)) {
+            $size = mb_strlen($value);
+        } elseif (is_numeric($value)) {
+            $size = (int) $value;
+        } elseif (is_array($value)) {
+            $size = count($value);
+        } else {
+            $size = 0;
+        }
+
+        if ($size < $min || $size > $max) {
+            $this->addError($field, "Le champ $field doit être entre $min et $max");
+        }
+    }
+
+    private function ruleConfirmed(string $field, $value, array $params): void
+    {
+        $confirmation = $this->data[$field . '_confirmation'] ?? null;
+        if ($value !== $confirmation) {
+            $this->addError($field, "Le champ $field ne correspond pas à sa confirmation");
         }
     }
     
