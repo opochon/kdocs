@@ -1,0 +1,14 @@
+{
+  "name": "kdocs-visual-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tests visuels Playwright (smoke DOM + captures) pour le shell K-Docs",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report",
+    "install-browser": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

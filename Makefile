@@ -12,6 +12,7 @@ help:
 	@echo "  make test-api    - API tests"
 	@echo "  make test-unit   - PHPUnit tests"
 	@echo "  make test-poc    - POC tests"
+	@echo "  make test-visual - Playwright visual smoke (tests/visual)"
 	@echo "  make check       - Pre-commit validation"
 	@echo "  make analyse     - PHPStan analysis"
 	@echo "  make fix         - Fix code style"
@@ -41,8 +42,8 @@ test-unit:
 test-integration:
 	php tests/integration_test.php
 
-test-ui:
-	php tests/ui_test.php --screenshots
+test-visual:
+	npm --prefix tests/visual test
 
 test-poc:
 	php proofofconcept/test_all.php
@@ -76,7 +77,7 @@ clean:
 
 # Development
 serve:
-	php -S localhost:8000 -t .
+	php -S 127.0.0.1:8765 router.php
 
 watch:
 	@echo "Watching for changes..."
