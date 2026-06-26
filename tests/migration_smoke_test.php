@@ -276,6 +276,21 @@ if ($vendorOk) {
 }
 assert_true('apps/smq scaffold', is_file(KDOCS_ROOT . '/apps/smq/routes.php'));
 assert_true('apps/rh scaffold', is_file(KDOCS_ROOT . '/apps/rh/routes.php'));
+
+echo "\nLot C.2 — versioning documentaire SMQ\n";
+if ($vendorOk) {
+    assert_true('PluginRegistry::isEnabled()', method_exists('KDocs\\Core\\PluginRegistry', 'isEnabled'));
+    assert_true('isEnabled(app inconnue) = false', \KDocs\Core\PluginRegistry::isEnabled('__inconnu__') === false);
+    assert_true('isEnabled(smq) renvoie bool', is_bool(\KDocs\Core\PluginRegistry::isEnabled('smq')));
+    assert_true('Classe DocumentVersion chargeable', class_exists('KDocs\\Models\\DocumentVersion'));
+    assert_true('Classe DocumentVersionsApiController chargeable', class_exists('KDocs\\Controllers\\Api\\DocumentVersionsApiController'));
+}
+if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
+    $docIndex = (string) file_get_contents(KDOCS_ROOT . '/templates/documents/index.php');
+    assert_true('fiche modale onglet Versions gated SMQ', str_contains($docIndex, 'preview-tab-versions') && str_contains($docIndex, 'SMQ_ENABLED'));
+    assert_true('modale JS loadVersionsPreview()', str_contains($docIndex, 'function loadVersionsPreview('));
+    assert_true('modale diff versions', str_contains($docIndex, 'function showVersionDiffPreview('));
+}
 if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
     $adminIdx = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/index.php');
     assert_true('admin hub sans emoji', !preg_match('/[\x{1F300}-\x{1FAFF}]/u', $adminIdx));

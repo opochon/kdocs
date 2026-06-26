@@ -41,5 +41,7 @@ export default defineConfig({
     timeout: 30_000,
     stdout: 'ignore',
     stderr: 'pipe',
+    // SMQ activé pour couvrir l'onglet Versions de la fiche (specs/smq-versions).
+    env: { SMQ_APP_ENABLED: 'true' },
   },
 });
