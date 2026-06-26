@@ -4,7 +4,6 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0.."
 
 set BASE=http://127.0.0.1:8765/kdocs
-set GEDV1_DEBUG_SESSION=4af063
 set AUDIT_BASE_URL=%BASE%
 
 echo.
@@ -23,7 +22,7 @@ if not errorlevel 1 goto server_ready
 echo [INFO] Nettoyage port 8765 puis demarrage serveur
 call "%~dp0kill-dev-port.bat" 8765
 echo [INFO] Demarrage serveur: php -S 127.0.0.1:8765 router.php
-start "GEDv1-dev" /MIN cmd /c "set GEDV1_DEBUG_SESSION=4af063 && php -S 127.0.0.1:8765 router.php"
+start "GEDv1-dev" /MIN cmd /c "php -S 127.0.0.1:8765 router.php"
 set WAIT_SEC=0
 :wait_health
 php -r "$c=@curl_init('http://127.0.0.1:8765/kdocs/health');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>10,CURLOPT_CONNECTTIMEOUT=>3]);curl_exec($c);$h=curl_getinfo($c,CURLINFO_HTTP_CODE);exit($h===200?0:1);"
@@ -61,7 +60,7 @@ echo smoke_test.php   : %SMOKE_RC%
 echo live_smoke_test  : %LIVE_RC%
 echo full_pages_smoke : %FULL_RC%
 echo audit_with_log   : %AUDIT_RC%
-echo Logs debug       : F:\DATA\DEVELOPPEMENT\htmleditor_v3\htmleditor\debug-4af063.log
+echo Logs debug       : storage\logs\debug-^<session^>.log (si GEDV1_DEBUG_SESSION definie)
 echo.
 
 if %SMOKE_RC% neq 0 exit /b %SMOKE_RC%

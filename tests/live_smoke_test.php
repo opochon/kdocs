@@ -6,8 +6,8 @@
 declare(strict_types=1);
 
 $baseUrl = rtrim($argv[1] ?? 'http://127.0.0.1:8765/kdocs', '/');
-$logFile = 'F:/DATA/DEVELOPPEMENT/htmleditor_v3/htmleditor/debug-4af063.log';
-$sessionId = '4af063';
+$sessionId = getenv('GEDV1_DEBUG_SESSION') ?: 'live-smoke';
+$logFile = __DIR__ . '/../storage/logs/debug-' . $sessionId . '.log';
 $runId = 'live-smoke-' . date('Ymd-His');
 $passed = 0;
 $failed = 0;

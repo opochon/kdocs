@@ -22,16 +22,11 @@ class DebugLogger
             return null;
         }
 
-        // Log NDJSON Cursor debug (session 4af063)
-        $candidates = [
-            'F:/DATA/DEVELOPPEMENT/htmleditor_v3/htmleditor/debug-' . $session . '.log',
-            dirname(__DIR__, 3) . '/htmleditor/debug-' . $session . '.log',
-        ];
-        foreach ($candidates as $path) {
-            if (is_dir(dirname($path))) {
-                self::$logPath = $path;
-                return $path;
-            }
+        // Log NDJSON de debug, projet-local, actif seulement si session definie
+        $path = dirname(__DIR__, 2) . '/storage/logs/debug-' . $session . '.log';
+        if (is_dir(dirname($path))) {
+            self::$logPath = $path;
+            return $path;
         }
 
         self::$logPath = '';
@@ -45,7 +40,7 @@ class DebugLogger
             return;
         }
 
-        $session = getenv('GEDV1_DEBUG_SESSION') ?: ($_ENV['GEDV1_DEBUG_SESSION'] ?? '4af063');
+        $session = getenv('GEDV1_DEBUG_SESSION') ?: ($_ENV['GEDV1_DEBUG_SESSION'] ?? '');
         $payload['sessionId'] = $session;
         $payload['timestamp'] = (int) round(microtime(true) * 1000);
         if (!isset($payload['id'])) {

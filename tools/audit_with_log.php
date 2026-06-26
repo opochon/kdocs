@@ -5,11 +5,11 @@
  */
 declare(strict_types=1);
 
-$logFile = 'F:/DATA/DEVELOPPEMENT/htmleditor_v3/htmleditor/debug-4af063.log';
+$logFile = __DIR__ . '/../storage/logs/debug-audit.log';
 $baseUrl = getenv('AUDIT_BASE_URL') ?: 'http://127.0.0.1:8766/kdocs';
 $host = parse_url($baseUrl, PHP_URL_HOST) ?: '127.0.0.1';
 $port = (int) (parse_url($baseUrl, PHP_URL_PORT) ?: 8766);
-$sessionId = '4af063';
+$sessionId = getenv('GEDV1_DEBUG_SESSION') ?: 'audit';
 $runId = 'audit-' . date('Ymd-His');
 
 $GLOBALS['_audit_ctx'] = [
@@ -91,7 +91,7 @@ auditLog('audit:server', 'Port check', ['open' => $serverUp, 'host' => $host, 'p
 
 if (!$serverUp) {
     auditLog('audit:blocker', "Serveur arrete — lancer: php -S 127.0.0.1:{$port} router.php", [], 'E');
-    echo "BLOCKER: serveur non demarre. Voir debug-4af063.log\n";
+    echo "BLOCKER: serveur non demarre. Voir storage/logs/debug-audit.log\n";
     exit(2);
 }
 
@@ -182,7 +182,7 @@ foreach ($pages as $path => $label) {
 
 // Hypothèse D : MySQL
 try {
-    putenv('GEDV1_DEBUG_SESSION=4af063');
+    putenv('GEDV1_DEBUG_SESSION=' . $sessionId);
     require_once dirname(__DIR__) . '/app/helpers.php';
     $cfg = require dirname(__DIR__) . '/config/config.php';
     $db = $cfg['database'];

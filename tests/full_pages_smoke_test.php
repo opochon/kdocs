@@ -6,9 +6,9 @@
 declare(strict_types=1);
 
 $baseUrl = rtrim($argv[1] ?? 'http://127.0.0.1:8765/kdocs', '/');
-$logFile = 'F:/DATA/DEVELOPPEMENT/htmleditor_v3/htmleditor/debug-4af063.log';
+$sessionId = getenv('GEDV1_DEBUG_SESSION') ?: 'full-smoke';
+$logFile = __DIR__ . '/../storage/logs/debug-' . $sessionId . '.log';
 $reportFile = dirname(__DIR__) . '/docs/SMOKE-FULL-REPORT.md';
-$sessionId = '4af063';
 $runId = 'full-smoke-' . date('Ymd-His');
 $passed = 0;
 $failed = 0;

@@ -28,7 +28,6 @@ Commande manuelle equivalente :
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
-set GEDV1_DEBUG_SESSION=4af063
 php -S 127.0.0.1:8765 router.php
 ```
 
@@ -68,7 +67,6 @@ Si 8765 reste incoherent (Listen sans processus, sockets fantomes) :
 
 ```cmd
 tools\kill-dev-port.bat 8770
-set GEDV1_DEBUG_SESSION=4af063
 php -S 127.0.0.1:8770 router.php
 ```
 
