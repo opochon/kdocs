@@ -338,6 +338,27 @@ class DocumentsController
                     $total = count($filtered);
                 }
             }
+        } elseif (($queryParams['smq'] ?? '') === 'to_read' && \KDocs\Core\PluginRegistry::isEnabled('smq')) {
+            // Vue filtrée SMQ « À quittancer » : version courante non quittancée par l'utilisateur courant.
+            $uid = (int) ($user['id'] ?? 0);
+            $where = [
+                "d.deleted_at IS NULL",
+                "(d.status IS NULL OR d.status != 'pending')",
+                "NOT EXISTS (SELECT 1 FROM document_read_receipts r WHERE r.document_id = d.id AND r.user_id = {$uid} AND r.version_number = COALESCE((SELECT dv.version_number FROM document_versions dv WHERE dv.document_id = d.id AND dv.is_current = 1 LIMIT 1), 1))",
+            ];
+            $whereClause = 'WHERE ' . implode(' AND ', $where);
+            $orderBy = $sort === 'title' ? "COALESCE(d.title, d.original_filename, d.filename)" : "d.{$sort}";
+            $sql = "SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
+                    FROM documents d
+                    LEFT JOIN document_types dt ON d.document_type_id = dt.id
+                    LEFT JOIN correspondents c ON d.correspondent_id = c.id
+                    {$whereClause} ORDER BY {$orderBy} {$order} LIMIT ? OFFSET ?";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+            $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $documents = $stmt->fetchAll();
+            $total = (int) $db->query("SELECT COUNT(*) FROM documents d {$whereClause}")->fetchColumn();
         } else {
             // Vue par défaut : utiliser SearchService avec SearchQueryBuilder (nouveau)
             try {

@@ -307,6 +307,16 @@ if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
     assert_true('modale quittance JS', str_contains($docIndex3, 'function loadReadStatusPreview(') && str_contains($docIndex3, 'function markAsReadPreview('));
     assert_true('modale lecture obligatoire (banner)', str_contains($docIndex3, 'function checkMandatoryRead(') && str_contains($docIndex3, 'preview-read-banner'));
 }
+
+echo "\nLot C.4 — vues filtrées qualité SMQ\n";
+if (is_file(KDOCS_ROOT . '/app/Controllers/DocumentsController.php')) {
+    $dc = (string) file_get_contents(KDOCS_ROOT . '/app/Controllers/DocumentsController.php');
+    assert_true('vue SMQ to_read (filtre quittance)', str_contains($dc, "'to_read'") && str_contains($dc, 'document_read_receipts'));
+}
+if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
+    $di = (string) file_get_contents(KDOCS_ROOT . '/templates/documents/index.php');
+    assert_true('sidebar Qualité SMQ (À quittancer)', str_contains($di, 'smq=to_read') && str_contains($di, 'Qualité (SMQ)'));
+}
 if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
     $adminIdx = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/index.php');
     assert_true('admin hub sans emoji', !preg_match('/[\x{1F300}-\x{1FAFF}]/u', $adminIdx));

@@ -165,6 +165,18 @@ $base = Config::basePath();
                 <?php endforeach; ?>
             </nav>
             <?php endif; ?>
+
+            <?php if (\KDocs\Core\PluginRegistry::isEnabled('smq')): ?>
+            <div class="px-3 py-2 border-t border-gray-100">
+                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Qualité (SMQ)</h2>
+            </div>
+            <nav class="px-1 py-1">
+                <a href="<?= url('/documents?smq=to_read') ?>"
+                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors <?= (($_GET['smq'] ?? '') === 'to_read') ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                    <span class="sidebar-text">À quittancer</span>
+                </a>
+            </nav>
+            <?php endif; ?>
         </div>
     </aside>
     
