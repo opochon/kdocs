@@ -3,7 +3,7 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-06-26 — harness visuel + nettoyage dette
+## Session 2026-06-26/27 — harness visuel, C.2/C.3 SMQ, sécurités
 
 **Fait :**
 - Harness visuel **Playwright** (`tests/visual/`) — smoke DOM + captures, login auto, serveur auto. **7/7 vert** (6 routes shell + fiche SMQ). Remplace `screenshot_runner.ps1`.
@@ -12,6 +12,8 @@
 - **Dette debug retirée** : instrumentation cross-projet `4af063` / `htmleditor_v3` délogée → `DebugLogger` écrit dans `storage/logs/` ; `router.php`, `.bat` dev, smokes live, `audit_with_log.php` nettoyés.
 - **Docs/build** : oracle `/search` canonique + fiche-modale/versioning, `ROADMAP.md` obsolète marqué, `BEFORE_YOU_START` état réel, `Makefile`, **design system Karbonic** (`docs/DESIGN-SYSTEM-KARBONIC.md`, lot d'uniformisation futur).
 - **`Validator` core complété + suites vertes** : `ValidatorTest` passait de **25 erreurs → 0** (ajout `passes/fails/error/sanitize` + règles `between/confirmed/nullable` + `validated()` filtré sur les champs réglés ; `make()` valide à la construction). `DocumentServiceTest` orphelin (service inexistant) neutralisé (`markTestSkipped`).
+- **C.3 — quittance lecture SMQ livré** : migration **031** `document_read_receipts` (appliquée via nouvel outil `tools/apply-sql-migration.php`), `DocumentReadReceipt` + `ReadReceiptsApiController` (POST `…/read`, GET `…/read-status`), bloc quittance dans l'onglet Versions de la modale (« lu le X par Y » / bouton « Marquer comme lu »). Vérifié bout-en-bout (POST → statut `has_read:true`, lecteur `root`).
+- **`show.php` legacy déplacé vers `_trash/`** (git mv, tracé/récupérable — voir `_trash/README.md`) + bloc mort retiré de `DocumentsController::show`.
 
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1\tests\visual
@@ -19,10 +21,10 @@ npm install && npm run install-browser   REM une fois
 npm test                                  REM 7/7 — ou `make test-visual` depuis la racine
 ```
 
-### Sécurités — lancer toute la batterie (dernier run 2026-06-26 : **tout vert**)
+### Sécurités — lancer toute la batterie (dernier run 2026-06-27 : **tout vert**)
 
 ```cmd
-php tests\migration_smoke_test.php        REM 133/133 offline structurel
+php tests\migration_smoke_test.php        REM 138/138 offline structurel
 vendor\bin\phpunit --testsuite=unit       REM 236 tests, 0 err/fail, 6 skipped
 vendor\bin\phpunit --testsuite=feature    REM 58 tests, 0 err/fail, 3 skipped
 tools\run-live-smokes.bat                 REM smoke 24 + live 9 + full 64 OK (serveur auto)
@@ -32,16 +34,17 @@ cd tests\visual && npm test               REM 7/7 Playwright (SMQ on via webServ
 0 Deprecated/Warning/Fatal dans les réponses (la déprecation API était le seul leak, corrigée).
 
 **À noter (dette / connu)** :
-- `templates/documents/show.php` = **legacy mort** (`DocumentsController::show` redirige toujours vers `/documents?open={id}` — la fiche est la modale). Candidat suppression — **non fait** (règle « pas de suppression de fichier sans demande explicite »).
+- `show.php` legacy **déplacé vers `_trash/`** (corbeille tracée, récupérable — `git mv`) + bloc mort retiré du contrôleur. Convention corbeille : `_trash/README.md`.
+- Les migrations `.sql` n'ont **pas de runner auto** (`Migrations.php` ne gère que les `.php`) → appliquer avec `php tools/apply-sql-migration.php <fichier.sql>`.
 - **PHPStan non installé** (`vendor/bin/phpstan` absent) → `make analyse` ne tourne pas. À ajouter en dev-dep si analyse statique voulue.
 - 6 tests skippés (`DocumentServiceTest`, service retiré) ; 2 déprecations PHPUnit non bloquantes.
 
 **Prochains pas** :
-1. **C.3 quittance lecture SMQ** — table `document_read_receipts` (`user_id`, `document_id`, `version_number`, `read_at`) + endpoint POST quittance + badge « à lire » dans la modale. **Décision schéma persistant requise** → à valider avant implémentation.
+1. **C.3 durcissement** — rendre la quittance **obligatoire/bloquante** (avertir tant que la version courante n'est pas quittancée) ; afficher la quittance même sans rangée de version explicite.
 2. **C.4** vues filtrées qualité dans la Bibliothèque (plugin SMQ).
 3. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` (lot transverse, clair+sombre).
-4. Supprimer `show.php` legacy (sur accord explicite).
-5. Phase A factures reste 🟡 — bridge WinBiz externe non déployé.
+4. Phase A factures reste 🟡 — bridge WinBiz externe non déployé.
+5. PHPStan en dev-dep (analyse statique) ; purge `_trash/` quand validé.
 
 ---
 
