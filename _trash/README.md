@@ -12,3 +12,4 @@ Convention : conserver le chemin d'origine sous `_trash/` (ex. `_trash/templates
 |------------|---------|--------|
 | 2026-06-27 | `templates/documents/show.php` | Fiche document legacy : `DocumentsController::show` redirige toujours vers `/documents?open={id}` (la fiche est la modale). Template jamais rendu. |
 | 2026-06-27 | `tests/Unit/Services/DocumentServiceTest.php` | Test orphelin : `KDocs\Services\DocumentService` n'existe pas (0 réf dans `app/`). |
+| 2026-06-27 | `app/Core/DebugLogger.php` | Instrumentation d'audit (`#region agent log`) retirée des 24 fichiers ; classe devenue inutilisée. |

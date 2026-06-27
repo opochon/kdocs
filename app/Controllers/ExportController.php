@@ -27,12 +27,6 @@ class ExportController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ExportController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $role = $user['role'] ?? (($user['is_admin'] ?? false) ? 'admin' : 'user');
@@ -61,12 +55,6 @@ class ExportController
      */
     public function exportDocuments(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ExportController::exportDocuments', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $role = $user['role'] ?? (($user['is_admin'] ?? false) ? 'admin' : 'user');
@@ -157,12 +145,6 @@ class ExportController
      */
     public function exportMetadata(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ExportController::exportMetadata', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $role = $user['role'] ?? (($user['is_admin'] ?? false) ? 'admin' : 'user');
@@ -229,12 +211,6 @@ class ExportController
      */
     public function import(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ExportController::import', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $role = $user['role'] ?? (($user['is_admin'] ?? false) ? 'admin' : 'user');

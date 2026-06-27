@@ -32,24 +32,12 @@ class WorkflowEngine
     {
         $results = [];
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowEngine::executeForEvent', 'Event triggered', [
-            'event' => $event,
-            'documentId' => $documentId,
-            'context' => $context
-        ], 'A');
-        // #endregion
         
         // 1. Exécuter les workflows de l'ancien système (linéaires)
         try {
             $oldResults = $this->workflowService->executeForEvent($event, $documentId, $context);
             $results = array_merge($results, $oldResults);
         } catch (\Exception $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('WorkflowEngine::executeForEvent', 'Old system error', [
-                'error' => $e->getMessage()
-            ], 'A');
-            // #endregion
             error_log("WorkflowEngine: Erreur ancien système: " . $e->getMessage());
         }
         
@@ -58,19 +46,9 @@ class WorkflowEngine
             $newResults = $this->executeDesignerWorkflows($event, $documentId, $context);
             $results = array_merge($results, $newResults);
         } catch (\Exception $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('WorkflowEngine::executeForEvent', 'Designer system error', [
-                'error' => $e->getMessage()
-            ], 'A');
-            // #endregion
             error_log("WorkflowEngine: Erreur nouveau système: " . $e->getMessage());
         }
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowEngine::executeForEvent', 'Execution completed', [
-            'resultsCount' => count($results)
-        ], 'A');
-        // #endregion
         
         return $results;
     }

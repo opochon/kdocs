@@ -26,9 +26,6 @@ class WorkflowScheduler
     {
         $results = [];
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowScheduler::processScheduledWorkflows', 'Starting scheduled check', [], 'A');
-        // #endregion
         
         try {
             // Récupérer les workflows avec trigger scheduled
@@ -72,11 +69,6 @@ class WorkflowScheduler
             error_log("WorkflowScheduler: Erreur générale: " . $e->getMessage());
         }
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowScheduler::processScheduledWorkflows', 'Completed', [
-            'resultsCount' => count($results)
-        ], 'A');
-        // #endregion
         
         return $results;
     }

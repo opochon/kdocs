@@ -833,16 +833,8 @@ $app->group('', function ($group) {
 
 // Démarrer l'application
 try {
-    \KDocs\Core\DebugLogger::log('index.php', 'Application start', [
-        'requestUri' => $_SERVER['REQUEST_URI'] ?? '',
-        'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? ''
-    ], 'B');
-    
     $app->run();
-    
-    \KDocs\Core\DebugLogger::log('index.php', 'Application completed successfully', [], 'B');
 } catch (\Exception $e) {
-    \KDocs\Core\DebugLogger::logException($e, 'index.php - Application error', 'A');
     error_log("Application error: " . $e->getMessage());
     http_response_code(500);
     echo "Une erreur est survenue. Veuillez réessayer plus tard.";

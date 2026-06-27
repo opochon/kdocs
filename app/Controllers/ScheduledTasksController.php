@@ -27,30 +27,14 @@ class ScheduledTasksController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTasksController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath()
-        ], 'B');
-        // #endregion
         
         $user = $request->getAttribute('user');
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTasksController::index', 'Before ScheduledTask::all', [], 'E');
-        // #endregion
         
         try {
             $tasks = ScheduledTask::all();
             
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('ScheduledTasksController::index', 'After ScheduledTask::all', [
-        'tasksCount' => count($tasks)
-            ], 'E');
-            // #endregion
         } catch (\Exception $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::logException($e, 'ScheduledTasksController::index - Error fetching tasks', 'E');
-            // #endregion
             $tasks = [];
         }
         
@@ -75,12 +59,6 @@ class ScheduledTasksController
      */
     public function run(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTasksController::run', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $id = (int)$args['id'];
         $task = ScheduledTask::find($id);
         
@@ -106,12 +84,6 @@ class ScheduledTasksController
      */
     public function processQueue(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTasksController::processQueue', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $result = TaskService::processQueue();
         return $response->withJson($result);
     }

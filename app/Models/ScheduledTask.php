@@ -15,30 +15,16 @@ class ScheduledTask
      */
     public static function all(): array
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTask::all', 'Method entry', [], 'E');
-        // #endregion
         
         $db = Database::getInstance();
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('ScheduledTask::all', 'Before query execution', [], 'E');
-        // #endregion
         
         try {
             $result = $db->query("SELECT * FROM scheduled_tasks ORDER BY name")->fetchAll(\PDO::FETCH_ASSOC);
             
-            // #region agent log
-            \KDocs\Core\DebugLogger::log('ScheduledTask::all', 'Query successful', [
-                'resultCount' => count($result)
-            ], 'E');
-            // #endregion
             
             return $result;
         } catch (\PDOException $e) {
-            // #region agent log
-            \KDocs\Core\DebugLogger::logException($e, 'ScheduledTask::all - Query failed', 'E');
-            // #endregion
             throw $e;
         }
     }

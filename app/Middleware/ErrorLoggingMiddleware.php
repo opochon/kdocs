@@ -39,30 +39,25 @@ class ErrorLoggingMiddleware implements MiddlewareInterface
         $path = $request->getUri()->getPath();
         $method = $request->getMethod();
         
-        // #region agent log
         $this->log([
             'location' => 'ErrorLoggingMiddleware::process',
             'message' => 'Request received',
             'data' => ['path' => $path, 'method' => $method],
             'hypothesisId' => 'A'
         ]);
-        // #endregion
 
         try {
             $response = $handler->handle($request);
             
-            // #region agent log
             $this->log([
                 'location' => 'ErrorLoggingMiddleware::process',
                 'message' => 'Request handled successfully',
                 'data' => ['path' => $path, 'status' => $response->getStatusCode()],
                 'hypothesisId' => 'A'
             ]);
-            // #endregion
             
             return $response;
         } catch (\Exception $e) {
-            // #region agent log
             $this->log([
                 'location' => 'ErrorLoggingMiddleware::process',
                 'message' => 'Exception caught',
@@ -76,7 +71,6 @@ class ErrorLoggingMiddleware implements MiddlewareInterface
                 ],
                 'hypothesisId' => 'A'
             ]);
-            // #endregion
             
             throw $e;
         }

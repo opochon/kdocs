@@ -27,12 +27,6 @@ class WebhooksController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $webhookModel = new Webhook();
         $webhookService = new WebhookService();
@@ -65,12 +59,6 @@ class WebhooksController
      */
     public function showForm(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::showForm', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $webhookModel = new Webhook();
         $webhook = null;
@@ -118,12 +106,6 @@ class WebhooksController
      */
     public function save(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::save', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $webhookModel = new Webhook();
         $id = !empty($args['id']) ? (int)$args['id'] : null;
         
@@ -179,12 +161,6 @@ class WebhooksController
      */
     public function delete(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::delete', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $webhookModel = new Webhook();
         $id = (int)$args['id'];
         
@@ -199,12 +175,6 @@ class WebhooksController
      */
     public function test(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::test', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $webhookService = new WebhookService();
         $id = (int)$args['id'];
         
@@ -219,12 +189,6 @@ class WebhooksController
      */
     public function logs(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WebhooksController::logs', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $webhookModel = new Webhook();
         $id = (int)$args['id'];

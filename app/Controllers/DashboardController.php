@@ -28,12 +28,6 @@ class DashboardController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('DashboardController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         
         $user = $request->getAttribute('user');
         $db = Database::getInstance();

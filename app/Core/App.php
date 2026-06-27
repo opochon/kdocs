@@ -35,12 +35,10 @@ class App
                 true
             );
             
-            // #region agent log
             // Instrumentation: Log des erreurs non capturées
             $errorHandler = $errorMiddleware->getDefaultErrorHandler();
             $responseFactory = $app->getResponseFactory();
             $errorMiddleware->setDefaultErrorHandler(function ($request, $exception, $displayErrorDetails, $logErrors, $logErrorDetails) use ($errorHandler, $responseFactory) {
-                \KDocs\Core\DebugLogger::logException($exception, 'App::create - ErrorMiddleware', 'A');
                 
                 // Si c'est une route API, forcer le retour JSON
                 $path = $request->getUri()->getPath();
@@ -71,7 +69,6 @@ class App
                 
                 return $errorHandler($request, $exception, $displayErrorDetails, $logErrors, $logErrorDetails);
             });
-            // #endregion
             
             // Définir le fuseau horaire
             date_default_timezone_set($config['app']['timezone']);

@@ -66,11 +66,6 @@ class AdminController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AdminController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath()
-        ], 'A');
-        // #endregion
         
         $user = $request->getAttribute('user');
         
@@ -123,12 +118,6 @@ class AdminController
      */
     public function users(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AdminController::users', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $db = Database::getInstance();
@@ -163,12 +152,6 @@ class AdminController
      */
     public function settings(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AdminController::settings', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/settings.php', []);

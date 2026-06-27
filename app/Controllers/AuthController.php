@@ -29,11 +29,6 @@ class AuthController
      */
     public function showLogin(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AuthController::showLogin', 'Controller entry', [
-            'path' => $request->getUri()->getPath()
-        ], 'A');
-        // #endregion
         
         // Si déjà connecté, rediriger vers le dashboard
         $sessionId = $_COOKIE['kdocs_session'] ?? null;
@@ -65,25 +60,13 @@ class AuthController
      */
     public function login(Request $request, Response $response): Response
     {
-        // #region agent log
         $data = $request->getParsedBody();
         $username = $data['username'] ?? '';
-        \KDocs\Core\DebugLogger::log('AuthController::login', 'Login attempt', [
-            'username' => $username,
-            'hasPassword' => !empty($data['password'] ?? '')
-        ], 'B');
-        // #endregion
         
         $password = $data['password'] ?? '';
 
         $user = Auth::attempt($username, $password);
         
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AuthController::login', 'Auth attempt result', [
-            'success' => $user !== false,
-            'userId' => $user['id'] ?? null
-        ], 'B');
-        // #endregion
 
         if (!$user) {
             // Log échec de connexion
@@ -149,11 +132,6 @@ class AuthController
      */
     public function logout(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('AuthController::logout', 'Logout attempt', [
-            'path' => $request->getUri()->getPath()
-        ], 'C');
-        // #endregion
         
         $sessionId = $_COOKIE['kdocs_session'] ?? null;
         $user = null;

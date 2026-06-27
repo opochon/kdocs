@@ -22,12 +22,6 @@ class CustomFieldsController
     
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('CustomFieldsController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $customFields = CustomField::all();
         
@@ -48,12 +42,6 @@ class CustomFieldsController
     
     public function showForm(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('CustomFieldsController::showForm', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $id = $args['id'] ?? null;
         $customField = $id ? CustomField::find((int)$id) : null;
@@ -75,12 +63,6 @@ class CustomFieldsController
     
     public function save(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('CustomFieldsController::save', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $data = $request->getParsedBody();
         $id = $data['id'] ?? null;
         
@@ -124,12 +106,6 @@ class CustomFieldsController
     
     public function delete(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('CustomFieldsController::delete', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $id = $args['id'] ?? null;
         if ($id) {
             CustomField::delete((int)$id);

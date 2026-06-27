@@ -28,12 +28,6 @@ class MailAccountsController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $accounts = MailAccount::all();
         
@@ -58,12 +52,6 @@ class MailAccountsController
      */
     public function showForm(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::showForm', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $id = isset($args['id']) ? (int)$args['id'] : null;
         
@@ -100,12 +88,6 @@ class MailAccountsController
      */
     public function save(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::save', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody();
         $basePath = \KDocs\Core\Config::basePath();
@@ -134,12 +116,6 @@ class MailAccountsController
      */
     public function testConnection(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::testConnection', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $id = (int)$args['id'];
         $service = new \KDocs\Services\EmailIngestionService();
         $result = $service->testConnection($id);
@@ -153,12 +129,6 @@ class MailAccountsController
      */
     public function process(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::process', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $id = (int)$args['id'];
         $service = new \KDocs\Services\EmailIngestionService();
         $result = $service->processAccount($id);
@@ -172,12 +142,6 @@ class MailAccountsController
      */
     public function delete(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('MailAccountsController::delete', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $id = (int)$args['id'];
         $basePath = \KDocs\Core\Config::basePath();

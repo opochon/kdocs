@@ -31,12 +31,6 @@ class TasksController
      */
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('TasksController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $queryParams = $request->getQueryParams();
         $page = (int)($queryParams['page'] ?? 1);
@@ -88,12 +82,6 @@ class TasksController
      */
     public function showCreate(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('TasksController::showCreate', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         $db = Database::getInstance();
@@ -125,12 +113,6 @@ class TasksController
      */
     public function create(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('TasksController::create', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $basePath = Config::basePath();
         $data = $request->getParsedBody();
@@ -207,12 +189,6 @@ class TasksController
      */
     public function updateStatus(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('TasksController::updateStatus', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $basePath = Config::basePath();
         $id = (int)$args['id'];

@@ -23,12 +23,6 @@ class WorkflowsController
     
     public function index(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowsController::index', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         
         // Utiliser le nouveau système WorkflowDefinition
@@ -70,12 +64,6 @@ class WorkflowsController
     
     public function showForm(Request $request, Response $response, array $args): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowsController::showForm', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         $user = $request->getAttribute('user');
         $id = $args['id'] ?? null;
         
@@ -90,12 +78,6 @@ class WorkflowsController
     
     public function save(Request $request, Response $response): Response
     {
-        // #region agent log
-        \KDocs\Core\DebugLogger::log('WorkflowsController::save', 'Controller entry', [
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod()
-        ], 'A');
-        // #endregion
         
         // Rediriger vers le designer pour la sauvegarde
         // La sauvegarde se fait maintenant via l'API du designer
