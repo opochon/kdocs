@@ -73,8 +73,8 @@ Objectif : versions documentaires, quittances lecture (GAP-031/032).
 |----|-------|--------|
 | C.1 | Scaffold `apps/smq/` + PluginRegistry | [x] |
 | C.2 | Versioning documentaire SMQ | [x] onglet Versions modale (liste/restore/diff/upload) |
-| C.3 | Quittance lecture obligatoire | [~] quittance livrée (record/status + UI modale) ; durcissement « obligatoire » à venir |
-| C.4 | Vues filtrées qualité dans Bibliothèque | [🟡] à implémenter |
+| C.3 | Quittance lecture obligatoire | [x] quittance (record/status) + bannière lecture obligatoire dans la modale (gated SMQ) |
+| C.4 | Vues filtrées qualité dans Bibliothèque | [x] vue « À quittancer » (`?smq=to_read`) + sidebar Qualité (SMQ) |
 
 ---
 
