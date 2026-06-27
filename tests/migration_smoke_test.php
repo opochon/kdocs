@@ -305,6 +305,7 @@ if (is_file(KDOCS_ROOT . '/index.php')) {
 if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
     $docIndex3 = (string) file_get_contents(KDOCS_ROOT . '/templates/documents/index.php');
     assert_true('modale quittance JS', str_contains($docIndex3, 'function loadReadStatusPreview(') && str_contains($docIndex3, 'function markAsReadPreview('));
+    assert_true('modale lecture obligatoire (banner)', str_contains($docIndex3, 'function checkMandatoryRead(') && str_contains($docIndex3, 'preview-read-banner'));
 }
 if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
     $adminIdx = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/index.php');

@@ -711,6 +711,7 @@ function renderDocumentMetadata(doc) {
 
     metadata.innerHTML = `
         <div class="text-sm">
+            ${SMQ_ENABLED ? '<div id="preview-read-banner" class="mb-2"></div>' : ''}
             <!-- Header avec AI et validation rapide -->
             <div class="flex items-center justify-between pb-2 mb-2 border-b">
                 <button onclick="getAISuggestionsPreview(${doc.id})"
@@ -938,6 +939,10 @@ function renderDocumentMetadata(doc) {
             </div>
         </div>
     `;
+
+    if (SMQ_ENABLED && doc && doc.id) {
+        checkMandatoryRead(doc.id);
+    }
 }
 
 // Gestion des onglets de la modale
@@ -1011,6 +1016,8 @@ async function loadVersionsPreview(docId) {
         const versions = (payload.data && payload.data.versions) || [];
         if (!versions.length) {
             box.innerHTML = '<p class="text-gray-400 py-4 text-center">Aucune version enregistrée.</p>';
+            // Quittance possible sur la version implicite (v1) même sans rangée de version
+            loadReadStatusPreview(docId, 1);
             return;
         }
         renderVersionsPreview(docId, versions);
@@ -1162,11 +1169,38 @@ async function markAsReadPreview(docId, version) {
         const data = await r.json();
         if (data.success) {
             loadReadStatusPreview(docId, version);
+            checkMandatoryRead(docId);
         } else {
             alert(data.message || 'Erreur lors de la quittance');
         }
     } catch (e) {
         alert('Erreur de connexion (quittance)');
+    }
+}
+
+// Bannière « lecture obligatoire » en tête de modale (version courante non quittancée).
+async function checkMandatoryRead(docId) {
+    const banner = document.getElementById('preview-read-banner');
+    if (!banner) return;
+    try {
+        let version = 1;
+        const vr = await fetch(`${BASE_PATH}/api/documents/${docId}/versions`, { headers: { 'Accept': 'application/json' } });
+        const versions = ((await vr.json()).data || {}).versions || [];
+        const current = versions.find(v => v.is_current == 1 || v.is_current === true);
+        if (current) version = current.version_number;
+
+        const sr = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/${version}/read-status`, { headers: { 'Accept': 'application/json' } });
+        const status = (await sr.json()).data || {};
+        if (!status.has_read) {
+            banner.className = 'mb-2 p-2 rounded bg-amber-50 border border-amber-200 text-xs flex items-center justify-between';
+            banner.innerHTML = `<span class="text-amber-800 font-medium">Lecture obligatoire (v${version}) — non quittancée</span>
+                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 border border-green-300 text-green-700 rounded hover:bg-green-50">Marquer comme lu</button>`;
+        } else {
+            banner.className = 'mb-2';
+            banner.innerHTML = '';
+        }
+    } catch (e) {
+        /* silencieux : la bannière reste vide */
     }
 }
 
