@@ -11,3 +11,4 @@ Convention : conserver le chemin d'origine sous `_trash/` (ex. `_trash/templates
 | Déplacé le | Origine | Raison |
 |------------|---------|--------|
 | 2026-06-27 | `templates/documents/show.php` | Fiche document legacy : `DocumentsController::show` redirige toujours vers `/documents?open={id}` (la fiche est la modale). Template jamais rendu. |
+| 2026-06-27 | `tests/Unit/Services/DocumentServiceTest.php` | Test orphelin : `KDocs\Services\DocumentService` n'existe pas (0 réf dans `app/`). |

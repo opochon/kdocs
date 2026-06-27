@@ -93,6 +93,7 @@ desktop.ini
 
 # Documentation générée
 /docs/_build/
+/docs/SMOKE-FULL-REPORT.md
 
 # Fichiers temporaires
 *.tmp

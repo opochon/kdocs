@@ -121,7 +121,7 @@ class WinBizConnector implements ConnectorInterface
     /**
      * Recupere les bons de livraison
      */
-    public function getBonsLivraison(string $clientCode = null, int $limit = 100): array
+    public function getBonsLivraison(?string $clientCode = null, int $limit = 100): array
     {
         $this->connect();
 
@@ -157,7 +157,7 @@ class WinBizConnector implements ConnectorInterface
     /**
      * Recupere les fiches de travail
      */
-    public function getFichesTravail(string $clientCode = null, int $limit = 100): array
+    public function getFichesTravail(?string $clientCode = null, int $limit = 100): array
     {
         $this->connect();
 
