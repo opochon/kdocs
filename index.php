@@ -126,6 +126,7 @@ use KDocs\Controllers\Api\SemanticSearchApiController;
 use KDocs\Controllers\Api\AIStatusApiController;
 use KDocs\Controllers\Api\SnapshotsApiController;
 use KDocs\Controllers\Api\DocumentVersionsApiController;
+use KDocs\Controllers\Api\ReadReceiptsApiController;
 use KDocs\Controllers\Admin\AttributionRulesController;
 use KDocs\Controllers\Admin\SnapshotsController;
 use KDocs\Controllers\MyTasksController;
@@ -748,6 +749,9 @@ $app->group('', function ($group) {
     $group->get('/api/documents/{documentId}/versions/{versionNumber}', [DocumentVersionsApiController::class, 'show']);
     $group->post('/api/documents/{documentId}/versions/{versionNumber}/restore', [DocumentVersionsApiController::class, 'restore']);
     $group->get('/api/documents/{documentId}/versions/{versionNumber}/download', [DocumentVersionsApiController::class, 'download']);
+    // Quittances de lecture (SMQ / C.3)
+    $group->post('/api/documents/{documentId}/versions/{versionNumber}/read', [ReadReceiptsApiController::class, 'record']);
+    $group->get('/api/documents/{documentId}/versions/{versionNumber}/read-status', [ReadReceiptsApiController::class, 'status']);
 
     $group->get('/admin/indexing', [\KDocs\Controllers\IndexingController::class, 'index']);
     $group->get('/admin/indexing/status', [\KDocs\Controllers\IndexingController::class, 'status']);

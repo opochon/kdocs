@@ -918,6 +918,7 @@ function renderDocumentMetadata(doc) {
                 <div id="preview-versions-content" class="text-xs">
                     <p class="text-gray-400 py-4 text-center">Chargement...</p>
                 </div>
+                <div id="preview-read-receipt" class="mt-3 pt-3 border-t border-gray-200 text-xs"></div>
                 <div id="preview-version-diff" class="hidden mt-3 pt-3 border-t border-gray-200 text-xs"></div>
             </div>` : ''}
 
@@ -1046,6 +1047,10 @@ function renderVersionsPreview(docId, versions) {
             <th class="py-1 pr-2 font-medium">Date</th><th class="py-1 pr-2 font-medium">Commentaire</th>
             <th class="py-1 text-right font-medium">Actions</th>
         </tr></thead><tbody>${rows}</tbody></table>`;
+
+    if (previewVersionsCurrent) {
+        loadReadStatusPreview(docId, previewVersionsCurrent);
+    }
 }
 
 async function restoreVersionPreview(docId, versionNumber) {
@@ -1121,6 +1126,48 @@ function renderVersionDiffPreview(panel, fromVersion, toVersion, data) {
         return `<div class="${cls} px-1 font-mono whitespace-pre-wrap">${sign} ${escapeHtml(l.line)}</div>`;
     }).join('');
     panel.innerHTML = header + `<div class="border border-gray-200 rounded max-h-56 overflow-auto">${body}</div>`;
+}
+
+// === Quittances de lecture (plugin SMQ / C.3) ===
+async function loadReadStatusPreview(docId, version) {
+    const box = document.getElementById('preview-read-receipt');
+    if (!box) return;
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/${version}/read-status`, { headers: { 'Accept': 'application/json' } });
+        const data = (await r.json()).data || {};
+        const count = data.readers_count || 0;
+        const plural = count > 1 ? 's' : '';
+        if (data.has_read) {
+            box.innerHTML = `<div class="flex items-center justify-between">
+                <span class="text-green-700">Quittance v${version} : lu le ${escapeHtml((data.read_at || '').substring(0, 16))}</span>
+                <span class="text-gray-400">${count} lecteur${plural}</span>
+            </div>`;
+        } else {
+            box.innerHTML = `<div class="flex items-center justify-between">
+                <span class="text-amber-700">Quittance v${version} : non lu</span>
+                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 border border-green-300 text-green-700 rounded hover:bg-green-50">Marquer comme lu</button>
+            </div>`;
+        }
+    } catch (e) {
+        box.innerHTML = '';
+    }
+}
+
+async function markAsReadPreview(docId, version) {
+    try {
+        const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/${version}/read`, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await r.json();
+        if (data.success) {
+            loadReadStatusPreview(docId, version);
+        } else {
+            alert(data.message || 'Erreur lors de la quittance');
+        }
+    } catch (e) {
+        alert('Erreur de connexion (quittance)');
+    }
 }
 
 // Retraiter le document (OCR)
