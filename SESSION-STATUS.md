@@ -31,23 +31,21 @@ php tests\migration_smoke_test.php        REM 141/141 offline structurel
 vendor\bin\phpunit --testsuite=unit       REM 230 tests, 0 err/fail, 0 skip
 vendor\bin\phpunit --testsuite=feature    REM 58 tests, 0 err/fail, 3 skipped
 tools\run-live-smokes.bat                 REM smoke 24 + live 9 + full 64 OK (serveur auto)
+vendor\bin\phpstan analyse                REM level 5, [OK] No errors (256 baselined)
 cd tests\visual && npm test               REM 7/7 Playwright (SMQ on via webServer env)
 ```
 
 0 Deprecated/Warning/Fatal dans les réponses (la déprecation API était le seul leak, corrigée).
 
-**Dette — traitée** : `show.php` → `_trash` + bloc mort contrôleur ; outil `tools/apply-sql-migration.php` (les `.sql` n'ont pas de runner) ; déprecations PHP 8.4 (`ApiController`, `WinBizConnector`) ; `DocumentServiceTest` orphelin → `_trash` (0 skip) ; `SMOKE-FULL-REPORT.md` gitignoré ; autoloader `Tests\` robuste (`tests/bootstrap.php`).
-
-**Dette — différée (motif, lot dédié)** :
-- **`#region agent log` (DebugLogger)** : ~100+ blocs sur 24 fichiers, **mêlés à du code fonctionnel** (ex. `AuthController::login` extrait `$data`/`$username` dans un bloc) → retrait en masse **dangereux**. Refactor bloc par bloc requis.
-- **PHPStan** : installable mais `composer.lock` **désynchronisé** pour les dev-tools (l'installer élague d'autres paquets, ex. `n0nag0n` → casse) → nécessite `composer update` + resync lock délibéré. Validé localement (level 5 : 275 erreurs → baseline).
-- **`slim/slim` CVE-2026-48157** (medium) : montée de version framework à tester (lot sécurité).
+**Dette — traitée (zéro dette restante des items identifiés)** :
+- `show.php` → `_trash` + bloc mort contrôleur ; outil `tools/apply-sql-migration.php` ; déprecations PHP 8.4 (`ApiController`, `WinBizConnector`) ; `DocumentServiceTest` orphelin → `_trash` (0 skip) ; `SMOKE-FULL-REPORT.md` gitignoré ; autoloader `Tests\` robuste.
+- **DebugLogger** : 24 fichiers, ~622 lignes d'instrumentation `#region agent log` retirées (code fonctionnel mêlé **préservé**, ex. `AuthController::login`) ; classe inutilisée → `_trash`. Vérifié (login + 24/9/64 + 7/7).
+- **Dépendances** : `composer.lock` resynchronisé ; **CVE `slim/slim` corrigée** (4.15.2, `composer audit` clean) ; **PHPStan actif** (level 5, `[OK]` via baseline de 256 erreurs legacy = backlog) ; `n0nag0n` déclaré (était orphelin).
 
 **Prochains pas** :
-1. **Lot dépendances** : resync `composer.lock` (dev-tools), activer PHPStan + baseline, corriger CVE `slim/slim`.
-2. **Lot DebugLogger** : retirer les `#region agent log` bloc par bloc (préserver le code fonctionnel mêlé).
-3. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` (lot transverse, clair+sombre).
-4. Phase A factures reste 🟡 — bridge WinBiz externe non déployé ; purge `_trash/` quand validé.
+1. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` (lot transverse, clair+sombre).
+2. **Burn-down PHPStan** : réduire la baseline (256 erreurs legacy, par niveau/dossier).
+3. Phase A factures reste 🟡 — bridge WinBiz externe non déployé ; purge `_trash/` quand validé.
 
 ---
 
