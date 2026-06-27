@@ -47,6 +47,19 @@ cd tests\visual && npm test               REM 7/7 Playwright (SMQ on via webServ
 2. **Burn-down PHPStan** : réduire la baseline (256 erreurs legacy, par niveau/dossier).
 3. Phase A factures reste 🟡 — bridge WinBiz externe non déployé ; purge `_trash/` quand validé.
 
+### Commits clés 2026-06-26/27 (`main`, poussés)
+
+| Lot | Commits |
+|-----|---------|
+| Harness Playwright + fixes (dashboard 500, déprec API, debug `htmleditor_v3`) | `87b48d9` → `96b836a` |
+| C.2 versioning documentaire (modale) | `331d3ae` |
+| C.3 quittance lecture + durcissement | `a10e8d2`, `b2e1bf3` |
+| C.4 vue filtrée « À quittancer » | `2e82a84` |
+| Dette : déprec WinBiz + orphelin → `_trash` | `3e5981d` |
+| Dette : autoloader `Tests\` robuste | `1a6014a` |
+| Dette : **DebugLogger** retiré (24 fichiers, ~622 lignes) | `5dcbd69` |
+| Dette : **dépendances** (CVE slim 4.15.2 + PHPStan baseline) | `8003587`, `d7dddd8` |
+
 ---
 
 ## État au 2026-06-22 (chantier B1 — GED pro K-Docs vs REDX)
@@ -114,4 +127,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-26 — harness visuel Playwright + nettoyage dette debug*
+*Dernière mise à jour : 2026-06-27 — C.2/C.3/C.4 SMQ livrés, dette intégralement traitée (DebugLogger, PHPStan, CVE slim)*
