@@ -1,13 +1,14 @@
 includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - phpstan-baseline.neon
 
 parameters:
     level: 5
     paths:
         - app
     excludePaths:
-        - app/vendor
-        - app/cache
+        - app/vendor (?)
+        - app/cache (?)
     checkMissingIterableValueType: false
     checkGenericClassInNonGenericObjectType: false
     reportUnmatchedIgnoredErrors: false

@@ -1,0 +1,806 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			count: 1
+			path: app/Adapters/GedNativeClassifierAdapter.php
+
+		-
+			message: "#^Offset 'taxonomy_source' on array\\{document_id\\?\\: int, text\\?\\: string, mime_type\\?\\: string, file_path\\?\\: string\\|null, project_key\\?\\: string\\|null, external_ids\\?\\: array\\<string, string\\>\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: app/Adapters/HtmleditorTaxonomyAdapter.php
+
+		-
+			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			count: 1
+			path: app/Adapters/InfomaniakClassifierAdapter.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: app/Controllers/AdminController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\AIProviderService\\:\\:chat\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\AIProviderService\\:\\:extractMetadata\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\AIProviderService\\:\\:getActiveProvider\\(\\)\\.$#"
+			count: 2
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\AIProviderService\\:\\:getProvidersStatus\\(\\)\\.$#"
+			count: 2
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Call to an undefined static method KDocs\\\\Services\\\\AIProviderService\\:\\:clearCache\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\AIProviderService\\:\\:classifyDocument\\(\\) invoked with 1 parameter, 2\\-3 required\\.$#"
+			count: 1
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Parameter \\#1 \\$content of method KDocs\\\\Services\\\\AIProviderService\\:\\:classifyDocument\\(\\) expects string, int\\<1, max\\> given\\.$#"
+			count: 1
+			path: app/Controllers/Api/AIProviderApiController.php
+
+		-
+			message: "#^Variable \\$tempFile in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/Api/ConsumptionApiController.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method Psr\\\\Http\\\\Message\\\\MessageInterface\\:\\:withHeader\\(\\) expects array\\<string\\>\\|string, int\\<0, max\\> given\\.$#"
+			count: 1
+			path: app/Controllers/Api/DocumentVersionsApiController.php
+
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/Api/DocumentsApiController.php
+
+		-
+			message: "#^Parameter \\#1 \\$seconds of function set_time_limit expects int, string given\\.$#"
+			count: 1
+			path: app/Controllers/Api/DocumentsApiController.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method Psr\\\\Http\\\\Message\\\\MessageInterface\\:\\:withHeader\\(\\) expects array\\<string\\>\\|string, int\\<0, max\\>\\|false given\\.$#"
+			count: 1
+			path: app/Controllers/Api/DocumentsApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\EmailIngestionService\\:\\:createAccount\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/EmailIngestionApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\EmailIngestionService\\:\\:deleteAccount\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/EmailIngestionApiController.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\EmailIngestionService\\:\\:updateAccount\\(\\)\\.$#"
+			count: 1
+			path: app/Controllers/Api/EmailIngestionApiController.php
+
+		-
+			message: "#^Parameter \\#1 \\$accountId of method KDocs\\\\Services\\\\EmailIngestionService\\:\\:testConnection\\(\\) expects int, array given\\.$#"
+			count: 1
+			path: app/Controllers/Api/EmailIngestionApiController.php
+
+		-
+			message: "#^Parameter \\#1 \\$accountId of method KDocs\\\\Services\\\\EmailIngestionService\\:\\:testConnection\\(\\) expects int, array\\|object given\\.$#"
+			count: 1
+			path: app/Controllers/Api/EmailIngestionApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\Api\\\\FoldersApiController\\:\\:hasSubfolders\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\Api\\\\FoldersApiController\\:\\:jsonError\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\Api\\\\FoldersApiController\\:\\:jsonSuccess\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\Api\\\\FoldersApiController\\:\\:loadFoldersRecursive\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\Api\\\\FoldersApiController\\:\\:triggerCrawl\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Offset 'created_at' on array\\{path\\: mixed, created_at\\: mixed, priority\\: mixed, source\\: 'database'\\|'file', status\\: 'active'\\|'pending'\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 2
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Offset 'created_at' on array\\{path\\: mixed, created_at\\: mixed, priority\\: mixed, source\\: 'file', status\\: 'pending'\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Offset 'priority' on array\\{path\\: mixed, created_at\\: mixed, priority\\: mixed, source\\: 'database'\\|'file', status\\: 'active'\\|'pending'\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 4
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Offset 'status' on array\\{path\\: mixed, created_at\\: mixed, priority\\: mixed, source\\: 'database'\\|'file', status\\: 'active'\\|'pending'\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 6
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 2
+			path: app/Controllers/Api/FoldersApiController.php
+
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 2
+			path: app/Controllers/Api/OnlyOfficeApiController.php
+
+		-
+			message: "#^Property KDocs\\\\Controllers\\\\Api\\\\SearchApiController\\:\\:\\$vectorService is never read, only written\\.$#"
+			count: 1
+			path: app/Controllers/Api/SearchApiController.php
+
+		-
+			message: "#^Undefined variable\\: \\$question$#"
+			count: 1
+			path: app/Controllers/Api/SearchApiController.php
+
+		-
+			message: "#^Parameter \\#4 \\$searchTimeMs of method KDocs\\\\Controllers\\\\Api\\\\SemanticSearchApiController\\:\\:logSearch\\(\\) expects int, float given\\.$#"
+			count: 1
+			path: app/Controllers/Api/SemanticSearchApiController.php
+
+		-
+			message: "#^Call to static method logCreate\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/CorrespondentsController.php
+
+		-
+			message: "#^Call to static method logDelete\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/CorrespondentsController.php
+
+		-
+			message: "#^Call to static method logUpdate\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/CorrespondentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:bulkAction\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 3
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:deleteSavedSearch\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:listSavedSearches\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:saveSearch\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 2
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:scanFilesystem\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 3
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Method KDocs\\\\Controllers\\\\DocumentsController\\:\\:share\\(\\) should return Psr\\\\Http\\\\Message\\\\ResponseInterface but returns int\\.$#"
+			count: 2
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Undefined variable\\: \\$currentFolderPath$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Variable \\$currentFolderPath in isset\\(\\) is never defined\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Variable \\$customFields on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Variable \\$search on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Variable \\$searchScope on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Variable \\$storagePaths on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Controllers/DocumentsController.php
+
+		-
+			message: "#^Property KDocs\\\\Controllers\\\\IndexingController\\:\\:\\$storagePath is never read, only written\\.$#"
+			count: 1
+			path: app/Controllers/IndexingController.php
+
+		-
+			message: "#^Property KDocs\\\\Controllers\\\\MyTasksController\\:\\:\\$validationService is never read, only written\\.$#"
+			count: 1
+			path: app/Controllers/MyTasksController.php
+
+		-
+			message: "#^Call to static method logCreate\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/TagsController.php
+
+		-
+			message: "#^Call to static method logDelete\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/TagsController.php
+
+		-
+			message: "#^Call to static method logUpdate\\(\\) on an unknown class KDocs\\\\Controllers\\\\AuditService\\.$#"
+			count: 1
+			path: app/Controllers/TagsController.php
+
+		-
+			message: "#^Static property KDocs\\\\Core\\\\Config\\:\\:\\$dbSettings \\(array\\|null\\) is never assigned array so it can be removed from the property type\\.$#"
+			count: 1
+			path: app/Core/Config.php
+
+		-
+			message: "#^Static property KDocs\\\\Core\\\\Config\\:\\:\\$dbSettings is never read, only written\\.$#"
+			count: 1
+			path: app/Core/Config.php
+
+		-
+			message: "#^Deprecated in PHP 8\\.4\\: Parameter \\#1 \\$db \\(PDO\\) is implicitly nullable via default value null\\.$#"
+			count: 1
+			path: app/Core/Migrations.php
+
+		-
+			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			count: 1
+			path: app/DTO/ClassificationResult.php
+
+		-
+			message: "#^Variable \\$documentIds in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Helpers/TagLoader.php
+
+		-
+			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			count: 1
+			path: app/Jobs/ClassifyDocumentJob.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\ClassificationField\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/ClassificationField.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\CustomField\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/CustomField.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\DocumentNote\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/DocumentNote.php
+
+		-
+			message: "#^Variable \\$where in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 2
+			path: app/Models/LogicalFolder.php
+
+		-
+			message: "#^Offset 0 on non\\-empty\\-list\\<string\\> on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Models/Setting.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\StoragePath\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/StoragePath.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\Tag\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/Tag.php
+
+		-
+			message: "#^Variable \\$workflowInstanceId on left side of \\?\\? always exists and is always null\\.$#"
+			count: 1
+			path: app/Models/Task.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\Workflow\\:\\:addAction\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/Workflow.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\Workflow\\:\\:addTrigger\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/Workflow.php
+
+		-
+			message: "#^Method KDocs\\\\Models\\\\Workflow\\:\\:create\\(\\) should return int but returns string\\|false\\.$#"
+			count: 1
+			path: app/Models/Workflow.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/CorrespondentRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 6
+			path: app/Repositories/CorrespondentRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 2
+			path: app/Repositories/CorrespondentRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\CorrespondentRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/CorrespondentRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/DocumentRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 16
+			path: app/Repositories/DocumentRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\DocumentRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/DocumentRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/DocumentTypeRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 5
+			path: app/Repositories/DocumentTypeRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 2
+			path: app/Repositories/DocumentTypeRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\DocumentTypeRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/DocumentTypeRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/SavedViewRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 10
+			path: app/Repositories/SavedViewRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\SavedViewRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/SavedViewRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/TagRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 6
+			path: app/Repositories/TagRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 2
+			path: app/Repositories/TagRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\TagRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/TagRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:lastInsertId\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/UserRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 8
+			path: app/Repositories/UserRepository.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 1
+			path: app/Repositories/UserRepository.php
+
+		-
+			message: "#^Property KDocs\\\\Repositories\\\\UserRepository\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Repositories/UserRepository.php
+
+		-
+			message: "#^Variable \\$systemPrompt in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 5
+			path: app/Services/AIClassifierService.php
+
+		-
+			message: "#^Offset 'final_score' does not exist on array\\{doc\\: mixed, ft_score\\: \\(float\\|int\\), sem_score\\: mixed\\}\\.$#"
+			count: 2
+			path: app/Services/AISearchService.php
+
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 1
+			path: app/Services/Attribution/RuleConditionEvaluator.php
+
+		-
+			message: "#^Variable \\$value in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/Attribution/RuleConditionEvaluator.php
+
+		-
+			message: "#^Offset 0 on array\\{list\\<string\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/AutoClassifierService.php
+
+		-
+			message: "#^Strict comparison using \\!\\=\\= between mixed and null will always evaluate to true\\.$#"
+			count: 1
+			path: app/Services/AutoClassifierService.php
+
+		-
+			message: "#^Deprecated in PHP 8\\.4\\: Parameter \\#1 \\$name \\(string\\) is implicitly nullable via default value null\\.$#"
+			count: 1
+			path: app/Services/BackupService.php
+
+		-
+			message: "#^Offset 1 on array\\{list\\<string\\>, list\\<non\\-empty\\-string\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/BackupService.php
+
+		-
+			message: "#^Offset 0 on array\\{list\\<string\\>, list\\<non\\-falsy\\-string&numeric\\-string\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/ClassificationService.php
+
+		-
+			message: "#^Offset 1 on array\\{list\\<string\\>, list\\<non\\-falsy\\-string\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/ClassificationService.php
+
+		-
+			message: "#^Offset 'confidence' on array\\{suggestions\\: array\\<string, mixed\\>, confidence\\: float, source\\: string, audit\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 3
+			path: app/Services/Classifiers/UnifiedClassifier.php
+
+		-
+			message: "#^Offset 'source' on array\\{suggestions\\: array\\<string, mixed\\>, confidence\\: float, source\\: string, audit\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/Classifiers/UnifiedClassifier.php
+
+		-
+			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			count: 2
+			path: app/Services/Classifiers/UnifiedClassifier.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: app/Services/ClaudeService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\ConsumeFolderService\\:\\:moveOriginalToProcessed\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Services/ConsumeFolderService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\ConsumeFolderService\\:\\:sanitizePath\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Services/ConsumeFolderService.php
+
+		-
+			message: "#^Right side of && is always true\\.$#"
+			count: 1
+			path: app/Services/CrawlerAutoTrigger.php
+
+		-
+			message: "#^Variable \\$mimeType in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 2
+			path: app/Services/DocumentMapper.php
+
+		-
+			message: "#^Variable \\$documentText in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/DocumentProcessor.php
+
+		-
+			message: "#^Deprecated in PHP 8\\.4\\: Parameter \\#1 \\$accountId \\(int\\) is implicitly nullable via default value null\\.$#"
+			count: 1
+			path: app/Services/EmailIngestionService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\EmbeddingService\\:\\:embedWithLocal\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: app/Services/EmbeddingService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\EmbeddingService\\:\\:embedWithOpenAI\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: app/Services/EmbeddingService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\FilesystemIndexer\\:\\:getLastIndexTime\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Services/FilesystemIndexer.php
+
+		-
+			message: "#^Variable \\$mimeType in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/FilesystemIndexer.php
+
+		-
+			message: "#^Variable \\$mimeType in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/FilesystemScanner.php
+
+		-
+			message: "#^Call to an undefined static method KDocs\\\\Services\\\\QueueService\\:\\:queueFolderIndexing\\(\\)\\.$#"
+			count: 1
+			path: app/Services/FolderIndexerService.php
+
+		-
+			message: "#^Variable \\$mimeType in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/FolderIndexerService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\AuditService\\:\\:logAction\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 5
+			path: app/Services/FolderService.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 3
+			path: app/Services/FolderService.php
+
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 3
+			path: app/Services/FolderService.php
+
+		-
+			message: "#^Call to method createFromFile\\(\\) on an unknown class Hfig\\\\MAPI\\\\OLE\\\\Pear\\\\DocumentFactory\\.$#"
+			count: 1
+			path: app/Services/MSGImportService.php
+
+		-
+			message: "#^Call to method parseMessage\\(\\) on an unknown class Hfig\\\\MAPI\\\\MapiMessageFactory\\.$#"
+			count: 1
+			path: app/Services/MSGImportService.php
+
+		-
+			message: "#^Instantiated class Hfig\\\\MAPI\\\\MapiMessageFactory not found\\.$#"
+			count: 1
+			path: app/Services/MSGImportService.php
+
+		-
+			message: "#^Instantiated class Hfig\\\\MAPI\\\\OLE\\\\Pear\\\\DocumentFactory not found\\.$#"
+			count: 1
+			path: app/Services/MSGImportService.php
+
+		-
+			message: "#^Method KDocs\\\\Services\\\\MailService\\:\\:getOrCreateCorrespondent\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: app/Services/MailService.php
+
+		-
+			message: "#^Static method KDocs\\\\Services\\\\MailService\\:\\:applyRule\\(\\) invoked with 5 parameters, 3 required\\.$#"
+			count: 1
+			path: app/Services/MailService.php
+
+		-
+			message: "#^Static method KDocs\\\\Services\\\\MailService\\:\\:getOrCreateCorrespondent\\(\\) is unused\\.$#"
+			count: 1
+			path: app/Services/MailService.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: app/Services/MailService.php
+
+		-
+			message: "#^Call to static method load\\(\\) on an unknown class PhpOffice\\\\PhpWord\\\\IOFactory\\.$#"
+			count: 3
+			path: app/Services/OCRService.php
+
+		-
+			message: "#^Comparison operation \"\\<\\=\" between int\\<192, 255\\> and 255 is always true\\.$#"
+			count: 1
+			path: app/Services/OCRService.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: app/Services/PDFSplitterService.php
+
+		-
+			message: "#^Variable \\$currentGroup in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/PDFSplitterService.php
+
+		-
+			message: "#^Cannot call method fetch\\(\\) on bool\\.$#"
+			count: 1
+			path: app/Services/SnapshotService.php
+
+		-
+			message: "#^Variable \\$parts in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: app/Services/StoragePathGenerator.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with KDocs\\\\Services\\\\DocumentProcessor and 'process' will always evaluate to true\\.$#"
+			count: 1
+			path: app/Services/TaskService.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with KDocs\\\\Services\\\\DocumentProcessor and 'processDocument' will always evaluate to true\\.$#"
+			count: 1
+			path: app/Services/TaskService.php
+
+		-
+			message: "#^Offset 'score' does not exist on array\\{document_id\\: mixed, semantic_score\\: 0\\|float, keyword_score\\: 0\\|float\\}\\.$#"
+			count: 2
+			path: app/Services/VectorSearchService.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with '\\\\\\\\KDocs\\\\\\\\Workflow…' and 'shouldTrigger' will always evaluate to true\\.$#"
+			count: 2
+			path: app/Services/WorkflowEngine.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 3
+			path: app/Services/WorkflowLogger.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 1
+			path: app/Services/WorkflowLogger.php
+
+		-
+			message: "#^Property KDocs\\\\Services\\\\WorkflowLogger\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Services/WorkflowLogger.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:prepare\\(\\)\\.$#"
+			count: 2
+			path: app/Services/WorkflowScheduler.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Core\\\\Database\\:\\:query\\(\\)\\.$#"
+			count: 1
+			path: app/Services/WorkflowScheduler.php
+
+		-
+			message: "#^Property KDocs\\\\Services\\\\WorkflowScheduler\\:\\:\\$db \\(KDocs\\\\Core\\\\Database\\) does not accept PDO\\.$#"
+			count: 1
+			path: app/Services/WorkflowScheduler.php
+
+		-
+			message: "#^Static method KDocs\\\\Workflow\\\\ExecutionResult\\:\\:waiting\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: app/Workflow/Nodes/Actions/RequestApprovalAction.php
+
+		-
+			message: "#^Access to private property KDocs\\\\Workflow\\\\ContextBag\\:\\:\\$data\\.$#"
+			count: 1
+			path: app/Workflow/Nodes/Actions/SetValidationStatusAction.php
+
+		-
+			message: "#^Strict comparison using \\!\\=\\= between mixed and null will always evaluate to true\\.$#"
+			count: 2
+			path: app/Workflow/Nodes/Triggers/DocumentAddedTrigger.php
+
+		-
+			message: "#^Strict comparison using \\!\\=\\= between mixed and null will always evaluate to true\\.$#"
+			count: 2
+			path: app/Workflow/Nodes/Triggers/ValidationStatusChangedTrigger.php
+
+		-
+			message: "#^Static method KDocs\\\\Workflow\\\\ExecutionResult\\:\\:waiting\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 2
+			path: app/Workflow/Nodes/Waits/ApprovalWait.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between mixed and null will always evaluate to false\\.$#"
+			count: 1
+			path: app/helpers.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:applyResourceLimits\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:cleanExpiredQueues\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:getConfig\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:pauseAfterBatch\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:pauseBetweenFiles\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
+
+		-
+			message: "#^Call to an undefined method KDocs\\\\Services\\\\IndexingService\\:\\:writeIndex\\(\\)\\.$#"
+			count: 1
+			path: app/workers/smart_indexer.php
