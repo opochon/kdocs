@@ -291,6 +291,21 @@ if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
     assert_true('modale JS loadVersionsPreview()', str_contains($docIndex, 'function loadVersionsPreview('));
     assert_true('modale diff versions', str_contains($docIndex, 'function showVersionDiffPreview('));
 }
+
+echo "\nLot C.3 — quittances de lecture SMQ\n";
+assert_true('migration 031 read_receipts', is_file(KDOCS_ROOT . '/database/migrations/031_document_read_receipts.sql'));
+if ($vendorOk) {
+    assert_true('Classe DocumentReadReceipt chargeable', class_exists('KDocs\\Models\\DocumentReadReceipt'));
+    assert_true('Classe ReadReceiptsApiController chargeable', class_exists('KDocs\\Controllers\\Api\\ReadReceiptsApiController'));
+}
+if (is_file(KDOCS_ROOT . '/index.php')) {
+    $idxPhp = (string) file_get_contents(KDOCS_ROOT . '/index.php');
+    assert_true('routes quittance /read + /read-status', str_contains($idxPhp, "/read'") && str_contains($idxPhp, "/read-status'"));
+}
+if (is_file(KDOCS_ROOT . '/templates/documents/index.php')) {
+    $docIndex3 = (string) file_get_contents(KDOCS_ROOT . '/templates/documents/index.php');
+    assert_true('modale quittance JS', str_contains($docIndex3, 'function loadReadStatusPreview(') && str_contains($docIndex3, 'function markAsReadPreview('));
+}
 if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
     $adminIdx = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/index.php');
     assert_true('admin hub sans emoji', !preg_match('/[\x{1F300}-\x{1FAFF}]/u', $adminIdx));
