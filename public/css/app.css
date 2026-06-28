@@ -4,19 +4,21 @@
  */
 
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --border-color: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    /* Alias vers les tokens Karbonic (design-system.css) avec repli litteral.
+       Rend toutes les regles app.css theme-aware (clair/sombre) sans les reecrire. */
+    --primary-color: var(--accent, #2563eb);
+    --primary-hover: var(--accent-strong, #1d4ed8);
+    --secondary-color: var(--dim, #64748b);
+    --success-color: var(--green, #10b981);
+    --danger-color: var(--red, #ef4444);
+    --warning-color: var(--amber, #f59e0b);
+    --bg-primary: var(--surface, #ffffff);
+    --bg-secondary: var(--app-bg, #f8fafc);
+    --bg-tertiary: var(--hover, #f1f5f9);
+    --border-color: var(--border, #e2e8f0);
+    --text-primary: var(--ink, #0f172a);
+    --text-secondary: var(--ink-soft, #475569);
+    --text-muted: var(--dim, #94a3b8);
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -254,18 +256,11 @@ mark {
     font-weight: 500;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-primary: #1e293b;
-        --bg-secondary: #0f172a;
-        --bg-tertiary: #334155;
-        --border-color: #334155;
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --text-muted: #64748b;
-    }
-}
+/* Mode sombre : desormais pilote par la classe .dark de design-system.css
+   (tokens Karbonic). Les variables ci-dessus (--bg-*, --text-*, --border-color)
+   sont aliasees vers les tokens canoniques et suivent .dark automatiquement.
+   L'ancien override @media (prefers-color-scheme: dark) est retire pour eviter
+   le conflit avec la bascule par classe (clair/sombre/systeme). */
 
 /* Animations subtiles */
 @keyframes fadeIn {

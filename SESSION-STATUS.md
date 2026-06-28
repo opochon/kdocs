@@ -3,6 +3,39 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-06-27 — uniformisation UI (design system Karbonic, lot fondation + chrome)
+
+**Décisions (validées en début de lot)** : portée = **fondation + chrome** ; mode sombre = **tokens + bascule fonctionnelle** ; action primaire = **anthracite** (le bleu rétrogradé en simple accent focus/liens). Conforme à `docs/DESIGN-SYSTEM-KARBONIC.md`.
+
+**Fait :**
+- **`public/css/design-system.css` = feuille canonique Karbonic** (réécrite, ~270 l.) : tokens clair (`:root`) **et** sombre (`.dark`), `--paper` sombre pour la GED (le contenu n'est pas une page blanche), chargée **en dernier** dans `main.php`/`auth.php` (ses tokens/overrides gagnent la cascade).
+- **Consolidation 4 feuilles → 1 palette** : `theme.css` et `app.css` **aliasent** désormais leurs variables (`--color-*`, `--primary-color`, `--bg-*`, `--text-*`) vers les tokens Karbonic avec **repli littéral** (`var(--surface, #fff)`…). Toutes les règles existantes (`.btn`, `.form-*`, `.badge`, `a{}`, `input{}`, `table{}`, cartes `.bg-white.rounded-lg.shadow`) deviennent theme-aware sans réécriture. Ancien `@media (prefers-color-scheme: dark)` de `app.css` retiré (conflit avec la bascule par classe).
+- **Action primaire anthracite** : override ciblé (`.btn-primary`, `button[type=submit].bg-blue-600`, `button/a.bg-blue-600/700`) → `--primary` ; `color` neutralisé pour éviter `text-white` illisible sur primaire clair en sombre.
+- **Chrome tokenisé** (classes `.ds-*`) : `sidebar_user`/`sidebar_admin`/`header`/`footer` réécrits (gris Tailwind en dur → tokens), en-têtes de section, hover/active uniformes + trait `inset` sur l'actif. IDs JS préservés (`#user-menu-toggle`/`#user-menu`). **Bug attrapé en revue** : règle legacy `app.css` `aside nav ul li a span:first-child{width:20px}` masquait les labels → neutralisée par `.ds-sidebar .ds-nav-item__main` (spécificité (0,2,0) > (0,1,6)).
+- **Bascule clair / sombre / système** : `public/js/theme.js` (cycle, persistance `localStorage`, suivi `prefers-color-scheme`) + init **no-FOUC** inline dans le `<head>` (applique `.dark` avant rendu) + bouton `[data-theme-toggle]` (picto FA) dans le header. Login (`auth.php`) respecte aussi le thème.
+- **Shim sombre** (`design-system.css` §5) : remap des utilitaires Tailwind neutres encore en dur (`bg-white`, `text-gray-*`, `border-gray-*`, `hover:*`) → tokens, **sans** toucher aux îlots volontairement sombres (`bg-gray-700/800/900`, `text-white`). Fait basculer le contenu des pages sans réécrire les ~70 templates (migration page par page = lots suivants).
+
+**Vérifié (revue clair + sombre via captures Playwright `colorScheme`)** : chrome, dashboard, documents, admin OK dans les deux thèmes ; primaire anthracite (clair) / inversé (sombre) ; cartes/numéros lisibles en sombre après le correctif d'alias `--bg-primary`.
+
+```cmd
+php tests\migration_smoke_test.php        REM 141/141
+vendor\bin\phpunit --testsuite=unit       REM 230 OK
+vendor\bin\phpunit --testsuite=feature    REM 58 OK, 3 skipped
+vendor\bin\phpstan analyse                REM [OK] No errors (baseline 256)
+tools\run-live-smokes.bat                 REM smoke 24 + live 9 + full 64 OK + audit 8 pages (CSS 200, Login OK)
+cd tests\visual && npm test               REM 7/7 Playwright (shell + SMQ)
+```
+
+**Reste (lots suivants)** : migrer les templates de contenu (utilitaires Tailwind en dur → classes/tokens, retire le shim peu à peu) ; set d'icônes par action ; densité picto/hint complète (`DESIGN-SYSTEM-KARBONIC.md` §6) ; thème des graphiques Chart.js (couleurs canvas non pilotées par les tokens).
+
+### Commit clé 2026-06-27 (UI)
+
+| Lot | Commit |
+|-----|--------|
+| Uniformisation UI — fondation + chrome + clair/sombre | _(voir `git log`)_ |
+
+---
+
 ## Session 2026-06-26/27 — harness visuel, C.2/C.3/C.4 SMQ, dette
 
 **Fait :**
@@ -43,7 +76,7 @@ cd tests\visual && npm test               REM 7/7 Playwright (SMQ on via webServ
 - **Dépendances** : `composer.lock` resynchronisé ; **CVE `slim/slim` corrigée** (4.15.2, `composer audit` clean) ; **PHPStan actif** (level 5, `[OK]` via baseline de 256 erreurs legacy = backlog) ; `n0nag0n` déclaré (était orphelin).
 
 **Prochains pas** :
-1. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` (lot transverse, clair+sombre).
+1. **Uniformisation UI** via `docs/DESIGN-SYSTEM-KARBONIC.md` — ✅ **lot fondation + chrome + clair/sombre livré** (voir session 2026-06-27 ci-dessus) ; reste la migration page par page des templates de contenu.
 2. **Burn-down PHPStan** : réduire la baseline (256 erreurs legacy, par niveau/dossier).
 3. Phase A factures reste 🟡 — bridge WinBiz externe non déployé ; purge `_trash/` quand validé.
 
@@ -127,4 +160,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-27 — C.2/C.3/C.4 SMQ livrés, dette intégralement traitée (DebugLogger, PHPStan, CVE slim)*
+*Dernière mise à jour : 2026-06-27 — uniformisation UI lot fondation + chrome livré (design system Karbonic, clair/sombre, primaire anthracite) ; C.2/C.3/C.4 SMQ + dette traités en amont*

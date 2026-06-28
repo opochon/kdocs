@@ -1,32 +1,339 @@
 /**
- * Design system minimal K-Docs (B1.6) — complète Tailwind inline.
+ * Signature visuelle Karbonic — design system K-Docs.
+ *
+ * Source de verite : docs/DESIGN-SYSTEM-KARBONIC.md.
+ * Chargee EN DERNIER (apres tailwind.css, theme.css, app.css) : ses tokens et
+ * overrides gagnent la cascade.
+ *
+ * Strategie de consolidation (4 feuilles -> 1 palette) :
+ *  1. Tokens canoniques Karbonic sur :root (clair) et .dark (sombre).
+ *  2. Alias des variables legacy (theme.css --color-*, app.css --primary-color/
+ *     --bg-*/--text-*) vers les tokens canoniques : toutes les regles existantes
+ *     adoptent la palette Karbonic, y compris en sombre, sans reecriture.
+ *  3. Overrides cibles la ou la semantique differe (action primaire = anthracite,
+ *     le bleu n'est plus qu'un accent focus/liens).
+ *  4. Classes de chrome (.ds-*) tokenisees pour sidebars/header/footer.
+ *  5. Shim sombre pour les utilitaires Tailwind neutres encore en dur dans les
+ *     templates (migres page par page dans des lots ulterieurs).
  */
+
+/* =========================================================================
+   1. TOKENS CANONIQUES — CLAIR
+   ========================================================================= */
 :root {
-  --kdocs-card-radius: 0.5rem;
-  --kdocs-badge-radius: 9999px;
+  /* fonds */
+  --app-bg:#f7f7f8;        /* fond applicatif general */
+  --paper:#ffffff;         /* surface de contenu (apercu document) */
+  --chrome:#ffffff;        /* barres : header, footer, ruban */
+  --rail:#f7f7f8;          /* panneaux lateraux, colonnes */
+  --surface:#ffffff;       /* cartes, champs, boutons ghost, popovers */
+  /* interactions */
+  --hover:#ededee;
+  --active:#e9e9eb;
+  /* lignes */
+  --border:#e9e9e9;
+  --border-soft:#f0f0f0;
+  /* texte */
+  --ink:#2f3033;
+  --ink-soft:#5b5d61;
+  --dim:#7a7c80;
+  --muted:#a6a8ac;
+  /* accent & primaire */
+  --accent:#3f6fb0;        /* focus, liens, selection active */
+  --accent-strong:#34619c;
+  --accent-soft:#eaf0f8;
+  --primary:#37352f;       /* action primaire (anthracite) */
+  --primary-ink:#ffffff;
+  /* etats */
+  --green:#4a8a5c;
+  --amber:#b8893f;
+  --red:#c0544b;
+  /* tooltip / hint */
+  --tip:#2f3033;
+  --tip-ink:#ffffff;
+  /* forme */
+  --radius:6px;
+  --radius-sm:4px;
+  --shadow:0 1px 2px rgba(15,15,15,.04);
+  --shadow-pop:0 8px 30px rgba(15,15,15,.14);
+
+  /* ---- Alias legacy theme.css (IBM Carbon) -> tokens Karbonic ---- */
+  --color-primary:var(--accent);
+  --color-primary-hover:var(--accent-strong);
+  --color-primary-active:var(--accent-strong);
+  --color-text:var(--ink);
+  --color-text-secondary:var(--ink-soft);
+  --color-text-placeholder:var(--muted);
+  --color-text-inverse:#ffffff;
+  --color-border:var(--border);
+  --color-border-strong:var(--dim);
+  --color-bg:var(--surface);
+  --color-bg-hover:var(--hover);
+  --color-bg-active:var(--active);
+  --color-bg-subtle:var(--rail);
+  --color-bg-muted:var(--hover);
+  --color-success:var(--green);
+  --color-warning:var(--amber);
+  --color-danger:var(--red);
+  --color-info:var(--accent);
+
+  /* ---- Alias legacy app.css (Paperless) -> tokens Karbonic ---- */
+  --primary-color:var(--accent);
+  --primary-hover:var(--accent-strong);
+  --secondary-color:var(--dim);
+  --success-color:var(--green);
+  --danger-color:var(--red);
+  --warning-color:var(--amber);
+  --bg-primary:var(--surface);
+  --bg-secondary:var(--app-bg);
+  --bg-tertiary:var(--hover);
+  --border-color:var(--border);
+  --text-primary:var(--ink);
+  --text-secondary:var(--ink-soft);
+  --text-muted:var(--dim);
+
+  /* ---- Alias legacy stub kdocs-* ---- */
+  --kdocs-card-radius:var(--radius);
+  --kdocs-badge-radius:9999px;
 }
 
-.kdocs-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--kdocs-card-radius);
-  padding: 1rem;
+/* =========================================================================
+   2. TOKENS CANONIQUES — SOMBRE (.dark)
+   Seuls les tokens canoniques sont redefinis ; tous les alias ci-dessus
+   suivent automatiquement via var().
+   ========================================================================= */
+.dark {
+  --app-bg:#1f1f20;
+  --paper:#1f1f20;         /* GED : le contenu n'est pas une page blanche (cf. doc) */
+  --chrome:#252526;
+  --rail:#202021;
+  --surface:#2a2a2c;
+  --hover:#2f2f31;
+  --active:#343437;
+  --border:#3a3a3c;
+  --border-soft:#2e2e30;
+  --ink:#e6e6e8;
+  --ink-soft:#bcbcc0;
+  --dim:#8e9094;
+  --muted:#6a6c70;
+  --accent:#6f9fe0;
+  --accent-strong:#5a8ed4;
+  --accent-soft:#23304a;
+  --primary:#e6e6e8;       /* en sombre, le primaire s'inverse (clair sur sombre) */
+  --primary-ink:#1f1f20;
+  --green:#5fae72;
+  --amber:#d2a35a;
+  --red:#df6f66;
+  --tip:#0d0d0e;
+  --tip-ink:#f0f0f2;
+  --shadow-pop:0 10px 32px rgba(0,0,0,.55);
+  color-scheme: dark;
 }
 
-.kdocs-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: var(--kdocs-badge-radius);
+/* =========================================================================
+   3. SHELL & OVERRIDES SEMANTIQUES
+   ========================================================================= */
+
+/* Coque applicative tokenisee (remplace bg-gray-50 du layout). */
+.ds-shell { background: var(--app-bg); color: var(--ink); }
+
+/* Action primaire = anthracite (le doc : jamais bleue). On bat la specificite
+   des regles app.css (button.btn-primary / a.btn-primary) en chargeant apres
+   et en listant les memes selecteurs compounds. text-* Tailwind sur ces boutons
+   est aussi neutralise (sinon text-white illisible sur primaire clair en sombre). */
+.btn-primary,
+button.btn-primary,
+a.btn-primary,
+button[type="submit"].bg-blue-600,
+button.bg-blue-600,
+a.bg-blue-600,
+button.bg-blue-700,
+a.bg-blue-700 {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-ink);
+  box-shadow: none;
+}
+.btn-primary:hover,
+button.btn-primary:hover,
+a.btn-primary:hover,
+button[type="submit"].bg-blue-600:hover,
+button.bg-blue-600:hover,
+a.bg-blue-600:hover,
+button.bg-blue-700:hover,
+a.bg-blue-700:hover,
+button.bg-blue-600.hover\:bg-blue-700:hover,
+a.bg-blue-600.hover\:bg-blue-700:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-ink);
+  filter: brightness(1.12);
+  transform: none;
+  box-shadow: none;
 }
 
-.kdocs-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  border-radius: 0.5rem;
+/* Lien-bouton primaire : garder un curseur/etat coherents. */
+a.btn-primary, a.bg-blue-600 { text-decoration: none; }
+
+/* =========================================================================
+   4. CHROME — sidebars / header / footer (tokenises, dark-capable)
+   ========================================================================= */
+
+/* --- Sidebar --- */
+.ds-sidebar {
+  width: 208px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--rail);
+  border-right: 1px solid var(--border);
+  color: var(--ink);
 }
+.ds-sidebar__brand {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ds-sidebar__brand-title {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+  margin: 0;
+}
+.ds-sidebar__nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px; }
+.ds-sidebar__nav ul { list-style: none; margin: 0; padding: 0; }
+.ds-sidebar__foot { padding: 12px 14px; border-top: 1px solid var(--border); }
+
+.ds-backlink {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--dim); text-decoration: none; margin-bottom: 8px;
+}
+.ds-backlink:hover { color: var(--ink-soft); }
+
+/* En-tete de section : signature des panneaux (doc §4). */
+.ds-section-title {
+  padding: 13px 8px 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Item de navigation. */
+.ds-nav-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 7px 10px; margin: 1px 0;
+  border-radius: var(--radius);
+  font-size: 13px; color: var(--ink-soft);
+  text-decoration: none;
+  transition: background-color .11s, color .11s;
+}
+.ds-nav-item:hover { background: var(--hover); color: var(--ink); }
+.ds-nav-item.is-active {
+  background: var(--active); color: var(--ink); font-weight: 550;
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+.ds-nav-item__main { display: flex; align-items: center; gap: 9px; min-width: 0; }
+/* Neutralise la regle legacy app.css "aside nav ul li a span:first-child"
+   (anti-emoji de l'ancienne sidebar) qui ecrasait ce conteneur a 20px et
+   masquait le label. Specificite (0,2,0) > (0,1,6) de la regle legacy. */
+.ds-sidebar .ds-nav-item__main { width: auto; margin-right: 0; text-align: left; font-size: 13px; }
+.ds-nav-item__icon { width: 16px; height: 16px; flex-shrink: 0; color: var(--dim); }
+.ds-nav-item:hover .ds-nav-item__icon,
+.ds-nav-item.is-active .ds-nav-item__icon { color: var(--ink-soft); }
+.ds-nav-item__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-nav-count { font-size: 11px; color: var(--dim); flex-shrink: 0; }
+.ds-nav-badge {
+  font-size: 11px; font-weight: 600; padding: 1px 7px;
+  border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+  flex-shrink: 0;
+}
+.ds-nav-badge--alert { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
+
+/* Bloc utilisateur (pied de sidebar). */
+.ds-userbox { padding: 12px 14px; border-top: 1px solid var(--border); background: var(--rail); }
+.ds-userbox-name { font-size: 13px; font-weight: 550; color: var(--ink); }
+.ds-userbox-mail { font-size: 11px; color: var(--dim); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- Header --- */
+.ds-header { background: var(--chrome); border-bottom: 1px solid var(--border); }
+.ds-header__bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; }
+.ds-header__title { font-size: 13px; font-weight: 550; color: var(--ink-soft); margin: 0; }
+.ds-header__actions { display: flex; align-items: center; gap: 6px; }
+
+.ds-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0;
+  border-radius: var(--radius); border: none; background: transparent;
+  color: var(--ink-soft); cursor: pointer;
+  transition: background-color .11s, color .11s;
+}
+.ds-iconbtn:hover { background: var(--hover); color: var(--ink); }
+.ds-iconbtn svg { width: 16px; height: 16px; }
+
+.ds-avatar {
+  width: 26px; height: 26px; border-radius: 999px;
+  background: var(--hover); color: var(--ink-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+
+.ds-menu {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 9px; box-shadow: var(--shadow-pop); padding: 5px;
+}
+.ds-menu a { display: block; padding: 6px 10px; font-size: 12px; color: var(--ink-soft); border-radius: var(--radius-sm); text-decoration: none; }
+.ds-menu a:hover { background: var(--hover); color: var(--ink); }
+
+/* --- Footer --- */
+.ds-footer { background: var(--chrome); border-top: 1px solid var(--border); padding: 10px 24px; }
+.ds-footer__row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--dim); }
+.ds-footer__row p { margin: 0; }
+
+/* =========================================================================
+   5. SHIM SOMBRE — utilitaires Tailwind neutres encore en dur
+   Fait basculer le gros des pages contenu sans reecrire 70 templates.
+   On NE touche PAS aux ilots volontairement sombres (bg-gray-700/800/900,
+   text-white, text-gray-100/200) : ils restent sombres dans les deux modes.
+   ========================================================================= */
+.dark .bg-white { background-color: var(--surface); }
+.dark .bg-gray-50 { background-color: var(--app-bg); }
+.dark .bg-gray-100 { background-color: var(--rail); }
+.dark .bg-gray-200 { background-color: var(--hover); }
+
+.dark .text-gray-900,
+.dark .text-gray-800 { color: var(--ink); }
+.dark .text-gray-700,
+.dark .text-gray-600 { color: var(--ink-soft); }
+.dark .text-gray-500,
+.dark .text-gray-400 { color: var(--dim); }
+.dark .text-gray-300 { color: var(--muted); }
+
+.dark .border-gray-100 { border-color: var(--border-soft); }
+.dark .border-gray-200,
+.dark .border-gray-300 { border-color: var(--border); }
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border-soft); }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border); }
+
+.dark .hover\:bg-gray-50:hover { background-color: var(--hover); }
+.dark .hover\:bg-gray-100:hover { background-color: var(--hover); }
+.dark .hover\:bg-gray-200:hover { background-color: var(--active); }
+.dark .hover\:bg-white:hover { background-color: var(--surface); }
+.dark .hover\:border-gray-300:hover { border-color: var(--dim); }
+
+/* Etats colores tres clairs (chips) lisibles sur fond sombre. */
+.dark .bg-blue-100 { background-color: var(--accent-soft); }
+.dark .bg-blue-100.text-blue-800 { color: var(--accent); }
+
+/* =========================================================================
+   6. DENSITE — scaffold (doc §6). Plein picto/hint = lot ulterieur.
+   ========================================================================= */
+.d-compact .ds-section-title,
+.d-zen .ds-section-title { display: none; }
+
+/* =========================================================================
+   7. LEGACY kdocs-* (stub B1.6) — re-tokenise pour coherence si encore utilise.
+   ========================================================================= */
+.kdocs-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+.kdocs-badge { display: inline-flex; align-items: center; padding: .125rem .5rem; font-size: .75rem; font-weight: 500; border-radius: 9999px; }
+.kdocs-btn { display: inline-flex; align-items: center; justify-content: center; padding: .375rem .75rem; font-size: .875rem; border-radius: var(--radius); }

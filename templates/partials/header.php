@@ -44,34 +44,31 @@ if ($user && !empty($_COOKIE['kdocs_weak_password'])) {
 </div>
 <?php endif; ?>
 
-<header class="bg-white border-b border-gray-100">
-    <div class="flex items-center justify-between px-4 py-2">
+<header class="ds-header">
+    <div class="ds-header__bar">
         <div>
-            <h2 class="text-sm font-medium text-gray-700"><?= htmlspecialchars($pageTitle ?? 'K-Docs') ?></h2>
+            <h2 class="ds-header__title"><?= htmlspecialchars($pageTitle ?? 'K-Docs') ?></h2>
         </div>
-        
-        <div class="flex items-center gap-3 justify-end">
+
+        <div class="ds-header__actions">
+            <!-- Bascule de thème clair / sombre / système (cf. theme.js) -->
+            <button type="button" data-theme-toggle onclick="kdocsCycleTheme()" class="ds-iconbtn" title="Thème">
+                <i class="fas fa-circle-half-stroke" data-theme-icon></i>
+            </button>
             <?php if ($user): ?>
             <!-- Notifications dropdown -->
             <?php include __DIR__ . '/notifications_dropdown.php'; ?>
 
             <!-- User menu minimaliste -->
             <div class="relative">
-                <button id="user-menu-toggle" 
-                        class="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-600 hover:bg-gray-50 rounded transition-colors">
-                    <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span class="text-xs font-medium text-gray-600">
-                            <?= strtoupper(substr($user['first_name'] ?? 'U', 0, 1) . substr($user['last_name'] ?? '', 0, 1)) ?>
-                        </span>
-                    </div>
+                <button id="user-menu-toggle" type="button" class="ds-iconbtn" style="width:auto;padding:0 3px;" aria-label="Menu utilisateur">
+                    <span class="ds-avatar">
+                        <?= strtoupper(substr($user['first_name'] ?? 'U', 0, 1) . substr($user['last_name'] ?? '', 0, 1)) ?>
+                    </span>
                 </button>
-                <div id="user-menu" class="hidden absolute right-0 mt-1 w-40 bg-white rounded shadow-lg border border-gray-100 py-1 z-50">
-                    <a href="<?= url('/admin/settings') ?>" class="block px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
-                        Paramètres
-                    </a>
-                    <a href="<?= url('/auth/logout') ?>" class="block px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">
-                        Déconnexion
-                    </a>
+                <div id="user-menu" class="ds-menu hidden absolute right-0 mt-1 w-40 z-50">
+                    <a href="<?= url('/admin/settings') ?>">Paramètres</a>
+                    <a href="<?= url('/auth/logout') ?>">Déconnexion</a>
                 </div>
             </div>
             <?php endif; ?>

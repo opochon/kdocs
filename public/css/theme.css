@@ -7,24 +7,25 @@
    VARIABLES CSS
    ========================================= */
 :root {
-    /* Colors - IBM Carbon palette */
-    --color-primary: #0f62fe;
-    --color-primary-hover: #0353e9;
-    --color-primary-active: #002d9c;
+    /* Alias vers les tokens Karbonic (design-system.css) avec repli litteral.
+       Rend les composants theme.css (.btn, .form-*, .badge) theme-aware. */
+    --color-primary: var(--accent, #0f62fe);
+    --color-primary-hover: var(--accent-strong, #0353e9);
+    --color-primary-active: var(--accent-strong, #002d9c);
 
-    --color-text: #161616;
-    --color-text-secondary: #525252;
-    --color-text-placeholder: #a8a8a8;
+    --color-text: var(--ink, #161616);
+    --color-text-secondary: var(--ink-soft, #525252);
+    --color-text-placeholder: var(--muted, #a8a8a8);
     --color-text-inverse: #ffffff;
 
-    --color-border: #e0e0e0;
-    --color-border-strong: #8d8d8d;
+    --color-border: var(--border, #e0e0e0);
+    --color-border-strong: var(--dim, #8d8d8d);
 
-    --color-bg: #ffffff;
-    --color-bg-hover: #f4f4f4;
-    --color-bg-active: #e0e0e0;
-    --color-bg-subtle: #f4f4f4;
-    --color-bg-muted: #e8e8e8;
+    --color-bg: var(--surface, #ffffff);
+    --color-bg-hover: var(--hover, #f4f4f4);
+    --color-bg-active: var(--active, #e0e0e0);
+    --color-bg-subtle: var(--rail, #f4f4f4);
+    --color-bg-muted: var(--hover, #e8e8e8);
 
     --color-success: #24a148;
     --color-success-bg: #defbe6;

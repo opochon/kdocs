@@ -7,9 +7,15 @@ HTMLEditor v3, ClearMyMails / K-Mail, K-Docs (GED), ClearMyDocs, Cockpit… Ce d
 **Esprit.** Neutralité « Notion » : un chrome qui s'efface pour laisser respirer le contenu.
 Monochrome, calme, sans esbroufe. La couleur sert le contenu et les états — jamais la décoration.
 
-> **Statut K-Docs.** Source de vérité visuelle Karbonic. L'application à K-Docs (uniformisation du
-> chrome existant : `templates/`, `public/css/design-system.css`) est un **lot futur** — voir
-> `SESSION-STATUS.md`. Ne pas restyler l'UI existante au détour d'un autre lot sans s'y référer.
+> **Statut K-Docs.** Source de vérité visuelle Karbonic. **Lot fondation + chrome livré**
+> (2026-06-27) : `public/css/design-system.css` porte les tokens canoniques (clair **et** sombre),
+> chargé en dernier dans `templates/layouts/main.php`/`auth.php` ; `theme.css` et `app.css` aliasent
+> leurs variables vers ces tokens (repli littéral) ; le chrome (sidebars, header, footer) est
+> tokenisé via les classes `.ds-*` ; bascule clair/sombre/système fonctionnelle (`public/js/theme.js`
+> + init no-FOUC). **Reste à faire** : migration page par page des templates de contenu (utilitaires
+> Tailwind en dur, aujourd'hui couverts par un *shim* sombre dans `design-system.css` §5), set
+> d'icônes par action, et densité picto/hint complète (§6). Ne pas restyler l'UI existante au détour
+> d'un autre lot sans s'y référer.
 
 ---
 
