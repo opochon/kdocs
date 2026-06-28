@@ -10,12 +10,9 @@ $base = Config::basePath();
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'À traiter') ?> - K-Docs</title>
-    <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
+    <?php $headFull = true; $headTitle = ($pageTitle ?? 'À traiter') . ' - K-Docs'; include __DIR__ . '/../partials/head.php'; ?>
 </head>
-<body class="bg-gray-50">
+<body class="ds-shell">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <?php include __DIR__ . '/../partials/sidebar.php'; ?>

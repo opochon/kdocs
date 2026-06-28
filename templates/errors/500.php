@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erreur serveur - K-Docs</title>
-    <link rel="icon" href="<?= asset('favicon.svg') ?>" type="image/svg+xml">
-    <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
+    <?php $headFull = false; $headTitle = 'Erreur serveur - K-Docs'; include __DIR__ . '/../partials/head.php'; ?>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
     </style>

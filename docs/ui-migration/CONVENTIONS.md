@@ -24,6 +24,16 @@ que la page soit **native** en clair **et** sombre — sans dépendre du shim §
 7. **Îlots volontairement sombres** (`bg-gray-800/900` + `text-white` d'un bouton/encart déjà
    sombre) : convertir en tokens explicites, ne pas juste inverser.
 
+## Socle : chargement du design system (ne pas casser)
+
+Le `<head>` est centralisé dans **`templates/partials/head.php`** (source unique : tokens,
+init no-FOUC, `design-system.css` chargé en dernier, `theme.js`). **Toute page autonome**
+(`<html>` propre, ex. `errors/*`, `dashboard/my_tasks.php`) **DOIT** l'inclure :
+`<?php $headFull = true|false; include __DIR__ . '/../partials/head.php'; ?>`
+(`$headFull=false` = login/erreurs : sans Font Awesome/theme/app). Ne jamais re-câbler des
+`<link>` CSS à la main dans un template (c'est ce qui avait laissé `/mes-taches` & `404/500`
+hors design system). Exception connue : `documents/onlyoffice-editor.php` (Tailwind CDN, éditeur plein écran).
+
 ## Cheat-sheet gris Tailwind → token
 
 | Tailwind (clair) | Token | Usage |

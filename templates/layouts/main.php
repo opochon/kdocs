@@ -4,25 +4,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="base-url" content="<?= \KDocs\Core\Config::basePath() ?>">
-    <?= \KDocs\Core\CSRF::metaTag() ?>
-    <title><?= htmlspecialchars($title ?? 'K-Docs') ?></title>
-    <link rel="icon" href="<?= asset('favicon.svg') ?>" type="image/svg+xml">
-    <!-- Theme no-FOUC : applique .dark sur <html> avant le rendu CSS -->
-    <script>
-    (function(){try{var t=localStorage.getItem('kdocs-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
-    </script>
-    <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?= asset('css/theme.css') ?>">
-    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <!-- Design system Karbonic : charge en dernier (tokens + overrides gagnent la cascade) -->
-    <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
-    <script src="<?= asset('js/app.js') ?>"></script>
-    <script src="<?= asset('js/ai-search.js') ?>"></script>
-    <script src="<?= asset('js/theme.js') ?>"></script>
+    <?php $headFull = true; $headTitle = $title ?? 'K-Docs'; include __DIR__ . '/../partials/head.php'; ?>
 </head>
 <body class="ds-shell">
     <div class="flex h-screen">
