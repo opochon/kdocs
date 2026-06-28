@@ -3,23 +3,23 @@
 ?>
 
 <div class="max-w-2xl mx-auto space-y-6">
-    <h1 class="text-2xl font-bold text-gray-800">Créer une tâche</h1>
+    <h1 class="text-2xl font-bold" style="color:var(--ink)">Créer une tâche</h1>
 
     <?php if ($error): ?>
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div class="ds-chip--red px-4 py-3 rounded">
             <?= htmlspecialchars($error) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($success): ?>
-        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        <div class="ds-chip--green px-4 py-3 rounded">
             <?= htmlspecialchars($success) ?>
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="<?= url('/tasks/create') ?>" class="bg-white rounded-lg shadow p-6 space-y-6">
+    <form method="POST" action="<?= url('/tasks/create') ?>" class="ds-card shadow p-6 space-y-6">
         <div>
-            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="title" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                 Titre <span class="text-red-500">*</span>
             </label>
             <input 
@@ -27,33 +27,33 @@
                 id="title" 
                 name="title" 
                 required
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full px-3 py-2 rounded-md shadow-sm"
                 placeholder="Titre de la tâche"
             >
         </div>
 
         <div>
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="description" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                 Description
             </label>
             <textarea 
                 id="description" 
                 name="description" 
                 rows="4"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full px-3 py-2 rounded-md shadow-sm"
                 placeholder="Description de la tâche (optionnel)"
             ></textarea>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label for="document_id" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="document_id" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                     Document associé
                 </label>
                 <select 
                     id="document_id" 
                     name="document_id"
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full px-3 py-2 rounded-md shadow-sm"
                 >
                     <option value="">-- Aucun document --</option>
                     <?php foreach ($documents as $doc): ?>
@@ -65,13 +65,13 @@
             </div>
 
             <div>
-                <label for="workflow_type_id" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="workflow_type_id" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                     Type de workflow
                 </label>
                 <select 
                     id="workflow_type_id" 
                     name="workflow_type_id"
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full px-3 py-2 rounded-md shadow-sm"
                 >
                     <option value="">-- Sélectionner --</option>
                     <?php foreach ($workflowTypes as $type): ?>
@@ -83,13 +83,13 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label for="assigned_to" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="assigned_to" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                     Assigné à
                 </label>
                 <select 
                     id="assigned_to" 
                     name="assigned_to"
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full px-3 py-2 rounded-md shadow-sm"
                 >
                     <option value="">-- Non assigné --</option>
                     <?php foreach ($users as $u): ?>
@@ -99,13 +99,13 @@
             </div>
 
             <div>
-                <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="priority" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                     Priorité
                 </label>
                 <select 
                     id="priority" 
                     name="priority"
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    class="block w-full px-3 py-2 rounded-md shadow-sm"
                 >
                     <option value="low">Basse</option>
                     <option value="medium" selected>Moyenne</option>
@@ -116,24 +116,24 @@
         </div>
 
         <div>
-            <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="due_date" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
                 Date d'échéance
             </label>
             <input 
                 type="date" 
                 id="due_date" 
                 name="due_date"
-                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                class="block w-full px-3 py-2 rounded-md shadow-sm"
             >
         </div>
 
         <div class="flex items-center justify-end space-x-4">
-            <a href="<?= url('/tasks') ?>" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <a href="<?= url('/tasks') ?>" class="px-4 py-2 border rounded-lg btn-secondary">
                 Annuler
             </a>
-            <button 
+            <button
                 type="submit"
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="px-6 py-2 rounded-lg btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
                 Créer la tâche
             </button>

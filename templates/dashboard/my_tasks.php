@@ -27,59 +27,64 @@ $base = Config::basePath();
                 <div class="max-w-7xl mx-auto">
                     <!-- Page header -->
                     <div class="mb-6">
-                        <h1 class="text-2xl font-semibold text-gray-900">À traiter</h1>
-                        <p class="text-sm text-gray-500 mt-1">
+                        <h1 class="text-2xl font-semibold" style="color:var(--ink)">À traiter</h1>
+                        <p class="text-sm mt-1" style="color:var(--dim)">
                             Validation, classement et workflows — <?= $counts['total'] ?> élément(s)
                             <?php if ($counts['urgent'] > 0): ?>
-                            <span class="text-red-600 font-medium">(<?= $counts['urgent'] ?> urgente(s))</span>
+                            <span class="font-medium" style="color:var(--red)">(<?= $counts['urgent'] ?> urgente(s))</span>
                             <?php endif; ?>
                         </p>
                     </div>
 
                     <!-- Tabs -->
-                    <div class="border-b border-gray-200 mb-6">
+                    <div class="border-b mb-6" style="border-color:var(--border)">
                         <nav class="flex gap-4" aria-label="Tabs">
                             <a href="<?= url('/mes-taches') ?>"
-                               class="px-3 py-2 text-sm font-medium border-b-2 <?= $activeTab === 'all' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?>">
+                               class="px-3 py-2 text-sm font-medium border-b-2"
+                               style="<?= $activeTab === 'all' ? 'color:var(--accent);border-color:var(--accent)' : 'color:var(--dim);border-color:transparent' ?>">
                                 Toutes
                                 <?php if ($counts['total'] > 0): ?>
-                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'all' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' ?>">
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'all' ? 'ds-chip--accent' : 'ds-chip--neutral' ?>">
                                     <?= $counts['total'] ?>
                                 </span>
                                 <?php endif; ?>
                             </a>
                             <a href="<?= url('/mes-taches?tab=validation') ?>"
-                               class="px-3 py-2 text-sm font-medium border-b-2 <?= $activeTab === 'validation' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?>">
+                               class="px-3 py-2 text-sm font-medium border-b-2"
+                               style="<?= $activeTab === 'validation' ? 'color:var(--accent);border-color:var(--accent)' : 'color:var(--dim);border-color:transparent' ?>">
                                 A valider
                                 <?php if ($counts['validation'] > 0): ?>
-                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'validation' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' ?>">
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'validation' ? 'ds-chip--accent' : 'ds-chip--neutral' ?>">
                                     <?= $counts['validation'] ?>
                                 </span>
                                 <?php endif; ?>
                             </a>
                             <a href="<?= url('/mes-taches?tab=consume') ?>"
-                               class="px-3 py-2 text-sm font-medium border-b-2 <?= $activeTab === 'consume' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?>">
+                               class="px-3 py-2 text-sm font-medium border-b-2"
+                               style="<?= $activeTab === 'consume' ? 'color:var(--accent);border-color:var(--accent)' : 'color:var(--dim);border-color:transparent' ?>">
                                 A classer
                                 <?php if ($counts['consume'] > 0): ?>
-                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'consume' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' ?>">
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'consume' ? 'ds-chip--accent' : 'ds-chip--neutral' ?>">
                                     <?= $counts['consume'] ?>
                                 </span>
                                 <?php endif; ?>
                             </a>
                             <a href="<?= url('/mes-taches?tab=workflow') ?>"
-                               class="px-3 py-2 text-sm font-medium border-b-2 <?= $activeTab === 'workflow' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?>">
+                               class="px-3 py-2 text-sm font-medium border-b-2"
+                               style="<?= $activeTab === 'workflow' ? 'color:var(--accent);border-color:var(--accent)' : 'color:var(--dim);border-color:transparent' ?>">
                                 Workflows
                                 <?php if ($counts['workflow'] > 0): ?>
-                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'workflow' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' ?>">
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'workflow' ? 'ds-chip--accent' : 'ds-chip--neutral' ?>">
                                     <?= $counts['workflow'] ?>
                                 </span>
                                 <?php endif; ?>
                             </a>
                             <a href="<?= url('/mes-taches?tab=note') ?>"
-                               class="px-3 py-2 text-sm font-medium border-b-2 <?= $activeTab === 'note' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?>">
+                               class="px-3 py-2 text-sm font-medium border-b-2"
+                               style="<?= $activeTab === 'note' ? 'color:var(--accent);border-color:var(--accent)' : 'color:var(--dim);border-color:transparent' ?>">
                                 Notes
                                 <?php if ($counts['notes'] > 0): ?>
-                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'note' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600' ?>">
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full <?= $activeTab === 'note' ? 'ds-chip--accent' : 'ds-chip--neutral' ?>">
                                     <?= $counts['notes'] ?>
                                 </span>
                                 <?php endif; ?>
@@ -90,11 +95,11 @@ $base = Config::basePath();
                     <!-- Tasks list -->
                     <?php if (empty($tasks)): ?>
                     <div class="text-center py-12">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="mx-auto h-12 w-12" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune tâche en attente</h3>
-                        <p class="mt-1 text-sm text-gray-500">Bravo, vous êtes à jour !</p>
+                        <h3 class="mt-2 text-sm font-medium" style="color:var(--ink)">Aucune tâche en attente</h3>
+                        <p class="mt-1 text-sm" style="color:var(--dim)">Bravo, vous êtes à jour !</p>
                     </div>
                     <?php else: ?>
                     <div class="space-y-3">
@@ -110,11 +115,11 @@ $base = Config::basePath();
 
     <!-- Modal envoi de note -->
     <div id="noteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4">
+        <div class="rounded-xl shadow-xl max-w-lg w-full mx-4" style="background:var(--surface)">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Envoyer une note</h3>
-                    <button onclick="closeNoteModal()" class="text-gray-400 hover:text-gray-600">
+                    <h3 class="text-lg font-semibold" style="color:var(--ink)">Envoyer une note</h3>
+                    <button onclick="closeNoteModal()" style="color:var(--dim)">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -125,9 +130,9 @@ $base = Config::basePath();
                     <input type="hidden" id="noteDocumentId" name="document_id" value="">
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Destinataire</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Destinataire</label>
                         <select id="noteRecipient" name="to_user_id" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-3 py-2 rounded-lg">
                             <option value="">Sélectionner...</option>
                             <?php foreach ($recipients as $recipient): ?>
                             <option value="<?= $recipient['id'] ?>">
@@ -139,31 +144,31 @@ $base = Config::basePath();
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sujet (optionnel)</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Sujet (optionnel)</label>
                         <input type="text" id="noteSubject" name="subject"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               class="w-full px-3 py-2 rounded-lg"
                                placeholder="Sujet de la note">
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Message</label>
                         <textarea id="noteMessage" name="message" rows="4" required
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  class="w-full px-3 py-2 rounded-lg"
                                   placeholder="Votre message..."></textarea>
                     </div>
 
                     <div class="mb-4">
                         <label class="flex items-center gap-2">
                             <input type="checkbox" id="noteActionRequired" name="action_required" value="1"
-                                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <span class="text-sm text-gray-700">Action requise du destinataire</span>
+                                   class="w-4 h-4 rounded focus:ring-blue-500" style="accent-color:var(--accent)">
+                            <span class="text-sm" style="color:var(--ink-soft)">Action requise du destinataire</span>
                         </label>
                     </div>
 
                     <div id="actionTypeContainer" class="mb-4 hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Type d'action</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Type d'action</label>
                         <select id="noteActionType" name="action_type"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-3 py-2 rounded-lg">
                             <option value="">Sélectionner...</option>
                             <option value="contact">Contacter</option>
                             <option value="review">Relire</option>
@@ -175,11 +180,11 @@ $base = Config::basePath();
 
                     <div class="flex gap-3">
                         <button type="submit"
-                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                class="flex-1 px-4 py-2 rounded-lg btn-primary transition-colors">
                             Envoyer
                         </button>
                         <button type="button" onclick="closeNoteModal()"
-                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                                class="px-4 py-2 border rounded-lg btn-secondary transition-colors">
                             Annuler
                         </button>
                     </div>
@@ -318,8 +323,9 @@ $base = Config::basePath();
     // Toast notification
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
-        toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
+        const bgColor = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--accent)';
+        toast.className = `fixed bottom-4 right-4 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
+        toast.style.background = bgColor;
         toast.textContent = message;
         document.body.appendChild(toast);
 

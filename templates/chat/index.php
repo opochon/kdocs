@@ -17,10 +17,10 @@ $isConfigured = $claudeService->isConfigured();
 
 <div class="flex h-full -m-6">
     <!-- Sidebar des conversations -->
-    <div id="chat-sidebar" class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-full">
+    <div id="chat-sidebar" class="w-64 border-r flex flex-col h-full" style="background:var(--rail);border-color:var(--border)">
         <!-- Header sidebar -->
-        <div class="p-3 border-b border-gray-200">
-            <button id="new-chat-btn" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="p-3 border-b" style="border-color:var(--border)">
+            <button id="new-chat-btn" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-lg btn-secondary transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -31,22 +31,22 @@ $isConfigured = $claudeService->isConfigured();
         <!-- Liste des conversations -->
         <div id="conversations-list" class="flex-1 overflow-y-auto">
             <?php if (empty($conversations)): ?>
-            <div class="p-4 text-center text-gray-500 text-sm">
+            <div class="p-4 text-center text-sm" style="color:var(--dim)">
                 Aucune conversation
             </div>
             <?php else: ?>
             <?php foreach ($conversations as $conv): ?>
-            <div class="conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors group"
+            <div class="conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer ds-row-hover transition-colors group"
                  data-id="<?= $conv['id'] ?>">
                 <div class="flex items-start justify-between gap-2">
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium text-gray-900 truncate"><?= htmlspecialchars($conv['title']) ?></div>
-                        <div class="text-xs text-gray-500 mt-0.5">
+                        <div class="text-sm font-medium truncate" style="color:var(--ink)"><?= htmlspecialchars($conv['title']) ?></div>
+                        <div class="text-xs mt-0.5" style="color:var(--dim)">
                             <?= $conv['message_count'] ?> message<?= $conv['message_count'] > 1 ? 's' : '' ?>
                             · <?= date('d/m', strtotime($conv['updated_at'])) ?>
                         </div>
                     </div>
-                    <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                    <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-all"
                             data-id="<?= $conv['id'] ?>" title="Supprimer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -60,25 +60,25 @@ $isConfigured = $claudeService->isConfigured();
     </div>
 
     <!-- Zone de chat principale -->
-    <div class="flex-1 flex flex-col h-full bg-white">
+    <div class="flex-1 flex flex-col h-full" style="background:var(--surface)">
         <?php if (!$isConfigured): ?>
         <!-- API non configurée -->
         <div class="flex-1 flex items-center justify-center p-6">
             <div class="text-center max-w-md">
-                <svg class="w-16 h-16 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-16 h-16 mx-auto mb-4" style="color:var(--amber)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">API Claude non configurée</h3>
-                <p class="text-sm text-gray-500 mb-4">Configurez votre clé API Claude pour utiliser la recherche intelligente.</p>
-                <a href="<?= url('/admin/settings#ai') ?>" class="inline-block px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800">
+                <h3 class="text-lg font-medium mb-2" style="color:var(--ink)">API Claude non configurée</h3>
+                <p class="text-sm mb-4" style="color:var(--dim)">Configurez votre clé API Claude pour utiliser la recherche intelligente.</p>
+                <a href="<?= url('/admin/settings#ai') ?>" class="inline-block px-4 py-2 text-sm rounded-lg btn-primary">
                     Configurer
                 </a>
             </div>
         </div>
         <?php else: ?>
         <!-- Header conversation -->
-        <div id="chat-header" class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 id="chat-title" class="text-sm font-medium text-gray-700">Nouvelle conversation</h2>
+        <div id="chat-header" class="px-4 py-3 border-b flex items-center justify-between" style="border-color:var(--border-soft)">
+            <h2 id="chat-title" class="text-sm font-medium" style="color:var(--ink-soft)">Nouvelle conversation</h2>
         </div>
 
         <!-- Messages -->
@@ -86,24 +86,24 @@ $isConfigured = $claudeService->isConfigured();
             <div id="messages-wrapper" class="max-w-3xl mx-auto space-y-4">
             <!-- Welcome message -->
             <div id="welcome-message" class="text-center py-8">
-                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-4">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full ds-chip--neutral mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Assistant IA</h3>
-                <p class="text-sm text-gray-500 mb-4">Posez des questions sur vos documents, l'IA analyse et répond</p>
+                <h3 class="text-lg font-medium mb-2" style="color:var(--ink)">Assistant IA</h3>
+                <p class="text-sm mb-4" style="color:var(--dim)">Posez des questions sur vos documents, l'IA analyse et répond</p>
                 <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
-                    <button onclick="askQuestion('Combien de documents ai-je ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                    <button onclick="askQuestion('Combien de documents ai-je ?')" class="px-3 py-1.5 text-xs rounded-full ds-btn-soft-neutral transition-colors">
                         Combien de documents ?
                     </button>
-                    <button onclick="askQuestion('Combien de fois le mot juge apparait dans mes documents ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                    <button onclick="askQuestion('Combien de fois le mot juge apparait dans mes documents ?')" class="px-3 py-1.5 text-xs rounded-full ds-btn-soft-neutral transition-colors">
                         Combien de fois "juge" ?
                     </button>
-                    <button onclick="askQuestion('Quelle est ma dernière facture Swisscom ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                    <button onclick="askQuestion('Quelle est ma dernière facture Swisscom ?')" class="px-3 py-1.5 text-xs rounded-full ds-btn-soft-neutral transition-colors">
                         Dernière facture Swisscom ?
                     </button>
-                    <button onclick="askQuestion('Combien m\\'a coûté mon abonnement téléphone en 2024 ?')" class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                    <button onclick="askQuestion('Combien m\\'a coûté mon abonnement téléphone en 2024 ?')" class="px-3 py-1.5 text-xs rounded-full ds-btn-soft-neutral transition-colors">
                         Coût abonnement 2024 ?
                     </button>
                 </div>
@@ -112,13 +112,13 @@ $isConfigured = $claudeService->isConfigured();
         </div>
 
         <!-- Input -->
-        <div class="border-t border-gray-100 p-4 bg-gray-50">
+        <div class="border-t p-4" style="border-color:var(--border-soft);background:var(--app-bg)">
             <form id="chat-form" class="flex gap-2">
                 <input type="text" id="chat-input"
-                       class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm"
+                       class="flex-1 px-4 py-2.5 rounded-lg text-sm"
                        placeholder="Posez une question sur vos documents..." autocomplete="off">
                 <button type="submit" id="send-btn"
-                        class="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        class="px-4 py-2.5 rounded-lg btn-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
@@ -170,11 +170,10 @@ $isConfigured = $claudeService->isConfigured();
         messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
 
         const bubble = document.createElement('div');
-        bubble.className = `max-w-xl lg:max-w-2xl px-4 py-3 rounded-2xl text-sm ${
-            role === 'user'
-                ? 'bg-gray-900 text-white ml-12'
-                : 'bg-gray-100 text-gray-900 mr-12'
-        }`;
+        bubble.className = `max-w-xl lg:max-w-2xl px-4 py-3 rounded-2xl text-sm ${role === 'user' ? 'ml-12' : 'mr-12'}`;
+        bubble.style.cssText = role === 'user'
+            ? 'background:var(--primary);color:var(--primary-ink)'
+            : 'background:var(--hover);color:var(--ink)';
 
         if (role === 'assistant') {
             bubble.innerHTML = `<div class="text-sm leading-relaxed">${formatMarkdown(content)}</div>`;
@@ -182,30 +181,31 @@ $isConfigured = $claudeService->isConfigured();
             // Add documents if available
             if (metadata && metadata.documents && metadata.documents.length > 0) {
                 const docsDiv = document.createElement('div');
-                docsDiv.className = 'mt-3 pt-3 border-t border-gray-200 space-y-2';
+                docsDiv.className = 'mt-3 pt-3 border-t space-y-2';
+                docsDiv.style.borderColor = 'var(--border)';
 
                 metadata.documents.slice(0, 5).forEach(doc => {
                     const docItem = document.createElement('a');
                     docItem.href = `${BASE_URL}/documents/${doc.id}`;
                     docItem.target = '_blank';
-                    docItem.className = 'flex items-center gap-2 p-2 bg-white rounded border border-gray-200 hover:border-gray-300 transition-colors';
+                    docItem.className = 'ds-card ds-card--link flex items-center gap-2 p-2 transition-colors';
 
                     let scoreHtml = '';
                     if (doc.relevance_score !== undefined) {
                         const score = doc.relevance_score;
-                        let color = 'text-gray-500';
-                        if (score >= 70) color = 'text-green-600';
-                        else if (score >= 40) color = 'text-yellow-600';
-                        scoreHtml = `<span class="text-xs font-medium ${color}">${score}%</span>`;
+                        let color = 'var(--dim)';
+                        if (score >= 70) color = 'var(--green)';
+                        else if (score >= 40) color = 'var(--amber)';
+                        scoreHtml = `<span class="text-xs font-medium" style="color:${color}">${score}%</span>`;
                     }
 
                     docItem.innerHTML = `
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span class="flex-1 text-xs text-gray-700 truncate">${escapeHtml(doc.title)}</span>
+                        <span class="flex-1 text-xs truncate" style="color:var(--ink-soft)">${escapeHtml(doc.title)}</span>
                         ${scoreHtml}
-                        <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 flex-shrink-0" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                         </svg>
                     `;
@@ -215,7 +215,8 @@ $isConfigured = $claudeService->isConfigured();
 
                 if (metadata.total > 5) {
                     const moreDiv = document.createElement('div');
-                    moreDiv.className = 'text-xs text-gray-500 text-center pt-1';
+                    moreDiv.className = 'text-xs text-center pt-1';
+                    moreDiv.style.color = 'var(--dim)';
                     moreDiv.textContent = `+ ${metadata.total - 5} autres documents`;
                     docsDiv.appendChild(moreDiv);
                 }
@@ -237,11 +238,11 @@ $isConfigured = $claudeService->isConfigured();
         loadingDiv.id = 'loading-indicator';
         loadingDiv.className = 'flex justify-start mb-4';
         loadingDiv.innerHTML = `
-            <div class="bg-gray-100 px-4 py-3 rounded-lg">
+            <div class="px-4 py-3 rounded-lg" style="background:var(--hover)">
                 <div class="flex items-center gap-1">
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    <div class="w-2 h-2 rounded-full animate-bounce" style="background:var(--dim)"></div>
+                    <div class="w-2 h-2 rounded-full animate-bounce" style="background:var(--dim);animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 rounded-full animate-bounce" style="background:var(--dim);animation-delay: 0.2s"></div>
                 </div>
             </div>
         `;
@@ -292,15 +293,15 @@ $isConfigured = $claudeService->isConfigured();
         if (existingItem) return;
 
         const item = document.createElement('div');
-        item.className = 'conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors group';
+        item.className = 'conversation-item px-3 py-2 mx-2 my-1 rounded-lg cursor-pointer ds-row-hover transition-colors group';
         item.dataset.id = conv.id;
         item.innerHTML = `
             <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
-                    <div class="text-sm font-medium text-gray-900 truncate">${escapeHtml(conv.title)}</div>
-                    <div class="text-xs text-gray-500 mt-0.5">0 messages · maintenant</div>
+                    <div class="text-sm font-medium truncate" style="color:var(--ink)">${escapeHtml(conv.title)}</div>
+                    <div class="text-xs mt-0.5" style="color:var(--dim)">0 messages · maintenant</div>
                 </div>
-                <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all"
+                <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-all"
                         data-id="${conv.id}" title="Supprimer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -349,9 +350,9 @@ $isConfigured = $claudeService->isConfigured();
     function highlightActiveConversation() {
         document.querySelectorAll('.conversation-item').forEach(item => {
             if (parseInt(item.dataset.id) === currentConversationId) {
-                item.classList.add('bg-gray-200');
+                item.style.background = 'var(--active)';
             } else {
-                item.classList.remove('bg-gray-200');
+                item.style.background = '';
             }
         });
     }
@@ -508,7 +509,8 @@ $isConfigured = $claudeService->isConfigured();
     animation: bounce 0.6s infinite;
 }
 mark {
-    background-color: #fef08a;
+    background-color: color-mix(in srgb, var(--amber) 24%, transparent);
+    color: var(--ink);
     padding: 0 2px;
     border-radius: 2px;
 }
