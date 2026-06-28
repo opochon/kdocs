@@ -15,11 +15,11 @@ $modalId = $modal_id ?? 'noteModal';
 
 <!-- Modal envoi de note -->
 <div id="<?= $modalId ?>" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4">
+    <div class="rounded-xl max-w-lg w-full mx-4" style="background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-pop)">
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Envoyer une note</h3>
-                <button onclick="closeNoteModal()" class="text-gray-400 hover:text-gray-600">
+                <h3 class="text-lg font-semibold" style="color:var(--ink)">Envoyer une note</h3>
+                <button onclick="closeNoteModal()" style="color:var(--dim)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -30,9 +30,8 @@ $modalId = $modal_id ?? 'noteModal';
                 <input type="hidden" id="noteDocumentId" name="document_id" value="<?= $documentId ?>">
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Destinataire</label>
-                    <select id="noteRecipient" name="to_user_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Destinataire</label>
+                    <select id="noteRecipient" name="to_user_id" required class="form-select">
                         <option value="">Sélectionner...</option>
                         <?php foreach ($recipients as $recipient): ?>
                         <option value="<?= $recipient['id'] ?>">
@@ -44,31 +43,31 @@ $modalId = $modal_id ?? 'noteModal';
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sujet (optionnel)</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Sujet (optionnel)</label>
                     <input type="text" id="noteSubject" name="subject"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           class="form-input"
                            placeholder="Sujet de la note">
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Message</label>
                     <textarea id="noteMessage" name="message" rows="4" required
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              class="form-textarea"
                               placeholder="Votre message..."></textarea>
                 </div>
 
                 <div class="mb-4">
                     <label class="flex items-center gap-2">
                         <input type="checkbox" id="noteActionRequired" name="action_required" value="1"
-                               class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <span class="text-sm text-gray-700">Action requise du destinataire</span>
+                               class="w-4 h-4 rounded" style="accent-color:var(--accent)">
+                        <span class="text-sm" style="color:var(--ink-soft)">Action requise du destinataire</span>
                     </label>
                 </div>
 
                 <div id="actionTypeContainer" class="mb-4 hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type d'action</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Type d'action</label>
                     <select id="noteActionType" name="action_type"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="form-select">
                         <option value="">Sélectionner...</option>
                         <option value="contact">Contacter</option>
                         <option value="review">Relire</option>
@@ -80,11 +79,11 @@ $modalId = $modal_id ?? 'noteModal';
 
                 <div class="flex gap-3">
                     <button type="submit"
-                            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            class="btn-primary flex-1 px-4 py-2 rounded-lg transition-colors">
                         Envoyer
                     </button>
                     <button type="button" onclick="closeNoteModal()"
-                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                            class="btn-secondary border px-4 py-2 rounded-lg transition-colors">
                         Annuler
                     </button>
                 </div>

@@ -29,7 +29,7 @@ $btnClass = $compact
         <div class="flex items-center gap-1">
             <button type="button"
                     onclick="setValidationStatus(<?= $documentId ?>, 'approved')"
-                    class="<?= $btnClass ?> <?= $status === 'approved' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>"
+                    class="<?= $btnClass ?> <?= $status === 'approved' ? 'ds-btn-green' : 'ds-btn-soft-green' ?>"
                     title="Marquer comme Validé">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -38,7 +38,7 @@ $btnClass = $compact
             </button>
             <button type="button"
                     onclick="setValidationStatus(<?= $documentId ?>, 'rejected')"
-                    class="<?= $btnClass ?> <?= $status === 'rejected' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200' ?>"
+                    class="<?= $btnClass ?> <?= $status === 'rejected' ? 'ds-btn-red' : 'ds-btn-soft-red' ?>"
                     title="Marquer comme Non validé">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -47,7 +47,7 @@ $btnClass = $compact
             </button>
             <button type="button"
                     onclick="setValidationStatus(<?= $documentId ?>, 'na')"
-                    class="<?= $btnClass ?> <?= ($status === 'na' || $status === null) ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' ?>"
+                    class="<?= $btnClass ?> <?= ($status === 'na' || $status === null) ? 'ds-btn-neutral' : 'ds-btn-soft-neutral' ?>"
                     title="Marquer comme N/A (non applicable)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
@@ -58,28 +58,28 @@ $btnClass = $compact
     <?php else: ?>
         <!-- Affichage en lecture seule -->
         <?php if ($status === 'approved'): ?>
-            <span class="<?= $btnClass ?> bg-green-100 text-green-800">
+            <span class="<?= $btnClass ?> ds-chip--green">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
                 Validé
             </span>
         <?php elseif ($status === 'rejected'): ?>
-            <span class="<?= $btnClass ?> bg-red-100 text-red-800">
+            <span class="<?= $btnClass ?> ds-chip--red">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
                 Non validé
             </span>
         <?php elseif ($status === 'pending'): ?>
-            <span class="<?= $btnClass ?> bg-yellow-100 text-yellow-800">
+            <span class="<?= $btnClass ?> ds-chip--amber">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 En attente
             </span>
         <?php else: ?>
-            <span class="<?= $btnClass ?> bg-gray-100 text-gray-600">
+            <span class="<?= $btnClass ?> ds-chip--neutral">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                 </svg>

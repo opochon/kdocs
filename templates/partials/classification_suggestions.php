@@ -29,22 +29,22 @@ $fieldLabels = [
 ];
 ?>
 
-<div id="classification-suggestions" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+<div id="classification-suggestions" class="rounded-lg p-4 mb-6" style="background: color-mix(in srgb, var(--amber) 12%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 32%, transparent);">
     <div class="flex items-start justify-between">
         <div class="flex items-center gap-3">
-            <div class="bg-yellow-100 rounded-full p-2">
-                <i class="fas fa-lightbulb text-yellow-600"></i>
+            <div class="rounded-full p-2" style="background: color-mix(in srgb, var(--amber) 18%, transparent);">
+                <i class="fas fa-lightbulb" style="color:var(--amber)"></i>
             </div>
             <div>
-                <h4 class="font-medium text-yellow-800">Suggestions de classification</h4>
-                <p class="text-sm text-yellow-600">Basées sur des documents similaires</p>
+                <h4 class="font-medium" style="color:var(--amber)">Suggestions de classification</h4>
+                <p class="text-sm" style="color:var(--amber)">Basées sur des documents similaires</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="applyAllSuggestions()" class="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700">
+            <button onclick="applyAllSuggestions()" class="btn-primary px-3 py-1 text-sm rounded">
                 <i class="fas fa-check-double mr-1"></i>Appliquer tout
             </button>
-            <button onclick="ignoreAllSuggestions()" class="px-3 py-1 bg-white text-yellow-700 text-sm rounded border border-yellow-300 hover:bg-yellow-100">
+            <button onclick="ignoreAllSuggestions()" class="btn-secondary border px-3 py-1 text-sm rounded">
                 <i class="fas fa-times mr-1"></i>Ignorer tout
             </button>
         </div>
@@ -52,31 +52,31 @@ $fieldLabels = [
 
     <div class="mt-4 space-y-2">
         <?php foreach ($suggestions as $suggestion): ?>
-            <div class="suggestion-item flex items-center justify-between bg-white rounded-lg p-3 border border-yellow-100"
+            <div class="suggestion-item ds-card flex items-center justify-between p-3"
                  data-id="<?= $suggestion['id'] ?>">
                 <div class="flex items-center gap-4">
-                    <span class="text-sm font-medium text-gray-600 w-32">
+                    <span class="text-sm font-medium w-32" style="color:var(--ink-soft)">
                         <?= htmlspecialchars($fieldLabels[$suggestion['field_code']] ?? $suggestion['field_code']) ?>
                     </span>
-                    <span class="font-medium text-gray-800">
+                    <span class="font-medium" style="color:var(--ink)">
                         <?= htmlspecialchars($suggestion['value_label'] ?? $suggestion['suggested_value']) ?>
                     </span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                    <span class="ds-chip--accent inline-flex items-center px-2 py-0.5 rounded text-xs font-medium">
                         <?= round($suggestion['confidence'] * 100) ?>% confiance
                     </span>
                     <?php if (!empty($suggestion['similar_documents'])): ?>
-                        <span class="text-xs text-gray-500">
+                        <span class="text-xs" style="color:var(--dim)">
                             Basé sur <?= count($suggestion['similar_documents']) ?> doc(s) similaire(s)
                         </span>
                     <?php endif; ?>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="applySuggestion(<?= $suggestion['id'] ?>)"
-                            class="p-1 text-green-600 hover:text-green-800" title="Appliquer">
+                            class="p-1" style="color:var(--green)" title="Appliquer">
                         <i class="fas fa-check"></i>
                     </button>
                     <button onclick="ignoreSuggestion(<?= $suggestion['id'] ?>)"
-                            class="p-1 text-gray-400 hover:text-gray-600" title="Ignorer">
+                            class="p-1" style="color:var(--dim)" title="Ignorer">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>

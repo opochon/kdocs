@@ -35,7 +35,7 @@ $totalBadge = $notificationCount + $taskCount;
 <div class="relative" id="notifications-dropdown">
     <!-- Bell button -->
     <button id="notifications-toggle"
-            class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            class="relative ds-iconbtn"
             title="Notifications">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,7 +45,8 @@ $totalBadge = $notificationCount + $taskCount;
         <!-- Badge -->
         <?php if ($totalBadge > 0): ?>
         <span id="notification-badge"
-              class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-bold text-white rounded-full <?= $hasUrgent ? 'bg-red-500 animate-pulse' : 'bg-blue-500' ?>">
+              class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-bold text-white rounded-full <?= $hasUrgent ? 'animate-pulse' : '' ?>"
+              style="background: <?= $hasUrgent ? 'var(--red)' : 'var(--accent)' ?>">
             <?= $totalBadge > 99 ? '99+' : $totalBadge ?>
         </span>
         <?php endif; ?>
@@ -53,14 +54,15 @@ $totalBadge = $notificationCount + $taskCount;
 
     <!-- Dropdown -->
     <div id="notifications-menu"
-         class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+         class="hidden absolute right-0 mt-2 w-80 rounded-lg z-50"
+         style="background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-pop)">
         <!-- Header -->
-        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+        <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color:var(--border-soft)">
+            <h3 class="text-sm font-semibold" style="color:var(--ink)">Notifications</h3>
             <div class="flex items-center gap-2">
                 <?php if ($notificationCount > 0): ?>
                 <button onclick="markAllNotificationsRead()"
-                        class="text-xs text-blue-600 hover:text-blue-800">
+                        class="text-xs" style="color:var(--accent)">
                     Tout marquer lu
                 </button>
                 <?php endif; ?>
@@ -71,10 +73,10 @@ $totalBadge = $notificationCount + $taskCount;
         <div id="notifications-list" class="max-h-96 overflow-y-auto">
             <!-- Tâches urgentes -->
             <?php if ($taskCount > 0): ?>
-            <div class="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                <a href="<?= url('/mes-taches') ?>" class="flex items-center justify-between text-sm text-gray-700 hover:text-blue-600">
+            <div class="px-4 py-2 border-b" style="background:var(--app-bg);border-color:var(--border-soft)">
+                <a href="<?= url('/mes-taches') ?>" class="flex items-center justify-between text-sm" style="color:var(--ink-soft)">
                     <span class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" style="color:var(--amber)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                         <span><?= $taskCount ?> tâche(s) en attente</span>
@@ -88,11 +90,11 @@ $totalBadge = $notificationCount + $taskCount;
 
             <!-- Loading state -->
             <div id="notifications-loading" class="hidden px-4 py-8 text-center">
-                <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style="border-color:var(--accent)"></div>
             </div>
 
             <!-- Empty state -->
-            <div id="notifications-empty" class="<?= $notificationCount === 0 ? '' : 'hidden' ?> px-4 py-8 text-center text-gray-500 text-sm">
+            <div id="notifications-empty" class="<?= $notificationCount === 0 ? '' : 'hidden' ?> px-4 py-8 text-center text-sm" style="color:var(--dim)">
                 Aucune notification
             </div>
 
@@ -103,9 +105,9 @@ $totalBadge = $notificationCount + $taskCount;
         </div>
 
         <!-- Footer -->
-        <div class="px-4 py-2 border-t border-gray-100 bg-gray-50">
+        <div class="px-4 py-2 border-t" style="background:var(--app-bg);border-color:var(--border-soft)">
             <a href="<?= url('/mes-taches') ?>"
-               class="block text-center text-sm text-blue-600 hover:text-blue-800">
+               class="block text-center text-sm" style="color:var(--accent)">
                 Voir toutes les tâches
             </a>
         </div>
@@ -181,36 +183,38 @@ $totalBadge = $notificationCount + $taskCount;
     // Render notifications
     function renderNotifications(notifications) {
         list.innerHTML = notifications.map(n => `
-            <div class="notification-item px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${n.is_read ? 'opacity-60' : ''}"
+            <div class="notification-item ds-row-hover px-4 py-3 cursor-pointer ${n.is_read ? 'opacity-60' : ''}"
+                 style="border-bottom:1px solid var(--border-soft)"
                  onclick="handleNotificationClick(${n.id}, '${escapeHtml(n.action_url || n.link || '')}')">
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getNotificationBgClass(n.type, n.priority)}">
                         ${getNotificationIcon(n.type)}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">${escapeHtml(n.title)}</p>
-                        ${n.message ? `<p class="text-xs text-gray-500 truncate mt-0.5">${escapeHtml(n.message)}</p>` : ''}
-                        <p class="text-xs text-gray-400 mt-1">${formatDate(n.created_at)}</p>
+                        <p class="text-sm font-medium truncate" style="color:var(--ink)">${escapeHtml(n.title)}</p>
+                        ${n.message ? `<p class="text-xs truncate mt-0.5" style="color:var(--dim)">${escapeHtml(n.message)}</p>` : ''}
+                        <p class="text-xs mt-1" style="color:var(--dim)">${formatDate(n.created_at)}</p>
                     </div>
-                    ${n.priority === 'urgent' || n.priority === 'high' ? '<span class="w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                    ${n.priority === 'urgent' || n.priority === 'high' ? '<span class="w-2 h-2 rounded-full" style="background:var(--red)"></span>' : ''}
                 </div>
             </div>
         `).join('');
     }
 
-    // Get notification background class
+    // Get notification background class (chips d'etat tokenisees, natives clair/sombre).
+    // DS monochrome : categories decoratives -> neutre ; couleur reservee aux etats.
     function getNotificationBgClass(type, priority) {
-        if (priority === 'urgent') return 'bg-red-100 text-red-600';
-        if (priority === 'high') return 'bg-orange-100 text-orange-600';
+        if (priority === 'urgent') return 'ds-chip--red';
+        if (priority === 'high') return 'ds-chip--amber';
 
         const colors = {
-            'validation_pending': 'bg-blue-100 text-blue-600',
-            'validation_approved': 'bg-green-100 text-green-600',
-            'validation_rejected': 'bg-red-100 text-red-600',
-            'note_received': 'bg-purple-100 text-purple-600',
-            'note_action_required': 'bg-orange-100 text-orange-600',
-            'task_assigned': 'bg-indigo-100 text-indigo-600',
-            'default': 'bg-gray-100 text-gray-600'
+            'validation_pending': 'ds-chip--neutral',
+            'validation_approved': 'ds-chip--green',
+            'validation_rejected': 'ds-chip--red',
+            'note_received': 'ds-chip--neutral',
+            'note_action_required': 'ds-chip--amber',
+            'task_assigned': 'ds-chip--neutral',
+            'default': 'ds-chip--neutral'
         };
         return colors[type] || colors['default'];
     }

@@ -337,3 +337,56 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .kdocs-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
 .kdocs-badge { display: inline-flex; align-items: center; padding: .125rem .5rem; font-size: .75rem; font-weight: 500; border-radius: 9999px; }
 .kdocs-btn { display: inline-flex; align-items: center; justify-content: center; padding: .375rem .75rem; font-size: .875rem; border-radius: var(--radius); }
+
+/* =========================================================================
+   8. COMPOSANTS & PARTIALS TRANSVERSES (lot Agent A)
+   Classes tokenisees (clair + sombre natifs) pour les composants reutilisables
+   de templates/components et templates/partials : cartes, chips d'etat,
+   boutons d'action a code couleur. Evite de repeter du style en dur et de
+   dependre du shim §5. Les fonds d'etat derivent des tokens via color-mix
+   => bascule clair/sombre automatique (pas d'ilot clair en sombre).
+   ========================================================================= */
+
+/* --- Cartes (doc §4 : surface + bordure, ombre quasi nulle au repos) --- */
+.ds-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+/* Carte cliquable : la bordure se renforce au survol (remplace hover:border-gray-300). */
+.ds-card--link { transition: border-color .12s ease, box-shadow .12s ease; }
+.ds-card--link:hover { border-color: var(--dim); }
+/* Carte en alerte (ex. echeance depassee) : bordure rouge discrete. */
+.ds-card--alert { border-color: color-mix(in srgb, var(--red) 55%, var(--border)); }
+
+/* --- Chips / badges d'etat ---
+   Base structurelle (les variantes ne posent QUE des couleurs : on garde les
+   utilitaires de taille/padding Tailwind existants — px-2, py-0.5, text-xs...). */
+.ds-chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 9999px; }
+.ds-chip--neutral { background: var(--hover); color: var(--ink-soft); }
+.ds-chip--accent  { background: var(--accent-soft); color: var(--accent); }
+.ds-chip--green   { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+.ds-chip--amber   { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber); }
+.ds-chip--red     { background: color-mix(in srgb, var(--red) 15%, transparent);   color: var(--red); }
+
+/* --- Boutons d'action a code couleur d'etat (valider / refuser / n.a.) ---
+   Solides = etat actif ; doux = etat selectionnable inactif. Texte clair
+   constant via --color-text-inverse (defini en clair ET sombre). */
+.ds-btn-green   { background: var(--green); color: var(--color-text-inverse, #fff); border: 1px solid transparent; }
+.ds-btn-green:hover:not(:disabled)   { filter: brightness(1.08); }
+.ds-btn-red     { background: var(--red);   color: var(--color-text-inverse, #fff); border: 1px solid transparent; }
+.ds-btn-red:hover:not(:disabled)     { filter: brightness(1.08); }
+.ds-btn-neutral { background: var(--dim);   color: var(--color-text-inverse, #fff); border: 1px solid transparent; }
+.ds-btn-neutral:hover:not(:disabled) { filter: brightness(1.08); }
+.ds-btn-soft-green   { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
+.ds-btn-soft-green:hover   { background: color-mix(in srgb, var(--green) 24%, transparent); }
+.ds-btn-soft-red     { background: color-mix(in srgb, var(--red) 14%, transparent);   color: var(--red); }
+.ds-btn-soft-red:hover     { background: color-mix(in srgb, var(--red) 24%, transparent); }
+.ds-btn-soft-neutral { background: var(--hover); color: var(--ink-soft); }
+.ds-btn-soft-neutral:hover { background: var(--active); }
+
+/* --- Listes : separateurs et survol de ligne tokenises (remplace
+   divide-gray-* / hover:bg-gray-* en dur, sans dependre du shim §5). --- */
+.ds-divide-y > :not([hidden]) ~ :not([hidden]) { border-top: 1px solid var(--border-soft); }
+.ds-row-hover { transition: background-color .11s ease; }
+.ds-row-hover:hover { background: var(--hover); }
+
+/* Champ modifie (donnees extraites) : surlignage accent tokenise, applique en JS
+   (remplace l'ajout en dur de border-blue-500 / bg-blue-50). */
+.ds-field-changed { border-color: var(--accent); background: var(--accent-soft); }

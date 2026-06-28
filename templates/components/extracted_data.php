@@ -20,13 +20,13 @@ if (empty($extractedData) && $documentId > 0) {
 
 <div class="space-y-4" id="extracted-data-container">
     <?php if (empty($extractedData)): ?>
-    <div class="text-center py-8 text-gray-500">
-        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="text-center py-8" style="color:var(--dim)">
+        <svg class="w-12 h-12 mx-auto mb-3" style="color:var(--muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
         </svg>
         <p class="text-sm">Aucune donnée extraite</p>
         <button onclick="extractDocumentData(<?= $documentId ?>)"
-                class="mt-3 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                class="btn-primary mt-3 px-4 py-2 text-sm rounded-lg">
             Extraire les données
         </button>
     </div>
@@ -35,22 +35,22 @@ if (empty($extractedData) && $documentId > 0) {
     <!-- Bouton re-extraction -->
     <div class="flex justify-end mb-2">
         <button onclick="extractDocumentData(<?= $documentId ?>)"
-                class="px-3 py-1.5 text-xs border border-blue-300 text-blue-700 rounded hover:bg-blue-50">
+                class="btn-secondary border px-3 py-1.5 text-xs rounded">
             Re-extraire
         </button>
     </div>
 
     <?php foreach ($extractedData as $field): ?>
-    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200" data-field-code="<?= htmlspecialchars($field['field_code']) ?>">
+    <div class="rounded-lg p-3" style="background:var(--app-bg);border:1px solid var(--border)" data-field-code="<?= htmlspecialchars($field['field_code']) ?>">
         <div class="flex items-start justify-between">
             <div class="flex-1">
-                <label class="text-sm font-medium text-gray-700"><?= htmlspecialchars($field['field_name']) ?></label>
+                <label class="text-sm font-medium" style="color:var(--ink-soft)"><?= htmlspecialchars($field['field_name']) ?></label>
 
                 <?php if ($field['field_type'] === 'select' || $field['field_type'] === 'multi_select'): ?>
                     <?php
                     $options = json_decode($field['options'] ?? '[]', true) ?: [];
                     ?>
-                    <select class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    <select class="form-select mt-1"
                             data-original-value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                             onchange="markFieldChanged(this, '<?= htmlspecialchars($field['field_code']) ?>')">
                         <option value="">-- Sélectionner --</option>
@@ -68,19 +68,19 @@ if (empty($extractedData) && $documentId > 0) {
                            value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            data-original-value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            onchange="markFieldChanged(this, '<?= htmlspecialchars($field['field_code']) ?>')"
-                           class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                           class="form-input mt-1">
                 <?php elseif ($field['field_type'] === 'money' || $field['field_type'] === 'number'): ?>
                     <input type="number" step="0.01"
                            value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            data-original-value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            onchange="markFieldChanged(this, '<?= htmlspecialchars($field['field_code']) ?>')"
-                           class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                           class="form-input mt-1">
                 <?php else: ?>
                     <input type="text"
                            value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            data-original-value="<?= htmlspecialchars($field['value'] ?? '') ?>"
                            onchange="markFieldChanged(this, '<?= htmlspecialchars($field['field_code']) ?>')"
-                           class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                           class="form-input mt-1">
                 <?php endif; ?>
             </div>
 
@@ -88,13 +88,13 @@ if (empty($extractedData) && $documentId > 0) {
             <div class="ml-2 flex flex-col gap-1">
                 <?php if (!($field['is_confirmed'] ?? false)): ?>
                 <button onclick="confirmExtractedValue(<?= $documentId ?>, '<?= htmlspecialchars($field['field_code']) ?>')"
-                        class="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Confirmer">
+                        class="p-1.5 rounded" style="color:var(--green)" title="Confirmer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </button>
                 <?php else: ?>
-                <span class="p-1.5 text-green-600" title="Confirmé">
+                <span class="p-1.5" style="color:var(--green)" title="Confirmé">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
                     </svg>
@@ -102,7 +102,7 @@ if (empty($extractedData) && $documentId > 0) {
                 <?php endif; ?>
 
                 <button onclick="correctExtractedValue(<?= $documentId ?>, '<?= htmlspecialchars($field['field_code']) ?>')"
-                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded hidden correction-btn" title="Enregistrer correction">
+                        class="p-1.5 rounded hidden correction-btn" style="color:var(--accent)" title="Enregistrer correction">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                     </svg>
@@ -111,14 +111,14 @@ if (empty($extractedData) && $documentId > 0) {
         </div>
 
         <!-- Info confiance et source -->
-        <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+        <div class="mt-2 flex items-center gap-3 text-xs" style="color:var(--dim)">
             <?php if ($field['show_confidence'] && $field['confidence'] !== null): ?>
             <span class="flex items-center gap-1" title="Score de confiance">
                 <?php
                 $confidence = (float)$field['confidence'];
-                $confidenceColor = $confidence >= 0.8 ? 'text-green-600' : ($confidence >= 0.5 ? 'text-yellow-600' : 'text-red-600');
+                $confidenceColor = $confidence >= 0.8 ? 'var(--green)' : ($confidence >= 0.5 ? 'var(--amber)' : 'var(--red)');
                 ?>
-                <span class="<?= $confidenceColor ?>"><?= round($confidence * 100) ?>%</span>
+                <span style="color:<?= $confidenceColor ?>"><?= round($confidence * 100) ?>%</span>
             </span>
             <?php endif; ?>
 
@@ -137,7 +137,7 @@ if (empty($extractedData) && $documentId > 0) {
             </span>
 
             <?php if ($field['is_corrected'] ?? false): ?>
-            <span class="text-orange-600">Corrigé</span>
+            <span class="js-corrected" style="color:var(--amber)">Corrigé</span>
             <?php endif; ?>
         </div>
     </div>
@@ -154,10 +154,10 @@ function markFieldChanged(input, fieldCode) {
     const originalValue = input.dataset.originalValue;
 
     if (input.value !== originalValue) {
-        input.classList.add('border-blue-500', 'bg-blue-50');
+        input.classList.add('ds-field-changed');
         if (correctionBtn) correctionBtn.classList.remove('hidden');
     } else {
-        input.classList.remove('border-blue-500', 'bg-blue-50');
+        input.classList.remove('ds-field-changed');
         if (correctionBtn) correctionBtn.classList.add('hidden');
     }
 }
@@ -211,7 +211,7 @@ async function confirmExtractedValue(documentId, fieldCode) {
             if (container) {
                 const btn = container.querySelector('button[onclick*="confirmExtractedValue"]');
                 if (btn) {
-                    btn.outerHTML = `<span class="p-1.5 text-green-600" title="Confirmé">
+                    btn.outerHTML = `<span class="p-1.5" style="color:var(--green)" title="Confirmé">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
                         </svg>
@@ -245,7 +245,7 @@ async function correctExtractedValue(documentId, fieldCode) {
         if (data.success) {
             // Mettre à jour l'UI
             input.dataset.originalValue = newValue;
-            input.classList.remove('border-blue-500', 'bg-blue-50');
+            input.classList.remove('ds-field-changed');
 
             const correctionBtn = container.querySelector('.correction-btn');
             if (correctionBtn) correctionBtn.classList.add('hidden');
@@ -253,9 +253,9 @@ async function correctExtractedValue(documentId, fieldCode) {
             // Afficher confirmation
             const infoDiv = container.querySelector('.text-xs');
             if (infoDiv) {
-                const correctedSpan = infoDiv.querySelector('.text-orange-600');
+                const correctedSpan = infoDiv.querySelector('.js-corrected');
                 if (!correctedSpan) {
-                    infoDiv.innerHTML += '<span class="text-orange-600 ml-2">Corrigé</span>';
+                    infoDiv.innerHTML += '<span class="js-corrected ml-2" style="color:var(--amber)">Corrigé</span>';
                 }
             }
 

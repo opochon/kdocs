@@ -6,11 +6,12 @@
  * @var string $variant primary|neutral|warning|danger (défaut neutral)
  */
 $variant = $variant ?? 'neutral';
+// Chips d'etat tokenisees (design-system.css) : fond derive du token, natif clair/sombre.
 $classes = match ($variant) {
-    'primary' => 'bg-blue-100 text-blue-800',
-    'warning' => 'bg-amber-100 text-amber-800',
-    'danger' => 'bg-red-100 text-red-800',
-    default => 'bg-gray-100 text-gray-700',
+    'primary' => 'ds-chip--accent',
+    'warning' => 'ds-chip--amber',
+    'danger' => 'ds-chip--red',
+    default => 'ds-chip--neutral',
 };
 ?>
 <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full <?= $classes ?>">

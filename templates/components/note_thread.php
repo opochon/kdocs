@@ -15,37 +15,37 @@ $documentId = $document_id ?? null;
 
 <div class="note-thread space-y-3">
     <?php if (empty($notes)): ?>
-    <p class="text-gray-500 text-sm text-center py-4">Aucune note pour le moment.</p>
+    <p class="text-sm text-center py-4" style="color:var(--dim)">Aucune note pour le moment.</p>
     <?php else: ?>
     <?php foreach ($notes as $note):
         $isFromMe = ($note['from_user_id'] == $currentUserId);
         $senderName = $note['from_fullname'] ?? $note['from_username'] ?? 'Utilisateur';
     ?>
-    <div class="note-message p-3 rounded-lg <?= $isFromMe ? 'bg-blue-50 ml-4' : 'bg-gray-50 mr-4' ?>">
+    <div class="note-message p-3 rounded-lg <?= $isFromMe ? 'ml-4' : 'mr-4' ?>" style="background: <?= $isFromMe ? 'var(--accent-soft)' : 'var(--hover)' ?>">
         <!-- Header -->
         <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-medium text-gray-900">
+            <span class="text-sm font-medium" style="color:var(--ink)">
                 <?= $isFromMe ? 'Vous' : htmlspecialchars($senderName) ?>
             </span>
-            <span class="text-xs text-gray-500">
+            <span class="text-xs" style="color:var(--dim)">
                 <?= date('d/m/Y H:i', strtotime($note['created_at'])) ?>
             </span>
         </div>
 
         <!-- Subject -->
         <?php if (!empty($note['subject'])): ?>
-        <div class="text-xs text-gray-600 mb-1 font-medium">
+        <div class="text-xs mb-1 font-medium" style="color:var(--ink-soft)">
             <?= htmlspecialchars($note['subject']) ?>
         </div>
         <?php endif; ?>
 
         <!-- Message -->
-        <p class="text-sm text-gray-700 whitespace-pre-wrap"><?= nl2br(htmlspecialchars($note['message'])) ?></p>
+        <p class="text-sm whitespace-pre-wrap" style="color:var(--ink-soft)"><?= nl2br(htmlspecialchars($note['message'])) ?></p>
 
         <!-- Action required -->
         <?php if (!empty($note['action_required']) && empty($note['action_completed_at'])): ?>
         <div class="mt-2 flex items-center gap-2">
-            <span class="inline-flex items-center gap-1 text-xs text-orange-600">
+            <span class="inline-flex items-center gap-1 text-xs" style="color:var(--amber)">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
@@ -53,7 +53,7 @@ $documentId = $document_id ?? null;
             </span>
             <?php if ($note['to_user_id'] == $currentUserId): ?>
             <button onclick="markNoteActionComplete(<?= $note['id'] ?>)"
-                    class="text-xs text-green-600 hover:text-green-800 hover:underline">
+                    class="text-xs hover:underline" style="color:var(--green)">
                 Marquer comme terminée
             </button>
             <?php endif; ?>
@@ -63,7 +63,7 @@ $documentId = $document_id ?? null;
         <!-- Action completed -->
         <?php if (!empty($note['action_completed_at'])): ?>
         <div class="mt-2">
-            <span class="inline-flex items-center gap-1 text-xs text-green-600">
+            <span class="inline-flex items-center gap-1 text-xs" style="color:var(--green)">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
@@ -75,7 +75,7 @@ $documentId = $document_id ?? null;
         <!-- Read status for sent notes -->
         <?php if ($isFromMe && isset($note['is_read'])): ?>
         <div class="mt-1 text-right">
-            <span class="text-xs <?= $note['is_read'] ? 'text-blue-500' : 'text-gray-400' ?>">
+            <span class="text-xs" style="color: <?= $note['is_read'] ? 'var(--accent)' : 'var(--dim)' ?>">
                 <?= $note['is_read'] ? 'Lu' : 'Non lu' ?>
             </span>
         </div>
@@ -87,14 +87,14 @@ $documentId = $document_id ?? null;
 
 <?php if (!empty($notes) || $documentId): ?>
 <!-- Reply form -->
-<div class="mt-4 pt-4 border-t border-gray-200">
+<div class="mt-4 pt-4 border-t" style="border-color:var(--border)">
     <form onsubmit="replyToThread(event)" class="space-y-3">
         <input type="hidden" id="replyParentId" value="<?= !empty($notes) ? $notes[0]['id'] : '' ?>">
         <textarea id="replyMessage" rows="2" required
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="form-textarea text-sm"
                   placeholder="Répondre..."></textarea>
         <button type="submit"
-                class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                class="btn-primary px-4 py-2 text-sm rounded-lg transition-colors">
             Répondre
         </button>
     </form>

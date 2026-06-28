@@ -11,11 +11,13 @@
 $variant = $variant ?? 'secondary';
 $type = $type ?? 'button';
 $class = trim(($class ?? '') . ' inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-lg transition-colors');
+// Couleurs via classes tokenisees (theme.css / design-system.css) : action
+// primaire = anthracite (--primary), variantes natives clair/sombre.
 $class .= match ($variant) {
-    'primary' => ' bg-gray-900 text-white hover:bg-gray-800',
-    'ghost' => ' text-gray-600 hover:bg-gray-50',
-    'danger' => ' border border-red-300 text-red-700 hover:bg-red-50',
-    default => ' border border-gray-300 text-gray-700 hover:bg-gray-50',
+    'primary' => ' btn-primary',
+    'ghost' => ' btn-ghost',
+    'danger' => ' ds-btn-soft-red',
+    default => ' border btn-secondary',
 };
 $label = htmlspecialchars($label ?? '', ENT_QUOTES, 'UTF-8');
 ?>
