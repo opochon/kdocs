@@ -12,55 +12,55 @@ $base = Config::basePath();
     <div class="absolute inset-0 bg-black/50" onclick="closeDocumentPreview()"></div>
 
     <!-- Panneau latéral (90% de la largeur) -->
-    <div class="absolute right-0 top-0 bottom-0 w-full max-w-6xl bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="preview-panel">
+    <div class="absolute right-0 top-0 bottom-0 w-full max-w-6xl shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="preview-panel" style="background:var(--surface)">
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
+        <div class="flex items-center justify-between px-4 py-2 border-b" style="background:var(--app-bg); border-color:var(--border)">
             <div class="flex items-center gap-3">
-                <button onclick="closeDocumentPreview()" class="p-1 hover:bg-gray-200 rounded" title="Fermer (Echap)">
+                <button onclick="closeDocumentPreview()" class="p-1 ds-row-hover rounded" title="Fermer (Echap)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-                <h2 id="preview-title" class="font-medium text-gray-900 truncate max-w-lg">Chargement...</h2>
+                <h2 id="preview-title" class="font-medium truncate max-w-lg" style="color:var(--ink)">Chargement...</h2>
             </div>
             <div class="flex items-center gap-2">
                 <!-- Badge validation -->
                 <span id="preview-validation-badge"></span>
 
-                <span class="mx-1 text-gray-300">|</span>
+                <span class="mx-1" style="color:var(--muted)">|</span>
 
                 <!-- Navigation prev/next -->
-                <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document précédent (←)">
+                <button onclick="navigatePreview(-1)" id="preview-prev-btn" class="p-1.5 ds-row-hover rounded disabled:opacity-30" title="Document précédent (←)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </button>
-                <span class="text-xs text-gray-400" id="preview-position"></span>
-                <button onclick="navigatePreview(1)" id="preview-next-btn" class="p-1.5 hover:bg-gray-200 rounded disabled:opacity-30" title="Document suivant (→)">
+                <span class="text-xs" style="color:var(--dim)" id="preview-position"></span>
+                <button onclick="navigatePreview(1)" id="preview-next-btn" class="p-1.5 ds-row-hover rounded disabled:opacity-30" title="Document suivant (→)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                 </button>
 
-                <span class="mx-1 text-gray-300">|</span>
+                <span class="mx-1" style="color:var(--muted)">|</span>
 
                 <!-- Actions -->
-                <a href="#" id="preview-download-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Télécharger">
+                <a href="#" id="preview-download-btn" class="p-1.5 ds-row-hover rounded" title="Télécharger">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
                 </a>
-                <a href="#" id="preview-fullpage-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Ouvrir page complète">
+                <a href="#" id="preview-fullpage-btn" class="p-1.5 ds-row-hover rounded" title="Ouvrir page complète">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                     </svg>
                 </a>
-                <button onclick="reprocessDocumentPreview()" id="preview-reprocess-btn" class="p-1.5 hover:bg-gray-200 rounded" title="Retraiter (OCR)">
+                <button onclick="reprocessDocumentPreview()" id="preview-reprocess-btn" class="p-1.5 ds-row-hover rounded" title="Retraiter (OCR)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </button>
-                <button onclick="deleteDocumentPreview()" id="preview-delete-btn" class="p-1.5 hover:bg-red-100 text-red-600 rounded" title="Supprimer">
+                <button onclick="deleteDocumentPreview()" id="preview-delete-btn" class="p-1.5 ds-row-hover rounded" style="color:var(--red)" title="Supprimer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
@@ -71,13 +71,13 @@ $base = Config::basePath();
         <!-- Contenu -->
         <div class="flex-1 flex overflow-hidden">
             <!-- Viewer (55%) -->
-            <div class="w-1/2 lg:w-3/5 bg-gray-100 flex items-center justify-center overflow-auto" id="preview-viewer-container">
+            <div class="w-1/2 lg:w-3/5 flex items-center justify-center overflow-auto" id="preview-viewer-container" style="background:var(--rail)">
                 <div id="preview-loading" class="text-center">
-                    <svg class="w-8 h-8 text-gray-400 mx-auto animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg class="w-8 h-8 mx-auto animate-spin" style="color:var(--dim)" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="text-sm text-gray-500 mt-2">Chargement...</p>
+                    <p class="text-sm mt-2" style="color:var(--dim)">Chargement...</p>
                 </div>
                 <div id="preview-viewer" class="hidden w-full h-full">
                     <!-- PDF ou Image sera injecté ici -->
@@ -85,7 +85,7 @@ $base = Config::basePath();
             </div>
 
             <!-- Formulaire d'édition (45%) -->
-            <div class="w-1/2 lg:w-2/5 border-l bg-white overflow-y-auto p-3">
+            <div class="w-1/2 lg:w-2/5 border-l overflow-y-auto p-3" style="background:var(--surface); border-color:var(--border)">
                 <div id="preview-metadata">
                     <!-- Formulaire sera injecté ici -->
                 </div>
@@ -94,29 +94,29 @@ $base = Config::basePath();
     </div>
 </div>
 
-<div class="flex min-h-screen bg-white w-full overflow-hidden">
+<div class="flex min-h-screen w-full overflow-hidden ds-shell">
 
     <!-- Sidebar gauche - Sticky avec redimensionnement et collapse -->
-    <aside id="documents-sidebar" class="bg-white border-r border-gray-100 flex-shrink-0 relative flex flex-col sticky top-0" style="height: 100vh; min-width: 200px; width: 240px; max-width: 400px;">
+    <aside id="documents-sidebar" class="border-r flex-shrink-0 relative flex flex-col sticky top-0" style="height: 100vh; min-width: 200px; width: 240px; max-width: 400px; background:var(--rail); border-color:var(--border-soft)">
         <!-- Bouton toggle collapse -->
-        <button id="sidebar-toggle" class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer z-30 shadow-sm hover:bg-gray-50 transition-colors" title="Rétracter/Déployer le panneau">
-            <svg id="sidebar-toggle-icon" class="w-3 h-3 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="sidebar-toggle" class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer z-30 shadow-sm transition-colors" style="background:var(--surface); border:1px solid var(--border)" title="Rétracter/Déployer le panneau">
+            <svg id="sidebar-toggle-icon" class="w-3 h-3 transition-transform duration-200" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
         </button>
 
         <!-- Poignée de redimensionnement -->
         <div id="sidebar-resize-handle" class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize z-20 group" style="margin-right: -3px;">
-            <div class="absolute inset-y-0 left-0 w-full bg-transparent hover:bg-blue-400 active:bg-blue-500 transition-colors"></div>
-            <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-8 rounded-full bg-gray-300 group-hover:bg-blue-400 transition-colors opacity-0 group-hover:opacity-100"></div>
+            <div class="absolute inset-y-0 left-0 w-full bg-transparent transition-colors"></div>
+            <div class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-8 rounded-full transition-colors opacity-0 group-hover:opacity-100" style="background:var(--accent)"></div>
         </div>
 
         <!-- Contenu scrollable du sidebar -->
         <div id="sidebar-content" class="flex-1 overflow-y-auto overflow-x-hidden">
             <!-- Dossiers logiques -->
             <?php if (!empty($logicalFolders)): ?>
-            <div class="px-3 py-2 border-b border-gray-100">
-                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Dossiers logiques</h2>
+            <div class="px-3 py-2 border-b" style="border-color:var(--border-soft)">
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Dossiers logiques</h2>
             </div>
             <nav class="px-1 py-1">
                 <?php foreach ($logicalFolders as $lfolder): ?>
@@ -125,14 +125,14 @@ $base = Config::basePath();
                 $count = LogicalFolder::countDocuments($lfolder['id']);
                 ?>
                 <a href="<?= url('/documents?logical_folder=' . $lfolder['id']) ?>"
-                   class="sidebar-item flex items-center px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
-                          <?= $isActive ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
-                    <svg class="w-3.5 h-3.5 mr-1.5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="sidebar-item flex items-center px-2 py-1 text-sm rounded ds-row-hover transition-colors <?= $isActive ? 'font-semibold' : 'font-medium' ?>"
+                   style="color:var(--ink);<?= $isActive ? ' background:var(--active);' : '' ?>">
+                    <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                     </svg>
                     <span class="sidebar-text flex-1 truncate"><?= htmlspecialchars(preg_replace('/^[📁📄📋📧📦]\s*/u', '', $lfolder['name'])) ?></span>
                     <?php if ($count > 0): ?>
-                    <span class="sidebar-count text-xs text-gray-500 ml-1"><?= $count ?></span>
+                    <span class="sidebar-count text-xs ml-1" style="color:var(--dim)"><?= $count ?></span>
                     <?php endif; ?>
                 </a>
                 <?php endforeach; ?>
@@ -140,26 +140,26 @@ $base = Config::basePath();
             <?php endif; ?>
 
             <!-- Dossiers filesystem - Rendu côté serveur (RAPIDE) -->
-            <div class="px-3 py-2 border-t border-gray-100">
-                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Dossiers</h2>
+            <div class="px-3 py-2 border-t" style="border-color:var(--border-soft)">
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Dossiers</h2>
             </div>
             <?= $folderTreeHtml ?? '' ?>
 
             <!-- Types -->
             <?php if (!empty($documentTypes)): ?>
-            <div class="px-3 py-2 border-t border-gray-100">
-                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Types</h2>
+            <div class="px-3 py-2 border-t" style="border-color:var(--border-soft)">
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Types</h2>
             </div>
             <nav class="px-1 py-1">
                 <a href="<?= url('/documents') ?>"
-                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
-                          <?= (!$typeId) ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                   class="sidebar-item block px-2 py-1 text-sm rounded ds-row-hover transition-colors <?= (!$typeId) ? 'font-semibold' : 'font-medium' ?>"
+                   style="color:var(--ink);<?= (!$typeId) ? ' background:var(--active);' : '' ?>">
                     <span class="sidebar-text">Tous</span>
                 </a>
                 <?php foreach ($documentTypes as $type): ?>
                 <a href="<?= url('/documents?type=' . $type['id']) ?>"
-                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors
-                          <?= ($typeId == $type['id']) ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                   class="sidebar-item block px-2 py-1 text-sm rounded ds-row-hover transition-colors <?= ($typeId == $type['id']) ? 'font-semibold' : 'font-medium' ?>"
+                   style="color:var(--ink);<?= ($typeId == $type['id']) ? ' background:var(--active);' : '' ?>">
                     <span class="sidebar-text"><?= htmlspecialchars($type['label']) ?></span>
                 </a>
                 <?php endforeach; ?>
@@ -167,12 +167,13 @@ $base = Config::basePath();
             <?php endif; ?>
 
             <?php if (\KDocs\Core\PluginRegistry::isEnabled('smq')): ?>
-            <div class="px-3 py-2 border-t border-gray-100">
-                <h2 class="sidebar-section-title text-xs font-bold text-gray-900 uppercase tracking-wider">Qualité (SMQ)</h2>
+            <div class="px-3 py-2 border-t" style="border-color:var(--border-soft)">
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Qualité (SMQ)</h2>
             </div>
             <nav class="px-1 py-1">
                 <a href="<?= url('/documents?smq=to_read') ?>"
-                   class="sidebar-item block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors <?= (($_GET['smq'] ?? '') === 'to_read') ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-900 font-medium' ?>">
+                   class="sidebar-item block px-2 py-1 text-sm rounded ds-row-hover transition-colors <?= (($_GET['smq'] ?? '') === 'to_read') ? 'font-semibold' : 'font-medium' ?>"
+                   style="color:var(--ink);<?= (($_GET['smq'] ?? '') === 'to_read') ? ' background:var(--active);' : '' ?>">
                     <span class="sidebar-text">À quittancer</span>
                 </a>
             </nav>
@@ -184,12 +185,12 @@ $base = Config::basePath();
     <main class="flex-1 flex flex-col overflow-hidden min-w-0">
         
         <!-- Header minimaliste -->
-        <header class="bg-white border-b border-gray-100 px-4 py-2">
+        <header class="border-b px-4 py-2" style="background:var(--chrome); border-color:var(--border-soft)">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <h1 class="text-base font-medium text-gray-900">Documents</h1>
+                    <h1 class="text-base font-medium" style="color:var(--ink)">Documents</h1>
                     <?php if ($total > 0): ?>
-                    <span class="text-xs text-gray-400"><?= $total ?></span>
+                    <span class="text-xs" style="color:var(--dim)"><?= $total ?></span>
                     <?php endif; ?>
                 </div>
                 
@@ -200,8 +201,8 @@ $base = Config::basePath();
                                id="search-input"
                                value="<?= htmlspecialchars($search ?? '') ?>"
                                placeholder="Rechercher... (AND, OR, &quot;phrase&quot;)"
-                               class="w-64 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-gray-400 pr-8">
-                        <button type="button" id="toggle-search-options" class="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600" title="Options de recherche">
+                               class="w-64 px-2 py-1 text-sm rounded focus:outline-none pr-8">
+                        <button type="button" id="toggle-search-options" class="absolute right-1 top-1/2 -translate-y-1/2 p-1" style="color:var(--dim)" title="Options de recherche">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                             </svg>
@@ -209,7 +210,7 @@ $base = Config::basePath();
                     </div>
 
                     <!-- Tri -->
-                    <select id="sort-select" class="px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-gray-300">
+                    <select id="sort-select" class="px-2 py-1 text-xs rounded focus:outline-none">
                         <option value="created_at-desc" <?= ($sort == 'created_at' && $order == 'DESC') ? 'selected' : '' ?>>Date ↓</option>
                         <option value="created_at-asc" <?= ($sort == 'created_at' && $order == 'ASC') ? 'selected' : '' ?>>Date ↑</option>
                         <option value="title-asc" <?= ($sort == 'title' && $order == 'ASC') ? 'selected' : '' ?>>Titre A-Z</option>
@@ -217,16 +218,17 @@ $base = Config::basePath();
                     </select>
                     
                     <!-- Vues -->
-                    <div class="flex items-center border border-gray-200 rounded">
-                        <button onclick="setViewMode('grid')" 
-                                class="view-toggle px-1.5 py-1 <?= ($viewMode ?? 'grid') === 'grid' ? 'bg-gray-100' : '' ?>"
+                    <div class="flex items-center border rounded" style="border-color:var(--border)">
+                        <button onclick="setViewMode('grid')"
+                                class="view-toggle px-1.5 py-1 <?= ($viewMode ?? 'grid') === 'grid' ? 'active' : '' ?>"
                                 title="Grille">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                             </svg>
                         </button>
-                        <button onclick="setViewMode('list')" 
-                                class="view-toggle px-1.5 py-1 border-l border-gray-200 <?= ($viewMode ?? 'grid') === 'list' ? 'bg-gray-100' : '' ?>"
+                        <button onclick="setViewMode('list')"
+                                class="view-toggle px-1.5 py-1 border-l <?= ($viewMode ?? 'grid') === 'list' ? 'active' : '' ?>"
+                                style="border-color:var(--border)"
                                 title="Liste">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -235,97 +237,97 @@ $base = Config::basePath();
                     </div>
                     
                     <!-- Upload -->
-                    <a href="<?= url('/documents/upload') ?>" 
-                       class="px-2.5 py-1 bg-gray-900 text-white text-xs rounded hover:bg-gray-800">
+                    <a href="<?= url('/documents/upload') ?>"
+                       class="px-2.5 py-1 text-xs rounded" style="background:var(--primary); color:var(--primary-ink)">
                         Uploader
                     </a>
                 </div>
             </div>
 
             <!-- Panneau options de recherche avancée (collapsible) -->
-            <div id="search-options-panel" class="hidden border-t border-gray-100 pt-2 mt-2">
+            <div id="search-options-panel" class="hidden border-t pt-2 mt-2" style="border-color:var(--border-soft)">
                 <div class="flex flex-wrap items-center gap-4 text-xs">
                     <!-- Scope -->
                     <div class="flex items-center gap-1">
-                        <span class="text-gray-500">Dans:</span>
-                        <button type="button" data-scope="all" class="scope-btn px-2 py-0.5 rounded bg-gray-800 text-white">Tout</button>
-                        <button type="button" data-scope="name" class="scope-btn px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">Nom</button>
-                        <button type="button" data-scope="content" class="scope-btn px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">Contenu</button>
+                        <span style="color:var(--dim)">Dans:</span>
+                        <button type="button" data-scope="all" class="scope-btn px-2 py-0.5 rounded active">Tout</button>
+                        <button type="button" data-scope="name" class="scope-btn px-2 py-0.5 rounded">Nom</button>
+                        <button type="button" data-scope="content" class="scope-btn px-2 py-0.5 rounded">Contenu</button>
                     </div>
 
                     <!-- Période -->
                     <div class="flex items-center gap-1">
-                        <span class="text-gray-500">Période:</span>
-                        <input type="date" id="search-date-from" class="px-1.5 py-0.5 border border-gray-200 rounded text-xs">
-                        <span class="text-gray-300">-</span>
-                        <input type="date" id="search-date-to" class="px-1.5 py-0.5 border border-gray-200 rounded text-xs">
+                        <span style="color:var(--dim)">Période:</span>
+                        <input type="date" id="search-date-from" class="px-1.5 py-0.5 rounded text-xs">
+                        <span style="color:var(--muted)">-</span>
+                        <input type="date" id="search-date-to" class="px-1.5 py-0.5 rounded text-xs">
                     </div>
 
                     <!-- Aide syntaxe -->
-                    <button type="button" id="syntax-help-btn" class="text-gray-400 hover:text-gray-600" title="Aide syntaxe">
+                    <button type="button" id="syntax-help-btn" style="color:var(--dim)" title="Aide syntaxe">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </button>
 
                     <!-- Bouton rechercher -->
-                    <button type="button" id="do-advanced-search" class="px-2 py-0.5 bg-gray-800 text-white rounded hover:bg-gray-700">
+                    <button type="button" id="do-advanced-search" class="px-2 py-0.5 rounded" style="background:var(--primary); color:var(--primary-ink)">
                         Rechercher
                     </button>
 
                     <!-- Reset -->
-                    <button type="button" id="reset-search" class="text-gray-400 hover:text-gray-600 text-xs underline">
+                    <button type="button" id="reset-search" class="text-xs underline" style="color:var(--dim)">
                         Réinitialiser
                     </button>
                 </div>
 
                 <!-- Popup aide syntaxe -->
-                <div id="syntax-help-popup" class="hidden mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs">
-                    <h4 class="font-semibold text-gray-700 mb-1">Syntaxe de recherche</h4>
-                    <div class="grid grid-cols-3 gap-x-4 gap-y-1 text-gray-600">
-                        <div><code class="bg-white px-1 rounded">mot1 AND mot2</code> Les deux</div>
-                        <div><code class="bg-white px-1 rounded">mot1 OR mot2</code> L'un ou l'autre</div>
-                        <div><code class="bg-white px-1 rounded">"phrase exacte"</code> Expression exacte</div>
-                        <div><code class="bg-white px-1 rounded">NOT mot</code> Exclure</div>
-                        <div><code class="bg-white px-1 rounded">fact*</code> Commence par</div>
-                        <div><code class="bg-white px-1 rounded">t?st</code> Un caractère variable</div>
+                <div id="syntax-help-popup" class="hidden mt-2 p-2 border rounded text-xs" style="background:var(--surface); border-color:var(--border)">
+                    <h4 class="font-semibold mb-1" style="color:var(--ink)">Syntaxe de recherche</h4>
+                    <div class="grid grid-cols-3 gap-x-4 gap-y-1" style="color:var(--ink-soft)">
+                        <div><code class="px-1 rounded" style="background:var(--hover)">mot1 AND mot2</code> Les deux</div>
+                        <div><code class="px-1 rounded" style="background:var(--hover)">mot1 OR mot2</code> L'un ou l'autre</div>
+                        <div><code class="px-1 rounded" style="background:var(--hover)">"phrase exacte"</code> Expression exacte</div>
+                        <div><code class="px-1 rounded" style="background:var(--hover)">NOT mot</code> Exclure</div>
+                        <div><code class="px-1 rounded" style="background:var(--hover)">fact*</code> Commence par</div>
+                        <div><code class="px-1 rounded" style="background:var(--hover)">t?st</code> Un caractère variable</div>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Contenu -->
-        <div class="flex-1 overflow-y-auto bg-white p-4" style="min-width: 0; width: 100%;">
+        <div class="flex-1 overflow-y-auto p-4" style="min-width: 0; width: 100%; background:var(--app-bg)">
             <!-- Zone de chargement AJAX -->
             <div id="documents-loading" class="hidden flex flex-col items-center justify-center h-full text-center py-12">
-                <svg class="w-8 h-8 text-blue-500 mx-auto mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 mx-auto mb-3 animate-spin" style="color:var(--accent)" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="text-sm text-gray-500">Chargement...</p>
+                <p class="text-sm" style="color:var(--dim)">Chargement...</p>
             </div>
             
             <!-- Contenu des documents (chargé via AJAX ou PHP) -->
             <div id="documents-content">
             <?php if (!empty($indexationMessage ?? null)): ?>
             <div class="flex flex-col items-center justify-center h-full text-center py-12">
-                <svg class="w-8 h-8 text-orange-500 mx-auto mb-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg class="w-8 h-8 mx-auto mb-3 animate-spin" style="color:var(--amber)" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <h2 class="text-base font-medium text-orange-600 mb-1">Indexation en cours</h2>
-                <p class="text-sm text-orange-500 mb-4"><?= htmlspecialchars($indexationMessage) ?></p>
-                <p class="text-xs text-gray-400">Les documents apparaîtront automatiquement une fois l'indexation terminée.</p>
+                <h2 class="text-base font-medium mb-1" style="color:var(--amber)">Indexation en cours</h2>
+                <p class="text-sm mb-4" style="color:var(--amber)"><?= htmlspecialchars($indexationMessage) ?></p>
+                <p class="text-xs" style="color:var(--dim)">Les documents apparaîtront automatiquement une fois l'indexation terminée.</p>
             </div>
             <?php elseif (empty($documents)): ?>
             <div id="empty-state" class="flex flex-col items-center justify-center h-full text-center py-12">
-                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-12 h-12 mb-3" style="color:var(--muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <h2 class="text-base font-medium text-gray-700 mb-1">Aucun document</h2>
-                <p class="text-sm text-gray-400 mb-4">L'indexation se fait automatiquement.</p>
-                <a href="<?= url('/documents/upload') ?>" 
-                   class="px-3 py-1.5 bg-gray-900 text-white text-sm rounded hover:bg-gray-800">
+                <h2 class="text-base font-medium mb-1" style="color:var(--ink)">Aucun document</h2>
+                <p class="text-sm mb-4" style="color:var(--dim)">L'indexation se fait automatiquement.</p>
+                <a href="<?= url('/documents/upload') ?>"
+                   class="px-3 py-1.5 text-sm rounded" style="background:var(--primary); color:var(--primary-ink)">
                     Uploader
                 </a>
             </div>
@@ -333,7 +335,7 @@ $base = Config::basePath();
             <!-- Grille de documents - Utilise toute la largeur disponible -->
             <div id="view-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 w-full max-w-none">
                 <?php foreach ($documents as $index => $doc): ?>
-                <div class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative cursor-pointer"
+                <div class="document-card ds-card ds-card--link block relative cursor-pointer"
                      data-doc-id="<?= $doc['id'] ?? '' ?>"
                      data-doc-index="<?= $index ?>"
                      onclick="openDocumentPreview(<?= $doc['id'] ?? 0 ?>, <?= $index ?>)">
@@ -347,7 +349,7 @@ $base = Config::basePath();
                         <?php if ($validation_status): ?>
                             <?php include __DIR__ . '/../components/validation_badge.php'; ?>
                         <?php elseif (($doc['status'] ?? '') === 'pending'): ?>
-                        <span class="inline-flex items-center gap-1 rounded-full border bg-orange-100 text-orange-800 border-orange-200 text-xs px-2 py-0.5" title="Document en attente de traitement">
+                        <span class="ds-chip ds-chip--amber text-xs px-2 py-0.5" title="Document en attente de traitement">
                             À classer
                         </span>
                         <?php endif; ?>
@@ -355,12 +357,12 @@ $base = Config::basePath();
                     <?php endif; ?>
                     
                     <!-- Thumbnail -->
-                    <div class="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                    <div class="aspect-[3/4] flex items-center justify-center overflow-hidden relative" style="background:var(--rail)">
                         <?php if (!empty($doc['id'])): ?>
                         <?php $documentId = (int) $doc['id']; $alt = $doc['title'] ?? $doc['filename'] ?? 'Document'; include __DIR__ . '/../components/document_thumbnail.php'; ?>
                         <?php else: ?>
                         <div class="w-full h-full flex items-center justify-center">
-                            <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8" style="color:var(--muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
@@ -368,11 +370,11 @@ $base = Config::basePath();
                     </div>
                     
                     <!-- Info -->
-                    <div class="p-1.5 border-t border-gray-50">
-                        <h3 class="text-xs font-medium text-gray-900 truncate mb-0.5" title="<?= htmlspecialchars($doc['title'] ?? $doc['filename']) ?>">
+                    <div class="p-1.5 border-t" style="border-color:var(--border-soft)">
+                        <h3 class="text-xs font-medium truncate mb-0.5" style="color:var(--ink)" title="<?= htmlspecialchars($doc['title'] ?? $doc['filename']) ?>">
                             <?= htmlspecialchars($doc['title'] ?? $doc['filename']) ?>
                         </h3>
-                        <p class="text-xs text-gray-400">
+                        <p class="text-xs" style="color:var(--dim)">
                             <?= date('d/m/Y', strtotime($doc['created_at'] ?? 'now')) ?>
                         </p>
                     </div>
@@ -397,18 +399,18 @@ $base = Config::basePath();
                 
                 <?php if ($page > 1): ?>
                 <a href="?page=<?= $page - 1 ?><?= $paginationQuery ?>"
-                   class="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 text-gray-600">
+                   class="px-2 py-1 text-xs border rounded ds-row-hover" style="border-color:var(--border); color:var(--ink-soft)">
                     ←
                 </a>
                 <?php endif; ?>
                 
-                <span class="px-2 py-1 text-xs text-gray-400">
+                <span class="px-2 py-1 text-xs" style="color:var(--dim)">
                     <?= $page ?>/<?= $totalPages ?>
                 </span>
                 
                 <?php if ($page < $totalPages): ?>
                 <a href="?page=<?= $page + 1 ?><?= $paginationQuery ?>"
-                   class="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 text-gray-600">
+                   class="px-2 py-1 text-xs border rounded ds-row-hover" style="border-color:var(--border); color:var(--ink-soft)">
                     →
                 </a>
                 <?php endif; ?>
@@ -421,11 +423,11 @@ $base = Config::basePath();
 </div>
 
 <!-- Indicateur de progression des indexations -->
-<div id="indexing-status-bar" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-orange-50 to-orange-100 border-t-2 border-orange-400 shadow-lg px-4 py-3 z-50" style="display: none;">
+<div id="indexing-status-bar" class="fixed bottom-0 left-0 right-0 border-t-2 shadow-lg px-4 py-3 z-50" style="display: none; background:color-mix(in srgb, var(--amber) 14%, transparent); border-color:var(--amber)">
     <div class="w-full px-4">
         <div class="flex items-center justify-between mb-2">
-            <span class="font-semibold text-gray-800 text-sm">Indexation en cours</span>
-            <button onclick="document.getElementById('indexing-status-bar').style.display='none'" class="text-gray-500 hover:text-gray-700 text-lg leading-none" title="Masquer">×</button>
+            <span class="font-semibold text-sm" style="color:var(--ink)">Indexation en cours</span>
+            <button onclick="document.getElementById('indexing-status-bar').style.display='none'" class="text-lg leading-none" style="color:var(--ink-soft)" title="Masquer">×</button>
         </div>
         <div id="indexing-progress-list" class="space-y-2">
             <!-- Les progressions seront ajoutées ici dynamiquement -->
@@ -489,15 +491,15 @@ function loadDocumentPreview(docId) {
 // Badge validation cliquable dans le header de la modale
 function renderValidationBadgeHeader(docId, status) {
     const states = {
-        'pending': { label: '⏳ En attente', class: 'bg-yellow-100 text-yellow-800 hover:opacity-80', },
-        'approved': { label: '✅ Validé', class: 'bg-green-100 text-green-800 hover:opacity-80' },
-        'validated': { label: '✅ Validé', class: 'bg-green-100 text-green-800 hover:opacity-80' },
-        'rejected': { label: '❌ Rejeté', class: 'bg-red-100 text-red-800 hover:opacity-80' },
-        'na': { label: 'N/A', class: 'bg-gray-100 text-gray-600 hover:opacity-80' },
+        'pending': { label: '⏳ En attente', class: 'ds-chip--amber hover:opacity-80', },
+        'approved': { label: '✅ Validé', class: 'ds-chip--green hover:opacity-80' },
+        'validated': { label: '✅ Validé', class: 'ds-chip--green hover:opacity-80' },
+        'rejected': { label: '❌ Rejeté', class: 'ds-chip--red hover:opacity-80' },
+        'na': { label: 'N/A', class: 'ds-chip--neutral hover:opacity-80' },
     };
     const current = states[status] || states['pending'];
     return `<button type="button" onclick="toggleValidationStatus(${docId}, '${status || 'pending'}')"
-            class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition ${current.class}"
+            class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition ds-chip ${current.class}"
             title="Cliquer pour changer le statut de validation">
         ${current.label}
     </button>`;
@@ -543,8 +545,8 @@ function renderDocumentViewer(doc) {
         // PDF viewer avec iframe
         viewer.innerHTML = `
             <iframe src="${BASE_PATH}/documents/${doc.id}/view#toolbar=1&navpanes=0"
-                    class="w-full h-full border-0 rounded bg-white"
-                    style="min-height: 600px;"></iframe>
+                    class="w-full h-full border-0 rounded"
+                    style="min-height: 600px; background:var(--paper)"></iframe>
         `;
     } else if (mimeType.startsWith('image/')) {
         // Image
@@ -563,17 +565,17 @@ function renderDocumentViewer(doc) {
                      alt="${doc.title || doc.filename}"
                      class="max-h-64 shadow-lg rounded border"
                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 120%22><rect fill=%22%23f3f4f6%22 width=%22100%22 height=%22120%22/><text x=%2250%22 y=%2260%22 text-anchor=%22middle%22 fill=%22%236b7280%22 font-size=%2212%22>Document</text></svg>'">
-                <p class="text-gray-500 text-sm">Document Office</p>
+                <p class="text-sm" style="color:var(--dim)">Document Office</p>
                 <div class="flex gap-2">
                     <button onclick="openOnlyOffice(${doc.id})"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2">
+                            class="btn btn-primary">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                         Ouvrir dans l'éditeur
                     </button>
                     <a href="${BASE_PATH}/documents/${doc.id}/download"
-                       class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 flex items-center gap-2">
+                       class="btn btn-secondary">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -590,9 +592,9 @@ function renderDocumentViewer(doc) {
                      alt="${doc.title || doc.filename}"
                      class="max-w-64 max-h-64 object-contain rounded shadow mb-2"
                      onerror="this.style.display='none'">
-                <p class="text-gray-500">Aperçu non disponible pour ce type de fichier</p>
+                <p style="color:var(--dim)">Aperçu non disponible pour ce type de fichier</p>
                 <a href="${BASE_PATH}/documents/${doc.id}/download"
-                   class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center gap-2">
+                   class="btn btn-secondary">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
@@ -649,38 +651,38 @@ function renderDocumentMetadata(doc) {
             switch(field.field_type) {
                 case 'text':
                     input = `<input type="text" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                               class="w-full px-2 py-1.5 text-sm rounded">`;
                     break;
                 case 'number':
                     input = `<input type="number" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}" step="any"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                               class="w-full px-2 py-1.5 text-sm rounded">`;
                     break;
                 case 'date':
                     input = `<input type="date" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                               class="w-full px-2 py-1.5 text-sm rounded">`;
                     break;
                 case 'select':
                     const options = (field.options || '').split(',').filter(o => o.trim());
                     const optionsHtml = options.map(o =>
                         `<option value="${escapeHtml(o.trim())}" ${value === o.trim() ? 'selected' : ''}>${escapeHtml(o.trim())}</option>`
                     ).join('');
-                    input = `<select id="preview-custom-field-${field.id}" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    input = `<select id="preview-custom-field-${field.id}" class="w-full px-2 py-1.5 text-sm rounded">
                                <option value="">Non défini</option>${optionsHtml}</select>`;
                     break;
                 case 'checkbox':
                     input = `<input type="checkbox" id="preview-custom-field-${field.id}" ${value === '1' || value === 'true' ? 'checked' : ''}
-                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">`;
+                               class="rounded" style="accent-color:var(--accent)">`;
                     break;
                 case 'textarea':
                     input = `<textarea id="preview-custom-field-${field.id}" rows="2"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">${escapeHtml(value)}</textarea>`;
+                               class="w-full px-2 py-1.5 text-sm rounded">${escapeHtml(value)}</textarea>`;
                     break;
                 default:
                     input = `<input type="text" id="preview-custom-field-${field.id}" value="${escapeHtml(value)}"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">`;
+                               class="w-full px-2 py-1.5 text-sm rounded">`;
             }
             return `<div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">${escapeHtml(field.name)}${field.required ? ' *' : ''}</label>
+                <label class="block text-xs font-medium mb-1" style="color:var(--dim)">${escapeHtml(field.name)}${field.required ? ' *' : ''}</label>
                 ${input}
             </div>`;
         }).join('');
@@ -691,7 +693,7 @@ function renderDocumentMetadata(doc) {
     const tagCheckboxes = (meta.all_tags || []).map(t => `
         <label class="flex items-center gap-1.5 text-xs cursor-pointer">
             <input type="checkbox" name="preview_tags" value="${t.id}" ${selectedTagIds.includes(t.id) ? 'checked' : ''}
-                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                   class="rounded" style="accent-color:var(--accent)">
             <span class="px-1.5 py-0.5 rounded" style="background-color: ${t.color || '#e5e7eb'}20; color: ${t.color || '#6b7280'}">
                 ${escapeHtml(t.name)}
             </span>
@@ -707,15 +709,15 @@ function renderDocumentMetadata(doc) {
     const notesCount = (doc.notes || []).length;
     const notesHtml = notesCount > 0
         ? doc.notes.map(note => `
-            <div class="bg-gray-50 rounded p-2 text-xs border">
+            <div class="rounded p-2 text-xs border" style="background:var(--app-bg); border-color:var(--border)">
                 <div class="flex justify-between items-start">
-                    <p class="text-gray-700 whitespace-pre-wrap flex-1">${escapeHtml(note.note || note.content || '')}</p>
-                    <button onclick="deleteNotePreview(${note.id})" class="text-red-500 hover:text-red-700 ml-2">×</button>
+                    <p class="whitespace-pre-wrap flex-1" style="color:var(--ink-soft)">${escapeHtml(note.note || note.content || '')}</p>
+                    <button onclick="deleteNotePreview(${note.id})" class="ml-2" style="color:var(--red)">×</button>
                 </div>
-                <p class="text-gray-400 mt-1">${escapeHtml(note.user_name || '')} • ${formatDisplayDate(note.created_at)}</p>
+                <p class="mt-1" style="color:var(--dim)">${escapeHtml(note.user_name || '')} • ${formatDisplayDate(note.created_at)}</p>
             </div>
         `).join('')
-        : '<p class="text-xs text-gray-400 py-4 text-center">Aucune note</p>';
+        : '<p class="text-xs py-4 text-center" style="color:var(--dim)">Aucune note</p>';
 
     // OCR texte complet
     const ocrText = doc.ocr_text || '';
@@ -725,10 +727,10 @@ function renderDocumentMetadata(doc) {
         <div class="text-sm">
             ${SMQ_ENABLED ? '<div id="preview-read-banner" class="mb-2"></div>' : ''}
             <!-- Header avec AI et validation rapide -->
-            <div class="flex items-center justify-between pb-2 mb-2 border-b">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b" style="border-color:var(--border)">
                 <button onclick="getAISuggestionsPreview(${doc.id})"
                         id="ai-suggest-btn"
-                        class="px-3 py-1.5 text-xs border border-purple-300 text-purple-700 rounded hover:bg-purple-50 flex items-center gap-1.5 font-medium">
+                        class="btn btn-secondary text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                     </svg>
@@ -736,39 +738,39 @@ function renderDocumentMetadata(doc) {
                 </button>
                 <div class="flex gap-1">
                     <button onclick="saveDocumentPreview(${doc.id})" title="Enregistrer les modifications"
-                            class="p-1.5 rounded transition border border-green-300 text-green-700 hover:bg-green-50">
+                            class="p-1.5 rounded transition ds-btn-soft-green">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </button>
                     <button onclick="closeDocumentPreview()" title="Fermer"
-                            class="p-1.5 rounded transition border border-red-300 text-red-700 hover:bg-red-50">
+                            class="p-1.5 rounded transition ds-btn-soft-red">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                     <button onclick="toggleValidationStatus(${doc.id}, '${validationStatus || 'pending'}')" title="Toggle validation (Validé/Rejeté/N/A)"
-                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'bg-green-600 text-white' : validationStatus === 'rejected' ? 'bg-red-600 text-white' : validationStatus === 'na' || !validationStatus ? 'bg-gray-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}">
+                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'ds-btn-green' : validationStatus === 'rejected' ? 'ds-btn-red' : validationStatus === 'na' || !validationStatus ? 'ds-btn-neutral' : 'ds-btn-soft-neutral'}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>
                     </button>
                 </div>
             </div>
 
             <!-- Onglets -->
-            <div class="border-b border-gray-200 mb-3">
+            <div class="border-b mb-3" style="border-color:var(--border)">
                 <nav class="flex -mb-px text-xs" id="preview-tabs">
-                    <button type="button" onclick="switchPreviewTab('details')" class="preview-tab-btn active px-3 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+                    <button type="button" onclick="switchPreviewTab('details')" class="preview-tab-btn active px-3 py-2">
                         Détails
                     </button>
-                    <button type="button" onclick="switchPreviewTab('notes')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
-                        Notes ${notesCount > 0 ? `<span class="ml-1 px-1.5 py-0.5 bg-gray-200 rounded text-xs">${notesCount}</span>` : ''}
+                    <button type="button" onclick="switchPreviewTab('notes')" class="preview-tab-btn px-3 py-2">
+                        Notes ${notesCount > 0 ? `<span class="ml-1 px-1.5 py-0.5 rounded text-xs" style="background:var(--hover)">${notesCount}</span>` : ''}
                     </button>
-                    <button type="button" onclick="switchPreviewTab('content')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="switchPreviewTab('content')" class="preview-tab-btn px-3 py-2">
                         Contenu
                     </button>
-                    <button type="button" onclick="switchPreviewTab('info')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="switchPreviewTab('info')" class="preview-tab-btn px-3 py-2">
                         Info
                     </button>
-                    <button type="button" onclick="switchPreviewTab('history')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="switchPreviewTab('history')" class="preview-tab-btn px-3 py-2">
                         Historique
                     </button>
-                    ${SMQ_ENABLED ? `<button type="button" onclick="switchPreviewTab('versions')" class="preview-tab-btn px-3 py-2 text-gray-500 hover:text-gray-700">
+                    ${SMQ_ENABLED ? `<button type="button" onclick="switchPreviewTab('versions')" class="preview-tab-btn px-3 py-2">
                         Versions
                     </button>` : ''}
                 </nav>
@@ -778,15 +780,15 @@ function renderDocumentMetadata(doc) {
             <div id="preview-tab-details" class="preview-tab-content space-y-3">
                 <!-- Titre -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Titre</label>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Titre</label>
                     <input type="text" id="preview-title-input" value="${escapeHtml(doc.title || '')}" placeholder="${escapeHtml(doc.filename || '')}"
-                           class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full px-2 py-1.5 text-sm rounded">
                 </div>
 
                 <!-- Type de document -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                    <select id="preview-type-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Type</label>
+                    <select id="preview-type-select" class="w-full px-2 py-1.5 text-sm rounded">
                         <option value="">Non défini</option>
                         ${typeOptions}
                     </select>
@@ -794,8 +796,8 @@ function renderDocumentMetadata(doc) {
 
                 <!-- Correspondant -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Correspondant</label>
-                    <select id="preview-correspondent-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Correspondant</label>
+                    <select id="preview-correspondent-select" class="w-full px-2 py-1.5 text-sm rounded">
                         <option value="">Non défini</option>
                         ${correspondentOptions}
                     </select>
@@ -804,29 +806,29 @@ function renderDocumentMetadata(doc) {
                 <!-- Date et Montant sur la même ligne -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                        <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Date</label>
                         <input type="date" id="preview-date-input" value="${formatDate(doc.document_date)}"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                               class="w-full px-2 py-1.5 text-sm rounded">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Montant (CHF)</label>
+                        <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Montant (CHF)</label>
                         <input type="number" id="preview-amount-input" value="${doc.amount || ''}" step="0.01" placeholder="0.00"
-                               class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                               class="w-full px-2 py-1.5 text-sm rounded">
                     </div>
                 </div>
 
                 <!-- Étiquettes -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Étiquettes</label>
-                    <div class="max-h-20 overflow-y-auto space-y-1 p-2 border rounded bg-gray-50">
-                        ${tagCheckboxes || '<p class="text-xs text-gray-400">Aucune étiquette disponible</p>'}
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Étiquettes</label>
+                    <div class="max-h-20 overflow-y-auto space-y-1 p-2 border rounded" style="background:var(--app-bg); border-color:var(--border)">
+                        ${tagCheckboxes || '<p class="text-xs" style="color:var(--dim)">Aucune étiquette disponible</p>'}
                     </div>
                 </div>
 
                 <!-- Dossier logique -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Dossier logique</label>
-                    <select id="preview-logical-folder-select" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Dossier logique</label>
+                    <select id="preview-logical-folder-select" class="w-full px-2 py-1.5 text-sm rounded">
                         <option value="">Non défini</option>
                         ${logicalFolderOptions}
                     </select>
@@ -834,16 +836,17 @@ function renderDocumentMetadata(doc) {
 
                 <!-- Chemin de stockage -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Chemin de stockage</label>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Chemin de stockage</label>
                     <input type="text" id="preview-storage-path-input" value="${escapeHtml(doc.storage_path || doc.relative_path || '')}"
-                           class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-gray-50 text-gray-600"
+                           class="w-full px-2 py-1.5 text-sm rounded"
+                           style="background:var(--app-bg); color:var(--ink-soft)"
                            readonly title="Chemin relatif du fichier">
                 </div>
 
                 <!-- Champs personnalisés -->
                 ${customFields.length > 0 ? `
-                <div class="border-t pt-3 mt-3">
-                    <label class="block text-xs font-semibold text-gray-600 mb-2">Champs personnalisés</label>
+                <div class="border-t pt-3 mt-3" style="border-color:var(--border)">
+                    <label class="block text-xs font-semibold mb-2" style="color:var(--ink-soft)">Champs personnalisés</label>
                     <div class="space-y-2">
                         ${renderCustomFields()}
                     </div>
@@ -853,8 +856,8 @@ function renderDocumentMetadata(doc) {
                 <!-- Aperçu OCR compact -->
                 ${ocrPreview ? `
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Aperçu du contenu</label>
-                    <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded max-h-16 overflow-hidden whitespace-pre-wrap">${escapeHtml(ocrPreview)}</div>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Aperçu du contenu</label>
+                    <div class="text-xs p-2 rounded max-h-16 overflow-hidden whitespace-pre-wrap" style="color:var(--ink-soft); background:var(--app-bg)">${escapeHtml(ocrPreview)}</div>
                 </div>
                 ` : ''}
             </div>
@@ -866,47 +869,47 @@ function renderDocumentMetadata(doc) {
                 </div>
                 <div class="flex gap-1">
                     <input type="text" id="preview-new-note" placeholder="Ajouter une note..."
-                           class="flex-1 px-2 py-1.5 text-xs border rounded focus:ring-1 focus:ring-blue-500"
+                           class="flex-1 px-2 py-1.5 text-xs rounded"
                            onkeypress="if(event.key==='Enter')addNotePreview(${doc.id})">
-                    <button onclick="addNotePreview(${doc.id})" class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter</button>
+                    <button onclick="addNotePreview(${doc.id})" class="px-3 py-1.5 text-xs rounded" style="background:var(--primary); color:var(--primary-ink)">Ajouter</button>
                 </div>
             </div>
 
             <!-- Onglet Contenu (OCR éditable) -->
             <div id="preview-tab-content" class="preview-tab-content hidden">
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Contenu extrait (OCR)</label>
+                    <label class="block text-xs font-medium mb-1" style="color:var(--dim)">Contenu extrait (OCR)</label>
                     <textarea id="preview-ocr-text" rows="15"
-                              class="w-full px-2 py-1.5 text-xs font-mono border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                              class="w-full px-2 py-1.5 text-xs font-mono rounded"
                               placeholder="Aucun texte extrait">${escapeHtml(ocrText)}</textarea>
-                    <p class="text-xs text-gray-400 mt-1">${ocrText.length} caractères</p>
+                    <p class="text-xs mt-1" style="color:var(--dim)">${ocrText.length} caractères</p>
                 </div>
             </div>
 
             <!-- Onglet Info -->
             <div id="preview-tab-info" class="preview-tab-content hidden">
                 <table class="w-full text-xs">
-                    <tbody class="divide-y divide-gray-100">
-                        <tr><td class="py-1.5 text-gray-500 w-28">ID</td><td class="py-1.5 font-mono">${doc.id}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Fichier</td><td class="py-1.5 font-mono truncate" title="${escapeHtml(doc.original_filename || doc.filename)}">${escapeHtml(doc.original_filename || doc.filename)}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Taille</td><td class="py-1.5">${formatFileSize(doc.file_size)}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Type MIME</td><td class="py-1.5 font-mono text-xs">${escapeHtml(doc.mime_type || '-')}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">ASN</td><td class="py-1.5">${doc.asn || '-'}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Créé le</td><td class="py-1.5">${formatDisplayDate(doc.created_at)}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Modifié le</td><td class="py-1.5">${formatDisplayDate(doc.updated_at)}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Checksum</td><td class="py-1.5 font-mono text-xs truncate" title="${doc.checksum || ''}">${doc.checksum ? doc.checksum.substring(0, 16) + '...' : '-'}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Chemin</td><td class="py-1.5 font-mono text-xs truncate" title="${escapeHtml(doc.storage_path || doc.file_path || '')}">${escapeHtml(doc.storage_path || doc.file_path || '-')}</td></tr>
-                        <tr><td class="py-1.5 text-gray-500">Indexé</td><td class="py-1.5">
-                            ${doc.is_indexed ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
-                            ${doc.indexed_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.indexed_at)})</span>` : ''}
+                    <tbody class="ds-divide-y">
+                        <tr><td class="py-1.5 w-28" style="color:var(--dim)">ID</td><td class="py-1.5 font-mono">${doc.id}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Fichier</td><td class="py-1.5 font-mono truncate" title="${escapeHtml(doc.original_filename || doc.filename)}">${escapeHtml(doc.original_filename || doc.filename)}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Taille</td><td class="py-1.5">${formatFileSize(doc.file_size)}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Type MIME</td><td class="py-1.5 font-mono text-xs">${escapeHtml(doc.mime_type || '-')}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">ASN</td><td class="py-1.5">${doc.asn || '-'}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Créé le</td><td class="py-1.5">${formatDisplayDate(doc.created_at)}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Modifié le</td><td class="py-1.5">${formatDisplayDate(doc.updated_at)}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Checksum</td><td class="py-1.5 font-mono text-xs truncate" title="${doc.checksum || ''}">${doc.checksum ? doc.checksum.substring(0, 16) + '...' : '-'}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Chemin</td><td class="py-1.5 font-mono text-xs truncate" title="${escapeHtml(doc.storage_path || doc.file_path || '')}">${escapeHtml(doc.storage_path || doc.file_path || '-')}</td></tr>
+                        <tr><td class="py-1.5" style="color:var(--dim)">Indexé</td><td class="py-1.5">
+                            ${doc.is_indexed ? `<span class="ds-chip ds-chip--green px-1.5 py-0.5 text-xs">Oui</span>` : `<span class="ds-chip ds-chip--neutral px-1.5 py-0.5 text-xs">Non</span>`}
+                            ${doc.indexed_at ? `<span class="text-xs ml-2" style="color:var(--dim)">(${formatDisplayDate(doc.indexed_at)})</span>` : ''}
                         </td></tr>
-                        ${QDRANT_UI_ENABLED ? `<tr><td class="py-1.5 text-gray-500">Vectorisé</td><td class="py-1.5">
-                            ${doc.embedding_status === 'completed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-800">Oui</span>` : 
-                              doc.embedding_status === 'failed' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-red-100 text-red-800">Erreur</span>` :
-                              doc.embedding_status === 'processing' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800">En cours</span>` :
-                              doc.embedding_status === 'pending' ? `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">En attente</span>` :
-                              `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-800">Non</span>`}
-                            ${doc.vector_updated_at ? `<span class="text-xs text-gray-500 ml-2">(${formatDisplayDate(doc.vector_updated_at)})</span>` : ''}
+                        ${QDRANT_UI_ENABLED ? `<tr><td class="py-1.5" style="color:var(--dim)">Vectorisé</td><td class="py-1.5">
+                            ${doc.embedding_status === 'completed' ? `<span class="ds-chip ds-chip--green px-1.5 py-0.5 text-xs">Oui</span>` : 
+                              doc.embedding_status === 'failed' ? `<span class="ds-chip ds-chip--red px-1.5 py-0.5 text-xs">Erreur</span>` :
+                              doc.embedding_status === 'processing' ? `<span class="ds-chip ds-chip--amber px-1.5 py-0.5 text-xs">En cours</span>` :
+                              doc.embedding_status === 'pending' ? `<span class="ds-chip ds-chip--neutral px-1.5 py-0.5 text-xs">En attente</span>` :
+                              `<span class="ds-chip ds-chip--neutral px-1.5 py-0.5 text-xs">Non</span>`}
+                            ${doc.vector_updated_at ? `<span class="text-xs ml-2" style="color:var(--dim)">(${formatDisplayDate(doc.vector_updated_at)})</span>` : ''}
                         </td></tr>` : ''}
                     </tbody>
                 </table>
@@ -915,37 +918,37 @@ function renderDocumentMetadata(doc) {
             <!-- Onglet Historique -->
             <div id="preview-tab-history" class="preview-tab-content hidden">
                 <div id="preview-history-content" class="text-xs">
-                    <p class="text-gray-400 py-4 text-center">Chargement...</p>
+                    <p class="py-4 text-center" style="color:var(--dim)">Chargement...</p>
                 </div>
             </div>
 
             ${SMQ_ENABLED ? `<!-- Onglet Versions (plugin SMQ) -->
             <div id="preview-tab-versions" class="preview-tab-content hidden">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-medium text-gray-500">Versions documentaires</span>
-                    <label class="px-2 py-1 text-xs border border-blue-300 text-blue-700 rounded hover:bg-blue-50 cursor-pointer" title="Téléverser une nouvelle version">
+                    <span class="text-xs font-medium" style="color:var(--dim)">Versions documentaires</span>
+                    <label class="btn btn-secondary text-xs cursor-pointer" title="Téléverser une nouvelle version">
                         + Nouvelle version
                         <input type="file" class="hidden" onchange="uploadNewVersionPreview(${doc.id}, this)">
                     </label>
                 </div>
                 <div id="preview-versions-content" class="text-xs">
-                    <p class="text-gray-400 py-4 text-center">Chargement...</p>
+                    <p class="py-4 text-center" style="color:var(--dim)">Chargement...</p>
                 </div>
-                <div id="preview-read-receipt" class="mt-3 pt-3 border-t border-gray-200 text-xs"></div>
-                <div id="preview-version-diff" class="hidden mt-3 pt-3 border-t border-gray-200 text-xs"></div>
+                <div id="preview-read-receipt" class="mt-3 pt-3 border-t text-xs" style="border-color:var(--border)"></div>
+                <div id="preview-version-diff" class="hidden mt-3 pt-3 border-t text-xs" style="border-color:var(--border)"></div>
             </div>` : ''}
 
             <!-- Actions (toujours visibles) -->
-            <div class="pt-3 mt-3 border-t space-y-2">
+            <div class="pt-3 mt-3 border-t space-y-2" style="border-color:var(--border)">
                 <div class="flex gap-2">
-                    <button onclick="closeDocumentPreview()" class="flex-1 px-3 py-2 text-sm border rounded hover:bg-gray-50">
+                    <button onclick="closeDocumentPreview()" class="btn btn-secondary flex-1">
                         Fermer
                     </button>
-                    <button onclick="saveDocumentPreview(${doc.id})" class="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">
+                    <button onclick="saveDocumentPreview(${doc.id})" class="flex-1 px-3 py-2 text-sm rounded ds-btn-green">
                         Enregistrer
                     </button>
                 </div>
-                <button onclick="saveDocumentPreview(${doc.id}, true)" class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                <button onclick="saveDocumentPreview(${doc.id}, true)" class="w-full px-3 py-2 text-sm rounded" style="background:var(--primary); color:var(--primary-ink)">
                     Enregistrer & suivant
                 </button>
             </div>
@@ -966,8 +969,7 @@ function switchPreviewTab(tabName) {
 
     // Désactiver tous les boutons
     document.querySelectorAll('.preview-tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'border-b-2', 'border-blue-600', 'text-blue-600', 'font-medium');
-        btn.classList.add('text-gray-500');
+        btn.classList.remove('active');
     });
 
     // Afficher le contenu sélectionné
@@ -979,8 +981,7 @@ function switchPreviewTab(tabName) {
     // Activer le bouton correspondant
     document.querySelectorAll('.preview-tab-btn').forEach(btn => {
         if (btn.textContent.toLowerCase().includes(tabName.substring(0, 4))) {
-            btn.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600', 'font-medium');
-            btn.classList.remove('text-gray-500');
+            btn.classList.add('active');
         }
     });
 
@@ -1005,7 +1006,7 @@ async function loadPreviewHistory(docId) {
 
         if (response.ok) {
             const html = await response.text();
-            container.innerHTML = html || '<p class="text-gray-400 py-4 text-center">Aucun historique</p>';
+            container.innerHTML = html || '<p class="py-4 text-center" style="color:var(--dim)">Aucun historique</p>';
         } else {
             container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de chargement</p>';
         }
@@ -1021,13 +1022,13 @@ let previewVersionsCurrent = null;
 async function loadVersionsPreview(docId) {
     const box = document.getElementById('preview-versions-content');
     if (!box) return;
-    box.innerHTML = '<p class="text-gray-400 py-4 text-center">Chargement...</p>';
+    box.innerHTML = '<p class="py-4 text-center" style="color:var(--dim)">Chargement...</p>';
     try {
         const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions`, { headers: { 'Accept': 'application/json' } });
         const payload = await r.json();
         const versions = (payload.data && payload.data.versions) || [];
         if (!versions.length) {
-            box.innerHTML = '<p class="text-gray-400 py-4 text-center">Aucune version enregistrée.</p>';
+            box.innerHTML = '<p class="py-4 text-center" style="color:var(--dim)">Aucune version enregistrée.</p>';
             // Quittance possible sur la version implicite (v1) même sans rangée de version
             loadReadStatusPreview(docId, 1);
             return;
@@ -1044,24 +1045,24 @@ function renderVersionsPreview(docId, versions) {
     const rows = versions.map(v => {
         const isCurrent = (v.is_current == 1 || v.is_current === true);
         const num = parseInt(v.version_number, 10);
-        const badge = isCurrent ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-green-100 text-green-800">courante</span>' : '';
-        let actions = `<a href="${BASE_PATH}/api/documents/${docId}/versions/${num}/download" class="text-blue-600 hover:underline">Télécharger</a>`;
+        const badge = isCurrent ? '<span class="ds-chip ds-chip--green ml-1 px-1.5 py-0.5">courante</span>' : '';
+        let actions = `<a href="${BASE_PATH}/api/documents/${docId}/versions/${num}/download" class="hover:underline" style="color:var(--accent)">Télécharger</a>`;
         if (!isCurrent) {
-            actions += ` · <button type="button" onclick="restoreVersionPreview(${docId}, ${num})" class="text-blue-600 hover:underline">Restaurer</button>`;
+            actions += ` · <button type="button" onclick="restoreVersionPreview(${docId}, ${num})" class="hover:underline" style="color:var(--accent)">Restaurer</button>`;
             if (previewVersionsCurrent) {
-                actions += ` · <button type="button" onclick="showVersionDiffPreview(${docId}, ${num})" class="text-blue-600 hover:underline">Diff</button>`;
+                actions += ` · <button type="button" onclick="showVersionDiffPreview(${docId}, ${num})" class="hover:underline" style="color:var(--accent)">Diff</button>`;
             }
         }
-        return `<tr class="border-t border-gray-100">
-            <td class="py-1.5 pr-2 font-medium text-gray-900">v${num}${badge}</td>
-            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml(v.created_by_username || '—')}</td>
-            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml((v.created_at || '').substring(0, 16))}</td>
-            <td class="py-1.5 pr-2 text-gray-500">${escapeHtml(v.comment || v.changes_summary || '—')}</td>
+        return `<tr class="border-t" style="border-color:var(--border-soft)">
+            <td class="py-1.5 pr-2 font-medium" style="color:var(--ink)">v${num}${badge}</td>
+            <td class="py-1.5 pr-2" style="color:var(--dim)">${escapeHtml(v.created_by_username || '—')}</td>
+            <td class="py-1.5 pr-2" style="color:var(--dim)">${escapeHtml((v.created_at || '').substring(0, 16))}</td>
+            <td class="py-1.5 pr-2" style="color:var(--dim)">${escapeHtml(v.comment || v.changes_summary || '—')}</td>
             <td class="py-1.5 text-right whitespace-nowrap">${actions}</td>
         </tr>`;
     }).join('');
     document.getElementById('preview-versions-content').innerHTML =
-        `<table class="w-full"><thead><tr class="text-left text-gray-400">
+        `<table class="w-full"><thead><tr class="text-left" style="color:var(--dim)">
             <th class="py-1 pr-2 font-medium">Version</th><th class="py-1 pr-2 font-medium">Auteur</th>
             <th class="py-1 pr-2 font-medium">Date</th><th class="py-1 pr-2 font-medium">Commentaire</th>
             <th class="py-1 text-right font-medium">Actions</th>
@@ -1095,7 +1096,7 @@ async function uploadNewVersionPreview(docId, input) {
     fd.append('file', input.files[0]);
     fd.append('comment', comment);
     const box = document.getElementById('preview-versions-content');
-    if (box) box.innerHTML = '<p class="text-gray-400 py-4 text-center">Téléversement...</p>';
+    if (box) box.innerHTML = '<p class="py-4 text-center" style="color:var(--dim)">Téléversement...</p>';
     try {
         const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions`, { method: 'POST', body: fd });
         const data = await r.json();
@@ -1115,7 +1116,7 @@ async function showVersionDiffPreview(docId, fromVersion) {
     if (!previewVersionsCurrent) return;
     const panel = document.getElementById('preview-version-diff');
     panel.classList.remove('hidden');
-    panel.innerHTML = '<p class="text-gray-400 py-2">Calcul du diff...</p>';
+    panel.innerHTML = '<p class="py-2" style="color:var(--dim)">Calcul du diff...</p>';
     try {
         const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/diff?from=${fromVersion}&to=${previewVersionsCurrent}&type=text`, { headers: { 'Accept': 'application/json' } });
         const payload = await r.json();
@@ -1132,19 +1133,19 @@ function renderVersionDiffPreview(panel, fromVersion, toVersion, data) {
     let lines = [];
     try { lines = JSON.parse(diff.diff_content || '[]'); } catch (e) { lines = []; }
     const header = `<div class="flex items-center justify-between mb-1">
-        <span class="font-medium text-gray-700">Diff v${fromVersion} → v${toVersion}</span>
-        <button type="button" onclick="document.getElementById('preview-version-diff').classList.add('hidden')" class="text-gray-400 hover:text-gray-700">Fermer</button>
-    </div><p class="text-gray-400 mb-1">+${stats.added || 0} / -${stats.removed || 0} / ~${stats.changed || 0}</p>`;
+        <span class="font-medium" style="color:var(--ink)">Diff v${fromVersion} → v${toVersion}</span>
+        <button type="button" onclick="document.getElementById('preview-version-diff').classList.add('hidden')" style="color:var(--dim)">Fermer</button>
+    </div><p class="mb-1" style="color:var(--dim)">+${stats.added || 0} / -${stats.removed || 0} / ~${stats.changed || 0}</p>`;
     if (!Array.isArray(lines) || !lines.length) {
-        panel.innerHTML = header + '<p class="text-gray-400">Aucune différence textuelle.</p>';
+        panel.innerHTML = header + '<p style="color:var(--dim)">Aucune différence textuelle.</p>';
         return;
     }
     const body = lines.map(l => {
-        const cls = l.type === 'add' ? 'bg-green-50 text-green-800' : l.type === 'remove' ? 'bg-red-50 text-red-800' : 'text-gray-500';
+        const cls = l.type === 'add' ? 'diff-add' : l.type === 'remove' ? 'diff-remove' : 'diff-ctx';
         const sign = l.type === 'add' ? '+' : l.type === 'remove' ? '-' : ' ';
         return `<div class="${cls} px-1 font-mono whitespace-pre-wrap">${sign} ${escapeHtml(l.line)}</div>`;
     }).join('');
-    panel.innerHTML = header + `<div class="border border-gray-200 rounded max-h-56 overflow-auto">${body}</div>`;
+    panel.innerHTML = header + `<div class="border rounded max-h-56 overflow-auto" style="border-color:var(--border)">${body}</div>`;
 }
 
 // === Quittances de lecture (plugin SMQ / C.3) ===
@@ -1159,12 +1160,12 @@ async function loadReadStatusPreview(docId, version) {
         if (data.has_read) {
             box.innerHTML = `<div class="flex items-center justify-between">
                 <span class="text-green-700">Quittance v${version} : lu le ${escapeHtml((data.read_at || '').substring(0, 16))}</span>
-                <span class="text-gray-400">${count} lecteur${plural}</span>
+                <span style="color:var(--dim)">${count} lecteur${plural}</span>
             </div>`;
         } else {
             box.innerHTML = `<div class="flex items-center justify-between">
                 <span class="text-amber-700">Quittance v${version} : non lu</span>
-                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 border border-green-300 text-green-700 rounded hover:bg-green-50">Marquer comme lu</button>
+                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 rounded ds-btn-soft-green">Marquer comme lu</button>
             </div>`;
         }
     } catch (e) {
@@ -1206,7 +1207,7 @@ async function checkMandatoryRead(docId) {
         if (!status.has_read) {
             banner.className = 'mb-2 p-2 rounded bg-amber-50 border border-amber-200 text-xs flex items-center justify-between';
             banner.innerHTML = `<span class="text-amber-800 font-medium">Lecture obligatoire (v${version}) — non quittancée</span>
-                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 border border-green-300 text-green-700 rounded hover:bg-green-50">Marquer comme lu</button>`;
+                <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 rounded ds-btn-soft-green">Marquer comme lu</button>`;
         } else {
             banner.className = 'mb-2';
             banner.innerHTML = '';
@@ -1465,7 +1466,7 @@ async function getAISuggestionsPreview(docId) {
                 const titleInput = document.getElementById('preview-title-input');
                 if (titleInput) {
                     titleInput.value = s.title_suggestion;
-                    titleInput.classList.add('ring-2', 'ring-purple-300');
+                    titleInput.classList.add('ds-field-changed');
                     appliedCount++;
                 }
             }
@@ -1473,7 +1474,7 @@ async function getAISuggestionsPreview(docId) {
                 const typeSelect = document.getElementById('preview-type-select');
                 if (typeSelect) {
                     typeSelect.value = matched.document_type_id;
-                    typeSelect.classList.add('ring-2', 'ring-purple-300');
+                    typeSelect.classList.add('ds-field-changed');
                     appliedCount++;
                 }
             }
@@ -1481,7 +1482,7 @@ async function getAISuggestionsPreview(docId) {
                 const corrSelect = document.getElementById('preview-correspondent-select');
                 if (corrSelect) {
                     corrSelect.value = matched.correspondent_id;
-                    corrSelect.classList.add('ring-2', 'ring-purple-300');
+                    corrSelect.classList.add('ds-field-changed');
                     appliedCount++;
                 }
             }
@@ -1500,7 +1501,7 @@ async function getAISuggestionsPreview(docId) {
                         }
                     }
                     dateInput.value = dateValue;
-                    dateInput.classList.add('ring-2', 'ring-purple-300');
+                    dateInput.classList.add('ds-field-changed');
                     appliedCount++;
                     console.log('Date appliquée:', dateValue, 'depuis:', s.document_date);
                 } else {
@@ -1511,7 +1512,7 @@ async function getAISuggestionsPreview(docId) {
                 const amountInput = document.getElementById('preview-amount-input');
                 if (amountInput) {
                     amountInput.value = s.amount;
-                    amountInput.classList.add('ring-2', 'ring-purple-300');
+                    amountInput.classList.add('ds-field-changed');
                     appliedCount++;
                 }
             }
@@ -1520,7 +1521,7 @@ async function getAISuggestionsPreview(docId) {
                 document.querySelectorAll('input[name="preview_tags"]').forEach(cb => {
                     if (matched.tag_ids.includes(parseInt(cb.value))) {
                         cb.checked = true;
-                        cb.parentElement.classList.add('ring-2', 'ring-purple-300', 'bg-purple-50');
+                        cb.parentElement.classList.add('ds-field-changed');
                         appliedCount++;
                     }
                 });
@@ -1645,12 +1646,8 @@ document.getElementById('toggle-search-options')?.addEventListener('click', func
 // Scope buttons
 document.querySelectorAll('.scope-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        document.querySelectorAll('.scope-btn').forEach(b => {
-            b.classList.remove('bg-gray-800', 'text-white');
-            b.classList.add('bg-gray-100', 'text-gray-600');
-        });
-        this.classList.remove('bg-gray-100', 'text-gray-600');
-        this.classList.add('bg-gray-800', 'text-white');
+        document.querySelectorAll('.scope-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
         searchScope = this.dataset.scope;
     });
 });
@@ -1728,11 +1725,9 @@ document.getElementById('reset-search')?.addEventListener('click', function() {
         searchScope = phpScope;
         document.querySelectorAll('.scope-btn').forEach(btn => {
             if (btn.dataset.scope === phpScope) {
-                btn.classList.remove('bg-gray-100', 'text-gray-600');
-                btn.classList.add('bg-gray-800', 'text-white');
+                btn.classList.add('active');
             } else {
-                btn.classList.remove('bg-gray-800', 'text-white');
-                btn.classList.add('bg-gray-100', 'text-gray-600');
+                btn.classList.remove('active');
             }
         });
     }
@@ -1855,7 +1850,7 @@ function updateDocumentsAfterIndexing(path, indexResult) {
             });
             
             // Masquer/mettre à jour la barre d'avertissement
-            const warningBar = document.querySelector('#documents-content .bg-yellow-50');
+            const warningBar = document.querySelector('#documents-content .js-unindexed-warning');
             if (warningBar) {
                 if (data.stats.physical_count === 0) {
                     // Plus de fichiers non indexés, masquer la barre avec animation
@@ -1890,7 +1885,7 @@ function updateDocumentsAfterIndexing(path, indexResult) {
 // Mettre à jour une carte de document individuellement
 function updateDocumentCard(card, doc) {
     // Supprimer le badge "Non indexé" s'il existe
-    const badge = card.querySelector('.bg-yellow-100');
+    const badge = card.querySelector('.js-unindexed-badge');
     if (badge) {
         badge.style.transition = 'opacity 0.3s';
         badge.style.opacity = '0';
@@ -1951,9 +1946,9 @@ function updateDocumentCard(card, doc) {
 // Afficher une notification
 function showNotification(message, type = 'info') {
     const colors = {
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-        info: 'bg-blue-500'
+        success: 'ds-toast-success',
+        error: 'ds-toast-error',
+        info: 'ds-toast-info'
     };
     
     const notif = document.createElement('div');
@@ -2024,12 +2019,12 @@ function renderDocuments(documents, pagination, stats, path) {
     if (!documents || documents.length === 0) {
         contentEl.innerHTML = `
             <div class="flex flex-col items-center justify-center h-full text-center py-12">
-                <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-12 h-12 mb-3" style="color:var(--muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <h2 class="text-base font-medium text-gray-700 mb-1">Aucun document</h2>
-                <p class="text-sm text-gray-400 mb-2">Ce dossier est vide.</p>
-                ${stats && stats.physical_count === 0 ? '' : `<p class="text-xs text-orange-500">Fichiers physiques non indexés: ${stats?.physical_count || 0}</p>`}
+                <h2 class="text-base font-medium mb-1" style="color:var(--ink-soft)">Aucun document</h2>
+                <p class="text-sm mb-2" style="color:var(--dim)">Ce dossier est vide.</p>
+                ${stats && stats.physical_count === 0 ? '' : `<p class="text-xs" style="color:var(--amber)">Fichiers physiques non indexés: ${stats?.physical_count || 0}</p>`}
             </div>
         `;
         return;
@@ -2050,27 +2045,27 @@ function renderDocuments(documents, pagination, stats, path) {
             <div ${clickHandler}
                data-doc-id="${doc.id || ''}"
                data-doc-index="${docIndex}"
-               class="document-card bg-white border border-gray-100 rounded hover:border-gray-200 hover:shadow-sm transition-all block relative cursor-pointer ${isPhysical ? 'opacity-75' : ''}">
+               class="document-card ds-card ds-card--link rounded hover:shadow-sm transition-all block relative cursor-pointer ${isPhysical ? 'opacity-75' : ''}">
                 ${isPhysical ? `
                 <div class="absolute top-2 right-2 z-10">
-                    <span class="inline-flex items-center gap-1 rounded-full border bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2 py-0.5" title="Fichier non indexé">
+                    <span class="js-unindexed-badge ds-chip--amber inline-flex items-center gap-1 rounded-full text-xs px-2 py-0.5" title="Fichier non indexé">
                         Non indexé
                     </span>
                 </div>` : ''}
-                <div class="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                <div class="aspect-[3/4] flex items-center justify-center overflow-hidden relative" style="background:var(--app-bg)">
                     ${thumbnailUrl ? `
                     <img src="${thumbnailUrl}" alt="${title}" class="w-full h-full object-cover"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     ` : ''}
                     <div class="w-full h-full flex items-center justify-center ${thumbnailUrl ? 'hidden' : ''}">
-                        <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8" style="color:var(--muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
                 </div>
-                <div class="p-1.5 border-t border-gray-50">
-                    <h3 class="text-xs font-medium text-gray-900 truncate mb-0.5" title="${title}">${title}</h3>
-                    <p class="text-xs text-gray-400">${date}</p>
+                <div class="p-1.5 border-t" style="border-color:var(--border-soft)">
+                    <h3 class="text-xs font-medium truncate mb-0.5" style="color:var(--ink)" title="${title}">${title}</h3>
+                    <p class="text-xs" style="color:var(--dim)">${date}</p>
                 </div>
             </div>
         `;
@@ -2082,10 +2077,10 @@ function renderDocuments(documents, pagination, stats, path) {
     // Ajouter les stats si fichiers physiques
     if (stats && stats.physical_count > 0) {
         html += `
-            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="js-unindexed-warning mt-4 p-3 border rounded-lg" style="background:color-mix(in srgb, var(--amber) 12%, transparent);border-color:color-mix(in srgb, var(--amber) 40%, var(--border))">
                 <div class="flex items-center justify-between">
-                    <span class="text-yellow-800 text-sm">⚠ ${stats.physical_count} fichier(s) non indexé(s) dans ce dossier</span>
-                    <button onclick="indexFolder('${path || ''}')" class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center gap-1" id="index-folder-btn">
+                    <span class="text-sm" style="color:var(--amber)">⚠ ${stats.physical_count} fichier(s) non indexé(s) dans ce dossier</span>
+                    <button onclick="indexFolder('${path || ''}')" class="btn-primary px-3 py-1 text-xs rounded flex items-center gap-1" id="index-folder-btn">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -2108,8 +2103,8 @@ document.addEventListener('click', function(e) {
         loadFolderDocuments(path);
         
         // Mettre en surbrillance le dossier actif
-        document.querySelectorAll('.folder-link').forEach(el => el.classList.remove('bg-gray-100', 'font-medium'));
-        folderLink.classList.add('bg-gray-100', 'font-medium');
+        document.querySelectorAll('.folder-link').forEach(el => { el.classList.remove('font-medium'); el.style.background = ''; });
+        folderLink.classList.add('font-medium'); folderLink.style.background = 'var(--hover)';
     }
 });
 
@@ -2149,7 +2144,7 @@ function showIndexingBar(path, total) {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span class="text-sm text-gray-700">
+        <span class="text-sm" style="color:var(--ink-soft)">
             <strong>${path || 'Racine'}</strong> - Indexation de ${total} fichier(s)...
         </span>
     `;
@@ -2366,7 +2361,9 @@ function stopIndexingPolling() {
     function showWidthTooltip(width, x, y) {
         if (!widthTooltip) {
             widthTooltip = document.createElement('div');
-            widthTooltip.className = 'fixed bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none';
+            widthTooltip.className = 'fixed text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none';
+            widthTooltip.style.background = 'var(--tip)';
+            widthTooltip.style.color = 'var(--tip-ink)';
             document.body.appendChild(widthTooltip);
         }
         widthTooltip.textContent = `${width}px`;
@@ -2483,15 +2480,16 @@ function stopIndexingPolling() {
 
         const overlay = document.createElement('div');
         overlay.id = 'drop-overlay';
-        overlay.className = 'fixed inset-0 bg-blue-500/20 backdrop-blur-sm z-40 pointer-events-none hidden';
+        overlay.className = 'fixed inset-0 backdrop-blur-sm z-40 pointer-events-none hidden';
+        overlay.style.background = 'color-mix(in srgb, var(--accent) 20%, transparent)';
         overlay.innerHTML = `
             <div class="absolute inset-4 border-4 border-dashed border-blue-500 rounded-2xl flex items-center justify-center">
-                <div class="text-center bg-white/90 rounded-xl p-8 shadow-2xl">
-                    <svg class="w-16 h-16 mx-auto mb-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center rounded-xl p-8 shadow-2xl" style="background:color-mix(in srgb, var(--surface) 92%, transparent)">
+                    <svg class="w-16 h-16 mx-auto mb-4" style="color:var(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
-                    <p class="text-xl font-semibold text-gray-800" id="drop-overlay-text">Déposez vos fichiers ici</p>
-                    <p class="text-sm text-gray-500 mt-2" id="drop-overlay-folder"></p>
+                    <p class="text-xl font-semibold" style="color:var(--ink)" id="drop-overlay-text">Déposez vos fichiers ici</p>
+                    <p class="text-sm mt-2" style="color:var(--dim)" id="drop-overlay-folder"></p>
                 </div>
             </div>
         `;
@@ -2524,11 +2522,12 @@ function stopIndexingPolling() {
 
         const overlay = document.createElement('div');
         overlay.id = 'upload-progress-overlay';
-        overlay.className = 'fixed bottom-4 right-4 bg-white rounded-lg shadow-2xl p-4 z-50 min-w-80 hidden';
+        overlay.className = 'fixed bottom-4 right-4 rounded-lg shadow-2xl p-4 z-50 min-w-80 hidden';
+        overlay.style.background = 'var(--surface)';
         overlay.innerHTML = `
             <div class="flex items-center justify-between mb-2">
-                <span class="font-medium text-gray-800">Upload en cours...</span>
-                <button onclick="this.parentElement.parentElement.classList.add('hidden')" class="text-gray-400 hover:text-gray-600">&times;</button>
+                <span class="font-medium" style="color:var(--ink)">Upload en cours...</span>
+                <button onclick="this.parentElement.parentElement.classList.add('hidden')" style="color:var(--dim)">&times;</button>
             </div>
             <div id="upload-progress-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
         `;
@@ -2551,9 +2550,9 @@ function stopIndexingPolling() {
         }
 
         const icons = {
-            pending: '<svg class="w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>',
-            success: '<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
-            error: '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
+            pending: '<svg class="w-4 h-4 animate-spin" style="color:var(--dim)" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>',
+            success: '<svg class="w-4 h-4" style="color:var(--green)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+            error: '<svg class="w-4 h-4" style="color:var(--red)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>'
         };
 
         item.innerHTML = `${icons[status] || icons.pending}<span class="truncate flex-1">${filename}</span>`;
@@ -2698,13 +2697,13 @@ function stopIndexingPolling() {
             folderLink.addEventListener('dragenter', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                this.classList.add('bg-blue-100', 'ring-2', 'ring-blue-400');
+                this.classList.add('ds-selected');
             });
 
             folderLink.addEventListener('dragleave', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                this.classList.remove('bg-blue-100', 'ring-2', 'ring-blue-400');
+                this.classList.remove('ds-selected');
             });
 
             folderLink.addEventListener('dragover', function(e) {
@@ -2716,7 +2715,7 @@ function stopIndexingPolling() {
             folderLink.addEventListener('drop', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                this.classList.remove('bg-blue-100', 'ring-2', 'ring-blue-400');
+                this.classList.remove('ds-selected');
                 hideDropOverlay();
                 dragCounter = 0;
 
@@ -2762,8 +2761,60 @@ html, body {
 }
 
 .view-toggle.active {
-    background-color: #f3f4f6;
+    background-color: var(--active);
 }
+
+/* Boutons de scope de recherche (contrôle segmenté, état piloté en JS) */
+.scope-btn {
+    background-color: var(--hover);
+    color: var(--ink-soft);
+    transition: background-color .12s, color .12s;
+}
+.scope-btn:not(.active):hover {
+    background-color: var(--active);
+}
+.scope-btn.active {
+    background-color: var(--primary);
+    color: var(--primary-ink);
+}
+
+/* Onglets de la fiche document (état .active piloté en JS) */
+.preview-tab-btn {
+    color: var(--dim);
+    border-bottom: 2px solid transparent;
+    transition: color .12s, border-color .12s;
+}
+.preview-tab-btn:hover {
+    color: var(--ink-soft);
+}
+.preview-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 500;
+}
+
+/* Toasts / notifications (fond d'etat, texte clair) */
+.ds-toast-success { background-color: var(--green); }
+.ds-toast-error { background-color: var(--red); }
+.ds-toast-info { background-color: var(--accent); }
+
+/* Tooltip flottant (tokens --tip) */
+.ds-tip { background-color: var(--tip); color: var(--tip-ink); }
+
+/* Overlay de glisser-deposer + surface flottante */
+.ds-drop-overlay { background-color: color-mix(in srgb, var(--accent) 16%, transparent); }
+.ds-surface-pop { background-color: var(--surface); }
+
+/* Surbrillance de selection (drag-select, tags IA appliques) */
+.ds-selected { background-color: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* Lignes de diff de version (etat) */
+.diff-add { background-color: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
+.diff-remove { background-color: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.diff-ctx { color: var(--dim); }
+
+/* Dossier actif dans l'arborescence (etat pilote en JS) */
+.folder-link.is-active { background-color: var(--active); font-weight: 600; }
 
 .folder-expander {
     transition: transform 0.2s;
@@ -2816,7 +2867,7 @@ html, body {
 /* Améliorer le scroll dans la sidebar */
 aside {
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e0 #f7fafc;
+    scrollbar-color: var(--border) transparent;
 }
 
 aside::-webkit-scrollbar {
@@ -2825,16 +2876,16 @@ aside::-webkit-scrollbar {
 }
 
 aside::-webkit-scrollbar-track {
-    background: #f7fafc;
+    background: transparent;
 }
 
 aside::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
+    background: var(--border);
     border-radius: 4px;
 }
 
 aside::-webkit-scrollbar-thumb:hover {
-    background: #a0aec0;
+    background: var(--dim);
 }
 
 /* Poignée de redimensionnement de la sidebar */
@@ -2844,16 +2895,16 @@ aside::-webkit-scrollbar-thumb:hover {
 
 #sidebar-resize-handle:hover,
 #sidebar-resize-handle.resizing {
-    background-color: rgba(59, 130, 246, 0.1);
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 #sidebar-resize-handle.resizing > div:first-child {
-    background-color: #3b82f6 !important;
+    background-color: var(--accent) !important;
 }
 
 #sidebar-resize-handle.resizing > div:last-child {
     opacity: 1 !important;
-    background-color: #3b82f6 !important;
+    background-color: var(--accent) !important;
 }
 
 /* Curseur de redimensionnement global pendant le drag */
@@ -2874,8 +2925,8 @@ body.sidebar-resizing * {
 /* Styles pour le drag & drop */
 .folder-link.drag-over,
 .folder-link[data-path].drag-over {
-    background-color: rgba(59, 130, 246, 0.1) !important;
-    box-shadow: inset 0 0 0 2px #3b82f6;
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent) !important;
+    box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 /* Zone de drop principale */
@@ -2933,7 +2984,7 @@ body.sidebar-resizing * {
 /* Sidebar content scrollable */
 #sidebar-content {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: var(--border) transparent;
 }
 
 #sidebar-content::-webkit-scrollbar {
@@ -2945,12 +2996,12 @@ body.sidebar-resizing * {
 }
 
 #sidebar-content::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
+    background-color: var(--border);
     border-radius: 3px;
 }
 
 #sidebar-content::-webkit-scrollbar-thumb:hover {
-    background-color: #9ca3af;
+    background-color: var(--dim);
 }
 
 /* Collapsed state */
@@ -3003,13 +3054,13 @@ body.sidebar-resizing * {
 
 /* Section titles - bold black typography */
 .sidebar-section-title {
-    color: #111827 !important;
+    color: var(--ink) !important;
     font-weight: 700 !important;
 }
 
 /* Sidebar items - medium weight black text */
 .sidebar-item {
-    color: #1f2937;
+    color: var(--ink);
     font-weight: 500;
 }
 
@@ -3019,11 +3070,11 @@ body.sidebar-resizing * {
 
 /* Folder tree items in sidebar */
 #documents-sidebar .folder-link {
-    color: #1f2937;
+    color: var(--ink);
     font-weight: 500;
 }
 
 #documents-sidebar .folder-link:hover {
-    background-color: #f3f4f6;
+    background-color: var(--hover);
 }
 </style>
