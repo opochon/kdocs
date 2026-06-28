@@ -10,98 +10,98 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
 
 <div class="max-w-3xl mx-auto">
     <div class="mb-6">
-        <a href="<?= url('/admin/user-groups') ?>" class="text-sm text-gray-500 hover:text-gray-700">
+        <a href="<?= url('/admin/user-groups') ?>" class="text-sm" style="color:var(--ink-soft)">
             <i class="fas fa-arrow-left mr-1"></i> Retour aux groupes
         </a>
-        <h1 class="text-2xl font-bold text-gray-900 mt-2"><?= $isEdit ? 'Modifier le groupe' : 'Nouveau groupe' ?></h1>
+        <h1 class="text-2xl font-bold mt-2" style="color:var(--ink)"><?= $isEdit ? 'Modifier le groupe' : 'Nouveau groupe' ?></h1>
     </div>
-    
+
     <form method="POST" action="<?= url('/admin/user-groups' . ($isEdit ? '/' . $group['id'] : '') . '/save') ?>" class="space-y-6">
         <!-- Informations de base -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Informations générales</h2>
-            
+        <div class="rounded-xl shadow-sm border p-6" style="background:var(--surface);border-color:var(--border)">
+            <h2 class="text-lg font-medium mb-4" style="color:var(--ink)">Informations générales</h2>
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom du groupe *</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Nom du groupe *</label>
                     <input type="text" name="name" value="<?= htmlspecialchars($group['name'] ?? '') ?>" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="form-input">
                 </div>
-                
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Code (optionnel)</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Code (optionnel)</label>
                     <?php if ($isAdminGroup): ?>
                     <input type="text" value="ADMIN" readonly disabled
-                           class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+                           class="form-input cursor-not-allowed" style="background:var(--app-bg);color:var(--dim)">
                     <input type="hidden" name="code" value="ADMIN">
-                    <p class="mt-1 text-xs text-gray-500">Le code ADMIN est réservé et ne peut pas être modifié</p>
+                    <p class="mt-1 text-xs" style="color:var(--dim)">Le code ADMIN est réservé et ne peut pas être modifié</p>
                     <?php else: ?>
                     <input type="text" name="code" value="<?= htmlspecialchars($group['code'] ?? '') ?>"
                            placeholder="ACCOUNTING, SUPERVISORS..."
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="mt-1 text-xs text-gray-500">Code unique pour référencer ce groupe dans les workflows</p>
+                           class="form-input">
+                    <p class="mt-1 text-xs" style="color:var(--dim)">Code unique pour référencer ce groupe dans les workflows</p>
                     <?php endif; ?>
                 </div>
             </div>
-            
+
             <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Description</label>
                 <textarea name="description" rows="2"
-                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><?= htmlspecialchars($group['description'] ?? '') ?></textarea>
+                          class="form-textarea"><?= htmlspecialchars($group['description'] ?? '') ?></textarea>
             </div>
         </div>
-        
+
         <!-- Membres -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Membres du groupe</h2>
-            
-            <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                <?php 
+        <div class="rounded-xl shadow-sm border p-6" style="background:var(--surface);border-color:var(--border)">
+            <h2 class="text-lg font-medium mb-4" style="color:var(--ink)">Membres du groupe</h2>
+
+            <div class="max-h-64 overflow-y-auto border rounded-lg p-3" style="border-color:var(--border)">
+                <?php
                 $memberIds = array_column($members ?? [], 'id');
-                foreach ($users as $user): 
+                foreach ($users as $user):
                     $checked = in_array($user['id'], $memberIds);
                 ?>
-                <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                <label class="flex items-center gap-3 p-2 rounded-lg cursor-pointer ds-row-hover">
                     <input type="checkbox" name="members[]" value="<?= $user['id'] ?>" <?= $checked ? 'checked' : '' ?>
-                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                           class="rounded" style="accent-color:var(--accent)">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user text-gray-500 text-sm"></i>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--hover)">
+                            <i class="fas fa-user text-sm" style="color:var(--dim)"></i>
                         </div>
                         <div>
-                            <span class="text-sm font-medium text-gray-900"><?= htmlspecialchars($user['full_name'] ?: $user['username']) ?></span>
-                            <span class="text-xs text-gray-500 ml-2">(<?= htmlspecialchars($user['username']) ?>)</span>
+                            <span class="text-sm font-medium" style="color:var(--ink)"><?= htmlspecialchars($user['full_name'] ?: $user['username']) ?></span>
+                            <span class="text-xs ml-2" style="color:var(--dim)">(<?= htmlspecialchars($user['username']) ?>)</span>
                         </div>
                     </div>
                 </label>
                 <?php endforeach; ?>
-                
+
                 <?php if (empty($users)): ?>
-                <p class="text-gray-500 text-center py-4">Aucun utilisateur disponible</p>
+                <p class="text-center py-4" style="color:var(--dim)">Aucun utilisateur disponible</p>
                 <?php endif; ?>
             </div>
-            
-            <p class="mt-2 text-xs text-gray-500">
+
+            <p class="mt-2 text-xs" style="color:var(--dim)">
                 <i class="fas fa-info-circle mr-1"></i>
                 Les membres de ce groupe recevront les demandes d'approbation envoyées au groupe.
             </p>
         </div>
-        
+
         <!-- Permissions -->
         <?php if ($isAdminGroup): ?>
-        <div class="bg-green-50 rounded-xl shadow-sm border border-green-200 p-6">
-            <h2 class="text-lg font-medium text-green-900 mb-2">
+        <div class="rounded-xl shadow-sm border p-6" style="background:color-mix(in srgb,var(--green) 12%,transparent);border-color:var(--green)">
+            <h2 class="text-lg font-medium mb-2" style="color:var(--green)">
                 <i class="fas fa-shield-alt mr-2"></i>Permissions
             </h2>
-            <p class="text-green-700">
+            <p style="color:var(--green)">
                 <i class="fas fa-check-circle mr-2"></i>
                 <strong>Accès complet.</strong> Les membres du groupe Administrateurs ont automatiquement tous les droits sur l'application.
             </p>
         </div>
         <?php else: ?>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-2">Permissions</h2>
-            <p class="text-sm text-gray-500 mb-4">
+        <div class="rounded-xl shadow-sm border p-6" style="background:var(--surface);border-color:var(--border)">
+            <h2 class="text-lg font-medium mb-2" style="color:var(--ink)">Permissions</h2>
+            <p class="text-sm mb-4" style="color:var(--dim)">
                 Sélectionnez les permissions accordées aux membres de ce groupe.
             </p>
 
@@ -151,16 +151,16 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
             <div class="space-y-6">
                 <?php foreach ($permissionCategories as $category => $perms): ?>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-700 mb-2"><?= $category ?></h3>
+                    <h3 class="text-sm font-semibold mb-2" style="color:var(--ink-soft)"><?= $category ?></h3>
                     <div class="grid grid-cols-2 gap-2">
                         <?php foreach ($perms as $permKey => $permLabel):
                             $checked = isset($currentPerms[$permKey]) ? $currentPerms[$permKey] : (in_array($permKey, $currentPerms) ? true : false);
                         ?>
-                        <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <label class="flex items-center gap-2 p-2 rounded cursor-pointer ds-row-hover">
                             <input type="checkbox" name="permissions[<?= $permKey ?>]" value="1"
                                    <?= $checked ? 'checked' : '' ?>
-                                   class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700"><?= $permLabel ?></span>
+                                   class="rounded" style="accent-color:var(--accent)">
+                            <span class="text-sm" style="color:var(--ink-soft)"><?= $permLabel ?></span>
                         </label>
                         <?php endforeach; ?>
                     </div>
@@ -169,13 +169,13 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
             </div>
         </div>
         <?php endif; ?>
-        
+
         <!-- Actions -->
         <div class="flex items-center justify-end gap-3">
-            <a href="<?= url('/admin/user-groups') ?>" class="px-4 py-2 text-gray-700 hover:text-gray-900">
+            <a href="<?= url('/admin/user-groups') ?>" class="btn-secondary border px-4 py-2 rounded-lg">
                 Annuler
             </a>
-            <button type="submit" class="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+            <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
                 <i class="fas fa-save mr-2"></i>Enregistrer
             </button>
         </div>

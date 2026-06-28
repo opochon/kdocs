@@ -7,27 +7,27 @@ $isEdit = !empty($rule);
 
 <div class="h-full flex flex-col" id="rule-editor-app">
     <!-- Header -->
-    <div class="bg-white border-b px-6 py-4 flex items-center justify-between">
+    <div class="border-b px-6 py-4 flex items-center justify-between" style="background:var(--surface);border-color:var(--border)">
         <div class="flex items-center gap-4">
-            <a href="<?= url('/admin/attribution-rules') ?>" class="text-gray-500 hover:text-gray-700">
+            <a href="<?= url('/admin/attribution-rules') ?>" style="color:var(--ink-soft)">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
                 <input type="text" id="rule-name" value="<?= htmlspecialchars($rule['name'] ?? '') ?>"
                        placeholder="Nom de la règle"
-                       class="text-xl font-bold text-gray-800 border-0 border-b border-transparent focus:border-blue-500 focus:ring-0 p-0">
+                       class="text-xl font-bold border-0 border-b border-transparent focus:border-blue-500 focus:ring-0 p-0" style="color:var(--ink);background:transparent">
             </div>
         </div>
         <div class="flex items-center gap-4">
             <label class="flex items-center gap-2">
                 <input type="checkbox" id="rule-active" <?= ($rule['is_active'] ?? false) ? 'checked' : '' ?>
-                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                <span class="text-sm text-gray-600">Active</span>
+                       class="rounded" style="accent-color:var(--accent)">
+                <span class="text-sm" style="color:var(--ink-soft)">Active</span>
             </label>
-            <button onclick="testRule()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            <button onclick="testRule()" class="btn-secondary border px-4 py-2 rounded-lg">
                 <i class="fas fa-play mr-2"></i>Tester
             </button>
-            <button onclick="saveRule()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button onclick="saveRule()" class="btn-primary px-4 py-2 rounded-lg">
                 <i class="fas fa-save mr-2"></i>Enregistrer
             </button>
         </div>
@@ -38,27 +38,27 @@ $isEdit = !empty($rule);
         <!-- Editor Panel -->
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
             <!-- Properties -->
-            <div class="bg-white rounded-lg shadow p-4">
-                <h3 class="font-medium text-gray-800 mb-4">Propriétés</h3>
+            <div class="rounded-lg shadow p-4" style="background:var(--surface)">
+                <h3 class="font-medium mb-4" style="color:var(--ink)">Propriétés</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Description</label>
                         <textarea id="rule-description" rows="2"
-                                  class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                  class="form-textarea"
                                   placeholder="Description optionnelle..."><?= htmlspecialchars($rule['description'] ?? '') ?></textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                            <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Priorité</label>
                             <input type="number" id="rule-priority" value="<?= $rule['priority'] ?? 100 ?>"
-                                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Plus élevé = évalué en premier</p>
+                                   class="form-input">
+                            <p class="text-xs mt-1" style="color:var(--dim)">Plus élevé = évalué en premier</p>
                         </div>
                         <div>
                             <label class="flex items-center gap-2 mt-6">
                                 <input type="checkbox" id="rule-stop-on-match" <?= ($rule['stop_on_match'] ?? true) ? 'checked' : '' ?>
-                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="text-sm text-gray-600">Arrêter si match</span>
+                                       class="rounded" style="accent-color:var(--accent)">
+                                <span class="text-sm" style="color:var(--ink-soft)">Arrêter si match</span>
                             </label>
                         </div>
                     </div>
@@ -66,38 +66,38 @@ $isEdit = !empty($rule);
             </div>
 
             <!-- Conditions -->
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-lg shadow p-4" style="background:var(--surface)">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-medium text-gray-800">
-                        <i class="fas fa-filter text-blue-500 mr-2"></i>SI (Conditions)
+                    <h3 class="font-medium" style="color:var(--ink)">
+                        <i class="fas fa-filter mr-2" style="color:var(--accent)"></i>SI (Conditions)
                     </h3>
-                    <button onclick="addCondition()" class="text-sm text-blue-600 hover:text-blue-800">
+                    <button onclick="addCondition()" class="text-sm" style="color:var(--accent)">
                         <i class="fas fa-plus mr-1"></i>Ajouter condition
                     </button>
                 </div>
                 <div id="conditions-container" class="space-y-3">
                     <!-- Conditions will be rendered here -->
                 </div>
-                <div id="no-conditions" class="text-center py-6 text-gray-400 <?= !empty($rule['conditions']) ? 'hidden' : '' ?>">
+                <div id="no-conditions" class="text-center py-6 <?= !empty($rule['conditions']) ? 'hidden' : '' ?>" style="color:var(--dim)">
                     <i class="fas fa-info-circle text-2xl mb-2"></i>
                     <p>Aucune condition - la règle s'appliquera à tous les documents</p>
                 </div>
             </div>
 
             <!-- Actions -->
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-lg shadow p-4" style="background:var(--surface)">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-medium text-gray-800">
-                        <i class="fas fa-bolt text-yellow-500 mr-2"></i>ALORS (Actions)
+                    <h3 class="font-medium" style="color:var(--ink)">
+                        <i class="fas fa-bolt mr-2" style="color:var(--amber)"></i>ALORS (Actions)
                     </h3>
-                    <button onclick="addAction()" class="text-sm text-blue-600 hover:text-blue-800">
+                    <button onclick="addAction()" class="text-sm" style="color:var(--accent)">
                         <i class="fas fa-plus mr-1"></i>Ajouter action
                     </button>
                 </div>
                 <div id="actions-container" class="space-y-3">
                     <!-- Actions will be rendered here -->
                 </div>
-                <div id="no-actions" class="text-center py-6 text-gray-400 <?= !empty($rule['actions']) ? 'hidden' : '' ?>">
+                <div id="no-actions" class="text-center py-6 <?= !empty($rule['actions']) ? 'hidden' : '' ?>" style="color:var(--dim)">
                     <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
                     <p>Ajoutez au moins une action</p>
                 </div>
@@ -105,11 +105,11 @@ $isEdit = !empty($rule);
         </div>
 
         <!-- Test Panel (collapsible) -->
-        <div id="test-panel" class="w-96 border-l bg-gray-50 overflow-y-auto hidden">
-            <div class="p-4 border-b bg-white">
+        <div id="test-panel" class="w-96 border-l overflow-y-auto hidden" style="background:var(--app-bg);border-color:var(--border)">
+            <div class="p-4 border-b" style="background:var(--surface);border-color:var(--border)">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-medium text-gray-800">Résultats du test</h3>
-                    <button onclick="closeTestPanel()" class="text-gray-400 hover:text-gray-600">
+                    <h3 class="font-medium" style="color:var(--ink)">Résultats du test</h3>
+                    <button onclick="closeTestPanel()" style="color:var(--dim)">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -123,41 +123,41 @@ $isEdit = !empty($rule);
 
 <!-- Templates -->
 <template id="condition-template">
-    <div class="condition-row flex items-start gap-2 p-3 bg-gray-50 rounded-lg" data-index="${index}">
+    <div class="condition-row flex items-start gap-2 p-3 rounded-lg" style="background:var(--app-bg)" data-index="${index}">
         <div class="flex-1 grid grid-cols-3 gap-2">
-            <select class="condition-field-type rounded-lg border-gray-300 text-sm">
+            <select class="condition-field-type rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Champ --</option>
                 <?php foreach ($fieldTypes as $type => $config): ?>
                     <option value="<?= $type ?>"><?= htmlspecialchars($config['label']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select class="condition-operator rounded-lg border-gray-300 text-sm">
+            <select class="condition-operator rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Opérateur --</option>
             </select>
             <div class="condition-value-container">
-                <input type="text" class="condition-value w-full rounded-lg border-gray-300 text-sm" placeholder="Valeur">
+                <input type="text" class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)" placeholder="Valeur">
             </div>
         </div>
-        <button onclick="removeCondition(this)" class="text-red-400 hover:text-red-600 p-2">
+        <button onclick="removeCondition(this)" class="p-2" style="color:var(--red)">
             <i class="fas fa-trash"></i>
         </button>
     </div>
 </template>
 
 <template id="action-template">
-    <div class="action-row flex items-start gap-2 p-3 bg-gray-50 rounded-lg" data-index="${index}">
+    <div class="action-row flex items-start gap-2 p-3 rounded-lg" style="background:var(--app-bg)" data-index="${index}">
         <div class="flex-1 grid grid-cols-2 gap-2">
-            <select class="action-type rounded-lg border-gray-300 text-sm">
+            <select class="action-type rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Action --</option>
                 <?php foreach ($actionTypes as $type => $config): ?>
                     <option value="<?= $type ?>"><?= htmlspecialchars($config['label']) ?></option>
                 <?php endforeach; ?>
             </select>
             <div class="action-value-container">
-                <input type="text" class="action-value w-full rounded-lg border-gray-300 text-sm" placeholder="Valeur">
+                <input type="text" class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)" placeholder="Valeur">
             </div>
         </div>
-        <button onclick="removeAction(this)" class="text-red-400 hover:text-red-600 p-2">
+        <button onclick="removeAction(this)" class="p-2" style="color:var(--red)">
             <i class="fas fa-trash"></i>
         </button>
     </div>
@@ -208,7 +208,8 @@ function renderActions() {
 
 function createConditionRow(condition, index) {
     const row = document.createElement('div');
-    row.className = 'condition-row flex items-start gap-2 p-3 bg-gray-50 rounded-lg';
+    row.className = 'condition-row flex items-start gap-2 p-3 rounded-lg';
+    row.style.background = 'var(--app-bg)';
     row.dataset.index = index;
 
     const fieldType = condition.field_type || '';
@@ -223,13 +224,13 @@ function createConditionRow(condition, index) {
 
     row.innerHTML = `
         <div class="flex-1 grid grid-cols-3 gap-2">
-            <select class="condition-field-type rounded-lg border-gray-300 text-sm" onchange="onFieldTypeChange(this)">
+            <select class="condition-field-type rounded-lg text-sm" style="border-color:var(--border)" onchange="onFieldTypeChange(this)">
                 <option value="">-- Champ --</option>
                 ${Object.entries(fieldTypes).map(([type, config]) =>
                     `<option value="${type}" ${type === fieldType ? 'selected' : ''}>${config.label}</option>`
                 ).join('')}
             </select>
-            <select class="condition-operator rounded-lg border-gray-300 text-sm">
+            <select class="condition-operator rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Opérateur --</option>
                 ${fieldType && fieldTypes[fieldType] ? Object.entries(fieldTypes[fieldType].operators).map(([op, label]) =>
                     `<option value="${op}" ${op === operator ? 'selected' : ''}>${label}</option>`
@@ -239,7 +240,7 @@ function createConditionRow(condition, index) {
                 ${createValueInput(fieldType, value)}
             </div>
         </div>
-        <button onclick="removeCondition(this)" class="text-red-400 hover:text-red-600 p-2">
+        <button onclick="removeCondition(this)" class="p-2" style="color:var(--red)">
             <i class="fas fa-trash"></i>
         </button>
     `;
@@ -249,7 +250,8 @@ function createConditionRow(condition, index) {
 
 function createActionRow(action, index) {
     const row = document.createElement('div');
-    row.className = 'action-row flex items-start gap-2 p-3 bg-gray-50 rounded-lg';
+    row.className = 'action-row flex items-start gap-2 p-3 rounded-lg';
+    row.style.background = 'var(--app-bg)';
     row.dataset.index = index;
 
     const actionType = action.action_type || '';
@@ -263,7 +265,7 @@ function createActionRow(action, index) {
 
     row.innerHTML = `
         <div class="flex-1 grid grid-cols-2 gap-2">
-            <select class="action-type rounded-lg border-gray-300 text-sm" onchange="onActionTypeChange(this)">
+            <select class="action-type rounded-lg text-sm" style="border-color:var(--border)" onchange="onActionTypeChange(this)">
                 <option value="">-- Action --</option>
                 ${Object.entries(actionTypes).map(([type, config]) =>
                     `<option value="${type}" ${type === actionType ? 'selected' : ''}>${config.label}</option>`
@@ -273,7 +275,7 @@ function createActionRow(action, index) {
                 ${createActionValueInput(actionType, fieldName, value)}
             </div>
         </div>
-        <button onclick="removeAction(this)" class="text-red-400 hover:text-red-600 p-2">
+        <button onclick="removeAction(this)" class="p-2" style="color:var(--red)">
             <i class="fas fa-trash"></i>
         </button>
     `;
@@ -284,25 +286,25 @@ function createActionRow(action, index) {
 function createValueInput(fieldType, value) {
     switch (fieldType) {
         case 'correspondent':
-            return `<select class="condition-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Correspondant --</option>
                 ${correspondents.map(c => `<option value="${c.id}" ${c.id == value ? 'selected' : ''}>${c.name}</option>`).join('')}
             </select>`;
         case 'document_type':
-            return `<select class="condition-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Type --</option>
                 ${documentTypes.map(t => `<option value="${t.id}" ${t.id == value ? 'selected' : ''}>${t.label}</option>`).join('')}
             </select>`;
         case 'tag':
-            return `<select class="condition-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Tag --</option>
                 ${tags.map(t => `<option value="${t.id}" ${t.id == value ? 'selected' : ''}>${t.name}</option>`).join('')}
             </select>`;
         case 'amount':
-            return `<input type="number" step="0.01" class="condition-value w-full rounded-lg border-gray-300 text-sm"
+            return `<input type="number" step="0.01" class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)"
                            placeholder="Montant" value="${value}">`;
         default:
-            return `<input type="text" class="condition-value w-full rounded-lg border-gray-300 text-sm"
+            return `<input type="text" class="condition-value w-full rounded-lg text-sm" style="border-color:var(--border)"
                            placeholder="Valeur" value="${typeof value === 'string' ? value : JSON.stringify(value)}">`;
     }
 }
@@ -311,52 +313,52 @@ function createActionValueInput(actionType, fieldName, value) {
     switch (actionType) {
         case 'set_field':
             const fields = ['compte_comptable', 'centre_cout', 'projet'];
-            let fieldSelect = `<select class="action-field-name w-1/2 rounded-lg border-gray-300 text-sm mr-2">
+            let fieldSelect = `<select class="action-field-name w-1/2 rounded-lg text-sm mr-2" style="border-color:var(--border)">
                 <option value="">-- Champ --</option>
                 ${fields.map(f => `<option value="${f}" ${f === fieldName ? 'selected' : ''}>${f}</option>`).join('')}
             </select>`;
 
             let valueSelect = '';
             if (fieldName && fieldOptions[fieldName]) {
-                valueSelect = `<select class="action-value w-1/2 rounded-lg border-gray-300 text-sm">
+                valueSelect = `<select class="action-value w-1/2 rounded-lg text-sm" style="border-color:var(--border)">
                     <option value="">-- Valeur --</option>
                     ${fieldOptions[fieldName].map(o =>
                         `<option value="${o.option_value}" ${o.option_value == value ? 'selected' : ''}>${o.option_label}</option>`
                     ).join('')}
                 </select>`;
             } else {
-                valueSelect = `<input type="text" class="action-value w-1/2 rounded-lg border-gray-300 text-sm"
+                valueSelect = `<input type="text" class="action-value w-1/2 rounded-lg text-sm" style="border-color:var(--border)"
                                       placeholder="Valeur" value="${value}">`;
             }
             return `<div class="flex">${fieldSelect}${valueSelect}</div>`;
 
         case 'add_tag':
         case 'remove_tag':
-            return `<select class="action-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Tag --</option>
                 ${tags.map(t => `<option value="${t.id}" ${t.id == value ? 'selected' : ''}>${t.name}</option>`).join('')}
             </select>`;
 
         case 'move_to_folder':
-            return `<select class="action-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Dossier --</option>
                 ${folders.map(f => `<option value="${f.id}" ${f.id == value ? 'selected' : ''}>${f.path || f.name}</option>`).join('')}
             </select>`;
 
         case 'set_correspondent':
-            return `<select class="action-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Correspondant --</option>
                 ${correspondents.map(c => `<option value="${c.id}" ${c.id == value ? 'selected' : ''}>${c.name}</option>`).join('')}
             </select>`;
 
         case 'set_document_type':
-            return `<select class="action-value w-full rounded-lg border-gray-300 text-sm">
+            return `<select class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)">
                 <option value="">-- Type --</option>
                 ${documentTypes.map(t => `<option value="${t.id}" ${t.id == value ? 'selected' : ''}>${t.label}</option>`).join('')}
             </select>`;
 
         default:
-            return `<input type="text" class="action-value w-full rounded-lg border-gray-300 text-sm" placeholder="Valeur" value="${value}">`;
+            return `<input type="text" class="action-value w-full rounded-lg text-sm" style="border-color:var(--border)" placeholder="Valeur" value="${value}">`;
     }
 }
 
@@ -496,7 +498,7 @@ async function testRule() {
 
     // Show test panel
     document.getElementById('test-panel').classList.remove('hidden');
-    document.getElementById('test-results').innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i><p class="mt-2 text-gray-500">Test en cours...</p></div>';
+    document.getElementById('test-results').innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl" style="color:var(--accent)"></i><p class="mt-2" style="color:var(--dim)">Test en cours...</p></div>';
 
     try {
         let testUrl;
@@ -504,7 +506,7 @@ async function testRule() {
             testUrl = `<?= url('/api/attribution-rules') ?>/${ruleId}/test`;
         } else {
             // For new rules, we need to save first or test with a temporary structure
-            document.getElementById('test-results').innerHTML = '<div class="text-center py-8 text-yellow-600"><i class="fas fa-exclamation-triangle text-2xl"></i><p class="mt-2">Enregistrez la règle d\'abord pour la tester</p></div>';
+            document.getElementById('test-results').innerHTML = '<div class="text-center py-8" style="color:var(--amber)"><i class="fas fa-exclamation-triangle text-2xl"></i><p class="mt-2">Enregistrez la règle d\'abord pour la tester</p></div>';
             return;
         }
 
@@ -520,7 +522,7 @@ async function testRule() {
         const result = await response.json();
         renderTestResults(result.data || result);
     } catch (e) {
-        document.getElementById('test-results').innerHTML = `<div class="text-center py-8 text-red-600"><i class="fas fa-times-circle text-2xl"></i><p class="mt-2">${e.message}</p></div>`;
+        document.getElementById('test-results').innerHTML = `<div class="text-center py-8" style="color:var(--red)"><i class="fas fa-times-circle text-2xl"></i><p class="mt-2">${e.message}</p></div>`;
     }
 }
 
@@ -528,24 +530,24 @@ function renderTestResults(data) {
     const container = document.getElementById('test-results');
 
     if (!data.results || data.results.length === 0) {
-        container.innerHTML = '<div class="text-center py-8 text-gray-500">Aucun document récent à tester</div>';
+        container.innerHTML = '<div class="text-center py-8" style="color:var(--dim)">Aucun document récent à tester</div>';
         return;
     }
 
     let html = `
-        <div class="mb-4 p-3 bg-white rounded-lg">
+        <div class="mb-4 p-3 rounded-lg" style="background:var(--surface)">
             <div class="grid grid-cols-3 gap-2 text-center">
                 <div>
-                    <div class="text-2xl font-bold text-gray-800">${data.summary.total}</div>
-                    <div class="text-xs text-gray-500">Testés</div>
+                    <div class="text-2xl font-bold" style="color:var(--ink)">${data.summary.total}</div>
+                    <div class="text-xs" style="color:var(--dim)">Testés</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-green-600">${data.summary.matched}</div>
-                    <div class="text-xs text-gray-500">Match</div>
+                    <div class="text-2xl font-bold" style="color:var(--green)">${data.summary.matched}</div>
+                    <div class="text-xs" style="color:var(--dim)">Match</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-gray-400">${data.summary.not_matched}</div>
-                    <div class="text-xs text-gray-500">Non match</div>
+                    <div class="text-2xl font-bold" style="color:var(--dim)">${data.summary.not_matched}</div>
+                    <div class="text-xs" style="color:var(--dim)">Non match</div>
                 </div>
             </div>
         </div>
@@ -553,13 +555,14 @@ function renderTestResults(data) {
     `;
 
     data.results.forEach(r => {
-        const statusClass = r.matched ? 'bg-green-100 border-green-200' : 'bg-gray-100 border-gray-200';
-        const icon = r.matched ? 'fa-check-circle text-green-600' : 'fa-times-circle text-gray-400';
+        const statusStyle = r.matched ? 'background:color-mix(in srgb,var(--green) 14%,transparent);border-color:var(--green)' : 'background:var(--rail);border-color:var(--border)';
+        const icon = r.matched ? 'fa-check-circle' : 'fa-times-circle';
+        const iconColor = r.matched ? 'var(--green)' : 'var(--dim)';
 
         html += `
-            <div class="p-3 rounded-lg border ${statusClass}">
+            <div class="p-3 rounded-lg border" style="${statusStyle}">
                 <div class="flex items-center gap-2">
-                    <i class="fas ${icon}"></i>
+                    <i class="fas ${icon}" style="color:${iconColor}"></i>
                     <span class="font-medium text-sm truncate">${r.document_title || 'Document #' + r.document_id}</span>
                 </div>
             </div>

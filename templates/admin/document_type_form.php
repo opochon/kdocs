@@ -32,19 +32,19 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
 
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
+        <h1 class="text-2xl font-bold" style="color:var(--ink)">
             <?= $documentType ? 'Modifier le type de document' : 'Créer un type de document' ?>
             <?php if ($documentType): ?>
-            <span class="ml-2 text-sm font-normal text-gray-500">ID: <?= $documentType['id'] ?></span>
+            <span class="ml-2 text-sm font-normal" style="color:var(--dim)">ID: <?= $documentType['id'] ?></span>
             <?php endif; ?>
         </h1>
-        <a href="<?= url('/admin/document-types') ?>" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+        <a href="<?= url('/admin/document-types') ?>" class="btn-secondary border px-4 py-2 rounded-lg">
             ← Retour
         </a>
     </div>
 
     <form method="POST" action="<?= url($documentType ? '/admin/document-types/' . $documentType['id'] . '/save' : '/admin/document-types/save') ?>" 
-          class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
+          class="rounded-lg shadow p-6 space-y-6" style="background:var(--surface)">
         
         <?php if ($documentType): ?>
         <input type="hidden" name="id" value="<?= $documentType['id'] ?>">
@@ -52,21 +52,21 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
 
         <!-- Nom -->
         <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom *</label>
+            <label for="name" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Nom *</label>
             <input type="text" 
                    id="name" 
                    name="name" 
                    value="<?= htmlspecialchars($documentType['label'] ?? $documentType['code'] ?? '') ?>"
-                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                   class="form-input"
                    required>
         </div>
 
         <!-- Algorithme de rapprochement -->
         <div>
-            <label for="matching_algorithm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Algorithme de rapprochement</label>
+            <label for="matching_algorithm" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Algorithme de rapprochement</label>
             <select id="matching_algorithm" 
                     name="matching_algorithm"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                    class="form-select"
                     onchange="togglePatternFields()">
                 <?php foreach ($matchingAlgorithms as $value => $label): ?>
                 <option value="<?= $value ?>" <?= ($currentMatchingAlgorithm == $value) ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
@@ -77,13 +77,13 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
         <!-- Pattern de matching (affiché si nécessaire) -->
         <div id="pattern-fields" style="display: <?= $patternRequired ? 'block' : 'none' ?>;">
             <div>
-                <label for="match" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modèle de rapprochement</label>
+                <label for="match" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Modèle de rapprochement</label>
                 <input type="text" 
                        id="match" 
                        name="match" 
                        value="<?= htmlspecialchars($documentType['match'] ?? '') ?>"
                        placeholder="ex: facture"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                       class="form-input">
             </div>
             
             <div class="mt-3">
@@ -92,17 +92,17 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
                            name="is_insensitive" 
                            value="1"
                            <?= ($documentType['is_insensitive'] ?? true) ? 'checked' : '' ?>
-                           class="mr-2">
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Insensible à la casse</span>
+                           class="mr-2" style="accent-color:var(--accent)">
+                    <span class="text-sm" style="color:var(--ink-soft)">Insensible à la casse</span>
                 </label>
             </div>
         </div>
 
         <!-- Autorisations de modification -->
-        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="pt-6 border-t" style="border-color:var(--border)">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Autorisations de modification</h2>
-                <button type="button" onclick="togglePermissions()" class="text-gray-500 hover:text-gray-700">
+                <h2 class="text-lg font-semibold" style="color:var(--ink)">Autorisations de modification</h2>
+                <button type="button" onclick="togglePermissions()" style="color:var(--dim)">
                     <i class="fas fa-chevron-up" id="permissions-icon"></i>
                 </button>
             </div>
@@ -110,10 +110,10 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
             <div id="permissions-content" class="space-y-4">
                 <!-- Propriétaire -->
                 <div>
-                    <label for="owner_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Propriétaire</label>
+                    <label for="owner_id" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Propriétaire</label>
                     <select id="owner_id" 
                             name="owner_id"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                            class="form-select">
                         <option value="">Aucun</option>
                         <?php foreach ($users as $u): ?>
                         <option value="<?= $u['id'] ?>" <?= ($documentType['owner_id'] ?? null) == $u['id'] ? 'selected' : '' ?>>
@@ -121,91 +121,91 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
                         </option>
                         <?php endforeach; ?>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">Les objets sans propriétaire peuvent être consultés et édités par tous les utilisateurs</p>
+                    <p class="text-xs mt-1" style="color:var(--dim)">Les objets sans propriétaire peuvent être consultés et édités par tous les utilisateurs</p>
                 </div>
 
                 <!-- Vue -->
                 <div>
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vue</h3>
+                    <h3 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Vue</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="view_users" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Utilisateurs</label>
+                            <label for="view_users" class="block text-xs mb-1" style="color:var(--ink-soft)">Utilisateurs</label>
                             <select id="view_users" 
                                     name="view_users[]"
                                     multiple
                                     size="5"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                                    class="form-select">
                                 <?php foreach ($users as $u): ?>
                                 <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $viewUsers) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($u['username']) ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Ctrl+clic pour sélectionner plusieurs</p>
+                            <p class="text-xs mt-1" style="color:var(--dim)">Ctrl+clic pour sélectionner plusieurs</p>
                         </div>
                         <div>
-                            <label for="view_groups" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Groupes</label>
+                            <label for="view_groups" class="block text-xs mb-1" style="color:var(--ink-soft)">Groupes</label>
                             <select id="view_groups" 
                                     name="view_groups[]"
                                     multiple
                                     size="5"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                                    class="form-select">
                                 <?php foreach ($groups as $g): ?>
                                 <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $viewGroups) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($g['name']) ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Ctrl+clic pour sélectionner plusieurs</p>
+                            <p class="text-xs mt-1" style="color:var(--dim)">Ctrl+clic pour sélectionner plusieurs</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Modifier -->
                 <div>
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modifier</h3>
+                    <h3 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Modifier</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="modify_users" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Utilisateurs</label>
+                            <label for="modify_users" class="block text-xs mb-1" style="color:var(--ink-soft)">Utilisateurs</label>
                             <select id="modify_users" 
                                     name="modify_users[]"
                                     multiple
                                     size="5"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                                    class="form-select">
                                 <?php foreach ($users as $u): ?>
                                 <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $modifyUsers) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($u['username']) ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Ctrl+clic pour sélectionner plusieurs</p>
+                            <p class="text-xs mt-1" style="color:var(--dim)">Ctrl+clic pour sélectionner plusieurs</p>
                         </div>
                         <div>
-                            <label for="modify_groups" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Groupes</label>
+                            <label for="modify_groups" class="block text-xs mb-1" style="color:var(--ink-soft)">Groupes</label>
                             <select id="modify_groups" 
                                     name="modify_groups[]"
                                     multiple
                                     size="5"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                                    class="form-select">
                                 <?php foreach ($groups as $g): ?>
                                 <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $modifyGroups) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($g['name']) ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Ctrl+clic pour sélectionner plusieurs</p>
+                            <p class="text-xs mt-1" style="color:var(--dim)">Ctrl+clic pour sélectionner plusieurs</p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Modifier les droits d'accès accorde également les droits de lecture</p>
+                    <p class="text-xs mt-2" style="color:var(--dim)">Modifier les droits d'accès accorde également les droits de lecture</p>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-            <a href="<?= url('/admin/document-types') ?>" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+        <div class="flex items-center justify-between pt-6 border-t" style="border-color:var(--border)">
+            <a href="<?= url('/admin/document-types') ?>" class="btn-secondary border px-4 py-2 rounded-lg">
                 Annuler
             </a>
-            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
                 Enregistrer
             </button>
         </div>

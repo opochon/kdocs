@@ -32,19 +32,19 @@ $removeChangeUsers = (isset($action) && isset($action['remove_change_users'])) ?
 $removeChangeGroups = (isset($action) && isset($action['remove_change_groups'])) ? json_decode($action['remove_change_groups'], true) : [];
 ?>
 
-<div class="action-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg" data-action-index="<?= $index ?>">
+<div class="action-item p-4 border rounded-lg" style="border-color:var(--border)" data-action-index="<?= $index ?>">
     <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-500"><?= $index + 1 ?>.</span>
+            <span class="text-sm font-medium" style="color:var(--dim)"><?= $index + 1 ?>.</span>
             <select name="actions[<?= $index ?>][action_type]" 
-                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 action-type-select"
+                    class="px-3 py-2 border rounded-lg action-type-select" style="background:var(--surface);color:var(--ink);border-color:var(--border)"
                     onchange="updateActionConfig(this)">
                 <?php foreach ($actionTypes as $value => $label): ?>
                 <option value="<?= $value ?>" <?= $actionType == $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
-        <button type="button" onclick="removeAction(this)" class="text-red-600 hover:text-red-800">
+        <button type="button" onclick="removeAction(this)" style="color:var(--red)">
             <i class="fas fa-trash"></i> Supprimer
         </button>
     </div>
@@ -57,33 +57,33 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attribuer un titre</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Attribuer un titre</label>
                         <input type="text" 
                                name="actions[<?= $index ?>][assign_title]" 
                                value="<?= htmlspecialchars(isset($action['assign_title']) ? $action['assign_title'] : '') ?>"
                                placeholder="Peut inclure certains caractères génériques"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                               class="form-input">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigner des étiquettes</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Assigner des étiquettes</label>
                         <select name="actions[<?= $index ?>][assign_tags][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($tags as $tag): ?>
                             <option value="<?= $tag['id'] ?>" <?= in_array($tag['id'], $assignTags) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($tag['name']) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">Ctrl+clic pour sélectionner plusieurs</p>
+                        <p class="text-xs mt-1" style="color:var(--dim)">Ctrl+clic pour sélectionner plusieurs</p>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affectation du type de document</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Affectation du type de document</label>
                         <select name="actions[<?= $index ?>][assign_document_type]" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <option value="">Aucun</option>
                             <?php foreach ($documentTypes as $dt): ?>
                             <option value="<?= $dt['id'] ?>" <?= (isset($action['assign_document_type']) && $action['assign_document_type'] == $dt['id']) ? 'selected' : '' ?>>
@@ -94,9 +94,9 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affecter le correspondant</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Affecter le correspondant</label>
                         <select name="actions[<?= $index ?>][assign_correspondent]" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <option value="">Aucun</option>
                             <?php foreach ($correspondents as $corr): ?>
                             <option value="<?= $corr['id'] ?>" <?= (isset($action['assign_correspondent']) && $action['assign_correspondent'] == $corr['id']) ? 'selected' : '' ?>>
@@ -107,9 +107,9 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attribuer un chemin de stockage</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Attribuer un chemin de stockage</label>
                         <select name="actions[<?= $index ?>][assign_storage_path]" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <option value="">Aucun</option>
                             <?php foreach ($storagePaths as $sp): ?>
                             <option value="<?= $sp['id'] ?>" <?= (isset($action['assign_storage_path']) && $action['assign_storage_path'] == $sp['id']) ? 'selected' : '' ?>>
@@ -120,11 +120,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Affecter des champs personnalisés</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Affecter des champs personnalisés</label>
                         <select name="actions[<?= $index ?>][assign_custom_fields][]" 
                                 multiple
                                 size="3"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($customFields as $cf): ?>
                             <option value="<?= $cf['id'] ?>" <?= in_array($cf['id'], $assignCustomFields) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($cf['name']) ?>
@@ -136,9 +136,9 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                 
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Propriétaire</label>
+                        <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Propriétaire</label>
                         <select name="actions[<?= $index ?>][assign_owner]" 
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <option value="">Aucun</option>
                             <?php foreach ($users as $u): ?>
                             <option value="<?= $u['id'] ?>" <?= (isset($action['assign_owner']) && $action['assign_owner'] == $u['id']) ? 'selected' : '' ?>>
@@ -149,14 +149,14 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assigner des autorisations de vue</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Assigner des autorisations de vue</h4>
                         <div class="space-y-2">
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Utilisateurs :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Utilisateurs :</label>
                                 <select name="actions[<?= $index ?>][assign_view_users][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($users as $u): ?>
                                     <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $assignViewUsers) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($u['username']) ?>
@@ -165,11 +165,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Groupes :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Groupes :</label>
                                 <select name="actions[<?= $index ?>][assign_view_groups][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($groups as $g): ?>
                                     <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $assignViewGroups) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($g['name']) ?>
@@ -181,14 +181,14 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assigner des autorisations d'édition</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Assigner des autorisations d'édition</h4>
                         <div class="space-y-2">
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Utilisateurs :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Utilisateurs :</label>
                                 <select name="actions[<?= $index ?>][assign_change_users][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($users as $u): ?>
                                     <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $assignChangeUsers) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($u['username']) ?>
@@ -197,11 +197,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Groupes :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Groupes :</label>
                                 <select name="actions[<?= $index ?>][assign_change_groups][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($groups as $g): ?>
                                     <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $assignChangeGroups) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($g['name']) ?>
@@ -210,7 +210,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Modifier les droits d'accès accorde également les droits de lecture</p>
+                        <p class="text-xs mt-1" style="color:var(--dim)">Modifier les droits d'accès accorde également les droits de lecture</p>
                     </div>
                 </div>
             </div>
@@ -221,7 +221,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-3">
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des étiquettes</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des étiquettes</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_tags]" 
@@ -233,7 +233,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_tags][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($tags as $tag): ?>
                             <option value="<?= $tag['id'] ?>" <?= in_array($tag['id'], $removeTags) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($tag['name']) ?>
@@ -243,7 +243,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des correspondants</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des correspondants</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_correspondents]" 
@@ -255,7 +255,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_correspondents][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($correspondents as $corr): ?>
                             <option value="<?= $corr['id'] ?>" <?= in_array($corr['id'], $removeCorrespondents) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($corr['name']) ?>
@@ -265,7 +265,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des types de documents</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des types de documents</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_document_types]" 
@@ -277,7 +277,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_document_types][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($documentTypes as $dt): ?>
                             <option value="<?= $dt['id'] ?>" <?= in_array($dt['id'], $removeDocumentTypes) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($dt['label']) ?>
@@ -287,7 +287,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des chemins de stockage</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des chemins de stockage</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_storage_paths]" 
@@ -299,7 +299,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_storage_paths][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($storagePaths as $sp): ?>
                             <option value="<?= $sp['id'] ?>" <?= in_array($sp['id'], $removeStoragePaths) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($sp['name']) ?>
@@ -309,7 +309,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des champs personnalisés</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des champs personnalisés</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_custom_fields]" 
@@ -321,7 +321,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_custom_fields][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($customFields as $cf): ?>
                             <option value="<?= $cf['id'] ?>" <?= in_array($cf['id'], $removeCustomFields) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($cf['name']) ?>
@@ -333,7 +333,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                 
                 <div class="space-y-3">
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des propriétaires</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des propriétaires</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_owners]" 
@@ -345,7 +345,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         <select name="actions[<?= $index ?>][remove_owners][]" 
                                 multiple
                                 size="5"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                class="form-select">
                             <?php foreach ($users as $u): ?>
                             <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $removeOwners) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($u['username']) ?>
@@ -355,7 +355,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supprimer des permissions</h4>
+                        <h4 class="text-sm font-medium mb-2" style="color:var(--ink-soft)">Supprimer des permissions</h4>
                         <label class="flex items-center mb-2">
                             <input type="checkbox" 
                                    name="actions[<?= $index ?>][remove_all_permissions]" 
@@ -367,11 +367,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                         
                         <div class="space-y-2 mt-2">
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Permissions de vue - Utilisateurs :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Permissions de vue - Utilisateurs :</label>
                                 <select name="actions[<?= $index ?>][remove_view_users][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($users as $u): ?>
                                     <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $removeViewUsers) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($u['username']) ?>
@@ -380,11 +380,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Permissions de vue - Groupes :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Permissions de vue - Groupes :</label>
                                 <select name="actions[<?= $index ?>][remove_view_groups][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($groups as $g): ?>
                                     <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $removeViewGroups) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($g['name']) ?>
@@ -393,11 +393,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Permissions d'édition - Utilisateurs :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Permissions d'édition - Utilisateurs :</label>
                                 <select name="actions[<?= $index ?>][remove_change_users][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($users as $u): ?>
                                     <option value="<?= $u['id'] ?>" <?= in_array($u['id'], $removeChangeUsers) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($u['username']) ?>
@@ -406,11 +406,11 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Permissions d'édition - Groupes :</label>
+                                <label class="block text-xs mb-1" style="color:var(--ink-soft)">Permissions d'édition - Groupes :</label>
                                 <select name="actions[<?= $index ?>][remove_change_groups][]" 
                                         multiple
                                         size="3"
-                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                        class="form-select text-sm">
                                     <?php foreach ($groups as $g): ?>
                                     <option value="<?= $g['id'] ?>" <?= in_array($g['id'], $removeChangeGroups) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($g['name']) ?>
@@ -428,25 +428,25 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
         <div class="email-fields" style="display: <?= $actionType == 3 ? 'block' : 'none' ?>;">
             <div class="space-y-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sujet de l'email</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Sujet de l'email</label>
                     <input type="text" 
                            name="actions[<?= $index ?>][email_subject]" 
                            value="<?= htmlspecialchars(isset($action['email_subject']) ? $action['email_subject'] : '') ?>"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                           class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Corps de l'email</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Corps de l'email</label>
                     <textarea name="actions[<?= $index ?>][email_body]" 
                               rows="5"
-                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars(isset($action['email_body']) ? $action['email_body'] : '') ?></textarea>
+                              class="form-textarea"><?= htmlspecialchars(isset($action['email_body']) ? $action['email_body'] : '') ?></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destinataires</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Destinataires</label>
                     <input type="text" 
                            name="actions[<?= $index ?>][email_to]" 
                            value="<?= htmlspecialchars(isset($action['email_to']) ? $action['email_to'] : '') ?>"
                            placeholder="email@example.com"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                           class="form-input">
                 </div>
                 <div>
                     <label class="flex items-center">
@@ -455,7 +455,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                value="1"
                                <?= (isset($action['email_include_document']) && $action['email_include_document']) ? 'checked' : '' ?>
                                class="mr-2">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">Joindre le document</span>
+                        <span class="text-sm" style="color:var(--ink-soft)">Joindre le document</span>
                     </label>
                 </div>
             </div>
@@ -465,12 +465,12 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
         <div class="webhook-fields" style="display: <?= $actionType == 4 ? 'block' : 'none' ?>;">
             <div class="space-y-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL du webhook</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">URL du webhook</label>
                     <input type="url" 
                            name="actions[<?= $index ?>][webhook_url]" 
                            value="<?= htmlspecialchars(isset($action['webhook_url']) ? $action['webhook_url'] : '') ?>"
                            placeholder="https://example.com/webhook"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                           class="form-input">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -481,7 +481,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                    <?= (isset($action['webhook_use_params']) && $action['webhook_use_params']) ? 'checked' : '' ?>
                                    class="mr-2"
                                    onchange="toggleWebhookParams(this)">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Utiliser des paramètres pour le corps</span>
+                            <span class="text-sm" style="color:var(--ink-soft)">Utiliser des paramètres pour le corps</span>
                         </label>
                     </div>
                     <div>
@@ -491,29 +491,29 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                    value="1"
                                    <?= (!isset($action['webhook_as_json']) || $action['webhook_as_json']) ? 'checked' : '' ?>
                                    class="mr-2">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Envoyer en JSON</span>
+                            <span class="text-sm" style="color:var(--ink-soft)">Envoyer en JSON</span>
                         </label>
                     </div>
                 </div>
                 <div id="webhook-params-<?= $index ?>" style="display: <?= (isset($action['webhook_use_params']) && $action['webhook_use_params']) ? 'block' : 'none' ?>;">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paramètres (JSON)</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Paramètres (JSON)</label>
                     <textarea name="actions[<?= $index ?>][webhook_params]" 
                               rows="3"
                               placeholder='{"key": "value"}'
-                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars(isset($action['webhook_params']) ? $action['webhook_params'] : '') ?></textarea>
+                              class="form-textarea"><?= htmlspecialchars(isset($action['webhook_params']) ? $action['webhook_params'] : '') ?></textarea>
                 </div>
                 <div id="webhook-body-<?= $index ?>" style="display: <?= (isset($action['webhook_use_params']) && $action['webhook_use_params']) ? 'none' : 'block' ?>;">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Corps du webhook</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Corps du webhook</label>
                     <textarea name="actions[<?= $index ?>][webhook_body]" 
                               rows="5"
-                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars(isset($action['webhook_body']) ? $action['webhook_body'] : '') ?></textarea>
+                              class="form-textarea"><?= htmlspecialchars(isset($action['webhook_body']) ? $action['webhook_body'] : '') ?></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">En-têtes (JSON)</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">En-têtes (JSON)</label>
                     <textarea name="actions[<?= $index ?>][webhook_headers]" 
                               rows="3"
                               placeholder='{"Authorization": "Bearer token"}'
-                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars(isset($action['webhook_headers']) ? $action['webhook_headers'] : '') ?></textarea>
+                              class="form-textarea"><?= htmlspecialchars(isset($action['webhook_headers']) ? $action['webhook_headers'] : '') ?></textarea>
                 </div>
                 <div>
                     <label class="flex items-center">
@@ -522,7 +522,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
                                value="1"
                                <?= (isset($action['webhook_include_document']) && $action['webhook_include_document']) ? 'checked' : '' ?>
                                class="mr-2">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">Inclure le document</span>
+                        <span class="text-sm" style="color:var(--ink-soft)">Inclure le document</span>
                     </label>
                 </div>
             </div>

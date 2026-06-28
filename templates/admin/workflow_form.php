@@ -4,22 +4,22 @@
 
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
+        <h1 class="text-2xl font-bold" style="color:var(--ink)">
             <?= $workflow ? 'Modifier le workflow' : 'Créer un workflow' ?>
         </h1>
-        <a href="<?= url('/admin/workflows') ?>" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+        <a href="<?= url('/admin/workflows') ?>" class="btn-secondary border px-4 py-2 rounded-lg">
             ← Retour
         </a>
     </div>
 
     <?php if (!empty($error)): ?>
-    <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+    <div class="border px-4 py-3 rounded" style="background:color-mix(in srgb,var(--red) 12%,transparent);border-color:color-mix(in srgb,var(--red) 45%,var(--border));color:var(--red)">
         <?= htmlspecialchars($error) ?>
     </div>
     <?php endif; ?>
 
     <form method="POST" action="<?= url($workflow ? '/admin/workflows/' . $workflow['id'] . '/save' : '/admin/workflows/save') ?>" 
-          class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
+          class="rounded-lg shadow p-6 space-y-6" style="background:var(--surface)">
         
         <?php if ($workflow): ?>
         <input type="hidden" name="id" value="<?= $workflow['id'] ?>">
@@ -27,21 +27,21 @@
 
         <div class="grid grid-cols-3 gap-4">
             <div class="col-span-2">
-                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du workflow *</label>
+                <label for="name" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Nom du workflow *</label>
                 <input type="text" 
                        id="name" 
                        name="name" 
                        value="<?= htmlspecialchars($workflow['name'] ?? '') ?>"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                       class="form-input"
                        required>
             </div>
             <div>
-                <label for="order_index" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ordre de tri</label>
+                <label for="order_index" class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Ordre de tri</label>
                 <input type="number" 
                        id="order_index" 
                        name="order_index" 
                        value="<?= htmlspecialchars($workflow['order_index'] ?? 0) ?>"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+                       class="form-input">
             </div>
         </div>
 
@@ -52,21 +52,21 @@
                        value="1"
                        <?= ($workflow['enabled'] ?? true) ? 'checked' : '' ?>
                        class="mr-2">
-                <span class="text-sm text-gray-700 dark:text-gray-300">Activé</span>
+                <span class="text-sm" style="color:var(--ink-soft)">Activé</span>
             </label>
         </div>
 
-        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Triggers</h2>
+        <div class="pt-6 border-t" style="border-color:var(--border)">
+            <h2 class="text-lg font-semibold mb-4" style="color:var(--ink)">Triggers</h2>
             <div id="triggers-container" class="space-y-4">
                 <?php if (!empty($workflow['triggers'])): ?>
                     <?php foreach ($workflow['triggers'] as $index => $trigger): ?>
-                    <div class="trigger-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div class="trigger-item p-4 border rounded-lg" style="border-color:var(--border)">
                         <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type de trigger</label>
+                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Type de trigger</label>
                                 <select name="triggers[<?= $index ?>][trigger_type]" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 trigger-type-select"
+                                        class="form-select trigger-type-select"
                                         onchange="updateTriggerConfig(this)">
                                     <option value="consumption" <?= ($trigger['trigger_type'] ?? '') === 'consumption' ? 'selected' : '' ?>>Consumption Started</option>
                                     <option value="document_added" <?= ($trigger['trigger_type'] ?? '') === 'document_added' ? 'selected' : '' ?>>Document Added</option>
@@ -80,20 +80,20 @@
                                     <!-- Filtres communs -->
                                     <div class="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre nom de fichier</label>
+                                            <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre nom de fichier</label>
                                             <input type="text" 
                                                    name="triggers[<?= $index ?>][filter_filename]" 
                                                    value="<?= htmlspecialchars($trigger['filter_filename'] ?? '') ?>"
                                                    placeholder="*.pdf"
-                                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                   class="form-input">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre chemin</label>
+                                            <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre chemin</label>
                                             <input type="text" 
                                                    name="triggers[<?= $index ?>][filter_path]" 
                                                    value="<?= htmlspecialchars($trigger['filter_path'] ?? '') ?>"
                                                    placeholder="/path/to/folder"
-                                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                   class="form-input">
                                         </div>
                                     </div>
                                     
@@ -101,14 +101,14 @@
                                     <div class="scheduled-fields" style="display: <?= ($trigger['trigger_type'] ?? '') === 'scheduled' ? 'block' : 'none' ?>;">
                                         <div class="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Décalage (jours)</label>
+                                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Décalage (jours)</label>
                                                 <input type="number" 
                                                        name="triggers[<?= $index ?>][schedule_offset_days]" 
                                                        value="<?= htmlspecialchars($trigger['schedule_offset_days'] ?? '0') ?>"
-                                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                       class="form-input">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Récurrence</label>
+                                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Récurrence</label>
                                                 <label class="flex items-center">
                                                     <input type="checkbox" 
                                                            name="triggers[<?= $index ?>][schedule_is_recurring]" 
@@ -126,12 +126,12 @@
                     </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="trigger-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div class="trigger-item p-4 border rounded-lg" style="border-color:var(--border)">
                         <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type de trigger</label>
+                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Type de trigger</label>
                                 <select name="triggers[0][trigger_type]" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 trigger-type-select"
+                                        class="form-select trigger-type-select"
                                         onchange="updateTriggerConfig(this)">
                                     <option value="consumption">Consumption Started</option>
                                     <option value="document_added">Document Added</option>
@@ -143,31 +143,31 @@
                                 <div class="space-y-3">
                                     <div class="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre nom de fichier</label>
+                                            <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre nom de fichier</label>
                                             <input type="text" 
                                                    name="triggers[0][filter_filename]" 
                                                    placeholder="*.pdf"
-                                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                   class="form-input">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre chemin</label>
+                                            <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre chemin</label>
                                             <input type="text" 
                                                    name="triggers[0][filter_path]" 
                                                    placeholder="/path/to/folder"
-                                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                   class="form-input">
                                         </div>
                                     </div>
                                     <div class="scheduled-fields" style="display: none;">
                                         <div class="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Décalage (jours)</label>
+                                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Décalage (jours)</label>
                                                 <input type="number" 
                                                        name="triggers[0][schedule_offset_days]" 
                                                        value="0"
-                                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                                       class="form-input">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Récurrence</label>
+                                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Récurrence</label>
                                                 <label class="flex items-center">
                                                     <input type="checkbox" 
                                                            name="triggers[0][schedule_is_recurring]" 
@@ -184,15 +184,15 @@
                     </div>
                 <?php endif; ?>
             </div>
-            <button type="button" onclick="addTrigger()" class="mt-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">
+            <button type="button" onclick="addTrigger()" class="btn-secondary border mt-2 px-4 py-2 text-sm rounded-lg">
                 + Ajouter un trigger
             </button>
         </div>
 
-        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="pt-6 border-t" style="border-color:var(--border)">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Actions</h2>
-                <button type="button" onclick="addAction()" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <h2 class="text-lg font-semibold" style="color:var(--ink)">Actions</h2>
+                <button type="button" onclick="addAction()" class="btn-secondary border px-4 py-2 text-sm rounded-lg">
                     <i class="fas fa-plus mr-1"></i> Ajouter une action
                 </button>
             </div>
@@ -210,11 +210,11 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-            <a href="<?= url('/admin/workflows') ?>" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+        <div class="flex items-center justify-between pt-6 border-t" style="border-color:var(--border)">
+            <a href="<?= url('/admin/workflows') ?>" class="btn-secondary border px-4 py-2 rounded-lg">
                 Annuler
             </a>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
                 Enregistrer
             </button>
         </div>
@@ -243,12 +243,12 @@ function updateTriggerConfig(select) {
 function addTrigger() {
     const container = document.getElementById('triggers-container');
     const html = `
-        <div class="trigger-item p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div class="trigger-item p-4 border rounded-lg" style="border-color:var(--border)">
             <div class="grid grid-cols-1 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type de trigger</label>
+                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Type de trigger</label>
                     <select name="triggers[${triggerIndex}][trigger_type]" 
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100 trigger-type-select"
+                            class="form-select trigger-type-select"
                             onchange="updateTriggerConfig(this)">
                         <option value="consumption">Consumption Started</option>
                         <option value="document_added">Document Added</option>
@@ -260,31 +260,31 @@ function addTrigger() {
                     <div class="space-y-3">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre nom de fichier</label>
+                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre nom de fichier</label>
                                 <input type="text" 
                                        name="triggers[${triggerIndex}][filter_filename]" 
                                        placeholder="*.pdf"
-                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                       class="form-input">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtre chemin</label>
+                                <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Filtre chemin</label>
                                 <input type="text" 
                                        name="triggers[${triggerIndex}][filter_path]" 
                                        placeholder="/path/to/folder"
-                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                       class="form-input">
                             </div>
                         </div>
                         <div class="scheduled-fields" style="display: none;">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Décalage (jours)</label>
+                                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Décalage (jours)</label>
                                     <input type="number" 
                                            name="triggers[${triggerIndex}][schedule_offset_days]" 
                                            value="0"
-                                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100">
+                                           class="form-input">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Récurrence</label>
+                                    <label class="block text-sm font-medium mb-1" style="color:var(--ink-soft)">Récurrence</label>
                                     <label class="flex items-center">
                                         <input type="checkbox" 
                                                name="triggers[${triggerIndex}][schedule_is_recurring]" 
