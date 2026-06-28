@@ -5,57 +5,57 @@ $error = $_GET['error'] ?? '';
 
 <div class="max-w-6xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-800">Gestion des correspondants</h1>
-        <a href="<?= url('/admin/correspondents/create') ?>" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <h1 class="text-2xl font-bold" style="color:var(--ink)">Gestion des correspondants</h1>
+        <a href="<?= url('/admin/correspondents/create') ?>" class="btn btn-primary">
             + Nouveau correspondant
         </a>
     </div>
 
     <?php if ($error === 'has_documents'): ?>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+    <div class="px-4 py-3 rounded" style="background:color-mix(in srgb,var(--red) 12%,transparent);border:1px solid color-mix(in srgb,var(--red) 45%,var(--border));color:var(--red)">
         ⚠️ Impossible de supprimer ce correspondant car il est associé à des documents.
     </div>
     <?php endif; ?>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="ds-card rounded-lg shadow overflow-hidden">
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Match</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Documents</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Nom</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Slug</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Match</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Documents</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium uppercase">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody>
                 <?php if (empty($correspondents)): ?>
                 <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                        Aucun correspondant trouvé. <a href="<?= url('/admin/correspondents/create') ?>" class="text-blue-600 hover:underline">Créer le premier</a>
+                    <td colspan="5" class="px-6 py-4 text-center" style="color:var(--dim)">
+                        Aucun correspondant trouvé. <a href="<?= url('/admin/correspondents/create') ?>" class="hover:underline" style="color:var(--accent)">Créer le premier</a>
                     </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($correspondents as $correspondent): ?>
-                <tr class="hover:bg-gray-50">
+                <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($correspondent['name']) ?></div>
+                        <div class="text-sm font-medium" style="color:var(--ink)"><?= htmlspecialchars($correspondent['name']) ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500"><?= htmlspecialchars($correspondent['slug'] ?? '-') ?></div>
+                        <div class="text-sm" style="color:var(--dim)"><?= htmlspecialchars($correspondent['slug'] ?? '-') ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500"><?= htmlspecialchars($correspondent['match'] ?? '-') ?></div>
+                        <div class="text-sm" style="color:var(--dim)"><?= htmlspecialchars($correspondent['match'] ?? '-') ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        <span class="ds-chip ds-chip--neutral px-2 py-1 text-xs font-medium">
                             <?= (int)$correspondent['document_count'] ?>
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="<?= url('/admin/correspondents/' . $correspondent['id'] . '/edit') ?>" class="text-blue-600 hover:text-blue-900 mr-4">Modifier</a>
+                        <a href="<?= url('/admin/correspondents/' . $correspondent['id'] . '/edit') ?>" class="mr-4" style="color:var(--accent)">Modifier</a>
                         <form method="POST" action="<?= url('/admin/correspondents/' . $correspondent['id'] . '/delete') ?>" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce correspondant ?')">
-                            <button type="submit" class="text-red-600 hover:text-red-900">Supprimer</button>
+                            <button type="submit" style="color:var(--red)">Supprimer</button>
                         </form>
                     </td>
                 </tr>

@@ -4,28 +4,28 @@
 
 <div class="max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Tâches Planifiées</h1>
+        <h1 class="text-2xl font-bold" style="color:var(--ink)">Tâches Planifiées</h1>
         <button onclick="processQueue()" class="btn-primary">
             Traiter la file d'attente
         </button>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
+    <div class="ds-card rounded-lg shadow overflow-hidden">
+        <table class="min-w-full">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nom</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Type</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Planification</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Statut</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Dernière exécution</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Nom</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Planification</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Statut</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Dernière exécution</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Actions</th>
                 </tr>
             </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody>
                 <?php if (empty($tasks)): ?>
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    <td colspan="6" class="px-6 py-4 text-center" style="color:var(--dim)">
                         Aucune tâche planifiée
                     </td>
                 </tr>
@@ -33,36 +33,36 @@
                 <?php foreach ($tasks as $task): ?>
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100"><?= htmlspecialchars($task['name']) ?></div>
+                        <div class="text-sm font-medium" style="color:var(--ink)"><?= htmlspecialchars($task['name']) ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500 dark:text-gray-400"><?= htmlspecialchars($task['task_type']) ?></div>
+                        <div class="text-sm" style="color:var(--dim)"><?= htmlspecialchars($task['task_type']) ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500 dark:text-gray-400"><?= htmlspecialchars($task['schedule_cron']) ?></div>
+                        <div class="text-sm" style="color:var(--dim)"><?= htmlspecialchars($task['schedule_cron']) ?></div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <?php if ($task['is_active']): ?>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Actif</span>
+                        <span class="px-2 py-1 text-xs font-semibold ds-chip ds-chip--green">Actif</span>
                         <?php else: ?>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">Inactif</span>
+                        <span class="px-2 py-1 text-xs font-semibold ds-chip ds-chip--neutral">Inactif</span>
                         <?php endif; ?>
                         <?php if ($task['last_status']): ?>
-                        <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full <?= $task['last_status'] === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                        <span class="ml-2 px-2 py-1 text-xs font-semibold ds-chip <?= $task['last_status'] === 'success' ? 'ds-chip--green' : 'ds-chip--red' ?>">
                             <?= ucfirst($task['last_status']) ?>
                         </span>
                         <?php endif; ?>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm" style="color:var(--dim)">
                         <?= $task['last_run_at'] ? date('d/m/Y H:i', strtotime($task['last_run_at'])) : 'Jamais' ?>
                         <?php if ($task['last_error']): ?>
-                        <div class="text-xs text-red-600 dark:text-red-400 mt-1" title="<?= htmlspecialchars($task['last_error']) ?>">
+                        <div class="text-xs mt-1" style="color:var(--red)" title="<?= htmlspecialchars($task['last_error']) ?>">
                             ⚠ Erreur
                         </div>
                         <?php endif; ?>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="runTask(<?= $task['id'] ?>)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                        <button onclick="runTask(<?= $task['id'] ?>)" style="color:var(--accent)">
                             Exécuter maintenant
                         </button>
                     </td>

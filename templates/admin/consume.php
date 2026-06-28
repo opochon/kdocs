@@ -1,38 +1,48 @@
+<style>
+/* Toggles iOS tokenises (clair + sombre). Stopgap local : aucune classe DS
+   disponible et tailwind.css (build statique) ne compile pas les utilitaires
+   Tailwind a valeur arbitraire de couleur. Candidat a une future .ds-toggle. */
+.cm-toggle { position: relative; width: 2.75rem; height: 1.5rem; background: var(--hover); border-radius: 9999px; transition: background-color .2s; }
+.cm-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 1.25rem; height: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 9999px; transition: all .2s; }
+.peer:checked ~ .cm-toggle { background: var(--accent); }
+.peer:checked ~ .cm-toggle::after { transform: translateX(100%); border-color: var(--surface); }
+.peer:focus ~ .cm-toggle { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+</style>
 <div class="max-w-7xl mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold">Validation des Documents</h1>
-            <p class="text-sm text-gray-500 mt-1">
+            <p class="text-sm mt-1" style="color:var(--dim)">
                 Mode: <strong><?= htmlspecialchars($classifier->getMethod()) ?></strong>
                 <?php if ($classifier->isAIAvailable()): ?>
-                    <span class="text-green-600 ml-2">✓ IA disponible</span>
+                    <span class="ml-2" style="color:var(--green)">✓ IA disponible</span>
                 <?php else: ?>
-                    <span class="text-gray-400 ml-2">○ IA non configurée</span>
+                    <span class="ml-2" style="color:var(--dim)">○ IA non configurée</span>
                 <?php endif; ?>
             </p>
             <?php if ($classifier->isAIAvailable()): ?>
             <div class="mt-2 space-y-2">
                 <div class="flex items-center gap-2">
-                    <label class="text-xs text-gray-600">Mode:</label>
+                    <label class="text-xs" style="color:var(--ink-soft)">Mode:</label>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="ocr-mode-toggle" class="sr-only peer" <?= (isset($_COOKIE['ocr_mode']) && $_COOKIE['ocr_mode'] === 'ai') ? 'checked' : '' ?>>
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        <span class="ml-3 text-xs text-gray-700">
+                        <div class="cm-toggle"></div>
+                        <span class="ml-3 text-xs" style="color:var(--ink-soft)">
                             <span id="ocr-mode-label-left"><?= (isset($_COOKIE['ocr_mode']) && $_COOKIE['ocr_mode'] === 'ai') ? 'IA' : 'OCR' ?></span>
                             <span class="mx-1">/</span>
                             <span id="ocr-mode-label-right"><?= (isset($_COOKIE['ocr_mode']) && $_COOKIE['ocr_mode'] === 'ai') ? 'OCR' : 'IA' ?></span>
                         </span>
                     </label>
-                    <span class="text-xs text-gray-500">
+                    <span class="text-xs" style="color:var(--dim)">
                         (<span id="ocr-mode-status"><?= (isset($_COOKIE['ocr_mode']) && $_COOKIE['ocr_mode'] === 'ai') ? 'IA activée' : 'OCR activé' ?></span>)
                     </span>
                 </div>
                 <div class="flex items-center gap-2 ai-complex-toggle-container" style="display: <?= (isset($_COOKIE['ocr_mode']) && $_COOKIE['ocr_mode'] === 'ai') ? 'none' : 'flex' ?>;">
-                    <label class="text-xs text-gray-600">Utiliser l'IA pour les documents complexes:</label>
+                    <label class="text-xs" style="color:var(--ink-soft)">Utiliser l'IA pour les documents complexes:</label>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="ai-complex-auto-toggle" class="sr-only peer" <?= (isset($_COOKIE['ai_complex_auto']) && $_COOKIE['ai_complex_auto'] === '1') ? 'checked' : '' ?>>
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        <span class="ml-3 text-xs text-gray-700">
+                        <div class="cm-toggle"></div>
+                        <span class="ml-3 text-xs" style="color:var(--ink-soft)">
                             <span id="ai-complex-label"><?= (isset($_COOKIE['ai_complex_auto']) && $_COOKIE['ai_complex_auto'] === '1') ? 'Activé' : 'Désactivé' ?></span>
                         </span>
                     </label>
@@ -41,17 +51,17 @@
             <?php endif; ?>
         </div>
         <div class="flex gap-2">
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+            <span class="px-3 py-1 ds-chip ds-chip--accent text-sm">
                 <?= $filesCount ?> fichier(s) à importer
             </span>
             <form method="POST" action="<?= url('/admin/consume/scan') ?>" class="inline">
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <button type="submit" class="btn btn-primary">
                     🔄 Scanner
                 </button>
             </form>
             <form method="POST" action="<?= url('/admin/consume/rescan') ?>" class="inline" 
                   onsubmit="return confirm('Cette action va réinitialiser les checksums MD5 et re-traiter tous les documents existants. Cela peut prendre du temps. Continuer ?');">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                <button type="submit" class="btn btn-secondary">
                     🔁 Re-scanner les documents
                 </button>
             </form>
@@ -59,13 +69,13 @@
     </div>
     
     <?php if (!empty($_SESSION['flash'])): ?>
-    <div class="mb-4 p-4 rounded <?= $_SESSION['flash']['type'] === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
+    <div class="mb-4 p-4 rounded" style="<?= $_SESSION['flash']['type'] === 'success' ? 'background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green)' : 'background:color-mix(in srgb,var(--amber) 14%,transparent);color:var(--amber)' ?>">
         <?= htmlspecialchars($_SESSION['flash']['message']) ?>
     </div>
     <?php unset($_SESSION['flash']); endif; ?>
     
     <?php if (empty($pending)): ?>
-    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+    <div class="ds-card rounded-lg shadow p-8 text-center" style="color:var(--dim)">
         Aucun document en attente de validation
     </div>
     <?php else: ?>
@@ -75,7 +85,7 @@
             $final = $suggestions['final'] ?? [];
             $hasThumbnail = !empty($doc['thumbnail_url']);
         ?>
-        <div class="bg-white rounded-lg shadow-lg border border-gray-200" id="document-card-<?= $doc['id'] ?>">
+        <div class="ds-card rounded-lg shadow-lg" id="document-card-<?= $doc['id'] ?>">
             <?php include __DIR__ . '/consume_card.php'; ?>
         </div>
         <?php endforeach; ?>
@@ -272,18 +282,18 @@ function showCategoryMenu(event, categoryName, documentId) {
     
     // Créer le menu
     categoryMenu = document.createElement('div');
-    categoryMenu.className = 'fixed bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-50 min-w-[200px]';
+    categoryMenu.className = 'fixed ds-card shadow-lg py-2 z-50 min-w-[200px]';
     categoryMenu.style.left = event.pageX + 'px';
     categoryMenu.style.top = event.pageY + 'px';
     categoryMenu.innerHTML = `
-        <div class="px-4 py-2 text-xs font-semibold text-gray-700 border-b">${categoryName}</div>
-        <button onclick="createAsTag('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">➕ Créer en tant que tag</button>
-        <button onclick="createAsField('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">➕ Créer en tant que champ</button>
+        <div class="px-4 py-2 text-xs font-semibold border-b" style="color:var(--ink-soft)">${categoryName}</div>
+        <button onclick="createAsTag('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">➕ Créer en tant que tag</button>
+        <button onclick="createAsField('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">➕ Créer en tant que champ</button>
         <div class="border-t my-1"></div>
-        <button onclick="mapToTag('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Mapper sur un tag</button>
-        <button onclick="mapToField('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Mapper sur un champ</button>
-        <button onclick="mapToCorrespondent('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Mapper sur un correspondant</button>
-        <button onclick="mapToDocumentType('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Mapper sur un type</button>
+        <button onclick="mapToTag('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Mapper sur un tag</button>
+        <button onclick="mapToField('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Mapper sur un champ</button>
+        <button onclick="mapToCorrespondent('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Mapper sur un correspondant</button>
+        <button onclick="mapToDocumentType('${categoryName}', ${documentId})" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Mapper sur un type</button>
     `;
     
     document.body.appendChild(categoryMenu);
@@ -320,14 +330,14 @@ function showModalDialog(title, content, onConfirm, onCancel = null) {
     overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     
     const modal = document.createElement('div');
-    modal.className = 'bg-white rounded-lg shadow-xl max-w-md w-full mx-4';
+    modal.className = 'ds-card shadow-xl max-w-md w-full mx-4';
     modal.innerHTML = `
         <div class="p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">${title}</h3>
+            <h3 class="text-lg font-semibold mb-4" style="color:var(--ink)">${title}</h3>
             <div class="mb-4">${content}</div>
             <div class="flex justify-end gap-2">
-                ${onCancel ? `<button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">Annuler</button>` : ''}
-                <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Confirmer</button>
+                ${onCancel ? `<button id="modal-cancel" class="btn btn-secondary">Annuler</button>` : ''}
+                <button id="modal-confirm" class="btn btn-primary">Confirmer</button>
             </div>
         </div>
     `;
@@ -363,9 +373,9 @@ function showModalDialog(title, content, onConfirm, onCancel = null) {
 function showNameDialog(title, defaultValue, callback) {
     const inputId = 'modal-name-input-' + Date.now();
     const content = `
-        <label class="block text-sm font-medium text-gray-700 mb-2">Nom:</label>
+        <label class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">Nom:</label>
         <input type="text" id="${inputId}" value="${defaultValue || ''}" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+               class="w-full px-3 py-2 rounded-md shadow-sm"
                placeholder="Entrez un nom..."
                autofocus>
     `;
@@ -397,10 +407,10 @@ function showSelectionDialog(title, items, itemLabel, callback) {
     
     const listId = 'modal-selection-list-' + Date.now();
     const content = `
-        <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
+        <div class="max-h-64 overflow-y-auto border rounded-md" style="border-color:var(--border)">
             <div id="${listId}" class="divide-y">
                 ${items.map((item, index) => `
-                    <label class="block px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                    <label class="block px-4 py-2 ds-row-hover cursor-pointer">
                         <input type="radio" name="modal-selection" value="${item.id}" 
                                class="mr-2" ${index === 0 ? 'checked' : ''}>
                         <span>${itemLabel(item)}</span>
@@ -623,18 +633,18 @@ function showSuggestedTagMenu(event, tagName, documentId) {
     
     // Créer le menu
     suggestedTagMenu = document.createElement('div');
-    suggestedTagMenu.className = 'fixed bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-50 min-w-[250px]';
+    suggestedTagMenu.className = 'fixed ds-card shadow-lg py-2 z-50 min-w-[250px]';
     suggestedTagMenu.style.left = event.pageX + 'px';
     suggestedTagMenu.style.top = event.pageY + 'px';
     suggestedTagMenu.innerHTML = `
-        <div class="px-4 py-2 text-xs font-semibold text-gray-700 border-b">${tagName}</div>
-        <button data-action="create-tag" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">➕ Ajouter comme tag</button>
-        <button data-action="create-field" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">➕ Ajouter comme champ de classification</button>
-        <button data-action="create-correspondent" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">➕ Ajouter comme correspondant</button>
+        <div class="px-4 py-2 text-xs font-semibold border-b" style="color:var(--ink-soft)">${tagName}</div>
+        <button data-action="create-tag" class="w-full text-left px-4 py-2 text-sm ds-row-hover">➕ Ajouter comme tag</button>
+        <button data-action="create-field" class="w-full text-left px-4 py-2 text-sm ds-row-hover">➕ Ajouter comme champ de classification</button>
+        <button data-action="create-correspondent" class="w-full text-left px-4 py-2 text-sm ds-row-hover">➕ Ajouter comme correspondant</button>
         <div class="border-t my-1"></div>
-        <button data-action="map-tag" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Affecter à un tag existant</button>
-        <button data-action="map-field" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Affecter à un champ de classification existant (inclut types de document)</button>
-        <button data-action="map-correspondent" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">🔗 Affecter à un correspondant</button>
+        <button data-action="map-tag" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Affecter à un tag existant</button>
+        <button data-action="map-field" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Affecter à un champ de classification existant (inclut types de document)</button>
+        <button data-action="map-correspondent" class="w-full text-left px-4 py-2 text-sm ds-row-hover">🔗 Affecter à un correspondant</button>
     `;
     
     // Ajouter les gestionnaires d'événements avec stopPropagation pour éviter la fermeture immédiate
@@ -764,7 +774,7 @@ function createSuggestedAsTag(tagName, documentId) {
                     // Transformer le badge en badge "ajouté" avec possibilité de retirer
                     const badge = document.querySelector(`[data-tag="${tagName}"][data-document-id="${documentId}"]`);
                     if (badge) {
-                        badge.className = badge.className.replace('bg-blue-100 text-blue-800', 'bg-green-100 text-green-800');
+                        badge.className = badge.className.replace('ds-chip--accent', 'ds-chip--green');
                         badge.setAttribute('data-tag-added', '1');
                         badge.setAttribute('data-tag-id', tagId);
                         
@@ -776,7 +786,7 @@ function createSuggestedAsTag(tagName, documentId) {
                         // Changer le bouton × en bouton de retrait
                         const removeBtn = badge.querySelector('button');
                         if (removeBtn) {
-                            removeBtn.className = removeBtn.className.replace('text-blue-600', 'text-green-600');
+                            removeBtn.style.color = 'var(--green)';
                             removeBtn.onclick = (e) => {
                                 e.stopPropagation();
                                 removeTagFromDocument(tagName, documentId, tagId);
@@ -792,7 +802,7 @@ function createSuggestedAsTag(tagName, documentId) {
                         const existingBadge = assignedContainer.querySelector(`[data-tag-id="${tagId}"][data-document-id="${documentId}"]`);
                         if (!existingBadge) {
                             const newBadge = document.createElement('div');
-                            newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs hover:bg-opacity-80 transition-colors assigned-tag-badge';
+                            newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 ds-chip ds-chip--neutral text-xs hover:bg-opacity-80 transition-colors assigned-tag-badge';
                             newBadge.setAttribute('data-tag-id', tagId);
                             newBadge.setAttribute('data-tag-name', tagName);
                             newBadge.setAttribute('data-document-id', documentId);
@@ -804,7 +814,7 @@ function createSuggestedAsTag(tagName, documentId) {
                             
                             const button = document.createElement('button');
                             button.type = 'button';
-                            button.className = 'ml-1 text-red-600 hover:text-red-800 hover:font-bold transition-colors';
+                            button.className = 'ml-1 hover:font-bold transition-colors'; button.style.color = 'var(--red)';
                             button.onclick = () => moveTagToSuggestions(tagName, tagId, documentId);
                             button.title = 'Déplacer vers les suggestions';
                             button.innerHTML = '×';
@@ -896,7 +906,7 @@ function removeTagFromDocument(tagName, documentId, tagId) {
             // Retransformer le badge en badge "suggéré" dans les suggestions
             const badge = document.querySelector(`[data-tag="${tagName}"][data-document-id="${documentId}"].suggested-tag-badge`);
             if (badge) {
-                badge.className = badge.className.replace('bg-green-100 text-green-800', 'bg-blue-100 text-blue-800');
+                badge.className = badge.className.replace('ds-chip--green', 'ds-chip--accent');
                 badge.removeAttribute('data-tag-added');
                 badge.removeAttribute('data-tag-id');
                 
@@ -908,7 +918,7 @@ function removeTagFromDocument(tagName, documentId, tagId) {
                 // Remettre le bouton × pour marquer comme non pertinent
                 const removeBtn = badge.querySelector('button');
                 if (removeBtn) {
-                    removeBtn.className = removeBtn.className.replace('text-green-600', 'text-blue-600');
+                    removeBtn.style.color = 'var(--accent)';
                     removeBtn.onclick = () => markTagIrrelevant(tagName, documentId);
                     removeBtn.title = 'Marquer comme non pertinent';
                     removeBtn.innerHTML = '×';
@@ -920,7 +930,7 @@ function removeTagFromDocument(tagName, documentId, tagId) {
                     const existingBadge = suggestedContainer.querySelector(`[data-tag="${tagName}"][data-document-id="${documentId}"]`);
                     if (!existingBadge) {
                         const newBadge = document.createElement('div');
-                        newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-opacity-80 transition-colors suggested-tag-badge cursor-pointer';
+                        newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 ds-chip ds-chip--accent text-xs hover:bg-opacity-80 transition-colors suggested-tag-badge cursor-pointer';
                         newBadge.setAttribute('data-tag', tagName);
                         newBadge.setAttribute('data-document-id', documentId);
                         newBadge.setAttribute('data-has-mapping', '0');
@@ -932,7 +942,7 @@ function removeTagFromDocument(tagName, documentId, tagId) {
                         
                         const button = document.createElement('button');
                         button.type = 'button';
-                        button.className = 'ml-1 text-blue-600 hover:text-red-600 hover:font-bold transition-colors';
+                        button.className = 'ml-1 hover:font-bold transition-colors'; button.style.color = 'var(--accent)';
                         button.onclick = () => markTagIrrelevant(tagName, documentId);
                         button.title = 'Marquer comme non pertinent';
                         button.innerHTML = '×';
@@ -1025,7 +1035,7 @@ function moveTagToSuggestions(tagName, tagId, documentId) {
                 if (!existingBadge) {
                     // Créer un nouveau badge dans les suggestions
                     const newBadge = document.createElement('div');
-                    newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs hover:bg-opacity-80 transition-colors suggested-tag-badge cursor-pointer';
+                    newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 ds-chip ds-chip--accent text-xs hover:bg-opacity-80 transition-colors suggested-tag-badge cursor-pointer';
                     newBadge.setAttribute('data-tag', tagName);
                     newBadge.setAttribute('data-document-id', documentId);
                     newBadge.setAttribute('data-has-mapping', '0');
@@ -1037,7 +1047,7 @@ function moveTagToSuggestions(tagName, tagId, documentId) {
                     
                     const button = document.createElement('button');
                     button.type = 'button';
-                    button.className = 'ml-1 text-blue-600 hover:text-red-600 hover:font-bold transition-colors';
+                    button.className = 'ml-1 hover:font-bold transition-colors'; button.style.color = 'var(--accent)';
                     button.onclick = () => markTagIrrelevant(tagName, documentId);
                     button.title = 'Marquer comme non pertinent';
                     button.innerHTML = '×';
@@ -1129,7 +1139,7 @@ function addTagToDocument(tagId, documentId) {
                 const existingBadge = assignedContainer.querySelector(`[data-tag-id="${tagId}"][data-document-id="${documentId}"]`);
                 if (!existingBadge) {
                     const newBadge = document.createElement('div');
-                    newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs hover:bg-opacity-80 transition-colors assigned-tag-badge';
+                    newBadge.className = 'relative inline-flex items-center gap-1 px-3 py-1 ds-chip ds-chip--neutral text-xs hover:bg-opacity-80 transition-colors assigned-tag-badge';
                     newBadge.setAttribute('data-tag-id', tagId);
                     newBadge.setAttribute('data-tag-name', tagName);
                     newBadge.setAttribute('data-document-id', documentId);
@@ -1141,7 +1151,7 @@ function addTagToDocument(tagId, documentId) {
                     
                     const button = document.createElement('button');
                     button.type = 'button';
-                    button.className = 'ml-1 text-red-600 hover:text-red-800 hover:font-bold transition-colors';
+                    button.className = 'ml-1 hover:font-bold transition-colors'; button.style.color = 'var(--red)';
                     button.onclick = () => moveTagToSuggestions(tagName, tagId, documentId);
                     button.title = 'Déplacer vers les suggestions';
                     button.innerHTML = '×';
@@ -1164,13 +1174,13 @@ function addTagToDocument(tagId, documentId) {
             // Mettre à jour le badge dans les suggestions s'il existe
             const suggestedBadge = document.querySelector(`[data-tag="${tagName}"][data-document-id="${documentId}"].suggested-tag-badge`);
             if (suggestedBadge) {
-                suggestedBadge.className = suggestedBadge.className.replace('bg-blue-100 text-blue-800', 'bg-green-100 text-green-800');
+                suggestedBadge.className = suggestedBadge.className.replace('ds-chip--accent', 'ds-chip--green');
                 suggestedBadge.setAttribute('data-tag-added', '1');
                 suggestedBadge.setAttribute('data-tag-id', tagId);
                 
                 const removeBtn = suggestedBadge.querySelector('button');
                 if (removeBtn) {
-                    removeBtn.className = removeBtn.className.replace('text-blue-600', 'text-green-600');
+                    removeBtn.style.color = 'var(--green)';
                     removeBtn.onclick = (e) => {
                         e.stopPropagation();
                         removeTagFromDocument(tagName, documentId, tagId);
@@ -1263,14 +1273,14 @@ function createSuggestedAsField(tagName, documentId) {
         const defaultCode = tagName.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const codeInputId = 'modal-field-code-input-' + Date.now();
         const codeContent = `
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nom du champ:</label>
-            <div class="mb-3 text-sm text-gray-600">${fieldName}</div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Code du champ:</label>
+            <label class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">Nom du champ:</label>
+            <div class="mb-3 text-sm" style="color:var(--ink-soft)">${fieldName}</div>
+            <label class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">Code du champ:</label>
             <input type="text" id="${codeInputId}" value="${defaultCode}" 
-                   class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                   class="w-full px-3 py-2 rounded-md shadow-sm"
                    placeholder="ex: convention, logement"
                    autofocus>
-            <p class="mt-2 text-xs text-gray-500">Le code est utilisé pour l'identification technique (minuscules, underscores)</p>
+            <p class="mt-2 text-xs" style="color:var(--dim)">Le code est utilisé pour l'identification technique (minuscules, underscores)</p>
         `;
         
         showModalDialog('Code du champ de classification', codeContent, () => {

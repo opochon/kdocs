@@ -32,144 +32,144 @@ try {
 } catch (\Exception $e) {}
 ?>
 
-<div class="flex flex-col bg-white h-full">
+<div class="flex flex-col h-full" style="background:var(--surface)">
     <!-- Header -->
-    <div class="border-b border-gray-200 px-6 py-4">
+    <div class="border-b px-6 py-4">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-lg font-medium text-gray-900">Workflow Designer</h1>
-                <p class="text-sm text-gray-500 mt-1">Créez vos workflows d'approbation visuellement - Style Alfresco</p>
+                <h1 class="text-lg font-medium" style="color:var(--ink)">Workflow Designer</h1>
+                <p class="text-sm mt-1" style="color:var(--dim)">Créez vos workflows d'approbation visuellement - Style Alfresco</p>
             </div>
             <div class="flex items-center gap-2">
-                <button id="save-workflow" class="px-4 py-2 bg-gray-900 text-white text-sm rounded hover:bg-gray-800">
+                <button id="save-workflow" class="btn btn-primary text-sm">
                     <i class="fas fa-save mr-1"></i> Enregistrer
                 </button>
-                <button id="test-workflow" class="px-4 py-2 bg-blue-100 text-blue-700 text-sm rounded hover:bg-blue-200">
+                <button id="test-workflow" class="btn btn-secondary text-sm">
                     <i class="fas fa-play mr-1"></i> Tester
                 </button>
-                <a href="<?= url('/admin/workflows') ?>" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200">
+                <a href="<?= url('/admin/workflows') ?>" class="btn btn-secondary text-sm">
                     <i class="fas fa-arrow-left mr-1"></i> Retour
                 </a>
             </div>
         </div>
     </div>
-    
+
     <div class="flex flex-1 overflow-hidden" style="height: calc(100vh - 200px); min-height: 500px;">
         <!-- Sidebar gauche - Toolbox des nodes -->
-        <div class="w-72 border-r border-gray-200 overflow-y-auto bg-gray-50">
+        <div class="w-72 overflow-y-auto" style="background:var(--rail);border-right:1px solid var(--border)">
             <div class="p-4">
-                <h2 class="text-sm font-medium text-gray-700 mb-3"><i class="fas fa-cubes mr-1"></i> Composants</h2>
-                
+                <h2 class="text-sm font-medium mb-3" style="color:var(--ink-soft)"><i class="fas fa-cubes mr-1"></i> Composants</h2>
+
                 <!-- Déclencheurs -->
                 <div class="mb-4">
-                    <h3 class="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Déclencheurs
+                    <h3 class="text-xs font-medium uppercase mb-2 flex items-center" style="color:var(--dim)">
+                        <span class="w-2 h-2 rounded-full mr-2" style="background:var(--dim)"></span> Déclencheurs
                     </h3>
                     <div class="space-y-1">
                         <?php foreach ($nodeCatalog['triggers'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-blue-100">
-                                    <i class="fas fa-bolt text-xs text-blue-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-bolt text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+
                 <!-- Conditions -->
                 <div class="mb-4">
-                    <h3 class="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center">
-                        <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span> Conditions
+                    <h3 class="text-xs font-medium uppercase mb-2 flex items-center" style="color:var(--dim)">
+                        <span class="w-2 h-2 rounded-full mr-2" style="background:var(--dim)"></span> Conditions
                     </h3>
                     <div class="space-y-1">
                         <?php foreach ($nodeCatalog['conditions'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-yellow-50 hover:border-yellow-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-yellow-100">
-                                    <i class="fas fa-code-branch text-xs text-yellow-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-code-branch text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+
                 <!-- Traitement -->
                 <div class="mb-4">
-                    <h3 class="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center">
-                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Traitement
+                    <h3 class="text-xs font-medium uppercase mb-2 flex items-center" style="color:var(--dim)">
+                        <span class="w-2 h-2 rounded-full mr-2" style="background:var(--dim)"></span> Traitement
                     </h3>
                     <div class="space-y-1">
                         <?php foreach ($nodeCatalog['processing'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-green-50 hover:border-green-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-green-100">
-                                    <i class="fas fa-cog text-xs text-green-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-cog text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+
                 <!-- Actions -->
                 <div class="mb-4">
-                    <h3 class="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center">
-                        <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Actions
+                    <h3 class="text-xs font-medium uppercase mb-2 flex items-center" style="color:var(--dim)">
+                        <span class="w-2 h-2 rounded-full mr-2" style="background:var(--dim)"></span> Actions
                     </h3>
                     <div class="space-y-1">
                         <?php foreach ($nodeCatalog['actions'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-purple-50 hover:border-purple-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-purple-100">
-                                    <i class="fas fa-play text-xs text-purple-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-play text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+
                 <!-- Attentes & Timers -->
                 <div class="mb-4">
-                    <h3 class="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center">
-                        <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> Attentes & Timers
+                    <h3 class="text-xs font-medium uppercase mb-2 flex items-center" style="color:var(--dim)">
+                        <span class="w-2 h-2 rounded-full mr-2" style="background:var(--dim)"></span> Attentes & Timers
                     </h3>
                     <div class="space-y-1">
                         <?php foreach ($nodeCatalog['waits'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-orange-50 hover:border-orange-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-orange-100">
-                                    <i class="fas fa-clock text-xs text-orange-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-clock text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
                         <?php endforeach; ?>
                         <?php foreach ($nodeCatalog['timers'] ?? [] as $node): ?>
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
-                            <div class="flex items-center gap-2 p-2 bg-white rounded border border-gray-200 cursor-move hover:bg-cyan-50 hover:border-cyan-300 transition-colors">
-                                <div class="w-6 h-6 rounded flex items-center justify-center bg-cyan-100">
-                                    <i class="fas fa-hourglass-half text-xs text-cyan-600"></i>
+                            <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
+                                <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
+                                    <i class="fas fa-hourglass-half text-xs" style="color:var(--ink-soft)"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-sm text-gray-700 block truncate"><?= htmlspecialchars($node['name']) ?></span>
+                                    <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
                                 </div>
                             </div>
                         </div>
@@ -178,35 +178,35 @@ try {
                 </div>
             </div>
         </div>
-        
+
         <!-- Canvas central - Workflow Designer -->
-        <div class="flex-1 relative bg-gray-100" style="min-height: 400px;">
+        <div class="flex-1 relative" style="background:var(--app-bg); min-height: 400px;">
             <div id="react-flow-container" class="w-full h-full" style="min-height: 400px;"></div>
-            
+
             <!-- Help overlay -->
-            <div id="help-overlay" class="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 text-xs text-gray-600 max-w-xs">
-                <p class="font-medium text-gray-800 mb-1"><i class="fas fa-info-circle mr-1"></i> Guide rapide</p>
+            <div id="help-overlay" class="absolute bottom-4 left-4 ds-card rounded-lg shadow-lg p-3 text-xs max-w-xs" style="color:var(--ink-soft)">
+                <p class="font-medium mb-1" style="color:var(--ink)"><i class="fas fa-info-circle mr-1"></i> Guide rapide</p>
                 <ul class="space-y-1">
                     <li>• Glissez les composants depuis la gauche</li>
                     <li>• Connectez les sorties (●) aux entrées</li>
                     <li>• Cliquez sur un node pour le configurer</li>
                     <li>• Double-cliquez sur une connexion pour la supprimer</li>
                 </ul>
-                <button onclick="this.parentElement.remove()" class="mt-2 text-blue-600 hover:underline">Masquer</button>
+                <button onclick="this.parentElement.remove()" class="mt-2 hover:underline" style="color:var(--accent)">Masquer</button>
             </div>
         </div>
-        
+
         <!-- Sidebar droite - Configuration du node sélectionné -->
-        <div id="config-panel" class="w-96 border-l border-gray-200 overflow-y-auto bg-white hidden">
+        <div id="config-panel" class="w-96 overflow-y-auto hidden" style="background:var(--surface);border-left:1px solid var(--border)">
             <div class="p-4">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-sm font-medium text-gray-700"><i class="fas fa-sliders-h mr-1"></i> Configuration</h2>
-                    <button id="close-config" class="text-gray-400 hover:text-gray-600">
+                    <h2 class="text-sm font-medium" style="color:var(--ink-soft)"><i class="fas fa-sliders-h mr-1"></i> Configuration</h2>
+                    <button id="close-config" style="color:var(--dim)">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div id="config-content">
-                    <p class="text-sm text-gray-500">Sélectionnez un node pour le configurer</p>
+                    <p class="text-sm" style="color:var(--dim)">Sélectionnez un node pour le configurer</p>
                 </div>
             </div>
         </div>
@@ -232,35 +232,35 @@ window.KDOCS_WORKFLOW_DATA = {
 <script>
 (function() {
     'use strict';
-    
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initDesigner);
     } else {
         initDesigner();
     }
-    
+
     function initDesigner() {
         const container = document.getElementById('react-flow-container');
         if (!container) {
             console.error('Container not found');
             return;
         }
-        
+
         window.workflowDesigner = new WorkflowDesigner('react-flow-container', {
             basePath: window.KDOCS_WORKFLOW_DATA.basePath,
             workflowId: window.KDOCS_WORKFLOW_DATA.workflowId,
             data: window.KDOCS_WORKFLOW_DATA
         });
     }
-    
+
     document.getElementById('save-workflow')?.addEventListener('click', () => {
         window.workflowDesigner?.saveWorkflow();
     });
-    
+
     document.getElementById('test-workflow')?.addEventListener('click', () => {
         alert('Sélectionnez un document pour tester ce workflow');
     });
-    
+
     document.getElementById('close-config')?.addEventListener('click', () => {
         document.getElementById('config-panel')?.classList.add('hidden');
     });
@@ -269,8 +269,8 @@ window.KDOCS_WORKFLOW_DATA = {
 
 <style>
 #workflow-canvas {
-    background: #f3f4f6;
-    background-image: 
+    background: var(--app-bg);
+    background-image:
         linear-gradient(rgba(0,0,0,.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0,0,0,.03) 1px, transparent 1px);
     background-size: 20px 20px;

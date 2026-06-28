@@ -5,17 +5,17 @@
 <div class="max-w-7xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
         <div>
-            <a href="<?= url('/admin/snapshots') ?>" class="text-sm text-blue-600 hover:underline">&larr; Retour aux snapshots</a>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-2"><?= htmlspecialchars($snapshot['name']) ?></h1>
+            <a href="<?= url('/admin/snapshots') ?>" class="text-sm hover:underline" style="color:var(--accent)">&larr; Retour aux snapshots</a>
+            <h1 class="text-2xl font-bold mt-2" style="color:var(--ink)"><?= htmlspecialchars($snapshot['name']) ?></h1>
             <?php if ($snapshot['description']): ?>
-            <p class="text-gray-600 dark:text-gray-400 mt-1"><?= htmlspecialchars($snapshot['description']) ?></p>
+            <p class="mt-1" style="color:var(--ink-soft)"><?= htmlspecialchars($snapshot['description']) ?></p>
             <?php endif; ?>
         </div>
         <div class="flex space-x-2">
-            <button onclick="document.getElementById('restoreModal').classList.remove('hidden')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <button onclick="document.getElementById('restoreModal').classList.remove('hidden')" class="btn btn-primary">
                 Restaurer
             </button>
-            <a href="<?= url('/api/snapshots/' . $snapshot['id'] . '/export') ?>" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <a href="<?= url('/api/snapshots/' . $snapshot['id'] . '/export') ?>" class="btn btn-secondary">
                 Exporter JSON
             </a>
         </div>
@@ -23,7 +23,7 @@
 
     <!-- Flash messages -->
     <?php if (isset($_SESSION['flash'])): ?>
-    <div class="p-4 rounded-lg <?= $_SESSION['flash']['type'] === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' ?>">
+    <div class="p-4 rounded-lg" style="<?= $_SESSION['flash']['type'] === 'success' ? 'background:color-mix(in srgb,var(--green) 10%,transparent);color:var(--green)' : 'background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)' ?>">
         <?= htmlspecialchars($_SESSION['flash']['message']) ?>
     </div>
     <?php unset($_SESSION['flash']); ?>
@@ -31,30 +31,30 @@
 
     <!-- Infos du snapshot -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <div class="text-sm text-gray-600 dark:text-gray-400">Type</div>
-            <div class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+        <div class="ds-card rounded-lg shadow p-4">
+            <div class="text-sm" style="color:var(--ink-soft)">Type</div>
+            <div class="text-lg font-semibold mt-1" style="color:var(--ink)">
                 <?php
                 $typeLabels = ['manual' => 'Manuel', 'auto' => 'Automatique', 'backup' => 'Backup'];
                 echo $typeLabels[$snapshot['snapshot_type']] ?? $snapshot['snapshot_type'];
                 ?>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <div class="text-sm text-gray-600 dark:text-gray-400">Date de creation</div>
-            <div class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+        <div class="ds-card rounded-lg shadow p-4">
+            <div class="text-sm" style="color:var(--ink-soft)">Date de creation</div>
+            <div class="text-lg font-semibold mt-1" style="color:var(--ink)">
                 <?= date('d/m/Y H:i:s', strtotime($snapshot['created_at'])) ?>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <div class="text-sm text-gray-600 dark:text-gray-400">Elements</div>
-            <div class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+        <div class="ds-card rounded-lg shadow p-4">
+            <div class="text-sm" style="color:var(--ink-soft)">Elements</div>
+            <div class="text-lg font-semibold mt-1" style="color:var(--ink)">
                 <?= number_format($snapshot['item_count'] ?? 0) ?>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <div class="text-sm text-gray-600 dark:text-gray-400">Taille</div>
-            <div class="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-1">
+        <div class="ds-card rounded-lg shadow p-4">
+            <div class="text-sm" style="color:var(--ink-soft)">Taille</div>
+            <div class="text-lg font-semibold mt-1" style="color:var(--ink)">
                 <?php
                 $size = $snapshot['total_size'] ?? 0;
                 if ($size >= 1048576) {
@@ -71,30 +71,30 @@
 
     <!-- Delta depuis le snapshot precedent -->
     <?php if ($delta && !empty($delta['changes'])): ?>
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Changements depuis le snapshot precedent</h2>
+    <div class="ds-card rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4" style="color:var(--ink)">Changements depuis le snapshot precedent</h2>
         <div class="grid grid-cols-3 gap-4">
-            <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                <div class="text-sm text-green-600 dark:text-green-400">Ajoutes</div>
-                <div class="text-2xl font-bold text-green-700 dark:text-green-300"><?= $delta['changes']['added'] ?? 0 ?></div>
+            <div class="p-4 rounded-lg" style="background:color-mix(in srgb,var(--green) 10%,transparent)">
+                <div class="text-sm" style="color:var(--green)">Ajoutes</div>
+                <div class="text-2xl font-bold" style="color:var(--green)"><?= $delta['changes']['added'] ?? 0 ?></div>
             </div>
-            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                <div class="text-sm text-blue-600 dark:text-blue-400">Modifies</div>
-                <div class="text-2xl font-bold text-blue-700 dark:text-blue-300"><?= $delta['changes']['modified'] ?? 0 ?></div>
+            <div class="p-4 rounded-lg" style="background:color-mix(in srgb,var(--amber) 10%,transparent)">
+                <div class="text-sm" style="color:var(--amber)">Modifies</div>
+                <div class="text-2xl font-bold" style="color:var(--amber)"><?= $delta['changes']['modified'] ?? 0 ?></div>
             </div>
-            <div class="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
-                <div class="text-sm text-red-600 dark:text-red-400">Supprimes</div>
-                <div class="text-2xl font-bold text-red-700 dark:text-red-300"><?= $delta['changes']['removed'] ?? 0 ?></div>
+            <div class="p-4 rounded-lg" style="background:color-mix(in srgb,var(--red) 10%,transparent)">
+                <div class="text-sm" style="color:var(--red)">Supprimes</div>
+                <div class="text-2xl font-bold" style="color:var(--red)"><?= $delta['changes']['removed'] ?? 0 ?></div>
             </div>
         </div>
     </div>
     <?php endif; ?>
 
     <!-- Filtre par type d'entite -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+    <div class="ds-card rounded-lg shadow p-4">
         <form method="GET" class="flex items-center space-x-4">
-            <label class="text-sm text-gray-600 dark:text-gray-400">Filtrer par type:</label>
-            <select name="entity" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100">
+            <label class="text-sm" style="color:var(--ink-soft)">Filtrer par type:</label>
+            <select name="entity" onchange="this.form.submit()" class="px-3 py-2 rounded-lg">
                 <option value="">Tous</option>
                 <option value="document" <?= $entityType === 'document' ? 'selected' : '' ?>>Documents</option>
                 <option value="folder" <?= $entityType === 'folder' ? 'selected' : '' ?>>Dossiers</option>
@@ -106,57 +106,57 @@
     </div>
 
     <!-- Liste des items -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div class="ds-card rounded-lg shadow overflow-hidden">
         <table class="w-full">
-            <thead class="bg-gray-50 dark:bg-gray-700">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Type</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nom</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Chemin</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Checksum</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Nom</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Chemin</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase">Checksum</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody>
                 <?php if (empty($items)): ?>
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colspan="5" class="px-6 py-8 text-center" style="color:var(--dim)">
                         Aucun element dans ce snapshot.
                     </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($items as $item): ?>
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr>
                     <td class="px-6 py-4">
                         <?php
                         $typeColors = [
-                            'document' => 'bg-blue-100 text-blue-800',
-                            'folder' => 'bg-yellow-100 text-yellow-800',
-                            'tag' => 'bg-green-100 text-green-800',
-                            'correspondent' => 'bg-purple-100 text-purple-800',
-                            'document_type' => 'bg-pink-100 text-pink-800'
+                            'document' => 'ds-chip--neutral',
+                            'folder' => 'ds-chip--neutral',
+                            'tag' => 'ds-chip--neutral',
+                            'correspondent' => 'ds-chip--neutral',
+                            'document_type' => 'ds-chip--neutral'
                         ];
                         ?>
-                        <span class="px-2 py-1 rounded text-xs font-medium <?= $typeColors[$item['entity_type']] ?? 'bg-gray-100 text-gray-800' ?>">
+                        <span class="px-2 py-1 text-xs font-medium ds-chip <?= $typeColors[$item['entity_type']] ?? 'ds-chip--neutral' ?>">
                             <?= ucfirst($item['entity_type']) ?>
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td class="px-6 py-4 text-sm" style="color:var(--ink-soft)">
                         #<?= $item['entity_id'] ?>
                     </td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">
+                    <td class="px-6 py-4 text-sm font-medium" style="color:var(--ink)">
                         <?= htmlspecialchars($item['entity_name'] ?? '-') ?>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td class="px-6 py-4 text-sm" style="color:var(--ink-soft)">
                         <?php if ($item['entity_path']): ?>
-                        <code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        <code class="text-xs px-2 py-1 rounded" style="background:var(--hover)">
                             <?= htmlspecialchars($item['entity_path']) ?>
                         </code>
                         <?php else: ?>
                         -
                         <?php endif; ?>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td class="px-6 py-4 text-sm" style="color:var(--ink-soft)">
                         <?php if ($item['checksum']): ?>
                         <code class="text-xs"><?= substr($item['checksum'], 0, 12) ?>...</code>
                         <?php else: ?>
@@ -173,10 +173,10 @@
 
 <!-- Modal de restauration -->
 <div id="restoreModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+    <div class="ds-card rounded-lg shadow-xl w-full max-w-md p-6">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Restaurer le snapshot</h3>
-            <button onclick="document.getElementById('restoreModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-lg font-bold" style="color:var(--ink)">Restaurer le snapshot</h3>
+            <button onclick="document.getElementById('restoreModal').classList.add('hidden')" style="color:var(--dim)">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -184,25 +184,25 @@
         </div>
         <form method="POST" action="<?= url('/admin/snapshots/' . $snapshot['id'] . '/restore') ?>">
             <div class="space-y-4">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
+                <p class="text-sm" style="color:var(--ink-soft)">
                     Selectionnez les elements a restaurer:
                 </p>
                 <div class="space-y-2">
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="documents" checked class="rounded text-blue-600">
-                        <span class="text-gray-800 dark:text-gray-200">Documents</span>
+                        <input type="checkbox" name="documents" checked class="rounded" style="accent-color:var(--accent)">
+                        <span style="color:var(--ink)">Documents</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="folders" checked class="rounded text-blue-600">
-                        <span class="text-gray-800 dark:text-gray-200">Dossiers</span>
+                        <input type="checkbox" name="folders" checked class="rounded" style="accent-color:var(--accent)">
+                        <span style="color:var(--ink)">Dossiers</span>
                     </label>
                     <label class="flex items-center space-x-2">
-                        <input type="checkbox" name="tags" class="rounded text-blue-600">
-                        <span class="text-gray-800 dark:text-gray-200">Tags</span>
+                        <input type="checkbox" name="tags" class="rounded" style="accent-color:var(--accent)">
+                        <span style="color:var(--ink)">Tags</span>
                     </label>
                 </div>
-                <div class="p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                <div class="p-4 rounded-lg" style="background:color-mix(in srgb,var(--amber) 10%,transparent)">
+                    <p class="text-sm" style="color:var(--amber)">
                         <strong>Attention:</strong> Cette action va creer de nouvelles versions des elements modifies.
                         Les donnees actuelles ne seront pas perdues.
                     </p>
@@ -210,10 +210,10 @@
             </div>
             <div class="mt-6 flex justify-end space-x-3">
                 <button type="button" onclick="document.getElementById('restoreModal').classList.add('hidden')"
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    class="btn btn-secondary">
                     Annuler
                 </button>
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <button type="submit" class="btn btn-primary">
                     Restaurer
                 </button>
             </div>
