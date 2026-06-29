@@ -3,7 +3,56 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-06-28 — migration UI templates de contenu (A–F, multi-agents)
+## Session 2026-06-29 (sprint) — finalisation tests, persona, a11y, chrome-coherence
+
+**Sprint autonome** : commits/push réguliers par lot, arrêt sur rouge → diagnostic.
+Baseline : PHPUnit 247/247, smoke 24/24, Playwright 15/16 (smq-versions = environnemental, SMQ désactivé).
+
+**Lots poussés sur `main`** :
+
+| Lot | Commit | Contenu |
+|-----|--------|---------|
+| Connecteur CMD v4 | `71d472a` | CmdV4Client/IngestEngine/Mapper/Probe + router + tests |
+| Connecteur IA Infomaniak | `8999fa8` | InfomaniakAIService + priorité provider + tests |
+| Correctifs noyau | `bf6b21b` | moteur attribution (ocr_content, bool PDO), JSON API dossiers (embedding), heuristiques dates (regex `\b`→`(?<!\d)`), arborescence (racine vide, dossiers internes masqués), AuthMiddleware 401 JSON |
+| Harness évaluation + specs | `66d47cc` | `tools/eval-full.php` (gros fichiers réels : ingestion/OCR/classification/attribution IA/recherche/personas), `import-lot-controle.php`, `persona.spec.ts`, `pipeline-ui.spec.ts`, `FUNCTIONS-SPEC.md` |
+| Couche a11y axe-core | `3e56023` | `a11y.spec.ts` + remédiation contraste WCAG AA (`--dim`, `--accent`, `--amber-ink`, footer, nav-count actif, compteur sync orange) |
+| Couche chrome-coherence | `1e41c63` | `chrome-coherence.spec.ts` (F-CHROME-01/03/04/05 actifs, 02 fixme, 06/07/08 skip) |
+| Persona étendu | `d68c103` | `persona-preview.spec.ts` (fiche UI + bouton validation + `can_validate` cohérent) |
+| Fix upload `relative_path` | `bc6c075` | `apiUpload` range le doc dans son dossier (F-LIB-03) + pipeline-ui vérifie le rangement |
+
+**Bugs produit corrigés** (découverts par les tests) :
+- Moteur d'attribution cassé (`ocr_content` colonne inexistante, booléens PDO en strict mode) — jamais exercé faute de règles.
+- `GET /api/folders/documents` HTTP 500 (BLOB `embedding` cassait `json_encode`).
+- `apiUpload` ne renseignait pas `relative_path` → doc uploadé invisible dans son dossier + indicateur sync faux.
+- Contraste WCAG AA : `--dim` (4.18), badge accent (4.45), chip amber (2.47), footer, compteur sync orange (3.36).
+
+**Registre de test** (3 couches, `tests/visual/FUNCTIONS-SPEC.md`) :
+- Couche 1 : spec fonctionnelle d'interface (référentiel UI+API+rôle+oracle).
+- Couche 2 : pipeline rôle-agnostique (CLI `eval-full.php` + UI `pipeline-ui.spec.ts`).
+- Couche 3 : persona (rôle-dépendant : `persona.spec.ts` + `persona-preview.spec.ts`) + a11y (`a11y.spec.ts`) + chrome (`chrome-coherence.spec.ts`).
+
+**État final** : PHPUnit 247/247 · smoke 24/24 · **Playwright 31/32** (smq-versions = environnemental, SMQ désactivé dans le serveur dev réutilisé).
+
+**Prochain pas** : (1) F-CHROME-02 alignement SQL compteurs sidebar/dashboard (décision produit) ; (2) instrumenter F-CHROME-06/07/08 ; (3) smq-versions : lancer le serveur avec `SMQ_APP_ENABLED=true` ou `test.use` dédié.
+
+---
+
+## Session 2026-06-29 — connecteurs P2 (CMD v4 ingest factures)
+
+**Fait (lot P2, commité `71d472a`)** :
+- `CmdV4Client` — aligné sur `clearmydocs-v3/cmdv4/docs/API.md` (health, projets, jobs, champs gatés ; port défaut **8510**).
+- `CmdV4CapabilityProbe` — disponibilité v4 + détection PDF facture (`CMD_V4_INVOICE_*`).
+- `CmdV4IngestEngine` — pipeline projet éphémère GED → champs `facture_fournisseur`.
+- `CmdV4ResultMapper` — en-tête → `invoice_extraction_results` + `classification_suggestions`.
+- `IngestEngineRouter` — PDF facture → v4 si up, sinon v3, sinon natif (jamais 500).
+- `ConnectorRegistry` — health v4 via probe (plus `/health` racine).
+- Doc adaptateur : `docs/CMD-V4-CONNECTOR.md` (pointeur vers API.md CMD v4).
+- Tests : smoke **165/165** · unit **240** · PHPStan P2 **[OK]**.
+
+**Prochain pas** : configurer `.env` Infomaniak (clé + secret/product_id) ; lot P3 (`erp-winbiz` contrôle) ; P2.5 schéma CMD v4 lignes/TVA.
+
+---
 
 **Fait :** uniformisation UI **terminée** sur tous les templates de contenu (suite du lot fondation+chrome).
 Pilotage **superviseur + 6 agents** à contexte propre, périmètres disjoints :
@@ -180,4 +229,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-28 — migration UI templates de contenu A–F terminée (superviseur + multi-agents) : tous les templates tokenisés clair/sombre, shim §5 réduit à un reliquat (workflow-designer.js), gates verts (141/230/58/phpstan/Playwright 7/7). Lot fondation + chrome livré le 2026-06-27.*
+*Dernière mise à jour : 2026-06-29 — sprint finalisation tests (harness évaluation + specs Playwright persona/pipeline/a11y/chrome-coherence) + correctifs noyau (attribution, JSON API, heuristiques, upload relative_path) + remédiation contraste WCAG AA. Playwright 31/32 (smq-versions environnemental).*

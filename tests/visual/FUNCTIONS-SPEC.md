@@ -152,25 +152,28 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 
 ---
 
-## Couverture actuelle (état 2026-06-29)
+## Couverture actuelle (état 2026-06-29, sprint finalisation)
 
 | Spec | Où couverte | Statut |
 |------|-------------|--------|
 | F-AUTH-01/02 | `global-setup.ts`, `persona.spec.ts` (login par persona) | ✓ |
 | F-LIB-01/02/08 | `shell.spec.ts`, `persona.spec.ts`, `pipeline-ui.spec.ts` | ✓ |
-| F-LIB-03 | `pipeline-ui.spec.ts` (upload) | ✓ (bug relative_path documenté) |
+| F-LIB-03 | `pipeline-ui.spec.ts` (upload + rangement dossier) | ✓ (fix `relative_path` `bc6c075`) |
 | F-LIB-04 | `eval-full.php` (CLI) | ✓ |
 | F-DOC-01 | `pipeline-ui.spec.ts` (save type) | ✓ |
 | F-DOC-02 | `pipeline-ui.spec.ts` (classify-ai) | ✓ route vivante |
-| F-DOC-04 / F-VAL-01 | `persona.spec.ts` (can-validate par persona) | ✓ |
-| F-DOC-10 | `smq-versions.spec.ts` | ✗ environnement (SMQ désactivé) |
+| F-DOC-04 | `persona-preview.spec.ts` (bouton validation + `can_validate`) | ✓ |
+| F-VAL-01 | `persona.spec.ts` (can-validate par persona) | ✓ |
+| F-DOC-10 | `smq-versions.spec.ts` | ✗ environnemental (SMQ désactivé) |
 | F-SEARCH-01 | `persona.spec.ts`, `pipeline-ui.spec.ts`, `eval-full.php` | ✓ |
-| F-CHROME-01..08 | — | **à instrumenter** |
-| F-A11Y-01..05 | — | **à instrumenter (axe-core)** |
+| F-CHROME-01/03/04/05 | `chrome-coherence.spec.ts` | ✓ |
+| F-CHROME-02 | `chrome-coherence.spec.ts` (fixme) | ✗ incohérence compteurs connue (alignement SQL = décision produit) |
+| F-CHROME-06/07/08 | `chrome-coherence.spec.ts` (skip) | à instrumenter |
+| F-A11Y-01..05 | `a11y.spec.ts` (axe-core, root + par persona) | ✓ (remédiation contraste `3e56023`) |
 
 ## Suite à implémenter
 
-1. **Couche 3 a11y** : `specs/a11y.spec.ts` avec `@axe-core/playwright` — assert `color-contrast` sur shell + modale, par persona.
-2. **Couche 3 chrome** : `specs/chrome-coherence.spec.ts` — F-CHROME-01..08 (compteurs, dossiers masqués, indicateur sync, racine vide).
-3. **Couche 3 persona étendue** : `persona.spec.ts` enrichi pour vérifier l'état désactivé des actions interdites (F-DOC-04 grisé selon rôle) + cohérence d'affichage par persona.
-4. **Fix F-LIB-03** (relative_path) pour rendre F-CHROME-05 vérifiable au vert.
+1. **F-CHROME-02** : aligner les requêtes SQL compteurs sidebar/dashboard/header (décision produit).
+2. **F-CHROME-06/07/08** : heuristiques emoji, bannière `APP_DEBUG`, filtre `test_*`.
+3. **F-DOC-10 / smq-versions** : lancer le serveur avec `SMQ_APP_ENABLED=true` (ou `test.use` dédié) pour activer l'onglet Versions.
+4. **F-DOC-04 UI gating** : le bouton validation est rendu pour tous ; le gating est serveur-side. Pour un disabled visible par rôle, ajouter `:disabled` quand `can_validate=false`.

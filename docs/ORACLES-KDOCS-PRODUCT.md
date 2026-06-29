@@ -75,6 +75,7 @@ PluginRegistry::registerAppRoutes($group);
 | Upload HTTP léger | Persistance fichier + enqueue `QueueService` |
 | Traitement lourd async | `app/workers/queue_worker.php`, jobs `ClassifyDocumentJob`, etc. |
 | Dual-mode CMD | `IngestEngineRouter` — **jamais** appel sidecar en boucle synchrone HTTP request |
+| CMD v4 factures | PDF facture → `CmdV4IngestEngine` si v4 up ; sinon v3 ou natif — **jamais** 500 |
 | Classification unique | `UnifiedClassifier` via `IngestClassificationService` |
 | Pas de sync en fin de route | **Interdit** : OCR/classify/thumbnail dans middleware ou closure `index.php` post-response |
 
