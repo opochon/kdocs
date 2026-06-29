@@ -182,7 +182,7 @@ $success = $_GET['success'] ?? null;
                                 <?php if ($task['status'] !== 'completed' && $task['status'] !== 'cancelled'): ?>
                                     <form method="POST" action="<?= url('/tasks/' . $task['id'] . '/status') ?>" class="inline">
                                         <input type="hidden" name="status" value="completed">
-                                        <button type="submit" class="text-green-600 hover:text-green-900">✓ Terminer</button>
+                                        <button type="submit" style="color:var(--green)">✓ Terminer</button>
                                     </form>
                                 <?php endif; ?>
                             </td>

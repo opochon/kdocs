@@ -291,8 +291,14 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-footer__row p { margin: 0; }
 
 /* =========================================================================
-   5. SHIM SOMBRE — utilitaires Tailwind neutres encore en dur
-   Fait basculer le gros des pages contenu sans reecrire 70 templates.
+   5. SHIM SOMBRE — RELIQUAT (post-migration UI templates 2026-06-28)
+   Les templates de contenu (components, partials, documents, dashboard, search,
+   tasks, chat, admin, auth/erreurs) sont desormais tokenises : ILS NE DEPENDENT
+   PLUS de ce shim (grep utilitaires neutres en dur dans templates/ = 0, hors
+   l'exception onlyoffice-editor.php qui charge Tailwind via CDN).
+   CONSERVE uniquement pour le DOM injecte dynamiquement par
+   public/js/workflow-designer.js (~81 classes neutres en dur) : migrer ce JS
+   tokenisera le dernier reliquat et permettra de retirer ce bloc -> lot ulterieur.
    On NE touche PAS aux ilots volontairement sombres (bg-gray-700/800/900,
    text-white, text-gray-100/200) : ils restent sombres dans les deux modes.
    ========================================================================= */
@@ -390,3 +396,17 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 /* Champ modifie (donnees extraites) : surlignage accent tokenise, applique en JS
    (remplace l'ajout en dur de border-blue-500 / bg-blue-50). */
 .ds-field-changed { border-color: var(--accent); background: var(--accent-soft); }
+
+/* =========================================================================
+   9. ALERTES / BANDEAUX D'ETAT (fond doux + bordure + texte de l'etat)
+   Demande convergente des agents C/D/F : remplace les color-mix inline repetes
+   des encarts d'erreur/succes/avertissement. Natifs clair/sombre (tokens). */
+.ds-alert          { border: 1px solid var(--border); border-radius: var(--radius); }
+.ds-alert--neutral { background: var(--app-bg); border-color: var(--border); color: var(--ink-soft); }
+.ds-alert--success { background: color-mix(in srgb, var(--green) 12%, transparent); border-color: color-mix(in srgb, var(--green) 40%, var(--border)); color: var(--green); }
+.ds-alert--warning { background: color-mix(in srgb, var(--amber) 12%, transparent); border-color: color-mix(in srgb, var(--amber) 40%, var(--border)); color: var(--amber); }
+.ds-alert--danger  { background: color-mix(in srgb, var(--red) 12%, transparent);   border-color: color-mix(in srgb, var(--red) 40%, var(--border));   color: var(--red); }
+
+/* Bouton « supprimer la conversation » (chat) : rouge au survol via le hook JS existant
+   (remplace hover:text-red-500 en dur, sans toucher au selecteur .delete-conv-btn). */
+.delete-conv-btn:hover { color: var(--red); }

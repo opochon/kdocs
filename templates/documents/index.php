@@ -484,7 +484,7 @@ function loadDocumentPreview(docId) {
         })
         .catch(error => {
             console.error('Error loading document:', error);
-            loading.innerHTML = `<p class="text-red-500">Erreur: ${error.message}</p>`;
+            loading.innerHTML = `<p style="color:var(--red)">Erreur: ${error.message}</p>`;
         });
 }
 
@@ -1008,11 +1008,11 @@ async function loadPreviewHistory(docId) {
             const html = await response.text();
             container.innerHTML = html || '<p class="py-4 text-center" style="color:var(--dim)">Aucun historique</p>';
         } else {
-            container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de chargement</p>';
+            container.innerHTML = '<p class="py-4 text-center" style="color:var(--red)">Erreur de chargement</p>';
         }
     } catch (error) {
         console.error('History error:', error);
-        container.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de connexion</p>';
+        container.innerHTML = '<p class="py-4 text-center" style="color:var(--red)">Erreur de connexion</p>';
     }
 }
 
@@ -1035,7 +1035,7 @@ async function loadVersionsPreview(docId) {
         }
         renderVersionsPreview(docId, versions);
     } catch (e) {
-        box.innerHTML = '<p class="text-red-500 py-4 text-center">Erreur de chargement des versions.</p>';
+        box.innerHTML = '<p class="py-4 text-center" style="color:var(--red)">Erreur de chargement des versions.</p>';
     }
 }
 
@@ -1120,10 +1120,10 @@ async function showVersionDiffPreview(docId, fromVersion) {
     try {
         const r = await fetch(`${BASE_PATH}/api/documents/${docId}/versions/diff?from=${fromVersion}&to=${previewVersionsCurrent}&type=text`, { headers: { 'Accept': 'application/json' } });
         const payload = await r.json();
-        if (payload.error) { panel.innerHTML = `<p class="text-red-500 py-2">${escapeHtml(payload.message)}</p>`; return; }
+        if (payload.error) { panel.innerHTML = `<p class="py-2" style="color:var(--red)">${escapeHtml(payload.message)}</p>`; return; }
         renderVersionDiffPreview(panel, fromVersion, previewVersionsCurrent, payload.data || {});
     } catch (e) {
-        panel.innerHTML = '<p class="text-red-500 py-2">Erreur lors du calcul du diff.</p>';
+        panel.innerHTML = '<p class="py-2" style="color:var(--red)">Erreur lors du calcul du diff.</p>';
     }
 }
 
@@ -1159,12 +1159,12 @@ async function loadReadStatusPreview(docId, version) {
         const plural = count > 1 ? 's' : '';
         if (data.has_read) {
             box.innerHTML = `<div class="flex items-center justify-between">
-                <span class="text-green-700">Quittance v${version} : lu le ${escapeHtml((data.read_at || '').substring(0, 16))}</span>
+                <span style="color:var(--green)">Quittance v${version} : lu le ${escapeHtml((data.read_at || '').substring(0, 16))}</span>
                 <span style="color:var(--dim)">${count} lecteur${plural}</span>
             </div>`;
         } else {
             box.innerHTML = `<div class="flex items-center justify-between">
-                <span class="text-amber-700">Quittance v${version} : non lu</span>
+                <span style="color:var(--amber)">Quittance v${version} : non lu</span>
                 <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 rounded ds-btn-soft-green">Marquer comme lu</button>
             </div>`;
         }
@@ -1206,7 +1206,7 @@ async function checkMandatoryRead(docId) {
         const status = (await sr.json()).data || {};
         if (!status.has_read) {
             banner.className = 'mb-2 p-2 rounded bg-amber-50 border border-amber-200 text-xs flex items-center justify-between';
-            banner.innerHTML = `<span class="text-amber-800 font-medium">Lecture obligatoire (v${version}) — non quittancée</span>
+            banner.innerHTML = `<span class="font-medium" style="color:var(--amber)">Lecture obligatoire (v${version}) — non quittancée</span>
                 <button type="button" onclick="markAsReadPreview(${docId}, ${version})" class="px-2 py-1 rounded ds-btn-soft-green">Marquer comme lu</button>`;
         } else {
             banner.className = 'mb-2';
@@ -1998,12 +1998,12 @@ function loadFolderDocuments(path, updateUrl = true) {
             if (data.success) {
                 renderDocuments(data.documents, data.pagination, data.stats, path);
             } else {
-                contentEl.innerHTML = `<div class="text-center py-12 text-red-500">Erreur: ${data.error || 'Inconnue'}</div>`;
+                contentEl.innerHTML = `<div class="text-center py-12" style="color:var(--red)">Erreur: ${data.error || 'Inconnue'}</div>`;
             }
         })
         .catch(error => {
             if (loadingEl) loadingEl.classList.add('hidden');
-            contentEl.innerHTML = `<div class="text-center py-12 text-red-500">Erreur de chargement</div>`;
+            contentEl.innerHTML = `<div class="text-center py-12" style="color:var(--red)">Erreur de chargement</div>`;
             console.error('Error loading documents:', error);
         });
 }
@@ -2140,7 +2140,7 @@ function showIndexingBar(path, total) {
     }
     
     entry.innerHTML = `
-        <svg class="w-4 h-4 text-orange-500 animate-spin" fill="none" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 animate-spin" style="color:var(--amber)" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -2155,10 +2155,10 @@ function hideIndexingBar(path) {
     const entry = document.getElementById(`indexing-${btoa(path).replace(/[^a-zA-Z0-9]/g, '')}`);
     if (entry) {
         entry.innerHTML = `
-            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" style="color:var(--green)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            <span class="text-sm text-green-700">
+            <span class="text-sm" style="color:var(--green)">
                 <strong>${path || 'Racine'}</strong> - Indexation terminée!
             </span>
         `;

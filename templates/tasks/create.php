@@ -20,7 +20,7 @@
     <form method="POST" action="<?= url('/tasks/create') ?>" class="ds-card shadow p-6 space-y-6">
         <div>
             <label for="title" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
-                Titre <span class="text-red-500">*</span>
+                Titre <span style="color:var(--red)">*</span>
             </label>
             <input 
                 type="text" 
