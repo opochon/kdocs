@@ -322,6 +322,33 @@ if (is_file(KDOCS_ROOT . '/templates/admin/index.php')) {
     assert_true('admin hub sans emoji', !preg_match('/[\x{1F300}-\x{1FAFF}]/u', $adminIdx));
 }
 
+echo "\nLot P1 — ConnectorRegistry (connecteurs / plugins)\n";
+$p1Files = [
+    'config/connectors.php',
+    'app/Core/ConnectorRegistry.php',
+    'tests/Unit/Core/ConnectorRegistryTest.php',
+];
+foreach ($p1Files as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if ($vendorOk) {
+    assert_true('Classe ConnectorRegistry chargeable', class_exists('KDocs\\Core\\ConnectorRegistry'));
+    assert_true('ConnectorRegistry::healthAll()', method_exists('KDocs\\Core\\ConnectorRegistry', 'healthAll'));
+}
+$envEx = (string) file_get_contents(KDOCS_ROOT . '/.env.example');
+assert_true('.env.example CMD_V4_ENABLED', str_contains($envEx, 'CMD_V4_ENABLED'));
+assert_true('.env.example CONNECTEURS doc ref', is_file(KDOCS_ROOT . '/docs/CONNECTEURS-PLUGINS.md'));
+if (is_file(KDOCS_ROOT . '/index.php')) {
+    $idxP1 = (string) file_get_contents(KDOCS_ROOT . '/index.php');
+    assert_true('route api admin connectors health', str_contains($idxP1, '/api/admin/connectors/health'));
+    assert_true('health connectors_registry', str_contains($idxP1, 'connectors_registry'));
+}
+if (is_file(KDOCS_ROOT . '/templates/admin/diagnostic.php')) {
+    $diagTpl = (string) file_get_contents(KDOCS_ROOT . '/templates/admin/diagnostic.php');
+    assert_true('diagnostic section connecteurs', str_contains($diagTpl, 'Connecteurs et plugins'));
+    assert_true('diagnostic connectorsHealth var', str_contains($diagTpl, 'connectorsHealth'));
+}
+
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";
 exit($failed > 0 ? 1 : 0);

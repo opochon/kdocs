@@ -56,6 +56,15 @@ PluginRegistry::registerAppRoutes($group);
 
 - WinBiz : `connectors/winbiz/` — données ERP, pas de routes user directes.
 - Bridge HTTP : `WinbizIntegrator` / `k-winbiz-bridge` — **pas** dans le core PHP.
+- Registre unifié : `config/connectors.php` + `ConnectorRegistry::healthAll()` — voir `docs/CONNECTEURS-PLUGINS.md`.
+
+| Règle | Détail |
+|-------|--------|
+| Ingest natif | `ingest-native` **toujours** `available` — GED autonome sans CMD ni WinBiz |
+| Activation | Connecteur `enabled` dans `.env` + `health()` OK → `available` |
+| Plugin `requires` | Ex. `invoices` requiert `erp-winbiz` — sinon statut `blocked`, pas de route UI |
+| Diagnostic | `GET /admin/diagnostic` + `GET /api/admin/connectors/health` exposent le registre |
+| `/health` public | Clé `connectors_registry` — résumé statuts (pas d'écriture ERP implicite) |
 
 ---
 

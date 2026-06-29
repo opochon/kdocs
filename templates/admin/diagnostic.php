@@ -13,6 +13,80 @@
         </button>
     </div>
 
+    <!-- Connecteurs et plugins (registre unifié — lot P1) -->
+    <?php
+    $connHealth = $connectorsHealth ?? ['connectors' => [], 'plugins' => []];
+    $statusChip = static function (string $status): string {
+        return match ($status) {
+            'available' => 'ds-chip ds-chip--green',
+            'disabled' => 'ds-chip ds-chip--neutral',
+            'blocked' => 'ds-chip ds-chip--amber',
+            default => 'ds-chip ds-chip--amber',
+        };
+    };
+    $statusLabel = static function (string $status): string {
+        return match ($status) {
+            'available' => 'DISPONIBLE',
+            'disabled' => 'DÉSACTIVÉ',
+            'blocked' => 'BLOQUÉ',
+            'unavailable' => 'INDISPONIBLE',
+            default => strtoupper($status),
+        };
+    };
+    ?>
+    <div class="ds-card rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-2" style="color:var(--ink)">Connecteurs et plugins</h2>
+        <p class="text-sm mb-4" style="color:var(--dim)">GED autonome — extensions activées par .env et health. Spec : docs/CONNECTEURS-PLUGINS.md</p>
+
+        <h3 class="text-sm font-semibold mb-2" style="color:var(--ink-soft)">Ingest &amp; ERP</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+            <?php foreach ($connHealth['connectors'] ?? [] as $row): ?>
+            <div class="border rounded-lg p-4" style="border-color:var(--border);background:var(--app-bg)">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="font-semibold text-sm"><?= htmlspecialchars((string) ($row['label'] ?? $row['id'])) ?></span>
+                    <span class="px-2 py-0.5 text-xs <?= $statusChip((string) ($row['status'] ?? '')) ?>">
+                        <?= htmlspecialchars($statusLabel((string) ($row['status'] ?? ''))) ?>
+                    </span>
+                </div>
+                <p class="text-xs mb-2" style="color:var(--dim)"><?= htmlspecialchars((string) ($row['description'] ?? '')) ?></p>
+                <ul class="text-xs space-y-0.5" style="color:var(--ink-soft)">
+                    <?php if (!empty($row['url'])): ?>
+                        <li>URL : <?= htmlspecialchars((string) $row['url']) ?></li>
+                    <?php endif; ?>
+                    <?php if (!empty($row['path'])): ?>
+                        <li>Chemin : <?= htmlspecialchars((string) $row['path']) ?></li>
+                    <?php endif; ?>
+                    <?php if (!empty($row['message'])): ?>
+                        <li><?= htmlspecialchars((string) $row['message']) ?></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <h3 class="text-sm font-semibold mb-2" style="color:var(--ink-soft)">Plugins métier</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <?php foreach ($connHealth['plugins'] ?? [] as $row): ?>
+            <div class="border rounded-lg p-4" style="border-color:var(--border);background:var(--app-bg)">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="font-semibold text-sm"><?= htmlspecialchars((string) ($row['label'] ?? $row['id'])) ?></span>
+                    <span class="px-2 py-0.5 text-xs <?= $statusChip((string) ($row['status'] ?? '')) ?>">
+                        <?= htmlspecialchars($statusLabel((string) ($row['status'] ?? ''))) ?>
+                    </span>
+                </div>
+                <?php if (!empty($row['requires'])): ?>
+                    <p class="text-xs" style="color:var(--dim)">Requiert : <?= htmlspecialchars(implode(', ', (array) $row['requires'])) ?></p>
+                <?php endif; ?>
+                <?php if (!empty($row['blocked_by'])): ?>
+                    <p class="text-xs mt-1" style="color:var(--amber)">Bloqué par : <?= htmlspecialchars(implode(', ', (array) $row['blocked_by'])) ?></p>
+                <?php endif; ?>
+                <p class="text-xs mt-1" style="color:var(--ink-soft)"><?= htmlspecialchars((string) ($row['message'] ?? '')) ?></p>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <p class="text-xs mt-3" style="color:var(--dim)">API JSON : <code>GET /api/admin/connectors/health</code></p>
+    </div>
+
     <!-- CASCADE IA -->
     <div class="ds-card rounded-lg shadow p-6">
         <h2 class="text-xl font-bold mb-4" style="color:var(--ink)">CASCADE IA</h2>

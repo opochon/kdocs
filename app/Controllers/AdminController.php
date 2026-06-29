@@ -6,6 +6,7 @@
 namespace KDocs\Controllers;
 
 use KDocs\Core\Config;
+use KDocs\Core\ConnectorRegistry;
 use KDocs\Core\Database;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -304,6 +305,7 @@ class AdminController
             'tools' => $tools,
             'services' => $services,
             'ingestEngine' => (new \KDocs\Services\Ingest\IngestEngineRouter())->getStatus(),
+            'connectorsHealth' => ConnectorRegistry::healthAll(),
         ]);
 
         $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
@@ -425,5 +427,16 @@ class AdminController
         
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * JSON — santé connecteurs et plugins (oracle lot P1).
+     */
+    public function connectorsHealth(Request $request, Response $response): Response
+    {
+        $payload = ConnectorRegistry::healthAll();
+        $response->getBody()->write(json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+
+        return $response->withHeader('Content-Type', 'application/json; charset=utf-8');
     }
 }

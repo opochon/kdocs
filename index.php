@@ -319,6 +319,26 @@ $app->get('/health', function($request, $response) {
         $checks['winbiz_bridge'] = ['status' => 'warning', 'message' => 'WINBIZ_BRIDGE_URL not configured'];
     }
 
+    // 11. Registre connecteurs / plugins (lot P1)
+    try {
+        $registry = \KDocs\Core\ConnectorRegistry::healthAll();
+        $summary = [];
+        foreach ($registry['connectors'] ?? [] as $id => $row) {
+            $summary[$id] = $row['status'] ?? 'unknown';
+        }
+        $pluginSummary = [];
+        foreach ($registry['plugins'] ?? [] as $id => $row) {
+            $pluginSummary[$id] = $row['status'] ?? 'unknown';
+        }
+        $checks['connectors_registry'] = [
+            'status' => 'ok',
+            'connectors' => $summary,
+            'plugins' => $pluginSummary,
+        ];
+    } catch (\Throwable $e) {
+        $checks['connectors_registry'] = ['status' => 'warning', 'message' => $e->getMessage()];
+    }
+
     // Build response
     $result = [
         'status' => $status,
@@ -504,6 +524,7 @@ $app->group('', function ($group) {
     $group->get('/admin', [AdminController::class, 'index']);
     $group->get('/admin/diagnostic', [AdminController::class, 'diagnostic']);
     $group->get('/admin/api-usage', [AdminController::class, 'apiUsage']);
+    $group->get('/api/admin/connectors/health', [AdminController::class, 'connectorsHealth']);
     
     $group->get('/admin/users', [UsersController::class, 'index']);
     $group->get('/admin/users/create', [UsersController::class, 'showForm']);

@@ -129,9 +129,9 @@ Spec détaillée : `docs/WINBIZ-PLUGIN-REPOSITIONNE.md`.
 
 **Chemins** : toujours configurables (poste dev, prod fiduciaire, Tauri futur). Jamais de chemin de dépôt externe en dur dans le code applicatif.
 
-### Registre unifié (cible — à implémenter)
+### Registre unifié (lot P1 — livré 2026-06-29)
 
-Évolution de `PluginRegistry` → **`ConnectorRegistry`** :
+`PluginRegistry` (apps/) + **`ConnectorRegistry`** (ingest + ERP) :
 
 ```php
 // config/connectors.php (cible)
@@ -212,7 +212,7 @@ Pas de réécriture du moteur externe dans PHP. Pas de feature UI sans connecteu
 | Ingest CMD v3 | ✅ `IngestEngineRouter` + sidecar 5101 | Conservé |
 | Ingest CMD v4 | ❌ | Client HTTP + sonde ; schéma facture |
 | `PluginRegistry` apps | ✅ `apps/*/routes.php` | + dépendances `requires` |
-| `ConnectorRegistry` | ❌ | `config/connectors.php` |
+| `ConnectorRegistry` | ✅ P1 | `config/connectors.php`, `app/Core/ConnectorRegistry.php`, API `/api/admin/connectors/health` |
 | Health connecteurs | 🟡 partiel (`/health`, probe CMD) | Page admin unifiée |
 | WinBiz ERP | 🟡 stub `WinBizBridgeClient` | `erp-winbiz` complet |
 | K-Time | 🟡 stub GED + bridge réel | Lien via bridge uniquement |
@@ -289,7 +289,7 @@ HTMLEDITOR_TAXONOMY_PATH=
 | Lot | Contenu | Gate |
 |-----|---------|------|
 | **P0** | Documenter + `.env.example` + health admin | Revue |
-| **P1** | `config/connectors.php` + `ConnectorRegistry::healthAll()` | Diagnostic admin |
+| **P1** | `config/connectors.php` + `ConnectorRegistry::healthAll()` | Diagnostic admin | ✅ 2026-06-29 |
 | **P2** | Client CMD v4 + routage ingest partiel (factures) | Natif seul + v4 OK |
 | **P3** | `erp-winbiz` selon `WINBIZ-PLUGIN-REPOSITIONNE.md` | Contrôle sans écriture |
 | **P4** | Dépendances plugins (`invoices` requires winbiz) | UI masquée si down |

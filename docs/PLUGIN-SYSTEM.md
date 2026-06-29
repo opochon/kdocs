@@ -133,8 +133,8 @@ Hooks **optionnels** (jamais bloquants ingest) :
 
 ## Actions concrètes (backlog)
 
-1. Créer `config/connectors.php` + `ConnectorRegistry::healthAll()`
-2. Page admin **Connecteurs** (état, URL, version)
+1. ~~Créer `config/connectors.php` + `ConnectorRegistry::healthAll()`~~ ✅ P1 2026-06-29
+2. Page admin **Connecteurs** (section intégrée à `/admin/diagnostic`) — ✅ P1
 3. Client CMD v4 + extension `IngestEngineRouter`
 4. `WinBizBridgeClient` complet — spec repositionnée
 5. `INVOICES_APP_ENABLED` gated sur `erp-winbiz` health
