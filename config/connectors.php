@@ -26,6 +26,7 @@ return [
             'enabled_env' => 'CMD_V4_ENABLED',
             'url_env' => 'CMD_V4_URL',
             'path_env' => 'CMD_V4_PATH',
+            'api_doc' => 'cmdv4/docs/API.md',
             'capabilities' => ['extract', 'segment', 'invoice_schema'],
         ],
     ],
