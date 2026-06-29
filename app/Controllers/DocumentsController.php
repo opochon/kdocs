@@ -1635,6 +1635,14 @@ class DocumentsController
                         'created_by' => $user['id'] ?? null,
                     ]);
 
+                    // Document::create n'écrit pas relative_path (colonne hors son INSERT) ->
+                    // on la fixe ici pour que le doc soit rangé dans son dossier cible (sinon
+                    // invisible dans l'arborescence + indicateur sync faux F-CHROME-05).
+                    // NB : `storage_path` n'est pas une colonne réelle (seules file_path/relative_path).
+                    $db = Database::getInstance();
+                    $db->prepare('UPDATE documents SET relative_path = ? WHERE id = ?')
+                        ->execute([$relativePath, $documentId]);
+
                     // Traiter le document (OCR, thumbnail, etc.)
                     try {
                         $processor = new DocumentProcessor();

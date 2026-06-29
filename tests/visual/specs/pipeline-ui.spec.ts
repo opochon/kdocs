@@ -104,15 +104,15 @@ test('UI pipeline : upload → suggestion IA → sauvegarde → recherche', asyn
     expect(saveResp.ok(), `save HTTP ${saveResp.status()}`).toBeTruthy();
     console.log(`[pipeline] save PUT HTTP ${saveResp.status()}`);
 
-    // --- 6. Vérification : le type est persisté en base (via API document par id) ---
-    // NB : on n'utilise pas le listing de dossier car apiUpload ne renseigne pas
-    // relative_path (bug produit : le doc uploadé n'est pas rangé dans le dossier).
-    const showResp = await api.get(`${BASE}/api/documents/${id}`);
-    expect(showResp.ok(), `show HTTP ${showResp.status()}`).toBeTruthy();
-    const showJson = await showResp.json();
-    const savedDoc = showJson.data ?? showJson;
-    expect(savedDoc.document_type_id, 'type non persisté après save').toBeTruthy();
-    console.log(`[pipeline] type persisté : id=${savedDoc.document_type_id} label=${savedDoc.document_type_label ?? '?'}`);
+    // --- 6. Vérification : le doc est rangé dans son dossier (relative_path) + type persisté ---
+    // F-LIB-03 : apiUpload fixe désormais relative_path (was NULL -> doc absent du dossier).
+    const docsResp = await api.get(`${BASE}/api/folders/documents?path=${encodeURIComponent(TARGET_FOLDER)}`);
+    expect(docsResp.ok(), `folders HTTP ${docsResp.status()}`).toBeTruthy();
+    const docsJson = await docsResp.json();
+    const saved = (docsJson.documents as any[]).find((d) => Number(d.id) === Number(id));
+    expect(saved, 'document absent du dossier cible après upload (relative_path non rangé)').toBeTruthy();
+    expect(saved.document_type_id, 'type non persisté après save').toBeTruthy();
+    console.log(`[pipeline] type persisté : id=${saved.document_type_id} label=${saved.document_type_label ?? '?'}`);
 
     // Capture de la fiche.
     await page.screenshot({ path: path.join(SHOTS, 'pipeline-preview.png'), fullPage: true });
