@@ -8,6 +8,8 @@ namespace KDocs\Services;
 
 use KDocs\Core\Database;
 use KDocs\Models\Document;
+use KDocs\Services\DocumentMetadataHeuristics;
+use KDocs\Services\Storage\InternalFolderRegistry;
 
 class FolderIndexerService
 {
@@ -30,6 +32,10 @@ class FolderIndexerService
      */
     public function indexFolder(string $relativePath, bool $async = false): array
     {
+        if (InternalFolderRegistry::isHiddenPath($relativePath)) {
+            return ['success' => false, 'error' => 'Dossier pipeline interne (non exposé dans l\'arborescence)'];
+        }
+
         $relativePath = trim($relativePath, '/');
         $fullPath = $this->basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath) : '');
         
@@ -77,10 +83,16 @@ class FolderIndexerService
                 
                 // Si le fichier existe déjà par checksum, mettre à jour son relative_path
                 if (isset($existingFiles[$checksum])) {
-                    // Mettre à jour le relative_path du document existant
                     $fullRelativePath = $relativePath ? $relativePath . '/' . $filename : $filename;
-                    $updateStmt = $db->prepare("UPDATE documents SET relative_path = ?, file_path = ?, updated_at = NOW() WHERE checksum = ? AND deleted_at IS NULL");
-                    $updateStmt->execute([$fullRelativePath, $filePath, $checksum]);
+                    $meta = DocumentMetadataHeuristics::suggestFromPath($relativePath, $filename);
+                    $updateStmt = $db->prepare("UPDATE documents SET relative_path = ?, file_path = ?, document_date = COALESCE(document_date, ?), title = COALESCE(NULLIF(title, ''), ?), updated_at = NOW() WHERE checksum = ? AND deleted_at IS NULL");
+                    $updateStmt->execute([
+                        $fullRelativePath,
+                        $filePath,
+                        $meta['document_date'] ?? null,
+                        $meta['title'] ?? pathinfo($filename, PATHINFO_FILENAME),
+                        $checksum,
+                    ]);
                     $indexed++; // Compter comme indexé car le chemin a été mis à jour
                     continue;
                 }
@@ -245,7 +257,9 @@ class FolderIndexerService
         }
 
         $fileSize = filesize($filePath);
-        $title = pathinfo($filename, PATHINFO_FILENAME);
+        $meta = DocumentMetadataHeuristics::suggestFromPath($relativePath, $filename);
+        $title = $meta['title'] ?? pathinfo($filename, PATHINFO_FILENAME);
+        $documentDate = $meta['document_date'] ?? null;
         
         // Construire le relative_path complet (dossier + fichier)
         $fullRelativePath = $relativePath ? $relativePath . '/' . $filename : $filename;
@@ -253,8 +267,8 @@ class FolderIndexerService
         $stmt = $db->prepare("
             INSERT INTO documents (
                 title, filename, original_filename, file_path, file_size, 
-                mime_type, checksum, relative_path, status, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'indexed', NOW(), NOW())
+                mime_type, checksum, relative_path, document_date, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'indexed', NOW(), NOW())
         ");
         
         $result = $stmt->execute([
@@ -265,7 +279,8 @@ class FolderIndexerService
             $fileSize,
             $mimeType,
             $checksum,
-            $fullRelativePath
+            $fullRelativePath,
+            $documentDate,
         ]);
         
         if ($result) {

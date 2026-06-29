@@ -116,7 +116,8 @@ $base = Config::basePath();
             <!-- Dossiers logiques -->
             <?php if (!empty($logicalFolders)): ?>
             <div class="px-3 py-2 border-b" style="border-color:var(--border-soft)">
-                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Dossiers logiques</h2>
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Vues filtrées</h2>
+                <p class="text-xs mt-1 leading-snug" style="color:var(--dim)">Raccourcis par type de document — pas des dossiers disque. Gérés en base (<code>logical_folders</code>), pas dans l'arborescence.</p>
             </div>
             <nav class="px-1 py-1">
                 <?php foreach ($logicalFolders as $lfolder): ?>
@@ -141,7 +142,8 @@ $base = Config::basePath();
 
             <!-- Dossiers filesystem - Rendu côté serveur (RAPIDE) -->
             <div class="px-3 py-2 border-t" style="border-color:var(--border-soft)">
-                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Dossiers</h2>
+                <h2 class="sidebar-section-title text-xs font-bold uppercase tracking-wider" style="color:var(--ink)">Arborescence disque</h2>
+                <p class="text-xs mt-1 leading-snug" style="color:var(--dim)">Structure source indexée (consume, toclassify, etc. masqués).</p>
             </div>
             <?= $folderTreeHtml ?? '' ?>
 
@@ -423,7 +425,7 @@ $base = Config::basePath();
 </div>
 
 <!-- Indicateur de progression des indexations -->
-<div id="indexing-status-bar" class="fixed bottom-0 left-0 right-0 border-t-2 shadow-lg px-4 py-3 z-50" style="display: none; background:color-mix(in srgb, var(--amber) 14%, transparent); border-color:var(--amber)">
+<div id="indexing-status-bar" class="fixed bottom-0 left-0 right-0 border-t-2 shadow-lg px-4 py-3 z-50 ds-alert ds-alert--warning" style="display: none;">
     <div class="w-full px-4">
         <div class="flex items-center justify-between mb-2">
             <span class="font-semibold text-sm" style="color:var(--ink)">Indexation en cours</span>
@@ -1990,8 +1992,23 @@ function loadFolderDocuments(path, updateUrl = true) {
     }
     
     // Appeler l'API
-    fetch(`${BASE_PATH}/api/folders/documents?path=${encodeURIComponent(path || '')}`)
-        .then(response => response.json())
+    fetch(`${BASE_PATH}/api/folders/documents?path=${encodeURIComponent(path || '')}`, {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+        .then(async (response) => {
+            const contentType = response.headers.get('content-type') || '';
+            if (!response.ok) {
+                const body = contentType.includes('application/json')
+                    ? JSON.stringify(await response.json())
+                    : (await response.text()).slice(0, 200);
+                throw new Error(`HTTP ${response.status}: ${body}`);
+            }
+            if (!contentType.includes('application/json')) {
+                throw new Error('Réponse non-JSON (session expirée ?)');
+            }
+            return response.json();
+        })
         .then(data => {
             if (loadingEl) loadingEl.classList.add('hidden');
             
@@ -2003,7 +2020,7 @@ function loadFolderDocuments(path, updateUrl = true) {
         })
         .catch(error => {
             if (loadingEl) loadingEl.classList.add('hidden');
-            contentEl.innerHTML = `<div class="text-center py-12" style="color:var(--red)">Erreur de chargement</div>`;
+            contentEl.innerHTML = `<div class="text-center py-12" style="color:var(--red)">Erreur de chargement<br><span class="text-xs" style="color:var(--dim)">${String(error.message || error).replace(/</g, '&lt;')}</span></div>`;
             console.error('Error loading documents:', error);
         });
 }
@@ -2145,7 +2162,7 @@ function showIndexingBar(path, total) {
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
         <span class="text-sm" style="color:var(--ink-soft)">
-            <strong>${path || 'Racine'}</strong> - Indexation de ${total} fichier(s)...
+            <strong>${path || '/'}</strong> - Indexation de ${total} fichier(s)...
         </span>
     `;
 }
@@ -2159,7 +2176,7 @@ function hideIndexingBar(path) {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span class="text-sm" style="color:var(--green)">
-                <strong>${path || 'Racine'}</strong> - Indexation terminée!
+                <strong>${path || '/'}</strong> - Indexation terminée!
             </span>
         `;
         

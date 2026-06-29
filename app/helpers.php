@@ -63,7 +63,14 @@ if (!function_exists('asset')) {
      */
     function asset(string $path): string
     {
-        return url('public/' . ltrim($path, '/'));
+        $relative = ltrim($path, '/');
+        $url = url('public/' . $relative);
+        $file = dirname(__DIR__) . '/public/' . $relative;
+        if (is_file($file)) {
+            $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . filemtime($file);
+        }
+
+        return $url;
     }
 }
 

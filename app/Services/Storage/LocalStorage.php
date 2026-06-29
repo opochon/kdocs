@@ -6,6 +6,7 @@
 namespace KDocs\Services\Storage;
 
 use KDocs\Core\Config;
+use KDocs\Services\Storage\InternalFolderRegistry;
 
 class LocalStorage implements StorageInterface
 {
@@ -27,7 +28,10 @@ class LocalStorage implements StorageInterface
         
         // Ignorer uniquement les dossiers système (pas les dossiers utilisateur)
         $ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
-        $this->ignoreFolders = is_array($ignoreFolders) ? $ignoreFolders : (is_string($ignoreFolders) ? explode(',', $ignoreFolders) : ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db']);
+        $this->ignoreFolders = array_values(array_unique(array_merge(
+            is_array($ignoreFolders) ? $ignoreFolders : (is_string($ignoreFolders) ? explode(',', $ignoreFolders) : []),
+            InternalFolderRegistry::hiddenNames()
+        )));
     }
     
     public function readDirectory(string $relativePath = '', bool $includeSubfolders = false): array

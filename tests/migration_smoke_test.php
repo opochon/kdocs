@@ -205,6 +205,8 @@ echo "\nLot IA — UnifiedClassifier ingest\n";
 assert_true('ClassificationResult.php', is_file(KDOCS_ROOT . '/app/DTO/ClassificationResult.php'));
 assert_true('GedNativeClassifierAdapter.php', is_file(KDOCS_ROOT . '/app/Adapters/GedNativeClassifierAdapter.php'));
 assert_true('InfomaniakClassifierAdapter.php', is_file(KDOCS_ROOT . '/app/Adapters/InfomaniakClassifierAdapter.php'));
+assert_true('InfomaniakAIService.php', is_file(KDOCS_ROOT . '/app/Services/InfomaniakAIService.php'));
+assert_true('InternalFolderRegistry.php', is_file(KDOCS_ROOT . '/app/Services/Storage/InternalFolderRegistry.php'));
 assert_true('IngestClassificationService.php', is_file(KDOCS_ROOT . '/app/Services/Classification/IngestClassificationService.php'));
 assert_true('ClassifyDocumentJob.php', is_file(KDOCS_ROOT . '/app/Jobs/ClassifyDocumentJob.php'));
 assert_true('tests Unit UnifiedClassifierTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/Classifiers/UnifiedClassifierTest.php'));
@@ -348,6 +350,39 @@ if (is_file(KDOCS_ROOT . '/templates/admin/diagnostic.php')) {
     assert_true('diagnostic section connecteurs', str_contains($diagTpl, 'Connecteurs et plugins'));
     assert_true('diagnostic connectorsHealth var', str_contains($diagTpl, 'connectorsHealth'));
 }
+
+echo "\nLot P2 — CMD v4 client + routage ingest factures\n";
+$p2Files = [
+    'app/Services/Ingest/CmdV4Client.php',
+    'app/Services/Ingest/CmdV4CapabilityProbe.php',
+    'app/Services/Ingest/CmdV4IngestEngine.php',
+    'app/Services/Ingest/CmdV4ResultMapper.php',
+    'tests/Unit/Services/Ingest/CmdV4CapabilityProbeTest.php',
+    'tests/Unit/Services/Ingest/CmdV4ResultMapperTest.php',
+];
+foreach ($p2Files as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if ($vendorOk) {
+    assert_true('Classe CmdV4Client chargeable', class_exists('KDocs\\Services\\Ingest\\CmdV4Client'));
+    assert_true('Classe CmdV4CapabilityProbe chargeable', class_exists('KDocs\\Services\\Ingest\\CmdV4CapabilityProbe'));
+    assert_true('Classe CmdV4IngestEngine chargeable', class_exists('KDocs\\Services\\Ingest\\CmdV4IngestEngine'));
+    assert_true('Classe CmdV4ResultMapper chargeable', class_exists('KDocs\\Services\\Ingest\\CmdV4ResultMapper'));
+}
+$envExP2 = (string) file_get_contents(KDOCS_ROOT . '/.env.example');
+assert_true('.env.example CMD_V4_INVOICE_ENABLED', str_contains($envExP2, 'CMD_V4_INVOICE_ENABLED'));
+$routerSrc = (string) file_get_contents(KDOCS_ROOT . '/app/Services/Ingest/IngestEngineRouter.php');
+assert_true('IngestEngineRouter référence CmdV4IngestEngine', str_contains($routerSrc, 'CmdV4IngestEngine'));
+assert_true('ConnectorRegistry utilise CmdV4CapabilityProbe', str_contains(
+    (string) file_get_contents(KDOCS_ROOT . '/app/Core/ConnectorRegistry.php'),
+    'CmdV4CapabilityProbe'
+));
+
+echo "\nLot UI — design-system tokens (:root lisible)\n";
+$dsCss = (string) file_get_contents(KDOCS_ROOT . '/public/css/design-system.css');
+assert_true('design-system sans sequence */ cassee dans commentaire', !str_contains($dsCss, '--bg-*/'));
+assert_true('design-system html --app-bg', str_contains($dsCss, 'html {') && str_contains($dsCss, '--app-bg:'));
+assert_true('design-system html fallback', str_contains($dsCss, 'html { background: var(--app-bg)'));
 
 echo "\n" . str_repeat('-', 60) . "\n";
 echo "Résultat : $passed passés, $failed échoués\n";

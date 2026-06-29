@@ -12,6 +12,7 @@ use KDocs\Services\DocumentMapper;
 use KDocs\Services\FolderIndexService;
 use KDocs\Services\IndexingService;
 use KDocs\Services\QueueService;
+use KDocs\Services\Storage\InternalFolderRegistry;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -64,10 +65,12 @@ class FoldersApiController
                 if ($item === '.' || $item === '..' || $item[0] === '.') {
                     continue;
                 }
-                
+                if (InternalFolderRegistry::isHiddenFolderName($item)) {
+                    continue;
+                }
+
                 $itemFullPath = $fullParentPath . DIRECTORY_SEPARATOR . $item;
-                
-                // Seulement les dossiers
+
                 if (!is_dir($itemFullPath)) {
                     continue;
                 }
@@ -152,8 +155,20 @@ class FoldersApiController
     
     private function jsonResponse(Response $response, array $data, int $status = 200): Response
     {
-        $response->getBody()->write(json_encode($data));
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false) {
+            error_log('FoldersApiController::jsonResponse - ' . json_last_error_msg());
+            $json = json_encode(['success' => false, 'error' => 'Encodage JSON impossible']);
+        }
+        $response->getBody()->write($json);
         return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
+    }
+
+    /** Retire les colonnes binaires / lourdes avant réponse API liste. */
+    private function sanitizeDocumentRowForApi(array $doc): array
+    {
+        unset($doc['embedding'], $doc['ocr_text'], $doc['content']);
+        return $doc;
     }
     
     /**
@@ -727,6 +742,9 @@ class FoldersApiController
                 }
             }
             
+            // Retirer embedding (BLOB) et champs lourds — sinon json_encode échoue (HTTP 500)
+            $dbDocuments = array_map(fn(array $row) => $this->sanitizeDocumentRowForApi($row), $dbDocuments);
+
             // 3. Fusionner et paginer
             $allDocuments = array_merge($dbDocuments, $physicalDocuments);
             $total = count($allDocuments);

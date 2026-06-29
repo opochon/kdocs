@@ -25,8 +25,20 @@ class AuthMiddleware implements MiddlewareInterface
 
 
         if (!$user) {
-            // Rediriger vers login
             $basePath = Config::basePath();
+            $path = $request->getUri()->getPath();
+            $apiPath = $basePath !== '' ? str_replace($basePath, '', $path) : $path;
+            if (str_starts_with($apiPath, '/api/')) {
+                $response = new \Slim\Psr7\Response();
+                $response->getBody()->write(json_encode([
+                    'success' => false,
+                    'error' => 'Non authentifié',
+                ], JSON_UNESCAPED_UNICODE));
+                return $response
+                    ->withHeader('Content-Type', 'application/json; charset=utf-8')
+                    ->withStatus(401);
+            }
+
             $response = new \Slim\Psr7\Response();
             return $response
                 ->withHeader('Location', $basePath . '/login')

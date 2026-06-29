@@ -7,8 +7,8 @@
  *
  * Strategie de consolidation (4 feuilles -> 1 palette) :
  *  1. Tokens canoniques Karbonic sur :root (clair) et .dark (sombre).
- *  2. Alias des variables legacy (theme.css --color-*, app.css --primary-color/
- *     --bg-*/--text-*) vers les tokens canoniques : toutes les regles existantes
+ *  2. Alias des variables legacy (theme.css --color-*, app.css primary/bg/text)
+ *     vers les tokens canoniques : toutes les regles existantes
  *     adoptent la palette Karbonic, y compris en sombre, sans reecriture.
  *  3. Overrides cibles la ou la semantique differe (action primaire = anthracite,
  *     le bleu n'est plus qu'un accent focus/liens).
@@ -20,7 +20,7 @@
 /* =========================================================================
    1. TOKENS CANONIQUES — CLAIR
    ========================================================================= */
-:root {
+html {
   /* fonds */
   --app-bg:#f7f7f8;        /* fond applicatif general */
   --paper:#ffffff;         /* surface de contenu (apercu document) */
@@ -136,6 +136,7 @@
 
 /* Coque applicative tokenisee (remplace bg-gray-50 du layout). */
 .ds-shell { background: var(--app-bg); color: var(--ink); }
+html { background: var(--app-bg); color: var(--ink); }
 
 /* Action primaire = anthracite (le doc : jamais bleue). On bat la specificite
    des regles app.css (button.btn-primary / a.btn-primary) en chargeant apres
@@ -248,7 +249,7 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
   border-radius: 999px; background: var(--accent-soft); color: var(--accent);
   flex-shrink: 0;
 }
-.ds-nav-badge--alert { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
+.ds-nav-badge--alert { background: color-mix(in srgb, var(--red) 22%, var(--surface)); color: var(--red); }
 
 /* Bloc utilisateur (pied de sidebar). */
 .ds-userbox { padding: 12px 14px; border-top: 1px solid var(--border); background: var(--rail); }
@@ -367,9 +368,9 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 9999px; }
 .ds-chip--neutral { background: var(--hover); color: var(--ink-soft); }
 .ds-chip--accent  { background: var(--accent-soft); color: var(--accent); }
-.ds-chip--green   { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
-.ds-chip--amber   { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--amber); }
-.ds-chip--red     { background: color-mix(in srgb, var(--red) 15%, transparent);   color: var(--red); }
+.ds-chip--green   { background: color-mix(in srgb, var(--green) 22%, var(--surface)); color: var(--green); }
+.ds-chip--amber   { background: color-mix(in srgb, var(--amber) 24%, var(--surface)); color: var(--amber); }
+.ds-chip--red     { background: color-mix(in srgb, var(--red) 22%, var(--surface));   color: var(--red); }
 
 /* --- Boutons d'action a code couleur d'etat (valider / refuser / n.a.) ---
    Solides = etat actif ; doux = etat selectionnable inactif. Texte clair
@@ -380,10 +381,10 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-btn-red:hover:not(:disabled)     { filter: brightness(1.08); }
 .ds-btn-neutral { background: var(--dim);   color: var(--color-text-inverse, #fff); border: 1px solid transparent; }
 .ds-btn-neutral:hover:not(:disabled) { filter: brightness(1.08); }
-.ds-btn-soft-green   { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
-.ds-btn-soft-green:hover   { background: color-mix(in srgb, var(--green) 24%, transparent); }
-.ds-btn-soft-red     { background: color-mix(in srgb, var(--red) 14%, transparent);   color: var(--red); }
-.ds-btn-soft-red:hover     { background: color-mix(in srgb, var(--red) 24%, transparent); }
+.ds-btn-soft-green   { background: color-mix(in srgb, var(--green) 20%, var(--surface)); color: var(--green); }
+.ds-btn-soft-green:hover   { background: color-mix(in srgb, var(--green) 30%, var(--surface)); }
+.ds-btn-soft-red     { background: color-mix(in srgb, var(--red) 20%, var(--surface));   color: var(--red); }
+.ds-btn-soft-red:hover     { background: color-mix(in srgb, var(--red) 30%, var(--surface)); }
 .ds-btn-soft-neutral { background: var(--hover); color: var(--ink-soft); }
 .ds-btn-soft-neutral:hover { background: var(--active); }
 
@@ -403,9 +404,9 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
    des encarts d'erreur/succes/avertissement. Natifs clair/sombre (tokens). */
 .ds-alert          { border: 1px solid var(--border); border-radius: var(--radius); }
 .ds-alert--neutral { background: var(--app-bg); border-color: var(--border); color: var(--ink-soft); }
-.ds-alert--success { background: color-mix(in srgb, var(--green) 12%, transparent); border-color: color-mix(in srgb, var(--green) 40%, var(--border)); color: var(--green); }
-.ds-alert--warning { background: color-mix(in srgb, var(--amber) 12%, transparent); border-color: color-mix(in srgb, var(--amber) 40%, var(--border)); color: var(--amber); }
-.ds-alert--danger  { background: color-mix(in srgb, var(--red) 12%, transparent);   border-color: color-mix(in srgb, var(--red) 40%, var(--border));   color: var(--red); }
+.ds-alert--success { background: color-mix(in srgb, var(--green) 20%, var(--surface)); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); color: var(--green); }
+.ds-alert--warning { background: color-mix(in srgb, var(--amber) 22%, var(--surface)); border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); color: var(--amber); }
+.ds-alert--danger  { background: color-mix(in srgb, var(--red) 20%, var(--surface));   border-color: color-mix(in srgb, var(--red) 45%, var(--border));   color: var(--red); }
 
 /* Bouton « supprimer la conversation » (chat) : rouge au survol via le hook JS existant
    (remplace hover:text-red-500 en dur, sans toucher au selecteur .delete-conv-btn). */

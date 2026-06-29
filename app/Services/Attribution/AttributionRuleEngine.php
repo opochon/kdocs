@@ -188,7 +188,8 @@ class AttributionRuleEngine
             return null;
         }
 
-        // Charger le contenu OCR si disponible
+        // Charger le contenu OCR si disponible. La colonne réelle est `content`
+        // (l'ancien code référençait `ocr_content` qui n'existe pas en base → SQLSTATE 42S22).
         if (empty($document['ocr_content'])) {
             $document['ocr_content'] = $this->getOcrContent($documentId);
         }
@@ -197,15 +198,15 @@ class AttributionRuleEngine
     }
 
     /**
-     * Récupère le contenu OCR d'un document
+     * Récupère le contenu (OCR/extraction) d'un document.
      */
     private function getOcrContent(int $documentId): string
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT ocr_content FROM documents WHERE id = ?");
+        $stmt = $db->prepare("SELECT content FROM documents WHERE id = ?");
         $stmt->execute([$documentId]);
         $result = $stmt->fetch();
-        return $result ? ($result['ocr_content'] ?? '') : '';
+        return $result ? ((string)($result['content'] ?? '')) : '';
     }
 
     /**

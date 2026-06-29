@@ -7,12 +7,13 @@
 namespace KDocs\Helpers;
 
 use KDocs\Core\Database;
+use KDocs\Services\Storage\InternalFolderRegistry;
 
 class FolderTreeHelper
 {
     private string $basePath;
     private array $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
-    private array $ignoreFolders = ['.git', 'node_modules', '__MACOSX', 'Thumbs.db'];
+    private array $ignoreFolders;
     private string $baseUrl;
     private ?string $currentFolderId;
     private ?string $currentFolderPath;
@@ -31,6 +32,7 @@ class FolderTreeHelper
         $this->currentFolderId = $currentFolderId;
         $this->currentFolderPath = $currentFolderPath ? trim($currentFolderPath, '/') : null;
         $this->maxDepth = $maxDepth;
+        $this->ignoreFolders = InternalFolderRegistry::hiddenNames();
         
         // Pré-charger les comptages DB pour tous les dossiers (une seule requête)
         $this->preloadDbCounts();
@@ -91,7 +93,7 @@ class FolderTreeHelper
         
         // Toujours charger la racine récursivement (forceRecursive = true)
         // Mais renderFolder() ne chargera récursivement que les dossiers dans le chemin actif
-        $html .= $this->renderFolder('', 'Racine', 0, true);
+        $html .= $this->renderFolder('', '', 0, true);
         
         $html .= '</nav>';
         
@@ -107,7 +109,7 @@ class FolderTreeHelper
      */
     public function renderTreeOnly(): string
     {
-        return $this->renderFolder('', 'Racine', 0, true);
+        return $this->renderFolder('', '', 0, true);
     }
     
     /**
@@ -143,7 +145,7 @@ class FolderTreeHelper
             if ($item === '.' || $item === '..' || $item[0] === '.') {
                 continue;
             }
-            if (in_array($item, $this->ignoreFolders)) {
+            if (in_array($item, $this->ignoreFolders, true) || InternalFolderRegistry::isHiddenFolderName($item)) {
                 continue;
             }
             
@@ -207,8 +209,10 @@ class FolderTreeHelper
         $html .= '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>';
         $html .= '</svg>';
         
-        // Nom du dossier (lien) - AJAX enabled
-        $html .= '<a href="' . htmlspecialchars($url) . '" class="flex-1 truncate folder-link" data-ajax-load="true" data-path="' . htmlspecialchars($relativePath) . '">' . htmlspecialchars($name) . '</a>';
+        // Nom du dossier (lien) — racine = chemin vide, pas de libellé « Racine »
+        $label = $name !== '' ? htmlspecialchars($name) : '<span class="folder-root-label" aria-hidden="true"></span>';
+        $aria = $relativePath === '' ? ' title="/" aria-label="Racine du stockage"' : '';
+        $html .= '<a href="' . htmlspecialchars($url) . '" class="flex-1 truncate folder-link' . ($relativePath === '' ? ' folder-link--root' : '') . '" data-ajax-load="true" data-path="' . htmlspecialchars($relativePath) . '"' . $aria . '>' . $label . '</a>';
         
         // Compteur avec indicateur d'état
         $html .= '<span class="folder-count text-xs ml-1 flex-shrink-0">' . $countDisplay . '</span>';
@@ -530,7 +534,7 @@ class FolderTreeHelper
         const rootDiv = document.createElement('div');
         rootDiv.className = 'move-target px-2 py-1 rounded cursor-pointer hover:bg-blue-100 flex items-center gap-1';
         rootDiv.dataset.path = '';
-        rootDiv.innerHTML = '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg> Racine';
+        rootDiv.innerHTML = '<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg> <span aria-label="Racine"></span>';
         rootDiv.onclick = () => selectMoveTarget('');
         container.appendChild(rootDiv);
         
@@ -816,7 +820,8 @@ class FolderTreeHelper
 })();
 </script>
 <style>
-.folder-arrow { transition: transform 0.2s; }
+.folder-link--root { min-width: 0.5rem; min-height: 1rem; }
+.folder-root-label { display: inline-block; min-width: 0.25rem; }
 .rotate-90 { transform: rotate(90deg); }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .animate-spin { animation: spin 1s linear infinite; }

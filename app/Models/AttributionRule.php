@@ -123,8 +123,8 @@ class AttributionRule
             $data['name'],
             $data['description'] ?? null,
             $data['priority'] ?? 100,
-            $data['is_active'] ?? true,
-            $data['stop_on_match'] ?? true,
+            (int)($data['is_active'] ?? true),
+            (int)($data['stop_on_match'] ?? true),
             $data['created_by'] ?? null
         ]);
 
@@ -311,7 +311,7 @@ class AttributionRule
         $stmt->execute([
             $ruleId,
             $documentId,
-            $matched,
+            (int)$matched,
             json_encode($conditionsEvaluated),
             json_encode($actionsApplied),
             $executionTimeMs
