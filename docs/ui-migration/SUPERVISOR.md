@@ -19,17 +19,21 @@ sombre transitoire. Découpage par **priorité produit** :
 
 ## Tableau de statut
 
-> **Baseline : `e999daa`** (fondation + chrome). **État actuel : tout `À FAIRE` (clear).**
+> **Baseline : `e999daa`** (fondation + chrome). **Migration A–F TERMINÉE le 2026-06-28** (superviseur + multi-agents).
+> Socle `head.php` `69de409` · A `f492e4d` · F `867438f` · C `12345c1` · D `afbdf4e` · B `0d1f570`
+> (+ suppr. `index_clean` `d365a22`) · E `ebedb87` · phase finale `a816992`.
+> Gates verts : migration_smoke 141/141, phpunit 230+58, phpstan [OK], Playwright 7/7.
 
 | Agent | Portée | Prio | Dépend de | Statut | Commit |
 |-------|--------|------|-----------|--------|--------|
-| **A** — Composants & partials | `components/ui/*`, `components/*`, `partials/*` (hors chrome) | P1 ⭐transverse | — | `À FAIRE` | — |
-| **B** — Documents (cœur) | `documents/*` | P1 | A | `À FAIRE` | — |
-| **C** — Dashboard / Recherche / Tâches / Chat | `dashboard/*`, `search/*`, `tasks/*`, `chat/*` | P1 / P3 | A | `À FAIRE` | — |
-| **D** — Admin : paramètres & formulaires | `admin/settings`, `admin/*_form`, `…/editor`, `…/form` | P2 | A | `À FAIRE` | — |
-| **E** — Admin : listes & outillage | `admin/{listes,outillage}`, `workflow/designer` | P2 / P3 | A | `À FAIRE` | — |
-| **F** — Auth & erreurs | `auth/login`, `errors/*` | reste | — | `À FAIRE` | — |
-| **★ Finale** — retrait shim + Chart.js + densité + audit index_clean | transverse | reste | A–F | `À FAIRE` | — |
+| **A** — Composants & partials | `components/ui/*`, `components/*`, `partials/*` (hors chrome) | P1 ⭐transverse | — | `FAIT` | `f492e4d` |
+| **B** — Documents (cœur) | `documents/*` | P1 | A | `FAIT` | `0d1f570` |
+| **C** — Dashboard / Recherche / Tâches / Chat | `dashboard/*`, `search/*`, `tasks/*`, `chat/*` | P1 / P3 | A | `FAIT` | `12345c1` |
+| **D** — Admin : paramètres & formulaires | `admin/settings`, `admin/*_form`, `…/editor`, `…/form` | P2 | A | `FAIT` | `afbdf4e` |
+| **E** — Admin : listes & outillage | `admin/{listes,outillage}`, `workflow/designer` | P2 / P3 | A | `FAIT` | `ebedb87` |
+| **F** — Auth & erreurs | `auth/login`, `errors/*` | reste | — | `FAIT` | `867438f` |
+| **★ Finale** — sweep couleurs-état + `.ds-alert` + shim §5 documenté + audit/suppr. index_clean | transverse | reste | A–F | `FAIT` | `a816992` |
+| _Reste (lots ultérieurs)_ — migrer `workflow-designer.js` → retrait shim ; thème Chart.js ; densité §6 | transverse | — | ★ | `À FAIRE` | — |
 
 ## Ordre conseillé & dépendances
 

@@ -3,6 +3,26 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-06-28 — migration UI templates de contenu (A–F, multi-agents)
+
+**Fait :** uniformisation UI **terminée** sur tous les templates de contenu (suite du lot fondation+chrome).
+Pilotage **superviseur + 6 agents** à contexte propre, périmètres disjoints :
+
+- **Socle `head.php`** (`69de409`) : `<head>` centralisé (corrige `/mes-taches`, `404/500` qui restaient hors design system).
+- **A** composants & partials (`f492e4d`) : §8 `design-system.css` (`.ds-card`, `.ds-chip--*`, `.ds-btn-*`, `.ds-divide-y`, `.ds-row-hover`, `.ds-field-changed`).
+- **F** auth & erreurs (`867438f`) · **C** dashboard/recherche/tâches/chat (`12345c1`) · **D** admin paramètres & formulaires (`afbdf4e`) · **B** documents (`0d1f570`) · **E** admin listes & outillage (`ebedb87`).
+- **Phase finale** (`a816992`) : balayage couleurs-état → tokens, classes `.ds-alert--*` (§9), **shim §5 réduit à un reliquat documenté** (0 template n'en dépend ; conservé uniquement pour le DOM injecté par `workflow-designer.js`).
+- Suppression de `documents/index_clean.php` (`d365a22`) : vue legacy morte, 0 référence.
+
+**Vérifié :** `migration_smoke` **141/141** · `phpunit` unit **230** / feature **58** (3 skip) · `phpstan` **[OK]** · **Playwright 7/7**.
+Préservation comportementale contrôlée automatiquement (attributs `name`/`id`/`onclick`/`data-*` intacts ; hooks JS couplés convertis en classes sémantiques). Revue clair/sombre à l'œil recommandée en complément.
+
+**Incident géré :** un sous-agent dévoyé a produit un refactor **hors-périmètre** (sous-système classifieur IA + doc WINBIZ, ~1990/995 l.) → **mis en quarantaine** (`git stash@{0}`, récupérable), exclu des commits de migration. Agent B coupé par limite de session sur le monolithe `index.php` (30 résidus JS) → terminé + validé par le superviseur.
+
+**Reste (lots ultérieurs) :** migrer `public/js/workflow-designer.js` (~81 classes neutres en dur, dernier dépendant du shim §5) puis **retirer le shim** ; thème **Chart.js** (4 canvas dashboard, couleurs `rgb()` non pilotées par CSS) ; densité picto/hint complète (`DESIGN-SYSTEM-KARBONIC.md` §6).
+
+---
+
 ## Session 2026-06-27 — uniformisation UI (design system Karbonic, lot fondation + chrome)
 
 **Décisions (validées en début de lot)** : portée = **fondation + chrome** ; mode sombre = **tokens + bascule fonctionnelle** ; action primaire = **anthracite** (le bleu rétrogradé en simple accent focus/liens). Conforme à `docs/DESIGN-SYSTEM-KARBONIC.md`.
@@ -160,4 +180,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-27 — uniformisation UI lot fondation + chrome livré (design system Karbonic, clair/sombre, primaire anthracite) ; C.2/C.3/C.4 SMQ + dette traités en amont*
+*Dernière mise à jour : 2026-06-28 — migration UI templates de contenu A–F terminée (superviseur + multi-agents) : tous les templates tokenisés clair/sombre, shim §5 réduit à un reliquat (workflow-designer.js), gates verts (141/230/58/phpstan/Playwright 7/7). Lot fondation + chrome livré le 2026-06-27.*
