@@ -1,6 +1,8 @@
 # K-Docs Connecteurs
 
-Connecteurs vers systemes externes (ERP, comptabilite, cloud).
+Connecteurs vers systemes externes (ERP, ingest CMD, cloud).
+
+> Architecture globale : **`docs/CONNECTEURS-PLUGINS.md`**.
 
 ## Principe
 

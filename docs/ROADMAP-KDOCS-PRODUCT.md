@@ -50,7 +50,11 @@ Objectif : ~60 % parité REDX — recherche unifiée, fiche doc épurée.
 
 ## Phase A — Plugin Factures (8–10 sem.)
 
-Objectif : ~75 % parité fiduciaire — WinBiz, validation circuit.
+Objectif : ~75 % parité fiduciaire — compréhension document (CMD v4) + contrôle WinBiz optionnel.
+
+> Repositionnement 2026-06-29 : ingest (OCR, split, lignes, TVA) = **Lot A** ;
+> plugin WinBiz = **contrôle / ventilation post-ingest** (Lot B). Spec :
+> `docs/WINBIZ-PLUGIN-REPOSITIONNE.md`.
 
 | ID | Tâche | Statut |
 |----|-------|--------|
