@@ -253,10 +253,12 @@ class FolderTreeHelper
         }
         
         if ($needsSync && $fileCount > 0) {
-            // Fichiers non synchronisés (orange avec warning)
-            return '<span class="text-orange-600" title="' . $fileCount . ' fichiers, ' . $dbCount . ' indexés">' 
+            // Fichiers non synchronisés (orange avec warning) — couleur assombrie pour contraste
+            // WCAG AA sur fond rail clair (was text-orange-600 #f54900 = 3.36:1).
+            $warn = 'color:#b23d0a';
+            return '<span style="' . $warn . '" title="' . $fileCount . ' fichiers, ' . $dbCount . ' indexés">'
                  . $fileCount . '</span>'
-                 . '<span class="text-orange-400 ml-0.5" title="Synchronisation nécessaire">⚠</span>';
+                 . '<span style="' . $warn . '" class="ml-0.5" title="Synchronisation nécessaire">⚠</span>';
         }
         
         if ($fileCount > 0) {

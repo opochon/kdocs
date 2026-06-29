@@ -36,10 +36,10 @@ html {
   /* texte */
   --ink:#2f3033;
   --ink-soft:#5b5d61;
-  --dim:#7a7c80;
+  --dim:#686a6e;          /* assombri pour contraste WCAG AA sur fonds clairs (was #7a7c80, 4.18) */
   --muted:#a6a8ac;
   /* accent & primaire */
-  --accent:#3f6fb0;        /* focus, liens, selection active */
+  --accent:#3a66a8;      /* focus, liens, selection active — assombri pour WCAG AA sur accent-soft (was #3f6fb0, 4.45) */
   --accent-strong:#34619c;
   --accent-soft:#eaf0f8;
   --primary:#37352f;       /* action primaire (anthracite) */
@@ -47,6 +47,7 @@ html {
   /* etats */
   --green:#4a8a5c;
   --amber:#b8893f;
+  --amber-ink:#7a4f15;    /* texte du chip amber (découplé de --amber pour contraste WCAG AA) */
   --red:#c0544b;
   /* tooltip / hint */
   --tip:#2f3033;
@@ -123,6 +124,7 @@ html {
   --primary-ink:#1f1f20;
   --green:#5fae72;
   --amber:#d2a35a;
+  --amber-ink:#e6bd6e;   /* texte du chip amber sur fond sombre (découplé de --amber) */
   --red:#df6f66;
   --tip:#0d0d0e;
   --tip-ink:#f0f0f2;
@@ -244,6 +246,7 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-nav-item.is-active .ds-nav-item__icon { color: var(--ink-soft); }
 .ds-nav-item__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ds-nav-count { font-size: 11px; color: var(--dim); flex-shrink: 0; }
+.ds-nav-item.is-active .ds-nav-count { color: var(--ink-soft); }
 .ds-nav-badge {
   font-size: 11px; font-weight: 600; padding: 1px 7px;
   border-radius: 999px; background: var(--accent-soft); color: var(--accent);
@@ -288,7 +291,7 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 
 /* --- Footer --- */
 .ds-footer { background: var(--chrome); border-top: 1px solid var(--border); padding: 10px 24px; }
-.ds-footer__row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--dim); }
+.ds-footer__row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--ink-soft); }
 .ds-footer__row p { margin: 0; }
 
 /* =========================================================================
@@ -369,7 +372,7 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-chip--neutral { background: var(--hover); color: var(--ink-soft); }
 .ds-chip--accent  { background: var(--accent-soft); color: var(--accent); }
 .ds-chip--green   { background: color-mix(in srgb, var(--green) 22%, var(--surface)); color: var(--green); }
-.ds-chip--amber   { background: color-mix(in srgb, var(--amber) 24%, var(--surface)); color: var(--amber); }
+.ds-chip--amber   { background: color-mix(in srgb, var(--amber) 24%, var(--surface)); color: var(--amber-ink); }
 .ds-chip--red     { background: color-mix(in srgb, var(--red) 22%, var(--surface));   color: var(--red); }
 
 /* --- Boutons d'action a code couleur d'etat (valider / refuser / n.a.) ---
