@@ -91,14 +91,15 @@ Implémentation : `app/Services/Ingest/IngestEngineRouter.php` + `ClearMyDocsCap
 
 ### Évolution CMD v4
 
+- **Contrat API officiel** : `clearmydocs-v3/cmdv4/docs/API.md` (guide d'intégration ; Swagger `/docs`, OpenAPI `/openapi.json` sur le serveur v4). Fiche adaptateur côté GED : `docs/CMD-V4-CONNECTOR.md`.
 - CMD v4 **remplace progressivement** v3 pour le lot factures (schémas, gate, segment).
 - Le core GED ne duplique pas la logique Python : **client HTTP** + mapper JSON → `invoice_line_items`.
 - Variables cibles (à ajouter au fur et à mesure) :
 
 ```env
-# Connecteur ingest CMD v4 (optionnel — voir clearmydocs-v3/cmdv4)
+# Connecteur ingest CMD v4 (optionnel — voir clearmydocs-v3/cmdv4/docs/API.md)
 CMD_V4_ENABLED=false
-CMD_V4_URL=http://127.0.0.1:5102
+CMD_V4_URL=http://127.0.0.1:8510
 CMD_V4_PATH=F:\DATA\DEVELOPPEMENT\clearmydocs-v3
 ```
 
@@ -183,7 +184,7 @@ Référence dette : `docs/DETTE-UI-ORPHELINS.md` (stubs masqués).
 | Composant | Dépôt / emplacement | Maintenu par |
 |-----------|---------------------|--------------|
 | GED core | `GEDv1` | Ce dépôt |
-| CMD v3 / v4 | `clearmydocs-v3` (`cmdv4/`) | Dépôt ClearMyDocs |
+| CMD v3 / v4 | `clearmydocs-v3` (`cmdv4/`, API `cmdv4/docs/API.md`) | Dépôt ClearMyDocs |
 | Bridge WinBiz + K-Time réel | `WinbizIntegrator` | Dépôt dédié |
 | HTMLEDITOR taxonomie | `htmleditor_v3` | Export JSON consommé par GED |
 | Bexio bridge | futur | Dépôt dédié |
@@ -210,7 +211,7 @@ Pas de réécriture du moteur externe dans PHP. Pas de feature UI sans connecteu
 |--------|-------------|--------------|
 | Ingest natif | ✅ `GedNativeIngestEngine` | Inchangé — socle |
 | Ingest CMD v3 | ✅ `IngestEngineRouter` + sidecar 5101 | Conservé |
-| Ingest CMD v4 | ❌ | Client HTTP + sonde ; schéma facture |
+| Ingest CMD v4 | 🟡 client + routage factures | Client HTTP + sonde ; schéma facture (lignes P2.5) |
 | `PluginRegistry` apps | ✅ `apps/*/routes.php` | + dépendances `requires` |
 | `ConnectorRegistry` | ✅ P1 | `config/connectors.php`, `app/Core/ConnectorRegistry.php`, API `/api/admin/connectors/health` |
 | Health connecteurs | 🟡 partiel (`/health`, probe CMD) | Page admin unifiée |
@@ -233,7 +234,7 @@ CLEARMYDOCS_SIDECAR_URL=http://127.0.0.1:5101
 INGEST_ENGINE=auto                    # native | auto | coupled
 
 CMD_V4_ENABLED=false                  # cible factures
-CMD_V4_URL=
+CMD_V4_URL=http://127.0.0.1:8510      # défaut CMD v4 (CLEARMYDOCS_PORT)
 CMD_V4_PATH=
 
 # --- Connecteur ERP WinBiz (optionnel) ---
@@ -248,6 +249,9 @@ RH_APP_ENABLED=false
 # --- Autres connecteurs (optionnel) ---
 ONLYOFFICE_ENABLED=false
 INFOMANIAK_AI_ENABLED=false
+INFOMANIAK_AI_API_KEY=
+INFOMANIAK_AI_API_SECRET=
+INFOMANIAK_AI_MODEL=swiss-ai/Apertus-70B-Instruct-2509
 HTMLEDITOR_TAXONOMY_PATH=
 ```
 
@@ -290,7 +294,7 @@ HTMLEDITOR_TAXONOMY_PATH=
 |-----|---------|------|
 | **P0** | Documenter + `.env.example` + health admin | Revue |
 | **P1** | `config/connectors.php` + `ConnectorRegistry::healthAll()` | Diagnostic admin | ✅ 2026-06-29 |
-| **P2** | Client CMD v4 + routage ingest partiel (factures) | Natif seul + v4 OK |
+| **P2** | Client CMD v4 + routage ingest partiel (factures) | Natif seul + v4 OK | ✅ 2026-06-29 |
 | **P3** | `erp-winbiz` selon `WINBIZ-PLUGIN-REPOSITIONNE.md` | Contrôle sans écriture |
 | **P4** | Dépendances plugins (`invoices` requires winbiz) | UI masquée si down |
 

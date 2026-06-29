@@ -12,7 +12,7 @@
 |-----------|----------|-------------|
 | Ingest natif (socle) | ✅ Production | `GedNativeIngestEngine`, `OCRService`, workers |
 | Connecteur ingest CMD v3 | ✅ `IngestEngineRouter` | Sidecar `clearmydocs-v3` |
-| Connecteur ingest CMD v4 | 🟡 À brancher | `clearmydocs-v3/cmdv4` |
+| Connecteur ingest CMD v4 | 🟡 client P2 (factures) | `clearmydocs-v3/cmdv4` · API `cmdv4/docs/API.md` · `docs/CMD-V4-CONNECTOR.md` |
 | `PluginRegistry` apps | ✅ | `apps/*/routes.php`, flags `*_APP_ENABLED` |
 | Connecteur ERP WinBiz | 🟡 Stub client HTTP | `WinBizBridgeClient`, bridge externe |
 | `ConnectorRegistry` unifié | ❌ Cible P1 | `config/connectors.php` |

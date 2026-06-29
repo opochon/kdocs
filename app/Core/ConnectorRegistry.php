@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace KDocs\Core;
 
 use KDocs\Services\Ingest\ClearMyDocsCapabilityProbe;
+use KDocs\Services\Ingest\CmdV4CapabilityProbe;
 use KDocs\Services\WinBiz\WinBizBridgeClient;
 
 /**
@@ -130,19 +131,21 @@ class ConnectorRegistry
         }
 
         if ($id === 'ingest-cmd-v4') {
-            $remote = $probeRemote ? self::httpHealth($url) : ['ok' => false, 'skipped' => true];
+            $probe = (new CmdV4CapabilityProbe())->probe($probeRemote);
 
             return array_merge($base, [
                 'enabled' => true,
-                'available' => $remote['ok'] && $path !== null,
-                'status' => ($remote['ok'] && $path !== null) ? 'available' : 'unavailable',
-                'url' => $url,
-                'path' => $path,
-                'remote_ok' => $remote['ok'],
-                'version' => $remote['version'] ?? null,
-                'message' => $remote['ok']
+                'available' => (bool) ($probe['v4_available'] ?? false),
+                'status' => ($probe['v4_available'] ?? false) ? 'available' : 'unavailable',
+                'url' => $probe['api_url'] ?? $url,
+                'path' => $probe['install_path'] ?? $path,
+                'remote_ok' => (bool) ($probe['remote_ok'] ?? false),
+                'version' => $probe['version'] ?? null,
+                'invoice_routing' => (bool) ($probe['invoice_routing_available'] ?? false),
+                'message' => ($probe['v4_available'] ?? false)
                     ? 'API v4 joignable'
                     : ($path === null ? 'Chemin CMD_V4_PATH invalide' : 'API v4 injoignable'),
+                'details' => $probe,
             ]);
         }
 
@@ -298,39 +301,5 @@ class ConnectorRegistry
         $resolved = realpath((string) $raw);
 
         return ($resolved !== false && is_dir($resolved)) ? $resolved : null;
-    }
-
-    /**
-     * @return array{ok: bool, version?: string, error?: string}
-     */
-    private static function httpHealth(?string $baseUrl): array
-    {
-        if ($baseUrl === null || $baseUrl === '') {
-            return ['ok' => false, 'error' => 'URL vide'];
-        }
-
-        $ch = curl_init(rtrim($baseUrl, '/') . '/health');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 3,
-            CURLOPT_CONNECTTIMEOUT => 2,
-        ]);
-        $body = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err = curl_error($ch);
-        curl_close($ch);
-
-        if ($err) {
-            return ['ok' => false, 'error' => $err];
-        }
-
-        if ($status < 200 || $status >= 300) {
-            return ['ok' => false, 'error' => "HTTP {$status}"];
-        }
-
-        $json = json_decode((string) $body, true);
-        $version = is_array($json) ? ($json['version'] ?? null) : null;
-
-        return ['ok' => true, 'version' => is_string($version) ? $version : null];
     }
 }

@@ -107,14 +107,15 @@ Entrée fichier
 
 | Aspect | v3 (actuel GED) | v4 (cible factures) |
 |--------|-----------------|---------------------|
-| Sidecar | `clearmydocs-v3/.../ged_sidecar.py` port 5101 | `cmdv4/product/server.py` (FastAPI) |
+| Sidecar | `clearmydocs-v3/.../ged_sidecar.py` port 5101 | `cmdv4/product/server.py` (FastAPI, port **8510**) |
 | Segment | `/segment` | `cmd4/segment.py` |
 | Schémas pièces | Profils builtin v3 | `cmdv4/product/builtin_schemas/legal_ch.json` |
 | Gate fidélité | partiel | `cmd4/gate.py` + `product/fields.py` |
 | Lignes facture | absent schéma v4 | **à étendre** (voir § Schémas) |
 
 Mode dual GED : `INGEST_ENGINE` + sonde capacités — voir `docs/INGEST-DUAL-MODE.md`.  
-Évolution : ajouter sonde **CMD v4** pour le lot factures ; conserver fallback natif GED.
+**API v4** : `clearmydocs-v3/cmdv4/docs/API.md` · adaptateur GED : `docs/CMD-V4-CONNECTOR.md`.  
+Évolution : sonde **CMD v4** pour le lot factures ; conserver fallback natif GED.
 
 ### Schéma CMD v4 — extension `facture_fournisseur`
 

@@ -26,8 +26,18 @@ class AIProviderServiceTest extends TestCase
         $this->assertIsArray($status);
         $this->assertArrayHasKey('ai_available', $status);
         $this->assertArrayHasKey('active_provider', $status);
+        $this->assertArrayHasKey('infomaniak', $status);
         $this->assertArrayHasKey('claude', $status);
         $this->assertArrayHasKey('ollama', $status);
+    }
+    
+    public function testGetStatusInfomaniakStructure(): void
+    {
+        $status = $this->service->getStatus();
+        
+        $this->assertArrayHasKey('available', $status['infomaniak']);
+        $this->assertArrayHasKey('configured', $status['infomaniak']);
+        $this->assertArrayHasKey('model', $status['infomaniak']);
     }
     
     public function testGetStatusClaudeStructure(): void
@@ -53,7 +63,7 @@ class AIProviderServiceTest extends TestCase
         $provider = $this->service->getBestProvider();
         
         $this->assertIsString($provider);
-        $this->assertContains($provider, ['claude', 'ollama', 'none']);
+        $this->assertContains($provider, ['infomaniak', 'claude', 'ollama', 'none']);
     }
     
     public function testIsAIAvailableReturnsBool(): void

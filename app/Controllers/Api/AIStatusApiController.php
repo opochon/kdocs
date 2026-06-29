@@ -22,14 +22,19 @@ class AIStatusApiController extends ApiController
         $status = $aiProvider->getStatus();
         
         // Ajouter les recommandations si besoin
-        if (!$status['claude']['available'] && !$status['ollama']['available']) {
+        if (!$status['infomaniak']['available'] && !$status['claude']['available'] && !$status['ollama']['available']) {
             $status['recommendations'] = [
                 'message' => "Aucun provider IA disponible. L'application fonctionnera en mode limité.",
                 'options' => [
                     [
+                        'name' => 'Infomaniak AI Tools',
+                        'description' => 'Cloud suisse, clé API + product_id',
+                        'setup' => 'INFOMANIAK_AI_ENABLED=true, INFOMANIAK_AI_API_KEY, INFOMANIAK_AI_API_SECRET',
+                    ],
+                    [
                         'name' => 'Claude API',
-                        'description' => 'Meilleure qualité, payant',
-                        'setup' => 'Ajouter la clé API dans claude_api_key.txt ou config.php',
+                        'description' => 'Meilleure qualité frontier, payant',
+                        'setup' => 'Ajouter la clé API dans claude_api_key.txt ou ANTHROPIC_API_KEY',
                     ],
                     [
                         'name' => 'Ollama',
@@ -40,7 +45,7 @@ class AIStatusApiController extends ApiController
             ];
         } elseif ($status['fallback_active']) {
             $status['info'] = [
-                'message' => "Claude non disponible, Ollama utilisé en fallback.",
+                'message' => 'Provider cloud indisponible, Ollama utilisé en fallback.',
                 'quality' => 'acceptable',
             ];
         }

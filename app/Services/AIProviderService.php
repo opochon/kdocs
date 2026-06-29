@@ -3,7 +3,8 @@
  * K-Docs - AI Provider Service
  * Gestion unifiée des providers IA avec fallback automatique
  * 
- * Priorité : Claude > Ollama > Rules-only
+ * Priorité si Infomaniak activé : Infomaniak > Ollama
+ * Sinon : Claude > Ollama > Rules-only
  */
 
 namespace KDocs\Services;
@@ -13,6 +14,7 @@ use KDocs\Core\Database;
 
 class AIProviderService
 {
+    private const PROVIDER_INFOMANIAK = 'infomaniak';
     private const PROVIDER_CLAUDE = 'claude';
     private const PROVIDER_OLLAMA = 'ollama';
     private const PROVIDER_NONE = 'none';
@@ -21,6 +23,7 @@ class AIProviderService
     private static ?array $cachedStatus = null;
     
     private ?ClaudeService $claudeService = null;
+    private ?InfomaniakAIService $infomaniakService = null;
     private ?string $ollamaUrl = null;
     private ?string $ollamaModel = null;
     
@@ -40,13 +43,19 @@ class AIProviderService
             return self::$cachedProvider;
         }
         
-        // 1. Essayer Claude
+        // 1. Infomaniak AI Tools (cloud CH) si activé
+        if ($this->isInfomaniakAvailable()) {
+            self::$cachedProvider = self::PROVIDER_INFOMANIAK;
+            return self::PROVIDER_INFOMANIAK;
+        }
+
+        // 2. Essayer Claude
         if ($this->isClaudeAvailable()) {
             self::$cachedProvider = self::PROVIDER_CLAUDE;
             return self::PROVIDER_CLAUDE;
         }
         
-        // 2. Fallback sur Ollama
+        // 3. Fallback sur Ollama
         if ($this->isOllamaAvailable()) {
             self::$cachedProvider = self::PROVIDER_OLLAMA;
             return self::PROVIDER_OLLAMA;
@@ -65,6 +74,15 @@ class AIProviderService
         return $this->getBestProvider() !== self::PROVIDER_NONE;
     }
     
+    public function isInfomaniakAvailable(): bool
+    {
+        try {
+            return $this->getInfomaniakService()->isAvailable();
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
     /**
      * Vérifie si Claude est configuré et disponible
      */
@@ -109,13 +127,22 @@ class AIProviderService
             return self::$cachedStatus;
         }
         
+        $infomaniakAvailable = $this->isInfomaniakAvailable();
         $claudeAvailable = $this->isClaudeAvailable();
         $ollamaAvailable = $this->isOllamaAvailable();
         $ollamaModels = $ollamaAvailable ? $this->getOllamaModels() : [];
+        $infomaniak = $this->getInfomaniakService();
         
         self::$cachedStatus = [
             'active_provider' => $this->getBestProvider(),
-            'ai_available' => $claudeAvailable || $ollamaAvailable,
+            'ai_available' => $infomaniakAvailable || $claudeAvailable || $ollamaAvailable,
+            'infomaniak' => [
+                'available' => $infomaniakAvailable,
+                'configured' => $infomaniak->isConfigured(),
+                'enabled' => $infomaniak->isEnabled(),
+                'model' => $infomaniak->getModel(),
+                'product_id_set' => $infomaniak->getProductId() !== '',
+            ],
             'claude' => [
                 'available' => $claudeAvailable,
                 'configured' => $this->isClaudeConfigured(),
@@ -129,7 +156,7 @@ class AIProviderService
                 'has_llm' => $this->ollamaHasLLM($ollamaModels),
                 'has_embedding' => $this->ollamaHasEmbedding($ollamaModels),
             ],
-            'fallback_active' => !$claudeAvailable && $ollamaAvailable,
+            'fallback_active' => !$infomaniakAvailable && !$claudeAvailable && $ollamaAvailable,
         ];
         
         return self::$cachedStatus;
@@ -143,14 +170,32 @@ class AIProviderService
         self::$cachedProvider = null;
         self::$cachedStatus = null;
     }
+
+    /** @deprecated Utiliser resetCache() */
+    public static function clearCache(): void
+    {
+        self::resetCache();
+    }
     
     /**
      * Envoie un prompt au meilleur provider disponible
-     * CASCADE: Claude > Ollama (avec fallback automatique)
+     * CASCADE: Infomaniak > Claude > Ollama (avec fallback automatique)
      */
     public function complete(string $prompt, array $options = []): ?array
     {
         $provider = $this->getBestProvider();
+
+        if ($provider === self::PROVIDER_INFOMANIAK) {
+            $result = $this->completeWithInfomaniak($prompt, $options);
+            if ($result !== null) {
+                return $result;
+            }
+            if ($this->isOllamaAvailable()) {
+                error_log('AIProviderService: Infomaniak failed, switching to Ollama fallback');
+                return $this->completeWithOllama($prompt, $options);
+            }
+            return null;
+        }
 
         // Essayer Claude d'abord si c'est le provider principal
         if ($provider === self::PROVIDER_CLAUDE) {
@@ -267,6 +312,29 @@ class AIProviderService
         return $response['text'] ?? null;
     }
     
+    /**
+     * Complétion via Infomaniak AI Tools
+     */
+    private function completeWithInfomaniak(string $prompt, array $options = []): ?array
+    {
+        try {
+            $result = $this->getInfomaniakService()->complete($prompt, $options);
+            if ($result === null) {
+                return null;
+            }
+
+            return [
+                'provider' => self::PROVIDER_INFOMANIAK,
+                'model' => $result['model'] ?? $this->getInfomaniakService()->getModel(),
+                'text' => $result['text'] ?? '',
+                'raw' => $result['raw'] ?? [],
+            ];
+        } catch (\Exception $e) {
+            error_log('AIProviderService Infomaniak error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     /**
      * Complétion via Claude
      * Retourne null si erreur, ou un tableau avec 'error' => true si erreur HTTP détectée
@@ -469,6 +537,14 @@ PROMPT;
         return $data;
     }
     
+    private function getInfomaniakService(): InfomaniakAIService
+    {
+        if ($this->infomaniakService === null) {
+            $this->infomaniakService = new InfomaniakAIService();
+        }
+        return $this->infomaniakService;
+    }
+
     /**
      * Obtient le service Claude (lazy loading)
      */
