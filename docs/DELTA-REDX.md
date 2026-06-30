@@ -14,15 +14,15 @@
 
 |------------|--------|
 
-| Parité fonctionnelle estimée | **~52 %** (cas fiduciaire, +4 pts post-chantier) |
+| Parité fonctionnelle estimée | **~54 %** (cas fiduciaire, +6 pts post-sprint finalisation 2026-06-30) |
 
-| Fonctions ✅ présentes | 15 |
+| Fonctions ✅ présentes | 16 |
 
 | Fonctions 🟡 partielles | 16 |
 
-| Fonctions ❌ absentes | 7 |
+| Fonctions ❌ absentes | 6 (P0 tous résorbés) |
 
-| Gap nommés à implémenter | **38** (P0–P4) |
+| Gap nommés à implémenter | **38** (P0–P4) · tests verts : 12 · à écrire : 26 |
 
 
 
@@ -168,7 +168,11 @@
 
 ## Prochaine action
 
+> Plan de tests par gap (oracle + mécanisme) : `docs/PARITE-REDX-TESTS.md`.
+> Guide consolidé : `docs/GUIDE-COMPLET-GED.md`.
 
+0. **Tests anti-régression sprint** (T-DIAG, T-IA-INF, T-ASK-COUNT, T-TAG-DEDUP,
+   GAP-002 pdftoppm) — épingler les fixes 2026-06-30.
 
 1. **Plugin WinBiz P1 (`winbiz-matching`)** — `matchDocumentToWinBiz()` : factures fourn., BL, offres, stock (`docs/WINBIZ-MODULE.md`)
 
@@ -178,9 +182,7 @@
 
 4. Lot archivage légal Olico (GAP-020+)
 
-
-
 ---
 
-*Dernière mise à jour : 2026-06-17 — gaps WinBiz alignés factures/BL/offres/stock + consultation*
+*Dernière mise à jour : 2026-06-30 — sprint finalisation (bugs A–H, pdftoppm/poppler, healthcheck fsockopen, IA Infomaniak active).*
 

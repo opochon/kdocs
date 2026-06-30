@@ -179,3 +179,54 @@ curl http://localhost:8080/healthcheck
 - [ ] Test de connectivité OK dans les paramètres
 - [ ] JWT_SECRET configuré identiquement (ou désactivé des deux côtés)
 - [ ] ssl_verify adapté à l'environnement (false en dev, true en prod avec certificats valides)
+
+## Diagnostic admin « ERREUR » alors que le conteneur répond (curl loopback)
+
+**Symptôme** : `/admin/diagnostic` affiche OnlyOffice en **ERREUR** (et Ollama
+**DECONNECTE**) alors que `curl http://localhost:8080/healthcheck` depuis une
+invite système retourne `true` et que `docker ps` montre le conteneur `Up`.
+
+**Cause** : sur certains builds PHP Windows (cURL 8.10.1 / WAMP), `curl_init`
+vers `127.0.0.1` ou `localhost` **time out** alors que le service répond
+parfaitement (vérifié : `fsockopen('127.0.0.1', 8080)` ouvre le socket, Ollama
+retourne ses modèles via fsockopen). Ce n'est ni un proxy ni IPv6 — `CURLOPT_PROXY => ''`
+ne corrige rien. C'est un défaut du transport curl loopback de ce build.
+
+**Fix appliqué (commit `c7db9ce`)** : `AdminController::httpProbe()` utilise
+**fsockopen** pour les URL `http://` (fiable loopback + remote) et ne garde
+curl que pour `https://` (TLS). Les healthchecks OnlyOffice et Ollama passent
+donc par `httpProbe`. Ollama remonte CONNECTE (2 modèles) ; OnlyOffice
+remontera CONNECTE dès que le conteneur répondra au healthcheck.
+
+**Vérification manuelle** :
+```powershell
+# Confirme que le conteneur répond (PowerShell utilise un transport différent de PHP curl)
+(Invoke-WebRequest http://127.0.0.1:8080/healthcheck -TimeoutSec 15).Content  # -> true
+```
+
+## Docker Desktop — pipe engine absent / conteneur « Up » mais ne répond plus
+
+**Symptôme** : `docker ps` renvoie `failed to connect to the docker API at
+npipe:////./pipe/docker_engine` (ou `dockerDesktopLinuxEngine`) bien que les
+processus `Docker Desktop` tournent et que `wsl -l -v` montre `docker-desktop`
+`Running`. OnlyOffice peut répondre à un healthcheck juste après le démarrage
+puis cesser de répondre (timeout 30 s).
+
+**Cause** : Docker Desktop est dans un état instable — le backend WSL tourne
+mais n'expose plus le named pipe du moteur, et/ou le conteneur OnlyOffice
+sature (RAM WSL2 trop faible, OnlyOffice nécessite ~2 Go). C'est un problème
+d'**infrastructure hôte**, pas du code GEDv1.
+
+**Actions (à exécuter manuellement, potentiellement destructives — ne pas
+automatiser sans accord)** :
+1. Quitter Docker Desktop (icône → Quit), attendre 10 s, le relancer.
+2. Si persistant : `wsl --shutdown` (arrête **toutes** les distros WSL, dont
+   Ubuntu) puis relancer Docker Desktop et `docker compose up -d onlyoffice`.
+3. Allouer ≥ 4 Go à WSL2 (`.wslconfig` → `memory=4GB`) — OnlyOffice en a besoin.
+4. Vérifier `docker ps` + `curl http://localhost:8080/healthcheck` → `true`
+   avant de reprocher un « ERREUR » au diagnostic.
+
+> Le diagnostic GEDv1 reflète fidèlement l'état du conteneur une fois Docker
+> stabilisé. Tant que Docker Desktop est instable, OnlyOffice est un blocker
+> environnemental hors périmètre code.
+

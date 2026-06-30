@@ -7,6 +7,9 @@ composer.phar
 tailwindcss.exe
 tailwindcss-windows-x64.exe
 
+# Reference de fonctions (artéfact régénérable)
+/docs/api-ref/
+
 # Configuration locale
 /config/config.local.php
 /config/config.php

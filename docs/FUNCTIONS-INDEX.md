@@ -152,6 +152,31 @@
 | `AttributionService` | `process()`, `processBatch()` |
 | `ClassificationLearningService` | suggestions ML |
 | `InvoiceLineItemExtractor` | extraction lignes facture |
+| `InfomaniakAIService` | `isEnabled()`, `isConfigured()`, `isAvailable()`, `getApiKey()`, `getProductId()`, `getModel()`, `health()`, `complete()`, `stripJsonFences()`, `parseJsonResponse()` |
+| `AIProviderService` (étendu) | `getBestProvider()`, `getStatus()`, `isInfomaniakAvailable()`, `isClaudeAvailable()`, `isOllamaAvailable()`, `complete()`, `classifyDocument()`, `extractData()`, `summarize()`, `resetCache()` |
+| `DocumentMetadataHeuristics` | heuristiques dates/attrs post-OCR |
+| `FolderIndexerService` | indexation dossiers (racine vide, dossiers internes masqués) |
+| `PdfSplitService` | split PDF (legacy natif, sidecar retiré) |
+
+### Adapters classification (`app/Adapters/`)
+
+| Classe | Rôle | Méthodes clés |
+|--------|------|---------------|
+| `InfomaniakClassifierAdapter` | Classification via Infomaniak AI Tools (cloud CH) | `classify()`, `syncTaxonomy()`, `isAvailable()`, `getName()` |
+| `GedNativeClassifierAdapter` | Classification GED native (règles) | `classify()`, `isAvailable()` |
+| `HtmleditorTaxonomyAdapter` | Taxonomie projet HTMLEDITOR → GED | `getTaxonomy()`, `sync()` |
+
+### Connecteurs / ingest (`app/Connectors/`, `app/Services/Ingest/`)
+
+| Classe | Rôle | Méthodes clés |
+|--------|------|---------------|
+| `CmdV4Client` | Client ClearMyDocs v4 (port 8510) | `health()`, `getProjects()`, `createJob()`, `getJob()` |
+| `CmdV4CapabilityProbe` | Disponibilité v4 + détection PDF facture | `isAvailable()`, `isInvoiceCapable()` |
+| `CmdV4IngestEngine` | Pipeline projet éphémère GED → champs facture | `ingest()`, `supports()` |
+| `CmdV4ResultMapper` | En-tête → `invoice_extraction_results` + suggestions | `map()` |
+| `IngestEngineRouter` | PDF facture → v4 si up, sinon natif (jamais 500) | `route()`, `ingest()` |
+| `ConnectorRegistry` | Registre + health connecteurs | `all()`, `health()`, `isRegistered()` |
+| `Storage\KDriveStorage` | Stockage kDrive Infomaniak (WebDAV, distinct d'AI) | `store()`, `retrieve()`, `delete()` |
 
 ---
 
@@ -242,4 +267,4 @@ Fonctions procédurales utilitaires (chargées par `index.php`) — voir fichier
 Liste exhaustive : grep `->get(`, `->post(` dans `index.php` ou voir `docs/API.md`.
 
 ---
-*Dernière mise à jour : 2026-06-17*
+*Dernière mise à jour : 2026-06-30 — ajout services IA Infomaniak, connecteurs CMD v4, adaptateurs classification, KDrive, heuristics.*
