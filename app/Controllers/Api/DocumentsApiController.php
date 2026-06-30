@@ -489,46 +489,233 @@ class DocumentsApiController extends ApiController
             error_log("DocumentsApiController::classifyWithAI: OCR non requis pour document {$id} (contenu existant: " . strlen($document['content'] ?? '') . " chars)");
         }
         
-        $suggestions = $classifier->classify($id);
-        
-        if (!$suggestions) {
-            // Vérifier si c'est un problème de contenu ou d'IA
+        // --- Pré-suggestion heuristique (OCR > règles > IA) ---
+        // L'IA est lente (~17-60s) ; on produit d'abord une suggestion heuristique
+        // rapide (regex + mots-clés BDD, SANS IA) avec confidence. Si elle est assez
+        // confiante ET trouve un type, on skippe l'IA (« mieux vaut OCR > IA »).
+        // Sinon on appelle l'IA et on fusionne (l'IA l'emporte, l'heuristique bouche
+        // les trous). La logique heuristique est couverte par AutoClassifierService::classifyRules.
+        $auto = new \KDocs\Services\AutoClassifierService();
+        $heuristic = $auto->classifyRules($id);
+        $heuristicThreshold = (float) \env('CLASSIFY_HEURISTIC_THRESHOLD', 0.6);
+        $skipAi = !empty($heuristic['document_type_id'])
+            && !isset($heuristic['error'])
+            && $heuristic['confidence'] >= $heuristicThreshold;
+
+        $suggestions = null;
+        if ($skipAi) {
+            $suggestions = $this->heuristicToSuggestion($heuristic);
+            error_log("DocumentsApiController::classifyWithAI: heuristic suffisante (confidence={$heuristic['confidence']}, type={$heuristic['document_type_name']}) — IA skippée pour doc {$id}");
+        } else {
+            $suggestions = $classifier->classify($id);
+            if ($suggestions) {
+                $suggestions = $this->mergeHeuristicIntoAi($suggestions, $heuristic);
+            } else {
+                // IA échouée : fallback sur la suggestion heuristique si elle a du contenu
+                $suggestions = $this->heuristicToSuggestion($heuristic);
+                $suggestions['_ai_failed'] = true;
+                error_log("DocumentsApiController::classifyWithAI: IA échouée, fallback heuristique pour doc {$id}");
+            }
+        }
+
+        // Vérifier qu'on a au moins un champ exploitable (sinon erreur claire)
+        if (!$this->suggestionHasContent($suggestions, $document, $id)) {
             $db = Database::getInstance();
             $stmt = $db->prepare("SELECT content, ocr_text, file_path FROM documents WHERE id = ?");
             $stmt->execute([$id]);
             $doc = $stmt->fetch();
             $hasContent = !empty($doc['content']) || !empty($doc['ocr_text']);
             $hasFile = !empty($doc['file_path']) && file_exists($doc['file_path']);
-            
+
             if (!$hasContent && !$hasFile) {
                 return $this->errorResponse($response, 'Impossible de classifier le document. Vérifiez que le document contient du texte.');
-            } else {
-                $errorMsg = 'Impossible de classifier le document. ';
-                if ($usingFallback) {
-                    $errorMsg .= 'Claude indisponible et Ollama a échoué. Vérifiez que Ollama est démarré (ollama serve).';
-                } else {
-                    $errorMsg .= 'Les services IA (Claude et Ollama) ont échoué. Vérifiez les logs.';
-                }
-                return $this->errorResponse($response, $errorMsg);
             }
+            $errorMsg = 'Impossible de classifier le document. ';
+            if (!empty($suggestions['_ai_failed'])) {
+                $errorMsg .= $usingFallback
+                    ? 'Claude indisponible et Ollama a échoué. Vérifiez que Ollama est démarré (ollama serve).'
+                    : 'Les services IA ont échoué et l\'heuristique n\'a rien extrait. Vérifiez les logs.';
+            } else {
+                $errorMsg .= 'Aucune suggestion exploitable extraite du document.';
+            }
+            return $this->errorResponse($response, $errorMsg);
         }
-        
-        // Ajouter une info sur le provider utilisé dans la réponse
-        $suggestions['_provider'] = $aiStatus['active_provider'] ?? 'unknown';
-        if ($usingFallback) {
+
+        // Ajouter une info sur le provider/méthode utilisé dans la réponse
+        $suggestions['_provider'] = $aiStatus['active_provider'] ?? ($suggestions['_method'] ?? 'unknown');
+        if ($usingFallback && empty($suggestions['_method'])) {
             $suggestions['_fallback_used'] = true;
             $suggestions['_message'] = 'Classification effectuée via Ollama (Claude indisponible)';
         }
-        
-        // Stocker temporairement les suggestions en session
+
+        // Confidence normalisée 0..1 + pourcentage (affichage UI)
+        $conf = $this->extractConfidence($suggestions);
+        $suggestions['confidence'] = $conf;
+        $suggestions['confidence_pct'] = (int) round($conf * 100);
+
+        // Persistance en BDD (plus seulement session) : JSON de suggestion + colonne
+        // classification_confidence + métadonnées de classification (migration 023).
+        $currentUser = $request->getAttribute('user');
+        $this->persistClassification($id, $suggestions, $document, $currentUser['id'] ?? null);
+
+        // Stocker temporairement les suggestions en session (pour apply-ai-suggestions)
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
         $_SESSION['ai_suggestions_' . $id] = $suggestions;
-        
+
         return $this->successResponse($response, [
             'suggestions' => $suggestions
         ], 'Classification réussie');
+    }
+
+    /**
+     * Convertit un résultat heuristique AutoClassifier en structure de suggestion
+     * compatible avec le front (champs IA + sous-objet `matched` d'IDs).
+     */
+    private function heuristicToSuggestion(array $h): array
+    {
+        return [
+            'correspondent' => $h['correspondent_name'] ?? null,
+            'document_type' => $h['document_type_name'] ?? null,
+            'tags' => $h['tag_names'] ?? [],
+            'document_date' => $h['doc_date'] ?? null,
+            'amount' => $h['amount'] ?? null,
+            'currency' => $h['currency'] ?? null,
+            'title_suggestion' => null,
+            'summary' => null,
+            'confidence' => (float) ($h['confidence'] ?? 0),
+            'additional_categories' => [],
+            'matched' => [
+                'correspondent_id' => $h['correspondent_id'] ?? null,
+                'document_type_id' => $h['document_type_id'] ?? null,
+                'tag_ids' => $h['tag_ids'] ?? [],
+            ],
+            '_method' => 'rules',
+            '_skipped_ai' => !empty($h['document_type_id']),
+        ];
+    }
+
+    /**
+     * Fusionne la suggestion heuristique dans la suggestion IA : l'IA l'emporte,
+     * l'heuristique bouche les trous (champs non résolus par l'IA).
+     */
+    private function mergeHeuristicIntoAi(array $ai, array $h): array
+    {
+        if (!isset($ai['matched']) || !is_array($ai['matched'])) {
+            $ai['matched'] = ['correspondent_id' => null, 'document_type_id' => null, 'tag_ids' => []];
+        }
+        if (empty($ai['matched']['document_type_id']) && !empty($h['document_type_id'])) {
+            $ai['matched']['document_type_id'] = $h['document_type_id'];
+            $ai['document_type'] = $ai['document_type'] ?? $h['document_type_name'];
+        }
+        if (empty($ai['matched']['correspondent_id']) && !empty($h['correspondent_id'])) {
+            $ai['matched']['correspondent_id'] = $h['correspondent_id'];
+            $ai['correspondent'] = $ai['correspondent'] ?? $h['correspondent_name'];
+        }
+        if (empty($ai['matched']['tag_ids']) && !empty($h['tag_ids'])) {
+            $ai['matched']['tag_ids'] = $h['tag_ids'];
+            if (empty($ai['tags'])) {
+                $ai['tags'] = $h['tag_names'];
+            }
+        }
+        if (empty($ai['document_date']) && !empty($h['doc_date'])) {
+            $ai['document_date'] = $h['doc_date'];
+        }
+        if (empty($ai['amount']) && !empty($h['amount'])) {
+            $ai['amount'] = $h['amount'];
+            $ai['currency'] = $ai['currency'] ?? ($h['currency'] ?? null);
+        }
+        $ai['_method'] = 'ai+rules';
+        $ai['_heuristic_confidence'] = (float) ($h['confidence'] ?? 0);
+        return $ai;
+    }
+
+    /**
+     * Extrait une confidence normalisée 0..1 depuis une suggestion (IA ou heuristique).
+     */
+    private function extractConfidence(array $s): float
+    {
+        $c = $s['confidence'] ?? $s['_heuristic_confidence'] ?? 0;
+        $c = (float) $c;
+        if ($c < 0) $c = 0;
+        if ($c > 1) $c = $c > 1 ? $c / 100 : 1; // tolère 0..100 → 0..1
+        return $c;
+    }
+
+    /**
+     * Une suggestion a-t-elle au moins un champ exploitable (type/correspondent/tags/date/mount/title) ?
+     */
+    private function suggestionHasContent(array $s, array $document, int $id): bool
+    {
+        $matched = $s['matched'] ?? [];
+        if (!empty($matched['document_type_id']) || !empty($matched['correspondent_id'])
+            || !empty($matched['tag_ids'])) {
+            return true;
+        }
+        if (!empty($s['document_date']) || !empty($s['amount']) || !empty($s['title_suggestion'])) {
+            return true;
+        }
+        // Si le doc a déjà un type appliqué, la suggestion n'est pas « vide » pour autant
+        return false;
+    }
+
+    /**
+     * Persiste la suggestion de classification en BDD :
+     *  - documents.classification_suggestions (JSON)
+     *  - documents.classification_confidence (DECIMAL 3,2)
+     *  - documents.needs_review (si confidence faible)
+     *  - documents.last_classified_at / last_classified_by (migration 023)
+     *
+     * Résilient : si une colonne n'existe pas sur la base, l'échec est loggé sans casser.
+     */
+    private function persistClassification(int $id, array $s, array $document, ?int $userId): void
+    {
+        try {
+            $db = Database::getInstance();
+            $conf = (float) ($s['confidence'] ?? 0);
+            $needsReview = $conf < (float) \env('CLASSIFY_REVIEW_THRESHOLD', 0.6) ? 1 : 0;
+            $payload = json_encode($s, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            // Update défensif : on construit le SET selon les colonnes présentes.
+            $sets = ['classification_suggestions = ?'];
+            $params = [$payload];
+
+            // Colonnes optionnelles (migration 023) — détectées via le schéma.
+            $cols = $this->documentsColumns($db);
+            if (in_array('classification_confidence', $cols, true)) {
+                $sets[] = 'classification_confidence = ?';
+                $params[] = round($conf, 2);
+            }
+            if (in_array('needs_review', $cols, true)) {
+                $sets[] = 'needs_review = ?';
+                $params[] = $needsReview;
+            }
+            if (in_array('last_classified_at', $cols, true)) {
+                $sets[] = 'last_classified_at = NOW()';
+            }
+            if (in_array('last_classified_by', $cols, true)) {
+                $sets[] = 'last_classified_by = ?';
+                $params[] = $userId;
+            }
+
+            $params[] = $id;
+            $db->prepare('UPDATE documents SET ' . implode(', ', $sets) . ' WHERE id = ?')
+                ->execute($params);
+        } catch (\Exception $e) {
+            error_log("DocumentsApiController::persistClassification: {$e->getMessage()} pour doc {$id}");
+        }
+    }
+
+    /** Liste des colonnes de la table documents (pour SET défensif). */
+    private function documentsColumns(\PDO $db): array
+    {
+        try {
+            $rows = $db->query("SHOW COLUMNS FROM documents")->fetchAll(\PDO::FETCH_ASSOC);
+            return array_map(static fn($r) => $r['Field'], $rows);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**

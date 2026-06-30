@@ -37,21 +37,101 @@ class AutoClassifierService
     
     public function classify(int $documentId): array
     {
+        // 1. Pré-suggestion heuristique pure (regex + mots-clés BDD, SANS IA) — rapide.
+        $results = $this->classifyRules($documentId);
+        if (isset($results['error'])) {
+            return $results;
+        }
+
+        // 2. Affinage par IA par champ (override des champs rules si l'IA est dispo).
+        try {
+            $fieldAI = new \KDocs\Services\FieldAIClassifierService();
+            if ($fieldAI->isAvailable()) {
+                $aiResults = $fieldAI->classifyAllFields($documentId);
+
+                // Utiliser les résultats IA pour les champs correspondants
+                if (!empty($aiResults['supplier']) || !empty($aiResults['correspondent'])) {
+                    $supplierName = $aiResults['supplier'] ?? $aiResults['correspondent'] ?? null;
+                    if ($supplierName) {
+                        $corr = $this->findCorrespondentByName($supplierName);
+                        if ($corr) {
+                            $results['correspondent_id'] = $corr['id'];
+                            $results['correspondent_name'] = $corr['name'];
+                            $results['method'] = 'ai_field';
+                        }
+                    }
+                }
+
+                if (!empty($aiResults['type'])) {
+                    $typeName = $aiResults['type'];
+                    $type = $this->findDocumentTypeByName($typeName);
+                    if ($type) {
+                        $results['document_type_id'] = $type['id'];
+                        $results['document_type_name'] = $type['label'];
+                        $results['method'] = 'ai_field';
+                    }
+                }
+
+                if (!empty($aiResults['year'])) {
+                    $year = $aiResults['year'];
+                    // Si on a déjà une date, vérifier que l'année correspond
+                    if ($results['doc_date']) {
+                        $dateYear = date('Y', strtotime($results['doc_date']));
+                        if ($dateYear != $year) {
+                            // Utiliser l'année de l'IA pour créer une date si nécessaire
+                        }
+                    }
+                }
+
+                if (!empty($aiResults['date'])) {
+                    $aiDate = $aiResults['date'];
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $aiDate)) {
+                        $results['doc_date'] = $aiDate;
+                        $results['method'] = 'ai_field';
+                    }
+                }
+
+                if (!empty($aiResults['amount'])) {
+                    $amount = floatval($aiResults['amount']);
+                    if ($amount > 0) {
+                        $results['amount'] = $amount;
+                        $results['method'] = 'ai_field';
+                    }
+                }
+
+                $results['confidence'] = $this->calculateConfidence($results);
+            }
+        } catch (\Exception $e) {
+            // Si l'IA échoue, conserver la suggestion heuristique
+            error_log("AutoClassifierService: IA field classification failed: " . $e->getMessage());
+        }
+
+        return $results;
+    }
+
+    /**
+     * Pré-suggestion heuristique PURE (regex + mots-clés BDD, SANS IA).
+     *
+     * Étape « OCR > règles > IA » : on produit d'abord une suggestion rapide à
+     * partir du texte OCR (dates, montants, matching correspondents/types/tags
+     * en base). L'IA (lente) n'est appelée qu'ensuite, et seulement si cette
+     * suggestion n'est pas assez confiante — voir DocumentsApiController::classifyWithAI.
+     *
+     * @return array Résultat heuristique (clés : method, correspondent_id, correspondent_name, document_type_id, document_type_name, tag_ids, tag_names, doc_date, amount, currency, confidence ; ou ['error' => ...] si le document n'existe pas).
+     */
+    public function classifyRules(int $documentId): array
+    {
         $doc = $this->getDocument($documentId);
         if (!$doc) return ['error' => 'Document non trouvé'];
-        
+
         // Construire le texte à analyser (priorité au contenu OCR)
         $textParts = [];
         if (!empty($doc['content'])) $textParts[] = $doc['content'];
         if (!empty($doc['ocr_text'])) $textParts[] = $doc['ocr_text'];
         if (!empty($doc['title'])) $textParts[] = $doc['title'];
         if (!empty($doc['original_filename'])) $textParts[] = $doc['original_filename'];
-        
-        $text = implode(' ', $textParts);
-        
-        // Normaliser le texte pour améliorer le matching
-        $text = mb_strtolower($text);
-        
+        $text = mb_strtolower(implode(' ', $textParts));
+
         $results = [
             'method' => 'rules',
             'correspondent_id' => null,
@@ -65,103 +145,32 @@ class AutoClassifierService
             'currency' => null,
             'confidence' => 0,
         ];
-        
-        // Extractions automatiques
+
+        // Extractions automatiques (regex)
         $results['doc_date'] = $this->extractDate($text);
         $amount = $this->extractAmount($text);
         if ($amount) {
             $results['amount'] = $amount['value'];
             $results['currency'] = $amount['currency'];
         }
-        
         $emails = $this->extractEmails($text);
-        
-        // Essayer d'abord avec l'IA pour les champs configurés
-        $fieldAI = null;
-        try {
-            $fieldAI = new \KDocs\Services\FieldAIClassifierService();
-            if ($fieldAI->isAvailable()) {
-                $aiResults = $fieldAI->classifyAllFields($documentId);
-                
-                // Utiliser les résultats IA pour les champs correspondants
-                if (!empty($aiResults['supplier']) || !empty($aiResults['correspondent'])) {
-                    $supplierName = $aiResults['supplier'] ?? $aiResults['correspondent'] ?? null;
-                    if ($supplierName) {
-                        $corr = $this->findCorrespondentByName($supplierName);
-                        if ($corr) {
-                            $results['correspondent_id'] = $corr['id'];
-                            $results['correspondent_name'] = $corr['name'];
-                            $results['method'] = 'ai_field';
-                        }
-                    }
-                }
-                
-                if (!empty($aiResults['type'])) {
-                    $typeName = $aiResults['type'];
-                    $type = $this->findDocumentTypeByName($typeName);
-                    if ($type) {
-                        $results['document_type_id'] = $type['id'];
-                        $results['document_type_name'] = $type['label'];
-                        $results['method'] = 'ai_field';
-                    }
-                }
-                
-                if (!empty($aiResults['year'])) {
-                    $year = $aiResults['year'];
-                    // Si on a déjà une date, vérifier que l'année correspond
-                    if ($results['doc_date']) {
-                        $dateYear = date('Y', strtotime($results['doc_date']));
-                        if ($dateYear != $year) {
-                            // Utiliser l'année de l'IA pour créer une date si nécessaire
-                        }
-                    }
-                }
-                
-                if (!empty($aiResults['date'])) {
-                    $aiDate = $aiResults['date'];
-                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $aiDate)) {
-                        $results['doc_date'] = $aiDate;
-                        $results['method'] = 'ai_field';
-                    }
-                }
-                
-                if (!empty($aiResults['amount'])) {
-                    $amount = floatval($aiResults['amount']);
-                    if ($amount > 0) {
-                        $results['amount'] = $amount;
-                        $results['method'] = 'ai_field';
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            // Si l'IA échoue, continuer avec les règles
-            error_log("AutoClassifierService: IA field classification failed: " . $e->getMessage());
+
+        // Matching par règles (mots-clés BDD + patterns communs)
+        $corr = $this->matchCorrespondent($text, $emails);
+        if ($corr) {
+            $results['correspondent_id'] = $corr['id'];
+            $results['correspondent_name'] = $corr['name'];
         }
-        
-        // Matching par règles (si pas déjà trouvé par IA)
-        if (empty($results['correspondent_id'])) {
-            $corr = $this->matchCorrespondent($text, $emails);
-            if ($corr) {
-                $results['correspondent_id'] = $corr['id'];
-                $results['correspondent_name'] = $corr['name'];
-            }
+        $type = $this->matchDocumentType($text, $doc['consume_subfolder'] ?? null);
+        if ($type) {
+            $results['document_type_id'] = $type['id'];
+            $results['document_type_name'] = $type['label'];
         }
-        
-        if (empty($results['document_type_id'])) {
-            $type = $this->matchDocumentType($text, $doc['consume_subfolder'] ?? null);
-            if ($type) {
-                $results['document_type_id'] = $type['id'];
-                $results['document_type_name'] = $type['label'];
-            }
-        }
-        
         $tags = $this->matchTags($text);
         $results['tag_ids'] = array_column($tags, 'id');
         $results['tag_names'] = array_column($tags, 'name');
-        
-        // Calcul confiance
+
         $results['confidence'] = $this->calculateConfidence($results);
-        
         return $results;
     }
     
