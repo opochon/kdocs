@@ -34,6 +34,51 @@ alignement SQL compteurs ; (4) F-CHROME-08 `documentVisibilitySql` sur `/api/fol
 
 ---
 
+## Session 2026-06-30 (sprint 4) — analyse IA : OCR > classement suggéré > IA + certitude + apprentissage
+
+Demande : « analyse ia > passer d'abord par l'ocr, préparer un classement suggéré,
+ia ensuite (très lent, mieux vaut ocr > ia) et ajouter un classement avec % de
+certitude. auto apprentissage si correction de l'utilisateur. apprentissage classement ».
+
+Architecture visée (et livrée) : **OCR → pré-suggestion heuristique (rapide, SANS IA)
+→ IA ensuite seulement si l'heuristique n'est pas assez confiante → confidence %
+persistée → auto-apprentissage sur correction → l'AutoClassifier réutilise les
+corrections pour la pré-suggestion suivante** (boucle fermée).
+
+| Lot | Commit | Contenu |
+|-----|--------|---------|
+| **1 — OCR > pré-suggestion > IA + confidence persistée** | `f58212a` | `AutoClassifierService::classifyRules()` : pré-suggestion heuristique PURE (regex + mots-clés BDD, SANS IA), confidence 0..1. `classify()` délègue puis affine par IA par champ (legacy préservé). `DocumentsApiController::classifyWithAI` : nouveau pipeline OCR → classifyRules → si heuristic assez confiante (type trouvé + confidence ≥ `CLASSIFY_HEURISTIC_THRESHOLD` 0.6) l'IA est **skippée** (« mieux vaut OCR > IA ») ; sinon IA + fusion (l'IA l'emporte, l'heuristique bouche les trous) ; fallback heuristique si IA échoue. **Persistance BDD** (plus seulement session) : JSON `classification_suggestions` + colonne `classification_confidence` + `needs_review` + `last_classified_at/by` (migration 023), SET défensif. Réponse enrichie : `confidence` (0..1) + `confidence_pct` (0..100). Tests `ClassifyWithAiHeuristicTest` (4). |
+| **2 — UI % de certitude** | `dfcc950` | Modale fiche : badge `#ai-confidence-badge` (vert ≥80 %, neutre ≥60 %, rouge <60 %) + libellé méthode (heuristique / IA+heuristique / IA) + mention « sans IA ». Notification enrichie « N suggestion(s) — certitude X % ». Spec Playwright structurel `ai-confidence-badge.spec.ts` (badge présent + caché initialement, sans IA live). |
+| **3 — Auto-apprentissage sur correction** | `6c20940` | `DocumentsApiController::recordClassificationCorrection()` : enregistre la correction (changement type et/ou correspondant) dans `TrainingService::storeCorrection` (texte OCR, type suggéré → type corrigé, champs {correspondent, tags, correction_kind}, documentId). Branché sur `update` / `updateType` / `updateCorrespondent` (capture before/after). Jamais bloquant ; désactivé quand `CLASSIFY_LEARNING_ENABLED != 'true'` (phpunit.xml neutralise → hermétique). `makeTrainingService()` + resolvers protected → mock en test. `TrainingService` nourrit déjà `AIProviderService::classifyDocument` (getTrainedClassification) → **l'IA réutilise les corrections**. Tests `ClassifyLearningCorrectionTest` (6). |
+| **4 — Apprentissage classement étendu** | `cec5d45` | `AutoClassifierService::applyLearning()` : `classifyRules()` consulte `TrainingService` (applyLearnedRules → patterns sans embedding, puis getTrainedClassification → similarité) pour affiner la pré-suggestion. Type appris confiante (≥0.7) prend la main ; peu confiant bouche les trous ; champs appris (correspondent, tags) bouchent les trous ; `method` reflète la source. **Boucle fermée** : correction (Lot 3) → apprentissage → prochaine pré-suggestion (Lot 1) → IA seulement si besoin. Tests `AutoClassifierLearningTest` (5). |
+
+**État final** : PHPUnit **331/331** (+15 sprint 4) · 0 échec (3 skipped `TrainingService`
+live) · PHPStan 0 erreur. Aucune régression sur `update`/`updateType`/`updateCorrespondent`
+(learning neutralisé en test).
+
+**Décisions & invariants** :
+- Seuil skip IA = `CLASSIFY_HEURISTIC_THRESHOLD` (env, défaut 0.6) — heuristique skippe
+  l'IA si elle trouve un type ET confidence ≥ seuil.
+- Seuil review = `CLASSIFY_REVIEW_THRESHOLD` (env, défaut 0.6) — `needs_review=1` si
+  confidence finale < seuil.
+- Apprentissage guarded par `CLASSIFY_LEARNING_ENABLED` (défaut `true` ; `false` en test).
+- `classifyWithAI` persiste maintenant en BDD (avant : session only) — la fiche conserve
+  la dernière suggestion + confidence au rechargement.
+- Code mort réactivé : `TrainingService::storeCorrection` (était jamais appelé depuis
+  les contrôleurs) et `ClassificationService::recordManualClassification` reste legacy.
+
+**Limites / prochaine action** :
+- `TrainingService::getTrainedClassification` nécessite `EmbeddingService` (Qdrant/Ollama)
+  — sans embeddings, seul `applyLearnedRules` (patterns) est actif. Vérifier dispo
+  embeddings en prod pour la similarité.
+- Étendre l'apprentissage aux 3 champs comptables via `ClassificationLearningService`
+  (déjà couvert par ML similarité) n'est pas fusionné avec `TrainingService` (deux
+  mécanismes parallèles) — décision produit à trancher (unifier ou garder séparé).
+- Playwright live (pipeline-ui) non rejoué ce sprint (dégradation `php -S` connue) ;
+  la logique IA est couverte par PHPUnit hermétique + le spec structurel Lot 2.
+
+---
+
 
 
 Suite au retour testeur, traitement des 8 anomalies signalées. Vérification
