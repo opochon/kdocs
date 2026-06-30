@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { infomaniakReady } from './helpers/infomaniak-guard';
 
 // Régressions rapportées (note de test 2026-06-30) — épinglées par Playwright.
 // Objectif : distinguer les vrais bugs code des artefacts d'automatisation (le testeur
@@ -77,8 +78,18 @@ test('E1: aucun tag en doublon de nom', async ({ page }) => {
 // D2 : l'API chat renvoie du JSON (jamais du HTML) — même sur erreur.
 // Avant fix : une \Throwable (TypeError) échappait au catch (\Exception) -> page d'erreur
 // Slim HTML -> "Unexpected token '<'... is not valid JSON" côté front.
+//
+// Dépend de l'IA live (NaturalLanguageQueryService -> AIProviderService::complete()).
+// Si Infomaniak est lent/ratelimited, la retry-loop (sleeps 0+5+15+30 = 50s) fait
+// dépasser le timeout du test. Préflight : on saute proprement si Infomaniak n'est
+// pas réactif — la logique (cascade, count-all, JSON-not-HTML) est couverte hermétiquement
+// par PHPUnit (AiCascadeInfomaniakTest, NaturalLanguageQueryCountTest).
 test('D2: chat renvoie du JSON (pas du HTML) sur message', async ({ page }) => {
+  test.setTimeout(60_000); // live IA : questionToSearchQuery (completion Infomaniak ~17s) + recherche DB
   const api = page.context().request;
+
+  const ready = await infomaniakReady(api);
+  test.skip(!ready, 'Infomaniak lent/indisponible — logique couverte par PHPUnit hermétique');
 
   // Créer une conversation.
   const createRes = await api.post(`${BASE}/api/chat/conversations`);
