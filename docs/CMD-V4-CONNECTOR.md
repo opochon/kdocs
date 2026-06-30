@@ -53,6 +53,51 @@ disponibles pour outillage ou lots ultérieurs.
 
 ---
 
+## Étape 6 — substrat d'analyse + fraîcheur (dossier/fichier)
+
+> **Contrat canonique côté cmdv4** : `clearmydocs-v3/cmdv4/docs/GED-CONNECTEUR-ETAPE6.md`
+> (référence exhaustive + `API.md`). Ce qui suit est la **définition du connecteur GED** qui le
+> consomme.
+
+La GED demande l'analyse d'un **dossier** ou d'un **fichier unique** et consomme l'**annexe gatée**
+(couche MACHINE : faits sourcés `[DOC ID:N]`, gate F0) comme **substrat** pour **classer et
+rechercher** — jamais la prose (`report.md`). Elle sait ensuite si ce substrat est **à jour** vs
+la source.
+
+### Endpoints cmdv4 consommés
+
+| Méthode | Chemin | Rôle |
+|---|---|---|
+| `POST` | `/api/analyze-file` | Fichier unique : un job extract+synthèse+gate+manifeste+snapshot → annexe d'UN fichier. `{job_id, slug}`. |
+| `GET`  | `/api/projects/{slug}/annexe` | Substrat : `{annexe_md, gate}`. |
+| `GET`  | `/api/projects/{slug}/docs` | Manifeste : résoudre `[DOC ID:N]` → fichier source. |
+| `GET`  | `/api/projects/{slug}/fidelity` | Verdict F2 de l'annexe. |
+| `GET`  | `/api/projects/{slug}/freshness` | Fraîcheur : `up_to_date` + `changed/added/removed`. |
+| `POST` | `/api/projects` + `/extract` + `/synthesize` | Variante dossier (parcours API §4 d'`API.md`). |
+
+### Séquence fichier unique
+```
+1. POST /api/analyze-file   {path, profile} -> {job_id, slug} -> poll GET /api/jobs/{job_id}
+2. GET  /api/projects/{slug}/annexe     -> substrat (annexe_md) à indexer
+3. GET  /api/projects/{slug}/freshness  -> up_to_date ? si false -> ré-analyser puis ré-indexer
+```
+
+### Définition du connecteur GED (à implanter côté K-Docs)
+- **Client** : étendre `app/Services/Ingest/CmdV4Client.php` — méthodes `analyzeFile(path, profile)`,
+  `annexe(slug)`, `docs(slug)`, `fidelity(slug)`, `freshness(slug)`. Poll jobs réutilisé.
+- **Mapper** : `CmdV4ResultMapper` — `annexe_md` → table d'indexation GED (un fait = une ligne
+  ancrée `DOC ID` + `slug` cmdv4 + `gate` F0/F2). Conserver le `slug` cmdv4 pour le lien retour.
+- **Indexation** : indexer `annexe_md` dans Qdrant (recherche sémantique) + MySQL (recherche
+  déterministe par `DOC ID`/`source`). `GET .../docs` résout une citation vers le fichier réel.
+- **Fraîcheur** : colonne `cmdv4_analyzed_at` + `cmdv4_up_to_date` par dossier/fichier analysé.
+  Job GED périodique appelle `GET .../freshness` ; si `up_to_date=false` → ré-analyser
+  (`synthesize` ou `analyze-file`) puis ré-indexer. Surface ce statut dans l'UI (« à jour / non »).
+- **Config** : réutilise `CMD_V4_URL`, `CMD_V4_PROJECT_PROFILE` (ex. `legal_ch`).
+- **Garanties** : le substrat est gaté (ancré à la source) ; la GED ne réinvente rien, elle
+  indexe et recherche sur des faits sourcés.
+
+---
+
 ## Code GED
 
 | Fichier | Rôle |
@@ -91,4 +136,5 @@ Tests gate : `tests/Unit/Services/Ingest/CmdV4*.php`, smoke migration.
 
 ---
 
-*Dernière mise à jour : 2026-06-29 — alignement sur cmdv4/docs/API.md (port 8510).*
+*Dernière mise à jour : 2026-06-30 — étape 6 (substrat annexe + fraîcheur) ; contrat canonique
+dans `clearmydocs-v3/cmdv4/docs/GED-CONNECTEUR-ETAPE6.md`.*
