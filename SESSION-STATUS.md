@@ -3,7 +3,38 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-06-30 (sprint 2) — correctifs bugs signalés (A→H)
+## Session 2026-06-30 (sprint 3) — finalisation & fiabilisation
+
+Suite à la demande « finaliser et fiabiliser » : Docker OnlyOffice, pdftoppm, doc
+complète, parité REDX, tests IA Infomaniak, personas selon la doc.
+
+| Objectif | Statut | Détail |
+|----------|--------|--------|
+| Docker OnlyOffice « charge » | **OK** | Docker Desktop restarté (backend engine ne montait pas : GUI up mais pipe `docker_engine` absent, `com.docker.backend` non lancé ; distro WSL `docker-desktop` OK). After restart : conteneur `kdocs-onlyoffice` Up, `/healthcheck` → **200 body=true** (healthy au 1er probe après init ~45s). Port `80/tcp → 0.0.0.0:8080`. Diagnostic GEDv1 voit OnlyOffice via `httpProbe` (fsockopen, fix `c7db9ce`). |
+| pdftoppm « Non trouvé » | **Fixé** | Poppler installé via Scoop (`scoop install poppler`) ; `config.php` pointe `tools.pdftoppm`/`pdftotext` sur `%USERPROFILE%\scoop\apps\poppler\current\bin\*.exe` (via `POPPLER_BIN` ou `USERPROFILE`). |
+| Doc très complète | **Faite** | `docs/GUIDE-COMPLET-GED.md` (entrée-point consolidé : overview, install, usage user/admin, IA Infomaniak, OnlyOffice, outils Poppler/Tesseract, troubleshooting, personas, liens vers docs détaillées). |
+| Parité REDX (listing + tests) | **Faite** | `docs/PARITE-REDX-TESTS.md` (38 gaps P0-P4, oracle + mécanisme + test par gap) + `docs/DELTA-REDX.md` màj (~54 % parité, P0 résolus). |
+| Tests IA Infomaniak | **Faits** (Lot 3, `9b54b84`) | `AiCascadeInfomaniakTest` (priorité cascade Infomaniak>Claude>Ollama + routing complete() + gestion échec) · `NaturalLanguageQueryCountTest` (count-all bug E) · `ai-assistant.spec.ts` (UI gating cascade). **Fix de gating** : `templates/chat/index.php` affichait #chat-input ssi `ClaudeService::isConfigured()` → inutilisable avec Infomaniak actif + Claude off ; remplacé par `AIProviderService::isAIAvailable()`. `AIProviderService::getInfomaniakService()` → protected (testabilité). |
+| Personas selon la doc | **Verts** (Lot 4) | `persona.spec.ts` + `persona-preview.spec.ts` couvrent les 4 personas de `FUNCTIONS-SPEC.md` (`eval_secretaire` VALIDATOR_L1 ≤1000, `eval_comptable` ≤5000 scope FACTURE, `eval_rh` scope RH, `eval_employeur` APPROVER sans plafond) : login + recherche + droits de validation F-VAL-01 conformes au rôle (facture 6000 CHF). **12/12 verts.** |
+| Fiabilisation specs live-AI | **Faite** (`5c4b8b9`) | `helpers/infomaniak-guard.ts` (préflight direct Infomaniak, 12s, sans bloquer le PHP server) + bugs-D2 timeout 60s + skip si IA down ; pipeline-ui timeout 180s + classify-ai 120s + étape IA skipuée si préflight KO (garde upload/save/recherche F-LIB-03 + E2). Oracle F-DOC-02 = « route vivante ». |
+
+**État final** : PHPUnit **316/316** (+9 Lot 3) · PHPStan 0 erreur (fichiers modifiés) ·
+Playwright **43 passed + 2 skipped** (F-CHROME-02/08 documentés) ; bugs-D2 vert ;
+pipeline-ui **fiable isolé (20.9s)**, flaky en batterie pleine par dégradation du
+serveur dev `php -S` mono-processus (limite environnementale, pas code — les requêtes
+IA lentes des tests précédents se cumulent et bloquent le serveur mono-processus).
+
+**Prochain pas** : (1) serveur dev multi-processus (PHP-FPM / `php -S` + router non
+bloquant) pour fiabiliser pipeline-ui en batterie pleine ; (2) rendre `processDocument`
+async à l'upload (OCR/classification hors bande) — décision produit ; (3) F-CHROME-02
+alignement SQL compteurs ; (4) F-CHROME-08 `documentVisibilitySql` sur `/api/folders/documents`.
+
+**Commits sprint 3** : `c7db9ce` (diagnostic httpProbe), `e3577a3` (docs guide+parité),
+`9b54b84` (tests IA + fix gating), `5c4b8b9` (fiabilisation specs live-AI).
+
+---
+
+
 
 Suite au retour testeur, traitement des 8 anomalies signalées. Vérification
 « déjà fixé ? » + correction cause racine + tests Playwright/PHPUnit qui épinglent.
@@ -271,4 +302,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-29 — sprint finalisation tests (harness évaluation + specs Playwright persona/pipeline/a11y/chrome-coherence) + correctifs noyau (attribution, JSON API, heuristiques, upload relative_path) + remédiation contraste WCAG AA. Playwright 31/32 (smq-versions environnemental).*
+*Dernière mise à jour : 2026-06-30 — sprint 3 finalisation & fiabilisation (Docker OnlyOffice healthy, pdftoppm fixé, doc complète, parité REDX, tests IA Infomaniak Lot 3, personas 12/12, fiabilisation specs live-AI). PHPUnit 316/316, Playwright 43 passed + 2 skipped.*
