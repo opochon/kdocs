@@ -63,6 +63,67 @@ class AdminController
     }
 
     /**
+     * Probe HTTP local : prefer fsockopen pour le loopback (curl peut etre
+     * incapable de joindre 127.0.0.1/localhost sur certains builds PHP Windows
+     * -> faux "ERREUR" meme quand le service repond). HTTPS reste sur curl (TLS).
+     *
+     * @return array{code:int,body:string,err:string}
+     */
+    private function httpProbe(string $url, int $timeout = 8): array
+    {
+        $parts = parse_url($url);
+        $scheme = strtolower($parts['scheme'] ?? 'http');
+        $host = $parts['host'] ?? '';
+        $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
+        $path = ($parts['path'] ?? '/') . (isset($parts['query']) ? '?' . $parts['query'] : '');
+
+        // HTTPS -> curl (TLS necessaire, fsockopen ne le gere pas simplement).
+        if ($scheme === 'https') {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_CONNECTTIMEOUT => min(5, $timeout),
+            ]);
+            $body = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            return ['code' => $code, 'body' => (string) $body, 'err' => $err];
+        }
+
+        // HTTP -> fsockopen (fiable pour loopback comme pour remote).
+        $f = @fsockopen($host, $port, $e, $s, min(5, $timeout));
+        if (!$f) {
+            return ['code' => 0, 'body' => '', 'err' => "fsockopen errno=$e errstr=$s"];
+        }
+        stream_set_timeout($f, $timeout);
+        fwrite($f, "GET $path HTTP/1.1\r\nHost: $host\r\nConnection: close\r\n\r\n");
+        $raw = '';
+        while (!feof($f)) {
+            $chunk = fread($f, 8192);
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+            $raw .= $chunk;
+            if (strlen($raw) > 65536) {
+                break;
+            }
+        }
+        $meta = stream_get_meta_data($f);
+        fclose($f);
+        if (!empty($meta['timed_out'])) {
+            return ['code' => 0, 'body' => '', 'err' => 'read timeout'];
+        }
+        $code = 0;
+        if (preg_match('#HTTP/\d(?:\.\d)?\s+(\d+)#', $raw, $m)) {
+            $code = (int) $m[1];
+        }
+        $body = trim(explode("\r\n\r\n", $raw, 2)[1] ?? '');
+        return ['code' => $code, 'body' => $body, 'err' => ''];
+    }
+
+    /**
      * Page d'accueil de l'administration
      */
     public function index(Request $request, Response $response): Response
@@ -270,20 +331,10 @@ class AdminController
         $onlyOfficeEnabled = Config::get('onlyoffice.enabled', false);
         if ($onlyOfficeEnabled) {
             $url = Config::get('onlyoffice.server_url');
-            $ch = curl_init(rtrim($url, '/') . '/healthcheck');
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                // OnlyOffice Document Server (Docker) peut etre lent a repondre au
-                // healthcheck : on respecte le timeout configure (10s par defaut)
-                // plutot qu'un 3s dur qui produit des faux "ERREUR".
-                CURLOPT_TIMEOUT => (int) Config::get('onlyoffice.timeout', 10),
-                CURLOPT_CONNECTTIMEOUT => 5,
-            ]);
-            $result = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // httpProbe (fsockopen) : curl echoue a joindre le loopback sur ce build PHP.
+            $probe = $this->httpProbe(rtrim($url, '/') . '/healthcheck', (int) Config::get('onlyoffice.timeout', 10));
             $services['onlyoffice'] = [
-                'status' => ($httpCode === 200 && trim((string)$result) === 'true') ? 'connected' : 'error',
+                'status' => ($probe['code'] === 200 && $probe['body'] === 'true') ? 'connected' : 'error',
                 'url' => $url,
             ];
         } else {
@@ -292,14 +343,10 @@ class AdminController
 
         // Ollama
         $ollamaUrl = Config::get('ollama.url', 'http://localhost:11434');
-        $ch = curl_init("$ollamaUrl/api/tags");
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        $ollamaData = json_decode($result, true);
+        $probe = $this->httpProbe($ollamaUrl . '/api/tags', 4);
+        $ollamaData = json_decode($probe['body'], true);
         $services['ollama'] = [
-            'connected' => $httpCode === 200,
+            'connected' => $probe['code'] === 200,
             'url' => $ollamaUrl,
             'models_count' => count($ollamaData['models'] ?? []),
         ];
