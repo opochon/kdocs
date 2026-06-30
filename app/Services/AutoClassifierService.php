@@ -170,8 +170,114 @@ class AutoClassifierService
         $results['tag_ids'] = array_column($tags, 'id');
         $results['tag_names'] = array_column($tags, 'name');
 
+        // Apprentissage classement (Lot 4) : on consulte l'historique des
+        // corrections utilisateur (TrainingService) pour affiner la pré-suggestion.
+        // L'apprentissage est prioritaire quand il est confiante (correction
+        // utilisateur explicite) ; sinon il bouche les trous laissés par les règles.
+        $results = $this->applyLearning($results, $text);
+
         $results['confidence'] = $this->calculateConfidence($results);
         return $results;
+    }
+
+    /**
+     * Applique l'apprentissage issue des corrections utilisateur (Lot 4).
+     *
+     * Consulte TrainingService::applyLearnedRules() (règles de patterns, sans
+     * embedding) puis getTrainedClassification() (similarité d'embeddings).
+     * Remplit/refine document_type / correspondent / tags selon ce qui a été
+     * appris. Désactivé quand CLASSIFY_LEARNING_ENABLED != 'true' (tests).
+     *
+     * @return array Résultat éventuellement enrichi par l'apprentissage.
+     */
+    private function applyLearning(array $results, string $text): array
+    {
+        if (strtolower((string) \env('CLASSIFY_LEARNING_ENABLED', 'true')) !== 'true') {
+            return $results;
+        }
+        try {
+            $training = $this->makeTrainingService();
+            $learned = $training->applyLearnedRules($text);
+            if (!$learned) {
+                $learned = $training->getTrainedClassification($text);
+            }
+            if (!$learned || empty($learned['type'])) {
+                return $results;
+            }
+
+            $confidence = (float) ($learned['confidence'] ?? 0.5);
+            $method = $learned['method'] ?? 'learned_rule';
+            $existingType = $results['document_type_id'] ?? null;
+            $resolved = $this->findDocumentTypeByName((string) $learned['type']);
+
+            // L'apprentissage prend la main sur le type si :
+            //  - aucune règle n'avait trouvé de type, OU
+            //  - la confiance apprise est élevée (>= 0.7) -> correction utilisateur fiable.
+            if ($resolved && (!$existingType || $confidence >= 0.7)) {
+                $results['document_type_id'] = $resolved['id'];
+                $results['document_type_name'] = $resolved['label'];
+                $results['method'] = $method;
+            }
+
+            // Champs appris (correspondent, tags) : bouchent les trous.
+            $fields = $learned['fields'] ?? [];
+            if (empty($results['correspondent_id']) && !empty($fields['correspondent'])) {
+                $corr = $this->findCorrespondentByName((string) $fields['correspondent']);
+                if ($corr) {
+                    $results['correspondent_id'] = $corr['id'];
+                    $results['correspondent_name'] = $corr['name'];
+                    if ($results['method'] === 'rules') {
+                        $results['method'] = $method;
+                    }
+                }
+            }
+            if (empty($results['tag_ids']) && !empty($fields['tags']) && is_array($fields['tags'])) {
+                $matchedTags = [];
+                foreach ($fields['tags'] as $tagName) {
+                    $t = $this->findTagByName((string) $tagName);
+                    if ($t) $matchedTags[] = $t;
+                }
+                if ($matchedTags) {
+                    $results['tag_ids'] = array_column($matchedTags, 'id');
+                    $results['tag_names'] = array_column($matchedTags, 'name');
+                    if ($results['method'] === 'rules') {
+                        $results['method'] = $method;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("AutoClassifierService::applyLearning: {$e->getMessage()}");
+        }
+        return $results;
+    }
+
+    /** Factory TrainingService (overridable en test). */
+    protected function makeTrainingService(): \KDocs\Services\TrainingService
+    {
+        return new \KDocs\Services\TrainingService();
+    }
+
+    /** Trouve un tag par nom (recherche exacte ou partielle). */
+    protected function findTagByName(string $name): ?array
+    {
+        $nameLower = mb_strtolower(trim($name));
+        try {
+            $rows = $this->db->query("SELECT id, name FROM tags")->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return null;
+        }
+        foreach ($rows as $row) {
+            if (mb_strtolower($row['name']) === $nameLower) {
+                return $row;
+            }
+        }
+        foreach ($rows as $row) {
+            $rowLower = mb_strtolower($row['name']);
+            if (mb_strpos($rowLower, $nameLower) !== false || mb_strpos($nameLower, $rowLower) !== false) {
+                return $row;
+            }
+        }
+        return null;
     }
     
     public function extractDate(string $text): ?string
@@ -427,7 +533,7 @@ class AutoClassifierService
     /**
      * Trouve un correspondant par nom (recherche exacte ou partielle)
      */
-    private function findCorrespondentByName(string $name): ?array
+    protected function findCorrespondentByName(string $name): ?array
     {
         $nameLower = mb_strtolower(trim($name));
         $rows = $this->db->query("SELECT id, name FROM correspondents")->fetchAll(\PDO::FETCH_ASSOC);
@@ -450,7 +556,7 @@ class AutoClassifierService
     /**
      * Trouve un type de document par nom (recherche exacte ou partielle)
      */
-    private function findDocumentTypeByName(string $name): ?array
+    protected function findDocumentTypeByName(string $name): ?array
     {
         $nameLower = mb_strtolower(trim($name));
         $rows = $this->db->query("SELECT id, label FROM document_types")->fetchAll(\PDO::FETCH_ASSOC);
