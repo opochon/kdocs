@@ -11,7 +11,27 @@ parameters:
 			path: app/Adapters/HtmleditorTaxonomyAdapter.php
 
 		-
-			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
+			message: "#^Offset 'model' on array\\{provider\\: string, model\\: string, text\\: non\\-empty\\-string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Adapters/InfomaniakClassifierAdapter.php
+
+		-
+			message: "#^Offset 'ok' on array\\{ok\\: bool, products\\?\\: list\\<array\\<string, mixed\\>\\>, error\\?\\: string\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Adapters/InfomaniakClassifierAdapter.php
+
+		-
+			message: "#^Offset 'original_filename' on array\\{document_id\\?\\: int, text\\?\\: string, mime_type\\?\\: string, file_path\\?\\: string\\|null, project_key\\?\\: string\\|null, external_ids\\?\\: array\\<string, string\\>\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: app/Adapters/InfomaniakClassifierAdapter.php
+
+		-
+			message: "#^Offset 'provider' on array\\{provider\\: string, model\\: string, text\\: non\\-empty\\-string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Adapters/InfomaniakClassifierAdapter.php
+
+		-
+			message: "#^Offset 'text' on array\\{provider\\: string, model\\: string, text\\: string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
 			count: 1
 			path: app/Adapters/InfomaniakClassifierAdapter.php
 
@@ -38,11 +58,6 @@ parameters:
 		-
 			message: "#^Call to an undefined method KDocs\\\\Services\\\\AIProviderService\\:\\:getProvidersStatus\\(\\)\\.$#"
 			count: 2
-			path: app/Controllers/Api/AIProviderApiController.php
-
-		-
-			message: "#^Call to an undefined static method KDocs\\\\Services\\\\AIProviderService\\:\\:clearCache\\(\\)\\.$#"
-			count: 1
 			path: app/Controllers/Api/AIProviderApiController.php
 
 		-
@@ -166,7 +181,7 @@ parameters:
 			path: app/Controllers/Api/SearchApiController.php
 
 		-
-			message: "#^Undefined variable\\: \\$question$#"
+			message: "#^Variable \\$question might not be defined\\.$#"
 			count: 1
 			path: app/Controllers/Api/SearchApiController.php
 
@@ -481,6 +496,21 @@ parameters:
 			path: app/Services/AIClassifierService.php
 
 		-
+			message: "#^Offset 'model' on array\\{provider\\: string, model\\: string, text\\: string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/AIProviderService.php
+
+		-
+			message: "#^Offset 'raw' on array\\{provider\\: string, model\\: string, text\\: string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/AIProviderService.php
+
+		-
+			message: "#^Offset 'text' on array\\{provider\\: string, model\\: string, text\\: string, raw\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: app/Services/AIProviderService.php
+
+		-
 			message: "#^Offset 'final_score' does not exist on array\\{doc\\: mixed, ft_score\\: \\(float\\|int\\), sem_score\\: mixed\\}\\.$#"
 			count: 2
 			path: app/Services/AISearchService.php
@@ -533,11 +563,6 @@ parameters:
 		-
 			message: "#^Offset 'source' on array\\{suggestions\\: array\\<string, mixed\\>, confidence\\: float, source\\: string, audit\\: array\\<string, mixed\\>\\} on left side of \\?\\? always exists and is not nullable\\.$#"
 			count: 1
-			path: app/Services/Classifiers/UnifiedClassifier.php
-
-		-
-			message: "#^PHPDoc tag  has invalid value \\(Unexpected token \"\", expected '\\*/' at offset 3 on line 1\\)\\: Unexpected token \"\", expected '\\*/' at offset 3 on line 1$#"
-			count: 2
 			path: app/Services/Classifiers/UnifiedClassifier.php
 
 		-
