@@ -51,10 +51,9 @@ interface ConnectorInterface
 | ID | Rôle |
 |----|------|
 | `ingest-native` | Pipeline PHP — **toujours** |
-| `ingest-cmd-v3` | Sidecar port 5101 — optionnel |
 | `ingest-cmd-v4` | API factures — optionnel, cible |
 
-Routage : `INGEST_ENGINE=auto|native|coupled` — voir `docs/INGEST-DUAL-MODE.md`.
+Routage : `IngestEngineRouter` (CMD v4 si facture + joignable, sinon natif) — voir `docs/CMD-V4-CONNECTOR.md`.
 
 ### Connecteurs ERP / apps
 

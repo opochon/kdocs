@@ -5,22 +5,14 @@
  */
 
 return [
-    'ingest' => [
-        'ingest-native' => [
-            'label' => 'Ingest natif GED',
-            'description' => 'OCR PHP, workers, UnifiedClassifier — toujours disponible',
-            'always' => true,
-            'capabilities' => ['extract', 'ocr', 'thumbnail', 'classify'],
-        ],
-        'ingest-cmd-v3' => [
-            'label' => 'ClearMyDocs v3 (sidecar)',
-            'description' => 'Extraction, segment, enrich — remplace tout ou partie de l\'ingest si joignable',
-            'enabled_env' => 'CLEARMYDOCS_ENABLED',
-            'url_env' => 'CLEARMYDOCS_SIDECAR_URL',
-            'path_env' => 'CLEARMYDOCS_PATH',
-            'capabilities' => ['extract', 'segment', 'analyze', 'ingest'],
-        ],
-        'ingest-cmd-v4' => [
+        'ingest' => [
+            'ingest-native' => [
+                'label' => 'Ingest natif GED',
+                'description' => 'OCR PHP, workers, UnifiedClassifier — toujours disponible',
+                'always' => true,
+                'capabilities' => ['extract', 'ocr', 'thumbnail', 'classify'],
+            ],
+            'ingest-cmd-v4' => [
             'label' => 'ClearMyDocs v4',
             'description' => 'Schémas factures, gate fidélité — cible lot factures',
             'enabled_env' => 'CMD_V4_ENABLED',

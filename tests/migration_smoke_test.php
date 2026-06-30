@@ -182,12 +182,9 @@ if ($vendorOk) {
     assert_true('Classe PluginRegistry chargeable', class_exists('KDocs\\Core\\PluginRegistry'));
 }
 
-echo "\nLot IA — sidecar ClearMyDocs\n";
-assert_true('ClearMyDocsSidecarClient.php', is_file(KDOCS_ROOT . '/app/Services/ClearMyDocsSidecarClient.php'));
+echo "\nLot IA — split PDF (façade)\n";
 assert_true('PdfSplitService.php', is_file(KDOCS_ROOT . '/app/Services/PdfSplit/PdfSplitService.php'));
-assert_true('tests Unit ClearMyDocsSidecarClientTest', is_file(KDOCS_ROOT . '/tests/Unit/Services/ClearMyDocsSidecarClientTest.php'));
 if ($vendorOk) {
-    assert_true('Classe ClearMyDocsSidecarClient chargeable', class_exists('KDocs\\Services\\ClearMyDocsSidecarClient'));
     assert_true('Classe PdfSplitService chargeable', class_exists('KDocs\\Services\\PdfSplit\\PdfSplitService'));
 }
 
@@ -217,28 +214,23 @@ if ($vendorOk) {
     assert_true('Classe ClassifyDocumentJob chargeable', class_exists('KDocs\\Jobs\\ClassifyDocumentJob'));
 }
 
-echo "\nLot IA — ingest dual-mode CMD v3\n";
-$dualModeFiles = [
+echo "\nLot IA — ingest routing (CMD v4 + natif)\n";
+$ingestFiles = [
     'app/Services/Ingest/IngestEngineRouter.php',
-    'app/Services/Ingest/ClearMyDocsIngestEngine.php',
     'app/Services/Ingest/GedNativeIngestEngine.php',
-    'app/Services/Ingest/CmdResultMapper.php',
-    'app/Services/Ingest/ClearMyDocsCapabilityProbe.php',
-    'docs/INGEST-DUAL-MODE.md',
-    'tools/start-cmd-sidecar.bat',
+    'app/Services/Ingest/CmdV4IngestEngine.php',
+    'app/Services/Ingest/CmdV4CapabilityProbe.php',
+    'app/Services/Ingest/CmdV4Client.php',
+    'app/Services/Ingest/CmdV4ResultMapper.php',
     'tests/Unit/Services/Ingest/IngestEngineRouterTest.php',
-    'tests/Unit/Services/Ingest/ClearMyDocsCapabilityProbeTest.php',
-    'tests/Unit/Services/Ingest/CmdResultMapperTest.php',
 ];
-foreach ($dualModeFiles as $rel) {
+foreach ($ingestFiles as $rel) {
     assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
 }
 if ($vendorOk) {
     assert_true('Classe IngestEngineRouter chargeable', class_exists('KDocs\\Services\\Ingest\\IngestEngineRouter'));
-    assert_true('Classe ClearMyDocsCapabilityProbe chargeable', class_exists('KDocs\\Services\\Ingest\\ClearMyDocsCapabilityProbe'));
-    assert_true('Classe CmdResultMapper chargeable', class_exists('KDocs\\Services\\Ingest\\CmdResultMapper'));
-    assert_true('.env.example INGEST_ENGINE', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'INGEST_ENGINE'));
-    assert_true('.env.example CLEARMYDOCS_MIN_VERSION', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'CLEARMYDOCS_MIN_VERSION'));
+    assert_true('Classe CmdV4IngestEngine chargeable', class_exists('KDocs\\Services\\Ingest\\CmdV4IngestEngine'));
+    assert_true('.env.example CMD_V4_URL', str_contains((string) file_get_contents(KDOCS_ROOT . '/.env.example'), 'CMD_V4_URL'));
 }
 
 echo "\nLot B1 — GED pro (shell, recherche, admin)\n";

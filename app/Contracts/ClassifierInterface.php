@@ -7,7 +7,7 @@ namespace KDocs\Contracts;
 /**
  * Contrat unifié pour les moteurs de classification documentaire GEDv1.
  *
- * Implémentations prévues : cascade GED native, taxonomie HTMLEDITOR, sidecar ClearMyDocs.
+ * Implémentations prévues : cascade GED native, taxonomie HTMLEDITOR, CMD v4 (factures).
  *
  * @see docs/IA-ROADMAP.md
  */

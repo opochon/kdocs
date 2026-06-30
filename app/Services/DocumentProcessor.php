@@ -91,7 +91,7 @@ class DocumentProcessor
             throw new \Exception("Fichier introuvable: " . ($filePath ?? 'chemin non défini'));
         }
 
-        // 1. Ingest dual-mode (ClearMyDocs v3 sidecar ou pipeline natif GED)
+        // 1. Ingest (CMD v4 factures ou pipeline natif GED)
         $ingestRouter = new \KDocs\Services\Ingest\IngestEngineRouter();
         $ingestOutcome = $ingestRouter->process($documentId, $filePath, $document);
         $results['ingest_engine'] = $ingestOutcome['engine'] ?? 'native';

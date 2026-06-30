@@ -156,7 +156,7 @@ class IngestClassificationServiceTest extends TestCase
 
             'page_groups' => [[1, 2], [3, 4]],
 
-            'source' => 'clearmydocs-sidecar',
+            'source' => 'ged-legacy',
 
         ]);
 

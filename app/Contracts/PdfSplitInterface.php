@@ -8,7 +8,7 @@ namespace KDocs\Contracts;
  * Détection et séparation de PDF multi-documents (scan N pages → N pièces).
  *
  * Implémentation de référence : {@see \KDocs\Services\PDFSplitterService}
- * Patterns ClearMyDocs : segmenter heuristique + profils (`segment_patterns`).
+ * (sidecar ClearMyDocs v3 retiré — ancienne version).
  *
  * @see docs/IA-ROADMAP.md
  */

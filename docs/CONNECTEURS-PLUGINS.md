@@ -79,15 +79,15 @@ C'est déjà en place (`IngestEngineRouter`, `DocumentProcessor`, workers).
 | Lignes facture + TVA | `InvoiceLineItemExtractor` | partiel | `facture_fournisseur` + lines |
 | Enrich LLM / entités | IA cascade GED | indexer enrich | cmd4 pipeline |
 
-### Routage (`INGEST_ENGINE`)
+### Routage ingest
 
 | Mode | Comportement |
 |------|--------------|
-| `native` | Jamais d'appel sidecar — tests, hébergement minimal |
-| `auto` | Sidecar joignable + version OK → couplé ; sinon **fallback natif sans 500** |
-| `coupled` | Exige CMD ; si down → natif + flag `coupled_unavailable` |
+| Facture PDF + CMD v4 joignable | `CmdV4IngestEngine` (schémas factures, gate fidélité) |
+| Sinon | `GedNativeIngestEngine` (OCR PHP + queue UnifiedClassifier) — toujours disponible |
 
-Implémentation : `app/Services/Ingest/IngestEngineRouter.php` + `ClearMyDocsCapabilityProbe.php`.
+Implémentation : `app/Services/Ingest/IngestEngineRouter.php` + `CmdV4CapabilityProbe.php`.
+Le connecteur ClearMyDocs v3 (sidecar couplé, `INGEST_ENGINE`) a été retiré — ancienne version.
 
 ### Évolution CMD v4
 
@@ -103,7 +103,7 @@ CMD_V4_URL=http://127.0.0.1:8510
 CMD_V4_PATH=F:\DATA\DEVELOPPEMENT\clearmydocs-v3
 ```
 
-Tant que v4 non branché : v3 sidecar (`CLEARMYDOCS_SIDECAR_URL`) ou natif.
+Tant que v4 non branché : pipeline natif GED.
 
 ---
 
@@ -139,7 +139,6 @@ Spec détaillée : `docs/WINBIZ-PLUGIN-REPOSITIONNE.md`.
 return [
     'ingest' => [
         'native'  => ['class' => GedNativeIngestEngine::class, 'always' => true],
-        'cmd_v3'  => ['enabled' => env('CLEARMYDOCS_ENABLED'), 'url' => env('CLEARMYDOCS_SIDECAR_URL'), ...],
         'cmd_v4'  => ['enabled' => env('CMD_V4_ENABLED'), 'url' => env('CMD_V4_URL'), 'path' => env('CMD_V4_PATH')],
     ],
     'erp' => [
@@ -227,12 +226,7 @@ Pas de réécriture du moteur externe dans PHP. Pas de feature UI sans connecteu
 # --- Core (obligatoire) ---
 DB_*  APP_URL  ...
 
-# --- Connecteur ingest CMD (optionnel) ---
-CLEARMYDOCS_ENABLED=false
-CLEARMYDOCS_PATH=
-CLEARMYDOCS_SIDECAR_URL=http://127.0.0.1:5101
-INGEST_ENGINE=auto                    # native | auto | coupled
-
+# --- Connecteur ingest CMD v4 (optionnel) ---
 CMD_V4_ENABLED=false                  # cible factures
 CMD_V4_URL=http://127.0.0.1:8510      # défaut CMD v4 (CLEARMYDOCS_PORT)
 CMD_V4_PATH=
@@ -307,7 +301,7 @@ HTMLEDITOR_TAXONOMY_PATH=
 | `docs/CONNECTEURS-PLUGINS.md` | **Ce fichier** — architecture globale |
 | `docs/PLUGIN-SYSTEM.md` | Détail WinBiz terrain + historique |
 | `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` | Plugin contrôle facture WinBiz |
-| `docs/INGEST-DUAL-MODE.md` | Routage CMD v3 / natif |
+| `docs/CMD-V4-CONNECTOR.md` | Connecteur CMD v4 (factures) |
 | `docs/DETTE-UI-ORPHELINS.md` | Stubs masqués |
 | `docs/ORACLES-KDOCS-PRODUCT.md` | Invariants shell / plugins |
 | `connectors/README.md` | Guide création connecteur |

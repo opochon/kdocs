@@ -132,12 +132,6 @@ class CmdV4CapabilityProbe
 
     {
 
-        if (strtolower(trim((string) env('INGEST_ENGINE', 'auto'))) === 'native') {
-
-            return false;
-
-        }
-
         return (bool) ($this->probe()['invoice_routing_available'] ?? false);
 
     }

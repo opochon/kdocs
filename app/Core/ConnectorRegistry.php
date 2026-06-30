@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace KDocs\Core;
 
-use KDocs\Services\Ingest\ClearMyDocsCapabilityProbe;
 use KDocs\Services\Ingest\CmdV4CapabilityProbe;
 use KDocs\Services\WinBiz\WinBizBridgeClient;
 
@@ -109,24 +108,6 @@ class ConnectorRegistry
                 'url' => $url,
                 'path' => $path,
                 'message' => 'Non activé dans .env',
-            ]);
-        }
-
-        if ($id === 'ingest-cmd-v3') {
-            $probe = (new ClearMyDocsCapabilityProbe())->probe($probeRemote);
-
-            return array_merge($base, [
-                'enabled' => true,
-                'available' => (bool) ($probe['coupled_available'] ?? false),
-                'status' => ($probe['coupled_available'] ?? false) ? 'available' : 'unavailable',
-                'url' => $probe['sidecar_url'] ?? $url,
-                'path' => $probe['install_path'] ?? $path,
-                'active_engine' => $probe['active_engine'] ?? null,
-                'sidecar_version' => $probe['sidecar_version'] ?? null,
-                'message' => ($probe['coupled_available'] ?? false)
-                    ? 'Sidecar joignable'
-                    : 'Activé mais sidecar ou chemin indisponible',
-                'details' => $probe,
             ]);
         }
 

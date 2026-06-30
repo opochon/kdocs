@@ -14,7 +14,6 @@ class ConnectorRegistryTest extends TestCase
     protected function setUp(): void
     {
         foreach ([
-            'CLEARMYDOCS_ENABLED',
             'WINBIZ_ENABLED',
             'WINBIZ_BRIDGE_URL',
             'INVOICES_APP_ENABLED',
@@ -24,13 +23,11 @@ class ConnectorRegistryTest extends TestCase
             $this->envBackup[$key] = $_ENV[$key] ?? getenv($key);
         }
 
-        $_ENV['CLEARMYDOCS_ENABLED'] = 'false';
         $_ENV['WINBIZ_ENABLED'] = 'false';
         $_ENV['WINBIZ_BRIDGE_URL'] = '';
         $_ENV['INVOICES_APP_ENABLED'] = 'false';
         $_ENV['SMQ_APP_ENABLED'] = 'false';
         $_ENV['CMD_V4_ENABLED'] = 'false';
-        putenv('CLEARMYDOCS_ENABLED=false');
         putenv('WINBIZ_ENABLED=false');
         putenv('WINBIZ_BRIDGE_URL=');
         putenv('INVOICES_APP_ENABLED=false');

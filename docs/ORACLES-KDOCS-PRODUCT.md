@@ -79,7 +79,7 @@ PluginRegistry::registerAppRoutes($group);
 | Classification unique | `UnifiedClassifier` via `IngestClassificationService` |
 | Pas de sync en fin de route | **Interdit** : OCR/classify/thumbnail dans middleware ou closure `index.php` post-response |
 
-Config : `INGEST_ENGINE`, `CLEARMYDOCS_SIDECAR_URL` — voir `docs/INGEST-DUAL-MODE.md`.
+Config : `CMD_V4_ENABLED`, `CMD_V4_URL` — voir `docs/CMD-V4-CONNECTOR.md`.
 
 ---
 

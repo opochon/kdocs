@@ -113,7 +113,7 @@ Entrée fichier
 | Gate fidélité | partiel | `cmd4/gate.py` + `product/fields.py` |
 | Lignes facture | absent schéma v4 | **à étendre** (voir § Schémas) |
 
-Mode dual GED : `INGEST_ENGINE` + sonde capacités — voir `docs/INGEST-DUAL-MODE.md`.  
+Routage GED : `IngestEngineRouter` (CMD v4 si facture + joignable, sinon natif) — voir `docs/CMD-V4-CONNECTOR.md`.
 **API v4** : `clearmydocs-v3/cmdv4/docs/API.md` · adaptateur GED : `docs/CMD-V4-CONNECTOR.md`.  
 Évolution : sonde **CMD v4** pour le lot factures ; conserver fallback natif GED.
 
@@ -173,9 +173,9 @@ Sans cette gate : pas d'onglet WinBiz (message « extraction incomplète »).
 | Fichier | Action |
 |---------|--------|
 | `app/Services/Ingest/IngestEngineRouter.php` | Route factures → CMD v4 |
-| `app/Services/ClearMyDocsSidecarClient.php` ou client v4 dédié | HTTP sidecar |
+| `app/Services/Ingest/CmdV4Client.php` | HTTP API CMD v4 |
 | `app/Models/InvoiceLineItem.php` | Upsert depuis mapper CMD |
-| `docs/IA-CLEARMYDOCS-INGESTION.md` | Compléter section v4 factures |
+| `docs/CMD-V4-CONNECTOR.md` | Adaptateur GED CMD v4 |
 
 ---
 
@@ -482,8 +482,7 @@ Parité REDX ~75 % fiduciaire = Lot A (structuration) + Lot B (contrôle ERP liv
 | `docs/CONNECTEURS-PLUGINS.md` | Architecture GED légère + connecteurs + chemins |
 | `docs/WINBIZ-MODULE.md` | Mapping tables WinBiz, API bridge détaillée — **toujours valide** pour le terrain |
 | `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` | **Ce fichier** — positionnement produit et lots |
-| `docs/INGEST-DUAL-MODE.md` | Routage moteur ingest |
-| `docs/IA-CLEARMYDOCS-INGESTION.md` | CMD v3/v4, pipelines |
+| `docs/CMD-V4-CONNECTOR.md` | Connecteur CMD v4 (factures) |
 | `docs/PLUGIN-SYSTEM.md` | Registry plugins |
 | `docs/ROADMAP-KDOCS-PRODUCT.md` | Phase A |
 | `docs/DELTA-REDX.md` | Gaps REDX |

@@ -179,38 +179,35 @@
         </div>
     </div>
 
-    <!-- Ingest dual-mode ClearMyDocs v3 -->
+    <!-- Ingest (CMD v4 + natif GED) -->
     <?php $ingest = $ingestEngine ?? []; ?>
+    <?php $v4 = $ingest['cmd_v4'] ?? []; ?>
     <div class="ds-card rounded-lg shadow p-6">
-        <h2 class="text-xl font-bold mb-4" style="color:var(--ink)">Ingest dual-mode (ClearMyDocs v3)</h2>
+        <h2 class="text-xl font-bold mb-4" style="color:var(--ink)">Ingest (CMD v4 + natif GED)</h2>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div class="border rounded-lg p-4" style="<?= ($ingest['active_engine'] ?? '') === 'coupled' ? 'border-color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)' : 'border-color:var(--border);background:var(--app-bg)' ?>">
+            <div class="border rounded-lg p-4" style="border-color:var(--border);background:var(--app-bg)">
                 <span class="text-sm" style="color:var(--dim)">Moteur actif</span>
                 <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['active_engine'] ?? 'native')) ?></p>
             </div>
-            <div class="border rounded-lg p-4">
-                <span class="text-sm" style="color:var(--dim)">Mode configuré</span>
-                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['configured_mode'] ?? 'auto')) ?></p>
-            </div>
-            <div class="border rounded-lg p-4" style="<?= !empty($ingest['sidecar_ok']) ? 'border-color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)' : 'border-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent)' ?>">
-                <span class="text-sm" style="color:var(--dim)">Sidecar</span>
-                <p class="text-lg font-semibold"><?= !empty($ingest['sidecar_ok']) ? 'OK' : 'Indisponible' ?></p>
-                <p class="text-xs" style="color:var(--dim)"><?= htmlspecialchars((string) ($ingest['sidecar_url'] ?? '')) ?></p>
+            <div class="border rounded-lg p-4" style="<?= !empty($v4['v4_available']) ? 'border-color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)' : 'border-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent)' ?>">
+                <span class="text-sm" style="color:var(--dim)">CMD v4</span>
+                <p class="text-lg font-semibold"><?= !empty($v4['v4_available']) ? 'OK' : 'Indisponible' ?></p>
+                <p class="text-xs" style="color:var(--dim)"><?= htmlspecialchars((string) ($v4['api_url'] ?? '')) ?></p>
             </div>
             <div class="border rounded-lg p-4">
-                <span class="text-sm" style="color:var(--dim)">Version CMD</span>
-                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($ingest['sidecar_version'] ?? 'N/A')) ?></p>
-                <p class="text-xs" style="color:var(--dim)">min <?= htmlspecialchars((string) ($ingest['min_version'] ?? '3.0.0')) ?></p>
+                <span class="text-sm" style="color:var(--dim)">Routage factures</span>
+                <p class="text-lg font-semibold"><?= !empty($v4['invoice_routing_available']) ? 'Actif' : 'Inactif' ?></p>
+            </div>
+            <div class="border rounded-lg p-4">
+                <span class="text-sm" style="color:var(--dim)">Version CMD v4</span>
+                <p class="text-lg font-semibold"><?= htmlspecialchars((string) ($v4['version'] ?? 'N/A')) ?></p>
             </div>
         </div>
         <ul class="text-sm space-y-1" style="color:var(--ink-soft)">
-            <li>Chemin install : <?= htmlspecialchars((string) ($ingest['install_path'] ?? 'non configuré')) ?></li>
-            <li>Couplage disponible : <?= !empty($ingest['coupled_available']) ? 'oui' : 'non' ?></li>
-            <?php if (!empty($ingest['capabilities'])): ?>
-                <li>Capacités sidecar : <?= htmlspecialchars(implode(', ', (array) $ingest['capabilities'])) ?></li>
-            <?php endif; ?>
+            <li>Chemin install : <?= htmlspecialchars((string) ($v4['install_path'] ?? 'non configuré')) ?></li>
+            <li>API joignable : <?= !empty($v4['remote_ok']) ? 'oui' : 'non' ?></li>
         </ul>
-        <p class="text-xs mt-3" style="color:var(--dim)">Voir docs/INGEST-DUAL-MODE.md — démarrer le sidecar via tools/start-cmd-sidecar.bat</p>
+        <p class="text-xs mt-3" style="color:var(--dim)">Connecteur ClearMyDocs v3 retiré (ancienne version). Voir docs/CMD-V4-CONNECTOR.md</p>
     </div>
 
     <!-- Training -->

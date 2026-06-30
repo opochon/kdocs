@@ -1,0 +1,19 @@
+refactor(ged): retrait connecteur ClearMyDocs v3 (ancienne version)
+
+Le connecteur sidecar v3 (couplé, INGEST_ENGINE) est obsolète : CMD v4 le
+remplace pour le lot factures. Le pipeline natif GED reste toujours disponible.
+
+- IngestEngineRouter : route CMD v4 (factures) -> sinon natif ; supprime la
+  logique coupled/v3 et INGEST_ENGINE
+- ConnectorRegistry / config/connectors.php : retire entree ingest-cmd-v3
+- PdfSplitService : retire sidecar v3 (detectPageGroups -> legacy, split() reste)
+- Diagnostic : carte ingest v3 -> carte CMD v4 + natif
+- Supprime ClearMyDocsSidecarClient, ClearMyDocsIngestEngine,
+  ClearMyDocsCapabilityProbe, CmdResultMapper + tests + start-cmd-sidecar.bat
+- .env.example : retire CLEARMYDOCS_* et INGEST_ENGINE
+- Docs : retire INGEST-DUAL-MODE, IA-CLEARMYDOCS-INGESTION/INTEGRATION ;
+  met a jour CONNECTEURS-PLUGINS, PLUGIN-SYSTEM, WINBIZ-REPOSITIONNE, ORACLES
+- Tests : IngestEngineRouterTest, ConnectorRegistryTest, CmdV4CapabilityProbeTest,
+  migration_smoke_test alignes
+
+Vert : migration_smoke 162/0, PHPUnit 299/0, Playwright 32 passed/0 failed.

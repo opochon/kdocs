@@ -42,8 +42,6 @@ class CmdV4CapabilityProbeTest extends TestCase
 
             'CMD_V4_INVOICE_STRICT',
 
-            'INGEST_ENGINE',
-
         ] as $key) {
 
             $this->envBackup[$key] = $_ENV[$key] ?? getenv($key);
@@ -54,11 +52,7 @@ class CmdV4CapabilityProbeTest extends TestCase
 
         $_ENV['CMD_V4_ENABLED'] = 'false';
 
-        $_ENV['INGEST_ENGINE'] = 'auto';
-
         putenv('CMD_V4_ENABLED=false');
-
-        putenv('INGEST_ENGINE=auto');
 
     }
 
@@ -134,15 +128,9 @@ class CmdV4CapabilityProbeTest extends TestCase
 
 
 
-    public function testShouldRouteInvoicesFalseInNativeMode(): void
+    public function testShouldRouteInvoicesFalseWhenInvoiceEnrichmentDisabled(): void
 
     {
-
-        $_ENV['INGEST_ENGINE'] = 'native';
-
-        putenv('INGEST_ENGINE=native');
-
-
 
         $client = $this->createMock(CmdV4Client::class);
 
@@ -160,9 +148,13 @@ class CmdV4CapabilityProbeTest extends TestCase
 
         $_ENV['CMD_V4_PATH'] = dirname(__DIR__, 4);
 
+        $_ENV['CMD_V4_INVOICE_ENABLED'] = 'false';
+
         putenv('CMD_V4_ENABLED=true');
 
         putenv('CMD_V4_PATH=' . dirname(__DIR__, 4));
+
+        putenv('CMD_V4_INVOICE_ENABLED=false');
 
 
 
