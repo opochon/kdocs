@@ -3,6 +3,28 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-06-30 (sprint 2) — correctifs bugs signalés (A→H)
+
+Suite au retour testeur, traitement des 8 anomalies signalées. Vérification
+« déjà fixé ? » + correction cause racine + tests Playwright/PHPUnit qui épinglent.
+
+| Bug | Verdict | Correctif |
+|-----|---------|-----------|
+| A — `diagnostic.php:110` Undefined array key `error` | Déjà fixé (`e30e350`) | + bloc cascade **Infomaniak** ajouté à la page diagnostic (la bascule Infomaniak l'avait rendue invisible). |
+| B — Création tâche cassée (bouton « Créer la tâche ») | **Fixé** (cause racine réelle) | `Task::create()` n'persistait pas `title`/`description`/`priority`/`document_id`/`created_by` (hardcodait `workflow_instance_id=1, step_id=1`). Migration `add_standalone_task_columns.php` (ajoute les colonnes à la table `tasks` + rend `workflow_instance_id`/`step_id` nullables) + modèle corrigé. Spec Playwright `bugs-click.spec.ts` (POST + tâche visible en liste). Les « clics ne réagissent pas » = artefact automation testeur (cf H). |
+| C — OnlyOffice ERREUR + pdftoppm « Non trouvé » | Partiel | OnlyOffice : timeout healthcheck hardcoded 3s → aligné sur `onlyoffice.timeout` (10s) + tolérance body `trim==='true'` (le Document Server Docker répond lentement). pdftoppm : binaire **réellement absent** du système (le diagnostic signale correctement « Non trouvé » — pas un bug code). |
+| D — « Tester la classification » → « Test échoué » | Fixé par bascule Infomaniak | `AIProviderService::complete()` renvoie maintenant `{provider: infomaniak, model: Apertus-70B, text: 'OK'}` en 489ms → `/api/ai/test` `success=true`. (Avant : Claude cassé à l'appel réel.) |
+| E — Assistant IA (« combien de documents » → « aucun » ; « notaire » → HTML/JSON) | **Fixé** | `NaturalLanguageQueryService` était **codé en dur sur `ClaudeService`** (désactivé) → plus de parsing d'intention + repli mot-clé transformant la question en recherche littérale. Branché sur la cascade `AIProviderService` (Infomaniak) + garde « count-all » (vide le filtre textuel pour `combien de documents/fichiers/dossiers`) + détection quantité avant le early-return `total===0`. Vérifié live : « combien » = 60, « notaire » = 2, « combien de 2026 » = 60 + répartition. |
+| F — Tag « contribution d'entretien » x3 | Base propre + prévention | DB inspectée : 1 seul tag (id=4, 0 doublons sur toutes les tables). Le « 3x » = même libellé rendu dans 3 sections UI (résumé IA + catégories + suggestions) ou état DB antérieur nettoyé. Prévention récurrence : find-or-create insensible casse ajouté aux 3 chemins de création (`CategoryMappingService::createTagFromCategory`, `TagsApiController::create`, `TagsController::save`). |
+| G — Après save type doc, champ Type revient « Non défini » | **Vérifié OK** (pas un bug persistance) | Round-trip DB + spec Playwright `bugs-misc.spec.ts` : type initial `[]` → choisi `[5]=Autre` → rechargé `[5]` (conservé). `Document::findById` JOIN `document_types` → label résolu. Le « Non défini » = état transitoire (l'aperçu recharge en asynchrone après save). |
+| H — Saisie clavier champs texte en automation | Confirmé limite env test | Les specs Playwright (events natifs trusted) tapent/cliquent normalement → limite de l'outil d'automatisation du testeur, pas un bug app. |
+
+**État final** : PHPUnit unit 249/249 · PHPStan 0 erreur (fichiers modifiés) · Playwright bugs 4/4 (`bugs-click` 3 + `bugs-misc` 1).
+
+**Fichiers** : `app/Models/Task.php`, `app/Services/NaturalLanguageQueryService.php`, `app/Services/CategoryMappingService.php`, `app/Controllers/AdminController.php`, `app/Controllers/TagsController.php`, `app/Controllers/Api/TagsApiController.php`, `templates/admin/diagnostic.php`, `templates/tasks/list.php`, `database/migrations/add_standalone_task_columns.php`, `tests/visual/specs/bugs-click.spec.ts`, `tests/visual/specs/bugs-misc.spec.ts`.
+
+---
+
 ## Session 2026-06-30 (sprint) — retrait connecteur ClearMyDocs v3 + finalisation chrome
 
 **Sprint autonome** : commits/push réguliers, arrêt sur rouge → diagnostic + solution.

@@ -118,36 +118,48 @@ class Task
 
     /**
      * Crée une nouvelle tâche
+     *
+     * Supporte deux profils :
+     *  - tâche autonome (UI /tasks/create) : title, description, priority, document_id,
+     *    workflow_type_id, assigned_to, due_date, created_by. Aucun workflow_instance.
+     *  - tâche de workflow (programmatique) : workflow_instance_id + step_id fournis.
      */
     public static function create(array $data): int
     {
         $db = Database::getInstance();
-        
-        // Pour simplifier, créons une tâche basique sans workflow_instance pour l'instant
-        // TODO: Implémenter la création de workflow_instance si nécessaire
+
+        $hasWorkflow = !empty($data['workflow_instance_id']);
+        $workflowInstanceId = $hasWorkflow ? (int)$data['workflow_instance_id'] : null;
+        $stepId = $hasWorkflow ? (int)($data['step_id'] ?? 1) : null;
+
         $stmt = $db->prepare("
             INSERT INTO tasks (
-                workflow_instance_id, step_id, assigned_to, due_date, status
+                workflow_instance_id, step_id, assigned_to,
+                title, description, priority,
+                document_id, workflow_type_id, created_by,
+                due_date, status
             ) VALUES (
-                :workflow_instance_id, :step_id, :assigned_to, :due_date, :status
+                :workflow_instance_id, :step_id, :assigned_to,
+                :title, :description, :priority,
+                :document_id, :workflow_type_id, :created_by,
+                :due_date, :status
             )
         ");
-        
-        // Créer un workflow_instance minimal si document_id fourni
-        $workflowInstanceId = null;
-        if (!empty($data['document_id'])) {
-            // Pour l'instant, on ne crée pas de workflow_instance
-            // On utilisera une valeur par défaut ou NULL
-        }
-        
+
         $stmt->execute([
-            'workflow_instance_id' => $workflowInstanceId ?? 1, // Valeur temporaire
-            'step_id' => 1, // Valeur temporaire
-            'assigned_to' => $data['assigned_to'] ?? null,
-            'due_date' => $data['due_date'] ?? null,
-            'status' => 'pending',
+            'workflow_instance_id' => $workflowInstanceId,
+            'step_id'              => $stepId,
+            'assigned_to'          => $data['assigned_to'] ?? null,
+            'title'                => $data['title'] ?? null,
+            'description'          => $data['description'] ?? null,
+            'priority'             => $data['priority'] ?? 'medium',
+            'document_id'          => !empty($data['document_id']) ? (int)$data['document_id'] : null,
+            'workflow_type_id'     => !empty($data['workflow_type_id']) ? (int)$data['workflow_type_id'] : null,
+            'created_by'           => !empty($data['created_by']) ? (int)$data['created_by'] : null,
+            'due_date'             => $data['due_date'] ?? null,
+            'status'               => $data['status'] ?? 'pending',
         ]);
-        
+
         return (int)$db->lastInsertId();
     }
 

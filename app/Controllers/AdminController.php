@@ -271,12 +271,19 @@ class AdminController
         if ($onlyOfficeEnabled) {
             $url = Config::get('onlyoffice.server_url');
             $ch = curl_init(rtrim($url, '/') . '/healthcheck');
-            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 3]);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                // OnlyOffice Document Server (Docker) peut etre lent a repondre au
+                // healthcheck : on respecte le timeout configure (10s par defaut)
+                // plutot qu'un 3s dur qui produit des faux "ERREUR".
+                CURLOPT_TIMEOUT => (int) Config::get('onlyoffice.timeout', 10),
+                CURLOPT_CONNECTTIMEOUT => 5,
+            ]);
             $result = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             $services['onlyoffice'] = [
-                'status' => ($httpCode === 200 && $result === 'true') ? 'connected' : 'error',
+                'status' => ($httpCode === 200 && trim((string)$result) === 'true') ? 'connected' : 'error',
                 'url' => $url,
             ];
         } else {

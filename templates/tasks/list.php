@@ -115,9 +115,9 @@ $success = $_GET['success'] ?? null;
                         <tr>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium" style="color:var(--ink)">
-                                    <?= htmlspecialchars($task['title']) ?>
+                                    <?= htmlspecialchars($task['title'] ?? '(sans titre)') ?>
                                 </div>
-                                <?php if ($task['description']): ?>
+                                <?php if (!empty($task['description'])): ?>
                                     <div class="text-sm mt-1" style="color:var(--dim)">
                                         <?= htmlspecialchars(substr($task['description'], 0, 50)) ?><?= strlen($task['description']) > 50 ? '...' : '' ?>
                                     </div>

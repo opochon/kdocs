@@ -52,9 +52,17 @@ class TagsApiController extends ApiController
         if (empty($data['name'])) {
             return $this->errorResponse($response, 'name est requis');
         }
-        
+
         $db = Database::getInstance();
-        
+
+        // Find-or-create insensible a la casse : evite les doublons de tags.
+        $find = $db->prepare("SELECT * FROM tags WHERE LOWER(name) = LOWER(?) LIMIT 1");
+        $find->execute([$data['name']]);
+        $existing = $find->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            return $this->successResponse($response, $existing, 'Tag existant');
+        }
+
         try {
             $stmt = $db->prepare("INSERT INTO tags (name, color, match, matching_algorithm, parent_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([

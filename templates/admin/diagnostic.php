@@ -90,9 +90,27 @@
     <!-- CASCADE IA -->
     <div class="ds-card rounded-lg shadow p-6">
         <h2 class="text-xl font-bold mb-4" style="color:var(--ink)">CASCADE IA</h2>
-        <p class="text-sm mb-4" style="color:var(--dim)">Ordre de priorité: Claude/Anthropic > Ollama > Règles</p>
+        <p class="text-sm mb-4" style="color:var(--dim)">Ordre de priorité: Infomaniak (cloud CH) > Claude/Anthropic > Ollama > Règles</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <!-- Infomaniak AI Tools -->
+            <div class="border rounded-lg p-4" style="<?= $aiStatus['infomaniak']['available'] ?? false ? 'border-color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)' : (($aiStatus['infomaniak']['configured'] ?? false) ? 'border-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent)' : 'border-color:var(--border);background:var(--app-bg)') ?>">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold">Infomaniak AI</span>
+                    <?php if ($aiStatus['infomaniak']['available'] ?? false): ?>
+                        <span class="px-2 py-1 text-xs ds-chip ds-chip--green">ACTIF</span>
+                    <?php elseif ($aiStatus['infomaniak']['configured'] ?? false): ?>
+                        <span class="px-2 py-1 text-xs ds-chip ds-chip--amber">CONFIGURE</span>
+                    <?php else: ?>
+                        <span class="px-2 py-1 text-xs ds-chip ds-chip--neutral">NON CONFIGURE</span>
+                    <?php endif; ?>
+                </div>
+                <ul class="text-sm space-y-1" style="color:var(--ink-soft)">
+                    <li>Modèle: <?= htmlspecialchars($aiStatus['infomaniak']['model'] ?? 'N/A') ?></li>
+                    <li>Product ID: <?= ($aiStatus['infomaniak']['product_id_set'] ?? false) ? 'oui' : 'non' ?></li>
+                </ul>
+            </div>
+
             <!-- Claude/Anthropic -->
             <div class="border rounded-lg p-4" style="<?= $aiStatus['claude']['available'] ? 'border-color:var(--green);background:color-mix(in srgb,var(--green) 10%,transparent)' : ($aiStatus['claude']['configured'] ? 'border-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent)' : 'border-color:var(--border);background:var(--app-bg)') ?>">
                 <div class="flex items-center justify-between mb-2">
@@ -149,10 +167,13 @@
             <p class="font-semibold mb-2">Cascade actuelle:</p>
             <div class="flex items-center space-x-2">
                 <?php
-                $cascadeOrder = ['claude' => 'Claude', 'ollama' => 'Ollama', 'rules' => 'Règles'];
+                $cascadeOrder = ['infomaniak' => 'Infomaniak', 'claude' => 'Claude', 'ollama' => 'Ollama', 'rules' => 'Règles'];
                 $first = true;
                 foreach ($cascadeOrder as $key => $label):
-                    $isActive = ($key === 'rules') || ($key === 'claude' && $aiStatus['claude']['available']) || ($key === 'ollama' && $aiStatus['ollama']['available']);
+                    $isActive = ($key === 'rules')
+                        || ($key === 'infomaniak' && ($aiStatus['infomaniak']['available'] ?? false))
+                        || ($key === 'claude' && $aiStatus['claude']['available'])
+                        || ($key === 'ollama' && $aiStatus['ollama']['available']);
                 ?>
                     <?php if (!$first): ?>
                         <span style="color:var(--dim)">→</span>

@@ -131,14 +131,23 @@ class CategoryMappingService
      */
     public function createTagFromCategory(string $categoryName, string $tagName): int
     {
+        // Find-or-create insensible a la casse pour eviter les doublons de tags
+        // (ex: "contribution d'entretien" recree a chaque conversion categorie->tag).
+        $find = $this->db->prepare("SELECT id FROM tags WHERE LOWER(name) = LOWER(?) LIMIT 1");
+        $find->execute([$tagName]);
+        $existing = $find->fetch();
+        if ($existing) {
+            return (int)$existing['id'];
+        }
+
         // Créer le tag
         $stmt = $this->db->prepare("INSERT INTO tags (name, color) VALUES (?, ?)");
         $stmt->execute([$tagName, $this->generateTagColor()]);
         $tagId = (int)$this->db->lastInsertId();
-        
+
         // Créer le mapping
         $this->createMapping($categoryName, 'tag', $tagId, $tagName);
-        
+
         return $tagId;
     }
     

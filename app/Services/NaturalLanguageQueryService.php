@@ -11,12 +11,14 @@ use KDocs\Search\SearchQueryBuilder;
 
 class NaturalLanguageQueryService
 {
-    private ClaudeService $claudeService;
+    private AIProviderService $aiProvider;
     private SearchService $searchService;
-    
+
     public function __construct()
     {
-        $this->claudeService = new ClaudeService();
+        // Branche la cascade IA (Infomaniak > Claude > Ollama) au lieu d'un ClaudeService
+        // hardcoded : sinon la conversion d'intention est desactivee des que Claude est off.
+        $this->aiProvider = new AIProviderService();
         $this->searchService = new SearchService();
     }
     
@@ -41,9 +43,13 @@ class NaturalLanguageQueryService
                 $searchQuery = new SearchQuery();
             }
 
-            // Toujours essayer d'extraire des termes
-            $extractedTerms = $this->extractSearchTerms($question);
-            if (!empty($extractedTerms)) {
+            // Question de decompte global (ex. "Combien de documents ai-je ?") :
+            // on NE pose PAS de filtre textuel (sinon on cherche la phrase litterale
+            // "combien de documents" et on obtient 0 resultat). La reponse numerique
+            // est generee par generateResponseSummary() sur le total reel.
+            if ($this->isCountAllQuestion($question)) {
+                $searchQuery->text = '';
+            } elseif (!empty($extractedTerms = $this->extractSearchTerms($question))) {
                 $searchQuery->text = $extractedTerms;
             } else {
                 // Dernier recours: utiliser la question entière simplifiée
@@ -52,11 +58,30 @@ class NaturalLanguageQueryService
             }
         }
         // If AI returned filters but no text, try to extract key terms from question
-        elseif (empty($searchQuery->text) && $this->looksLikeTextSearch($question)) {
+        elseif (empty($searchQuery->text) && $this->looksLikeTextSearch($question) && !$this->isCountAllQuestion($question)) {
             $extractedTerms = $this->extractSearchTerms($question);
             if (!empty($extractedTerms)) {
                 $searchQuery->text = $extractedTerms;
             }
+        }
+
+        // Override final : une question de decompte global ("combien de documents ?")
+        // ne doit pas filtrer sur le texte. L'IA ou le repli peuvent avoir mis
+        // text="combien de documents" (phrase litterale) -> 0 resultat errone.
+        // On ne vide le texte que si aucun autre filtre semantique n'est pose
+        // (ex: "combien de documents de 2024" conserve le filtre date).
+        if ($this->isCountAllQuestion($question)
+            && empty($searchQuery->correspondentName)
+            && empty($searchQuery->correspondentId)
+            && empty($searchQuery->documentTypeName)
+            && empty($searchQuery->documentTypeId)
+            && empty($searchQuery->tagIds)
+            && empty($searchQuery->tagNames)
+            && empty($searchQuery->category)
+            && empty($searchQuery->createdAfter)
+            && empty($searchQuery->createdBefore)
+        ) {
+            $searchQuery->text = '';
         }
 
         // Apply additional options
@@ -100,6 +125,19 @@ class NaturalLanguageQueryService
             && empty($query->category)
             && empty($query->createdAfter)
             && empty($query->createdBefore);
+    }
+
+    /**
+     * Detecte une question de decompte global (ex. "Combien de documents ai-je ?",
+     * "Combien de fichiers ?") sans terme de recherche specifique.
+     * On exclut les items typés (factures, contrats...) qui relevent d'un filtre.
+     */
+    private function isCountAllQuestion(string $question): bool
+    {
+        return (bool) preg_match(
+            '/combien\s+de\s+(documents?|fichiers?|dossiers?|enregistrements?)\b/ui',
+            $question
+        );
     }
 
     /**
@@ -178,33 +216,26 @@ class NaturalLanguageQueryService
      */
     public function questionToSearchQuery(string $question): ?SearchQuery
     {
-        if (!$this->claudeService->isConfigured()) {
+        if (!$this->aiProvider->isAIAvailable()) {
             return null;
         }
-        
+
         $prompt = $this->buildConversionPrompt($question);
-        
+
         try {
-            $response = $this->claudeService->sendMessage($prompt);
+            $response = $this->aiProvider->complete($prompt, ['max_tokens' => 500]);
 
-            if (empty($response)) {
-                return null;
-            }
-
-            // Extract text from Claude response (sendMessage returns array, not string)
-            $responseText = $this->claudeService->extractText($response);
-
-            if (empty($responseText)) {
+            if (empty($response) || empty($response['text'])) {
                 return null;
             }
 
             // Try to extract JSON from response
-            $data = $this->parseJsonResponse($responseText);
-            
+            $data = $this->parseJsonResponse($response['text']);
+
             if ($data === null) {
                 return null;
             }
-            
+
             return $this->dataToSearchQuery($data);
         } catch (\Exception $e) {
             error_log('NL query conversion failed: ' . $e->getMessage());
@@ -217,10 +248,6 @@ class NaturalLanguageQueryService
      */
     public function generateResponseSummary(string $question, \KDocs\Search\SearchResult $result): string
     {
-        if ($result->total === 0) {
-            return "Je n'ai trouvé aucun document correspondant à votre recherche.";
-        }
-
         $questionLower = mb_strtolower($question);
 
         // Detect counting questions - expanded patterns
@@ -238,8 +265,14 @@ class NaturalLanguageQueryService
         }
 
         // Detect quantity questions (combien de documents/factures/etc)
+        // Traite AVANT le early-return "total === 0" : une question de decompte doit
+        // toujours repondre par un nombre, meme si 0.
         if (preg_match('/combien\s+de\s+(\w+)/ui', $questionLower, $matches)) {
             return $this->generateQuantityResponse($question, $result, $matches[1]);
+        }
+
+        if ($result->total === 0) {
+            return "Je n'ai trouvé aucun document correspondant à votre recherche.";
         }
 
         // Default summary response

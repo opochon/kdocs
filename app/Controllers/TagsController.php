@@ -151,11 +151,20 @@ class TagsController
                 }
             }
         } else {
-            // Création
+            // Création — dedup insensible a la casse : ne pas recréer un tag existant.
+            $dupStmt = $db->prepare("SELECT id FROM tags WHERE LOWER(name) = LOWER(?) LIMIT 1");
+            $dupStmt->execute([$name]);
+            $dup = $dupStmt->fetch();
+            if ($dup) {
+                $basePath = \KDocs\Core\Config::basePath();
+                return $response
+                    ->withHeader('Location', $basePath . '/admin/tags')
+                    ->withStatus(302);
+            }
             $stmt = $db->prepare("INSERT INTO tags (name, color, match, matching_algorithm, is_insensitive, is_inbox_tag, parent_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
             $stmt->execute([$name, $color, $match, $matchingAlgorithm, $isInsensitive, $isInboxTag, $parentId]);
             $newId = (int)$db->lastInsertId();
-            
+
             // Audit log
             AuditService::logCreate('tag', $newId, $name, $user['id']);
         }
