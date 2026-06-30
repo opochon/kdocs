@@ -537,7 +537,7 @@ PROMPT;
         return $data;
     }
     
-    private function getInfomaniakService(): InfomaniakAIService
+    protected function getInfomaniakService(): InfomaniakAIService
     {
         if ($this->infomaniakService === null) {
             $this->infomaniakService = new InfomaniakAIService();

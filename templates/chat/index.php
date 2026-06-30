@@ -10,9 +10,12 @@ $userId = $user['id'] ?? 0;
 $chatService = new ChatHistoryService();
 $conversations = $userId ? $chatService->getRecentConversations($userId) : [];
 
-// Vérifier si Claude est configuré
-$claudeService = new \KDocs\Services\ClaudeService();
-$isConfigured = $claudeService->isConfigured();
+// Vérifier si une IA est disponible (cascade Infomaniak > Claude > Ollama,
+// pas seulement Claude — sinon l'Assistant IA est inutilisable des que Claude
+// est off alors qu'Infomaniak est le fournisseur actif).
+$aiProvider = new \KDocs\Services\AIProviderService();
+$isConfigured = $aiProvider->isAIAvailable();
+$activeProvider = $aiProvider->getBestProvider();
 ?>
 
 <div class="flex h-full -m-6">
@@ -62,14 +65,14 @@ $isConfigured = $claudeService->isConfigured();
     <!-- Zone de chat principale -->
     <div class="flex-1 flex flex-col h-full" style="background:var(--surface)">
         <?php if (!$isConfigured): ?>
-        <!-- API non configurée -->
+        <!-- IA non configurée -->
         <div class="flex-1 flex items-center justify-center p-6">
             <div class="text-center max-w-md">
                 <svg class="w-16 h-16 mx-auto mb-4" style="color:var(--amber)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
-                <h3 class="text-lg font-medium mb-2" style="color:var(--ink)">API Claude non configurée</h3>
-                <p class="text-sm mb-4" style="color:var(--dim)">Configurez votre clé API Claude pour utiliser la recherche intelligente.</p>
+                <h3 class="text-lg font-medium mb-2" style="color:var(--ink)">IA non configurée</h3>
+                <p class="text-sm mb-4" style="color:var(--dim)">Configurez au moins un fournisseur IA (Infomaniak, Claude ou Ollama) pour utiliser l'assistant.</p>
                 <a href="<?= url('/admin/settings#ai') ?>" class="inline-block px-4 py-2 text-sm rounded-lg btn-primary">
                     Configurer
                 </a>
