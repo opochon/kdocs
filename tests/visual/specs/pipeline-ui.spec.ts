@@ -114,6 +114,14 @@ test('UI pipeline : upload → suggestion IA → sauvegarde → recherche', asyn
     expect(saved.document_type_id, 'type non persisté après save').toBeTruthy();
     console.log(`[pipeline] type persisté : id=${saved.document_type_id} label=${saved.document_type_label ?? '?'}`);
 
+    // E2 : après rechargement de la fiche, le champ Type doit afficher la valeur persistée
+    // (et non revenir à « Non défini »). Re-open la modale via ?open=.
+    await page.goto(`${BASE}/documents?open=${id}&path=${encodeURIComponent(TARGET_FOLDER)}`, { waitUntil: 'domcontentloaded' });
+    const typeSelectReload = page.locator('#preview-type-select');
+    await expect(typeSelectReload).toBeVisible({ timeout: 10_000 });
+    await expect(typeSelectReload, 'le type affiché revient à Non défini après rechargement')
+      .toHaveValue(String(saved.document_type_id));
+
     // Capture de la fiche.
     await page.screenshot({ path: path.join(SHOTS, 'pipeline-preview.png'), fullPage: true });
 

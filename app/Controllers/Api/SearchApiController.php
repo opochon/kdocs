@@ -66,15 +66,15 @@ class SearchApiController extends ApiController
                     'years' => $result->yearFacets,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log("NL Query error: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
-            
+
             // Fallback sur l'ancien service si erreur
             try {
                 $result = $this->searchService->askQuestion($question);
                 return $this->jsonResponse($response, $result);
-            } catch (\Exception $e2) {
+            } catch (\Throwable $e2) {
                 return $this->jsonResponse($response, ['error' => 'Erreur serveur: ' . $e->getMessage()], 500);
             }
         }

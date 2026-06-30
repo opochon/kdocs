@@ -107,7 +107,7 @@
                 </div>
                 <ul class="text-sm space-y-1" style="color:var(--ink-soft)">
                     <li>Modèle: <?= htmlspecialchars($aiStatus['claude']['model'] ?? 'N/A') ?></li>
-                    <?php if ($aiStatus['claude']['error']): ?>
+                    <?php if (!empty($aiStatus['claude']['error'])): ?>
                         <li style="color:var(--red)">Erreur: <?= htmlspecialchars($aiStatus['claude']['error']) ?></li>
                     <?php endif; ?>
                 </ul>

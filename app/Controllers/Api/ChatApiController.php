@@ -169,7 +169,7 @@ class ChatApiController extends ApiController
                 'search_time' => $result->searchTime
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log("Chat error: " . $e->getMessage());
 
             $errorMessage = "Désolé, une erreur s'est produite lors du traitement de votre question.";
