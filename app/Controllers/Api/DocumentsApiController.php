@@ -356,8 +356,10 @@ class DocumentsApiController extends ApiController
             }
 
             $db->commit();
-            
+
             $updated = Document::findById($id);
+            // Auto-apprentissage : enregistre la correction de classification (type/correspondent).
+            $this->recordClassificationCorrection($id, $document, $updated);
             return $this->successResponse($response, $this->formatDocument($updated), 'Document mis à jour avec succès');
             
         } catch (\Exception $e) {
@@ -713,6 +715,94 @@ class DocumentsApiController extends ApiController
         try {
             $rows = $db->query("SHOW COLUMNS FROM documents")->fetchAll(\PDO::FETCH_ASSOC);
             return array_map(static fn($r) => $r['Field'], $rows);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Auto-apprentissage (Lot 3) : enregistre la correction utilisateur d'une
+     * classification (changement de type et/ou correspondant) dans TrainingService,
+     * pour que l'IA (AIProviderService::classifyDocument réutilise getTrainedClassification)
+     * et l'AutoClassifier (Lot 4) réutilisent ce signal.
+     *
+     * Jamais bloquant : un échec/absence d'apprentissage ne doit pas casser la MAJ.
+     * Désactivé quand CLASSIFY_LEARNING_ENABLED != 'true' (tests hermétiques).
+     */
+    private function recordClassificationCorrection(int $id, array $before, array $after): void
+    {
+        if (strtolower((string) \env('CLASSIFY_LEARNING_ENABLED', 'true')) !== 'true') {
+            return;
+        }
+        try {
+            $beforeType = $before['document_type_id'] ?? null;
+            $afterType = $after['document_type_id'] ?? null;
+            $beforeCorr = $before['correspondent_id'] ?? null;
+            $afterCorr = $after['correspondent_id'] ?? null;
+
+            $typeChanged = ((string)$beforeType !== (string)$afterType);
+            $corrChanged = ((string)$beforeCorr !== (string)$afterCorr);
+            if (!$typeChanged && !$corrChanged) return;
+            if (!$afterType) return; // pas de classement final -> rien à apprendre
+
+            $text = trim($before['content'] ?? $before['ocr_text'] ?? '');
+            if ($text === '') return; // rien à apprendre sans texte OCR
+
+            $suggestedType = $this->resolveDocumentTypeLabel($beforeType) ?? '';
+            $correctedType = $this->resolveDocumentTypeLabel($afterType) ?? '';
+            $correctedFields = [
+                'correspondent' => $this->resolveCorrespondentName($afterCorr),
+                'tags' => $this->resolveDocumentTagNames($id),
+                'correction_kind' => $typeChanged ? 'type' : 'correspondent',
+            ];
+
+            $training = $this->makeTrainingService();
+            $ok = $training->storeCorrection($text, $suggestedType, $correctedType, $correctedFields, $id);
+            error_log("DocumentsApiController::recordClassificationCorrection: doc {$id} type '{$suggestedType}' -> '{$correctedType}' (recorded=" . ($ok ? '1' : '0') . ")");
+        } catch (\Exception $e) {
+            error_log("DocumentsApiController::recordClassificationCorrection: {$e->getMessage()} pour doc {$id}");
+        }
+    }
+
+    /** Factory TrainingService (overridable en test pour injection d'un mock). */
+    protected function makeTrainingService(): \KDocs\Services\TrainingService
+    {
+        return new \KDocs\Services\TrainingService();
+    }
+
+    protected function resolveDocumentTypeLabel(?int $typeId): ?string
+    {
+        if (!$typeId) return null;
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT label FROM document_types WHERE id = ?");
+            $stmt->execute([$typeId]);
+            return ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) ? $r['label'] : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    protected function resolveCorrespondentName(?int $corrId): ?string
+    {
+        if (!$corrId) return null;
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT name FROM correspondents WHERE id = ?");
+            $stmt->execute([$corrId]);
+            return ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) ? $r['name'] : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    protected function resolveDocumentTagNames(int $id): array
+    {
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT t.name FROM document_tags dt JOIN tags t ON t.id = dt.tag_id WHERE dt.document_id = ?");
+            $stmt->execute([$id]);
+            return array_column($stmt->fetchAll(\PDO::FETCH_ASSOC), 'name');
         } catch (\Exception $e) {
             return [];
         }
@@ -1150,11 +1240,14 @@ class DocumentsApiController extends ApiController
         $typeId = isset($data['document_type_id']) ? (int)$data['document_type_id'] : null;
 
         $db = Database::getInstance();
+        $before = Document::findById($id);
 
         try {
             $stmt = $db->prepare("UPDATE documents SET document_type_id = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$typeId ?: null, $id]);
 
+            $after = Document::findById($id);
+            $this->recordClassificationCorrection($id, $before ?: [], $after ?: []);
             return $this->successResponse($response, ['document_type_id' => $typeId], 'Type mis à jour');
 
         } catch (\Exception $e) {
@@ -1173,11 +1266,14 @@ class DocumentsApiController extends ApiController
         $correspondentId = isset($data['correspondent_id']) ? (int)$data['correspondent_id'] : null;
 
         $db = Database::getInstance();
+        $before = Document::findById($id);
 
         try {
             $stmt = $db->prepare("UPDATE documents SET correspondent_id = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$correspondentId ?: null, $id]);
 
+            $after = Document::findById($id);
+            $this->recordClassificationCorrection($id, $before ?: [], $after ?: []);
             return $this->successResponse($response, ['correspondent_id' => $correspondentId], 'Correspondant mis à jour');
 
         } catch (\Exception $e) {

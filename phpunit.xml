@@ -48,5 +48,8 @@
         <env name="INFOMANIAK_API_TOKEN" value=""/>
         <env name="INFOMANIAK_PRODUCT_ID" value=""/>
         <env name="ANTHROPIC_API_KEY" value=""/>
+        <!-- Apprentissage classification neutralisé dans la suite : évite d'écrire
+             storage/training.json pendant les tests (hermétique). -->
+        <env name="CLASSIFY_LEARNING_ENABLED" value="false"/>
     </php>
 </phpunit>
