@@ -738,6 +738,7 @@ function renderDocumentMetadata(doc) {
                     </svg>
                     Suggestion : analyser
                 </button>
+                <span id="ai-confidence-badge" class="text-xs px-2 py-0.5 rounded-full hidden" title="Degré de certitude de la classification suggérée"></span>
                 <div class="flex gap-1">
                     <button onclick="saveDocumentPreview(${doc.id})" title="Enregistrer les modifications"
                             class="p-1.5 rounded transition ds-btn-soft-green">
@@ -1430,6 +1431,19 @@ function formatFileSize(bytes) {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
+// Badge % de certitude de la classification suggérée (Lot 2)
+function updateAIConfidenceBadge(pct, methodLabel, skippedAi) {
+    const badge = document.getElementById('ai-confidence-badge');
+    if (!badge) return;
+    if (pct === null || pct === undefined) { badge.classList.add('hidden'); return; }
+    badge.classList.remove('hidden');
+    const tone = pct >= 80 ? 'ds-btn-green' : pct >= 60 ? 'ds-btn-neutral' : 'ds-btn-soft-red';
+    badge.className = `text-xs px-2 py-0.5 rounded-full ${tone}`;
+    const suffix = skippedAi ? ' · sans IA' : '';
+    badge.textContent = `Certitude ${pct}% · ${methodLabel}${suffix}`;
+    badge.title = `Degré de certitude de la classification (${methodLabel}${suffix})`;
+}
+
 // Suggestions IA
 async function getAISuggestionsPreview(docId) {
     const btn = document.getElementById('ai-suggest-btn');
@@ -1456,7 +1470,14 @@ async function getAISuggestionsPreview(docId) {
         if (result.success && result.data?.suggestions) {
             const s = result.data.suggestions;
             const matched = s.matched || {};
-            
+
+            // Badge % de certitude (tous cas de succès)
+            const pct = (typeof s.confidence_pct === 'number') ? s.confidence_pct
+                : (typeof s.confidence === 'number' ? Math.round(s.confidence * 100) : null);
+            const methodLabel = s._method === 'rules' ? 'heuristique'
+                : (s._method === 'ai+rules' ? 'IA+heuristique' : 'IA');
+            updateAIConfidenceBadge(pct, methodLabel, !!s._skipped_ai);
+
             // Debug: Logger les suggestions et matched
             console.log('Suggestions:', s);
             console.log('Matched IDs:', matched);
@@ -1530,7 +1551,8 @@ async function getAISuggestionsPreview(docId) {
             }
 
             if (appliedCount > 0) {
-                showNotification(`${appliedCount} suggestion(s) IA appliquée(s)`, 'success');
+                const cert = (pct !== null) ? ` — certitude ${pct}% (${methodLabel}${s._skipped_ai ? ', sans IA' : ''})` : '';
+                showNotification(`${appliedCount} suggestion(s) appliquée(s)${cert}`, 'success');
             } else {
                 // Debug: Logger pourquoi aucune suggestion n'a été appliquée
                 console.warn('Aucune suggestion appliquée:', {
@@ -1554,10 +1576,12 @@ async function getAISuggestionsPreview(docId) {
         } else {
             const errorMsg = result.message || result.error || 'Aucune suggestion disponible';
             console.error('AI Suggestions Error:', errorMsg, result);
+            updateAIConfidenceBadge(null);
             showNotification(errorMsg, 'error');
         }
     } catch (error) {
         console.error('AI error:', error);
+        updateAIConfidenceBadge(null);
         showNotification('Erreur lors de l\'analyse IA', 'error');
     } finally {
         btn.innerHTML = originalHtml;
