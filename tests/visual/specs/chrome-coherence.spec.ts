@@ -100,18 +100,42 @@ test('F-CHROME-05: indicateur sync <=> fileCount != dbCount (semantique du title
   }
 });
 
-// F-CHROME-06 : pas d'emoji chrome (SVG uniquement). Détection d'emoji floue -> skip.
-test.skip('F-CHROME-06: pas d\'emoji dans les libellés chrome', () => {
-  // Nécessite une heuristique d'emoji (plage Unicode) + whitelist des glyphes ⚠ autorisés
-  // (indicateur sync). À instrumenter si on veut un garde-fou strict.
+// F-CHROME-06 : pas d'emoji chrome (SVG uniquement). ⚠ (U+26A0, indicateur sync) est whitelisté.
+test('F-CHROME-06: pas d\'emoji dans les libellés chrome', async ({ page }) => {
+  await openDocuments(page);
+  // Chrome = sidebar user + header + titres de cartes. On exclut le compteur sync (⚠ whitelisté).
+  const chrome = page.locator('.ds-sidebar__nav .ds-nav-item, .ds-sidebar__foot, header, .document-card h3');
+  const n = await chrome.count();
+  test.skip(n === 0, 'Aucun élément chrome à scanner');
+  // Plages emoji (true emoji + dingbats), hors U+26A0 (⚠) whitelisté.
+  const isEmoji = (ch: string) => {
+    const cp = ch.codePointAt(0)!;
+    if (cp === 0x26A0) return false; // ⚠ whitelisté (indicateur sync)
+    return (cp >= 0x1F300 && cp <= 0x1FAFF) || (cp >= 0x1F600 && cp <= 0x1F64F)
+      || (cp >= 0x2600 && cp <= 0x27BF) || cp === 0xFE0F;
+  };
+  for (let i = 0; i < n; i++) {
+    const txt = (await chrome.nth(i).textContent()) ?? '';
+    for (const ch of Array.from(txt)) {
+      expect(isEmoji(ch), `emoji chrome détecté: "${ch}" (U+${ch.codePointAt(0)!.toString(16).toUpperCase()})`).toBe(false);
+    }
+  }
 });
 
 // F-CHROME-07 : bannière sécurité root visible ssi APP_DEBUG=true.
-test.skip('F-CHROME-07: bannière sécurité root gated APP_DEBUG', () => {
-  // Nécessite de basculer APP_DEBUG et un sélecteur de bannière dédié.
+// Le harness tourne en config non-debug (APP_DEBUG=false) -> la bannière doit être absente.
+// Le cas positif (debug=true) se vérifie en relançant le serveur avec APP_DEBUG=true.
+test('F-CHROME-07: bannière sécurité root absente hors debug', async ({ page }) => {
+  await openDocuments(page);
+  // Bannière "Sécurité : Le compte root n'a pas de mot de passe" (header.php, gated isAppDebug()).
+  const banner = page.locator('header, header + *, body > div').filter({ hasText: 'Le compte root n\'a pas de mot de passe' });
+  await expect(banner).toHaveCount(0);
 });
 
 // F-CHROME-08 : docs test_* masqués hors debug.
+// SKIP : documentVisibilitySql() n'est pas appliqué par l'API AJAX /api/folders/documents
+// (FoldersApiController) — uniquement par DashboardController et DocumentsController SSR.
+// L'instrumenter requiert soit d'étendre le filtre à l'API dossiers, soit de tester via le
+// dashboard (décision produit) -> laissé en fixme pour ne pas bloquer le harness.
 test.skip('F-CHROME-08: documents test_* masqués hors debug', () => {
-  // Nécessite un document test_* connu en base pour vérifier le filtre documentVisibilitySql.
 });

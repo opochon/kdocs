@@ -3,6 +3,26 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-06-30 (sprint) — retrait connecteur ClearMyDocs v3 + finalisation chrome
+
+**Sprint autonome** : commits/push réguliers, arrêt sur rouge → diagnostic + solution.
+Baseline : PHPUnit 299/0, smoke 162/0, Playwright 32/32 (smq-versions résolu : serveur dev relancé avec `SMQ_APP_ENABLED=true`).
+
+**Lots poussés sur `main`** :
+
+| Lot | Commit | Contenu |
+|-----|--------|---------|
+| Retrait ClearMyDocs v3 | `76db1e4` | Connecteur sidecar v3 obsolète retiré (CMD v4 le remplace) : `IngestEngineRouter` (v4→natif, plus de coupled/INGEST_ENGINE), `ConnectorRegistry`/`config/connectors.php` (entrée v3 retirée), `PdfSplitService` (sidecar retiré, split legacy conservé), diagnostic (carte v3→CMD v4), suppression `ClearMyDocsSidecarClient`/`ClearMyDocsIngestEngine`/`ClearMyDocsCapabilityProbe`/`CmdResultMapper` + tests + `start-cmd-sidecar.bat`, `.env.example` (CLEARMYDOCS_*/INGEST_ENGINE retirés), docs (INGEST-DUAL-MODE/IA-CLEARMYDOCS-* supprimés, CONNECTEURS-PLUGINS/PLUGIN-SYSTEM/WINBIZ-REPOSITIONNE/ORACLES mis à jour). Vert : smoke 162/0, PHPUnit 299/0, Playwright 32/0. |
+| Finalisation chrome | (suivant) | F-CHROME-06 (emoji) + F-CHROME-07 (bannière gated APP_DEBUG) instrumentalisés et verts. F-CHROME-02 reste fixme (alignement SQL compteurs = décision produit), F-CHROME-08 reste skip (`documentVisibilitySql` non appliqué à l'API dossiers = décision produit). |
+
+**Résolu (environnemental)** : `smq-versions.spec.ts` — le serveur dev réutilisé n'avait pas `SMQ_APP_ENABLED=true` ; relance du serveur avec SMQ activé → onglet Versions rendu → test vert.
+
+**État final** : PHPUnit 299/0 · smoke 162/0 · **Playwright 32/32** (0 échec, 2 skipped documentés : F-CHROME-02 fixme, F-CHROME-08 skip).
+
+**Prochain pas** : (1) F-CHROME-02 alignement SQL compteurs sidebar/dashboard (décision produit) ; (2) F-CHROME-08 étendre `documentVisibilitySql` à `/api/folders/documents` ou tester via dashboard (décision produit) ; (3) configurer `.env` Infomaniak (clé + secret/product_id).
+
+---
+
 ## Session 2026-06-29 (sprint) — finalisation tests, persona, a11y, chrome-coherence
 
 **Sprint autonome** : commits/push réguliers par lot, arrêt sur rouge → diagnostic.
