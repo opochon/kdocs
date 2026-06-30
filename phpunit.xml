@@ -40,5 +40,13 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="DB_DATABASE" value="kdocs_test"/>
+        <!-- IA neutralisée dans la suite : tests hermétiques, indépendants du .env local.
+             La vérif live Infomaniak se fait via tests/infomaniak_live_test.php (gated .env). -->
+        <env name="INFOMANIAK_AI_ENABLED" value="false"/>
+        <env name="INFOMANIAK_AI_API_KEY" value=""/>
+        <env name="INFOMANIAK_AI_API_SECRET" value=""/>
+        <env name="INFOMANIAK_API_TOKEN" value=""/>
+        <env name="INFOMANIAK_PRODUCT_ID" value=""/>
+        <env name="ANTHROPIC_API_KEY" value=""/>
     </php>
 </phpunit>

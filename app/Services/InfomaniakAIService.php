@@ -128,9 +128,11 @@ class InfomaniakAIService
             ],
         ];
 
+        // v2 d'abord : endpoint OpenAI-compatible, catalogue complet (Apertus, etc.).
+        // v1 en fallback : subset de modeles (mistral24b/mistral3/qwen3) — 422 sur les autres.
         $endpoints = [
-            'https://api.infomaniak.com/1/ai/' . rawurlencode($productId) . '/openai/chat/completions',
             'https://api.infomaniak.com/2/ai/' . rawurlencode($productId) . '/openai/v1/chat/completions',
+            'https://api.infomaniak.com/1/ai/' . rawurlencode($productId) . '/openai/chat/completions',
         ];
 
         foreach ($endpoints as $endpoint) {
@@ -192,7 +194,7 @@ class InfomaniakAIService
 
         foreach (self::RETRY_DELAYS_SECONDS as $retryIndex => $delay) {
             if ($retryIndex > 0 && $delay > 0) {
-                sleep($delay);
+                $this->retrySleep($delay);
             }
 
             $lastResponse = $this->httpPost($url, $body);
@@ -219,6 +221,12 @@ class InfomaniakAIService
         return null;
     }
 
+    /** Hook de pause entre retries — overridable en test pour éviter sleep réel. */
+    protected function retrySleep(int $seconds): void
+    {
+        sleep($seconds);
+    }
+
     /** @return array<string, mixed>|null */
     private function httpGet(string $url): ?array
     {
@@ -232,7 +240,7 @@ class InfomaniakAIService
     }
 
     /** @param array<string, mixed>|null $body */
-    private function httpRequest(string $method, string $url, ?array $body = null): ?array
+    protected function httpRequest(string $method, string $url, ?array $body = null): ?array
     {
         if (!function_exists('curl_init')) {
             return null;
