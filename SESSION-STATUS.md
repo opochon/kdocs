@@ -3,14 +3,17 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-07-01 (étapes 1–2) — harness + socle ECM chrome/validation
+## Session 2026-07-01 (étapes 1–2 + P4) — harness + socle ECM + OCR réel
 
-Demande : gate bout en bout (harness) + socle ECM ouvert (F-CHROME-02/08, F-DOC-04 UI).
+Demande : gate bout en bout (harness) + socle ECM ouvert (F-CHROME-02/08, F-DOC-04 UI) + **P4** eval-full avec OCR.
 
 | Étape | Contenu | Gate |
 |-------|---------|------|
 | **1 — Harness complet** | migration smoke → PHPUnit → eval-full `--no-ocr` → Playwright (11 specs) | **VERT** |
-| **2 — Socle ECM UI** | F-CHROME-02 : compteur sidebar = dashboard (`helpers.php`, retrait filtre `status != pending` + `documentVisibilitySql`) · F-CHROME-08 : `documentVisibilitySql` sur `/api/folders/documents` + masquage fichiers physiques `test_*` · F-DOC-04 : bouton validation `disabled`/`aria-disabled` si `can_validate=false` (`templates/documents/index.php`) | Playwright **45/45** (0 skipped) |
+| **2 — Socle ECM UI** | F-CHROME-02/08 + F-DOC-04 UI gating | Playwright **45/45** (0 skipped) |
+| **P4 — OCR réel** | `php tools/eval-full.php` (sans `--no-ocr`) — classification sur contenu OCR | **13/13 PASS** (~71 min) |
+
+**Commit** : `5b1d70a` — fix(chrome) compteurs sidebar, visibilité test_*, gating validation UI + `run-harness.bat`.
 
 **Résultats harness (2026-07-01)** :
 
@@ -18,12 +21,13 @@ Demande : gate bout en bout (harness) + socle ECM ouvert (F-CHROME-02/08, F-DOC-
 |------|----------|
 | Migration smoke | 168 passés, 0 échoués |
 | PHPUnit | 354 tests, 819 assertions, 3 skipped — OK |
-| eval-full `--no-ocr` | G1→G7 + G6 personas + `G6-doc-types-ecm` — **toutes PASS** (~4m30) |
-| Playwright | **45 passed**, 0 skipped (~1m30) — F-CHROME-02/08 actifs |
+| eval-full `--no-ocr` | G1→G7 + G6 — **toutes PASS** (~4m30) |
+| eval-full **OCR** (P4) | **8 OCR ok / 0 échecs** · G7 distribution identique · recherche enrichie (ex. divorce 3→4, bilan 3→4) |
+| Playwright | **45 passed**, 0 skipped |
 
-**Non commité** (working tree) : `FoldersApiController.php`, `helpers.php`, `index.php`, `chrome-coherence.spec.ts`, `FUNCTIONS-SPEC.md`.
+**Note perf OCR** : 3 PDFs lourds ~13 min chacun (plainte pénale, arrêt, divorce) — goulot Tesseract/pdftoppm, pas régression gate.
 
-**Prochain pas** : (1) commit + push lot chrome/validation ; (2) **P4** eval-full **avec OCR** (classification contenu réel) ; (3) CmdV4 étape 6 suite (Qdrant annexe + UI fraîcheur) ; WinBiz reporté.
+**Prochain pas** : CmdV4 étape 6 suite (Qdrant annexe + UI fraîcheur) · WinBiz reporté plugin.
 
 ---
 

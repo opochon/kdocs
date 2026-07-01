@@ -178,6 +178,5 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 
 ## Suite à implémenter
 
-1. **eval-full avec OCR** — gate classification sur contenu réel (pas seulement `--no-ocr`).
-2. **CmdV4 étape 6 suite** — indexation Qdrant annexe + UI fraîcheur.
-3. **WinBiz plugin** — après validation humaine ECM.
+1. **CmdV4 étape 6 suite** — indexation Qdrant annexe + UI fraîcheur.
+2. **WinBiz plugin** — après validation humaine ECM.
