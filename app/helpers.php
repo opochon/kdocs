@@ -156,7 +156,7 @@ if (!function_exists('shellSidebarStats')) {
             $db = \KDocs\Core\Database::getInstance();
             $docFilter = documentVisibilitySql('documents');
             $stats['documents'] = (int) $db->query(
-                "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND (status IS NULL OR status != 'pending') AND {$docFilter}"
+                "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND {$docFilter}"
             )->fetchColumn();
             $stats['pending_validation'] = (int) $db->query(
                 "SELECT COUNT(*) FROM documents WHERE status IN ('pending', 'needs_review')"

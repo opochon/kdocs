@@ -47,7 +47,7 @@ if not exist node_modules (
 set KDOCS_HOST=%HOST%
 set KDOCS_PORT=%PORT%
 set KDOCS_BASE_PATH=/kdocs
-call npx playwright test specs\persona-redx-expert.spec.ts specs\workflow-doc-identification.spec.ts specs\persona.spec.ts specs\persona-preview.spec.ts specs\shell.spec.ts specs\chrome-coherence.spec.ts specs\ai-confidence-badge.spec.ts specs\bugs-click.spec.ts specs\bugs-misc.spec.ts specs\ai-assistant.spec.ts specs\a11y.spec.ts
+call npx playwright test specs/persona-redx-expert.spec.ts specs/workflow-doc-identification.spec.ts specs/persona.spec.ts specs/persona-preview.spec.ts specs/shell.spec.ts specs/chrome-coherence.spec.ts specs/ai-confidence-badge.spec.ts specs/bugs-click.spec.ts specs/bugs-misc.spec.ts specs/ai-assistant.spec.ts specs/a11y.spec.ts
 set PW_ERR=!errorlevel!
 popd
 if !PW_ERR! neq 0 goto :fail

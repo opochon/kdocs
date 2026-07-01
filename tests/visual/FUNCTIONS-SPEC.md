@@ -5,7 +5,7 @@
 > (shell/chrome) et `index.php` (routes déclarées).
 >
 > Périmètre : **fonctions exposées dans l'interface utilisateur** (pas l'inventaire PHP complet).
-> Dernière mise à jour : 2026-06-29.
+> Dernière mise à jour : 2026-07-01 (étapes 1–2 harness + chrome).
 
 ## Conventions
 
@@ -171,14 +171,13 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 | F-DOC-10 | `smq-versions.spec.ts` | ✓ (serveur dev avec `SMQ_APP_ENABLED=true`) |
 | F-SEARCH-01 | `persona.spec.ts`, `pipeline-ui.spec.ts`, `eval-full.php` | ✓ |
 | F-CHROME-01/03/04/05/06/07 | `chrome-coherence.spec.ts` | ✓ (06/07 instrumentalisés 2026-06-30) |
-| F-CHROME-02 | `chrome-coherence.spec.ts` (fixme) | ✗ incohérence compteurs connue (alignement SQL = décision produit) |
-| F-CHROME-08 | `chrome-coherence.spec.ts` (skip) | `documentVisibilitySql` non appliqué à `/api/folders/documents` = décision produit |
+| F-CHROME-02 | `chrome-coherence.spec.ts` | ✓ (alignement SQL sidebar = dashboard, `helpers.php`) |
+| F-CHROME-08 | `chrome-coherence.spec.ts` | ✓ (`documentVisibilitySql` sur `/api/folders/documents`) |
 | F-A11Y-01..05 | `a11y.spec.ts` (axe-core, root + par persona) | ✓ (remédiation contraste `3e56023`) |
-| Harness | `run-harness.bat` | ✓ 43 pw passed, 2 skipped |
+| Harness | `run-harness.bat` | ✓ (45 pw, 0 skipped attendu) |
 
 ## Suite à implémenter
 
-1. **GAP-055 / Lot B** : identification auto fiable — gate `G7-classify-distribution` (voir `docs/WORKFLOW-DOCUMENTAIRE.md` §6).
-2. **F-CHROME-02** : aligner les requêtes SQL compteurs sidebar/dashboard/header (décision produit).
-3. **F-CHROME-08** : étendre `documentVisibilitySql` à `/api/folders/documents` ou tester via dashboard (décision produit).
-4. **F-DOC-04 UI gating** : le bouton validation est rendu pour tous ; le gating est serveur-side. Pour un disabled visible par rôle, ajouter `:disabled` quand `can_validate=false`.
+1. **eval-full avec OCR** — gate classification sur contenu réel (pas seulement `--no-ocr`).
+2. **CmdV4 étape 6 suite** — indexation Qdrant annexe + UI fraîcheur.
+3. **WinBiz plugin** — après validation humaine ECM.

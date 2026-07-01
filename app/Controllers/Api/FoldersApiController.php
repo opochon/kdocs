@@ -309,10 +309,12 @@ class FoldersApiController
             $searchPath2 = '%/' . $normalizedPath . '%';
             $searchPath3 = $normalizedPath . '/%';
             
+            $docFilter = documentVisibilitySql('documents');
             $stmt = $db->prepare("
                 SELECT COUNT(*) 
                 FROM documents 
                 WHERE deleted_at IS NULL 
+                AND {$docFilter}
                 AND (status IS NULL OR status != 'pending')
                 AND (
                     file_path LIKE ? 
@@ -650,6 +652,7 @@ class FoldersApiController
             $excludeSubfolders = $pathPrefix . '%/%';
             
             $statusCondition = $includePending ? '' : "AND (d.status IS NULL OR d.status != 'pending')";
+            $docFilter = documentVisibilitySql('d');
             
             $dbDocuments = [];
             $dbFilenames = []; // Pour éviter les doublons
@@ -661,6 +664,7 @@ class FoldersApiController
                     LEFT JOIN document_types dt ON d.document_type_id = dt.id
                     LEFT JOIN correspondents c ON d.correspondent_id = c.id
                     WHERE d.deleted_at IS NULL
+                    AND {$docFilter}
                     $statusCondition
                     AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
                     ORDER BY d.created_at DESC
@@ -673,6 +677,7 @@ class FoldersApiController
                     LEFT JOIN document_types dt ON d.document_type_id = dt.id
                     LEFT JOIN correspondents c ON d.correspondent_id = c.id
                     WHERE d.deleted_at IS NULL
+                    AND {$docFilter}
                     $statusCondition
                     AND d.relative_path IS NOT NULL
                     AND d.relative_path != ''
@@ -706,6 +711,9 @@ class FoldersApiController
                 if ($items !== false) {
                     foreach ($items as $item) {
                         if ($item === '.' || $item === '..' || $item[0] === '.') continue;
+                        if (!isAppDebug() && str_starts_with(strtolower($item), 'test_')) {
+                            continue;
+                        }
                         
                         $itemPath = $fullPath . DIRECTORY_SEPARATOR . $item;
                         if (!is_file($itemPath)) continue;

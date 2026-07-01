@@ -32,11 +32,8 @@ test('F-CHROME-01: sidebar user <= 5 entrees + lien Administration', async ({ pa
     .toBeVisible();
 });
 
-// F-CHROME-02 : compteurs sidebar = dashboard = BDD.
-// KNOWN ISSUE : incohérence connue (sidebar "Bibliothèque 23" vs dashboard "Documents totaux 31"
-// vs header "46") — cf. docs/AUDIT-UI-UX.md. L'alignement requiert d'unifier les requêtes SQL
-// (décision produit) -> épinglé en fixme pour ne pas bloquer le harness.
-test.fixme('F-CHROME-02: compteur sidebar Bibliothèque = dashboard Documents totaux', async ({ page }) => {
+// F-CHROME-02 : compteurs sidebar = dashboard = BDD (oracle ORACLES §4 — même requête SQL).
+test('F-CHROME-02: compteur sidebar Bibliothèque = dashboard Documents totaux', async ({ page }) => {
   // Dashboard
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle');
@@ -132,10 +129,17 @@ test('F-CHROME-07: bannière sécurité root absente hors debug', async ({ page 
   await expect(banner).toHaveCount(0);
 });
 
-// F-CHROME-08 : docs test_* masqués hors debug.
-// SKIP : documentVisibilitySql() n'est pas appliqué par l'API AJAX /api/folders/documents
-// (FoldersApiController) — uniquement par DashboardController et DocumentsController SSR.
-// L'instrumenter requiert soit d'étendre le filtre à l'API dossiers, soit de tester via le
-// dashboard (décision produit) -> laissé en fixme pour ne pas bloquer le harness.
-test.skip('F-CHROME-08: documents test_* masqués hors debug', () => {
+// F-CHROME-08 : docs test_* masqués hors debug (documentVisibilitySql sur /api/folders/documents).
+test('F-CHROME-08: documents test_* masqués hors debug', async ({ page }) => {
+  const resp = await page.request.get(`${BASE}/api/folders/documents?path=`);
+  expect(resp.ok(), `API folders/documents HTTP ${resp.status()}`).toBeTruthy();
+  const data = await resp.json();
+  expect(data.success, data.error ?? 'success=false').toBe(true);
+
+  for (const doc of data.documents ?? []) {
+    const title = String(doc.title ?? '').toLowerCase();
+    const filename = String(doc.original_filename ?? doc.filename ?? '').toLowerCase();
+    expect(title.startsWith('test_'), `doc test visible (title): ${doc.title}`).toBe(false);
+    expect(filename.startsWith('test_'), `doc test visible (filename): ${filename}`).toBe(false);
+  }
 });

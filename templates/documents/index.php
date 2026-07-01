@@ -491,7 +491,7 @@ function loadDocumentPreview(docId) {
 }
 
 // Badge validation cliquable dans le header de la modale
-function renderValidationBadgeHeader(docId, status) {
+function renderValidationBadgeHeader(docId, status, canValidate) {
     const states = {
         'pending': { label: '⏳ En attente', class: 'ds-chip--amber hover:opacity-80', },
         'approved': { label: '✅ Validé', class: 'ds-chip--green hover:opacity-80' },
@@ -500,9 +500,16 @@ function renderValidationBadgeHeader(docId, status) {
         'na': { label: 'N/A', class: 'ds-chip--neutral hover:opacity-80' },
     };
     const current = states[status] || states['pending'];
-    return `<button type="button" onclick="toggleValidationStatus(${docId}, '${status || 'pending'}')"
-            class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition ds-chip ${current.class}"
-            title="Cliquer pour changer le statut de validation">
+    if (canValidate) {
+        return `<button type="button" onclick="toggleValidationStatus(${docId}, '${status || 'pending'}')"
+                class="px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition ds-chip ${current.class}"
+                title="Cliquer pour changer le statut de validation">
+            ${current.label}
+        </button>`;
+    }
+    return `<button type="button" disabled aria-disabled="true"
+            class="px-3 py-1 rounded-full text-sm font-medium transition ds-chip ds-chip--neutral opacity-60 cursor-not-allowed"
+            title="Validation non autorisée pour votre rôle">
         ${current.label}
     </button>`;
 }
@@ -704,8 +711,9 @@ function renderDocumentMetadata(doc) {
 
     // Statut de validation — badge cliquable dans le header
     const validationStatus = doc.validation_status || 'pending';
+    const canValidate = doc.can_validate === true;
     document.getElementById('preview-validation-badge').innerHTML =
-        renderValidationBadgeHeader(doc.id, validationStatus);
+        renderValidationBadgeHeader(doc.id, validationStatus, canValidate);
 
     // Notes
     const notesCount = (doc.notes || []).length;
@@ -724,6 +732,15 @@ function renderDocumentMetadata(doc) {
     // OCR texte complet
     const ocrText = doc.ocr_text || '';
     const ocrPreview = ocrText.length > 300 ? ocrText.substring(0, 300) + '...' : ocrText;
+
+    const validationToggleOnclick = canValidate
+        ? `onclick="toggleValidationStatus(${doc.id}, '${validationStatus || 'pending'}')"`
+        : '';
+    const validationToggleDisabled = canValidate ? '' : 'disabled aria-disabled="true" aria-label="Validation non autorisée pour votre rôle"';
+    const validationToggleClass = canValidate
+        ? (validationStatus === 'approved' ? 'ds-btn-green' : validationStatus === 'rejected' ? 'ds-btn-red' : validationStatus === 'na' || !validationStatus ? 'ds-btn-neutral' : 'ds-btn-soft-neutral')
+        : 'ds-btn-neutral opacity-50 cursor-not-allowed';
+    const validationToggleTitle = 'Toggle validation (Validé/Rejeté/N/A)';
 
     metadata.innerHTML = `
         <div class="text-sm">
@@ -748,8 +765,8 @@ function renderDocumentMetadata(doc) {
                             class="p-1.5 rounded transition ds-btn-soft-red">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    <button onclick="toggleValidationStatus(${doc.id}, '${validationStatus || 'pending'}')" title="Toggle validation (Validé/Rejeté/N/A)"
-                            class="p-1.5 rounded transition ${validationStatus === 'approved' ? 'ds-btn-green' : validationStatus === 'rejected' ? 'ds-btn-red' : validationStatus === 'na' || !validationStatus ? 'ds-btn-neutral' : 'ds-btn-soft-neutral'}">
+                    <button ${validationToggleOnclick} ${validationToggleDisabled} title="${validationToggleTitle}"
+                            class="p-1.5 rounded transition ${validationToggleClass}">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>
                     </button>
                 </div>
@@ -1401,6 +1418,9 @@ async function setValidationStatus(docId, status) {
 
 // Toggle validation status - cycle through states: NULL → approved → rejected → NULL
 function toggleValidationStatus(docId, currentStatus) {
+    if (currentPreviewDocument && Number(currentPreviewDocument.id) === Number(docId) && currentPreviewDocument.can_validate !== true) {
+        return;
+    }
     // Cycle: null/pending → approved → rejected → null
     let nextStatus;
     if (!currentStatus || currentStatus === 'pending' || currentStatus === 'na' || currentStatus === null) {
