@@ -18,8 +18,7 @@ Demande : lots 1–3 (persona expert REDX, oracles PHPUnit, harness visuel) ;
 **Décision produit** : parcours persona REDX = bibliothèque → fiche → métadonnées + badge certitude ;
 pas de lien `/invoices` (WinBiz reporté).
 
-**Prochain pas** : ~~Lot 0 doc workflow documentaire ; parité REDX tests màj~~ **Fait (sous-séq. A,
-commit docs)** → **Lot B** identification auto fiable (GAP-055) → Lot C CmdV4 WIP.
+**Prochain pas** : ~~Lot B~~ **Fait** → Lot C (stash CmdV4) ; WinBiz reporté plugin.
 
 ---
 
@@ -30,7 +29,20 @@ commit docs)** → **Lot B** identification auto fiable (GAP-055) → Lot C CmdV
 | Workflow documentaire ECM | `docs/WORKFLOW-DOCUMENTAIRE.md` | T-WORKFLOW-DOC ✅ |
 | Parité REDX màj | `docs/PARITE-REDX-TESTS.md` | section P1b (GAP-050→055), score ~56 % |
 
-**Prochain pas** : sous-séquence **B** — GAP-055 identification auto (gate `G7-classify-distribution`).
+**Prochain pas** : sous-séquence **C** — dépiler stash CmdV4/GedNative (`git stash list`) et lot connecteur isolé.
+
+---
+
+## Session 2026-07-01 (sous-séq. B) — Identification auto ECM (GAP-055)
+
+| Livrable | Gate |
+|----------|------|
+| Patterns filename/OCR étendus (`AutoClassifierService::matchDocumentType`) | `DocumentTypeIdentificationTest` 14/14 |
+| Persistance type après ingest (`IngestClassificationService::applyCategoryToDocumentType`) | — |
+| Heuristique eval-full étape 3 + gate **`G7-classify-distribution`** | eval-full PASS (Reçu≥2, Courrier≥1, Contrat≥1, ECM≥5/8) |
+| `docs/PARITE-REDX-TESTS.md` GAP-055 ✅ | — |
+
+**WIP CmdV4** : en stash (`wip sous-sequence C CmdV4/GedNative`) — arbre main propre.
 
 ---
 

@@ -60,7 +60,7 @@
 | GAP-052 | Édition type en UI + persistance API | ✅ 🧪 | Save preview → `GET /api/documents/{id}` retourne `document_type_id` | `workflow-doc-identification.spec.ts` | `pw` |
 | GAP-053 | Patterns identification types (regex) | ✅ 🧪 | Heuristique reconnaît libellés ECM sur texte fixture | `DocumentTypeIdentificationTest` | `unit` |
 | GAP-054 | Badge certitude classification | ✅ 🧪 | `#ai-confidence-badge` attaché ; visible après classify | `ai-confidence-badge.spec.ts` | `pw` |
-| GAP-055 | Identification **auto** fiable par type | 🟡 ⬜ | Distribution types lot eval conforme aux attentes | ⬜ gate `G7-classify-distribution` (Lot B) | `smoke` / `unit` |
+| GAP-055 | Identification **auto** fiable par type | ✅ 🧪 | Distribution lot eval : Reçu≥2, Courrier≥1, Contrat≥1, ECM≥5/8 | gate `G7-classify-distribution` + `DocumentTypeIdentificationTest` | `smoke` / `unit` |
 
 **Commit lots 1–3** : `0c11745` · harness : `run-harness.bat` (43 pw passed, 2 skipped).
 

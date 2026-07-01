@@ -190,17 +190,16 @@ Enchaîne : migration smoke → PHPUnit 340 → eval-full → Playwright (43 spe
 
 ---
 
-## 6. Prochain lot (B — identification auto fiable)
+## 6. Lot B — identification auto (GAP-055) ✅
 
-Objectif : la **distribution automatique** sur le lot eval doit classer correctement les 5 types ECM (pas seulement la persistance manuelle).
+Gate **`G7-classify-distribution`** (`eval-full.php`) : sur le lot `eval/lot-original` (--no-ocr),
+heuristique `AutoClassifierService::classifyRules()` + persistance `document_type_id`.
 
-| Gate cible | Oracle | Mécanisme |
-|------------|--------|-----------|
-| `G7-classify-distribution` | ≥ N docs par type attendu sur lot eval | `eval-full.php` |
-| F-REDX-AUTO | classify-ai ou heuristique propose le bon type sur fixtures nommées | PHPUnit + Playwright |
-| Harness | vert bout en bout | `run-harness.bat` |
+Oracle minimal : Reçu ≥ 2 · Courrier ≥ 1 · Contrat ≥ 1 · ≥ 5/8 docs typés ECM · ≤ 3 sans type.
 
-**Non démarré** tant que Lot 0 (ce document) + parité REDX ne sont pas validés.
+Tests : `DocumentTypeIdentificationTest` (texte + noms fichiers PICKS) · harness vert.
+
+**Suite** : sous-séquence C (CmdV4 stash) · WinBiz plugin après validation humaine.
 
 ---
 

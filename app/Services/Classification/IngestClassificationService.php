@@ -294,6 +294,10 @@ class IngestClassificationService
 
 
 
+        $this->applyCategoryToDocumentType($documentId, $classification);
+
+
+
         if ($classification->tags !== []) {
 
             $additional = array_values(array_diff($classification->tags, [$classification->category ?? '']));
@@ -308,6 +312,34 @@ class IngestClassificationService
 
         }
 
+    }
+
+
+
+    /** Persiste document_type_id quand la classification unifiée est assez confiante. */
+    private function applyCategoryToDocumentType(int $documentId, ClassificationResult $classification): void
+    {
+        $category = trim((string) ($classification->category ?? ''));
+        if ($category === '') {
+            return;
+        }
+
+        $minConfidence = (float) env('CLASSIFY_AUTO_APPLY_THRESHOLD', 0.5);
+        if ($classification->confidence < $minConfidence) {
+            return;
+        }
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare('SELECT id FROM document_types WHERE LOWER(label) = LOWER(?) LIMIT 1');
+        $stmt->execute([$category]);
+        $typeId = $stmt->fetchColumn();
+        if (!$typeId) {
+            return;
+        }
+
+        $db->prepare(
+            'UPDATE documents SET document_type_id = ?, classification_confidence = ?, updated_at = NOW() WHERE id = ?'
+        )->execute([(int) $typeId, $classification->confidence, $documentId]);
     }
 
 

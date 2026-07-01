@@ -33,6 +33,7 @@ use KDocs\Services\Attribution\AttributionService;
 use KDocs\Models\AttributionRule;
 use KDocs\Services\SearchService;
 use KDocs\Models\Role;
+use KDocs\Services\AutoClassifierService;
 
 // ----------------------------------------------------------------------------
 // Configuration
@@ -263,23 +264,29 @@ gate('G2-ocr', $opts['no-ocr'] || $ocrDone > 0, "$ocrDone OCR ok, $ocrErrors éc
 // Étape 3 — Classification (ingest)
 // ----------------------------------------------------------------------------
 
-step('3. Classification (ingest classifier)');
+step('3. Classification (ingest classifier + heuristique ECM)');
 $ingest = new IngestClassificationService();
+$autoClassifier = new AutoClassifierService();
 $classified = 0; $classErrors = 0; $typeDistribution = [];
 foreach ($docs as $doc) {
     $id = (int)$doc['id'];
     try {
         $res = $ingest->classify($id);
         $classified++;
-        $typeId = null;
-        if (!empty($res['classification']['document_type_id'])) $typeId = $res['classification']['document_type_id'];
+        // Oracle identification auto (Lot B) : heuristique OCR/nom de fichier → document_type_id
+        $rules = $autoClassifier->classifyRules($id);
+        if (!empty($rules['document_type_id'])) {
+            $db->prepare(
+                'UPDATE documents SET document_type_id = ?, classification_confidence = COALESCE(?, classification_confidence), updated_at = NOW() WHERE id = ?'
+            )->execute([(int)$rules['document_type_id'], $rules['confidence'] ?? null, $id]);
+        }
         // Recharger le type effectif
         $s = $db->prepare("SELECT d.document_type_id, dt.code, dt.label FROM documents d
                            LEFT JOIN document_types dt ON d.document_type_id = dt.id WHERE d.id = ?");
         $s->execute([$id]); $row = $s->fetch(PDO::FETCH_ASSOC);
         $label = $row['label'] ?? '(aucun)';
         $typeDistribution[$label] = ($typeDistribution[$label] ?? 0) + 1;
-        ok(sprintf("doc #%d → type=%s", $id, $label));
+        ok(sprintf("doc #%d → type=%s (rules conf=%.2f)", $id, $label, (float)($rules['confidence'] ?? 0)));
     } catch (\Throwable $e) {
         $classErrors++;
         warn("doc #{$id} classification échec : " . $e->getMessage());
@@ -287,6 +294,24 @@ foreach ($docs as $doc) {
 }
 echo "  Distribution types : " . json_encode($typeDistribution, JSON_UNESCAPED_UNICODE) . "\n";
 gate('G3-classification', $classified > 0, "$classified/$classErrors classés");
+
+// Gate identification auto ECM (GAP-055) — heuristique nom/OCR sur le lot eval.
+$ecmLabels = ['Facture', 'Note de crédit', 'Contrat', 'Courrier', 'Reçu'];
+$ecmTyped = 0;
+foreach ($ecmLabels as $ecmLabel) {
+    $ecmTyped += (int)($typeDistribution[$ecmLabel] ?? 0);
+}
+$aucunCount = (int)($typeDistribution['(aucun)'] ?? 0);
+$g7Pass = $ecmTyped >= 5
+    && ($typeDistribution['Courrier'] ?? 0) >= 1
+    && ($typeDistribution['Reçu'] ?? 0) >= 2
+    && ($typeDistribution['Contrat'] ?? 0) >= 1
+    && $aucunCount <= 3;
+gate(
+    'G7-classify-distribution',
+    $g7Pass,
+    "ECM typés=$ecmTyped/" . count($docs) . " aucun=$aucunCount — " . json_encode($typeDistribution, JSON_UNESCAPED_UNICODE)
+);
 
 // ----------------------------------------------------------------------------
 // Étape 4 — Attribution IA (règles, mode simulation)

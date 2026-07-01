@@ -402,13 +402,13 @@ class AutoClassifierService
             }
         }
         
-        // Détection par patterns communs
+        // Détection par patterns communs (texte OCR + nom de fichier — ordre = spécificité décroissante)
         $patterns = [
+            'note.*cr[ée]dit|credit.*note|avoir' => 'Note de crédit',
             'facture|invoice|rechnung' => 'Facture',
-            'note.*crédit|credit.*note' => 'Note de crédit',
-            'contrat|contract' => 'Contrat',
-            'courrier|lettre|letter' => 'Courrier',
-            'reçu|receipt' => 'Reçu',
+            'courrier|lettre|letter|plainte|envoi.*tribunal|tribunal.*envoi' => 'Courrier',
+            're[çc]u|receipt|relev[ée]|releve|bilan' => 'Reçu',
+            'contrat|contract|arr[êe]t|decision|d[ée]cision|divorce|demande.*sign' => 'Contrat',
         ];
         
         foreach ($patterns as $pattern => $typeLabel) {
