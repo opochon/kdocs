@@ -102,7 +102,7 @@ la source.
 
 | Fichier | Rôle |
 |---------|------|
-| `app/Services/Ingest/CmdV4Client.php` | Client HTTP (health, projets, jobs, fields) |
+| `app/Services/Ingest/CmdV4Client.php` | Client HTTP (health, projets, jobs, fields, **étape 6** annexe/fraîcheur) |
 | `app/Services/Ingest/CmdV4CapabilityProbe.php` | Santé + éligibilité PDF facture |
 | `app/Services/Ingest/CmdV4IngestEngine.php` | Pipeline staging → champs |
 | `app/Services/Ingest/CmdV4ResultMapper.php` | JSON CMD → tables GED |

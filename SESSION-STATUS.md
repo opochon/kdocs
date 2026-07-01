@@ -29,7 +29,20 @@ pas de lien `/invoices` (WinBiz reporté).
 | Workflow documentaire ECM | `docs/WORKFLOW-DOCUMENTAIRE.md` | T-WORKFLOW-DOC ✅ |
 | Parité REDX màj | `docs/PARITE-REDX-TESTS.md` | section P1b (GAP-050→055), score ~56 % |
 
-**Prochain pas** : sous-séquence **C** — dépiler stash CmdV4/GedNative (`git stash list`) et lot connecteur isolé.
+**Prochain pas** : indexation Qdrant du substrat annexe (étape 6 suite) · WinBiz plugin reporté.
+
+---
+
+## Session 2026-07-01 (sous-séq. C) — Connecteur CmdV4 étape 6
+
+| Livrable | Gate |
+|----------|------|
+| Stash CmdV4/GedNative | **Sans delta fonctionnel** (reformatage seul) — restauré puis annulé |
+| `CmdV4Client` étape 6 | `analyzeFile`, `getAnnexe`, `getDocsManifest`, `getFidelity`, `getFreshness` |
+| `CmdV4ResultMapper` | `applyAnnexeSubstrate`, `applyFreshnessStatus` (métadonnées `cmdv4_*`) |
+| Tests | `CmdV4ClientEtape6Test` + mapper · smoke lot P2.6 |
+
+**Hors scope C** : indexation Qdrant annexe · UI fraîcheur · WinBiz.
 
 ---
 
@@ -42,7 +55,7 @@ pas de lien `/invoices` (WinBiz reporté).
 | Heuristique eval-full étape 3 + gate **`G7-classify-distribution`** | eval-full PASS (Reçu≥2, Courrier≥1, Contrat≥1, ECM≥5/8) |
 | `docs/PARITE-REDX-TESTS.md` GAP-055 ✅ | — |
 
-**WIP CmdV4** : en stash (`wip sous-sequence C CmdV4/GedNative`) — arbre main propre.
+Commit : `4e8de37`.
 
 ---
 

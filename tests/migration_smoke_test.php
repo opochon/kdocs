@@ -370,6 +370,21 @@ assert_true('ConnectorRegistry utilise CmdV4CapabilityProbe', str_contains(
     'CmdV4CapabilityProbe'
 ));
 
+echo "\nLot P2.6 — CMD v4 étape 6 (substrat annexe + fraîcheur)\n";
+$p26Files = [
+    'tests/Unit/Services/Ingest/CmdV4ClientEtape6Test.php',
+];
+foreach ($p26Files as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if ($vendorOk) {
+    assert_true('CmdV4Client::analyzeFile', method_exists('KDocs\\Services\\Ingest\\CmdV4Client', 'analyzeFile'));
+    assert_true('CmdV4Client::getAnnexe', method_exists('KDocs\\Services\\Ingest\\CmdV4Client', 'getAnnexe'));
+    assert_true('CmdV4Client::getFreshness', method_exists('KDocs\\Services\\Ingest\\CmdV4Client', 'getFreshness'));
+    assert_true('CmdV4ResultMapper::applyAnnexeSubstrate', method_exists('KDocs\\Services\\Ingest\\CmdV4ResultMapper', 'applyAnnexeSubstrate'));
+    assert_true('CmdV4ResultMapper::applyFreshnessStatus', method_exists('KDocs\\Services\\Ingest\\CmdV4ResultMapper', 'applyFreshnessStatus'));
+}
+
 echo "\nLot UI — design-system tokens (:root lisible)\n";
 $dsCss = (string) file_get_contents(KDOCS_ROOT . '/public/css/design-system.css');
 assert_true('design-system sans sequence */ cassee dans commentaire', !str_contains($dsCss, '--bg-*/'));

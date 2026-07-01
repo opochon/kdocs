@@ -92,6 +92,74 @@ class CmdV4ResultMapper
 
     }
 
+    /**
+     * Étape 6 — persiste le substrat annexe gaté (F0) pour indexation / fraîcheur.
+     *
+     * @param array<string, mixed> $annexe Réponse GET .../annexe
+     */
+    public function applyAnnexeSubstrate(int $documentId, string $slug, array $annexe): bool
+    {
+        $md = trim((string) ($annexe['annexe_md'] ?? ''));
+        if ($md === '' && $slug === '') {
+            return false;
+        }
+
+        $gate = (string) ($annexe['gate'] ?? 'F0');
+        $payload = [
+            'method_used' => 'cmd_v4_annexe',
+            'cmd_v4' => [
+                'slug' => $slug,
+                'gate' => $gate,
+                'annexe_length' => strlen($md),
+            ],
+            'final' => [
+                'confidence' => 0.85,
+                'external_ids' => [],
+            ],
+            'confidence' => 0.85,
+            'cmdv4_slug' => $slug,
+            'cmdv4_gate' => $gate,
+            'cmdv4_analyzed_at' => date('c'),
+            'cmdv4_up_to_date' => true,
+            'pending_classification' => false,
+            'classified_at' => date('c'),
+        ];
+
+        $this->db->prepare('UPDATE documents SET classification_suggestions = ? WHERE id = ?')
+            ->execute([json_encode($payload, JSON_UNESCAPED_UNICODE), $documentId]);
+
+        return true;
+    }
+
+    /**
+     * Étape 6 — met à jour le statut de fraîcheur cmdv4 sur le document.
+     *
+     * @param array<string, mixed> $freshness Réponse GET .../freshness
+     */
+    public function applyFreshnessStatus(int $documentId, array $freshness): bool
+    {
+        if ($documentId <= 0) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare('SELECT classification_suggestions FROM documents WHERE id = ?');
+        $stmt->execute([$documentId]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $suggestions = json_decode($row['classification_suggestions'] ?? '{}', true);
+        if (!is_array($suggestions)) {
+            $suggestions = [];
+        }
+
+        $suggestions['cmdv4_up_to_date'] = (bool) ($freshness['up_to_date'] ?? false);
+        $suggestions['cmdv4_freshness'] = $freshness;
+        $suggestions['cmdv4_freshness_checked_at'] = date('c');
+
+        $this->db->prepare('UPDATE documents SET classification_suggestions = ? WHERE id = ?')
+            ->execute([json_encode($suggestions, JSON_UNESCAPED_UNICODE), $documentId]);
+
+        return true;
+    }
+
     /** @param array<string, mixed> $fields */
 
     private function applyLineItems(int $documentId, array $fields): void

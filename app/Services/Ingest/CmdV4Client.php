@@ -258,6 +258,76 @@ class CmdV4Client
     }
 
     /**
+     * Étape 6 — analyse fichier unique (POST /api/analyze-file).
+     *
+     * @return array{job_id: string, slug: string}|null
+     */
+    public function analyzeFile(string $path, ?string $profile = null): ?array
+    {
+        if (!$this->isEnabled() || !is_file($path)) {
+            return null;
+        }
+
+        $response = $this->request('POST', '/api/analyze-file', [
+            'path' => str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path),
+            'profile' => $profile ?? $this->projectProfile(),
+        ]);
+
+        if ($response === null || empty($response['job_id']) || empty($response['slug'])) {
+            return null;
+        }
+
+        return [
+            'job_id' => (string) $response['job_id'],
+            'slug' => (string) $response['slug'],
+        ];
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getAnnexe(string $slug): ?array
+    {
+        if (!$this->isEnabled() || $slug === '') {
+            return null;
+        }
+
+        $response = $this->request('GET', '/api/projects/' . rawurlencode($slug) . '/annexe');
+
+        return is_array($response) && isset($response['annexe_md']) ? $response : null;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getDocsManifest(string $slug): ?array
+    {
+        if (!$this->isEnabled() || $slug === '') {
+            return null;
+        }
+
+        $response = $this->request('GET', '/api/projects/' . rawurlencode($slug) . '/docs');
+
+        return is_array($response) ? $response : null;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getFidelity(string $slug): ?array
+    {
+        if (!$this->isEnabled() || $slug === '') {
+            return null;
+        }
+
+        return $this->request('GET', '/api/projects/' . rawurlencode($slug) . '/fidelity');
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getFreshness(string $slug): ?array
+    {
+        if (!$this->isEnabled() || $slug === '') {
+            return null;
+        }
+
+        return $this->request('GET', '/api/projects/' . rawurlencode($slug) . '/freshness');
+    }
+
+    /**
 
      * @param array<string, mixed>|null $body
 
