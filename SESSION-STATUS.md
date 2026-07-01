@@ -3,6 +3,26 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-01 — lots 1–3 finalisation REDX (ECM, hors WinBiz)
+
+Demande : lots 1–3 (persona expert REDX, oracles PHPUnit, harness visuel) ;
+**WinBiz / rapprochement = plugin** — hors scope tant que l'identification documentaire
+(Facture, Note de crédit, Contrat, Courrier, Reçu) n'est pas opérationnelle.
+
+| Lot | Contenu | Gate |
+|-----|---------|------|
+| **1 — Persona `eval_redx_expert` + types ECM** | `tools/eval-full.php` : persona APPROVER + VALIDATOR_L2 FACTURE ; `ensureDocumentTypes()` (Note de crédit, Reçu, Courrier) ; gates `G6-persona-redx-expert`, `G6-doc-types-ecm`. Playwright `persona-redx-expert.spec.ts` + helpers `personas.ts` / `auth.ts`. `FUNCTIONS-SPEC.md` màj (WinBiz hors périmètre persona). | eval-full PASS |
+| **2 — Oracles PHPUnit hermétiques** | `DocumentTypeIdentificationTest` (patterns regex types ECM), `ThumbnailGeneratorTest` (pdftoppm exécutable), `TagsDedupTest` (find-or-create insensible casse). | PHPUnit 340/340 (3 skipped) |
+| **3 — Harness + workflow identification** | `run-harness.bat` (migration → PHPUnit → eval-full → Playwright). `workflow-doc-identification.spec.ts` : sélection type Contrat en UI + save preview + oracle API. **Fix** `App.php` : `addBodyParsingMiddleware()` — PUT JSON `/api/documents/{id}` ignorait le body (type non persisté). | Harness VERT · Playwright **43 passed, 2 skipped** |
+
+**Décision produit** : parcours persona REDX = bibliothèque → fiche → métadonnées + badge certitude ;
+pas de lien `/invoices` (WinBiz reporté).
+
+**Prochain pas** : Lot 0 doc workflow documentaire ; parité REDX tests màj ; identification
+auto fiable par type (heuristique + IA) avant tout plugin ERP.
+
+---
+
 ## Session 2026-06-30 (sprint 3) — finalisation & fiabilisation
 
 Suite à la demande « finaliser et fiabiliser » : Docker OnlyOffice, pdftoppm, doc

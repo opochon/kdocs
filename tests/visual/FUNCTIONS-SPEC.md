@@ -145,6 +145,9 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 | `eval_comptable` (VALIDATEUR_FACTURE ≤5000, scope FACTURE) | F-LIB-*, F-DOC-* sur factures ≤5000, F-SEARCH-*, F-TASK-01/02 | F-DOC-04 (facture 6000 > 5000), F-DOC-04 sur RH (scope), F-ADM-* |
 | `eval_rh` (VALIDATOR_L1, scope RH) | F-LIB-*, F-DOC-* sur docs RH, F-SEARCH-*, F-TASK-01/02 | F-DOC-04 sur facture (scope), F-ADM-* |
 | `eval_employeur` (APPROVER, scope *) | F-LIB-*, F-DOC-* (validation sans plafond), F-SEARCH-*, F-TASK-*, F-VAL-03 | F-ADM-* (sauf si admin ajouté) |
+| `eval_redx_expert` (Expert ECM REDX, APPROVER + VALIDATOR_L2 FACTURE) | F-LIB-*, F-DOC-01/02/03/06/09, F-REDX-TYPES, F-SEARCH-* | F-ADM-*, WinBiz `/invoices` (plugin hors scope) |
+
+> **`eval_redx_expert`** : parcours identification documentaire (types Facture, Note de crédit, Contrat, Courrier, Reçu) + métadonnées + badge certitude. **Pas** de rapprochement WinBiz tant que le socle ECM n'est pas opérationnel.
 
 > Les fonctions `[aucune]` (ingestion, classification, IA, recherche) sont **identiques pour tous les personas**
 > → couvertes par `pipeline-ui.spec.ts` (UI) + `eval-full.php` (CLI), pas par le persona.

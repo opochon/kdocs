@@ -59,6 +59,7 @@ $PICKS = [
 ];
 
 // Personas de test (métier → rôle + scope + plafond montant).
+// eval_redx_expert : parcours ECM (types doc, métadonnées, classification) — pas WinBiz.
 $PERSONAS = [
     'eval_secretaire' => [
         'label' => 'Secrétaire (Direction)',
@@ -93,6 +94,15 @@ $PERSONAS = [
             ['APPROVER', '*', null],
         ],
     ],
+    'eval_redx_expert' => [
+        'label' => 'Expert ECM REDX',
+        'first' => 'Renaud',
+        'last'  => 'Expert',
+        'roles' => [
+            ['APPROVER', '*', null],
+            ['VALIDATOR_L2', 'FACTURE', null],
+        ],
+    ],
 ];
 
 // Requêtes de recherche (termes juridiques / financiers présents dans les noms + contenus).
@@ -117,6 +127,25 @@ function ok(string $s): void   { echo "  \033[32m✓\033[0m $s" . PHP_EOL; }
 function warn(string $s): void { echo "  \033[33m!\033[0m $s" . PHP_EOL; }
 function fail(string $s): void { echo "  \033[31m✗\033[0m $s" . PHP_EOL; }
 function bytes(int $n): string { return $n >= 1048576 ? round($n/1048576,1).' Mo' : round($n/1024,1).' Ko'; }
+
+/** Types documentaires pour identification ECM (facture, note de crédit, etc.) — idempotent. */
+function ensureDocumentTypes(\PDO $db): int {
+    $types = [
+        ['NOTE_CREDIT', 'Note de crédit'],
+        ['RECU', 'Reçu'],
+        ['COURRIER', 'Courrier'],
+    ];
+    $added = 0;
+    foreach ($types as [$code, $label]) {
+        $s = $db->prepare("SELECT id FROM document_types WHERE code = ? OR LOWER(label) = LOWER(?) LIMIT 1");
+        $s->execute([$code, $label]);
+        if (!$s->fetchColumn()) {
+            $db->prepare("INSERT INTO document_types (code, label) VALUES (?, ?)")->execute([$code, $label]);
+            $added++;
+        }
+    }
+    return $added;
+}
 
 $gates = [];
 function gate(string $name, bool $pass, string $detail = ''): void {
@@ -347,6 +376,11 @@ gate('G5-recherche', $hasResults, "total hits=" . array_sum($searchResults));
 
 step('6. Personas — rôles & droits de validation');
 
+$typesAdded = ensureDocumentTypes($db);
+if ($typesAdded > 0) {
+    ok("$typesAdded type(s) documentaire(s) ECM ajouté(s) (Note de crédit, Reçu, Courrier)");
+}
+
 // Création / récupération idempotente des utilisateurs de test.
 $personaUserIds = [];
 foreach ($PERSONAS as $username => $p) {
@@ -432,6 +466,18 @@ gate('G6-persona-comptable',  $expComptableBloque,  'comptable bloqué > plafond
 gate('G6-persona-employeur',  $expEmployeurTout,    'employeur (APPROVER) valide facture + RH');
 gate('G6-persona-rh',         $expRhOkRhSeulement,  'RH valide RH, bloqué sur facture (scope)');
 gate('G6-persona-secretaire', $expSecretBloque,     'secrétaire bloquée > plafond 1000 sur facture 6000');
+
+// Expert REDX : même pouvoir validation qu'employeur sur facture + RH (métadonnées ECM).
+$expRedxExpert = $personaChecks['eval_redx_expert']['facture']['can_validate']
+              && $personaChecks['eval_redx_expert']['rh']['can_validate'];
+gate('G6-persona-redx-expert', $expRedxExpert, 'expert REDX (APPROVER) valide facture + RH — parcours ECM');
+
+// Types documentaires identifiables (oracle identification — prérequis avant WinBiz plugin).
+$typeLabels = $db->query("SELECT label FROM document_types ORDER BY label")->fetchAll(PDO::FETCH_COLUMN);
+$requiredTypes = ['Facture', 'Note de crédit', 'Contrat', 'Courrier', 'Reçu'];
+$missingTypes = array_diff($requiredTypes, $typeLabels);
+gate('G6-doc-types-ecm', empty($missingTypes), 'types ECM présents : ' . implode(', ', $requiredTypes)
+    . (empty($missingTypes) ? '' : ' — manquants : ' . implode(', ', $missingTypes)));
 
 // Restaurer le type du doc synthétique facture si créé artificiellement (on garde la modif : c'est du test data).
 // (Pas de restauration : les docs du lot eval sont jetables.)

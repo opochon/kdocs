@@ -23,6 +23,9 @@ class App
             
             // Créer l'application Slim
             $app = AppFactory::create();
+
+            // JSON/form PUT/POST — requis pour PUT /api/documents/{id} et routes API similaires
+            $app->addBodyParsingMiddleware();
             
             // Définir le base path depuis la configuration
             $basePath = Config::basePath();
