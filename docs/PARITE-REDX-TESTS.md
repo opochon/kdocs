@@ -6,30 +6,31 @@
 > `docs/DELTA-REDX.md` (delta statut). Source de vérité test :
 > `tests/visual/FUNCTIONS-SPEC.md`.
 >
-> Dernière mise à jour : 2026-06-30 (post-bugs A–H, post-fix pdftoppm,
-> post-durcissement healthcheck `c7db9ce`).
+> Dernière mise à jour : 2026-07-01 (lots 1–3 finalisation REDX : persona ECM,
+> types documentaires, harness, workflow identification ; WinBiz reporté plugin).
 
 ## Légende
 
-- **Statut** : ✅ Présent · 🟡 Partiel · ❌ Absent · 🧪 Test existant · ⬜ Test à écrire
-- **Mécanisme** : `unit` (PHPUnit) · `feature` (PHPUnit HTTP) · `pw` (Playwright) · `smoke` (CLI) · `manual` (recette humaine)
+- **Statut** : ✅ Présent · 🟡 Partiel · ❌ Absent · 🧪 Test existant · ⬜ Test à écrire · 🔌 Plugin (hors socle ECM)
+- **Mécanisme** : `unit` (PHPUnit) · `feature` (PHPUnit HTTP) · `pw` (Playwright) · `smoke` (CLI) · `harness` (`run-harness.bat`) · `manual` (recette humaine)
 - **Gate** : un gap n'est « comblé » que si un test vert l'épingle (règle *tests = gate*).
 
 ## Score courant
 
 | Indicateur | Valeur |
 |------------|--------|
-| Parité fonctionnelle estimée (cas fiduciaire) | **~54 %** (was 48–52 %) |
-| Fonctions ✅ | 16 |
-| Fonctions 🟡 | 16 |
-| Fonctions ❌ | 6 (P0 tous résorbés) |
-| Gaps nommés | 38 (P0–P4) |
-| Gaps avec test vert | 12 |
-| Gaps avec test à écrire | 26 |
+| Parité fonctionnelle estimée (cas fiduciaire) | **~56 %** (+2 pts identification ECM lots 1–3) |
+| Fonctions ✅ | 18 |
+| Fonctions 🟡 | 15 |
+| Fonctions ❌ | 5 (P0 tous résorbés) |
+| Gaps nommés | 38 (P0–P4) + 6 gates ECM (P1b) |
+| Gaps avec test vert | **18** (+6 lots 1–3) |
+| Gaps avec test à écrire | 20 |
 
-> Hausse post-sprint : bugs A–H résolus, pdftoppm (thumbnails PDF) opérationnel,
-> healthcheck OnlyOffice/Ollama fiable, IA Infomaniak active (cascade
-> Infomaniak > Claude > Ollama), Assistant IA compte-all corrigé.
+> Hausse post-lots 1–3 : types ECM catalogués, persona REDX, persistance type via PUT JSON
+> (BodyParsingMiddleware), workflow identification UI+API, oracles PHPUnit hermétiques,
+> harness `run-harness.bat` (43 Playwright passed). **WinBiz P1 = plugin — non compté
+> tant que identification auto (Lot B) n'est pas verte.**
 
 ---
 
@@ -43,14 +44,29 @@
 | GAP-004 | Badge validation cliquable | ✅ 🧪 | Badge `.validation-badge` réagit au clic et bascule le statut | `persona-preview.spec.ts` | `pw` |
 
 **Tests P0 à compléter** :
-- ⬜ `ThumbnailGeneratorTest::test_pdftoppm_path_resolvable` — assert
-  `Config::get('tools.pdftoppm')` est un chemin `is_file` et que
-  `pdftoppm -png` produit un fichier non vide sur un PDF fixture. (Épingle la
-  régression « Non trouvé » et le fix poppler scoop.)
+- ✅ `ThumbnailGeneratorTest` — assert `Config::get('tools.pdftoppm')` exécutable (commit `0c11745`).
 
 ---
 
-## P1 — Intégration ERP WinBiz
+## P1b — Identification documentaire ECM (socle REDX, avant WinBiz)
+
+> Référence workflow : `docs/WORKFLOW-DOCUMENTAIRE.md`. **WinBiz = P1 plugin séparé** —
+> aucune gate persona ne couvre `/invoices` tant que P1b n'est pas opérationnel.
+
+| ID | Fonction | Statut | Oracle | Test | Mécanisme |
+|----|----------|--------|--------|------|-----------|
+| GAP-050 | Catalogue types ECM (5 types) | ✅ 🧪 | BDD contient Facture, Note de crédit, Contrat, Courrier, Reçu | `eval-full` gate `G6-doc-types-ecm` | `smoke` |
+| GAP-051 | Persona expert ECM REDX | ✅ 🧪 | `eval_redx_expert` login + fiche + droits validation | `persona-redx-expert.spec.ts` + gate `G6-persona-redx-expert` | `pw` / `smoke` |
+| GAP-052 | Édition type en UI + persistance API | ✅ 🧪 | Save preview → `GET /api/documents/{id}` retourne `document_type_id` | `workflow-doc-identification.spec.ts` | `pw` |
+| GAP-053 | Patterns identification types (regex) | ✅ 🧪 | Heuristique reconnaît libellés ECM sur texte fixture | `DocumentTypeIdentificationTest` | `unit` |
+| GAP-054 | Badge certitude classification | ✅ 🧪 | `#ai-confidence-badge` attaché ; visible après classify | `ai-confidence-badge.spec.ts` | `pw` |
+| GAP-055 | Identification **auto** fiable par type | 🟡 ⬜ | Distribution types lot eval conforme aux attentes | ⬜ gate `G7-classify-distribution` (Lot B) | `smoke` / `unit` |
+
+**Commit lots 1–3** : `0c11745` · harness : `run-harness.bat` (43 pw passed, 2 skipped).
+
+---
+
+## P1 — Intégration ERP WinBiz 🔌 Plugin (reporté)
 
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
@@ -111,23 +127,25 @@
 | ID | Sujet | Oracle | Test existant | Mécanisme |
 |----|-------|--------|---------------|-----------|
 | T-DIAG | Diagnostic admin : OnlyOffice/Ollama | `httpProbe` (fsockopen) reflète l'état réel ; Ollama CONNECTE | ⬜ `Feature\AdminDiagnosticTest` (mock fsockopen) | `feature` |
-| T-IA-INF | IA Infomaniak (cascade active) | `AIProviderService::complete()` renvoie `provider=infomaniak` | `Unit\Services\InfomaniakAIServiceTest` ✅ + ⬜ `Feature\AiCascadeTest` + ⬜ `pw ai-assistant.spec.ts` | `unit`/`feature`/`pw` |
-| T-ASK-COUNT | Assistant IA « combien de documents » | Réponse numérique == total BDD (pas 0) | ⬜ `Feature\NaturalLanguageQueryCountTest` | `feature` |
-| T-TAG-DEDUP | Création tag insensible à la casse | `POST /api/tags` « Foo » puis « foo » → 1 tag | ⬜ `Feature\TagsDedupTest` | `feature` |
+| T-IA-INF | IA Infomaniak (cascade active) | `AIProviderService::complete()` renvoie `provider=infomaniak` | `InfomaniakAIServiceTest` ✅ + `AiCascadeInfomaniakTest` ✅ + `ai-assistant.spec.ts` ✅ | `unit`/`pw` |
+| T-ASK-COUNT | Assistant IA « combien de documents » | Réponse numérique == total BDD (pas 0) | `NaturalLanguageQueryCountTest` ✅ | `unit` |
+| T-TAG-DEDUP | Création tag insensible à la casse | find-or-create normalise la casse | `TagsDedupTest` ✅ (logique hermétique) | `unit` |
 | T-TASK-CREATE | Création tâche autonome | `Task::create(['title'=>...])` persiste title/desc/priority | `bugs-click.spec.ts` ✅ | `pw` |
-| T-DTYPE-PERSIST | Persistance type document | Après save + reload, `#document_type_id` conserve la valeur | `bugs-misc.spec.ts` ✅ | `pw` |
+| T-DTYPE-PERSIST | Persistance type document | Après save + reload, type conservé | `bugs-misc.spec.ts` ✅ + `workflow-doc-identification.spec.ts` ✅ | `pw` |
+| T-HARNESS | Gate bout en bout finalisation | migration + PHPUnit + eval-full + Playwright | `run-harness.bat` ✅ | `harness` |
+| T-WORKFLOW-DOC | Doc workflow documentaire | `docs/WORKFLOW-DOCUMENTAIRE.md` à jour, cohérent avec gates | revue doc (Lot 0) ✅ | `manual` |
 
 ---
 
 ## Priorisation d'écriture des tests (prochain lot)
 
-1. **T-DIAG**, **T-IA-INF (feature + pw)**, **T-ASK-COUNT**, **T-TAG-DEDUP** —
-   épingle les fixes du sprint (anti-régression). ⬜ → 🧪
-2. **GAP-002** `ThumbnailGeneratorTest::test_pdftoppm_path_resolvable` — épingle
-   le fix poppler/pdftoppm.
-3. **P1 WinBiz** : `WinBizMatchingTest`, `InvoicesRoutesTest`, `HealthTest`
-   (valider le connecteur avant montée en charge).
-4. **P2 archivage légal** : `LegalArchiveServiceTest` + `LegalSealGuardTest`
+1. **GAP-055** (Lot B) — identification auto fiable : gate `G7-classify-distribution`
+   dans `eval-full.php` + tests heuristique sur fixtures nommées du lot eval.
+2. **F-CHROME-02** / **F-CHROME-08** — alignement compteurs + visibilité docs test
+   (décision produit).
+3. **P1 WinBiz 🔌** — uniquement après GAP-055 vert : `WinBizMatchingTest`,
+   `InvoicesRoutesTest` (plugin, pas socle ECM).
+4. **P2 archivage légal** — `LegalArchiveServiceTest` + `LegalSealGuardTest`
    (gate bloquante pour exposition conforme CH).
 
 > Règle : aucun gap n'est marqué ✅ comblé sans test vert. Une ligne 🟡/❌ sans

@@ -18,8 +18,19 @@ Demande : lots 1–3 (persona expert REDX, oracles PHPUnit, harness visuel) ;
 **Décision produit** : parcours persona REDX = bibliothèque → fiche → métadonnées + badge certitude ;
 pas de lien `/invoices` (WinBiz reporté).
 
-**Prochain pas** : Lot 0 doc workflow documentaire ; parité REDX tests màj ; identification
-auto fiable par type (heuristique + IA) avant tout plugin ERP.
+**Prochain pas** : ~~Lot 0 doc workflow documentaire ; parité REDX tests màj~~ **Fait (sous-séq. A,
+commit docs)** → **Lot B** identification auto fiable (GAP-055) → Lot C CmdV4 WIP.
+
+---
+
+## Session 2026-07-01 (sous-séq. A) — Doc workflow + parité REDX
+
+| Livrable | Fichier | Gate |
+|----------|---------|------|
+| Workflow documentaire ECM | `docs/WORKFLOW-DOCUMENTAIRE.md` | T-WORKFLOW-DOC ✅ |
+| Parité REDX màj | `docs/PARITE-REDX-TESTS.md` | section P1b (GAP-050→055), score ~56 % |
+
+**Prochain pas** : sous-séquence **B** — GAP-055 identification auto (gate `G7-classify-distribution`).
 
 ---
 
