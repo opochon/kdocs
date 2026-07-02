@@ -64,11 +64,11 @@ export const UI_FUNCTIONS: UiFunctionDef[] = [
   { id: 'F-DOC-10', label: 'Versions SMQ', lot: 'C-fiche', spec: 'smq-versions.spec.ts', testName: null, personas: ['*'], covered: true },
 
   // --- Lot D ---
-  { id: 'F-SEARCH-02', label: 'Recherche avancée', lot: 'D-recherche-taches', spec: 'shell.spec.ts', testName: 'shell: search', personas: ['*'], covered: false },
-  { id: 'F-SEARCH-03', label: 'Sémantique / hybride', lot: 'D-recherche-taches', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-TASK-01', label: 'Liste tâches', lot: 'D-recherche-taches', spec: 'shell.spec.ts', testName: 'shell: mes-taches', personas: ['eval_*'], covered: false },
-  { id: 'F-TASK-02', label: 'Valider depuis tâche', lot: 'D-recherche-taches', spec: null, testName: null, personas: ['eval_*'], covered: false },
-  { id: 'F-IMP-02', label: 'Consume admin', lot: 'D-recherche-taches', spec: null, testName: null, personas: ['admin'], covered: false },
+  { id: 'F-SEARCH-02', label: 'Recherche avancée', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-SEARCH-02', personas: ['*'], covered: true },
+  { id: 'F-SEARCH-03', label: 'Sémantique / hybride', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-SEARCH-03', personas: ['*'], covered: true },
+  { id: 'F-TASK-01', label: 'Liste tâches', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-TASK-01', personas: ['eval_*'], covered: true },
+  { id: 'F-TASK-02', label: 'Valider depuis tâche', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-TASK-02', personas: ['eval_*'], covered: true },
+  { id: 'F-IMP-02', label: 'Consume admin', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-IMP-02', personas: ['admin'], covered: true },
 
   // --- Lot E : admin ---
   { id: 'F-ADM-01', label: 'Hub admin', lot: 'E-admin', spec: 'shell.spec.ts', testName: 'shell: admin', personas: ['admin'], covered: false },

@@ -159,6 +159,10 @@ class EmbeddingsApiController extends ApiController
             // Clamp weight between 0 and 1
             $semanticWeight = max(0, min(1, $semanticWeight));
 
+            if (!$this->vectorService->isAvailable()) {
+                return $this->errorResponse($response, 'Vector search not available', 503);
+            }
+
             $startTime = microtime(true);
             $results = $this->vectorService->hybridSearch($query, $limit, $filters, $semanticWeight);
             $searchTime = round((microtime(true) - $startTime) * 1000);

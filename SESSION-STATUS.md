@@ -3,25 +3,25 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-07-01 — passe fonctions UI (Lots A + B + C)
+## Session 2026-07-01 — passe fonctions UI (Lots A + B + C + D)
 
-Demande : documenter fonctions UI + Playwright strict + personas ; Lots A → C.
+Demande : documenter fonctions UI + Playwright strict + personas ; Lots A → D.
 
 | Lot | Contenu | Gate |
 |-----|---------|------|
 | **A — ECM strict** | `persona-parcours-ecm.spec.ts` : upload formulaire → classify-ai **obligatoire** → save **UI PUT only** (sans fallback API) | **6/6 vert** |
-| **B — Bibliothèque** | `lib-operations.spec.ts` : F-LIB-04..08 (indexer, renommer, déplacer, supprimer, tri/vue) | **5/5 vert** |
-| **C — Fiche document** | `fiche-document.spec.ts` : F-DOC-03/05/06/07/08/09 (OCR, validation submit API, download, delete, onglets, notes) | **6/6 vert** |
-| **Fix route** | `POST /api/folders/create` branché (`FolderActionsApiController`) — setup tests Lot B | — |
-| **Fix BDD notes** | `documents` MyISAM → InnoDB (`tools/fix-documents-innodb.php` + migration `2026_07_01_documents_innodb_engine.php`) — FK `document_notes` | — |
+| **B — Bibliothèque** | `lib-operations.spec.ts` : F-LIB-04..08 | **5/5 vert** |
+| **C — Fiche document** | `fiche-document.spec.ts` : F-DOC-03/05/06/07/08/09 | **6/6 vert** |
+| **D — Recherche / tâches** | `search-tasks.spec.ts` : F-SEARCH-02/03, F-TASK-01/02, F-IMP-02 | **5/5 vert** |
+| **Fix route** | `POST /api/folders/create` branché (`FolderActionsApiController`) | — |
+| **Fix BDD notes** | `documents` MyISAM → InnoDB (`tools/fix-documents-innodb.php`) | — |
+| **Fix hybrid search** | `EmbeddingsApiController::hybridSearch` → 503 si Qdrant off (plus de 500) | — |
 
-**Oracles stricts Lot A** : skip si Infomaniak down ; classify-ai HTTP &lt; 500 obligatoire ; save via bouton UI uniquement.
+**Gates** : `run-passe-lot-a.bat` · `run-passe-lot-b.bat` · `run-passe-lot-c.bat` · `run-passe-lot-d.bat` · `run-harness.bat`
 
-**Gates** : `run-passe-lot-a.bat` · `run-passe-lot-b.bat` · `run-passe-lot-c.bat` · `run-harness.bat` · `SKIP_EVAL_FULL=1` pour Playwright seul.
+**Couverture registry** : **34/35** — reste **F-ADM-01** (hub admin, oracle fonctionnel).
 
-**Couverture registry** : **29/35** (`functions-registry.ts`) — **6 restantes** = Lot D (5) + F-ADM-01 (1). Le chiffre « ~11 » venait du delta vs `FUNCTIONS-SPEC.md` (~38 entrées dont ~12 hors registry ou couvertes ailleurs sans flag `covered`).
-
-**Prochain pas** : Lot D (`search-tasks.spec.ts` — F-SEARCH-02/03, F-TASK-01/02, F-IMP-02) puis Lot E admin.
+**Prochain pas** : Lot E (`admin-hub.spec.ts` — F-ADM-01..05).
 
 ---
 

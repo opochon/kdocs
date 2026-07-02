@@ -4,7 +4,7 @@
 > de saisie écran**, le **mapping Playwright** et la **discipline de correction par lot**.
 >
 > Registre machine : `tests/visual/specs/helpers/functions-registry.ts`
-> Couverture : **29/35** dans le registry (2026-07-01) ; ~38 entrées dans FUNCTIONS-SPEC.
+> Couverture : **34/35** dans le registry (2026-07-01) ; ~38 entrées dans FUNCTIONS-SPEC.
 
 ## Discipline d'exécution
 
@@ -30,7 +30,7 @@ run-passe-lot-c.bat
 | **G — Personas** | `persona*.spec.ts`, `workflow-doc-identification.spec.ts` | F-AUTH, F-VAL, F-DOC-04, F-REDX-TYPES |
 | **B — Bibliothèque** | `lib-operations.spec.ts` | F-LIB-04..08 |
 | **C — Fiche doc** | `fiche-document.spec.ts` | F-DOC-03..09 |
-| **D — Recherche / tâches** | *(à créer)* | F-SEARCH-02/03, F-TASK-*, F-IMP-02 |
+| **D — Recherche / tâches** | `search-tasks.spec.ts` | F-SEARCH-02/03, F-TASK-*, F-IMP-02 |
 | **E — Admin** | *(à créer `admin-hub.spec.ts`)* | F-ADM-* |
 | **F — Chrome / a11y** | `chrome-coherence.spec.ts`, `a11y.spec.ts` | F-CHROME-*, F-A11Y-* |
 
