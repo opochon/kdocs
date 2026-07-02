@@ -853,7 +853,7 @@ $app->group('', function ($group) {
     // Apps satellites (invoices, mail, …) via PluginRegistry
     \KDocs\Core\PluginRegistry::registerAppRoutes($group);
 
-})->add(new AutoIndexMiddleware())->add(new RateLimitMiddleware(100, 60))->add(new \KDocs\Middleware\CSRFMiddleware())->add(new AuthMiddleware());
+})->add(new AutoIndexMiddleware())->add(new RateLimitMiddleware((int) env('RATE_LIMIT_MAX', 100), (int) env('RATE_LIMIT_WINDOW', 60)))->add(new \KDocs\Middleware\CSRFMiddleware())->add(new AuthMiddleware());
 
 // Démarrer l'application
 try {

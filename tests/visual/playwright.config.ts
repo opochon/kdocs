@@ -42,6 +42,7 @@ export default defineConfig({
     stdout: 'ignore',
     stderr: 'pipe',
     // SMQ activé pour couvrir l'onglet Versions de la fiche (specs/smq-versions).
-    env: { SMQ_APP_ENABLED: 'true' },
+    // Rate limit relevé : la batterie complète dépasse 100 req/min (429 sinon).
+    env: { SMQ_APP_ENABLED: 'true', RATE_LIMIT_MAX: '100000' },
   },
 });
