@@ -84,7 +84,7 @@ class AttributionRulesController
         $fieldOptions = ClassificationFieldOption::getAllGrouped();
 
         // Dossiers logiques
-        $folders = $db->query("SELECT id, name, path FROM logical_folders ORDER BY path")->fetchAll();
+        $folders = $db->query("SELECT id, name FROM logical_folders ORDER BY name")->fetchAll();
 
         // Types de champs et opérateurs
         $fieldTypes = AttributionRuleEngine::getFieldTypes();

@@ -15,6 +15,17 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class RolesController
 {
     /**
+     * Helper pour rendre un template
+     */
+    private function renderTemplate(string $templatePath, array $data = []): string
+    {
+        extract($data);
+        ob_start();
+        include $templatePath;
+        return ob_get_clean();
+    }
+
+    /**
      * Liste des rôles et assignations
      */
     public function index(Request $request, Response $response): Response
@@ -57,14 +68,22 @@ class RolesController
             unset($user['roles_info']);
         }
 
-        // Rendre le template
-        $basePath = \KDocs\Core\Config::basePath();
-        ob_start();
-        include __DIR__ . '/../../templates/admin/roles.php';
-        $html = ob_get_clean();
+        // Rendre le template dans le layout principal
+        $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/roles.php', [
+            'roles' => $roles,
+            'users' => $users,
+            'basePath' => \KDocs\Core\Config::basePath(),
+        ]);
+
+        $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
+            'title' => 'Gestion des rôles - K-Docs',
+            'content' => $content,
+            'user' => $request->getAttribute('user'),
+            'pageTitle' => 'Rôles',
+        ]);
 
         $response->getBody()->write($html);
-        return $response;
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
     /**
@@ -86,13 +105,23 @@ class RolesController
         $db = Database::getInstance();
         $documentTypes = $db->query("SELECT code, label FROM document_types ORDER BY label")->fetchAll(\PDO::FETCH_ASSOC);
 
-        $basePath = \KDocs\Core\Config::basePath();
-        ob_start();
-        include __DIR__ . '/../../templates/admin/role_assign.php';
-        $html = ob_get_clean();
+        $content = $this->renderTemplate(__DIR__ . '/../../templates/admin/role_assign.php', [
+            'user' => $user,
+            'roles' => $roles,
+            'userRoles' => $userRoles,
+            'documentTypes' => $documentTypes,
+            'basePath' => \KDocs\Core\Config::basePath(),
+        ]);
+
+        $html = $this->renderTemplate(__DIR__ . '/../../templates/layouts/main.php', [
+            'title' => 'Assigner un rôle - K-Docs',
+            'content' => $content,
+            'user' => $request->getAttribute('user'),
+            'pageTitle' => 'Rôles',
+        ]);
 
         $response->getBody()->write($html);
-        return $response;
+        return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
     /**

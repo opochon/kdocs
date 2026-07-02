@@ -3,7 +3,7 @@
  * Template: Formulaire d'assignation de rôle
  */
 $pageTitle = 'Assigner un rôle - ' . ($user['username'] ?? 'Utilisateur');
-include __DIR__ . '/../layout/header.php';
+
 ?>
 
 <div class="max-w-2xl mx-auto px-4 py-8">
@@ -126,4 +126,4 @@ include __DIR__ . '/../layout/header.php';
     </div>
 </div>
 
-<?php include __DIR__ . '/../layout/footer.php'; ?>
+

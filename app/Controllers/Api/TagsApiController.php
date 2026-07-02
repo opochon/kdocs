@@ -64,7 +64,7 @@ class TagsApiController extends ApiController
         }
 
         try {
-            $stmt = $db->prepare("INSERT INTO tags (name, color, match, matching_algorithm, parent_id) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO tags (name, color, `match`, matching_algorithm, parent_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['name'],
                 $data['color'] ?? null,

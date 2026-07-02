@@ -137,7 +137,7 @@ class TagsController
             $oldTag = $oldTagStmt->fetch(PDO::FETCH_ASSOC);
             
             // Mise à jour
-            $stmt = $db->prepare("UPDATE tags SET name = ?, color = ?, match = ?, matching_algorithm = ?, is_insensitive = ?, is_inbox_tag = ?, parent_id = ?, updated_at = NOW() WHERE id = ?");
+            $stmt = $db->prepare("UPDATE tags SET name = ?, color = ?, `match` = ?, matching_algorithm = ?, is_insensitive = ?, is_inbox_tag = ?, parent_id = ? WHERE id = ?");
             $stmt->execute([$name, $color, $match, $matchingAlgorithm, $isInsensitive, $isInboxTag, $parentId, $id]);
             
             // Audit log
@@ -161,7 +161,7 @@ class TagsController
                     ->withHeader('Location', $basePath . '/admin/tags')
                     ->withStatus(302);
             }
-            $stmt = $db->prepare("INSERT INTO tags (name, color, match, matching_algorithm, is_insensitive, is_inbox_tag, parent_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+            $stmt = $db->prepare("INSERT INTO tags (name, color, `match`, matching_algorithm, is_insensitive, is_inbox_tag, parent_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
             $stmt->execute([$name, $color, $match, $matchingAlgorithm, $isInsensitive, $isInboxTag, $parentId]);
             $newId = (int)$db->lastInsertId();
 

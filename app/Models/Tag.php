@@ -27,7 +27,7 @@ class Tag
     {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            INSERT INTO tags (name, color, parent_id, match, matching_algorithm)
+            INSERT INTO tags (name, color, parent_id, `match`, matching_algorithm)
             VALUES (?, ?, ?, ?, ?)
         ");
         $stmt->execute([
@@ -45,7 +45,7 @@ class Tag
         $db = Database::getInstance();
         $stmt = $db->prepare("
             UPDATE tags 
-            SET name = ?, color = ?, parent_id = ?, match = ?, matching_algorithm = ?
+            SET name = ?, color = ?, parent_id = ?, `match` = ?, matching_algorithm = ?
             WHERE id = ?
         ");
         return $stmt->execute([

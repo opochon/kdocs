@@ -56,7 +56,7 @@ class CorrespondentsApiController extends ApiController
         $db = Database::getInstance();
         
         try {
-            $stmt = $db->prepare("INSERT INTO correspondents (name, match, matching_algorithm) VALUES (?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO correspondents (name, `match`, matching_algorithm) VALUES (?, ?, ?)");
             $stmt->execute([
                 $data['name'],
                 $data['match'] ?? null,

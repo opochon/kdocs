@@ -71,8 +71,11 @@ export const UI_FUNCTIONS: UiFunctionDef[] = [
   { id: 'F-IMP-02', label: 'Consume admin', lot: 'D-recherche-taches', spec: 'search-tasks.spec.ts', testName: 'F-IMP-02', personas: ['admin'], covered: true },
 
   // --- Lot E : admin ---
-  { id: 'F-ADM-01', label: 'Hub admin', lot: 'E-admin', spec: 'shell.spec.ts', testName: 'shell: admin', personas: ['admin'], covered: false },
-  { id: 'F-ADM-04', label: 'Diagnostic', lot: 'E-admin', spec: 'bugs-click.spec.ts', testName: 'Diagnostic', personas: ['admin'], covered: true },
+  { id: 'F-ADM-01', label: 'Hub admin', lot: 'E-admin', spec: 'admin-hub.spec.ts', testName: 'F-ADM-01', personas: ['admin'], covered: true },
+  { id: 'F-ADM-02', label: 'Référentiels CRUD', lot: 'E-admin', spec: 'admin-hub.spec.ts', testName: 'F-ADM-02', personas: ['admin'], covered: true },
+  { id: 'F-ADM-03', label: 'Règles attribution', lot: 'E-admin', spec: 'admin-hub.spec.ts', testName: 'F-ADM-03', personas: ['admin'], covered: true },
+  { id: 'F-ADM-04', label: 'Diagnostic', lot: 'E-admin', spec: 'admin-hub.spec.ts', testName: 'F-ADM-04', personas: ['admin'], covered: true },
+  { id: 'F-ADM-05', label: 'Indexation', lot: 'E-admin', spec: 'admin-hub.spec.ts', testName: 'F-ADM-05', personas: ['admin'], covered: true },
 
   // --- Lot F : chrome / a11y ---
   { id: 'F-CHROME-01', label: 'Sidebar user', lot: 'F-chrome-a11y', spec: 'chrome-coherence.spec.ts', testName: 'F-CHROME-01', personas: ['*'], covered: true },

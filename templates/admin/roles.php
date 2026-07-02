@@ -3,7 +3,7 @@
  * Template: Administration des rôles utilisateurs
  */
 $pageTitle = 'Gestion des rôles';
-include __DIR__ . '/../layout/header.php';
+
 ?>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
@@ -142,4 +142,4 @@ function removeRole(userId, roleCode, scope) {
 }
 </script>
 
-<?php include __DIR__ . '/../layout/footer.php'; ?>
+

@@ -4,7 +4,7 @@
 > de saisie écran**, le **mapping Playwright** et la **discipline de correction par lot**.
 >
 > Registre machine : `tests/visual/specs/helpers/functions-registry.ts`
-> Couverture : **34/35** dans le registry (2026-07-01) ; ~38 entrées dans FUNCTIONS-SPEC.
+> Couverture : **38/38** dans le registry (2026-07-02, Lot E livré) ; ~38 entrées dans FUNCTIONS-SPEC.
 
 ## Discipline d'exécution
 
@@ -23,6 +23,7 @@ run-passe-lot-a.bat
 run-passe-lot-b.bat
 run-passe-lot-c.bat
 run-passe-lot-d.bat
+run-passe-lot-e.bat
 ```
 
 | Lot | Fichier spec | Fonctions ciblées |
@@ -32,7 +33,7 @@ run-passe-lot-d.bat
 | **B — Bibliothèque** | `lib-operations.spec.ts` | F-LIB-04..08 |
 | **C — Fiche doc** | `fiche-document.spec.ts` | F-DOC-03..09 |
 | **D — Recherche / tâches** | `search-tasks.spec.ts` | F-SEARCH-02/03, F-TASK-*, F-IMP-02 |
-| **E — Admin** | *(à créer `admin-hub.spec.ts`)* | F-ADM-* |
+| **E — Admin** | `admin-hub.spec.ts` | F-ADM-01..05 |
 | **F — Chrome / a11y** | `chrome-coherence.spec.ts`, `a11y.spec.ts` | F-CHROME-*, F-A11Y-* |
 
 ---
@@ -130,5 +131,5 @@ Les fonctions `[aucune]` (upload, classify, recherche) sont identiques pour tous
 2. ~~Écrire **`lib-operations.spec.ts`** (Lot B)~~ — **5/5 VERT**
 3. ~~Écrire **`fiche-document.spec.ts`** (Lot C)~~ — **6/6 VERT**
 4. ~~**Lot D** — `search-tasks.spec.ts`~~ — **5/5 VERT** (`run-passe-lot-d.bat`)
-5. **Lot E** — oracles admin (F-ADM-01 hub, F-ADM-02/03/05)
+5. ~~**Lot E** — oracles admin~~ — **6/6 VERT** (`run-passe-lot-e.bat`) ; 3 bugs produit corrigés (template roles hors layout, SQL `match` réservé + `updated_at` fantôme sur tags, colonne `path` inexistante éditeur règles)
 6. Étendre **`functions-registry.ts`** au fil des lots (F-AUTH-02, F-VAL-02/03, F-CHROME-03..07, F-A11Y-02..05)

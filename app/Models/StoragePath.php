@@ -36,7 +36,7 @@ class StoragePath
     {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            INSERT INTO storage_paths (name, path, match, matching_algorithm)
+            INSERT INTO storage_paths (name, path, `match`, matching_algorithm)
             VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([
@@ -53,7 +53,7 @@ class StoragePath
         $db = Database::getInstance();
         $stmt = $db->prepare("
             UPDATE storage_paths 
-            SET name = ?, path = ?, match = ?, matching_algorithm = ?
+            SET name = ?, path = ?, `match` = ?, matching_algorithm = ?
             WHERE id = ?
         ");
         return $stmt->execute([
