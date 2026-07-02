@@ -706,7 +706,7 @@ class DocumentsController
                 'file_path' => $filePath,
                 'file_size' => filesize($filePath),
                 'mime_type' => $file->getClientMediaType(),
-                'document_type' => !empty($data['document_type']) ? (int)$data['document_type'] : null,
+                'document_type_id' => !empty($data['document_type_id']) ? (int)$data['document_type_id'] : null,
                 'correspondent_id' => !empty($data['correspondent_id']) ? (int)$data['correspondent_id'] : null,
                 'doc_date' => !empty($data['doc_date']) ? $data['doc_date'] : null,
                 'amount' => !empty($data['amount']) ? (float)$data['amount'] : null,

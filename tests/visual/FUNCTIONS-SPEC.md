@@ -157,10 +157,14 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 
 ## Couverture actuelle (état 2026-07-01, lots 1–3 + sous-séq. A)
 
+> **Passe complète UI** : voir `docs/PASSE-FONCTIONS-UI.md` + registre `specs/helpers/functions-registry.ts`.
+> Lot A (ECM ingérer→classer→analyser) : `persona-parcours-ecm.spec.ts` · gate : `run-passe-lot-a.bat`.
+
 | Spec | Où couverte | Statut |
 |------|-------------|--------|
 | F-AUTH-01/02 | `global-setup.ts`, `persona.spec.ts` (login par persona) | ✓ |
-| F-LIB-01/02/08 | `shell.spec.ts`, `persona.spec.ts`, `pipeline-ui.spec.ts` | ✓ |
+| F-IMP-01 | `persona-parcours-ecm.spec.ts` (upload formulaire) | ✓ Lot A |
+| F-LIB-02 | `persona-parcours-ecm.spec.ts`, `pipeline-ui.spec.ts` | ✓ |
 | F-LIB-03 | `pipeline-ui.spec.ts` (upload + rangement dossier) | ✓ (fix `relative_path` `bc6c075`) |
 | F-LIB-04 | `eval-full.php` (CLI) | ✓ |
 | F-DOC-01 | `pipeline-ui.spec.ts`, `workflow-doc-identification.spec.ts` | ✓ |
@@ -178,5 +182,6 @@ Vérifiés via `@axe-core/playwright` sur chaque vue consultée par le persona.
 
 ## Suite à implémenter
 
-1. **CmdV4 étape 6 suite** — indexation Qdrant annexe + UI fraîcheur.
-2. **WinBiz plugin** — après validation humaine ECM.
+1. **Passe UI lots B→E** — voir `docs/PASSE-FONCTIONS-UI.md` (lib, fiche, recherche/tâches, admin).
+2. **CmdV4 étape 6 suite** — indexation Qdrant annexe + UI fraîcheur.
+3. **WinBiz plugin** — après validation humaine ECM.
