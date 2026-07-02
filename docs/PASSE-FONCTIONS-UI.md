@@ -22,6 +22,7 @@ cd F:\DATA\DEVELOPPEMENT\GEDv1
 run-passe-lot-a.bat
 run-passe-lot-b.bat
 run-passe-lot-c.bat
+run-passe-lot-d.bat
 ```
 
 | Lot | Fichier spec | Fonctions ciblées |
@@ -127,7 +128,7 @@ Les fonctions `[aucune]` (upload, classify, recherche) sont identiques pour tous
 
 1. ~~Valider **Lot A** (`run-passe-lot-a.bat`)~~ — **VERT**
 2. ~~Écrire **`lib-operations.spec.ts`** (Lot B)~~ — **5/5 VERT**
-3. ~~Écrire **`fiche-document.spec.ts`** (Lot C)~~ — **6/6 VERT** (`run-passe-lot-c.bat`)
-4. **Lot D** — `search-tasks.spec.ts` (F-SEARCH-02/03, F-TASK-01/02, F-IMP-02)
+3. ~~Écrire **`fiche-document.spec.ts`** (Lot C)~~ — **6/6 VERT**
+4. ~~**Lot D** — `search-tasks.spec.ts`~~ — **5/5 VERT** (`run-passe-lot-d.bat`)
 5. **Lot E** — oracles admin (F-ADM-01 hub, F-ADM-02/03/05)
 6. Étendre **`functions-registry.ts`** au fil des lots (F-AUTH-02, F-VAL-02/03, F-CHROME-03..07, F-A11Y-02..05)
