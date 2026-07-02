@@ -46,9 +46,11 @@ html {
   --primary-ink:#ffffff;
   /* etats */
   --green:#4a8a5c;
+  --green-ink:#2e5c3c;    /* texte du chip green (découplé de --green pour contraste WCAG AA) */
   --amber:#b8893f;
   --amber-ink:#7a4f15;    /* texte du chip amber (découplé de --amber pour contraste WCAG AA) */
   --red:#c0544b;
+  --red-ink:#8c3229;      /* texte du chip red (découplé de --red pour contraste WCAG AA) */
   /* tooltip / hint */
   --tip:#2f3033;
   --tip-ink:#ffffff;
@@ -123,9 +125,11 @@ html {
   --primary:#e6e6e8;       /* en sombre, le primaire s'inverse (clair sur sombre) */
   --primary-ink:#1f1f20;
   --green:#5fae72;
+  --green-ink:#a7d8b4;   /* texte du chip green sur fond sombre (découplé de --green) */
   --amber:#d2a35a;
   --amber-ink:#e6bd6e;   /* texte du chip amber sur fond sombre (découplé de --amber) */
   --red:#df6f66;
+  --red-ink:#eda49d;     /* texte du chip red sur fond sombre (découplé de --red) */
   --tip:#0d0d0e;
   --tip-ink:#f0f0f2;
   --shadow-pop:0 10px 32px rgba(0,0,0,.55);
@@ -371,9 +375,9 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 .ds-chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 9999px; }
 .ds-chip--neutral { background: var(--hover); color: var(--ink-soft); }
 .ds-chip--accent  { background: var(--accent-soft); color: var(--accent); }
-.ds-chip--green   { background: color-mix(in srgb, var(--green) 22%, var(--surface)); color: var(--green); }
+.ds-chip--green   { background: color-mix(in srgb, var(--green) 22%, var(--surface)); color: var(--green-ink); }
 .ds-chip--amber   { background: color-mix(in srgb, var(--amber) 24%, var(--surface)); color: var(--amber-ink); }
-.ds-chip--red     { background: color-mix(in srgb, var(--red) 22%, var(--surface));   color: var(--red); }
+.ds-chip--red     { background: color-mix(in srgb, var(--red) 22%, var(--surface));   color: var(--red-ink); }
 
 /* --- Boutons d'action a code couleur d'etat (valider / refuser / n.a.) ---
    Solides = etat actif ; doux = etat selectionnable inactif. Texte clair
