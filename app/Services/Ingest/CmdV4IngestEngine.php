@@ -74,6 +74,8 @@ class CmdV4IngestEngine
 
             'invoice_enriched' => false,
 
+            'annexe_indexed' => false,
+
             'sidecar_error' => null,
 
             'cmd_v4_project' => null,
@@ -163,6 +165,20 @@ class CmdV4IngestEngine
             $result['invoice_enriched'] = $mapped;
 
             $result['classification_skipped'] = $mapped;
+
+            // Étape 6 — substrat annexe indexable (repli quand la facture n'est pas
+            // mappée : les hints facture ne sont pas écrasés) + statut de fraîcheur.
+            if (!$mapped) {
+                $annexe = $this->client->getAnnexe($slug);
+                if ($annexe !== null) {
+                    $result['annexe_indexed'] = $this->mapper->applyAnnexeSubstrate($documentId, $slug, $annexe);
+                }
+            }
+
+            $freshness = $this->client->getFreshness($slug);
+            if ($freshness !== null) {
+                $this->mapper->applyFreshnessStatus($documentId, $freshness);
+            }
 
             if (!$mapped && filter_var(env('IA_UNIFIED_CLASSIFY_ENABLED', true), FILTER_VALIDATE_BOOLEAN)) {
 

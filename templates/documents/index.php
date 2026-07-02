@@ -756,6 +756,7 @@ function renderDocumentMetadata(doc) {
                     Suggestion : analyser
                 </button>
                 <span id="ai-confidence-badge" class="text-xs px-2 py-0.5 rounded-full hidden" title="Degré de certitude de la classification suggérée"></span>
+                <span id="cmdv4-freshness-badge" class="text-xs px-2 py-0.5 rounded-full hidden" title="Fraîcheur de l'analyse CmdV4"></span>
                 <div class="flex gap-1">
                     <button onclick="saveDocumentPreview(${doc.id})" title="Enregistrer les modifications"
                             class="p-1.5 rounded transition ds-btn-soft-green">
@@ -978,6 +979,31 @@ function renderDocumentMetadata(doc) {
     if (SMQ_ENABLED && doc && doc.id) {
         checkMandatoryRead(doc.id);
     }
+
+    updateCmdV4FreshnessBadge(doc);
+}
+
+// Badge fraîcheur CmdV4 (étape 6) — visible seulement si le doc a été analysé par CmdV4.
+function updateCmdV4FreshnessBadge(doc) {
+    const badge = document.getElementById('cmdv4-freshness-badge');
+    if (!badge) return;
+
+    let suggestions = doc && doc.classification_suggestions;
+    if (typeof suggestions === 'string') {
+        try { suggestions = JSON.parse(suggestions); } catch (e) { suggestions = null; }
+    }
+
+    if (!suggestions || !suggestions.cmdv4_analyzed_at) {
+        badge.classList.add('hidden');
+        return;
+    }
+
+    const upToDate = suggestions.cmdv4_up_to_date === true;
+    badge.classList.remove('hidden');
+    badge.className = `text-xs px-2 py-0.5 rounded-full ${upToDate ? 'ds-btn-green' : 'ds-btn-soft-red'}`;
+    badge.textContent = upToDate ? 'CmdV4 à jour' : 'CmdV4 obsolète';
+    const checkedAt = suggestions.cmdv4_freshness_checked_at || suggestions.cmdv4_analyzed_at;
+    badge.title = `Analyse CmdV4 (gate ${suggestions.cmdv4_gate || '?'}) — ${upToDate ? 'source inchangée' : 'source modifiée depuis l\'analyse'} (vérifié ${checkedAt})`;
 }
 
 // Gestion des onglets de la modale

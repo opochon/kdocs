@@ -128,7 +128,46 @@ class CmdV4ResultMapper
         $this->db->prepare('UPDATE documents SET classification_suggestions = ? WHERE id = ?')
             ->execute([json_encode($payload, JSON_UNESCAPED_UNICODE), $documentId]);
 
+        if ($md !== '') {
+            $this->indexAnnexeContent($documentId, $md);
+        }
+
         return true;
+    }
+
+    /** Délimiteurs de la section annexe dans documents.content (remplacée à chaque analyse). */
+    private const ANNEXE_BEGIN = '[[CMDV4-ANNEXE]]';
+    private const ANNEXE_END = '[[/CMDV4-ANNEXE]]';
+
+    /**
+     * Étape 6 (suite) — fusionne le substrat annexe dans le contenu indexable du
+     * document et invalide l'embedding (re-vectorisation Qdrant/Ollama au prochain
+     * passage du worker). Idempotent : la section annexe précédente est remplacée.
+     */
+    private function indexAnnexeContent(int $documentId, string $annexeMd): void
+    {
+        $stmt = $this->db->prepare('SELECT content FROM documents WHERE id = ?');
+        $stmt->execute([$documentId]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return;
+        }
+
+        $content = (string) ($row['content'] ?? '');
+
+        // Retirer une éventuelle section annexe précédente.
+        $begin = strpos($content, self::ANNEXE_BEGIN);
+        if ($begin !== false) {
+            $end = strpos($content, self::ANNEXE_END, $begin);
+            $cut = $end !== false ? $end + strlen(self::ANNEXE_END) : strlen($content);
+            $content = rtrim(substr($content, 0, $begin) . substr($content, $cut));
+        }
+
+        $content = rtrim($content) . "\n\n" . self::ANNEXE_BEGIN . "\n" . $annexeMd . "\n" . self::ANNEXE_END;
+
+        // content_hash NULL + status pending → EmbeddingService::embedDocument re-vectorise.
+        $this->db->prepare("UPDATE documents SET content = ?, content_hash = NULL, embedding_status = 'pending' WHERE id = ?")
+            ->execute([ltrim($content), $documentId]);
     }
 
     /**

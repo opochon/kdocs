@@ -17,7 +17,10 @@ class CmdV4ResultMapperTest extends TestCase
         $this->pdo = new PDO('sqlite::memory:');
         $this->pdo->exec('CREATE TABLE documents (
             id INTEGER PRIMARY KEY,
-            classification_suggestions TEXT
+            classification_suggestions TEXT,
+            content TEXT,
+            content_hash TEXT,
+            embedding_status TEXT
         )');
         $this->pdo->exec('CREATE TABLE invoice_extraction_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,6 +115,43 @@ class CmdV4ResultMapperTest extends TestCase
         $suggestions = json_decode((string) $doc['classification_suggestions'], true);
         $this->assertFalse($suggestions['cmdv4_up_to_date']);
         $this->assertSame(['a.pdf'], $suggestions['cmdv4_freshness']['changed']);
+    }
+
+    public function testApplyAnnexeSubstrateIndexeLeContenuPourEmbedding(): void
+    {
+        $this->pdo->exec("UPDATE documents SET content = 'texte OCR existant', content_hash = 'abc', embedding_status = 'completed' WHERE id = 7");
+
+        $mapper = new CmdV4ResultMapper($this->pdo);
+        $mapper->applyAnnexeSubstrate(7, 'proj-eval', [
+            'annexe_md' => '[DOC ID:1] fact sourcé annexe',
+            'gate' => 'F0',
+        ]);
+
+        $doc = $this->pdo->query('SELECT content, content_hash, embedding_status FROM documents WHERE id = 7')
+            ->fetch(PDO::FETCH_ASSOC);
+
+        // L'annexe est fusionnée dans le contenu indexable (OCR préservé).
+        $this->assertStringContainsString('texte OCR existant', (string) $doc['content']);
+        $this->assertStringContainsString('[[CMDV4-ANNEXE]]', (string) $doc['content']);
+        $this->assertStringContainsString('fact sourcé annexe', (string) $doc['content']);
+
+        // L'embedding est invalidé → re-vectorisation Qdrant/Ollama au prochain worker.
+        $this->assertNull($doc['content_hash']);
+        $this->assertSame('pending', $doc['embedding_status']);
+    }
+
+    public function testApplyAnnexeSubstrateRemplaceLAnnexePrecedente(): void
+    {
+        $mapper = new CmdV4ResultMapper($this->pdo);
+        $mapper->applyAnnexeSubstrate(7, 'proj-eval', ['annexe_md' => 'version 1', 'gate' => 'F0']);
+        $mapper->applyAnnexeSubstrate(7, 'proj-eval', ['annexe_md' => 'version 2', 'gate' => 'F0']);
+
+        $doc = $this->pdo->query('SELECT content FROM documents WHERE id = 7')->fetch(PDO::FETCH_ASSOC);
+        $content = (string) $doc['content'];
+
+        $this->assertStringNotContainsString('version 1', $content);
+        $this->assertStringContainsString('version 2', $content);
+        $this->assertSame(1, substr_count($content, '[[CMDV4-ANNEXE]]'), 'une seule section annexe');
     }
 }
 
