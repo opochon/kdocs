@@ -7,6 +7,20 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Added (sprint parité 2026-07-02)
+- Lot E Playwright `admin-hub.spec.ts` (F-ADM-01..05) — registre fonctions UI **38/38 couvert**
+- Scellement légal WORM (P2 conformité CH) : `LegalArchiveService` réel, `RetentionPolicyService`
+  (10 ans CO 958f), garde 403 sur toutes les écritures documents, route `POST /api/documents/{id}/legal-seal`
+- CmdV4 étape 6 (suite) : substrat annexe fusionné dans le contenu indexable (re-vectorisation
+  Qdrant/Ollama) + badge fraîcheur `#cmdv4-freshness-badge` dans la fiche
+- Quittance de lecture épinglée par test (record idempotent + read-status)
+
+### Fixed (sprint parité 2026-07-02)
+- SQL : mot réservé `match` non échappé (création/édition tags, correspondants, storage paths)
+- `TagsController` : colonne `updated_at` inexistante sur `tags` (création tag admin cassée)
+- `RolesController` : template hors layout (`layout/header.php` inexistant → Warning PHP rendu)
+- Éditeur règles d'attribution : colonne `path` inexistante sur `logical_folders` (page create cassée)
+
 ### Added
 - Suite de tests complète (smoke, API, integration, UI)
 - Pre-commit hooks pour anti-régression

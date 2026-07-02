@@ -3,6 +3,45 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-02 — sprint parité (Lot E + P2 WORM + CmdV4 ét. 6 + encours soldés)
+
+Demande : « finaliser la parité, terminer tous les encours, projet opérationnel en test ».
+
+| Lot | Contenu | Gate |
+|-----|---------|------|
+| **E — Hub admin** | `admin-hub.spec.ts` F-ADM-01..05 (tuiles, référentiels, CRUD tag, règles attribution, diagnostic, indexation) + `run-passe-lot-e.bat` — **registre 38/38 couvert** | **6/6 vert** |
+| **P2 — Scellement WORM** | `LegalArchiveService` réel (seal idempotent + `LegalSealedException`), `RetentionPolicyService` (10 ans CO 958f), garde 403 sur `PUT/DELETE` documents (+ `/type`, `/correspondent`, `/fields`), `POST /api/documents/{id}/legal-seal`, migration `add_legal_seal_columns` | Unit 17 + `legal-seal.spec.ts` vert |
+| **CmdV4 étape 6 suite** | Substrat annexe fusionné dans `documents.content` (section `[[CMDV4-ANNEXE]]`, embedding invalidé → re-vectorisation Qdrant) ; `getAnnexe`/`getFreshness` câblés dans `CmdV4IngestEngine::process` ; badge fraîcheur `#cmdv4-freshness-badge` fiche | Mapper +2 + spec structurel vert |
+| **GAP-032 quittance** | Test record idempotent + read-status (`smq-versions.spec.ts`) — statut parité ✅ | vert |
+| **Bugs produit corrigés (Lot E)** | (1) SQL mot réservé `` `match` `` non échappé — création tag/correspondant/storage path UI cassée (5 fichiers) ; (2) `tags.updated_at` fantôme ; (3) `RolesController` hors layout (`layout/header.php` inexistant → Warning rendu) ; (4) éditeur règles : colonne `path` inexistante sur `logical_folders` | admin-hub 6/6 |
+| **F-CHROME-02/08** | Déjà résolus (`5b1d70a`) — vérifiés : chrome-coherence **8/8** | vert |
+
+**Parité REDX** : ~56 % → **~60 %** — gaps avec test vert 18 → **24** (GAP-020/021/024/031/032/016).
+Les ❌ restants sont des features roadmap triées (WinBiz plugin, TSA, modules P3, infra P4) — aucun encours ouvert.
+
+**Harness complet (2026-07-02)** — `run-harness.bat` (19 specs, +admin-hub/legal-seal/cmdv4-freshness) :
+
+| Gate | Résultat |
+|------|----------|
+| Migration smoke | vert |
+| PHPUnit | **372 tests, 872 assertions, 3 skipped** — OK |
+| eval-full `--no-ocr` | **toutes les gates PASS** |
+| Playwright | **71 passed, 0 failed, 0 skipped** (2.9 min) |
+
+**2 fixes découverts par la gate finale** :
+- **a11y WCAG AA** : chips `.ds-chip--green`/`--red` (badge « Validé ») à 3.17/3.40 de ratio →
+  tokens `--green-ink`/`--red-ink` (clair+sombre, pattern `--amber-ink`). Attrapé dès que des
+  docs validés apparaissent en page 1 de `/documents`.
+- **Rate limit 429 en batterie** : `RateLimitMiddleware` figé à 100 req/min/user → la batterie
+  de 71 tests le dépassait (échecs aléatoires). `RATE_LIMIT_MAX`/`RATE_LIMIT_WINDOW` par env
+  (défauts prod inchangés) ; webServer Playwright à 100000.
+
+**Décisions produit restantes (non bloquantes, tracées)** : unifier `TrainingService` /
+`ClassificationLearningService` ; `processDocument` async à l'upload ; serveur dev
+multi-processus (fiabilité pipeline-ui en batterie) ; GAP-022 export audit + GAP-040 ACL.
+
+---
+
 ## Session 2026-07-01 — passe fonctions UI (Lots A + B + C + D)
 
 Demande : documenter fonctions UI + Playwright strict + personas ; Lots A → D.
@@ -453,4 +492,4 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-06-30 — sprint 3 finalisation & fiabilisation (Docker OnlyOffice healthy, pdftoppm fixé, doc complète, parité REDX, tests IA Infomaniak Lot 3, personas 12/12, fiabilisation specs live-AI). PHPUnit 316/316, Playwright 43 passed + 2 skipped.*
+*Dernière mise à jour : 2026-07-02 — sprint parité (Lot E admin 38/38, P2 scellement WORM + rétention, CmdV4 étape 6 suite, 4 bugs produit corrigés). PHPUnit 372/372, parité ~60 %.*

@@ -6,8 +6,8 @@
 > `docs/DELTA-REDX.md` (delta statut). Source de vérité test :
 > `tests/visual/FUNCTIONS-SPEC.md`.
 >
-> Dernière mise à jour : 2026-07-01 (lots 1–3 finalisation REDX : persona ECM,
-> types documentaires, harness, workflow identification ; WinBiz reporté plugin).
+> Dernière mise à jour : 2026-07-02 (sprint parité : Lot E admin 35/35, P2 scellement
+> WORM + rétention, quittance lecture épinglée, CmdV4 étape 6 suite ; WinBiz reporté plugin).
 
 ## Légende
 
@@ -19,13 +19,17 @@
 
 | Indicateur | Valeur |
 |------------|--------|
-| Parité fonctionnelle estimée (cas fiduciaire) | **~56 %** (+2 pts identification ECM lots 1–3) |
-| Fonctions ✅ | 18 |
-| Fonctions 🟡 | 15 |
-| Fonctions ❌ | 5 (P0 tous résorbés) |
+| Parité fonctionnelle estimée (cas fiduciaire) | **~60 %** (+4 pts : P2 scellement WORM opérationnel, SMQ + quittance vérifiés) |
+| Gaps ✅ | 18 (dont P2 GAP-020/021/024, P3 GAP-031/032 ce sprint) |
+| Gaps 🟡 | 8 (WinBiz plugin ×5, GAP-022 export audit, GAP-034 mail, GAP-040 ACL) |
+| Gaps ❌ | 12 (triés : WinBiz plugin ×4, TSA, modules P3 ×2, infra P4 ×5) |
 | Gaps nommés | 38 (P0–P4) + 6 gates ECM (P1b) |
-| Gaps avec test vert | **18** (+6 lots 1–3) |
-| Gaps avec test à écrire | 20 |
+| Gaps avec test vert | **24** (+6 sprint parité 2026-07-02) |
+| Gaps avec test à écrire | 14 |
+
+> Les ❌ restants sont des **features roadmap triées** (plugin WinBiz reporté,
+> modules Contrats/RH, TSA, multi-mandant, portail, e-signature, ClamAV, Tauri) —
+> aucun encours ouvert ; chaque ligne reste une dette tracée avec oracle défini.
 
 > Hausse post-lots 1–3 : types ECM catalogués, persona REDX, persistance type via PUT JSON
 > (BodyParsingMiddleware), workflow identification UI+API, oracles PHPUnit hermétiques,
@@ -139,14 +143,14 @@
 
 ## Priorisation d'écriture des tests (prochain lot)
 
-1. **GAP-055** (Lot B) — identification auto fiable : gate `G7-classify-distribution`
-   dans `eval-full.php` + tests heuristique sur fixtures nommées du lot eval.
-2. **F-CHROME-02** / **F-CHROME-08** — alignement compteurs + visibilité docs test
-   (décision produit).
-3. **P1 WinBiz 🔌** — uniquement après GAP-055 vert : `WinBizMatchingTest`,
-   `InvoicesRoutesTest` (plugin, pas socle ECM).
-4. **P2 archivage légal** — `LegalArchiveServiceTest` + `LegalSealGuardTest`
-   (gate bloquante pour exposition conforme CH).
+1. ~~**GAP-055** — identification auto fiable~~ ✅ (gate `G7-classify-distribution`).
+2. ~~**F-CHROME-02** / **F-CHROME-08**~~ ✅ (commit `5b1d70a`, chrome-coherence 8/8).
+3. ~~**P2 archivage légal**~~ ✅ (`LegalArchiveServiceTest` + `LegalSealGuardTest` +
+   `legal-seal.spec.ts` — scellement WORM + rétention opérationnels).
+4. **P1 WinBiz 🔌** — plugin reporté ; à l'activation du bridge : `WinBizMatchingTest`,
+   `InvoicesRoutesTest`.
+5. **GAP-022** export piste révision (JSON) + **GAP-040** ACL dossier — prochains
+   candidats socle ; **GAP-023 TSA** derrière un fournisseur d'horodatage.
 
 > Règle : aucun gap n'est marqué ✅ comblé sans test vert. Une ligne 🟡/❌ sans
 > test est une dette tracée, pas un oubli.
