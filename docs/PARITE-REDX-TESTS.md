@@ -88,11 +88,11 @@
 
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
-| GAP-020 | Scellement WORM / archivage légal | ❌ | `documents.legal_sealed=1` → toute écriture lève `LegalSealedException` | ⬜ `Unit\LegalArchiveServiceTest` | `unit` |
-| GAP-021 | Politiques rétention (10 ans compta) | ❌ | `RetentionPolicyService::dueDate($doc)` retourne date ≥ 10 ans | ⬜ `Unit\RetentionPolicyTest` | `unit` |
+| GAP-020 | Scellement WORM / archivage légal | ✅ 🧪 | `documents.legal_sealed=1` → toute écriture lève `LegalSealedException` ; `POST /api/documents/{id}/legal-seal` (idempotent) | `Unit\Services\Compliance\LegalArchiveServiceTest` ✅ + `legal-seal.spec.ts` ✅ | `unit`/`pw` |
+| GAP-021 | Politiques rétention (10 ans compta) | ✅ 🧪 | `RetentionPolicyService::dueDate($doc)` retourne date ≥ 10 ans (CO 958f) ; `retention_until` fixé au scellement | `Unit\Services\Compliance\RetentionPolicyTest` ✅ | `unit` |
 | GAP-022 | Export piste révision | 🟡 | `GET /admin/audit/export` produit PDF/JSON avec timeline | ⬜ `Feature\AuditExportTest` | `feature` |
 | GAP-023 | Horodatage qualifié (TSA) | ❌ | `documents.tsa_token` non null + validation RFC 3161 | ⬜ `Unit\TsaServiceTest` (mock TSA) | `unit` |
-| GAP-024 | Document légal non modifiable | ❌ | `PUT /api/documents/{id}` 403 si `legal_sealed=1` | ⬜ `Feature\LegalSealGuardTest` | `feature` |
+| GAP-024 | Document légal non modifiable | ✅ 🧪 | `PUT/DELETE /api/documents/{id}` (+ `/type`, `/correspondent`, `/fields`) 403 si `legal_sealed=1` ; GET reste 200 | `Unit\Controllers\LegalSealGuardTest` ✅ + `legal-seal.spec.ts` ✅ | `unit`/`pw` |
 
 ---
 

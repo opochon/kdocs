@@ -416,6 +416,7 @@ $app->group('', function ($group) {
     $group->post('/api/documents', [DocumentsApiController::class, 'create']);
     $group->put('/api/documents/{id}', [DocumentsApiController::class, 'update']);
     $group->delete('/api/documents/{id}', [DocumentsApiController::class, 'delete']);
+    $group->post('/api/documents/{id}/legal-seal', [DocumentsApiController::class, 'legalSeal']);
     
     $group->get('/api/documents/{id}/notes', [DocumentsController::class, 'listNotes']);
     $group->post('/api/documents/{id}/notes', [DocumentsController::class, 'addNote']);

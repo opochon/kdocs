@@ -256,11 +256,15 @@ class DocumentsApiController extends ApiController
     {
         $id = (int)$args['id'];
         $document = Document::findById($id);
-        
+
         if (!$document || $document['deleted_at']) {
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
-        
+
+        if ($sealed = $this->guardNotSealed($id, $response)) {
+            return $sealed;
+        }
+
         $data = $request->getParsedBody();
         $db = Database::getInstance();
         
@@ -375,7 +379,11 @@ class DocumentsApiController extends ApiController
     {
         $id = (int)$args['id'];
         $user = $request->getAttribute('user');
-        
+
+        if ($sealed = $this->guardNotSealed($id, $response)) {
+            return $sealed;
+        }
+
         $trash = new TrashService();
         if ($trash->moveToTrash($id, $user['id'])) {
             return $this->successResponse($response, null, 'Document supprimé avec succès');
@@ -768,6 +776,52 @@ class DocumentsApiController extends ApiController
     protected function makeTrainingService(): \KDocs\Services\TrainingService
     {
         return new \KDocs\Services\TrainingService();
+    }
+
+    /** Factory LegalArchiveService (overridable en test pour injection d'un mock). */
+    protected function makeLegalArchiveService(): \KDocs\Services\Compliance\LegalArchiveService
+    {
+        return new \KDocs\Services\Compliance\LegalArchiveService();
+    }
+
+    /**
+     * Garde WORM (GAP-024) : 403 si le document est scellé légalement.
+     * Retourne la réponse 403 à renvoyer, ou null si l'écriture est permise.
+     */
+    protected function guardNotSealed(int $documentId, Response $response): ?Response
+    {
+        try {
+            $this->makeLegalArchiveService()->assertWritable($documentId);
+        } catch (\KDocs\Services\Compliance\LegalSealedException $e) {
+            return $this->errorResponse($response, $e->getMessage(), 403);
+        } catch (\Exception $e) {
+            // Colonne absente (migration non appliquée) : ne pas bloquer l'écriture.
+        }
+
+        return null;
+    }
+
+    /**
+     * POST /api/documents/{id}/legal-seal — scelle le document (WORM, P2).
+     */
+    public function legalSeal(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+        $document = Document::findById($id);
+
+        if (!$document || $document['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        $user = $request->getAttribute('user');
+
+        try {
+            $result = $this->makeLegalArchiveService()->seal($id, (int) ($user['id'] ?? 0) ?: null);
+
+            return $this->successResponse($response, $result, 'Document scellé légalement', $result['already_sealed'] ? 200 : 201);
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
     }
 
     protected function resolveDocumentTypeLabel(?int $typeId): ?string
@@ -1239,6 +1293,10 @@ class DocumentsApiController extends ApiController
         $data = json_decode($request->getBody()->getContents(), true);
         $typeId = isset($data['document_type_id']) ? (int)$data['document_type_id'] : null;
 
+        if ($sealed = $this->guardNotSealed($id, $response)) {
+            return $sealed;
+        }
+
         $db = Database::getInstance();
         $before = Document::findById($id);
 
@@ -1265,6 +1323,10 @@ class DocumentsApiController extends ApiController
         $data = json_decode($request->getBody()->getContents(), true);
         $correspondentId = isset($data['correspondent_id']) ? (int)$data['correspondent_id'] : null;
 
+        if ($sealed = $this->guardNotSealed($id, $response)) {
+            return $sealed;
+        }
+
         $db = Database::getInstance();
         $before = Document::findById($id);
 
@@ -1289,6 +1351,10 @@ class DocumentsApiController extends ApiController
     {
         $id = (int)$args['id'];
         $data = json_decode($request->getBody()->getContents(), true);
+
+        if ($sealed = $this->guardNotSealed($id, $response)) {
+            return $sealed;
+        }
 
         $allowedFields = ['title', 'document_type_id', 'correspondent_id', 'document_date', 'amount', 'currency'];
         $updates = [];
