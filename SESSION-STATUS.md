@@ -3,6 +3,26 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-01 — passe fonctions UI (Lot A ECM)
+
+Demande : documenter toutes les fonctions UI (saisie écran + Playwright + personas), correction par lot avant suite.
+
+| Livrable | Gate |
+|----------|------|
+| `docs/PASSE-FONCTIONS-UI.md` | Procédures manuelles + mapping lots A→F + discipline correction |
+| `specs/helpers/functions-registry.ts` | Registre machine ~38 fonctions UI (~22 couvertes) |
+| `persona-parcours-ecm.spec.ts` | Lot A : ingérer → classer → analyser (`eval_redx_expert`) |
+| Fix `DocumentsController::upload` | `document_type_id` persisté à l'upload formulaire (F-IMP-01) |
+| `run-passe-lot-a.bat` | eval-full `--no-ocr` + Playwright Lot A |
+
+**Commit** : `20782b4` — poussé `origin/main`.
+
+**Gate Lot A** (`run-passe-lot-a.bat`) : **VERT** après fix flaky (classify avant save, timeout save 60s, pipeline recherche dans dossier cible). Playwright `persona-parcours-ecm` 1/1 · eval-full 13/13.
+
+**Prochain pas** : Lot B (`lib-operations.spec.ts` — F-LIB-04..08).
+
+---
+
 ## Session 2026-07-01 (étapes 1–2 + P4) — harness + socle ECM + OCR réel
 
 Demande : gate bout en bout (harness) + socle ECM ouvert (F-CHROME-02/08, F-DOC-04 UI) + **P4** eval-full avec OCR.

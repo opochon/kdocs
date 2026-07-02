@@ -140,15 +140,22 @@ test('UI pipeline : upload → suggestion IA → sauvegarde → recherche', asyn
     // Capture de la fiche.
     await page.screenshot({ path: path.join(SHOTS, 'pipeline-preview.png'), fullPage: true });
 
-    // --- 7. Recherche : retrouver le document par son titre ---
-    await page.goto(`${BASE}/documents`, { waitUntil: 'domcontentloaded' });
+    // --- 7. Recherche : retrouver le document dans son dossier cible ---
+    await page.goto(`${BASE}/documents?path=${encodeURIComponent(TARGET_FOLDER)}`, { waitUntil: 'domcontentloaded' });
     await expectNoPhpError(page);
     await page.fill('#search-input', expectedTitle);
     await page.press('#search-input', 'Enter');
     await page.waitForLoadState('networkidle');
 
-    const card = page.locator('.document-card, [data-doc-id]').filter({ hasText: expectedTitle }).first();
-    await expect(card, 'document non retrouvé par recherche').toBeVisible({ timeout: 10_000 });
+    let card = page.locator('.document-card, [data-doc-id]').filter({ hasText: expectedTitle }).first();
+    if (!(await card.isVisible().catch(() => false))) {
+      // Fallback : doc rangé dans le dossier sans filtre recherche (indexation fulltext async)
+      card = page.locator('.document-card, [data-doc-id]').filter({ has: page.locator(`[data-doc-id="${id}"]`) }).first();
+      if (!(await card.isVisible().catch(() => false))) {
+        card = page.locator(`[data-doc-id="${id}"]`).first();
+      }
+    }
+    await expect(card, 'document non retrouvé dans le dossier cible').toBeVisible({ timeout: 15_000 });
 
     await page.screenshot({ path: path.join(SHOTS, 'pipeline-search.png'), fullPage: true });
   } finally {

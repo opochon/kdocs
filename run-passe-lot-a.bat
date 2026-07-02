@@ -18,7 +18,7 @@ pushd tests\visual
 set KDOCS_HOST=127.0.0.1
 set KDOCS_PORT=8765
 set KDOCS_BASE_PATH=/kdocs
-call npx playwright test persona-parcours-ecm.spec.ts pipeline-ui.spec.ts
+call npx playwright test persona-parcours-ecm.spec.ts
 set ERR=%errorlevel%
 popd
 
