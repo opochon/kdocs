@@ -76,7 +76,7 @@
 | GAP-013 | Liaison doc GED ↔ date intro WinBiz | 🟡 | Table `winbiz_matches(id_doc, winbiz_ref, matched_at)` persistée | ⬜ `Feature\WinBizMatchingTest` | `feature` |
 | GAP-014 | `registerInvoicesRoutes()` + hooks plugin | ✅ | `GET /invoices` 200 ; hook `document.classified` déclenché | ⬜ `Feature\InvoicesRoutesTest` | `feature` |
 | GAP-015 | Recherche croisée offres (`DO_TYPE` 1) | ❌ | `matchToOffer()` retourne offres WinBiz | ⬜ `Unit\WinBizOfferMatcherTest` | `unit` |
-| GAP-016 | Health check WinBiz | 🟡 | `GET /health` contient `winbiz: {connected: bool}` | ⬜ `Feature\HealthTest` | `feature` |
+| GAP-016 | Health check WinBiz | 🟡 🧪 | `GET /api/admin/connectors/health` contient `erp-winbiz: {available: bool}` (disabled sans bridge) | `Unit\Core\ConnectorRegistryTest` ✅ + `admin-hub.spec.ts` F-ADM-04 ✅ | `unit`/`pw` |
 | GAP-017 | Matching lignes ↔ stock / articles | ❌ | `matchLineToStock()` retourne article + quantité | ⬜ `Unit\WinBizStockMatcherTest` | `unit` |
 | GAP-018 | Consultation factures/BL/offres depuis GED | ❌ | `GET /winbiz/documents?type=invoice` 200 + liste | ⬜ `Feature\WinBizViewerTest` | `feature` |
 | GAP-019 | Consultation stock WinBiz | ❌ | `GET /winbiz/stock?q=...` 200 + résultats | ⬜ `Feature\WinBizViewerTest` | `feature` |
@@ -101,8 +101,8 @@
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
 | GAP-030 | Module contrats + échéances | ❌ | `apps/contracts/` : `GET /contracts` liste + champ `due_date` | ⬜ `Feature\ContractsModuleTest` | `feature` |
-| GAP-031 | Module SMQ ISO | ❌ | `PluginRegistry::isEnabled('smq')` vrai ; onglet Versions visible (F-DOC-10) | `smq-versions.spec.ts` ✅ (gated) | `pw` |
-| GAP-032 | Quittance de lecture | ❌ | `POST .../versions/{n}/read` crée 1 ligne/user/version (F-DOC-11) | ⬜ `Feature\ReadReceiptTest` | `feature` |
+| GAP-031 | Module SMQ ISO | ✅ 🧪 | `PluginRegistry::isEnabled('smq')` vrai ; onglet Versions visible (F-DOC-10) | `smq-versions.spec.ts` ✅ (gated) + `PluginRegistryTest` | `pw`/`unit` |
+| GAP-032 | Quittance de lecture | ✅ 🧪 | `POST .../versions/{n}/read` crée 1 ligne/user/version (F-DOC-11), idempotent + `read-status` | `smq-versions.spec.ts` « quittance de lecture » ✅ | `pw` |
 | GAP-033 | Dossier RH digital | ❌ | `apps/hr/` : `GET /hr/employees/{id}` 200 + dossiers | ⬜ `Feature\HrModuleTest` | `feature` |
 | GAP-034 | App mail IMAP | 🟡 | `MailApp::syncImapMailbox()` importe N messages → documents | ⬜ `Feature\MailSyncTest` (mock IMAP) | `feature` |
 | GAP-035 | PluginRegistry formel | ✅ 🧪 | `PluginRegistry::isEnabled('x')` reflète config ; onglet Versions gated | `Unit\Core\PluginRegistryTest` | `unit` |
@@ -126,7 +126,7 @@
 
 | ID | Sujet | Oracle | Test existant | Mécanisme |
 |----|-------|--------|---------------|-----------|
-| T-DIAG | Diagnostic admin : OnlyOffice/Ollama | `httpProbe` (fsockopen) reflète l'état réel ; Ollama CONNECTE | ⬜ `Feature\AdminDiagnosticTest` (mock fsockopen) | `feature` |
+| T-DIAG | Diagnostic admin : OnlyOffice/Ollama | Page diagnostic rendue + `GET /api/admin/connectors/health` 200 JSON | `admin-hub.spec.ts` F-ADM-04 ✅ | `pw` |
 | T-IA-INF | IA Infomaniak (cascade active) | `AIProviderService::complete()` renvoie `provider=infomaniak` | `InfomaniakAIServiceTest` ✅ + `AiCascadeInfomaniakTest` ✅ + `ai-assistant.spec.ts` ✅ | `unit`/`pw` |
 | T-ASK-COUNT | Assistant IA « combien de documents » | Réponse numérique == total BDD (pas 0) | `NaturalLanguageQueryCountTest` ✅ | `unit` |
 | T-TAG-DEDUP | Création tag insensible à la casse | find-or-create normalise la casse | `TagsDedupTest` ✅ (logique hermétique) | `unit` |

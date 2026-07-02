@@ -31,3 +31,35 @@ test('SMQ: onglet Versions dans la modale fiche', async ({ page }) => {
   const html = await page.content();
   expect(html).not.toContain('Fatal error');
 });
+
+// Couvre C.3 / GAP-032 : quittance de lecture — 1 ligne par user/version (idempotent).
+test('SMQ: quittance de lecture — record idempotent + read-status', async ({ page }) => {
+  const resp = await page.request.get(`${BASE_PATH}/api/documents?per_page=1`, {
+    headers: { Accept: 'application/json' },
+  });
+  expect(resp.ok()).toBeTruthy();
+  const json = await resp.json();
+  const docs = Array.isArray(json.data) ? json.data : [];
+  test.skip(docs.length === 0, 'Aucun document en base pour tester la quittance');
+
+  const id = docs[0].id;
+  const version = 1; // v1 implicite (quittance affichée même sans rangée de version)
+
+  // Enregistrer la quittance deux fois : idempotent, pas de doublon.
+  const first = await page.request.post(`${BASE_PATH}/api/documents/${id}/versions/${version}/read`);
+  expect([200, 201]).toContain(first.status());
+  const second = await page.request.post(`${BASE_PATH}/api/documents/${id}/versions/${version}/read`);
+  expect([200, 201]).toContain(second.status());
+
+  // read-status : lu par l'utilisateur courant, et une seule ligne pour lui.
+  const statusResp = await page.request.get(`${BASE_PATH}/api/documents/${id}/versions/${version}/read-status`);
+  expect(statusResp.status()).toBe(200);
+  const payload = await statusResp.json();
+  const status = payload.data ?? payload;
+  expect(status.has_read, 'has_read après record').toBe(true);
+  expect(status.read_at, 'read_at renseigné').toBeTruthy();
+  const readers: Array<{ user_id?: number; username?: string }> = status.readers ?? [];
+  expect(status.readers_count, 'readers_count cohérent').toBe(readers.length);
+  const currentUserRows = readers.filter((r) => r.username === 'root' || r.user_id === 1);
+  expect(currentUserRows.length, '1 ligne quittance par user/version').toBeLessThanOrEqual(1);
+});
