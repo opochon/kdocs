@@ -55,12 +55,12 @@ export const UI_FUNCTIONS: UiFunctionDef[] = [
   { id: 'F-LIB-08', label: 'Tri / vue', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-08', personas: ['*'], covered: true },
 
   // --- Lot C : fiche document ---
-  { id: 'F-DOC-03', label: 'Retraiter OCR', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-DOC-05', label: 'Soumettre validation', lot: 'C-fiche', spec: null, testName: null, personas: ['eval_*'], covered: false },
-  { id: 'F-DOC-06', label: 'Télécharger', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-DOC-07', label: 'Supprimer doc', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-DOC-08', label: 'Onglets fiche', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-DOC-09', label: 'Notes', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },
+  { id: 'F-DOC-03', label: 'Retraiter OCR', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-03', personas: ['*'], covered: true },
+  { id: 'F-DOC-05', label: 'Soumettre validation', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-05', personas: ['eval_*'], covered: true },
+  { id: 'F-DOC-06', label: 'Télécharger', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-06', personas: ['*'], covered: true },
+  { id: 'F-DOC-07', label: 'Supprimer doc', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-07', personas: ['*'], covered: true },
+  { id: 'F-DOC-08', label: 'Onglets fiche', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-08', personas: ['*'], covered: true },
+  { id: 'F-DOC-09', label: 'Notes', lot: 'C-fiche', spec: 'fiche-document.spec.ts', testName: 'F-DOC-09', personas: ['*'], covered: true },
   { id: 'F-DOC-10', label: 'Versions SMQ', lot: 'C-fiche', spec: 'smq-versions.spec.ts', testName: null, personas: ['*'], covered: true },
 
   // --- Lot D ---

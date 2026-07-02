@@ -4,7 +4,7 @@
 > de saisie écran**, le **mapping Playwright** et la **discipline de correction par lot**.
 >
 > Registre machine : `tests/visual/specs/helpers/functions-registry.ts`
-> Couverture : ~22/38 fonctions UI instrumentées (2026-07-01).
+> Couverture : **29/35** dans le registry (2026-07-01) ; ~38 entrées dans FUNCTIONS-SPEC.
 
 ## Discipline d'exécution
 
@@ -21,6 +21,7 @@
 cd F:\DATA\DEVELOPPEMENT\GEDv1
 run-passe-lot-a.bat
 run-passe-lot-b.bat
+run-passe-lot-c.bat
 ```
 
 | Lot | Fichier spec | Fonctions ciblées |
@@ -28,7 +29,7 @@ run-passe-lot-b.bat
 | **A — ECM** | `persona-parcours-ecm.spec.ts` + `pipeline-ui.spec.ts` | F-IMP-01, F-LIB-02/03, F-DOC-01/02, F-SEARCH-01 |
 | **G — Personas** | `persona*.spec.ts`, `workflow-doc-identification.spec.ts` | F-AUTH, F-VAL, F-DOC-04, F-REDX-TYPES |
 | **B — Bibliothèque** | `lib-operations.spec.ts` | F-LIB-04..08 |
-| **C — Fiche doc** | *(à créer `fiche-document.spec.ts`)* | F-DOC-03..09 |
+| **C — Fiche doc** | `fiche-document.spec.ts` | F-DOC-03..09 |
 | **D — Recherche / tâches** | *(à créer)* | F-SEARCH-02/03, F-TASK-*, F-IMP-02 |
 | **E — Admin** | *(à créer `admin-hub.spec.ts`)* | F-ADM-* |
 | **F — Chrome / a11y** | `chrome-coherence.spec.ts`, `a11y.spec.ts` | F-CHROME-*, F-A11Y-* |
@@ -124,8 +125,9 @@ Les fonctions `[aucune]` (upload, classify, recherche) sont identiques pour tous
 
 ## Prochaine itération
 
-1. Valider **Lot A** (`run-passe-lot-a.bat`) — correction si rouge.
-2. Écrire **`lib-operations.spec.ts`** (Lot B) — 5 tests.
-3. Écrire **`fiche-document.spec.ts`** (Lot C) — OCR, notes, onglets, download.
-4. Étendre **`functions-registry.ts`** (`covered: true`) au fil des lots.
-5. Intégrer les lots stabilisés dans `run-harness.bat`.
+1. ~~Valider **Lot A** (`run-passe-lot-a.bat`)~~ — **VERT**
+2. ~~Écrire **`lib-operations.spec.ts`** (Lot B)~~ — **5/5 VERT**
+3. ~~Écrire **`fiche-document.spec.ts`** (Lot C)~~ — **6/6 VERT** (`run-passe-lot-c.bat`)
+4. **Lot D** — `search-tasks.spec.ts` (F-SEARCH-02/03, F-TASK-01/02, F-IMP-02)
+5. **Lot E** — oracles admin (F-ADM-01 hub, F-ADM-02/03/05)
+6. Étendre **`functions-registry.ts`** au fil des lots (F-AUTH-02, F-VAL-02/03, F-CHROME-03..07, F-A11Y-02..05)
