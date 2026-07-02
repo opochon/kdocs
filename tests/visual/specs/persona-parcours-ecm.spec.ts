@@ -12,17 +12,14 @@ fs.mkdirSync(SHOTS, { recursive: true });
 const SAMPLE_PDF = path.resolve(__dirname, '..', '..', 'samples', 'test.pdf');
 
 /**
- * Lot A — Parcours ECM complet (persona expert REDX).
- * Oracle séquentiel : ingérer → ouvrir fiche → classer (type) → analyser (IA) → retrouver.
- *
- * Discipline : lot rouge → corriger → re-lancer ce fichier avant lot B.
- * Prérequis : php tools/eval-full.php --no-ocr (fixtures personas + types ECM).
+ * Lot A — Parcours ECM (oracles stricts).
+ * Prérequis : personas/types via eval-full (--no-ocr) avant run-passe-lot-a.bat.
  */
 test.describe('persona-parcours-ecm (Lot A)', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test('Lot A — ingérer → classer → analyser (eval_redx_expert)', async ({ page }) => {
-    test.setTimeout(240_000);
+    test.setTimeout(300_000);
 
     const api = page.context().request;
     const stamp = Date.now();
@@ -30,24 +27,23 @@ test.describe('persona-parcours-ecm (Lot A)', () => {
     let docId: number | null = null;
 
     const aiReady = await infomaniakReady(api);
+    test.skip(!aiReady, 'Infomaniak indisponible — F-DOC-02 non testable (oracle strict)');
 
     try {
-      // --- F-AUTH-01 + persona ---
       await loginAs(page, REDX_EXPERT.username);
 
-      // --- F-IMP-01 : upload via page formulaire (saisie écran réelle) ---
+      // F-IMP-01 : upload formulaire
       await page.goto(`${BASE}/documents/upload`, { waitUntil: 'domcontentloaded' });
       await expectNoPhpError(page);
-      await expect(page.locator('#file')).toBeVisible();
-
       await page.setInputFiles('#file', SAMPLE_PDF);
       await page.fill('#title', title);
 
       const typesResp = await api.get(`${BASE}/api/document-types`);
-      const typesJson = await typesResp.json();
-      const facture = (typesJson.data as any[] ?? []).find((t) => (t.label ?? '').toLowerCase() === 'facture');
+      const facture = ((await typesResp.json()).data as any[] ?? []).find(
+        (t) => (t.label ?? '').toLowerCase() === 'facture',
+      );
       expect(facture?.id, 'type Facture absent — eval-full ensureDocumentTypes').toBeTruthy();
-      await page.selectOption('#document_type_id', String(facture.id));
+      await page.selectOption('#document_type_id', String(facture!.id));
 
       await Promise.all([
         page.waitForURL(/\/documents(\?|$)/, { timeout: 60_000 }),
@@ -55,84 +51,64 @@ test.describe('persona-parcours-ecm (Lot A)', () => {
       ]);
       await expectNoPhpError(page);
 
-      // Retrouver le doc créé (recherche = F-SEARCH-01)
       await page.fill('#search-input', title);
       await page.press('#search-input', 'Enter');
       await page.waitForLoadState('networkidle');
       const card = page.locator('.document-card, [data-doc-id]').filter({ hasText: title }).first();
       await expect(card, 'document non visible après upload formulaire').toBeVisible({ timeout: 15_000 });
 
-      const docIdAttr = await card.getAttribute('data-doc-id');
-      docId = docIdAttr ? Number(docIdAttr) : null;
+      docId = Number(await card.getAttribute('data-doc-id'));
       if (!docId) {
-        const docsResp = await api.get(`${BASE}/api/folders/documents?path=`);
-        const docsJson = await docsResp.json();
-        const found = (docsJson.documents as any[] ?? []).find((d) => (d.title ?? '').includes(title));
-        docId = found?.id ?? null;
+        const docsJson = await (await api.get(`${BASE}/api/folders/documents?path=`)).json();
+        docId = (docsJson.documents as any[] ?? []).find((d) => (d.title ?? '').includes(title))?.id ?? null;
       }
       expect(docId, 'id document introuvable après upload').toBeTruthy();
       const id = docId as number;
 
-      // --- F-LIB-02 : ouvrir fiche ---
+      // F-LIB-02 : fiche
       await page.goto(`${BASE}/documents?open=${id}`, { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('#preview-type-select')).toBeVisible({ timeout: 15_000 });
+      const typeSelect = page.locator('#preview-type-select');
+      await expect(typeSelect).toBeVisible({ timeout: 15_000 });
       await expectNoPhpError(page);
 
-      // --- F-DOC-01 : classer (type Contrat) + save ---
       const typesResp2 = await api.get(`${BASE}/api/document-types`);
-      const contrat = ((await typesResp2.json()).data as any[] ?? []).find((t) => (t.label ?? '').toLowerCase() === 'contrat');
+      const contrat = ((await typesResp2.json()).data as any[] ?? []).find(
+        (t) => (t.label ?? '').toLowerCase() === 'contrat',
+      );
       expect(contrat?.id).toBeTruthy();
 
-      const typeSelect = page.locator('#preview-type-select');
-      await expect(typeSelect).toBeVisible();
-
-      // --- F-DOC-02 : analyser (classify-ai) avant save — ordre utilisateur réel ---
+      // F-DOC-02 : classify-ai (obligatoire si aiReady)
       const aiBtn = page.locator('#ai-suggest-btn');
       await expect(aiBtn).toBeVisible();
-      if (aiReady) {
-        const classifyPromise = page.waitForResponse(
-          (r) => r.url().includes(`/api/documents/${id}/classify-ai`) && r.request().method() === 'POST',
-          { timeout: 120_000 },
-        ).catch(() => null);
-        await aiBtn.click();
-        const classifyResp = await classifyPromise;
-        if (classifyResp) {
-          console.log(`[parcours] classify-ai HTTP ${classifyResp.status()}`);
-        } else {
-          console.log('[parcours] classify-ai timeout — étape skipée (IA lente post eval-full)');
-        }
-        await expect(aiBtn).not.toHaveText(/Analyse/i, { timeout: 130_000 }).catch(() => {});
-      }
+      const classifyPromise = page.waitForResponse(
+        (r) => r.url().includes(`/api/documents/${id}/classify-ai`) && r.request().method() === 'POST',
+        { timeout: 180_000 },
+      );
+      await aiBtn.click();
+      const classifyResp = await classifyPromise;
+      expect(classifyResp, 'classify-ai obligatoire (oracle F-DOC-02)').toBeTruthy();
+      expect(classifyResp!.status(), 'classify-ai route morte').toBeLessThan(500);
+      console.log(`[parcours] classify-ai HTTP ${classifyResp!.status()}`);
 
-      // --- F-DOC-01 : classer (type Contrat) + save ---
-      await typeSelect.selectOption(String(contrat.id));
-      await expect(typeSelect).toHaveValue(String(contrat.id));
+      // F-DOC-01 : classer + save UI uniquement
+      await typeSelect.selectOption(String(contrat!.id));
+      await page.locator('#preview-title-input').fill(`${title} — classé`);
 
       const saveBtn = page.locator('[title="Enregistrer les modifications"]').first();
-      await expect(saveBtn).toBeVisible();
       const savePromise = page.waitForResponse(
         (r) =>
           r.url().includes(`/api/documents/${id}`) &&
           r.request().method() === 'PUT' &&
           !r.url().includes('/type'),
         { timeout: 60_000 },
-      ).catch(() => null);
+      );
       await saveBtn.click();
-      let saveResp = await savePromise;
-      if (!saveResp?.ok()) {
-        const putResp = await api.put(`${BASE}/api/documents/${id}`, {
-          headers: { 'Content-Type': 'application/json' },
-          data: { document_type_id: contrat.id },
-        });
-        expect(putResp.ok(), `save fallback HTTP ${putResp.status()}`).toBeTruthy();
-      } else {
-        expect(saveResp.ok()).toBeTruthy();
-      }
+      const saveResp = await savePromise;
+      expect(saveResp?.ok(), `save UI PUT obligatoire (F-DOC-01), HTTP ${saveResp?.status()}`).toBeTruthy();
 
-      const showResp = await api.get(`${BASE}/api/documents/${id}`);
-      const showJson = await showResp.json();
+      const showJson = await (await api.get(`${BASE}/api/documents/${id}`)).json();
       const savedTypeId = showJson.data?.document_type_id ?? showJson.document_type_id;
-      expect(String(savedTypeId)).toBe(String(contrat.id));
+      expect(String(savedTypeId)).toBe(String(contrat!.id));
 
       await page.screenshot({ path: path.join(SHOTS, 'parcours-ecm-lot-a.png'), fullPage: true });
     } finally {

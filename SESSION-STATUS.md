@@ -3,23 +3,23 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
-## Session 2026-07-01 — passe fonctions UI (Lot A ECM)
+## Session 2026-07-01 — passe fonctions UI (Lots A + B)
 
-Demande : documenter toutes les fonctions UI (saisie écran + Playwright + personas), correction par lot avant suite.
+Demande : documenter fonctions UI + Playwright strict + personas ; Lot A puis Lot B.
 
-| Livrable | Gate |
-|----------|------|
-| `docs/PASSE-FONCTIONS-UI.md` | Procédures manuelles + mapping lots A→F + discipline correction |
-| `specs/helpers/functions-registry.ts` | Registre machine ~38 fonctions UI (~22 couvertes) |
-| `persona-parcours-ecm.spec.ts` | Lot A : ingérer → classer → analyser (`eval_redx_expert`) |
-| Fix `DocumentsController::upload` | `document_type_id` persisté à l'upload formulaire (F-IMP-01) |
-| `run-passe-lot-a.bat` | eval-full `--no-ocr` + Playwright Lot A |
+| Lot | Contenu | Gate |
+|-----|---------|------|
+| **A — ECM strict** | `persona-parcours-ecm.spec.ts` : upload formulaire → classify-ai **obligatoire** → save **UI PUT only** (sans fallback API) | **6/6 vert** (dont Lot B en run isolé) |
+| **B — Bibliothèque** | `lib-operations.spec.ts` : F-LIB-04..08 (indexer, renommer, déplacer, supprimer, tri/vue) | **5/5 vert** |
+| **Fix route** | `POST /api/folders/create` branché (`FolderActionsApiController`) — setup tests Lot B | — |
 
-**Commit** : `20782b4` — poussé `origin/main`.
+**Oracles stricts Lot A** : skip si Infomaniak down ; classify-ai HTTP &lt; 500 obligatoire ; save via bouton UI uniquement.
 
-**Gate Lot A** (`run-passe-lot-a.bat`) : **VERT** après fix flaky (classify avant save, timeout save 60s, pipeline recherche dans dossier cible). Playwright `persona-parcours-ecm` 1/1 · eval-full 13/13.
+**Gates** : `run-passe-lot-a.bat` · `run-passe-lot-b.bat` · `SKIP_EVAL_FULL=1` pour Playwright seul.
 
-**Prochain pas** : Lot B (`lib-operations.spec.ts` — F-LIB-04..08).
+**Couverture registry** : ~27/38 fonctions UI (`functions-registry.ts`).
+
+**Prochain pas** : Lot C (`fiche-document.spec.ts` — F-DOC-03..09).
 
 ---
 

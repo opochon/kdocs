@@ -48,11 +48,11 @@ export const UI_FUNCTIONS: UiFunctionDef[] = [
 
   // --- Lot B : bibliothèque (à instrumenter) ---
   { id: 'F-LIB-01', label: 'Parcourir arborescence', lot: 'B-lib', spec: 'shell.spec.ts', testName: 'shell: documents', personas: ['*'], covered: true },
-  { id: 'F-LIB-04', label: 'Indexer dossier', lot: 'B-lib', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-LIB-05', label: 'Renommer dossier', lot: 'B-lib', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-LIB-06', label: 'Déplacer dossier', lot: 'B-lib', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-LIB-07', label: 'Supprimer dossier', lot: 'B-lib', spec: null, testName: null, personas: ['*'], covered: false },
-  { id: 'F-LIB-08', label: 'Tri / vue', lot: 'B-lib', spec: 'shell.spec.ts', testName: null, personas: ['*'], covered: false },
+  { id: 'F-LIB-04', label: 'Indexer dossier', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-04', personas: ['*'], covered: true },
+  { id: 'F-LIB-05', label: 'Renommer dossier', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-05', personas: ['*'], covered: true },
+  { id: 'F-LIB-06', label: 'Déplacer dossier', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-06', personas: ['*'], covered: true },
+  { id: 'F-LIB-07', label: 'Supprimer dossier', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-07', personas: ['*'], covered: true },
+  { id: 'F-LIB-08', label: 'Tri / vue', lot: 'B-lib', spec: 'lib-operations.spec.ts', testName: 'F-LIB-08', personas: ['*'], covered: true },
 
   // --- Lot C : fiche document ---
   { id: 'F-DOC-03', label: 'Retraiter OCR', lot: 'C-fiche', spec: null, testName: null, personas: ['*'], covered: false },

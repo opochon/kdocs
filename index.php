@@ -108,6 +108,7 @@ use KDocs\Controllers\Api\SuggestedTagsApiController;
 use KDocs\Controllers\Api\CorrespondentsApiController;
 use KDocs\Controllers\Api\SearchApiController;
 use KDocs\Controllers\Api\FoldersApiController;
+use KDocs\Controllers\Api\FolderActionsApiController;
 use KDocs\Controllers\Api\WorkflowApiController;
 use KDocs\Controllers\Api\ValidationApiController;
 use KDocs\Controllers\Api\NotificationsApiController;
@@ -505,6 +506,7 @@ $app->group('', function ($group) {
     $group->post('/api/folders/rename', [FoldersApiController::class, 'renameFolder']);
     $group->post('/api/folders/move', [FoldersApiController::class, 'moveFolder']);
     $group->post('/api/folders/delete', [FoldersApiController::class, 'deleteFolder']);
+    $group->post('/api/folders/create', [FolderActionsApiController::class, 'create']);
 
     $group->get('/api/onlyoffice/status', [OnlyOfficeApiController::class, 'status']);
     $group->get('/api/onlyoffice/config/{documentId}', [OnlyOfficeApiController::class, 'getConfig']);

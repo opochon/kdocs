@@ -20,13 +20,14 @@
 ```cmd
 cd F:\DATA\DEVELOPPEMENT\GEDv1
 run-passe-lot-a.bat
+run-passe-lot-b.bat
 ```
 
 | Lot | Fichier spec | Fonctions ciblées |
 |-----|--------------|-------------------|
 | **A — ECM** | `persona-parcours-ecm.spec.ts` + `pipeline-ui.spec.ts` | F-IMP-01, F-LIB-02/03, F-DOC-01/02, F-SEARCH-01 |
 | **G — Personas** | `persona*.spec.ts`, `workflow-doc-identification.spec.ts` | F-AUTH, F-VAL, F-DOC-04, F-REDX-TYPES |
-| **B — Bibliothèque** | *(à créer `lib-operations.spec.ts`)* | F-LIB-04..08 |
+| **B — Bibliothèque** | `lib-operations.spec.ts` | F-LIB-04..08 |
 | **C — Fiche doc** | *(à créer `fiche-document.spec.ts`)* | F-DOC-03..09 |
 | **D — Recherche / tâches** | *(à créer)* | F-SEARCH-02/03, F-TASK-*, F-IMP-02 |
 | **E — Admin** | *(à créer `admin-hub.spec.ts`)* | F-ADM-* |
