@@ -80,6 +80,14 @@
 
 ## P1 — Intégration ERP WinBiz 🔌 Plugin (reporté)
 
+> **Décision 2026-07-03** (addendum `docs/WINBIZ-PLUGIN-REPOSITIONNE.md`) : le flux passe
+> par **CMD v4** (extraction champs facture) + **K-Time** (liaison ERP, ventilation
+> stock/vente comptant/facture/fiche de travail, introduction flaguée « saisie depuis
+> ged » + validation user + sync WinBiz, retour « bon pour accord »). La GED n'écrit
+> jamais dans WinBiz. Conséquence registre : GAP-018/019 (`winbiz-viewer`, consultation
+> des pièces WinBiz depuis la GED) deviennent **non-objectif** ; GAP-011/013/015/017 se
+> réalisent via les APIs K-Time plutôt qu'en matching bridge direct.
+
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
 | GAP-010 | `ConnectorInterface` + client HTTP bridge | 🟡 | `WinBizConnector::isConnected()` bool ; interface implémentée | `Unit\Connectors\WinBizConnectorTest` ✅ | `unit` |

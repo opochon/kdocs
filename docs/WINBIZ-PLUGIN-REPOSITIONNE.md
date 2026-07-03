@@ -1,9 +1,59 @@
 # Plugin WinBiz — repositionnement (contrôle ERP optionnel)
 
-> **Statut** : spec produit approuvée en revue — 2026-06-29  
+> **Statut** : spec produit approuvée en revue — 2026-06-29 · **complétée par l'addendum
+> 2026-07-03 ci-dessous (décision : K-Time = canal d'introduction/validation)**  
 > **Dépôt** : `F:\DATA\DEVELOPPEMENT\GEDv1`  
 > **Remplace pour le positionnement** : sections « Mission 1 matching P1 » et flux OCR/split de `docs/WINBIZ-MODULE.md` (2026-06-17).  
 > **Conserve** : architecture bridge, mapping tables WinBiz, références `WinbizIntegrator/k-winbiz-bridge/`.
+
+---
+
+## Addendum 2026-07-03 — décision produit : flux via K-Time (« liaison ERP »)
+
+> Décision Olivier 2026-07-03. Principe : **on ne réinvente rien** — CMD v4 sait scanner,
+> séparer et extraire les champs facture ; **K-Time** (`F:\DATA\DEVELOPPEMENT\K-TIME`,
+> `k-time-web` PHP/MariaDB, bien avancé : factures, paiements créanciers, stock, vente au
+> comptant FT→facture, affaires `PJT_PROJ`, sync bridge, anti-doublon) possède déjà la
+> mécanique métier et le reverse WinBiz via WinbizIntegrator.
+
+### Flux décidé
+
+```
+1. Ingestion GED → CMD v4 : identification facture + extraction champs
+   (fournisseur, n°, dates, lignes, produits, montants, qtés)
+2. Plugin « liaison ERP » (agnostique — WinBiz aujourd'hui, autre demain ;
+   K-Time n'est pas sectaire) :
+   a. identifier l'expéditeur (fournisseur) via les APIs K-Time
+   b. identifier la VENTILATION habituelle des articles de ce fournisseur :
+      stock · vente au comptant · facture · fiche de travail · pas encore introduit
+   c. récupérer si la facture EXISTE DÉJÀ (dédup — K-Time/bridge font foi)
+3. Présentation claire de ce qui est identifié + préparation de l'introduction
+4. INTRODUCTION : document GED → K-Time (flag « saisie depuis ged »)
+   → validation utilisateur dans K-Time : OK → sync WinBiz
+5. VALIDATION « bon pour accord » : même chemin → K-Time → document validé
+   en GED → la facture est flaguée « bon pour accord »
+```
+
+### Conséquences sur la spec 2026-06-29
+
+| Point | Avant (spec 2026-06-29) | Décidé 2026-07-03 |
+|-------|--------------------------|-------------------|
+| Backend couche 2 | GED → `k-winbiz-bridge` direct | **GED → API K-Time** (k-time-web) ; K-Time parle au bridge. La GED n'écrit JAMAIS dans WinBiz. |
+| Question ouverte #2 (création facture) | A/B/C | **Toujours via K-Time + validation utilisateur** — jamais d'écriture auto depuis la GED |
+| Question ouverte #4 (`client_rebill` → `invoice_prep`) | A/B/C | **Généralisé** : toute introduction passe par K-Time |
+| Question ouverte #5 (bac à sable écriture) | Recommandé | **La validation K-Time EST la barrière** (flag « saisie depuis ged » + OK humain avant sync) |
+| Types d'allocation | client_rebill / stock / supplier_match / unassigned / internal | **stock · vente_comptant · facture · fiche_travail · non_introduit** (aligné sur la ventilation K-Time ; mapper l'enum `invoice_line_allocations`) |
+| `winbiz-viewer` (P2, GAP-018/019) | P2 inchangé | **Non-objectif** — rapatrier les pièces WinBiz dans la GED n'apporte rien au flux facture (« pipo ») ; abandonné sauf besoin futur |
+| Traçabilité | — | Flags croisés : `saisie depuis ged` (côté K-Time) · `bon pour accord` (retour GED + facture) |
+
+### À clarifier avant le lot d'implémentation
+
+1. **Surface API k-time-web** : endpoints JSON existants (ou à exposer) pour
+   « créer facture fournisseur en brouillon flaguée ged », « ventilation par
+   fournisseur », « facture existe ? » — inventaire côté K-Time.
+2. **Flag « bon pour accord »** : statut K-Time synchronisé ou champ WinBiz réel — à
+   trancher avec le schéma reverse.
+3. **Auth GED ↔ K-Time** : token service ou utilisateur propagé.
 
 ---
 
