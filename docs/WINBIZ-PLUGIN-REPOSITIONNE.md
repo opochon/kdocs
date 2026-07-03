@@ -46,14 +46,30 @@
 | `winbiz-viewer` (P2, GAP-018/019) | P2 inchangé | **Non-objectif** — rapatrier les pièces WinBiz dans la GED n'apporte rien au flux facture (« pipo ») ; abandonné sauf besoin futur |
 | Traçabilité | — | Flags croisés : `saisie depuis ged` (côté K-Time) · `bon pour accord` (retour GED + facture) |
 
-### À clarifier avant le lot d'implémentation
+### Clarifications tranchées le 2026-07-03 (après inventaire croisé)
 
-1. **Surface API k-time-web** : endpoints JSON existants (ou à exposer) pour
-   « créer facture fournisseur en brouillon flaguée ged », « ventilation par
-   fournisseur », « facture existe ? » — inventaire côté K-Time.
-2. **Flag « bon pour accord »** : statut K-Time synchronisé ou champ WinBiz réel — à
-   trancher avec le schéma reverse.
-3. **Auth GED ↔ K-Time** : token service ou utilisateur propagé.
+> **Spec d'échange canonique : `K-TIME/docs/SPEC-GED-INTEGRATION.md`**
+> (contrat producteur/consommateur, endpoints, migration 082 K-Time, lots GED-1→4).
+
+1. **Surface API k-time-web** : rien n'existait pour un service externe sur les
+   factures reçues → à créer côté K-Time (lots GED-1→4 de la spec) :
+   `POST /api/ged/received-invoices` (brouillon `source='ged'` + `external_ref` =
+   id document GED, idempotent), `GET …/exists` (dédup), `GET …/{id}` (statut
+   validation), `GET /api/ged/suppliers/lookup` + `…/{id}/ventilation`.
+2. **Pas de flag WinBiz** (décision Olivier) : WinBiz travaille avec des
+   **catégories définies par l'utilisateur** → liaison via `DOC_CAT`
+   (`DO_CATEGO` → `CA_NUMERO`, `CA_CODE` C60 p.ex. `GED-…`) + discriminants
+   natifs `DO_TYPE`/`DO_COMPTE`. Le flag vit dans **K-Time**
+   (`source='ged'`, `validation_status`, `validated_by/at`) et le **même dans
+   la GED** (lien d'évidence : `external_ref` ↔ document, « bon pour accord »
+   + qui + quand, récupéré en **pull** — pas de webhook tant que les produits
+   vivent séparément).
+3. **Auth** : **token de service** dédié (`ged_api_key`, header `X-Api-Key`) —
+   pas d'uniformisation des identités pour l'instant ; produits séparés puis
+   écosystème.
+4. **CMD v4** : la GED n'est jamais morte sans CMD v4 (fallback natif existant),
+   mais n'implémente **pas** ses fonctions avancées en doublon — l'extraction
+   facture vit dans CMD v4, K-Time reçoit du structuré.
 
 ---
 
