@@ -417,6 +417,7 @@ $app->group('', function ($group) {
     $group->put('/api/documents/{id}', [DocumentsApiController::class, 'update']);
     $group->delete('/api/documents/{id}', [DocumentsApiController::class, 'delete']);
     $group->post('/api/documents/{id}/legal-seal', [DocumentsApiController::class, 'legalSeal']);
+    $group->post('/api/documents/{id}/sign', [DocumentsApiController::class, 'sign']); // GAP-043 — e-signature
     
     $group->get('/api/documents/{id}/notes', [DocumentsController::class, 'listNotes']);
     $group->post('/api/documents/{id}/notes', [DocumentsController::class, 'addNote']);
@@ -609,6 +610,7 @@ $app->group('', function ($group) {
     $group->post('/admin/webhooks/{id}/test', [WebhooksController::class, 'test']);
     
     $group->get('/admin/audit-logs', [AuditLogsController::class, 'index']);
+    $group->get('/admin/audit/export', [AuditLogsController::class, 'export']); // GAP-022 — export piste de révision
     
     $group->get('/admin/export-import', [ExportController::class, 'index']);
     $group->get('/admin/export-import/export-documents', [ExportController::class, 'exportDocuments']);

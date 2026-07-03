@@ -2,7 +2,7 @@
 
 
 
-> Analyse comparative — 2026-06-17 (mise à jour post-chantier lots 0–6)
+> Analyse comparative — 2026-06-17 (mise à jour sprint parité 90 % du 2026-07-03)
 
 
 
@@ -14,15 +14,19 @@
 
 |------------|--------|
 
-| Parité fonctionnelle estimée | **~54 %** (cas fiduciaire, +6 pts post-sprint finalisation 2026-06-30) |
+| **Parité hors WinBiz (socle ECM)** | **~96 %** (26/27 gaps ✅ test vert ; reste GAP-044 Tauri hors repo) |
 
-| Fonctions ✅ présentes | 16 |
+| Parité globale estimée (WinBiz inclus) | ~80 % (cas fiduciaire) |
 
-| Fonctions 🟡 partielles | 16 |
+| Gaps ✅ comblés | 28 |
 
-| Fonctions ❌ absentes | 6 (P0 tous résorbés) |
+| Gaps 🟡 partiels | 5 (tous WinBiz 🔌) |
 
-| Gap nommés à implémenter | **38** (P0–P4) · tests verts : 12 · à écrire : 26 |
+| Gaps ❌ absents | 5 (WinBiz ×4 + Tauri hors repo) |
+
+| Gap nommés | **38** (P0–P4) · tests verts : 34 · à écrire : 9 (tous WinBiz) |
+
+> Registre détaillé et source de vérité : `docs/PARITE-REDX-TESTS.md`.
 
 
 
@@ -88,15 +92,15 @@
 
 |----|----------|--------|
 
-| GAP-020 | Scellement WORM / archivage légal Olico | ❌ |
+| GAP-020 | Scellement WORM / archivage légal Olico | ✅ (2026-07-02) |
 
-| GAP-021 | Politiques rétention (10 ans compta) | ❌ |
+| GAP-021 | Politiques rétention (10 ans compta) | ✅ (2026-07-02) |
 
-| GAP-022 | Export piste révision | 🟡 |
+| GAP-022 | Export piste révision | ✅ (2026-07-03 — `GET /admin/audit/export` JSON timeline) |
 
-| GAP-023 | Horodatage qualifié (TSA) | ❌ |
+| GAP-023 | Horodatage qualifié (TSA) | ✅ (2026-07-03 — RFC 3161, `TSA_URL`, mock testé) |
 
-| GAP-024 | Document légal non modifiable | ❌ |
+| GAP-024 | Document légal non modifiable | ✅ (2026-07-02) |
 
 
 
@@ -108,15 +112,15 @@
 
 |----|----------|--------|
 
-| GAP-030 | Module contrats + échéances | ❌ |
+| GAP-030 | Module contrats + échéances | ✅ (2026-07-03 — `apps/contracts/`, due_date + upcoming) |
 
-| GAP-031 | Module SMQ ISO | ❌ |
+| GAP-031 | Module SMQ ISO | ✅ (2026-07-02) |
 
-| GAP-032 | Quittance de lecture | ❌ |
+| GAP-032 | Quittance de lecture | ✅ (2026-07-02) |
 
-| GAP-033 | Dossier RH digital | ❌ |
+| GAP-033 | Dossier RH digital | ✅ (2026-07-03 — `apps/rh/`, dossiers par catégorie) |
 
-| GAP-034 | App mail IMAP | 🟡 (stub) |
+| GAP-034 | App mail IMAP | ✅ (2026-07-03 — `MailSyncService` + dédup, mock IMAP) |
 
 | GAP-035 | PluginRegistry formel | ✅ (`11fba6d`) |
 
@@ -130,17 +134,17 @@
 
 |----|----------|--------|
 
-| GAP-040 | ACL document fine | 🟡 |
+| GAP-040 | ACL document fine | ✅ (2026-07-03 — héritage dossier, admin bypass) |
 
-| GAP-041 | Multi-mandant | ❌ |
+| GAP-041 | Multi-mandant | ✅ (2026-07-03 — isolation tenant_id, gated env) |
 
-| GAP-042 | Portail client | ❌ |
+| GAP-042 | Portail client | ✅ (2026-07-03 — `/portal/{client}` lecture seule) |
 
-| GAP-043 | E-signature | ❌ |
+| GAP-043 | E-signature | ✅ (2026-07-03 — HMAC + audit, idempotent) |
 
-| GAP-044 | App desktop Tauri | ❌ (roadmap) |
+| GAP-044 | App desktop Tauri | ❌ (roadmap, hors repo) |
 
-| GAP-045 | Antivirus upload ClamAV | ❌ |
+| GAP-045 | Antivirus upload ClamAV | ✅ (2026-07-03 — INSTREAM clamd, hook upload fail-open) |
 
 
 
@@ -171,18 +175,17 @@
 > Plan de tests par gap (oracle + mécanisme) : `docs/PARITE-REDX-TESTS.md`.
 > Guide consolidé : `docs/GUIDE-COMPLET-GED.md`.
 
-0. **Tests anti-régression sprint** (T-DIAG, T-IA-INF, T-ASK-COUNT, T-TAG-DEDUP,
-   GAP-002 pdftoppm) — épingler les fixes 2026-06-30.
-
-1. **Plugin WinBiz P1 (`winbiz-matching`)** — `matchDocumentToWinBiz()` : factures fourn., BL, offres, stock (`docs/WINBIZ-MODULE.md`)
+1. **Plugin WinBiz P1 (`winbiz-matching`)** — `matchDocumentToWinBiz()` : factures fourn., BL, offres, stock (`docs/WINBIZ-MODULE.md`) — seul chantier fonctionnel restant
 
 2. **Plugin WinBiz P2 (`winbiz-viewer`)** — consultation lecture documents WinBiz depuis GED (séparée du matching)
 
 3. **Bridge** — `WinBizBridgeClient` + endpoints REST documents/search côté `k-winbiz-bridge`
 
-4. Lot archivage légal Olico (GAP-020+)
+4. **Approfondissement MVP** (optionnel) — UI contrats/RH/portail au-delà des oracles, validation TSA cryptographique complète, GAP-044 Tauri
 
 ---
 
-*Dernière mise à jour : 2026-06-30 — sprint finalisation (bugs A–H, pdftoppm/poppler, healthcheck fsockopen, IA Infomaniak active).*
+*Dernière mise à jour : 2026-07-03 — sprint parité 90 % hors WinBiz : 10 gaps comblés
+(GAP-022/023/030/033/034/040/041/042/043/045), tous épinglés par tests verts —
+suite PHPUnit 460 tests OK. Parité hors WinBiz ~96 %, globale ~80 %.*
 

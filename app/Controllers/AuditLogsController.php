@@ -6,6 +6,7 @@
 namespace KDocs\Controllers;
 
 use KDocs\Models\AuditLog;
+use KDocs\Services\Compliance\AuditTrailExportService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -78,5 +79,50 @@ class AuditLogsController
 
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * Export de la piste de révision en JSON (GAP-022).
+     *
+     * Filtres acceptés en query string : object_type, object_id, user_id, from, to.
+     * Renvoie un JSON structuré en pièce jointe (Content-Disposition attachment).
+     */
+    public function export(Request $request, Response $response): Response
+    {
+        $queryParams = $request->getQueryParams();
+
+        $filters = [];
+        if (!empty($queryParams['object_type'])) {
+            $filters['object_type'] = $queryParams['object_type'];
+        }
+        if (!empty($queryParams['object_id'])) {
+            $filters['object_id'] = (int) $queryParams['object_id'];
+        }
+        if (!empty($queryParams['user_id'])) {
+            $filters['user_id'] = (int) $queryParams['user_id'];
+        }
+        if (!empty($queryParams['from'])) {
+            $filters['from'] = $queryParams['from'];
+        }
+        if (!empty($queryParams['to'])) {
+            $filters['to'] = $queryParams['to'];
+        }
+
+        $data     = $this->makeExportService()->export($filters);
+        $filename = 'audit-export-' . date('Y-m-d') . '.json';
+
+        $response->getBody()->write(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Fabrique AuditTrailExportService (overridable en test pour injection d'un mock).
+     */
+    protected function makeExportService(): AuditTrailExportService
+    {
+        return new AuditTrailExportService();
     }
 }

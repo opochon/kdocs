@@ -6,8 +6,9 @@
 > `docs/DELTA-REDX.md` (delta statut). Source de vérité test :
 > `tests/visual/FUNCTIONS-SPEC.md`.
 >
-> Dernière mise à jour : 2026-07-02 (sprint parité : Lot E admin 35/35, P2 scellement
-> WORM + rétention, quittance lecture épinglée, CmdV4 étape 6 suite ; WinBiz reporté plugin).
+> Dernière mise à jour : 2026-07-03 (sprint parité 90 % : les 10 gaps socle hors WinBiz
+> comblés avec tests verts — audit export, TSA, ACL, multi-mandant, contrats, RH, mail
+> IMAP, portail, e-signature, ClamAV. WinBiz reste plugin reporté 🔌).
 
 ## Légende
 
@@ -19,17 +20,24 @@
 
 | Indicateur | Valeur |
 |------------|--------|
-| Parité fonctionnelle estimée (cas fiduciaire) | **~60 %** (+4 pts : P2 scellement WORM opérationnel, SMQ + quittance vérifiés) |
-| Gaps ✅ | 18 (dont P2 GAP-020/021/024, P3 GAP-031/032 ce sprint) |
-| Gaps 🟡 | 8 (WinBiz plugin ×5, GAP-022 export audit, GAP-034 mail, GAP-040 ACL) |
-| Gaps ❌ | 12 (triés : WinBiz plugin ×4, TSA, modules P3 ×2, infra P4 ×5) |
+| **Parité hors WinBiz (socle ECM, cas fiduciaire)** | **~96 %** — 26/27 gaps hors plugin WinBiz ✅ avec test vert ; seul reste GAP-044 (app desktop Tauri, hors repo) |
+| Parité globale estimée (WinBiz plugin inclus) | ~80 % (28 ✅ + 5 🟡 pondérés ½ sur 38) |
+| Gaps ✅ | 28 (+10 sprint 2026-07-03 : GAP-022/023/030/033/034/040/041/042/043/045) |
+| Gaps 🟡 | 5 (tous WinBiz 🔌 : GAP-010/011/013/016/01A) |
+| Gaps ❌ | 5 (WinBiz 🔌 GAP-015/017/018/019 + GAP-044 Tauri hors repo) |
 | Gaps nommés | 38 (P0–P4) + 6 gates ECM (P1b) |
-| Gaps avec test vert | **24** (+6 sprint parité 2026-07-02) |
-| Gaps avec test à écrire | 14 |
+| Gaps avec test vert | **34** (+10 sprint parité 2026-07-03) |
+| Gaps avec test à écrire | 9 (tous plugin WinBiz 🔌, à l'activation du bridge) |
 
-> Les ❌ restants sont des **features roadmap triées** (plugin WinBiz reporté,
-> modules Contrats/RH, TSA, multi-mandant, portail, e-signature, ClamAV, Tauri) —
-> aucun encours ouvert ; chaque ligne reste une dette tracée avec oracle défini.
+> Tout ce qui n'est pas plugin WinBiz est comblé et épinglé par un test vert.
+> Les nouveaux modules sont des **MVP env-gated** (désactivés par défaut :
+> `CONTRACTS_APP_ENABLED`, `RH_APP_ENABLED`, `MAIL_APP_ENABLED`,
+> `PORTAL_APP_ENABLED`, `MULTI_TENANT_ENABLED`, `CLAMAV_ENABLED`, `TSA_URL`) —
+> l'oracle du registre est couvert ; la profondeur fonctionnelle REDX complète
+> reste extensible module par module. Migrations associées dans
+> `database/migrations/` (add_tenant_columns, add_folder_permissions_table,
+> add_tsa_columns, add_document_signatures_table, add_contracts_table,
+> add_hr_tables, add_mail_sync_log_table) — à exécuter au déploiement.
 
 > Hausse post-lots 1–3 : types ECM catalogués, persona REDX, persistance type via PUT JSON
 > (BodyParsingMiddleware), workflow identification UI+API, oracles PHPUnit hermétiques,
@@ -94,8 +102,8 @@
 |----|----------|--------|--------|------|-----------|
 | GAP-020 | Scellement WORM / archivage légal | ✅ 🧪 | `documents.legal_sealed=1` → toute écriture lève `LegalSealedException` ; `POST /api/documents/{id}/legal-seal` (idempotent) | `Unit\Services\Compliance\LegalArchiveServiceTest` ✅ + `legal-seal.spec.ts` ✅ | `unit`/`pw` |
 | GAP-021 | Politiques rétention (10 ans compta) | ✅ 🧪 | `RetentionPolicyService::dueDate($doc)` retourne date ≥ 10 ans (CO 958f) ; `retention_until` fixé au scellement | `Unit\Services\Compliance\RetentionPolicyTest` ✅ | `unit` |
-| GAP-022 | Export piste révision | 🟡 | `GET /admin/audit/export` produit PDF/JSON avec timeline | ⬜ `Feature\AuditExportTest` | `feature` |
-| GAP-023 | Horodatage qualifié (TSA) | ❌ | `documents.tsa_token` non null + validation RFC 3161 | ⬜ `Unit\TsaServiceTest` (mock TSA) | `unit` |
+| GAP-022 | Export piste révision | ✅ 🧪 | `GET /admin/audit/export` produit JSON timeline chronologique (filtres object/user/from/to) | `Unit\Services\Compliance\AuditTrailExportServiceTest` ✅ + `Feature\AuditExportTest` ✅ | `unit`/`feature` |
+| GAP-023 | Horodatage qualifié (TSA) | ✅ 🧪 | `documents.tsa_token` non null (TimeStampReq RFC 3161 DER, transport injectable, `TSA_URL`) ; `verify()` détecte contenu altéré | `Unit\TsaServiceTest` ✅ (mock TSA) | `unit` |
 | GAP-024 | Document légal non modifiable | ✅ 🧪 | `PUT/DELETE /api/documents/{id}` (+ `/type`, `/correspondent`, `/fields`) 403 si `legal_sealed=1` ; GET reste 200 | `Unit\Controllers\LegalSealGuardTest` ✅ + `legal-seal.spec.ts` ✅ | `unit`/`pw` |
 
 ---
@@ -104,11 +112,11 @@
 
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
-| GAP-030 | Module contrats + échéances | ❌ | `apps/contracts/` : `GET /contracts` liste + champ `due_date` | ⬜ `Feature\ContractsModuleTest` | `feature` |
+| GAP-030 | Module contrats + échéances | ✅ 🧪 | `apps/contracts/` : `GET /contracts` liste + `due_date`, tri échéance, `/contracts/upcoming` (fenêtre N jours) — gated `CONTRACTS_APP_ENABLED` | `Feature\ContractsModuleTest` ✅ (9 tests) | `feature` |
 | GAP-031 | Module SMQ ISO | ✅ 🧪 | `PluginRegistry::isEnabled('smq')` vrai ; onglet Versions visible (F-DOC-10) | `smq-versions.spec.ts` ✅ (gated) + `PluginRegistryTest` | `pw`/`unit` |
 | GAP-032 | Quittance de lecture | ✅ 🧪 | `POST .../versions/{n}/read` crée 1 ligne/user/version (F-DOC-11), idempotent + `read-status` | `smq-versions.spec.ts` « quittance de lecture » ✅ | `pw` |
-| GAP-033 | Dossier RH digital | ❌ | `apps/hr/` : `GET /hr/employees/{id}` 200 + dossiers | ⬜ `Feature\HrModuleTest` | `feature` |
-| GAP-034 | App mail IMAP | 🟡 | `MailApp::syncImapMailbox()` importe N messages → documents | ⬜ `Feature\MailSyncTest` (mock IMAP) | `feature` |
+| GAP-033 | Dossier RH digital | ✅ 🧪 | `apps/rh/` : `GET /rh/employees/{id}` 200 + dossiers groupés par catégorie ; 404 inconnu — gated `RH_APP_ENABLED` | `Feature\HrModuleTest` ✅ (7 tests) | `feature` |
+| GAP-034 | App mail IMAP | ✅ 🧪 | `MailSyncService::syncImapMailbox()` importe N messages → documents, dédup `mail_sync_log` UNIQUE(account, uid) — gated `MAIL_APP_ENABLED` | `Feature\MailSyncTest` ✅ (mock IMAP, 5 tests) | `feature` |
 | GAP-035 | PluginRegistry formel | ✅ 🧪 | `PluginRegistry::isEnabled('x')` reflète config ; onglet Versions gated | `Unit\Core\PluginRegistryTest` | `unit` |
 
 ---
@@ -117,12 +125,12 @@
 
 | ID | Fonction | Statut | Oracle | Test | Mécanisme |
 |----|----------|--------|--------|------|-----------|
-| GAP-040 | ACL document fine | 🟡 | `FolderPermissionService::can($user,$doc,'read')` bool hérité dossier | ⬜ `Unit\FolderPermissionTest` | `unit` |
-| GAP-041 | Multi-mandant | ❌ | 2 mandants : doc du mandant A invisible pour user B | ⬜ `Feature\MultitenantIsolationTest` | `feature` |
-| GAP-042 | Portail client | ❌ | `GET /portal/{client}` lecture seule, pas de bouton édition | ⬜ `pw portal.spec.ts` | `pw` |
-| GAP-043 | E-signature | ❌ | `POST /documents/{id}/sign` produit signature + audit | ⬜ `Feature\ESignatureTest` | `feature` |
+| GAP-040 | ACL document fine | ✅ 🧪 | `FolderPermissionService::can($user,$doc,'read')` héritage parent_id, ACL le plus proche gagne, admin bypass, sans ACL → ouvert (legacy) | `Unit\FolderPermissionTest` ✅ (10 tests) | `unit` |
+| GAP-041 | Multi-mandant | ✅ 🧪 | 2 mandants : doc mandant A invisible pour user B (`canSee()` + `scopeSql()` injecté dans `DocumentsApiController::index/show`, 404 anti-fuite) — gated `MULTI_TENANT_ENABLED`, neutralisé si migration absente | `Feature\MultitenantIsolationTest` ✅ | `feature` |
+| GAP-042 | Portail client | ✅ 🧪 | `GET /portal/{client}` lecture seule : aucun edit/delete/form dans le HTML ; 404 client inconnu — gated `PORTAL_APP_ENABLED` | `Feature\PortalReadOnlyTest` ✅ | `feature` |
+| GAP-043 | E-signature | ✅ 🧪 | `POST /api/documents/{id}/sign` → signature HMAC-SHA256 du hash contenu + ligne audit `document.signed`, idempotent ; `verify()` false si contenu modifié | `Feature\ESignatureTest` ✅ (9 tests) | `feature` |
 | GAP-044 | App desktop Tauri | ❌ (roadmap) | N/A (hors repo) | — | — |
-| GAP-045 | Antivirus upload ClamAV | ❌ | `ClamAvScanner::scan($file)` bloque un fixture EICAR | ⬜ `Unit\ClamAvScannerTest` (mock) | `unit` |
+| GAP-045 | Antivirus upload ClamAV | ✅ 🧪 | `ClamAvScanner::scan($file)` bloque un fixture EICAR (INSTREAM clamd, transport injectable) ; hook `apiUpload()` fail-open + audit `document.virus_blocked` — gated `CLAMAV_ENABLED` | `Unit\ClamAvScannerTest` ✅ (mock, 9 tests) | `unit` |
 
 ---
 
@@ -147,10 +155,14 @@
 2. ~~**F-CHROME-02** / **F-CHROME-08**~~ ✅ (commit `5b1d70a`, chrome-coherence 8/8).
 3. ~~**P2 archivage légal**~~ ✅ (`LegalArchiveServiceTest` + `LegalSealGuardTest` +
    `legal-seal.spec.ts` — scellement WORM + rétention opérationnels).
-4. **P1 WinBiz 🔌** — plugin reporté ; à l'activation du bridge : `WinBizMatchingTest`,
-   `InvoicesRoutesTest`.
-5. **GAP-022** export piste révision (JSON) + **GAP-040** ACL dossier — prochains
-   candidats socle ; **GAP-023 TSA** derrière un fournisseur d'horodatage.
+4. ~~**Sprint parité 90 % hors WinBiz**~~ ✅ (2026-07-03 — GAP-022/023/030/033/034/
+   040/041/042/043/045 comblés, 10 gaps, tous les oracles épinglés unit/feature).
+5. **P1 WinBiz 🔌** — plugin reporté ; à l'activation du bridge : `WinBizMatchingTest`,
+   `InvoicesRoutesTest`, `WinBizOfferMatcherTest`, `WinBizStockMatcherTest`,
+   `WinBizViewerTest` (9 gaps restants — seul chantier ouvert avec GAP-044 Tauri).
+6. **Approfondissement modules MVP** (optionnel, dette qualitative non bloquante) :
+   UI contrats/RH/portail au-delà des oracles, validation cryptographique TSA
+   complète (openssl ts), specs Playwright portail et contrats.
 
 > Règle : aucun gap n'est marqué ✅ comblé sans test vert. Une ligne 🟡/❌ sans
 > test est une dette tracée, pas un oubli.

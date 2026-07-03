@@ -27,7 +27,19 @@ class DocumentsApiController extends ApiController
         // Exclure les documents en attente de validation (pending) de l'API
         $where[] = "(d.status IS NULL OR d.status != 'pending')";
         $params = [];
-        
+
+        // Isolation multi-mandant (GAP-041) — inactif par défaut (MULTI_TENANT_ENABLED),
+        // et neutralisé si la migration tenant_id n'est pas appliquée.
+        $tenantScope = $this->makeTenantScopeService();
+        $currentUser = $request->getAttribute('user');
+        if ($tenantScope->isEnabled() && is_array($currentUser) && $this->tenantColumnExists($db)) {
+            $scope = $tenantScope->scopeSql('d', $currentUser);
+            if ($scope['sql'] !== '') {
+                $where[] = $scope['sql'];
+                $params = array_merge($params, $scope['params']);
+            }
+        }
+
         // Filtres
         if (!empty($queryParams['search'])) {
             $where[] = "(d.title LIKE ? OR d.original_filename LIKE ? OR d.filename LIKE ? OR d.ocr_text LIKE ?)";
@@ -129,6 +141,13 @@ class DocumentsApiController extends ApiController
         $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$document) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        // Isolation multi-mandant (GAP-041) : 404 (pas 403) pour ne pas révéler
+        // l'existence d'un document d'un autre mandant.
+        $tenantScope = $this->makeTenantScopeService();
+        if ($tenantScope->isEnabled() && is_array($user) && !$tenantScope->canSee($user, $document)) {
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
 
@@ -782,6 +801,58 @@ class DocumentsApiController extends ApiController
     protected function makeLegalArchiveService(): \KDocs\Services\Compliance\LegalArchiveService
     {
         return new \KDocs\Services\Compliance\LegalArchiveService();
+    }
+
+    /** Factory ESignatureService (overridable en test pour injection d'un mock — GAP-043). */
+    protected function makeESignatureService(): \KDocs\Services\Compliance\ESignatureService
+    {
+        return new \KDocs\Services\Compliance\ESignatureService();
+    }
+
+    /**
+     * POST /api/documents/{id}/sign — signe électroniquement un document (GAP-043).
+     *
+     * Retourne HTTP 200 avec la signature JSON ; 404 si le document est inconnu.
+     * Idempotent : signer deux fois le même (document, user) retourne la signature
+     * existante avec already_signed=true.
+     */
+    public function sign(Request $request, Response $response, array $args): Response
+    {
+        $id   = (int) $args['id'];
+        $user = $request->getAttribute('user');
+
+        try {
+            $service = $this->makeESignatureService();
+            $result  = $service->sign($id, (int) ($user['id'] ?? 0));
+
+            return $this->successResponse($response, $result, 'Document signé');
+        } catch (\InvalidArgumentException $e) {
+            return $this->errorResponse($response, $e->getMessage(), 404);
+        } catch (\Exception $e) {
+            return $this->errorResponse($response, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Fabrique surchargeable en test (GAP-041).
+     */
+    protected function makeTenantScopeService(): \KDocs\Services\TenantScopeService
+    {
+        return new \KDocs\Services\TenantScopeService();
+    }
+
+    /**
+     * La colonne documents.tenant_id existe-t-elle ? (migration add_tenant_columns)
+     * Absente → le scope multi-mandant est neutralisé plutôt que de casser le listing.
+     */
+    protected function tenantColumnExists(PDO $db): bool
+    {
+        try {
+            $db->query('SELECT tenant_id FROM documents LIMIT 1');
+            return true;
+        } catch (\PDOException $e) {
+            return false;
+        }
     }
 
     /**

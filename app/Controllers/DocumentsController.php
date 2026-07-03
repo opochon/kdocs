@@ -1621,6 +1621,38 @@ class DocumentsController
 
                     $file->moveTo($filePath);
 
+                    // GAP-045 — Scan antivirus ClamAV (fail-open : une erreur clamd ne bloque JAMAIS l'upload)
+                    try {
+                        $scanner = new \KDocs\Services\ClamAvScanner();
+                        if ($scanner->isEnabled()) {
+                            $scanResult = $scanner->scan($filePath);
+                            if (!$scanResult['clean'] && !$scanResult['skipped']) {
+                                @unlink($filePath);
+                                try {
+                                    AuditService::log(
+                                        'document.virus_blocked',
+                                        'document',
+                                        null,
+                                        $originalFilename,
+                                        ['signature' => $scanResult['signature'], 'filename' => $originalFilename],
+                                        $user['id'] ?? null
+                                    );
+                                } catch (\Exception) {
+                                    // Audit non bloquant
+                                }
+                                $results[] = [
+                                    'success'  => false,
+                                    'filename' => $originalFilename,
+                                    'error'    => 'Fichier rejeté — virus détecté : ' . ($scanResult['signature'] ?? 'inconnu'),
+                                ];
+                                continue;
+                            }
+                        }
+                    } catch (\Throwable $scanEx) {
+                        // fail-open documenté : erreur clamd (ou \Error interne) → on laisse passer, log uniquement
+                        error_log("ClamAV scan error (fail-open) for {$originalFilename}: " . $scanEx->getMessage());
+                    }
+
                     // Calculer le chemin relatif pour storage_path
                     $relativePath = $targetFolder ? $targetFolder . '/' . $filename : $filename;
 

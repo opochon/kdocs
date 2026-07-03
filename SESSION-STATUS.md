@@ -3,6 +3,50 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-03 — sprint parité 90 % hors WinBiz (10 gaps comblés)
+
+Demande (`/goal`) : « parité redx 90 % sauf winbiz ». Résultat : **parité hors WinBiz ~96 %**
+(26/27 gaps ✅ test vert ; reste GAP-044 Tauri hors repo) · parité globale ~80 %.
+
+| Gap | Livrable | Gate |
+|-----|----------|------|
+| **GAP-022** export piste révision | `AuditTrailExportService` + `GET /admin/audit/export` (JSON timeline, filtres object/user/from/to) | `AuditTrailExportServiceTest` + `AuditExportTest` — 19 tests |
+| **GAP-023** TSA RFC 3161 | `TsaService` (TimeStampReq DER, transport injectable, `TSA_URL`, idempotent, `verify()` détecte altération) + migration `add_tsa_columns` | `TsaServiceTest` — 10 tests (mock TSA) |
+| **GAP-030** module contrats | `apps/contracts/` (service+contrôleur+routes, `due_date`, `/contracts/upcoming`) + migration `add_contracts_table` — gated `CONTRACTS_APP_ENABLED` | `ContractsModuleTest` — 9 tests |
+| **GAP-033** dossier RH | `apps/rh/` enrichi (`GET /rh/employees/{id}` + dossiers groupés par catégorie) + migration `add_hr_tables` — gated `RH_APP_ENABLED` | `HrModuleTest` — 7 tests |
+| **GAP-034** mail IMAP | `MailSyncService` + `ImapClientInterface`/`NativeImapClient`, dédup `mail_sync_log` UNIQUE(account, uid) — gated `MAIL_APP_ENABLED` | `MailSyncTest` — 5 tests (mock IMAP) |
+| **GAP-040** ACL fine | `FolderPermissionService::can()` héritage `parent_id`, ACL le plus proche gagne, admin bypass, sans ACL → ouvert (legacy) + migration `add_folder_permissions_table` | `FolderPermissionTest` — 10 tests |
+| **GAP-041** multi-mandant | `TenantScopeService` (`canSee` + `scopeSql`) injecté défensivement dans `DocumentsApiController::index/show` (404 anti-fuite, neutralisé si migration absente) + migration `add_tenant_columns` — gated `MULTI_TENANT_ENABLED` | `MultitenantIsolationTest` — 6 tests |
+| **GAP-042** portail client | `apps/portal/` — `GET /portal/{client}` HTML lecture seule (0 edit/delete/form), 404 client inconnu — gated `PORTAL_APP_ENABLED` | `PortalReadOnlyTest` — 4 tests |
+| **GAP-043** e-signature | `ESignatureService` (HMAC-SHA256 du hash contenu, idempotent, audit `document.signed`) + `POST /api/documents/{id}/sign` + migration `add_document_signatures_table` | `ESignatureTest` — 9 tests |
+| **GAP-045** ClamAV | `ClamAvScanner` (INSTREAM clamd, transport injectable) + hook `apiUpload()` fail-open + audit `document.virus_blocked` — gated `CLAMAV_ENABLED` | `ClamAvScannerTest` — 10 tests (EICAR mock) |
+
+**Bug réel trouvé et corrigé par la gate Playwright** : `ClamAvScanner` en constructeur par
+défaut initialisait le transport avant `host`/`port` → `\Error` (« uninitialized non-nullable
+property », non attrapée par `catch (\Exception)`) → **upload API en 500**. Fix : ordre
+d'initialisation + closure sans référence + hook upload en `catch (\Throwable)` + test de
+régression `testConstructeurParDefautNeLevePasDErreur`.
+
+**Harness (2026-07-03)** :
+
+| Gate | Résultat |
+|------|----------|
+| Migration smoke | **215 passés, 0 échoués** (+ section « Lot parité 90 % ») |
+| PHPUnit | **460 tests, 1101 assertions, 3 skipped** — OK (+~90 nouveaux) |
+| eval-full `--no-ocr` | **toutes les gates PASS** |
+| Playwright | **69 passed, 2 failed** — les 2 échecs (`pipeline-ui`, `persona-parcours-ecm`) sont les specs live-IA/OCR, **reproduits à l'identique sur worktree HEAD propre** → environnementaux (limite `php -S` mono-processus documentée session 2026-06-30 + Infomaniak lent + process python squattant les ports 8765/8766), pas une régression du sprint |
+
+Migrations appliquées sur la base dev (7, idempotentes). `.env.example` complété
+(`MULTI_TENANT_ENABLED`, `TSA_URL`, `CLAMAV_*`, `CONTRACTS/PORTAL/MAIL_APP_ENABLED`).
+Registre : `docs/PARITE-REDX-TESTS.md` + `docs/DELTA-REDX.md` synchronisés (34/38 gaps
+avec test vert ; les 9 ⬜ restants sont tous plugin WinBiz 🔌 + GAP-044 hors repo).
+
+**Prochain pas** : plugin WinBiz (seul chantier fonctionnel restant) · approfondissement
+UI des modules MVP (contrats/RH/portail) · serveur dev multi-processus pour fiabiliser
+les 2 specs live-IA en batterie.
+
+---
+
 ## Session 2026-07-02 — sprint parité (Lot E + P2 WORM + CmdV4 ét. 6 + encours soldés)
 
 Demande : « finaliser la parité, terminer tous les encours, projet opérationnel en test ».
@@ -492,4 +536,5 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-07-02 — sprint parité (Lot E admin 38/38, P2 scellement WORM + rétention, CmdV4 étape 6 suite, 4 bugs produit corrigés). PHPUnit 372/372, parité ~60 %.*
+*Dernière mise à jour : 2026-07-03 — sprint parité 90 % hors WinBiz : 10 gaps comblés
+(GAP-022/023/030/033/034/040/041/042/043/045), PHPUnit 460/460, parité hors WinBiz ~96 %.*

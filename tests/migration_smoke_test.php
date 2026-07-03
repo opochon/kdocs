@@ -385,6 +385,72 @@ if ($vendorOk) {
     assert_true('CmdV4ResultMapper::applyFreshnessStatus', method_exists('KDocs\\Services\\Ingest\\CmdV4ResultMapper', 'applyFreshnessStatus'));
 }
 
+echo "\nLot parité 90 % — gaps hors WinBiz (2026-07-03)\n";
+$pariteFiles = [
+    // GAP-022 export piste de révision
+    'app/Services/Compliance/AuditTrailExportService.php',
+    'tests/Feature/AuditExportTest.php',
+    // GAP-023 horodatage TSA
+    'app/Services/Compliance/TsaService.php',
+    'database/migrations/add_tsa_columns.php',
+    'tests/Unit/TsaServiceTest.php',
+    // GAP-040 ACL fine / GAP-041 multi-mandant
+    'app/Services/FolderPermissionService.php',
+    'app/Services/TenantScopeService.php',
+    'database/migrations/add_folder_permissions_table.php',
+    'database/migrations/add_tenant_columns.php',
+    'tests/Unit/FolderPermissionTest.php',
+    'tests/Feature/MultitenantIsolationTest.php',
+    // GAP-043 e-signature
+    'app/Services/Compliance/ESignatureService.php',
+    'database/migrations/add_document_signatures_table.php',
+    'tests/Feature/ESignatureTest.php',
+    // GAP-045 antivirus ClamAV
+    'app/Services/ClamAvScanner.php',
+    'tests/Unit/ClamAvScannerTest.php',
+    // GAP-030 module contrats
+    'apps/contracts/config.php',
+    'apps/contracts/routes.php',
+    'apps/contracts/Services/ContractService.php',
+    'database/migrations/add_contracts_table.php',
+    'tests/Feature/ContractsModuleTest.php',
+    // GAP-033 dossier RH
+    'apps/rh/Services/HrService.php',
+    'apps/rh/Controllers/HrController.php',
+    'database/migrations/add_hr_tables.php',
+    'tests/Feature/HrModuleTest.php',
+    // GAP-034 mail IMAP
+    'apps/mail/Services/ImapClientInterface.php',
+    'apps/mail/Services/MailSyncService.php',
+    'database/migrations/add_mail_sync_log_table.php',
+    'tests/Feature/MailSyncTest.php',
+    // GAP-042 portail client
+    'apps/portal/config.php',
+    'apps/portal/routes.php',
+    'apps/portal/Controllers/PortalController.php',
+    'tests/Feature/PortalReadOnlyTest.php',
+];
+foreach ($pariteFiles as $rel) {
+    assert_true($rel, is_file(KDOCS_ROOT . '/' . $rel));
+}
+if ($vendorOk) {
+    assert_true('Classe AuditTrailExportService chargeable', class_exists('KDocs\\Services\\Compliance\\AuditTrailExportService'));
+    assert_true('Classe TsaService chargeable', class_exists('KDocs\\Services\\Compliance\\TsaService'));
+    assert_true('Classe ESignatureService chargeable', class_exists('KDocs\\Services\\Compliance\\ESignatureService'));
+    assert_true('Classe FolderPermissionService chargeable', class_exists('KDocs\\Services\\FolderPermissionService'));
+    assert_true('Classe TenantScopeService chargeable', class_exists('KDocs\\Services\\TenantScopeService'));
+    assert_true('Classe ClamAvScanner chargeable', class_exists('KDocs\\Services\\ClamAvScanner'));
+}
+if (is_file(KDOCS_ROOT . '/index.php')) {
+    $idxParite = (string) file_get_contents(KDOCS_ROOT . '/index.php');
+    assert_true('route /admin/audit/export (GAP-022)', str_contains($idxParite, '/admin/audit/export'));
+    assert_true('route /api/documents/{id}/sign (GAP-043)', str_contains($idxParite, "/api/documents/{id}/sign"));
+}
+$envExParite = (string) file_get_contents(KDOCS_ROOT . '/.env.example');
+foreach (['MULTI_TENANT_ENABLED', 'CLAMAV_ENABLED', 'TSA_URL', 'CONTRACTS_APP_ENABLED', 'PORTAL_APP_ENABLED', 'MAIL_APP_ENABLED'] as $envKey) {
+    assert_true(".env.example $envKey", str_contains($envExParite, $envKey));
+}
+
 echo "\nLot UI — design-system tokens (:root lisible)\n";
 $dsCss = (string) file_get_contents(KDOCS_ROOT . '/public/css/design-system.css');
 assert_true('design-system sans sequence */ cassee dans commentaire', !str_contains($dsCss, '--bg-*/'));

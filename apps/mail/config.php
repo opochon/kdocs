@@ -5,9 +5,10 @@
 
 return [
     'app' => [
-        'name' => 'K-Mail',
+        'name'    => 'K-Mail',
         'version' => '0.1.0',
-        'enabled' => false, // A activer quand pret
+        // Activé par la variable d'environnement MAIL_APP_ENABLED (GAP-034)
+        'enabled' => (bool) (function_exists('env') ? env('MAIL_APP_ENABLED', false) : ($_ENV['MAIL_APP_ENABLED'] ?? false)),
     ],
 
     // Serveur IMAP par defaut
