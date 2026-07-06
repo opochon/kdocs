@@ -8,16 +8,18 @@ use Slim\Routing\RouteCollectorProxy;
 
 return function (RouteCollectorProxy $app): void {
     $app->group('/erpconnect', function (RouteCollectorProxy $group): void {
-        /** GET  /erpconnect/proposal/{documentId} — proposition de ventilation JSON (AJAX) */
-        $group->get('/proposal/{documentId:[0-9]+}',
+        // Endpoints AJAX sous /api/ : exemption CSRF (convention CSRFMiddleware),
+        // toujours derrière AuthMiddleware (session requise).
+        /** GET  /erpconnect/api/proposal/{documentId} — proposition de ventilation JSON */
+        $group->get('/api/proposal/{documentId:[0-9]+}',
             'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:proposal');
 
-        /** POST /erpconnect/submit/{documentId} — introduction dans K-Time */
-        $group->post('/submit/{documentId:[0-9]+}',
+        /** POST /erpconnect/api/submit/{documentId} — introduction dans K-Time */
+        $group->post('/api/submit/{documentId:[0-9]+}',
             'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:submit');
 
-        /** POST /erpconnect/refresh/{documentId} — rafraîchir statut validation */
-        $group->post('/refresh/{documentId:[0-9]+}',
+        /** POST /erpconnect/api/refresh/{documentId} — rafraîchir statut validation */
+        $group->post('/api/refresh/{documentId:[0-9]+}',
             'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:refresh');
 
         /** GET  /erpconnect/panel/{documentId} — panneau HTML */

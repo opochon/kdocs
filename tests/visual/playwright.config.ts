@@ -43,6 +43,13 @@ export default defineConfig({
     stderr: 'pipe',
     // SMQ activé pour couvrir l'onglet Versions de la fiche (specs/smq-versions).
     // Rate limit relevé : la batterie complète dépasse 100 req/min (429 sinon).
-    env: { SMQ_APP_ENABLED: 'true', RATE_LIMIT_MAX: '100000' },
+    // ERP Connect actif pour specs/erp-connect (no-op si K-Time absent : préflight skip).
+    env: {
+      SMQ_APP_ENABLED: 'true',
+      RATE_LIMIT_MAX: '100000',
+      ERPCONNECT_APP_ENABLED: 'true',
+      KTIME_URL: process.env.KTIME_BASE ?? 'http://127.0.0.1:8091',
+      KTIME_GED_API_KEY: process.env.KTIME_GED_API_KEY ?? 'ged-dev-key-2026',
+    },
   },
 });

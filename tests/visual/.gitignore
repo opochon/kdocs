@@ -4,3 +4,4 @@ playwright-report/
 shots/
 storageState.json
 .cache/
+.erp-sim.json

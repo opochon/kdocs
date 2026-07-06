@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Liaison ERP — Document <?= (int) $documentId ?></title>
-<link rel="stylesheet" href="<?= htmlspecialchars($appUrl, ENT_QUOTES, 'UTF-8') ?>/css/design-system.css">
+<!-- Chemin relatif : le panneau doit fonctionner quel que soit host:port servi (dev 8770, harness, prod). -->
+<link rel="stylesheet" href="../../css/design-system.css">
 <style>
   body { font-family: system-ui, sans-serif; background: var(--bg, #f5f5f5); color: var(--ink, #1a1a1a); margin: 0; padding: 1.5rem; }
   .erp-panel { max-width: 900px; margin: 0 auto; }
@@ -96,7 +97,9 @@
 <script>
 (function () {
   const docId   = <?= (int) $documentId ?>;
-  const base    = <?= json_encode(rtrim($appUrl, '/'), JSON_UNESCAPED_SLASHES) ?>;
+  // Base = chemin de l'app dérivé de l'URL courante (« /kdocs ») — jamais d'origine
+  // absolue : APP_URL peut pointer un autre host:port que celui qui sert la page.
+  const base    = location.pathname.replace(/\/erpconnect\/panel\/\d+.*$/, '');
   let proposal  = null;
 
   // Libellés de ventilation
@@ -216,7 +219,7 @@
   }
 
   // Chargement initial de la proposition
-  fetch(base + '/erpconnect/proposal/' + docId, { headers: { 'Accept': 'application/json' } })
+  fetch(base + '/erpconnect/api/proposal/' + docId, { headers: { 'Accept': 'application/json' } })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (data.error) { showError('Erreur : ' + data.error); return; }
@@ -247,7 +250,7 @@
       lines       : lineChoices,
     };
 
-    fetch(base + '/erpconnect/submit/' + docId, {
+    fetch(base + '/erpconnect/api/submit/' + docId, {
       method  : 'POST',
       headers : { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body    : JSON.stringify(body),
@@ -296,7 +299,7 @@
   window.erpRefresh = function () {
     const btn = document.getElementById('erp-refresh-btn');
     btn.disabled = true;
-    fetch(base + '/erpconnect/refresh/' + docId, {
+    fetch(base + '/erpconnect/api/refresh/' + docId, {
       method  : 'POST',
       headers : { 'Accept': 'application/json' },
     })
