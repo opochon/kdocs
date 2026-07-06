@@ -6,16 +6,11 @@
 
 ## 🔒 VERROUS ACTIFS
 
+_Aucun verrou actif. (Table déverrouillée le 2026-07-06 — les verrous 2026-02-04 étaient stale ; store `agent_lock.php` vidé.)_
+
 | Fichier/Zone | Verrouillé par | Depuis | Tâche |
 |--------------|----------------|--------|-------|
-| app/Helpers/FolderTreeHelper.php | Agent-1 | 15:45 | Test E2E (lecture) |
-| templates/partials/ | Agent-2 | 15:50 | Sidebar + étiquettes |
-| templates/layouts/ | Agent-2 | 15:50 | Sidebar |
-| public/css/theme.css | Agent-2 | 15:50 | Styles IBM |
-| public/js/sidebar.js | Agent-2 | 15:50 | Toggle/resize |
-| app/Models/Correspondent.php | Agent-2 | 17:00 | Correspondants enrichis |
-| app/Services/AIProviderService.php | Agent-3 | 16:50 | Fallback Ollama |
-| app/Services/AIClassifierService.php | Agent-3 | 16:50 | Fallback Ollama |
+| — | — | — | — |
 
 ---
 
@@ -23,8 +18,8 @@
 
 | # | Tâche | Assigné à | Status |
 |---|-------|-----------|--------|
-| 1 | Test flux complet E2E consume → validation | Agent-1 | 🔄 en cours |
-| 2 | Sidebar + étiquettes + correspondants enrichis | Agent-2 | 🔄 en cours |
+| 1 | Test flux complet E2E consume → validation | Agent-1 | ✅ clôturé (stale 2026-02-04) |
+| 2 | Sidebar + étiquettes + correspondants enrichis | Agent-2 | ✅ clôturé (stale 2026-02-04) |
 | 3 | Fix fallback Ollama (crédit Claude épuisé) | Agent-3 | ✅ terminé |
 | 5 | Corrections document 52 (boutons V/X, validation) | Agent-3 | ✅ terminé |
 | 6 | Correction date suggestion IA + texte bouton | Agent-3 | ✅ terminé |
@@ -54,6 +49,7 @@
 [2026-02-04 21:15] Agent-3 : FIX TERMINÉ - OCR avant analyse IA dans classifyWithAI() : vérifie et fait OCR si contenu vide/insuffisant avant classification
 [2026-02-04 21:45] Agent-3 : FIX TERMINÉ - Amélioration gestion OCR : timeout 30s, traces d'erreurs, logs détaillés, gestion robuste pour éviter blocage aperçu
 [2026-02-04 19:30] Agent-4 : FIX TERMINÉ - OnlyOffice fonctionnel (Docker Desktop démarré, container kdocs-onlyoffice actif sur port 8080)
+[2026-07-06] Handoff : clear verrous stale (2026-02-04) · push 6 commits locaux · SESSION-STATUS + PROMPT_POST_CLEAR · aucun agent actif
 ```
 
 ---
@@ -102,4 +98,16 @@ Agent-4 : Intégrations / OnlyOffice
 
 ---
 
-*Dernière mise à jour : 2026-02-04 21:45*
+## 🚀 PROCHAIN CHANTIER (libre)
+
+| Priorité | Chantier | Doc | Gate |
+|----------|----------|-----|------|
+| **P1** | K-ERP Connect contre K-Time réel | `K-TIME/docs/SPEC-GED-INTEGRATION.md` · `apps/erpconnect/` | `run-erp-simulation.bat` · `ErpConnectTest` |
+| **P2** | Plugin WinBiz (parité gaps) | `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` | gaps GAP-010..019 selon activation |
+| **P3** | Harness live-IA | `pipeline-ui.spec.ts` · `persona-parcours-ecm.spec.ts` | `run-harness.bat` (2 specs env.) |
+
+Prompt de reprise : **`docs/pilotage/PROMPT_POST_CLEAR.md`**
+
+---
+
+*Dernière mise à jour : 2026-07-06 — clear handoff (verrous vides, prêt à prendre)*

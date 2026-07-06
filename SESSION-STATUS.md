@@ -3,6 +3,37 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-06 — clear coordination + handoff dépôt
+
+Demande : déverrouiller la coordination, synchroniser l'état, pousser les commits locaux,
+rédiger le prompt de reprise post-clear.
+
+| Action | Détail |
+|--------|--------|
+| **COORDINATION** | Verrous 2026-02-04 marqués stale ; table **aucun verrou actif** (2026-07-06) |
+| **Git** | **6 commits** poussés sur `origin/main` (parité 90 %, docs WinBiz/K-Time, plugin **K-ERP Connect**, simulation E2E, gitignore screenshots) |
+| **Passe UI** | Registry **38/38** `covered: true` (Lots A→E) — section 2026-07-01 corrigée ci-dessous |
+| **Artefacts** | `docs/pilotage/PROMPT_POST_CLEAR.md` · `docs/pilotage/SESSION_STATE.md` (GED) |
+
+**État fonctionnel (HEAD après push)** :
+
+| Domaine | Statut | Gate |
+|---------|--------|------|
+| Parité socle hors WinBiz | **~96 %** (26/27 gaps ✅ ; reste GAP-044 Tauri hors repo) | PHPUnit **460** · migration smoke vert |
+| Passe fonctions UI | **38/38** registry | `run-passe-lot-{a..e}.bat` isolés verts |
+| Plugin K-ERP Connect | Scaffold + tests hermétiques + panneau UI + spec Playwright | `ErpConnectTest` · `run-erp-simulation.bat` |
+| Harness complet | **69 passed, 2 failed** (`pipeline-ui`, `persona-parcours-ecm`) | Environnementaux (live IA + `php -S` mono-processus) |
+
+**Prochain pas (priorité)** :
+
+1. **K-ERP Connect en conditions réelles** — activer `ERPCONNECT_APP_ENABLED`, brancher K-Time dev (`K-TIME/docs/SPEC-GED-INTEGRATION.md`), compléter lots GED côté K-Time si endpoints manquants.
+2. **Plugin WinBiz (parité gaps restants)** — voir `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` (flux via K-Time, pas d'écriture directe WinBiz).
+3. **Harness live-IA** — serveur dev multi-processus ou marquage `@live` pour isoler `pipeline-ui` / `persona-parcours-ecm` en batterie.
+
+**Prompt reprise** : coller le contenu de `docs/pilotage/PROMPT_POST_CLEAR.md` dans une nouvelle session Agent.
+
+---
+
 ## Session 2026-07-03 — sprint parité 90 % hors WinBiz (10 gaps comblés)
 
 Demande (`/goal`) : « parité redx 90 % sauf winbiz ». Résultat : **parité hors WinBiz ~96 %**
@@ -102,9 +133,9 @@ Demande : documenter fonctions UI + Playwright strict + personas ; Lots A → D.
 
 **Gates** : `run-passe-lot-a.bat` · `run-passe-lot-b.bat` · `run-passe-lot-c.bat` · `run-passe-lot-d.bat` · `run-harness.bat`
 
-**Couverture registry** : **34/35** — reste **F-ADM-01** (hub admin, oracle fonctionnel).
+**Couverture registry (fin Lot D)** : **34/35** — reste **F-ADM-01**.
 
-**Prochain pas** : Lot E (`admin-hub.spec.ts` — F-ADM-01..05).
+**Suite (2026-07-02)** : Lot E livré → **38/38** (voir section session 2026-07-02).
 
 ---
 
@@ -536,5 +567,6 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-07-03 — sprint parité 90 % hors WinBiz : 10 gaps comblés
-(GAP-022/023/030/033/034/040/041/042/043/045), PHPUnit 460/460, parité hors WinBiz ~96 %.*
+*Dernière mise à jour : 2026-07-06 — clear coordination + push 6 commits (parité 90 %,
+K-ERP Connect, docs WinBiz) · registry UI 38/38 · prompt post-clear dans
+`docs/pilotage/PROMPT_POST_CLEAR.md`.*
