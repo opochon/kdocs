@@ -3,6 +3,68 @@
 > Source de vérité état projet — migration initiale + roadmap produit B0→B1.
 > Dépôt : `F:\DATA\DEVELOPPEMENT\GEDv1`
 
+## Session 2026-07-07 (suite) — K-ERP Connect : ventilation fractionnée + statuts + blocage
+
+Demande : formaliser les specs (plugin / K-Time / link ERP-retour / interfaces / statuts)
+puis mise en œuvre propre. Slice vertical minimal livré des **deux côtés** (GED + K-Time).
+
+**Specs** : `docs/SPEC-ERPCONNECT-VENTILATION.md` (contrat maître) + addendum
+`K-TIME/docs/SPEC-GED-INTEGRATION.md` (lots GED-5..6).
+
+**Décisions (Olivier 2026-07-07)** : statut enum explicite
+(`pending/validated/partially_validated/rejected/blocked`) · blocage exécuté par K-Time,
+GED déclenche + miroir lecture seule · ventilation pré-remplie K-Time puis ajustée · opérations
+WinBiz par allocation = lot suivant (stub `wb_operation_status='none'`).
+
+| Lot | Livrable | Gate |
+|-----|----------|------|
+| **V1** K-Time schéma | migration `088_ged_ventilation.sql` : enum validation étendu + tables `received_invoice_allocations` / `received_invoice_blocks` + audit `partial_validate/block/unblock` | appliquée + vérifiée |
+| **V2** K-Time endpoints | `POST …/received-invoices` (allocations), `POST …/{id}/block`, `POST …/{id}/partial-validate`, `GET …/{id}` enrichi ; service `partialValidate/block` | smoke **live 8091** vert |
+| **V3** GED schéma+service | migration `add_invoice_line_allocations.php` + `erp_links.block_kind/cause` ; `ErpConnectService` (proposition fractionnée, submit allocations, `requestBlock`, refresh miroir) + `KTimeClient::blockReceivedInvoice/partialValidate` | `ErpConnectTest` **23/23** (+5) |
+| **V4** GED UI | `panel.php` : grille de répartition par ligne (Σ=qté), demande de blocage avec cause, miroir statut validé/partiel/invalidé/bloqué | rendu vert |
+| **V5** E2E | `erp-connect.spec.ts` étendu (fractionnement 2 stock+1 fiche, Σ, allocations K-Time = 5 confirmées) | `run-erp-simulation.bat` **VERTE 2/2** |
+
+**Harness (2026-07-07)** : PHPUnit GED **484/484** (3 skipped, +24) · migration smoke **215/0** ·
+K-Time oracles **28/28** (`k-time-web/tests/ged_ventilation_test.php` — service/modèle + endpoints
+HTTP live, runner `run-ged-tests.bat`) · E2E ERP Connect **2/2** (K-Time 8091 + CMD v4 8510 live).
+
+**Tests K-Time matérialisés** : les oracles GED (absents jusqu'ici — `k-time-web/tests/` vide)
+sont désormais réels et runnables : `ged_ventilation_test.php` couvre GED-2 (idempotence),
+GED-5/6 (allocations, block cause/kind, partial-validate, validate→confirmées) au niveau
+service/modèle + les endpoints `/api/ged/*` en HTTP live (create+alloc, show enrichi, block).
+
+**Non-objectifs (lot suivant)** : paiement partiel · opérations WinBiz par allocation ·
+UI complète du cycle de blocage côté K-Time.
+
+---
+
+## Session 2026-07-07 — P1 K-ERP Connect live (Option A)
+
+Demande : lancer le plan post-clear (Option A — K-ERP Connect en conditions réelles).
+
+| Étape | Résultat |
+|-------|----------|
+| **ErpConnectTest** | **18/18 vert** (transport mock, SQLite) |
+| **run-erp-simulation.bat** | **2/2 Playwright vert** (~37 s) — proposition → introduction K-Time → validation manager → « Bon pour accord » GED |
+| **Migration** | `erp_links` appliquée (idempotent) |
+| **Dev `.env`** | `ERPCONNECT_APP_ENABLED=true`, `KTIME_URL=http://127.0.0.1:8091`, `KTIME_GED_API_KEY=ged-dev-key-2026` |
+| **UI fiche doc** | Bouton **K-ERP Connect** dans la modale preview (gated `PluginRegistry::isEnabled('erpconnect')`) |
+| **`.env.example`** | `KTIME_URL` aligné sur port simulation **8091** |
+
+**Gate oracle** : flux complet document seed `900224` (Fournitout SA, 4 lignes ventilation) +
+lien `erp_links` persisté (`validation_status=validated`, `validated_by_name` contient Administrateur).
+
+**Prérequis runtime** : K-Time `php -S 127.0.0.1:8091` (ou service équivalent) + MariaDB 3307 +
+clé `ged_api_key` côté K-Time · GED avec plugin actif (`run-erp-simulation.bat` démarre les deux).
+
+**Prochain pas** :
+
+1. **WinBiz gaps plugin** (Option B) — parité GAP-010..019 selon `WINBIZ-PLUGIN-REPOSITIONNE.md`
+2. **Harness live-IA** (Option C) — `pipeline-ui` + `persona-parcours-ecm`
+3. **Polish ERP** — badge « bon pour accord » sur la fiche doc sans ouvrir le panneau ; webhook K-Time (phase écosystème)
+
+---
+
 ## Session 2026-07-06 — clear coordination + handoff dépôt
 
 Demande : déverrouiller la coordination, synchroniser l'état, pousser les commits locaux,
@@ -567,6 +629,5 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 ---
 
-*Dernière mise à jour : 2026-07-06 — clear coordination + push 6 commits (parité 90 %,
-K-ERP Connect, docs WinBiz) · registry UI 38/38 · prompt post-clear dans
-`docs/pilotage/PROMPT_POST_CLEAR.md`.*
+*Dernière mise à jour : 2026-07-07 — P1 K-ERP Connect live : simulation E2E verte (2/2 PW),
+ErpConnectTest 18/18, plugin activé en dev, entrée UI fiche document.*

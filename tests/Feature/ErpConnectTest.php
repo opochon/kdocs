@@ -84,6 +84,39 @@ class ErpConnectTest extends ApiTestCase
         'validated_at'     => null,
     ];
 
+    /** §4.6 : statut facture — bloquée avec cause (GED-6) */
+    private const KTIME_INVOICE_BLOCKED = [
+        'id'               => 512,
+        'external_ref'     => 'ged:doc:1',
+        'status'           => 'draft',
+        'validation_status' => 'blocked',
+        'validated_by'     => null,
+        'validated_at'     => null,
+        'block'            => ['id' => 9, 'kind' => 'note_credit', 'cause' => 'Prix ligne 1 erroné', 'status' => 'open', 'created_at' => '2026-07-07 09:00:00'],
+        'allocations'      => [],
+        'allocations_summary' => ['total' => 0, 'confirmed' => 0, 'pending' => 0],
+    ];
+
+    /** §4.6 : statut facture — partiellement validée (GED-6) */
+    private const KTIME_INVOICE_PARTIAL = [
+        'id'               => 512,
+        'external_ref'     => 'ged:doc:1',
+        'status'           => 'draft',
+        'validation_status' => 'partially_validated',
+        'validated_by'     => null,
+        'validated_at'     => '2026-07-07 09:10:00',
+        'block'            => null,
+        'allocations_summary' => ['total' => 4, 'confirmed' => 2, 'pending' => 2],
+    ];
+
+    /** §4.3 : réponse blocage (POST …/block) */
+    private const KTIME_BLOCK_OK = [
+        'ok'               => true,
+        'id'               => 512,
+        'validation_status' => 'blocked',
+        'block'            => ['id' => 9, 'kind' => 'note_credit', 'cause' => 'Montant contesté', 'status' => 'open', 'created_at' => '2026-07-07 09:00:00'],
+    ];
+
     // -------------------------------------------------------------------------
     // setUp / helpers
     // -------------------------------------------------------------------------
@@ -144,10 +177,27 @@ class ErpConnectTest extends ApiTestCase
             validation_status TEXT,
             validated_by_name TEXT,
             validated_at      TEXT,
+            block_kind        TEXT,
+            block_cause       TEXT,
             payload_json      TEXT,
             created_at        TEXT NOT NULL,
             updated_at        TEXT NOT NULL,
             UNIQUE (document_id, connector)
+        )');
+
+        $this->pdo->exec('CREATE TABLE IF NOT EXISTS invoice_line_allocations (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            line_item_id    INTEGER NOT NULL,
+            document_id     INTEGER NOT NULL,
+            quantity        REAL NOT NULL,
+            allocation_type TEXT NOT NULL,
+            erp_ref_type    TEXT,
+            erp_ref_id      TEXT,
+            erp_ref_label   TEXT,
+            status          TEXT NOT NULL DEFAULT \'proposed\',
+            confidence      REAL,
+            created_at      TEXT NOT NULL,
+            updated_at      TEXT NOT NULL
         )');
     }
 
@@ -346,8 +396,13 @@ class ErpConnectTest extends ApiTestCase
         $this->assertCount(1, $proposal['lines']);
         $this->assertSame('stock', $proposal['lines'][0]['ventilation'],
             'La ligne code F-889 doit être ventilée "stock" (map supplier_ref)');
-        $this->assertSame([], $proposal['lines'][0]['options'],
-            'Aucune option action pour une ligne déjà ventilée');
+
+        // Proposition d'allocation fractionnée pré-remplie (§2) : une allocation couvrant
+        // toute la quantité, au type dominant K-Time (stock → stock).
+        $allocs = $proposal['lines'][0]['allocations'];
+        $this->assertCount(1, $allocs);
+        $this->assertSame('stock', $allocs[0]['type']);
+        $this->assertSame(100.0, (float) $allocs[0]['qty'], 'La proposition couvre la quantité de ligne');
     }
 
     /**
@@ -372,9 +427,13 @@ class ErpConnectTest extends ApiTestCase
 
         $line = $proposal['lines'][0];
         $this->assertSame('non_introduit', $line['ventilation']);
-        $this->assertContains('stock',        $line['options']);
+        // Options = vocabulaire d'allocation complet (§2)
+        $this->assertContains('stock',         $line['options']);
         $this->assertContains('fiche_travail', $line['options']);
-        $this->assertContains('article_recu', $line['options']);
+        $this->assertContains('recu_conteste', $line['options']);
+        $this->assertContains('non_attribue',  $line['options']);
+        // Proposition par défaut pour une ligne non introduite : non_attribue, pleine quantité
+        $this->assertSame('non_attribue', $line['allocations'][0]['type']);
     }
 
     // =========================================================================
@@ -727,14 +786,189 @@ class ErpConnectTest extends ApiTestCase
     }
 
     // =========================================================================
+    // GED-6 : ventilation fractionnée, blocage, statuts (slice 2026-07-07)
+    // =========================================================================
+
+    /**
+     * submitToKTime envoie les allocations fractionnées par ligne (§4.2) et les persiste
+     * localement (miroir invoice_line_allocations).
+     */
+    public function testSubmitToKTimeSendsAndPersistsAllocations(): void
+    {
+        $capturedPayload = null;
+        $transport = function (string $method, string $url, array $opts) use (&$capturedPayload): array {
+            if ($method === 'POST' && str_contains($url, '/api/ged/received-invoices')) {
+                $capturedPayload = $opts['body'];
+                return ['status' => 200, 'body' => json_encode(self::KTIME_CREATED)];
+            }
+            return ['status' => 404, 'body' => '{}'];
+        };
+
+        $docId  = $this->insertDocument('Facture ventilée');
+        $lineId = $this->insertLine($docId, ['code' => 'VIS-40', 'description' => 'Vis 40mm', 'quantity' => 15.0, 'unit_price' => 4.5]);
+
+        // L'utilisateur fractionne la ligne : 5 stock + 5 facture + 3 fiche + 2 reçu/contesté
+        $choices = [
+            'supplier_id' => 42,
+            'currency'    => 'CHF',
+            'lines'       => [
+                (string) $lineId => ['allocations' => [
+                    ['type' => 'stock',         'qty' => 5],
+                    ['type' => 'facture',       'qty' => 5, 'erp_ref_label' => 'Facture 1042'],
+                    ['type' => 'fiche_travail', 'qty' => 3],
+                    ['type' => 'recu_conteste', 'qty' => 2],
+                ]],
+            ],
+        ];
+
+        $this->makeService($transport)->submitToKTime($docId, $choices);
+
+        // Payload : la ligne porte 4 allocations dont la somme = 15
+        $this->assertIsArray($capturedPayload);
+        $payloadLine = $capturedPayload['lines'][0];
+        $this->assertCount(4, $payloadLine['allocations']);
+        $this->assertSame('stock', $payloadLine['allocations'][0]['type']);
+        $this->assertSame(15.0, array_sum(array_column($payloadLine['allocations'], 'qty')));
+
+        // Miroir local persisté
+        $rows = $this->pdo->query(
+            "SELECT allocation_type, quantity FROM invoice_line_allocations WHERE line_item_id = {$lineId} ORDER BY id"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $this->assertCount(4, $rows);
+        $this->assertSame('stock', $rows[0]['allocation_type']);
+        $this->assertSame(15.0, array_sum(array_map(static fn ($r) => (float) $r['quantity'], $rows)));
+    }
+
+    /**
+     * refreshStatus reflète le statut « bloqué » avec sa cause et met à jour erp_links.
+     */
+    public function testRefreshStatusBlockedMirrorsCause(): void
+    {
+        $transport = $this->makeTransport([
+            '/api/ged/received-invoices/512' => self::KTIME_INVOICE_BLOCKED,
+        ]);
+
+        $docId = $this->insertDocument();
+        $this->insertErpLink($docId, 512, 'draft');
+
+        $result = $this->makeService($transport)->refreshStatus($docId);
+
+        $this->assertTrue($result['blocked']);
+        $this->assertFalse($result['bon_pour_accord']);
+        $this->assertSame('note_credit', $result['block_kind']);
+        $this->assertSame('Prix ligne 1 erroné', $result['block_cause']);
+
+        $row = $this->pdo->query(
+            "SELECT * FROM erp_links WHERE document_id = {$docId} AND connector = 'ktime'"
+        )->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame('blocked', $row['validation_status']);
+        $this->assertSame('note_credit', $row['block_kind']);
+        $this->assertSame('Prix ligne 1 erroné', $row['block_cause']);
+    }
+
+    /**
+     * refreshStatus reflète le statut « partiellement validée ».
+     */
+    public function testRefreshStatusPartiallyValidated(): void
+    {
+        $transport = $this->makeTransport([
+            '/api/ged/received-invoices/512' => self::KTIME_INVOICE_PARTIAL,
+        ]);
+
+        $docId = $this->insertDocument();
+        $this->insertErpLink($docId, 512, 'draft');
+
+        $result = $this->makeService($transport)->refreshStatus($docId);
+
+        $this->assertTrue($result['partially_validated']);
+        $this->assertFalse($result['bon_pour_accord']);
+        $this->assertSame('partially_validated', $result['validation_status']);
+    }
+
+    /**
+     * requestBlock : envoie la demande de blocage à K-Time et met à jour erp_links.
+     */
+    public function testRequestBlockSetsBlocked(): void
+    {
+        $captured = null;
+        $transport = function (string $method, string $url, array $opts) use (&$captured): array {
+            if ($method === 'POST' && str_contains($url, '/block')) {
+                $captured = $opts['body'];
+                return ['status' => 200, 'body' => json_encode(self::KTIME_BLOCK_OK)];
+            }
+            return ['status' => 404, 'body' => '{}'];
+        };
+
+        $docId = $this->insertDocument();
+        $this->insertErpLink($docId, 512, 'draft');
+
+        $result = $this->makeService($transport)->requestBlock($docId, 'note_credit', 'Montant contesté');
+
+        $this->assertTrue($result['ok']);
+        $this->assertSame('note_credit', $captured['kind']);
+        $this->assertSame('Montant contesté', $captured['cause']);
+
+        $row = $this->pdo->query(
+            "SELECT * FROM erp_links WHERE document_id = {$docId} AND connector = 'ktime'"
+        )->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame('blocked', $row['validation_status']);
+        $this->assertSame('note_credit', $row['block_kind']);
+        $this->assertSame('Montant contesté', $row['block_cause']);
+    }
+
+    /**
+     * Contrôleur block : 200 JSON quand la demande aboutit.
+     */
+    public function testControllerBlockReturns200(): void
+    {
+        $transport = function (string $method, string $url, array $opts): array {
+            if ($method === 'POST' && str_contains($url, '/block')) {
+                return ['status' => 200, 'body' => json_encode(self::KTIME_BLOCK_OK)];
+            }
+            return ['status' => 404, 'body' => '{}'];
+        };
+
+        $docId = $this->insertDocument();
+        $this->insertErpLink($docId, 512, 'draft');
+
+        $ctrl     = $this->makeController($this->makeService($transport));
+        $response = $ctrl->block(
+            $this->createMockRequest('POST', [], ['kind' => 'note_credit', 'cause' => 'Montant contesté']),
+            $this->createMockResponse(),
+            ['documentId' => (string) $docId]
+        );
+
+        $this->assertSame(200, $response->getStatusCode());
+        $data = $this->assertJsonResponse($response);
+        $this->assertSame('blocked', $data['validation_status']);
+    }
+
+    // =========================================================================
     // PluginRegistry
     // =========================================================================
 
     /**
      * Vérifie que le plugin est désactivé par défaut (ERPCONNECT_APP_ENABLED non posé).
+     *
+     * Hermétique : la variable peut être posée au niveau OS (harness de simulation).
+     * On la purge le temps de l'assertion du défaut, puis on la restaure.
      */
     public function testPluginRegistryDefaultsToDisabledForErpConnect(): void
     {
-        $this->assertFalse(PluginRegistry::isEnabled('erpconnect'));
+        $saved     = getenv('ERPCONNECT_APP_ENABLED');
+        $savedEnv  = $_ENV['ERPCONNECT_APP_ENABLED'] ?? null;
+        putenv('ERPCONNECT_APP_ENABLED');
+        unset($_ENV['ERPCONNECT_APP_ENABLED'], $_SERVER['ERPCONNECT_APP_ENABLED']);
+
+        try {
+            $this->assertFalse(PluginRegistry::isEnabled('erpconnect'));
+        } finally {
+            if ($saved !== false) {
+                putenv('ERPCONNECT_APP_ENABLED=' . $saved);
+            }
+            if ($savedEnv !== null) {
+                $_ENV['ERPCONNECT_APP_ENABLED'] = $savedEnv;
+            }
+        }
     }
 }

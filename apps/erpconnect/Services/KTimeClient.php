@@ -119,6 +119,36 @@ class KTimeClient
         return $this->request('GET', '/api/ged/received-invoices/' . $id);
     }
 
+    /**
+     * POST /api/ged/received-invoices/{id}/block — GED-6
+     * Demande de blocage AVEC cause (kind ∈ note_credit|correction_facture|blocage_paiement).
+     *
+     * @return array{ok:bool, id:int, validation_status:string, block:array<string,mixed>|null}
+     * @throws KTimeUnavailableException
+     */
+    public function blockReceivedInvoice(int $id, string $kind, string $cause): array
+    {
+        return $this->request('POST', '/api/ged/received-invoices/' . $id . '/block', [
+            'kind'  => $kind,
+            'cause' => $cause,
+        ]);
+    }
+
+    /**
+     * POST /api/ged/received-invoices/{id}/partial-validate — GED-6
+     *
+     * @param list<int> $confirmedAllocationIds
+     * @return array{ok:bool, id:int, validation_status:string, confirmed:int, pending:int}
+     * @throws KTimeUnavailableException
+     */
+    public function partialValidate(int $id, array $confirmedAllocationIds, ?string $note = null): array
+    {
+        return $this->request('POST', '/api/ged/received-invoices/' . $id . '/partial-validate', [
+            'confirmed_allocation_ids' => array_values($confirmedAllocationIds),
+            'note'                     => $note,
+        ]);
+    }
+
     // -------------------------------------------------------------------------
     // Internals
     // -------------------------------------------------------------------------

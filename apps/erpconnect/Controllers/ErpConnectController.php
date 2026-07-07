@@ -119,6 +119,44 @@ class ErpConnectController
     }
 
     /**
+     * POST /erpconnect/api/block/{documentId}
+     *
+     * Demande un blocage AVEC cause dans K-Time.
+     * Corps JSON : {kind: 'note_credit'|'correction_facture'|'blocage_paiement', cause: string}
+     *
+     * @param array<string,mixed> $args
+     */
+    public function block(object $request, object $response, array $args = []): object
+    {
+        $documentId = (int) ($args['documentId'] ?? 0);
+        if ($documentId <= 0) {
+            $response->getBody()->write(json_encode(['error' => 'documentId invalide']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $body  = $request->getParsedBody() ?? [];
+        $kind  = (string) ($body['kind'] ?? '');
+        $cause = (string) ($body['cause'] ?? '');
+
+        try {
+            $result = $this->makeService()->requestBlock($documentId, $kind, $cause);
+        } catch (KTimeUnavailableException $e) {
+            $response->getBody()->write(json_encode([
+                'error'           => 'K-Time indisponible',
+                'ktime_available' => false,
+                'detail'          => $e->getMessage(),
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
+        } catch (\Throwable $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+
+        $response->getBody()->write(json_encode($result, JSON_UNESCAPED_UNICODE));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
      * GET /erpconnect/panel/{documentId}
      *
      * Affiche le panneau HTML de proposition ERP.

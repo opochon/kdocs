@@ -6,7 +6,7 @@
 
 ## 🔒 VERROUS ACTIFS
 
-_Aucun verrou actif. (Table déverrouillée le 2026-07-06 — les verrous 2026-02-04 étaient stale ; store `agent_lock.php` vidé.)_
+_Aucun verrou actif. (Session P1 K-ERP Connect clôturée 2026-07-07.)_
 
 | Fichier/Zone | Verrouillé par | Depuis | Tâche |
 |--------------|----------------|--------|-------|
@@ -50,6 +50,7 @@ _Aucun verrou actif. (Table déverrouillée le 2026-07-06 — les verrous 2026-0
 [2026-02-04 21:45] Agent-3 : FIX TERMINÉ - Amélioration gestion OCR : timeout 30s, traces d'erreurs, logs détaillés, gestion robuste pour éviter blocage aperçu
 [2026-02-04 19:30] Agent-4 : FIX TERMINÉ - OnlyOffice fonctionnel (Docker Desktop démarré, container kdocs-onlyoffice actif sur port 8080)
 [2026-07-06] Handoff : clear verrous stale (2026-02-04) · push 6 commits locaux · SESSION-STATUS + PROMPT_POST_CLEAR · aucun agent actif
+[2026-07-07] Agent Cursor : P1 K-ERP Connect live — simulation 2/2 vert, plugin activé dev, bouton UI fiche doc
 ```
 
 ---
@@ -102,12 +103,12 @@ Agent-4 : Intégrations / OnlyOffice
 
 | Priorité | Chantier | Doc | Gate |
 |----------|----------|-----|------|
-| **P1** | K-ERP Connect contre K-Time réel | `K-TIME/docs/SPEC-GED-INTEGRATION.md` · `apps/erpconnect/` | `run-erp-simulation.bat` · `ErpConnectTest` |
-| **P2** | Plugin WinBiz (parité gaps) | `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` | gaps GAP-010..019 selon activation |
+| **P1** | ~~K-ERP Connect contre K-Time réel~~ **✅ livré 2026-07-07** | `run-erp-simulation.bat` · `ErpConnectTest` | **2/2 PW + 18/18 unit** |
+| **P2** | Plugin WinBiz (parité gaps) | `docs/WINBIZ-PLUGIN-REPOSITIONNE.md` | gaps GAP-010..019 |
 | **P3** | Harness live-IA | `pipeline-ui.spec.ts` · `persona-parcours-ecm.spec.ts` | `run-harness.bat` (2 specs env.) |
 
 Prompt de reprise : **`docs/pilotage/PROMPT_POST_CLEAR.md`**
 
 ---
 
-*Dernière mise à jour : 2026-07-06 — clear handoff (verrous vides, prêt à prendre)*
+*Dernière mise à jour : 2026-07-07 — P1 K-ERP Connect live livré*

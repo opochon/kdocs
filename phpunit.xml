@@ -51,5 +51,8 @@
         <!-- Apprentissage classification neutralisé dans la suite : évite d'écrire
              storage/training.json pendant les tests (hermétique). -->
         <env name="CLASSIFY_LEARNING_ENABLED" value="false"/>
+        <!-- Plugin K-ERP Connect : désactivé par défaut dans la suite (force, car la
+             variable peut être posée au niveau OS pour le harness de simulation). -->
+        <env name="ERPCONNECT_APP_ENABLED" value="false" force="true"/>
     </php>
 </phpunit>

@@ -755,6 +755,10 @@ function renderDocumentMetadata(doc) {
                     </svg>
                     Suggestion : analyser
                 </button>
+                ${ERPCONNECT_ENABLED ? `<a href="${BASE_PATH}/erpconnect/panel/${doc.id}" target="_blank" rel="noopener"
+                        class="btn btn-secondary text-xs" title="Liaison ERP K-Time (introduction facture)">
+                    K-ERP Connect
+                </a>` : ''}
                 <span id="ai-confidence-badge" class="text-xs px-2 py-0.5 rounded-full hidden" title="Degré de certitude de la classification suggérée"></span>
                 <span id="cmdv4-freshness-badge" class="text-xs px-2 py-0.5 rounded-full hidden" title="Fraîcheur de l'analyse CmdV4"></span>
                 <div class="flex gap-1">
@@ -2035,6 +2039,7 @@ function showNotification(message, type = 'info') {
 const BASE_PATH = '<?= $base ?>';
 const QDRANT_UI_ENABLED = <?= isQdrantUiEnabled() ? 'true' : 'false' ?>;
 const SMQ_ENABLED = <?= \KDocs\Core\PluginRegistry::isEnabled('smq') ? 'true' : 'false' ?>;
+const ERPCONNECT_ENABLED = <?= \KDocs\Core\PluginRegistry::isEnabled('erpconnect') ? 'true' : 'false' ?>;
 
 // Charger les documents d'un dossier via AJAX (appelé par les liens de la sidebar)
 function loadFolderDocuments(path, updateUrl = true) {

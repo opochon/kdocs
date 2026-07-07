@@ -67,10 +67,21 @@ test.describe('erp-connect — simulation GED ↔ K-Time', () => {
     await expect(badges.nth(2)).toHaveText('Vente au comptant'); // CAISSE-ART
     await expect(badges.nth(3)).toHaveText('Non introduit');     // CABLE-X
 
-    // Ligne inconnue : l'utilisateur choisit « Mettre en stock »
-    const actionSelect = page.locator('.erp-line-action');
-    await expect(actionSelect).toHaveCount(1);
-    await actionSelect.selectOption('stock');
+    // Ventilation fractionnée : un éditeur d'allocation pré-rempli par ligne (§2).
+    const editors = page.locator('.erp-alloc-editor');
+    await expect(editors).toHaveCount(4);
+
+    // Ligne inconnue (CABLE-X, idx 3, qté 3) : proposée « non attribué ».
+    // L'utilisateur la fractionne : 2 en stock + 1 en fiche de travail (Σ = 3).
+    const lastEditor = editors.nth(3);
+    await lastEditor.locator('.erp-alloc-type').first().selectOption('stock');
+    await lastEditor.locator('.erp-alloc-qty').first().fill('2');
+    await lastEditor.locator('.erp-alloc-add').click();
+    await lastEditor.locator('.erp-alloc-type').nth(1).selectOption('fiche_travail');
+    await lastEditor.locator('.erp-alloc-qty').nth(1).fill('1');
+    // La somme des répartitions doit égaler la quantité de la ligne (indicateur vert).
+    await expect(lastEditor.locator('.erp-alloc-sum')).toHaveClass(/erp-alloc-sum--ok/);
+    await expect(lastEditor.locator('.erp-alloc-sum')).toContainText('3 / 3');
 
     await page.screenshot({ path: path.join(SHOTS, 'erp-connect-proposition.png'), fullPage: true });
 
@@ -115,5 +126,17 @@ test.describe('erp-connect — simulation GED ↔ K-Time', () => {
     expect(link.external_ref).toBe(`ged:doc:${docId}`);
     expect(link.validation_status).toBe('validated');
     expect(link.validated_by_name).toContain('Administrateur');
+
+    // La ventilation fractionnée a bien été persistée côté K-Time : 3 lignes à 1
+    // allocation + la ligne CABLE-X fractionnée en 2 → 5 allocations, toutes confirmées
+    // après la validation totale (§4.2 + §4.5).
+    const show = await page.request.get(
+      `${KTIME}/api/ged/received-invoices/${link.external_id}`,
+      { headers: { 'X-Api-Key': KTIME_KEY }, timeout: 5_000 },
+    );
+    expect(show.ok()).toBeTruthy();
+    const inv = await show.json();
+    expect(inv.allocations_summary.total).toBe(5);
+    expect(inv.allocations_summary.confirmed).toBe(5);
   });
 });

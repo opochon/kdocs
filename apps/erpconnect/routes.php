@@ -22,6 +22,10 @@ return function (RouteCollectorProxy $app): void {
         $group->post('/api/refresh/{documentId:[0-9]+}',
             'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:refresh');
 
+        /** POST /erpconnect/api/block/{documentId} — demande de blocage avec cause */
+        $group->post('/api/block/{documentId:[0-9]+}',
+            'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:block');
+
         /** GET  /erpconnect/panel/{documentId} — panneau HTML */
         $group->get('/panel/{documentId:[0-9]+}',
             'KDocs\\Apps\\Erpconnect\\Controllers\\ErpConnectController:panel');

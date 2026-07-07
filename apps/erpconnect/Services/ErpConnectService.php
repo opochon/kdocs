@@ -196,23 +196,33 @@ class ErpConnectService
         $totalHt  = isset($userChoices['total_ht']) ? (float) $userChoices['total_ht'] : $totalTtc;
         $totalTva = round($totalTtc - $totalHt, 2);
 
-        // Lignes avec les choix utilisateur
-        $lineChoices = $userChoices['lines'] ?? [];
-        $lines = array_map(static function (array $line) use ($lineChoices): array {
+        // Lignes + allocations fractionnées (choix utilisateur du panneau)
+        $lineChoices    = $userChoices['lines'] ?? [];
+        $lines          = [];
+        $allocToPersist = [];
+        foreach ($analysis['lines'] as $line) {
             $lineId = (string) ($line['id'] ?? '');
             $choice = is_array($lineChoices[$lineId] ?? null) ? $lineChoices[$lineId] : [];
+            $qty    = (float) ($line['quantity'] ?? 1);
 
-            return [
+            $allocations = $this->normalizeAllocations($choice['allocations'] ?? null, $qty);
+
+            $lines[] = [
                 'description'           => (string) ($line['description'] ?? ''),
-                'qty'                   => (float) ($line['quantity'] ?? 1),
+                'qty'                   => $qty,
                 'unit_price'            => (float) ($line['unit_price'] ?? 0.0),
                 'tva_rate'              => (float) ($line['tax_rate'] ?? 0.0),
                 'supplier_article_code' => $line['code'] ?? null,
-                'action'                => $choice['action'] ?? null,
+                'allocations'           => $allocations,
             ];
-        }, $analysis['lines']);
 
-        // Payload spec §3.5
+            // Persistance locale (miroir) — nécessite un id invoice_line_items réel.
+            if (($line['id'] ?? null) !== null && $line['id'] !== '') {
+                $allocToPersist[(int) $line['id']] = $allocations;
+            }
+        }
+
+        // Payload spec §4.2
         $payload = [
             'external_ref'  => 'ged:doc:' . $documentId,
             'supplier'      => $supplier,
@@ -229,6 +239,7 @@ class ErpConnectService
 
         $response = $this->ktime->createReceivedInvoice($payload);
 
+        $this->persistLocalAllocations($documentId, $allocToPersist);
         $this->upsertErpLink($documentId, $response, $payload);
 
         return $response;
@@ -257,27 +268,73 @@ class ErpConnectService
         $validatedByName  = $invoice['validated_by']['name'] ?? null;
         $validatedAt      = $invoice['validated_at'] ?? null;
         $status           = $invoice['status'] ?? (string) ($link['status'] ?? 'draft');
+        $block            = is_array($invoice['block'] ?? null) ? $invoice['block'] : null;
+        $blockKind        = $block['kind']  ?? null;
+        $blockCause       = $block['cause'] ?? null;
 
         $this->db->prepare(
             'UPDATE erp_links
-             SET status = ?, validation_status = ?, validated_by_name = ?, validated_at = ?, updated_at = ?
+             SET status = ?, validation_status = ?, validated_by_name = ?, validated_at = ?,
+                 block_kind = ?, block_cause = ?, updated_at = ?
              WHERE document_id = ? AND connector = ?'
         )->execute([
             $status,
             $validationStatus,
             $validatedByName,
             $validatedAt,
+            $blockKind,
+            $blockCause,
             date('Y-m-d H:i:s'),
             $documentId,
             'ktime',
         ]);
 
         return array_merge($invoice, [
-            'document_id'       => $documentId,
-            'bon_pour_accord'   => $validationStatus === 'validated',
-            'validated_by_name' => $validatedByName,
-            'validated_at'      => $validatedAt,
+            'document_id'         => $documentId,
+            'bon_pour_accord'     => $validationStatus === 'validated',
+            'partially_validated' => $validationStatus === 'partially_validated',
+            'blocked'             => $validationStatus === 'blocked',
+            'block_kind'          => $blockKind,
+            'block_cause'         => $blockCause,
+            'validated_by_name'   => $validatedByName,
+            'validated_at'        => $validatedAt,
         ]);
+    }
+
+    /**
+     * Demande un blocage AVEC cause dans K-Time (kind ∈ note_credit|correction_facture|
+     * blocage_paiement). K-Time exécute le cycle ; la GED reflète le statut.
+     *
+     * @return array<string,mixed>
+     * @throws KTimeUnavailableException
+     */
+    public function requestBlock(int $documentId, string $kind, string $cause): array
+    {
+        $link = $this->findErpLink($documentId);
+        if ($link === null) {
+            return ['error' => 'Aucun lien ERP pour ce document', 'document_id' => $documentId];
+        }
+
+        $externalId = (int) $link['external_id'];
+        $response   = $this->ktime->blockReceivedInvoice($externalId, $kind, $cause);
+
+        if (($response['ok'] ?? false) === true) {
+            $block = is_array($response['block'] ?? null) ? $response['block'] : null;
+            $this->db->prepare(
+                'UPDATE erp_links
+                 SET validation_status = ?, block_kind = ?, block_cause = ?, updated_at = ?
+                 WHERE document_id = ? AND connector = ?'
+            )->execute([
+                'blocked',
+                $block['kind']  ?? $kind,
+                $block['cause'] ?? $cause,
+                date('Y-m-d H:i:s'),
+                $documentId,
+                'ktime',
+            ]);
+        }
+
+        return array_merge($response, ['document_id' => $documentId]);
     }
 
     // =========================================================================
@@ -451,30 +508,142 @@ class ErpConnectService
      */
     private function linesWithoutVentilation(array $lines): array
     {
-        return array_map(static fn (array $line): array => array_merge($line, [
-            'ventilation' => 'non_introduit',
-            'options'     => ['stock', 'fiche_travail', 'article_recu'],
-        ]), $lines);
+        return array_map(function (array $line): array {
+            $qty = (float) ($line['quantity'] ?? 1);
+            return array_merge($line, [
+                'ventilation' => 'non_introduit',
+                'options'     => self::ALLOCATION_TYPES,
+                'allocations' => [
+                    ['type' => 'non_attribue', 'qty' => $qty, 'erp_ref_label' => null],
+                ],
+            ]);
+        }, $lines);
     }
 
     /**
+     * Ajoute pour chaque ligne la ventilation K-Time + une PROPOSITION d'allocation
+     * fractionnée pré-remplie (une allocation couvrant la quantité totale, au type
+     * dominant K-Time). L'utilisateur ajuste/fractionne ensuite dans le panneau.
+     *
      * @param list<array<string,mixed>> $lines
      * @param array<string,string> $ventilationMap
      * @return list<array<string,mixed>>
      */
     private function ventilateLines(array $lines, array $ventilationMap): array
     {
-        return array_map(static function (array $line) use ($ventilationMap): array {
+        return array_map(function (array $line) use ($ventilationMap): array {
             $code = (string) ($line['code'] ?? '');
-            $vent = $ventilationMap[$code] ?? 'non_introduit';
+            $pid  = isset($line['product_id']) ? 'pid:' . $line['product_id'] : '';
+            $vent = $ventilationMap[$code] ?? ($pid !== '' ? ($ventilationMap[$pid] ?? 'non_introduit') : 'non_introduit');
+            $qty  = (float) ($line['quantity'] ?? 1);
+            $type = $this->mapVentilationToAllocationType($vent);
 
             return array_merge($line, [
                 'ventilation' => $vent,
-                'options'     => $vent === 'non_introduit'
-                    ? ['stock', 'fiche_travail', 'article_recu']
-                    : [],
+                'options'     => self::ALLOCATION_TYPES,
+                'allocations' => [
+                    ['type' => $type, 'qty' => $qty, 'erp_ref_label' => null],
+                ],
             ]);
         }, $lines);
+    }
+
+    /** Vocabulaire d'allocation (spec §2) — proposé au panneau comme options. */
+    private const ALLOCATION_TYPES = [
+        'stock', 'facture', 'fiche_travail', 'vente_comptant', 'recu_conteste', 'non_attribue',
+    ];
+
+    /** Traduit une ventilation K-Time (§3.3) en allocation_type GED (§2). */
+    private function mapVentilationToAllocationType(string $vent): string
+    {
+        return match ($vent) {
+            'stock'          => 'stock',
+            'facture'        => 'facture',
+            'fiche_travail'  => 'fiche_travail',
+            'vente_comptant' => 'vente_comptant',
+            default          => 'non_attribue', // non_introduit / inconnu
+        };
+    }
+
+    /**
+     * Normalise les allocations d'une ligne (issues du panneau) : type valide, qty > 0.
+     * Si aucune allocation fournie, propose une allocation unique 'non_attribue' couvrant tout.
+     *
+     * @param mixed $raw
+     * @return list<array{type:string, qty:float, erp_ref_type:?string, erp_ref_id:?string, erp_ref_label:?string}>
+     */
+    private function normalizeAllocations(mixed $raw, float $fullQty): array
+    {
+        $out = [];
+        if (is_array($raw)) {
+            foreach ($raw as $a) {
+                if (!is_array($a)) {
+                    continue;
+                }
+                $type = (string) ($a['type'] ?? 'non_attribue');
+                if (!in_array($type, self::ALLOCATION_TYPES, true)) {
+                    $type = 'non_attribue';
+                }
+                $qty = (float) ($a['qty'] ?? 0);
+                if ($qty <= 0) {
+                    continue;
+                }
+                $out[] = [
+                    'type'          => $type,
+                    'qty'           => $qty,
+                    'erp_ref_type'  => isset($a['erp_ref_type']) && $a['erp_ref_type'] !== '' ? (string) $a['erp_ref_type'] : null,
+                    'erp_ref_id'    => isset($a['erp_ref_id']) && $a['erp_ref_id'] !== '' ? (string) $a['erp_ref_id'] : null,
+                    'erp_ref_label' => isset($a['erp_ref_label']) && $a['erp_ref_label'] !== '' ? (string) $a['erp_ref_label'] : null,
+                ];
+            }
+        }
+        if ($out === [] && $fullQty > 0) {
+            $out[] = ['type' => 'non_attribue', 'qty' => $fullQty, 'erp_ref_type' => null, 'erp_ref_id' => null, 'erp_ref_label' => null];
+        }
+        return $out;
+    }
+
+    /**
+     * Persiste (miroir local) les allocations par ligne dans invoice_line_allocations.
+     * Remplace les allocations existantes de chaque ligne. Best-effort : n'échoue pas
+     * si la table est absente (tests hermétiques sans la migration).
+     *
+     * @param array<int, list<array<string,mixed>>> $byLineId
+     */
+    private function persistLocalAllocations(int $documentId, array $byLineId): void
+    {
+        if ($byLineId === []) {
+            return;
+        }
+        try {
+            $now = date('Y-m-d H:i:s');
+            $del = $this->db->prepare('DELETE FROM invoice_line_allocations WHERE line_item_id = ?');
+            $ins = $this->db->prepare(
+                'INSERT INTO invoice_line_allocations
+                    (line_item_id, document_id, quantity, allocation_type,
+                     erp_ref_type, erp_ref_id, erp_ref_label, status, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            );
+            foreach ($byLineId as $lineId => $allocations) {
+                $del->execute([$lineId]);
+                foreach ($allocations as $a) {
+                    $ins->execute([
+                        $lineId,
+                        $documentId,
+                        (float) ($a['qty'] ?? 0),
+                        (string) ($a['type'] ?? 'non_attribue'),
+                        $a['erp_ref_type']  ?? null,
+                        $a['erp_ref_id']    ?? null,
+                        $a['erp_ref_label'] ?? null,
+                        'proposed',
+                        $now,
+                        $now,
+                    ]);
+                }
+            }
+        } catch (\Throwable) {
+            // Table absente (SQLite minimal en test) : miroir local ignoré, K-Time fait foi.
+        }
     }
 
     /** @return array<string,mixed>|null */

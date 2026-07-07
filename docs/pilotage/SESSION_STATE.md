@@ -6,55 +6,41 @@
 
 | Champ | Valeur |
 |-------|--------|
-| Date | 2026-07-06 |
-| Sujet | Clear coordination + handoff dépôt + push 6 commits |
-| HEAD | voir `git log -1` après pull |
+| Date | 2026-07-07 |
+| Sujet | P1 K-ERP Connect live (Option A post-clear) |
+| Gate | `run-erp-simulation.bat` **VERTE** · `ErpConnectTest` **18/18** |
 
 ## État actuel
 
-### Coordination
-- **Aucun verrou actif** (`COORDINATION.md`, 2026-07-06)
-- Verrous 2026-02-04 = stale, ignorés
+### K-ERP Connect — opérationnel en dev
+- Plugin `apps/erpconnect/` branché sur K-Time `/api/ged/*` (port **8091**)
+- `.env` dev : `ERPCONNECT_APP_ENABLED=true`, clé `ged-dev-key-2026`
+- UI : bouton **K-ERP Connect** dans modale fiche document → `/erpconnect/panel/{id}`
+- Table `erp_links` migrée · seed simulation `tools/erp-sim-seed.php` (idempotent)
 
-### Fonctionnel livré
-| Domaine | Statut |
-|---------|--------|
-| Passe UI A→E | **38/38** registry `covered: true` |
-| Parité hors WinBiz | **~96 %** (PHPUnit 460) |
-| K-ERP Connect | Plugin `apps/erpconnect/` + tests + simulation E2E |
-| WinBiz gaps | **9 gaps** plugin — spec `WINBIZ-PLUGIN-REPOSITIONNE.md` |
-| Harness Playwright | 69/71 vert ; 2 specs live-IA environnementales |
-
-### Commits poussés (session clear)
-1. `1882a83` — sprint parité 90 % hors WinBiz
-2. `4fd3155` / `c762126` — docs WinBiz / K-Time
-3. `e0ad61f` — plugin K-ERP Connect
-4. `add6c08` — simulation E2E GED ↔ K-Time
-5. `27091f5` — gitignore screenshots Playwright
-6. *(+ commit handoff docs 2026-07-06)*
+### Gates
+| Gate | Résultat |
+|------|----------|
+| ErpConnectTest | 18/18 |
+| erp-connect.spec.ts | 2/2 (~23 s) |
+| test.bat check | smoke HTTP rouge si serveur GED arrêté (env.) |
 
 ## Prochain chantier (libre)
 
-1. **P1** — K-ERP Connect contre K-Time réel (`SPEC-GED-INTEGRATION.md`)
-2. **P2** — Plugin WinBiz (parité gaps restants)
-3. **P3** — Fiabiliser `pipeline-ui` + `persona-parcours-ecm` en harness
+1. **P2 — Plugin WinBiz** — gaps GAP-010..019 (`WINBIZ-PLUGIN-REPOSITIONNE.md`)
+2. **P3 — Harness live-IA** — `pipeline-ui` + `persona-parcours-ecm`
+3. **Polish ERP** — badge bon pour accord sur fiche doc sans panneau séparé
 
-**Prompt reprise** : `docs/pilotage/PROMPT_POST_CLEAR.md`
+**Prompt reprise** : `docs/pilotage/PROMPT_POST_CLEAR.md` (mettre Option B en tête)
 
-## Fichiers clés
+## Commandes
 
-```
-SESSION-STATUS.md              État projet (canonique)
-COORDINATION.md                Verrous agents
-docs/PASSE-FONCTIONS-UI.md     Passe UI + lots Playwright
-docs/WINBIZ-PLUGIN-REPOSITIONNE.md   Spec plugin ERP
-apps/erpconnect/                 Plugin K-ERP Connect
-tests/visual/specs/helpers/functions-registry.ts
-run-passe-lot-{a..e}.bat
+```cmd
+cd F:\DATA\DEVELOPPEMENT\GEDv1
 run-erp-simulation.bat
-run-harness.bat
+vendor\bin\phpunit tests\Feature\ErpConnectTest.php
 ```
 
 ---
 
-*Dernière mise à jour : 2026-07-06*
+*Dernière mise à jour : 2026-07-07*

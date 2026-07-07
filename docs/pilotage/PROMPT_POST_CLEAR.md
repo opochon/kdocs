@@ -19,19 +19,12 @@ Lecture obligatoire (ordre) :
 État livré (ne pas refaire) :
 - Passe fonctions UI Lots A→E : registry 38/38 covered (run-passe-lot-{a..e}.bat)
 - Sprint parité 90 % hors WinBiz : ~96 %, PHPUnit 460, 10 gaps comblés (2026-07-03)
-- Plugin K-ERP Connect : apps/erpconnect/ + ErpConnectTest + erp-connect.spec.ts + run-erp-simulation.bat
-- Coordination cleared 2026-07-06 ; main synchronisée origin
+- **K-ERP Connect live (2026-07-07)** : plugin activé dev, simulation 2/2 vert, bouton UI fiche doc
+- Coordination cleared ; main synchronisée origin
 
 Chantier à prendre (choisir UN lot, annoncer avant de coder) :
 
-**Option A — K-ERP Connect live (recommandé P1)**
-- Activer ERPCONNECT_APP_ENABLED en dev
-- Brancher KTimeClient sur k-time-web dev (SPEC-GED-INTEGRATION lots GED-1→4)
-- Panneau /erpconnect/panel/{id} : proposal → submit → refresh statut validation
-- Gate : ErpConnectTest vert + run-erp-simulation.bat + erp-connect.spec.ts
-- Ne jamais écrire dans WinBiz depuis la GED (K-Time fait foi)
-
-**Option B — Plugin WinBiz / parité gaps**
+**Option B — Plugin WinBiz / parité gaps (recommandé P2)**
 - Suivre docs/WINBIZ-PLUGIN-REPOSITIONNE.md (addendum 2026-07-03 : flux via K-Time)
 - Instrument-first : test PHPUnit ou Playwright avant implémentation
 - Mettre à jour docs/PARITE-REDX-TESTS.md + DELTA-REDX.md si gap comblé
