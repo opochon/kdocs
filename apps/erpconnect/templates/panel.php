@@ -65,7 +65,7 @@
     <!-- Tableau lignes + ventilation fractionnée -->
     <div class="ds-card">
       <div style="font-weight:600;margin-bottom:.75rem;">Lignes de facture &mdash; ventilation</div>
-      <table class="erp-table" id="erp-lines-table">
+      <div class="ds-table-wrap"><table class="erp-table ds-table" id="erp-lines-table">
         <thead>
           <tr>
             <th>Description</th>
@@ -78,7 +78,7 @@
         <tbody id="erp-lines-body">
           <tr><td colspan="5" style="color:var(--dim,#555);font-style:italic">Chargement&hellip;</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p style="font-size:.75rem;color:var(--dim,#555);margin:.5rem 0 0;">
         Répartissez chaque ligne : stock, facture, fiche de travail, vente au comptant,
         reçu/contesté ou non attribué. La somme doit égaler la quantité de la ligne.

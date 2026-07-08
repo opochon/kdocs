@@ -163,3 +163,6 @@ claude_api_key.txt
 # Connectors data
 /connectors/*/data/
 /connectors/*/*.cache
+
+# Captures d audit visuel (artefacts, non versionnes)
+tests/visual/audit/

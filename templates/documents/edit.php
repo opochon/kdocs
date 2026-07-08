@@ -125,7 +125,7 @@ $base = Config::basePath();
                            class="mr-2"
                            onchange="this.parentElement.style.background = this.checked ? 'var(--accent-soft)' : ''; this.parentElement.style.borderColor = this.checked ? 'var(--accent)' : 'var(--border)';">
                     <span class="inline-block px-2 py-1 rounded-full text-xs font-medium"
-                          style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
+                          style="--_tc:<?= htmlspecialchars($tag['color'] ?? '') ?>; background-color:color-mix(in srgb,var(--_tc,var(--dim)) 20%,transparent); color:var(--_tc,var(--dim))">
                         <?= htmlspecialchars($tag['name']) ?>
                     </span>
                 </label>

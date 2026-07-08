@@ -11,7 +11,7 @@
     </div>
 
     <div class="ds-card shadow overflow-hidden">
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Tag</th>
@@ -34,7 +34,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <span class="inline-block px-3 py-1 text-xs rounded-full mr-2"
-                                  style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
+                                  style="--_tc:<?= htmlspecialchars($tag['color'] ?? '') ?>; background-color:color-mix(in srgb,var(--_tc,var(--dim)) 20%,transparent); color:var(--_tc,var(--dim))">
                                 <?= htmlspecialchars($tag['name']) ?>
                             </span>
                         </div>

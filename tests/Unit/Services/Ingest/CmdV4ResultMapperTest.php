@@ -154,4 +154,4 @@ class CmdV4ResultMapperTest extends TestCase
         $this->assertSame(1, substr_count($content, '[[CMDV4-ANNEXE]]'), 'une seule section annexe');
     }
 }
-
+

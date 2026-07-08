@@ -1,0 +1,258 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  KARBONIC v2 — TOKENS COMMUNS (source de vérité inter-apps)
+ * ───────────────────────────────────────────────────────────────────────────
+ *  Fichier MAÎTRE. Copié à l'identique dans chaque app Karbonic :
+ *    - GED / K-Docs  : public/css/karbonic-tokens.css
+ *    - K-Time        : k-time-web/public/css/karbonic-tokens.css
+ *  On ne le modifie QUE dans le maître, puis on recopie. Doc : DESIGN-SYSTEM-KARBONIC.md.
+ *
+ *  DIRECTION v2 (décision de réconciliation, 2026-07-08) :
+ *    • Chrome  MONOCHROME (héritage GED) — nav/header neutres, primaire ANTHRACITE,
+ *      bleu réservé au focus/liens/sélection, jamais décoratif.
+ *    • Contenu ENRICHI (héritage K-Time) — système de STATUTS colorés pour les
+ *      données (planned/active/validated/pending/danger/neutral/invoiced).
+ *    • Police  PILE SYSTÈME.   Icônes : SVG inline (heroicons/lucide).
+ *    • Rayon   8px (base) / 6px (petit) — entre les 6px de GED et les 12px de K-Time.
+ *
+ *  STRATÉGIE DE NOMMAGE (churn quasi nul) :
+ *    Les noms CANONIQUES sont non-préfixés (--app-bg, --ink, --accent, --primary,
+ *    --status-*). Chaque app garde sa couche d'ALIAS legacy locale qui pointe vers
+ *    ces canoniques (GED : theme.css/app.css déjà aliasés ; K-Time : --kt-* → §5
+ *    ci-dessous). Basculer une app = charger ce fichier + garder ses alias.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/* =========================================================================
+   0. TYPOGRAPHIE (pile système — décision v2)
+   ========================================================================= */
+:root {
+  --font-sans: -apple-system, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+  --font-mono: "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+
+  /* Échelle (doc §3). Corps 13px, titres de section 15/650, labels 10.5 MAJ. */
+  --text-h1:      1.5rem;     /* titre de page */
+  --text-h2:      1.0625rem;  /* titre de section (17px) */
+  --text-body:    0.8125rem;  /* 13px */
+  --text-label:   0.65625rem; /* 10.5px — en-têtes colonne / labels MAJ */
+  --text-caption: 0.75rem;
+  --weight-h1: 650;
+  --weight-h2: 600;
+  --weight-action: 600;
+  --weight-body: 400;
+  --weight-label: 600;
+  --tracking-label: 0.05em;
+}
+
+/* =========================================================================
+   1. TOKENS CANONIQUES — CLAIR
+   (valeurs GED WCAG-AA : --dim/--accent assombris vs le doc d'origine)
+   ========================================================================= */
+:root {
+  /* fonds */
+  --app-bg:#f7f7f8;        /* fond applicatif général */
+  --paper:#ffffff;         /* surface de contenu (aperçu document) */
+  --chrome:#ffffff;        /* barres : header, footer, ruban, toolbar */
+  --rail:#f7f7f8;          /* panneaux latéraux, colonnes, sidebar */
+  --surface:#ffffff;       /* cartes, champs, boutons ghost, popovers */
+  /* interactions */
+  --hover:#ededee;
+  --active:#e9e9eb;
+  /* lignes */
+  --border:#e9e9e9;
+  --border-soft:#f0f0f0;
+  /* texte */
+  --ink:#2f3033;
+  --ink-soft:#5b5d61;
+  --dim:#686a6e;           /* labels, méta — WCAG AA sur fonds clairs */
+  --muted:#a6a8ac;         /* placeholders, texte très discret */
+  /* accent & primaire */
+  --accent:#3a66a8;        /* focus, liens, sélection active — JAMAIS décoratif */
+  --accent-strong:#34619c;
+  --accent-soft:#eaf0f8;
+  --primary:#37352f;       /* action primaire = anthracite */
+  --primary-ink:#ffffff;
+  /* états de base (chips génériques succès/alerte/erreur) */
+  --green:#4a8a5c;   --green-ink:#2e5c3c;
+  --amber:#b8893f;   --amber-ink:#7a4f15;
+  --red:#c0544b;     --red-ink:#8c3229;
+  /* tooltip / hint */
+  --tip:#2f3033;     --tip-ink:#ffffff;
+  /* forme (v2 : 8px base) */
+  --radius:8px;
+  --radius-sm:6px;
+  --radius-lg:12px;        /* modales, grandes cartes */
+  --shadow:0 1px 2px rgba(15,15,15,.04);
+  --shadow-pop:0 8px 30px rgba(15,15,15,.14);
+  /* layout */
+  --nav-height:3.25rem;
+  --header-height:3.25rem;
+  --sidebar-width:13.75rem;
+  --space-section:1.5rem;
+  --space-card:1.25rem;
+  --focus-ring:0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+/* =========================================================================
+   2. SYSTÈME DE STATUTS — CLAIR (adopté de K-Time, désaturé Karbonic)
+   Chaque statut = une teinte. Le fond doux et le texte lisible se DÉRIVENT
+   par color-mix dans la couche composants (chips/badges) → bascule
+   clair/sombre automatique, pas d'îlot clair en sombre. Un statut peut être
+   coloré : « la couleur sert les états » (doc §1), contrairement au chrome.
+   ========================================================================= */
+:root {
+  --status-planned:   #3a66a8;  /* planifié — bleu (= accent) */
+  --status-active:    #2f7d8a;  /* en cours — cyan calmé (K-Time #0891b2) */
+  --status-validated: #4a8a5c;  /* validé   — vert (= --green) */
+  --status-pending:   #b8893f;  /* en attente — ambre (= --amber) */
+  --status-danger:    #c0544b;  /* bloqué/erreur — rouge (= --red) */
+  --status-neutral:   #686a6e;  /* neutre   — gris (= --dim) */
+  --status-invoiced:  #5a5aa8;  /* facturé  — indigo calmé (K-Time #6366f1) */
+}
+
+/* =========================================================================
+   3. TOKENS CANONIQUES — SOMBRE (.dark)
+   Seuls les canoniques sont redéfinis ; alias & dérivés suivent via var().
+   ========================================================================= */
+.dark {
+  --app-bg:#1f1f20;
+  --paper:#1f1f20;         /* GED/listes : le contenu n'est pas une page blanche */
+  --chrome:#252526;
+  --rail:#202021;
+  --surface:#2a2a2c;
+  --hover:#2f2f31;
+  --active:#343437;
+  --border:#3a3a3c;
+  --border-soft:#2e2e30;
+  --ink:#e6e6e8;
+  --ink-soft:#bcbcc0;
+  --dim:#8e9094;
+  --muted:#6a6c70;
+  --accent:#6f9fe0;
+  --accent-strong:#5a8ed4;
+  --accent-soft:#23304a;
+  --primary:#e6e6e8;       /* primaire inversé en sombre (clair sur sombre) */
+  --primary-ink:#1f1f20;
+  --green:#5fae72;   --green-ink:#a7d8b4;
+  --amber:#d2a35a;   --amber-ink:#e6bd6e;
+  --red:#df6f66;     --red-ink:#eda49d;
+  --tip:#0d0d0e;     --tip-ink:#f0f0f2;
+  --shadow-pop:0 10px 32px rgba(0,0,0,.55);
+  color-scheme: dark;
+
+  /* statuts éclaircis pour fonds sombres */
+  --status-planned:   #6f9fe0;
+  --status-active:    #5cb3c2;
+  --status-validated: #5fae72;
+  --status-pending:   #d2a35a;
+  --status-danger:    #df6f66;
+  --status-neutral:   #8e9094;
+  --status-invoiced:  #9a9ae0;
+}
+
+/* =========================================================================
+   4. ALIAS LEGACY GED (theme.css « --color-* » / app.css « bg-/text- »)
+   Repli littéral : les règles existantes adoptent la palette v2 sans réécriture.
+   (Déjà présent dans design-system.css de GED — dupliqué ici pour que le
+   fichier maître soit autoportant si une app ne charge que lui.)
+   ========================================================================= */
+:root {
+  --color-primary:var(--accent);
+  --color-primary-hover:var(--accent-strong);
+  --color-text:var(--ink);
+  --color-text-secondary:var(--ink-soft);
+  --color-text-placeholder:var(--muted);
+  --color-text-inverse:#ffffff;
+  --color-border:var(--border);
+  --color-bg:var(--surface);
+  --color-bg-hover:var(--hover);
+  --color-bg-subtle:var(--rail);
+  --color-success:var(--green);
+  --color-warning:var(--amber);
+  --color-danger:var(--red);
+  --color-info:var(--accent);
+}
+
+/* =========================================================================
+   5. ALIAS LEGACY K-Time (--kt-* → canonique)
+   Colle ce bloc dans K-Time : ses templates/composants (kt-*) rendent en v2
+   SANS renommer une seule classe. C'est la clé du « churn quasi nul ».
+   NOTE bascule doctrine : les tokens de chrome bleu de K-Time (sidebar/onglet
+   actif bleus) sont RE-POINTÉS ici vers le neutre/anthracite. C'est ce qui
+   fait basculer K-Time du « SaaS bleu » vers le « chrome monochrome » v2.
+   ========================================================================= */
+:root {
+  /* police & typo */
+  --kt-font-sans:var(--font-sans);
+  --kt-font-mono:var(--font-mono);
+  --kt-text-h1:var(--text-h1);
+  --kt-text-h2:var(--text-h2);
+  --kt-text-body:var(--text-body);
+  --kt-text-label:var(--text-label);
+  --kt-text-caption:var(--text-caption);
+  /* surfaces */
+  --kt-bg-app:var(--app-bg);
+  --kt-bg-surface:var(--surface);
+  --kt-bg-muted:var(--hover);
+  --kt-bg-elevated:var(--surface);
+  --kt-bg-chrome:var(--chrome);
+  /* sidebar — RE-NEUTRALISÉE (était blanche à accents bleus) */
+  --kt-bg-sidebar:var(--rail);
+  --kt-sidebar-text:var(--ink-soft);
+  --kt-sidebar-text-muted:var(--dim);
+  --kt-sidebar-text-active:var(--ink);        /* était #1d4ed8 bleu → encre */
+  --kt-sidebar-active-bg:var(--active);        /* était #eff6ff bleu → neutre */
+  --kt-sidebar-active-bar:var(--ink);          /* était bleu → trait sombre */
+  --kt-sidebar-border:var(--border);
+  --kt-sidebar-hover:var(--hover);
+  --kt-sidebar-brand:var(--ink);
+  /* texte */
+  --kt-text:var(--ink);
+  --kt-text-secondary:var(--ink-soft);
+  --kt-text-muted:var(--dim);
+  --kt-text-inverse:var(--primary-ink);
+  --kt-text-inverse-muted:var(--muted);
+  /* bordures */
+  --kt-border:var(--border);
+  --kt-border-strong:var(--dim);
+  --kt-separator:var(--border-soft);
+  --kt-border-card:var(--border);
+  /* accent — CALMÉ : focus/liens, plus « marque » décorative */
+  --kt-accent:var(--accent);
+  --kt-accent-hover:var(--accent-strong);
+  --kt-accent-soft:var(--accent-soft);
+  --kt-surface:var(--surface);
+  /* PRIMAIRE — anthracite. Plusieurs CSS de page utilisent var(--kt-primary, #1d4ed8) :
+     sans cette définition, elles retombaient sur le bleu vif littéral. La définir ici
+     neutralise d'un coup les sous-nav/onglets de page (invoices, smoke-dashboard…). */
+  --kt-primary:var(--primary);
+  --kt-primary-ink:var(--primary-ink);
+  --kt-badge-nav:var(--accent);
+  --kt-badge-nav-text:#ffffff;
+  /* statuts → système v2 */
+  --kt-status-planned:var(--status-planned);
+  --kt-status-active:var(--status-active);
+  --kt-status-validated:var(--status-validated);
+  --kt-status-pending:var(--status-pending);
+  --kt-status-danger:var(--status-danger);
+  --kt-status-neutral:var(--status-neutral);
+  --kt-status-invoiced:var(--status-invoiced);
+  --kt-success:var(--status-validated);
+  --kt-warning:var(--status-pending);
+  --kt-danger:var(--status-danger);
+  /* onglet actif — trait sombre, plus bleu (doctrine v2) */
+  --kt-tab-indicator:var(--ink);
+  /* forme & layout */
+  --kt-radius:var(--radius);
+  --kt-radius-lg:var(--radius-lg);
+  --kt-radius-card:var(--radius-lg);
+  --kt-shadow-sm:var(--shadow);
+  --kt-shadow:var(--shadow-pop);
+  --kt-shadow-lg:var(--shadow-pop);
+  --kt-nav-height:var(--nav-height);
+  --kt-header-height:var(--header-height);
+  --kt-sidebar-width:var(--sidebar-width);
+  --kt-space-section:var(--space-section);
+  --kt-space-card:var(--space-card);
+  --kt-focus-ring:var(--focus-ring);
+}

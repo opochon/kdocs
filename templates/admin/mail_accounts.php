@@ -25,7 +25,7 @@ $error = $_GET['error'] ?? null;
     <?php endif; ?>
 
     <div class="ds-card shadow overflow-hidden">
-        <table class="min-w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Nom</th>

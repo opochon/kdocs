@@ -87,7 +87,7 @@
     <div class="ds-card rounded-lg shadow p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4" style="color:var(--ink)">Répartition par type de requête</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase">Type</th>
@@ -127,7 +127,7 @@
     <div class="ds-card rounded-lg shadow p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4" style="color:var(--ink)">Évolution sur la période</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase">Date</th>
@@ -156,7 +156,7 @@
     <div class="ds-card rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold mb-4" style="color:var(--ink)">50 dernières requêtes</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase">Date/Heure</th>

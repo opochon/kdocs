@@ -258,7 +258,7 @@ $isRunning = $status['is_running'] ?? false;
             <?php if (empty($logs)): ?>
                 <p class="p-4 text-center text-sm" style="color:var(--dim)">Aucun log recent</p>
             <?php else: ?>
-                <table class="w-full text-sm">
+                <table class="ds-table">
                     <tbody id="logs-body">
                         <?php foreach ($logs as $log): ?>
                         <tr>
@@ -486,7 +486,7 @@ function refreshLogs() {
                 return;
             }
 
-            container.innerHTML = `<table class="w-full text-sm"><tbody id="logs-body"></tbody></table>`;
+            container.innerHTML = `<table class="ds-table"><tbody id="logs-body"></tbody></table>`;
             const logsBody = document.getElementById('logs-body');
 
             logsBody.innerHTML = data.logs.map(log => {

@@ -137,7 +137,7 @@ $pendingDocuments = $pendingDocuments ?? 0;
         <p class="text-center py-8" style="color:var(--dim)">Aucun document récent</p>
         <?php else: ?>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium uppercase">Document</th>

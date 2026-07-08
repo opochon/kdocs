@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(r => r.json())
         .then(data => {
             if (data.success && data.logs.length > 0) {
-                let html = '<table class="min-w-full text-sm"><thead><tr class="border-b" style="border-color:var(--border)"><th class="text-left py-2">Date</th><th class="text-left py-2">Sujet</th><th class="text-left py-2">PJ</th><th class="text-left py-2">Docs</th><th class="text-left py-2">Statut</th></tr></thead><tbody>';
+                let html = '<table class="ds-table"><thead><tr class="border-b" style="border-color:var(--border)"><th class="text-left py-2">Date</th><th class="text-left py-2">Sujet</th><th class="text-left py-2">PJ</th><th class="text-left py-2">Docs</th><th class="text-left py-2">Statut</th></tr></thead><tbody>';
                 data.logs.forEach(log => {
                     const statusClass = log.status === 'success' ? 'color:var(--green)' : log.status === 'error' ? 'color:var(--red)' : 'color:var(--dim)';
                     html += `<tr class="border-b" style="border-color:var(--border)">

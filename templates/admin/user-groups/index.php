@@ -32,7 +32,7 @@ $base = Config::basePath();
 
     <div class="ds-card rounded-xl shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Groupe</th>

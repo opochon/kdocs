@@ -22,7 +22,7 @@
             Aucun champ configuré. Créez votre premier champ pour commencer.
         </div>
         <?php else: ?>
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-4 py-3 text-left text-xs font-medium">Code</th>

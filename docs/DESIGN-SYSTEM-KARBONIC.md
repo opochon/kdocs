@@ -7,15 +7,22 @@ HTMLEditor v3, ClearMyMails / K-Mail, K-Docs (GED), ClearMyDocs, Cockpit… Ce d
 **Esprit.** Neutralité « Notion » : un chrome qui s'efface pour laisser respirer le contenu.
 Monochrome, calme, sans esbroufe. La couleur sert le contenu et les états — jamais la décoration.
 
-> **Statut K-Docs.** Source de vérité visuelle Karbonic. **Lot fondation + chrome livré**
-> (2026-06-27) : `public/css/design-system.css` porte les tokens canoniques (clair **et** sombre),
-> chargé en dernier dans `templates/layouts/main.php`/`auth.php` ; `theme.css` et `app.css` aliasent
-> leurs variables vers ces tokens (repli littéral) ; le chrome (sidebars, header, footer) est
-> tokenisé via les classes `.ds-*` ; bascule clair/sombre/système fonctionnelle (`public/js/theme.js`
-> + init no-FOUC). **Reste à faire** : migration page par page des templates de contenu (utilitaires
-> Tailwind en dur, aujourd'hui couverts par un *shim* sombre dans `design-system.css` §5), set
-> d'icônes par action, et densité picto/hint complète (§6). Ne pas restyler l'UI existante au détour
-> d'un autre lot sans s'y référer.
+> **Statut v2 — réconciliation inter-apps (2026-07-08).** Ce doc gouverne **GED (K-Docs)** ET
+> **K-Time**, qui divergeaient (GED = monochrome littéral ; K-Time = redesign Figma bleu). Décision :
+> un seul modèle réconcilié, matérialisé par le fichier maître **`karbonic-tokens.css`** (copié à
+> l'identique dans les deux repos). Direction actée :
+> - **Chrome monochrome** (héritage GED) : nav/header neutres, action primaire **anthracite**, bleu
+>   réservé focus/liens/sélection.
+> - **Contenu enrichi** (héritage K-Time) : **système de statuts colorés** (§9) pour les données.
+> - **Police** pile système · **Icônes** SVG inline (heroicons/lucide) · **Rayon** 8px base.
+> - **Composants & zones** : on adopte le set K-Time (`action-bar`, `list-table`, `page-header`,
+>   `empty-state`, `form-field`, `button`, `badge`) comme **contrat commun** (§9–12). GED l'importe.
+> - **Nommage** : canoniques non-préfixés ; chaque app garde ses alias legacy (`--kt-*` inclus) →
+>   churn quasi nul. Voir `karbonic-tokens.css` §4–5.
+>
+> **Reste à faire (lots) :** L1 K-Time (alias + chrome bleu→neutre + icônes) · L2 promotion du set
+> composants + `toolbar` (recherche globale) · L3 GED adopte le set · L4 lint garde-fou. Ne pas
+> restyler l'UI au détour d'un autre lot sans s'y référer.
 
 ---
 
@@ -37,8 +44,10 @@ Monochrome, calme, sans esbroufe. La couleur sert le contenu et les états — j
 
 ## 2. Tokens
 
-À coller tels quels. Toutes les couleurs de l'app dérivent de ces variables — on ne code jamais une
-couleur en dur.
+**Valeurs de référence = `karbonic-tokens.css` (fichier maître).** Le bloc ci-dessous est
+l'intention ; en cas de doute, le fichier fait foi. Toutes les couleurs dérivent de ces variables —
+on ne code jamais une couleur en dur. v2 a assombri `--dim`/`--accent` (WCAG AA) et porté le rayon
+à 8px ; ajouté le système de statuts (§9).
 
 ### Clair (`:root` ou `.theme`)
 
@@ -59,23 +68,24 @@ couleur en dur.
   /* texte */
   --ink:#2f3033;           /* texte principal */
   --ink-soft:#5b5d61;      /* texte secondaire */
-  --dim:#7a7c80;           /* labels, meta */
+  --dim:#686a6e;           /* labels, meta — v2 : assombri WCAG AA */
   --muted:#a6a8ac;         /* texte tres discret, placeholders */
   /* accent & primaire */
-  --accent:#3f6fb0;        /* focus, liens, selection active */
+  --accent:#3a66a8;        /* focus, liens, selection active — v2 : assombri WCAG AA */
   --accent-soft:#eaf0f8;   /* fond d'accent tres leger */
   --primary:#37352f;       /* action primaire (anthracite) */
   --primary-ink:#ffffff;   /* texte sur primaire */
-  /* etats */
+  /* etats (chips succes/alerte/erreur generiques ; +*-ink pour contraste) */
   --green:#4a8a5c;
   --amber:#b8893f;
   --red:#c0544b;
   /* tooltip / hint */
   --tip:#2f3033;
   --tip-ink:#ffffff;
-  /* forme */
-  --radius:6px;
-  --radius-sm:4px;
+  /* forme — v2 : 8px base */
+  --radius:8px;
+  --radius-sm:6px;
+  --radius-lg:12px;
   --shadow:0 1px 2px rgba(15,15,15,.04);
   --shadow-pop:0 8px 30px rgba(15,15,15,.14);
 }
@@ -237,3 +247,93 @@ Règles :
 
 Résultat attendu : un client de messagerie, une GED et un éditeur qui se ressemblent à l'œil — même
 calme, même grammaire — tout en gardant chacun sa structure propre.
+
+---
+
+## 9. Statuts (couleur de contenu)
+
+Le chrome est monochrome ; **les données portent la couleur d'état**. Sept statuts canoniques,
+définis comme teintes dans `karbonic-tokens.css` §2. Le fond doux et le texte lisible se **dérivent**
+(color-mix sur `--surface`) dans la couche composants → bascule clair/sombre automatique.
+
+| Token | Sens | Teinte (clair) |
+|-------|------|----------------|
+| `--status-planned`   | planifié / à venir | bleu `#3a66a8` |
+| `--status-active`    | en cours           | cyan `#2f7d8a` |
+| `--status-validated` | validé / OK        | vert `#4a8a5c` |
+| `--status-pending`   | en attente         | ambre `#b8893f` |
+| `--status-danger`    | bloqué / erreur    | rouge `#c0544b` |
+| `--status-neutral`   | neutre / brouillon | gris `#686a6e` |
+| `--status-invoiced`  | facturé            | indigo `#5a5aa8` |
+
+Rendu = **chip** (`.ds-chip--<statut>` / `.kt-badge--<statut>`) : fond `color-mix(teinte 18%, surface)`,
+texte teinte assombrie. Jamais d'aplat coloré plein pour un statut dans une liste dense.
+
+---
+
+## 10. Listings — contrat commun (tri · recherche · filtres)
+
+**Règle d'or : même type de liste ⇒ mêmes fonctions, au même endroit, d'un écran à l'autre.**
+Composant unique piloté par descripteur (réf. K-Time `list-table.php` + `ListQueryApplier`).
+
+- **Tri** — chaque colonne triable a un en-tête cliquable (lien GET `?sort=<champ>&dir=asc|desc`),
+  bascule asc↔desc, chevron ▲/▼, classe `sort-asc|sort-desc` sur le `th`.
+- **Filtre par colonne** — ligne de filtres sous les en-têtes, 4 types : `text` (recherche),
+  `ref` (référentiel/select), `bool` (Oui/Non), `date`. Nom de champ `f_<colonne>`, valeur en GET.
+- **Recherche globale** — boîte plein-texte **dans la zone toolbar** (§12), à gauche, distincte des
+  filtres colonne. Paramètre GET `q`. Composant livré : GED `partials/toolbar.php` (`.ds-toolbar`),
+  K-Time `components/toolbar.php` (`.kt-toolbar`).
+- **État vide** — toujours `empty-state` (icône + titre + message), jamais une ligne blanche.
+- **Densité** — la liste hérite de `d-deployed|d-compact|d-zen` (§6).
+
+Colonne = `['field','label','sortable'?,'align'?,'filter'?=>['kind'=>'text|ref|bool|date','ref'?]]`.
+
+---
+
+## 11. Barre d'actions — ordre figé
+
+Réf. K-Time `action-bar.php`. **Ordre garanti, identique partout :**
+
+> `back  →  stats  →  secondary[]  →  primary  →  danger`
+
+- **Une seule** action primaire par contexte (anthracite). Le destructif (`danger`) est **isolé à
+  droite**. Tous les boutons délèguent au composant `button` (point de style unique).
+- Trois modes d'action : `href` (lien), `submitFor` (submit d'un `<form>` distant via `form=`),
+  `post` (mini-form POST + `confirm` optionnel).
+- **Miroir en pied de formulaire** (`--footer`) : l'action primaire d'un formulaire long est répétée
+  en haut **et** en bas, alignée à droite avec filet supérieur.
+- Lexique + icônes des actions courantes = **contrat gelé** (Enregistrer, Retour, Supprimer…).
+
+---
+
+## 12. Zones — gabarit de page
+
+Toute page de liste/gestion se compose des mêmes zones, dans cet ordre :
+
+```
+page-header   : titre + sous-titre   |  action-bar (haut, ordre figé)
+toolbar       : [recherche globale]     [filtres transverses]   [densité]
+list-table    : en-têtes triables · ligne de filtres · lignes (actions de ligne à droite)
+                (empty-state si vide)
+action-bar    : miroir pied (formulaires longs)
+pagination
+```
+
+Chaque zone = **un composant** (`page-header`, `toolbar`, `action-bar`, `list-table`,
+`empty-state`, `pagination`). On ne réécrit pas une zone à la main : on paramètre le composant.
+
+---
+
+## 13. Distribution & nommage (deux repos)
+
+- **Source de vérité** = `karbonic-tokens.css` (fichier maître) + ce doc. **Copié à l'identique**
+  dans chaque repo (pas de package partagé tant qu'il n'y a pas de monorepo).
+- **Noms canoniques non-préfixés** (`--app-bg`, `--ink`, `--accent`, `--primary`, `--status-*`).
+  Chaque app garde sa couche d'**alias legacy** locale → churn quasi nul :
+  - GED : `theme.css` / `app.css` déjà aliasés ; `design-system.css` porte le chrome `.ds-*`.
+  - K-Time : bloc `--kt-*` → canonique (voir `karbonic-tokens.css` §5), y compris la **bascule du
+    chrome bleu vers neutre/anthracite**.
+- **Composants** : set commun issu de K-Time. Classes `kt-*` conservées au départ (K-Time est le plus
+  avancé) ; GED importe tel quel ; un renommage vers un préfixe neutre est un vernis ultérieur.
+- **Garde-fou (L4)** : lint (hook/CI) dans les deux repos — refuse CDN de style, couleurs en dur
+  (`#hex`/`rgb()` hors tokens), `<table>` hors composant, préfixes de classe hors charte.

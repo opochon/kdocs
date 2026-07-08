@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Rapprochement facture #<?= (int)($invoice_id ?? 0) ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- no CDN styles — stub page uses inline Tailwind classes only -->
 </head>
 <body class="bg-gray-50 p-8">
     <h1 class="text-2xl font-semibold mb-2">Rapprochement facture #<?= (int)($invoice_id ?? 0) ?></h1>
     <p class="text-gray-600 mb-6">Suggestions facture ↔ bon de livraison WinBiz</p>
 
-    <table class="w-full bg-white border rounded shadow-sm text-sm">
+    <div class="ds-table-wrap"><table class="ds-table bg-white border rounded shadow-sm text-sm">
         <thead class="bg-gray-100">
             <tr>
                 <th class="p-2 text-left">Ligne facture</th>
@@ -39,6 +39,6 @@
             </tr>
         <?php endforeach; ?>
         </tbody>
-    </table>
+    </table></div>
 </body>
 </html>

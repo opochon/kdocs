@@ -30,7 +30,7 @@
                 <p>Aucun log d'exécution</p>
             </div>
         <?php else: ?>
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>

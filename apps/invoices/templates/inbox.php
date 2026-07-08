@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($title ?? 'K-Invoices') ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- no CDN styles — stub page uses inline Tailwind classes only -->
 </head>
 <body class="bg-gray-50 p-8">
     <h1 class="text-2xl font-semibold mb-4"><?= htmlspecialchars($title ?? 'K-Invoices') ?></h1>

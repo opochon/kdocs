@@ -55,7 +55,7 @@ $fieldOptions = \KDocs\Models\ClassificationFieldOption::getAllGrouped();
             </div>
         <?php else: ?>
             <div class="overflow-x-auto">
-                <table class="min-w-full">
+                <table class="ds-table">
                     <thead>
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase">#</th>

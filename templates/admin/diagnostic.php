@@ -283,7 +283,7 @@
     <div class="ds-card rounded-lg shadow p-6">
         <h2 class="text-xl font-bold mb-4" style="color:var(--ink)">Outils Externes</h2>
         <div class="overflow-x-auto">
-            <table class="min-w-full">
+            <table class="ds-table">
                 <thead>
                     <tr>
                         <th class="px-4 py-2 text-left text-sm font-semibold">Outil</th>

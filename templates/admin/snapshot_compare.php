@@ -66,7 +66,7 @@
         <div class="px-6 py-4 border-b">
             <h3 class="text-lg font-semibold" style="color:var(--green)">Elements ajoutes (<?= count($diff['added']) ?>)</h3>
         </div>
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Type</th>
@@ -101,7 +101,7 @@
         <div class="px-6 py-4 border-b">
             <h3 class="text-lg font-semibold" style="color:var(--amber)">Elements modifies (<?= count($diff['modified']) ?>)</h3>
         </div>
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Type</th>
@@ -144,7 +144,7 @@
         <div class="px-6 py-4 border-b">
             <h3 class="text-lg font-semibold" style="color:var(--red)">Elements supprimes (<?= count($diff['removed']) ?>)</h3>
         </div>
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Type</th>

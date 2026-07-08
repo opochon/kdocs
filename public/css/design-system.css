@@ -418,3 +418,52 @@ a.btn-primary, a.bg-blue-600 { text-decoration: none; }
 /* Bouton « supprimer la conversation » (chat) : rouge au survol via le hook JS existant
    (remplace hover:text-red-500 en dur, sans toucher au selecteur .delete-conv-btn). */
 .delete-conv-btn:hover { color: var(--red); }
+
+/* =========================================================================
+   10. TABLES & TOOLBAR (Karbonic v2 — contrat listing commun, doc §10/§12)
+   Miroir de `.kt-table` de K-Time, tokenisé GED. Toute liste adopte `.ds-table`
+   (dans `.ds-table-wrap`) au lieu d'un <table> nu. En-têtes triables via
+   `.ds-th--sortable` + `.sort-asc|sort-desc`. Le lint refuse les <table> hors
+   de ce composant (tools/karbonic-lint.php).
+   ========================================================================= */
+.ds-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.ds-table { width: 100%; border-collapse: collapse; font-size: var(--text-body, .8125rem); }
+.ds-table thead th {
+  text-align: left; padding: 8px 12px; white-space: nowrap;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--dim); border-bottom: 1px solid var(--border);
+}
+.ds-table tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border-soft); color: var(--ink); vertical-align: middle; }
+.ds-table tbody tr:last-child td { border-bottom: none; }
+.ds-table tbody tr:hover { background: var(--hover); }
+.ds-table tbody tr.is-selected { background: var(--active); }
+.ds-table tfoot td { padding: 9px 12px; font-weight: 600; border-top: 1px solid var(--border); }
+.ds-table .text-right { text-align: right; }
+.ds-table .text-center { text-align: center; }
+
+/* En-tête triable : lien GET, chevron, état actif. */
+.ds-th--sortable { padding: 0; }
+.ds-th--sortable > a { display: inline-flex; align-items: center; gap: 4px; padding: 8px 12px; color: inherit; text-decoration: none; }
+.ds-th--sortable > a:hover { color: var(--ink-soft); }
+.ds-th--sortable .sort-icon { width: 12px; height: 12px; opacity: .5; }
+.ds-th--sortable.sort-asc .sort-icon,
+.ds-th--sortable.sort-desc .sort-icon { opacity: 1; color: var(--ink); }
+
+/* Toolbar de liste (doc §12) : recherche globale à gauche, filtres transverses à
+   droite, au-dessus du tableau. Fond chrome, séparée par une bordure. */
+.ds-toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; margin-bottom: 12px;
+  background: var(--chrome); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.ds-toolbar__search { position: relative; flex: 1 1 240px; min-width: 200px; }
+.ds-toolbar__search input {
+  width: 100%; padding: 6px 10px 6px 30px;
+  background: var(--app-bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--ink); font-size: var(--text-body, 13px);
+}
+.ds-toolbar__search input::placeholder { color: var(--muted); }
+.ds-toolbar__search input:focus { outline: none; border-color: var(--accent); }
+.ds-toolbar__search .ds-toolbar__search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--dim); pointer-events: none; }
+.ds-toolbar__filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ds-toolbar__spacer { flex: 1 1 auto; }

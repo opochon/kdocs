@@ -83,11 +83,11 @@ class PortalController
 </head>
 <body>
 <h1>Documents — {$clientName}</h1>
-<table>
+<div class="ds-table-wrap"><table class="ds-table">
   <thead><tr><th>Titre</th><th>Date</th></tr></thead>
   <tbody>
 {$rows}  </tbody>
-</table>
+</table></div>
 </body>
 </html>
 HTML;

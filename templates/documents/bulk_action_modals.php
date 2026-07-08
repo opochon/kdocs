@@ -17,7 +17,7 @@
                 <label class="flex items-center p-3 border rounded-lg cursor-pointer ds-row-hover" style="border-color:var(--border)">
                     <input type="radio" name="bulk_tag" value="<?= $tag['id'] ?>" class="mr-3">
                     <span class="inline-block px-3 py-1 rounded-full text-sm"
-                          style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
+                          style="--_tc:<?= htmlspecialchars($tag['color'] ?? '') ?>; background-color:color-mix(in srgb,var(--_tc,var(--dim)) 20%,transparent); color:var(--_tc,var(--dim))">
                         <?= htmlspecialchars($tag['name']) ?>
                     </span>
                 </label>

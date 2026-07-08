@@ -703,7 +703,7 @@ function renderDocumentMetadata(doc) {
         <label class="flex items-center gap-1.5 text-xs cursor-pointer">
             <input type="checkbox" name="preview_tags" value="${t.id}" ${selectedTagIds.includes(t.id) ? 'checked' : ''}
                    class="rounded" style="accent-color:var(--accent)">
-            <span class="px-1.5 py-0.5 rounded" style="background-color: ${t.color || '#e5e7eb'}20; color: ${t.color || '#6b7280'}">
+            <span class="px-1.5 py-0.5 rounded" style="--_tc:${t.color || ''}; background-color:color-mix(in srgb,var(--_tc,var(--dim)) 20%,transparent); color:var(--_tc,var(--dim))">
                 ${escapeHtml(t.name)}
             </span>
         </label>
@@ -913,7 +913,7 @@ function renderDocumentMetadata(doc) {
 
             <!-- Onglet Info -->
             <div id="preview-tab-info" class="preview-tab-content hidden">
-                <table class="w-full text-xs">
+                <table class="ds-table">
                     <tbody class="ds-divide-y">
                         <tr><td class="py-1.5 w-28" style="color:var(--dim)">ID</td><td class="py-1.5 font-mono">${doc.id}</td></tr>
                         <tr><td class="py-1.5" style="color:var(--dim)">Fichier</td><td class="py-1.5 font-mono truncate" title="${escapeHtml(doc.original_filename || doc.filename)}">${escapeHtml(doc.original_filename || doc.filename)}</td></tr>
@@ -1112,7 +1112,7 @@ function renderVersionsPreview(docId, versions) {
         </tr>`;
     }).join('');
     document.getElementById('preview-versions-content').innerHTML =
-        `<table class="w-full"><thead><tr class="text-left" style="color:var(--dim)">
+        `<table class="ds-table"><thead><tr class="text-left" style="color:var(--dim)">
             <th class="py-1 pr-2 font-medium">Version</th><th class="py-1 pr-2 font-medium">Auteur</th>
             <th class="py-1 pr-2 font-medium">Date</th><th class="py-1 pr-2 font-medium">Commentaire</th>
             <th class="py-1 text-right font-medium">Actions</th>

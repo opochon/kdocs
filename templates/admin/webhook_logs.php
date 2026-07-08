@@ -13,7 +13,7 @@
     </div>
 
     <div class="ds-card rounded-lg shadow overflow-hidden">
-        <table class="w-full">
+        <table class="ds-table">
             <thead>
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase">Date</th>

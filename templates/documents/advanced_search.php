@@ -62,7 +62,7 @@
                         <div id="search-tags-container" class="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]" style="border-color:var(--border)">
                             <?php foreach ($tags ?? [] as $tag): ?>
                             <label class="inline-flex items-center px-3 py-1 rounded-full text-sm cursor-pointer hover:opacity-80"
-                                   style="background-color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>20; color: <?= htmlspecialchars($tag['color'] ?? '#6b7280') ?>">
+                                   style="--_tc:<?= htmlspecialchars($tag['color'] ?? '') ?>; background-color:color-mix(in srgb,var(--_tc,var(--dim)) 20%,transparent); color:var(--_tc,var(--dim))">
                                 <input type="checkbox" name="tags[]" value="<?= $tag['id'] ?>" class="mr-2">
                                 <?= htmlspecialchars($tag['name']) ?>
                             </label>
