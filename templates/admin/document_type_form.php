@@ -103,7 +103,7 @@ $patternRequired = in_array($currentMatchingAlgorithm, [1, 2, 3, 4, 5]);
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold" style="color:var(--ink)">Autorisations de modification</h2>
                 <button type="button" onclick="togglePermissions()" style="color:var(--dim)">
-                    <i class="fas fa-chevron-up" id="permissions-icon"></i>
+                    <span id="permissions-icon"><?= icon('chevron-up') ?></span>
                 </button>
             </div>
             
@@ -232,6 +232,6 @@ function togglePermissions() {
     
     permissionsExpanded = !permissionsExpanded;
     content.style.display = permissionsExpanded ? 'block' : 'none';
-    icon.className = permissionsExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+    icon.innerHTML = window.lucideIcon(permissionsExpanded ? 'chevron-up' : 'chevron-down');
 }
 </script>

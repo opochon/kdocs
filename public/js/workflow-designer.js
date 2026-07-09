@@ -458,11 +458,11 @@ class WorkflowDesigner {
                 <div class="flex gap-2 pt-4 border-t border-gray-200">
                     <button id="btn-save-node-config"
                             class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-check mr-1"></i> Enregistrer
+                        ${window.lucideIcon('check', {cls: 'mr-1'})} Enregistrer
                     </button>
                     <button id="btn-delete-node"
                             class="px-3 py-2 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 transition-colors">
-                        <i class="fas fa-trash"></i>
+                        ${window.lucideIcon('trash')}
                     </button>
                 </div>
             </div>
@@ -798,7 +798,7 @@ class WorkflowDesigner {
         const btn = document.getElementById('btn-save-node-config');
         if (btn) {
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check mr-1"></i> Enregistré !';
+            btn.innerHTML = window.lucideIcon('check', {cls: 'mr-1'}) + ' Enregistré !';
             btn.classList.remove('bg-blue-600');
             btn.classList.add('bg-green-600');
             setTimeout(() => {

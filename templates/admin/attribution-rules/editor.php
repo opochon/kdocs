@@ -498,7 +498,7 @@ async function testRule() {
 
     // Show test panel
     document.getElementById('test-panel').classList.remove('hidden');
-    document.getElementById('test-results').innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl" style="color:var(--accent)"></i><p class="mt-2" style="color:var(--dim)">Test en cours...</p></div>';
+    document.getElementById('test-results').innerHTML = '<div class="text-center py-8">' + window.lucideIcon('spinner', {spin: true, cls: 'text-2xl', style: 'color:var(--accent)'}) + '<p class="mt-2" style="color:var(--dim)">Test en cours...</p></div>';
 
     try {
         let testUrl;
@@ -506,7 +506,7 @@ async function testRule() {
             testUrl = `<?= url('/api/attribution-rules') ?>/${ruleId}/test`;
         } else {
             // For new rules, we need to save first or test with a temporary structure
-            document.getElementById('test-results').innerHTML = '<div class="text-center py-8" style="color:var(--amber)"><i class="fas fa-exclamation-triangle text-2xl"></i><p class="mt-2">Enregistrez la règle d\'abord pour la tester</p></div>';
+            document.getElementById('test-results').innerHTML = '<div class="text-center py-8" style="color:var(--amber)">' + window.lucideIcon('exclamation-triangle', {cls: 'text-2xl'}) + '<p class="mt-2">Enregistrez la règle d\'abord pour la tester</p></div>';
             return;
         }
 
@@ -522,7 +522,7 @@ async function testRule() {
         const result = await response.json();
         renderTestResults(result.data || result);
     } catch (e) {
-        document.getElementById('test-results').innerHTML = `<div class="text-center py-8" style="color:var(--red)"><i class="fas fa-times-circle text-2xl"></i><p class="mt-2">${e.message}</p></div>`;
+        document.getElementById('test-results').innerHTML = `<div class="text-center py-8" style="color:var(--red)">${window.lucideIcon('times-circle', {cls: 'text-2xl'})}<p class="mt-2">${e.message}</p></div>`;
     }
 }
 
@@ -556,13 +556,13 @@ function renderTestResults(data) {
 
     data.results.forEach(r => {
         const statusStyle = r.matched ? 'background:color-mix(in srgb,var(--green) 14%,transparent);border-color:var(--green)' : 'background:var(--rail);border-color:var(--border)';
-        const icon = r.matched ? 'fa-check-circle' : 'fa-times-circle';
+        const iconName = r.matched ? 'check-circle' : 'times-circle';
         const iconColor = r.matched ? 'var(--green)' : 'var(--dim)';
 
         html += `
             <div class="p-3 rounded-lg border" style="${statusStyle}">
                 <div class="flex items-center gap-2">
-                    <i class="fas ${icon}" style="color:${iconColor}"></i>
+                    ${window.lucideIcon(iconName, {style: 'color:' + iconColor})}
                     <span class="font-medium text-sm truncate">${r.document_title || 'Document #' + r.document_id}</span>
                 </div>
             </div>

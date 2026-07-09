@@ -25,12 +25,12 @@ if (empty($history)) {
 // DS monochrome : la source (manuel/regles/ml/ia/import/api) est une categorie,
 // pas un etat -> pastille neutre tokenisee, l'icone herite de --ink-soft.
 $sourceIcons = [
-    'manual' => ['icon' => 'fa-user', 'color' => '', 'bg' => 'ds-chip--neutral'],
-    'rules' => ['icon' => 'fa-layer-group', 'color' => '', 'bg' => 'ds-chip--neutral'],
-    'ml' => ['icon' => 'fa-brain', 'color' => '', 'bg' => 'ds-chip--neutral'],
-    'ai' => ['icon' => 'fa-robot', 'color' => '', 'bg' => 'ds-chip--neutral'],
-    'import' => ['icon' => 'fa-upload', 'color' => '', 'bg' => 'ds-chip--neutral'],
-    'api' => ['icon' => 'fa-code', 'color' => '', 'bg' => 'ds-chip--neutral']
+    'manual' => ['icon' => 'user', 'color' => '', 'bg' => 'ds-chip--neutral'],
+    'rules' => ['icon' => 'layer-group', 'color' => '', 'bg' => 'ds-chip--neutral'],
+    'ml' => ['icon' => 'brain', 'color' => '', 'bg' => 'ds-chip--neutral'],
+    'ai' => ['icon' => 'robot', 'color' => '', 'bg' => 'ds-chip--neutral'],
+    'import' => ['icon' => 'upload', 'color' => '', 'bg' => 'ds-chip--neutral'],
+    'api' => ['icon' => 'code', 'color' => '', 'bg' => 'ds-chip--neutral']
 ];
 ?>
 
@@ -47,7 +47,7 @@ $sourceIcons = [
         ?>
             <div class="ds-row-hover px-6 py-3 flex items-start gap-4">
                 <div class="<?= $source['bg'] ?> rounded-full p-2 mt-1">
-                    <i class="fas <?= $source['icon'] ?> <?= $source['color'] ?> text-sm"></i>
+                    <?= icon($source['icon'], ['class' => trim($source['color'] . ' text-sm')]) ?>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">

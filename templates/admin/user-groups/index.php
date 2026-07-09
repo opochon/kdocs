@@ -63,7 +63,7 @@ $base = Config::basePath();
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center" style="background:<?= $isAdminGroup ? 'color-mix(in srgb,var(--red) 15%,transparent)' : 'var(--hover)' ?>">
-                                    <i class="fas <?= $isAdminGroup ? 'fa-crown' : 'fa-users' ?>" style="color:<?= $isAdminGroup ? 'var(--red)' : 'var(--ink-soft)' ?>"></i>
+                                    <?= icon($isAdminGroup ? 'crown' : 'users', ['style' => 'color:' . ($isAdminGroup ? 'var(--red)' : 'var(--ink-soft)')]) ?>
                                 </div>
                                 <div class="ml-4">
                                     <div class="flex items-center gap-2">

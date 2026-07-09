@@ -53,7 +53,7 @@ if ($user && !empty($_COOKIE['kdocs_weak_password'])) {
         <div class="ds-header__actions">
             <!-- Bascule de thème clair / sombre / système (cf. theme.js) -->
             <button type="button" data-theme-toggle onclick="kdocsCycleTheme()" class="ds-iconbtn" title="Thème">
-                <i class="fas fa-circle-half-stroke" data-theme-icon></i>
+                <span data-theme-icon><?= icon('circle-half-stroke') ?></span>
             </button>
             <?php if ($user): ?>
             <!-- Notifications dropdown -->

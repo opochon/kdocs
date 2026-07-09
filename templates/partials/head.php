@@ -30,12 +30,13 @@ $headTitle = $headTitle ?? ($pageTitle ?? $title ?? 'K-Docs');
 </script>
 <link rel="stylesheet" href="<?= asset('css/tailwind.css') ?>">
 <?php if ($headFull): ?>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="<?= asset('css/theme.css') ?>">
 <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 <?php endif; ?>
 <!-- Design system Karbonic : toujours chargé EN DERNIER (tokens + overrides gagnent la cascade) -->
 <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
+<!-- Icônes lucide (SVG inline) — window.lucideIcon() pour les icônes générées en JS -->
+<script src="<?= asset('js/lucide.js') ?>"></script>
 <?php if ($headFull): ?>
 <script src="<?= asset('js/app.js') ?>"></script>
 <script src="<?= asset('js/ai-search.js') ?>"></script>

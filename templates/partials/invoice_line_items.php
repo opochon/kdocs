@@ -150,7 +150,7 @@ async function extractLineItems(force = false) {
     const btn = document.getElementById('extract-btn');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Extraction...';
+        btn.innerHTML = window.lucideIcon('spinner', {spin: true, cls: 'mr-1'}) + 'Extraction...';
     }
 
     try {
@@ -172,14 +172,14 @@ async function extractLineItems(force = false) {
             alert(result.message || 'Erreur lors de l\'extraction');
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-magic mr-1"></i>Extraire avec IA';
+                btn.innerHTML = window.lucideIcon('magic', {cls: 'mr-1'}) + 'Extraire avec IA';
             }
         }
     } catch (e) {
         alert('Erreur: ' + e.message);
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-magic mr-1"></i>Extraire avec IA';
+            btn.innerHTML = window.lucideIcon('magic', {cls: 'mr-1'}) + 'Extraire avec IA';
         }
     }
 }

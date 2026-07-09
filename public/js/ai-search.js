@@ -186,7 +186,7 @@ function escapeHtml(text) {
             : 'bg-gray-100 text-gray-800 rounded-lg px-4 py-2 max-w-[80%]';
         
         if (isLoading) {
-            bubble.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + escapeHtml(content);
+            bubble.innerHTML = window.lucideIcon('spinner', {spin: true, cls: 'mr-2'}) + escapeHtml(content);
         } else {
             bubble.textContent = content;
         }
@@ -206,7 +206,7 @@ function escapeHtml(text) {
         container.className = 'bg-white border rounded-lg p-3 mt-2';
         container.innerHTML = `
             <div class="text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-file-alt mr-1"></i> ${documents.length} document(s) trouvé(s)
+                ${window.lucideIcon('file-alt', {cls: 'mr-1'})} ${documents.length} document(s) trouvé(s)
             </div>
             <div class="space-y-2 max-h-48 overflow-y-auto">
                 ${documents.slice(0, 5).map(doc => `

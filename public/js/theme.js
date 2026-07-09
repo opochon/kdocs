@@ -12,7 +12,7 @@
   var KEY = 'kdocs-theme';
   var ORDER = ['system', 'light', 'dark'];
   var LABELS = { system: 'Systeme', light: 'Clair', dark: 'Sombre' };
-  var ICONS = { system: 'fa-circle-half-stroke', light: 'fa-sun', dark: 'fa-moon' };
+  var ICONS = { system: 'circle-half-stroke', light: 'sun', dark: 'moon' };
 
   function current() {
     var t = localStorage.getItem(KEY);
@@ -35,9 +35,8 @@
       btn.setAttribute('title', 'Theme : ' + label + ' (cliquer pour changer)');
       btn.setAttribute('aria-label', 'Theme : ' + label);
       var icon = btn.querySelector('[data-theme-icon]');
-      if (icon) {
-        icon.className = 'fas ' + (ICONS[t] || ICONS.system);
-        icon.setAttribute('data-theme-icon', '');
+      if (icon && window.lucideIcon) {
+        icon.innerHTML = window.lucideIcon(ICONS[t] || ICONS.system);
       }
       var text = btn.querySelector('[data-theme-label]');
       if (text) { text.textContent = label; }
