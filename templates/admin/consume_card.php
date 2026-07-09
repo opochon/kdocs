@@ -13,7 +13,7 @@
                             <?php else: ?>
                             <div class="w-full h-64 rounded-lg flex items-center justify-center border-2 border-dashed" style="background:var(--app-bg);border-color:var(--border)">
                                 <div class="text-center" style="color:var(--dim)">
-                                    <i class="fas fa-file-pdf text-4xl mb-2"></i>
+                                    <?= icon('file-pdf', ['class' => 'text-4xl mb-2']) ?>
                                     <p class="text-sm">Miniature non disponible</p>
                                 </div>
                             </div>

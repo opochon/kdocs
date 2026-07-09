@@ -45,7 +45,7 @@ $removeChangeGroups = (isset($action) && isset($action['remove_change_groups']))
             </select>
         </div>
         <button type="button" onclick="removeAction(this)" style="color:var(--red)">
-            <i class="fas fa-trash"></i> Supprimer
+            <?= icon('trash') ?> Supprimer
         </button>
     </div>
     

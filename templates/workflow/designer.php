@@ -42,13 +42,13 @@ try {
             </div>
             <div class="flex items-center gap-2">
                 <button id="save-workflow" class="btn btn-primary text-sm">
-                    <i class="fas fa-save mr-1"></i> Enregistrer
+                    <?= icon('save', ['class' => 'mr-1']) ?> Enregistrer
                 </button>
                 <button id="test-workflow" class="btn btn-secondary text-sm">
-                    <i class="fas fa-play mr-1"></i> Tester
+                    <?= icon('play', ['class' => 'mr-1']) ?> Tester
                 </button>
                 <a href="<?= url('/admin/workflows') ?>" class="btn btn-secondary text-sm">
-                    <i class="fas fa-arrow-left mr-1"></i> Retour
+                    <?= icon('arrow-left', ['class' => 'mr-1']) ?> Retour
                 </a>
             </div>
         </div>
@@ -58,7 +58,7 @@ try {
         <!-- Sidebar gauche - Toolbox des nodes -->
         <div class="w-72 overflow-y-auto" style="background:var(--rail);border-right:1px solid var(--border)">
             <div class="p-4">
-                <h2 class="text-sm font-medium mb-3" style="color:var(--ink-soft)"><i class="fas fa-cubes mr-1"></i> Composants</h2>
+                <h2 class="text-sm font-medium mb-3" style="color:var(--ink-soft)"><?= icon('cubes', ['class' => 'mr-1']) ?> Composants</h2>
 
                 <!-- Déclencheurs -->
                 <div class="mb-4">
@@ -70,7 +70,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-bolt text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('bolt', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -91,7 +91,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-code-branch text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('code-branch', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -112,7 +112,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-cog text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('cog', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -133,7 +133,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-play text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('play', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -154,7 +154,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-clock text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('clock', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -166,7 +166,7 @@ try {
                         <div class="node-toolbox-item" data-node-type="<?= $node['type'] ?>" draggable="true">
                             <div class="flex items-center gap-2 p-2 rounded border cursor-move ds-row-hover transition-colors" style="background:var(--surface);border-color:var(--border)">
                                 <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--hover)">
-                                    <i class="fas fa-hourglass-half text-xs" style="color:var(--ink-soft)"></i>
+                                    <?= icon('hourglass-half', ['class' => 'text-xs', 'style' => 'color:var(--ink-soft)']) ?>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <span class="text-sm block truncate" style="color:var(--ink-soft)"><?= htmlspecialchars($node['name']) ?></span>
@@ -185,7 +185,7 @@ try {
 
             <!-- Help overlay -->
             <div id="help-overlay" class="absolute bottom-4 left-4 ds-card rounded-lg shadow-lg p-3 text-xs max-w-xs" style="color:var(--ink-soft)">
-                <p class="font-medium mb-1" style="color:var(--ink)"><i class="fas fa-info-circle mr-1"></i> Guide rapide</p>
+                <p class="font-medium mb-1" style="color:var(--ink)"><?= icon('info-circle', ['class' => 'mr-1']) ?> Guide rapide</p>
                 <ul class="space-y-1">
                     <li>• Glissez les composants depuis la gauche</li>
                     <li>• Connectez les sorties (●) aux entrées</li>
@@ -200,9 +200,9 @@ try {
         <div id="config-panel" class="w-96 overflow-y-auto hidden" style="background:var(--surface);border-left:1px solid var(--border)">
             <div class="p-4">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-sm font-medium" style="color:var(--ink-soft)"><i class="fas fa-sliders-h mr-1"></i> Configuration</h2>
+                    <h2 class="text-sm font-medium" style="color:var(--ink-soft)"><?= icon('sliders-h', ['class' => 'mr-1']) ?> Configuration</h2>
                     <button id="close-config" style="color:var(--dim)">
-                        <i class="fas fa-times"></i>
+                        <?= icon('times') ?>
                     </button>
                 </div>
                 <div id="config-content">

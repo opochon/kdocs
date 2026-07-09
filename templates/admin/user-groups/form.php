@@ -11,7 +11,7 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
 <div class="max-w-3xl mx-auto">
     <div class="mb-6">
         <a href="<?= url('/admin/user-groups') ?>" class="text-sm" style="color:var(--ink-soft)">
-            <i class="fas fa-arrow-left mr-1"></i> Retour aux groupes
+            <?= icon('arrow-left', ['class' => 'mr-1']) ?> Retour aux groupes
         </a>
         <h1 class="text-2xl font-bold mt-2" style="color:var(--ink)"><?= $isEdit ? 'Modifier le groupe' : 'Nouveau groupe' ?></h1>
     </div>
@@ -66,7 +66,7 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
                            class="rounded" style="accent-color:var(--accent)">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--hover)">
-                            <i class="fas fa-user text-sm" style="color:var(--dim)"></i>
+                            <?= icon('user', ['class' => 'text-sm', 'style' => 'color:var(--dim)']) ?>
                         </div>
                         <div>
                             <span class="text-sm font-medium" style="color:var(--ink)"><?= htmlspecialchars($user['full_name'] ?: $user['username']) ?></span>
@@ -82,7 +82,7 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
             </div>
 
             <p class="mt-2 text-xs" style="color:var(--dim)">
-                <i class="fas fa-info-circle mr-1"></i>
+                <?= icon('info-circle', ['class' => 'mr-1']) ?>
                 Les membres de ce groupe recevront les demandes d'approbation envoyées au groupe.
             </p>
         </div>
@@ -91,10 +91,10 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
         <?php if ($isAdminGroup): ?>
         <div class="rounded-xl shadow-sm border p-6" style="background:color-mix(in srgb,var(--green) 12%,transparent);border-color:var(--green)">
             <h2 class="text-lg font-medium mb-2" style="color:var(--green)">
-                <i class="fas fa-shield-alt mr-2"></i>Permissions
+                <?= icon('shield-alt', ['class' => 'mr-2']) ?>Permissions
             </h2>
             <p style="color:var(--green)">
-                <i class="fas fa-check-circle mr-2"></i>
+                <?= icon('check-circle', ['class' => 'mr-2']) ?>
                 <strong>Accès complet.</strong> Les membres du groupe Administrateurs ont automatiquement tous les droits sur l'application.
             </p>
         </div>
@@ -176,7 +176,7 @@ $isAdminGroup = ($group['code'] ?? '') === 'ADMIN';
                 Annuler
             </a>
             <button type="submit" class="btn-primary px-6 py-2 rounded-lg">
-                <i class="fas fa-save mr-2"></i>Enregistrer
+                <?= icon('save', ['class' => 'mr-2']) ?>Enregistrer
             </button>
         </div>
     </form>

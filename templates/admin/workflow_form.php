@@ -193,7 +193,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold" style="color:var(--ink)">Actions</h2>
                 <button type="button" onclick="addAction()" class="btn-secondary border px-4 py-2 text-sm rounded-lg">
-                    <i class="fas fa-plus mr-1"></i> Ajouter une action
+                    <?= icon('plus', ['class' => 'mr-1']) ?> Ajouter une action
                 </button>
             </div>
             <div id="actions-container" class="space-y-4">

@@ -37,7 +37,7 @@ $sourceIcons = [
 <div id="classification-history" class="ds-card mt-6">
     <div class="px-6 py-4 border-b">
         <h3 class="font-medium" style="color:var(--ink)">
-            <i class="fas fa-history mr-2" style="color:var(--dim)"></i>Historique des classifications
+            <?= icon('history', ['class' => 'mr-2', 'style' => 'color:var(--dim)']) ?>Historique des classifications
         </h3>
     </div>
 
@@ -63,7 +63,7 @@ $sourceIcons = [
                     <div class="text-sm mt-1" style="color:var(--ink-soft)">
                         <?php if ($entry['old_value']): ?>
                             <span class="line-through" style="color:var(--muted)"><?= htmlspecialchars($entry['old_value']) ?></span>
-                            <i class="fas fa-arrow-right mx-2" style="color:var(--muted)"></i>
+                            <?= icon('arrow-right', ['class' => 'mx-2', 'style' => 'color:var(--muted)']) ?>
                         <?php endif; ?>
                         <span class="font-medium"><?= htmlspecialchars($entry['new_value'] ?? '(vide)') ?></span>
                     </div>

@@ -25,22 +25,22 @@ $fieldOptions = \KDocs\Models\ClassificationFieldOption::getAllGrouped();
 <div id="invoice-line-items" class="ds-card mt-6">
     <div class="px-6 py-4 border-b flex items-center justify-between">
         <h3 class="font-medium" style="color:var(--ink)">
-            <i class="fas fa-list-ol mr-2" style="color:var(--accent)"></i>Lignes de facture
+            <?= icon('list-ol', ['class' => 'mr-2', 'style' => 'color:var(--accent)']) ?>Lignes de facture
         </h3>
         <div class="flex items-center gap-2">
             <?php if (empty($lineItems)): ?>
                 <button onclick="extractLineItems()" id="extract-btn"
                         class="btn-primary px-3 py-1 text-sm rounded">
-                    <i class="fas fa-magic mr-1"></i>Extraire avec IA
+                    <?= icon('magic', ['class' => 'mr-1']) ?>Extraire avec IA
                 </button>
             <?php else: ?>
                 <button onclick="extractLineItems(true)"
                         class="btn-secondary border px-3 py-1 text-sm rounded">
-                    <i class="fas fa-sync mr-1"></i>Ré-extraire
+                    <?= icon('sync', ['class' => 'mr-1']) ?>Ré-extraire
                 </button>
                 <button onclick="addLineItem()"
                         class="btn-primary px-3 py-1 text-sm rounded">
-                    <i class="fas fa-plus mr-1"></i>Ajouter
+                    <?= icon('plus', ['class' => 'mr-1']) ?>Ajouter
                 </button>
             <?php endif; ?>
         </div>
@@ -49,7 +49,7 @@ $fieldOptions = \KDocs\Models\ClassificationFieldOption::getAllGrouped();
     <div id="line-items-container">
         <?php if (empty($lineItems)): ?>
             <div id="no-line-items" class="p-8 text-center" style="color:var(--dim)">
-                <i class="fas fa-file-invoice text-4xl mb-4"></i>
+                <?= icon('file-invoice', ['class' => 'text-4xl mb-4']) ?>
                 <p>Aucune ligne extraite</p>
                 <p class="text-sm mt-2">Cliquez sur "Extraire avec IA" pour parser automatiquement les lignes de cette facture</p>
             </div>
@@ -114,7 +114,7 @@ $fieldOptions = \KDocs\Models\ClassificationFieldOption::getAllGrouped();
                                 <td class="px-4 py-3 text-right">
                                     <button onclick="deleteLineItem(<?= $item['id'] ?>)"
                                             style="color:var(--red)">
-                                        <i class="fas fa-trash"></i>
+                                        <?= icon('trash') ?>
                                     </button>
                                 </td>
                             </tr>

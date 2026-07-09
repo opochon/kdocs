@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
             <a href="<?= url('/admin/attribution-rules') ?>" style="color:var(--dim)">
-                <i class="fas fa-arrow-left"></i>
+                <?= icon('arrow-left') ?>
             </a>
             <div>
                 <h1 class="text-2xl font-bold" style="color:var(--ink)">Logs: <?= htmlspecialchars($rule['name']) ?></h1>
@@ -18,7 +18,7 @@
         </div>
         <a href="<?= url('/admin/attribution-rules/' . $rule['id'] . '/edit') ?>"
            class="btn btn-primary">
-            <i class="fas fa-edit mr-2"></i>Modifier
+            <?= icon('edit', ['class' => 'mr-2']) ?>Modifier
         </a>
     </div>
 
@@ -26,7 +26,7 @@
     <div class="ds-card rounded-lg shadow overflow-hidden">
         <?php if (empty($logs)): ?>
             <div class="p-8 text-center" style="color:var(--dim)">
-                <i class="fas fa-history text-4xl mb-4"></i>
+                <?= icon('history', ['class' => 'text-4xl mb-4']) ?>
                 <p>Aucun log d'exécution</p>
             </div>
         <?php else: ?>
@@ -54,11 +54,11 @@
                             <td class="px-6 py-4">
                                 <?php if ($log['matched']): ?>
                                     <span class="ds-chip ds-chip--green px-2.5 py-0.5 text-xs font-medium">
-                                        <i class="fas fa-check mr-1"></i> Match
+                                        <?= icon('check', ['class' => 'mr-1']) ?> Match
                                     </span>
                                 <?php else: ?>
                                     <span class="ds-chip ds-chip--neutral px-2.5 py-0.5 text-xs font-medium">
-                                        <i class="fas fa-times mr-1"></i> Non match
+                                        <?= icon('times', ['class' => 'mr-1']) ?> Non match
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -95,7 +95,7 @@
         <div class="px-6 py-4 border-b flex items-center justify-between">
             <h3 class="font-medium" style="color:var(--ink)">Détails de l'évaluation</h3>
             <button onclick="closeDetails()" style="color:var(--dim)">
-                <i class="fas fa-times"></i>
+                <?= icon('times') ?>
             </button>
         </div>
         <div id="details-content" class="p-6 overflow-y-auto max-h-[60vh]">

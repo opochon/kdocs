@@ -10,7 +10,7 @@ $isEdit = !empty($rule);
     <div class="border-b px-6 py-4 flex items-center justify-between" style="background:var(--surface);border-color:var(--border)">
         <div class="flex items-center gap-4">
             <a href="<?= url('/admin/attribution-rules') ?>" style="color:var(--ink-soft)">
-                <i class="fas fa-arrow-left"></i>
+                <?= icon('arrow-left') ?>
             </a>
             <div>
                 <input type="text" id="rule-name" value="<?= htmlspecialchars($rule['name'] ?? '') ?>"
@@ -25,10 +25,10 @@ $isEdit = !empty($rule);
                 <span class="text-sm" style="color:var(--ink-soft)">Active</span>
             </label>
             <button onclick="testRule()" class="btn-secondary border px-4 py-2 rounded-lg">
-                <i class="fas fa-play mr-2"></i>Tester
+                <?= icon('play', ['class' => 'mr-2']) ?>Tester
             </button>
             <button onclick="saveRule()" class="btn-primary px-4 py-2 rounded-lg">
-                <i class="fas fa-save mr-2"></i>Enregistrer
+                <?= icon('save', ['class' => 'mr-2']) ?>Enregistrer
             </button>
         </div>
     </div>
@@ -69,17 +69,17 @@ $isEdit = !empty($rule);
             <div class="rounded-lg shadow p-4" style="background:var(--surface)">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-medium" style="color:var(--ink)">
-                        <i class="fas fa-filter mr-2" style="color:var(--accent)"></i>SI (Conditions)
+                        <?= icon('filter', ['class' => 'mr-2', 'style' => 'color:var(--accent)']) ?>SI (Conditions)
                     </h3>
                     <button onclick="addCondition()" class="text-sm" style="color:var(--accent)">
-                        <i class="fas fa-plus mr-1"></i>Ajouter condition
+                        <?= icon('plus', ['class' => 'mr-1']) ?>Ajouter condition
                     </button>
                 </div>
                 <div id="conditions-container" class="space-y-3">
                     <!-- Conditions will be rendered here -->
                 </div>
                 <div id="no-conditions" class="text-center py-6 <?= !empty($rule['conditions']) ? 'hidden' : '' ?>" style="color:var(--dim)">
-                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                    <?= icon('info-circle', ['class' => 'text-2xl mb-2']) ?>
                     <p>Aucune condition - la règle s'appliquera à tous les documents</p>
                 </div>
             </div>
@@ -88,17 +88,17 @@ $isEdit = !empty($rule);
             <div class="rounded-lg shadow p-4" style="background:var(--surface)">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="font-medium" style="color:var(--ink)">
-                        <i class="fas fa-bolt mr-2" style="color:var(--amber)"></i>ALORS (Actions)
+                        <?= icon('bolt', ['class' => 'mr-2', 'style' => 'color:var(--amber)']) ?>ALORS (Actions)
                     </h3>
                     <button onclick="addAction()" class="text-sm" style="color:var(--accent)">
-                        <i class="fas fa-plus mr-1"></i>Ajouter action
+                        <?= icon('plus', ['class' => 'mr-1']) ?>Ajouter action
                     </button>
                 </div>
                 <div id="actions-container" class="space-y-3">
                     <!-- Actions will be rendered here -->
                 </div>
                 <div id="no-actions" class="text-center py-6 <?= !empty($rule['actions']) ? 'hidden' : '' ?>" style="color:var(--dim)">
-                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <?= icon('exclamation-triangle', ['class' => 'text-2xl mb-2']) ?>
                     <p>Ajoutez au moins une action</p>
                 </div>
             </div>
@@ -110,7 +110,7 @@ $isEdit = !empty($rule);
                 <div class="flex items-center justify-between">
                     <h3 class="font-medium" style="color:var(--ink)">Résultats du test</h3>
                     <button onclick="closeTestPanel()" style="color:var(--dim)">
-                        <i class="fas fa-times"></i>
+                        <?= icon('times') ?>
                     </button>
                 </div>
             </div>
@@ -139,7 +139,7 @@ $isEdit = !empty($rule);
             </div>
         </div>
         <button onclick="removeCondition(this)" class="p-2" style="color:var(--red)">
-            <i class="fas fa-trash"></i>
+            <?= icon('trash') ?>
         </button>
     </div>
 </template>
@@ -158,7 +158,7 @@ $isEdit = !empty($rule);
             </div>
         </div>
         <button onclick="removeAction(this)" class="p-2" style="color:var(--red)">
-            <i class="fas fa-trash"></i>
+            <?= icon('trash') ?>
         </button>
     </div>
 </template>
@@ -241,7 +241,7 @@ function createConditionRow(condition, index) {
             </div>
         </div>
         <button onclick="removeCondition(this)" class="p-2" style="color:var(--red)">
-            <i class="fas fa-trash"></i>
+            <?= icon('trash') ?>
         </button>
     `;
 
@@ -276,7 +276,7 @@ function createActionRow(action, index) {
             </div>
         </div>
         <button onclick="removeAction(this)" class="p-2" style="color:var(--red)">
-            <i class="fas fa-trash"></i>
+            <?= icon('trash') ?>
         </button>
     `;
 

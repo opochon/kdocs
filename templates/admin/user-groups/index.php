@@ -14,7 +14,7 @@ $base = Config::basePath();
         </div>
         <a href="<?= url('/admin/user-groups/create') ?>"
            class="btn btn-primary text-sm">
-            <i class="fas fa-plus mr-2"></i>Nouveau groupe
+            <?= icon('plus', ['class' => 'mr-2']) ?>Nouveau groupe
         </a>
     </div>
 
@@ -47,7 +47,7 @@ $base = Config::basePath();
                     <tr>
                         <td colspan="5" class="px-6 py-8 text-center" style="color:var(--dim)">
                             <div class="flex flex-col items-center">
-                                <i class="fas fa-users text-4xl mb-3" style="color:var(--muted)"></i>
+                                <?= icon('users', ['class' => 'text-4xl mb-3', 'style' => 'color:var(--muted)']) ?>
                                 <p>Aucun groupe défini</p>
                                 <a href="<?= url('/admin/user-groups/create') ?>" class="mt-2 hover:underline" style="color:var(--accent)">
                                     Créer le premier groupe
@@ -87,14 +87,14 @@ $base = Config::basePath();
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="ds-chip ds-chip--neutral inline-flex items-center px-2.5 py-0.5 text-xs font-medium">
-                                <i class="fas fa-user mr-1"></i>
+                                <?= icon('user', ['class' => 'mr-1']) ?>
                                 <?= $group['member_count'] ?? 0 ?> membre(s)
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <?php if ($group['is_system'] ?? false): ?>
                             <span class="ds-chip ds-chip--neutral inline-flex items-center px-2.5 py-0.5 text-xs font-medium">
-                                <i class="fas fa-lock mr-1"></i> Système
+                                <?= icon('lock', ['class' => 'mr-1']) ?> Système
                             </span>
                             <?php else: ?>
                             <span class="ds-chip ds-chip--neutral inline-flex items-center px-2.5 py-0.5 text-xs font-medium">
@@ -105,17 +105,17 @@ $base = Config::basePath();
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <a href="<?= url('/admin/user-groups/' . $group['id'] . '/edit') ?>"
                                class="mr-3" style="color:var(--accent)">
-                                <i class="fas fa-edit"></i>
+                                <?= icon('edit') ?>
                             </a>
                             <?php if (!($group['is_system'] ?? false) && !$isAdminGroup): ?>
                             <form method="POST" action="<?= url('/admin/user-groups/' . $group['id'] . '/delete') ?>" class="inline"
                                   onsubmit="return confirm('Supprimer ce groupe ?')">
                                 <button type="submit" style="color:var(--red)">
-                                    <i class="fas fa-trash"></i>
+                                    <?= icon('trash') ?>
                                 </button>
                             </form>
                             <?php else: ?>
-                            <span style="color:var(--muted)" title="Groupe protégé"><i class="fas fa-trash"></i></span>
+                            <span style="color:var(--muted)" title="Groupe protégé"><?= icon('trash') ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -128,7 +128,7 @@ $base = Config::basePath();
 
     <!-- Info box -->
     <div class="mt-6 p-4 rounded-lg" style="background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border))">
-        <h3 class="font-medium mb-2" style="color:var(--accent)"><i class="fas fa-info-circle mr-2"></i>Système de permissions par groupes</h3>
+        <h3 class="font-medium mb-2" style="color:var(--accent)"><?= icon('info-circle', ['class' => 'mr-2']) ?>Système de permissions par groupes</h3>
         <ul class="text-sm space-y-1" style="color:var(--ink-soft)">
             <li><strong>Permissions:</strong> Les droits des utilisateurs sont déterminés par leurs groupes.</li>
             <li><strong>Groupe ADMIN:</strong> Les membres du groupe avec le code <code class="px-1 rounded" style="background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)">ADMIN</code> ont automatiquement tous les droits.</li>

@@ -33,7 +33,7 @@ $fieldLabels = [
     <div class="flex items-start justify-between">
         <div class="flex items-center gap-3">
             <div class="rounded-full p-2" style="background: color-mix(in srgb, var(--amber) 18%, transparent);">
-                <i class="fas fa-lightbulb" style="color:var(--amber)"></i>
+                <?= icon('lightbulb', ['style' => 'color:var(--amber)']) ?>
             </div>
             <div>
                 <h4 class="font-medium" style="color:var(--amber)">Suggestions de classification</h4>
@@ -42,10 +42,10 @@ $fieldLabels = [
         </div>
         <div class="flex items-center gap-2">
             <button onclick="applyAllSuggestions()" class="btn-primary px-3 py-1 text-sm rounded">
-                <i class="fas fa-check-double mr-1"></i>Appliquer tout
+                <?= icon('check-double', ['class' => 'mr-1']) ?>Appliquer tout
             </button>
             <button onclick="ignoreAllSuggestions()" class="btn-secondary border px-3 py-1 text-sm rounded">
-                <i class="fas fa-times mr-1"></i>Ignorer tout
+                <?= icon('times', ['class' => 'mr-1']) ?>Ignorer tout
             </button>
         </div>
     </div>
@@ -73,11 +73,11 @@ $fieldLabels = [
                 <div class="flex items-center gap-2">
                     <button onclick="applySuggestion(<?= $suggestion['id'] ?>)"
                             class="p-1" style="color:var(--green)" title="Appliquer">
-                        <i class="fas fa-check"></i>
+                        <?= icon('check') ?>
                     </button>
                     <button onclick="ignoreSuggestion(<?= $suggestion['id'] ?>)"
                             class="p-1" style="color:var(--dim)" title="Ignorer">
-                        <i class="fas fa-times"></i>
+                        <?= icon('times') ?>
                     </button>
                 </div>
             </div>
