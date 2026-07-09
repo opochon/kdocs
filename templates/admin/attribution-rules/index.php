@@ -13,7 +13,7 @@
         </div>
         <a href="<?= url('/admin/attribution-rules/create') ?>"
            class="btn btn-primary flex items-center gap-2">
-            <i class="fas fa-plus"></i>
+            <?= icon('plus') ?>
             Nouvelle règle
         </a>
     </div>
@@ -42,7 +42,7 @@
     <div class="ds-card rounded-lg shadow overflow-hidden">
         <?php if (empty($rules)): ?>
             <div class="p-8 text-center" style="color:var(--dim)">
-                <i class="fas fa-layer-group text-4xl mb-4"></i>
+                <?= icon('layer-group', ['class' => 'text-4xl mb-4']) ?>
                 <p>Aucune règle d'attribution configurée</p>
                 <a href="<?= url('/admin/attribution-rules/create') ?>" class="hover:underline mt-2 inline-block" style="color:var(--accent)">
                     Créer votre première règle
@@ -87,11 +87,11 @@
                             <td class="px-6 py-4">
                                 <?php if ($rule['is_active']): ?>
                                     <span class="ds-chip ds-chip--green px-2.5 py-0.5 text-xs font-medium">
-                                        <i class="fas fa-check-circle mr-1"></i> Active
+                                        <?= icon('check-circle', ['class' => 'mr-1']) ?> Active
                                     </span>
                                 <?php else: ?>
                                     <span class="ds-chip ds-chip--neutral px-2.5 py-0.5 text-xs font-medium">
-                                        <i class="fas fa-pause-circle mr-1"></i> Inactive
+                                        <?= icon('pause-circle', ['class' => 'mr-1']) ?> Inactive
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -99,19 +99,19 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="<?= url('/admin/attribution-rules/' . $rule['id'] . '/edit') ?>"
                                        style="color:var(--accent)" title="Modifier">
-                                        <i class="fas fa-edit"></i>
+                                        <?= icon('edit') ?>
                                     </a>
                                     <a href="<?= url('/admin/attribution-rules/' . $rule['id'] . '/logs') ?>"
                                        style="color:var(--ink-soft)" title="Logs">
-                                        <i class="fas fa-history"></i>
+                                        <?= icon('history') ?>
                                     </a>
                                     <button onclick="duplicateRule(<?= $rule['id'] ?>)"
                                             style="color:var(--ink-soft)" title="Dupliquer">
-                                        <i class="fas fa-copy"></i>
+                                        <?= icon('copy') ?>
                                     </button>
                                     <button onclick="deleteRule(<?= $rule['id'] ?>, '<?= htmlspecialchars(addslashes($rule['name'])) ?>')"
                                             style="color:var(--red)" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
+                                        <?= icon('trash') ?>
                                     </button>
                                 </div>
                             </td>

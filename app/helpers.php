@@ -193,3 +193,65 @@ if (!function_exists('documentThumbnailPlaceholderUrl')) {
         return asset('img/document-placeholder.svg');
     }
 }
+
+if (!function_exists('icon')) {
+    /**
+     * SVG lucide inline — jeu d'icônes unique de la famille Karbonic
+     * (voir docs/DESIGN-SYSTEM-KARBONIC.md §13). Remplace Font Awesome.
+     * Les SVG sont vendorés localement dans public/icons/lucide/ (aucun CDN).
+     *
+     * La taille suit la font-size (1em, comme Font Awesome) et la couleur suit
+     * currentColor → `text-2xl`, `text-red-500`, `style="color:var(--dim)"` marchent.
+     *
+     * @param string $name  Nom court (alias FA : 'trash', 'plus'…) ou nom lucide direct.
+     * @param array  $attrs Attributs HTML : 'class', 'style', 'title' (→ aria-label), 'width'…
+     */
+    function icon(string $name, array $attrs = []): string
+    {
+        static $cache = [];
+        // Alias FA (nom court) → fichier lucide. Un nom absent ici est cherché tel quel
+        // (il est déjà un nom lucide, ex. icon('users')).
+        static $alias = [
+            'trash' => 'trash-2', 'times' => 'x', 'info-circle' => 'info',
+            'spinner' => 'loader-circle', 'robot' => 'bot', 'magic' => 'wand-sparkles',
+            'edit' => 'square-pen', 'check-circle' => 'circle-check', 'times-circle' => 'circle-x',
+            'layer-group' => 'layers', 'exclamation-triangle' => 'triangle-alert',
+            'circle-half-stroke' => 'contrast', 'check-double' => 'check-check', 'bolt' => 'zap',
+            'code-branch' => 'git-branch', 'hourglass-half' => 'hourglass', 'cog' => 'settings',
+            'cubes' => 'boxes', 'sliders-h' => 'sliders-horizontal', 'comments' => 'messages-square',
+            'paper-plane' => 'send', 'file-invoice' => 'file-text', 'file-pdf' => 'file-text',
+            'file-alt' => 'file-text', 'list-ol' => 'list-ordered', 'sync' => 'refresh-cw',
+            'shield-alt' => 'shield', 'pause-circle' => 'circle-pause', 'filter' => 'funnel',
+        ];
+        $file = $alias[$name] ?? $name;
+        if (!array_key_exists($file, $cache)) {
+            $path = dirname(__DIR__) . '/public/icons/lucide/' . $file . '.svg';
+            $cache[$file] = is_file($path) ? (string) file_get_contents($path) : '';
+        }
+        $svg = $cache[$file];
+        if ($svg === '') {
+            // Icône introuvable : marqueur invisible + title (repérage en dev), jamais un trou muet.
+            return '<span class="lucide-missing" title="icon manquant: ' . htmlspecialchars($name) . '" aria-hidden="true"></span>';
+        }
+
+        $class = trim('lucide ' . (string) ($attrs['class'] ?? ''));
+        $style = 'width:1em;height:1em;vertical-align:-0.125em;' . (string) ($attrs['style'] ?? '');
+        unset($attrs['class'], $attrs['style']);
+
+        $out = 'class="' . htmlspecialchars($class) . '" style="' . htmlspecialchars($style) . '"';
+        if (!empty($attrs['title'])) {
+            $out .= ' role="img" aria-label="' . htmlspecialchars((string) $attrs['title']) . '"';
+        } else {
+            $out .= ' aria-hidden="true" focusable="false"';
+        }
+        unset($attrs['title']);
+        foreach ($attrs as $k => $v) {
+            $out .= ' ' . htmlspecialchars((string) $k) . '="' . htmlspecialchars((string) $v) . '"';
+        }
+        // Retire les width/height=24 du source lucide (on pilote la taille en 1em via style)
+        // puis injecte nos attributs dans la balise <svg>.
+        $svg = preg_replace('/\s(?:width|height)="24"/', '', $svg, 2);
+
+        return preg_replace('/<svg\b/', '<svg ' . $out, (string) $svg, 1);
+    }
+}
