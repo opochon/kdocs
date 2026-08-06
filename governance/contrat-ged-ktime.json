@@ -1,0 +1,112 @@
+{
+  "_doc": "Contrat versionne des 8 routes /api/ged/* entre GEDv1 (consommateur) et K-Time (fournisseur). Verifie par tools/lint-contrat.mjs (regle 9 : gate externe) contre le depot K-Time sur disque et le serveur K-Time vivant — jamais depuis ce fichier seul.",
+  "version": "1.0.0",
+  "auth": {
+    "header": "X-Api-Key",
+    "env_var": "KTIME_GED_API_KEY",
+    "note": "Cle de service dediee (config ged_api_key cote K-Time, table config / config('ged.api_key')). Pas de mutualisation avec quick_api_key. Le token identifie le service GED, pas un utilisateur. Ne jamais logger ni ecrire cette valeur."
+  },
+  "sources_of_verite": {
+    "ktime_routes_file": "k-time-web/src/routes.php",
+    "ktime_api_key_routes_array": "k-time-web/src/routes.php ($apiKeyRoutes)",
+    "ktime_spec": "docs/SPEC-GED-INTEGRATION.md",
+    "note": "Chemins relatifs a la racine du depot K-Time (env KTIME_REPO, defaut F:/DATA/DEVELOPPEMENT/K-TIME). GEDv1 ne modifie jamais ces fichiers, lecture seule."
+  },
+  "client": {
+    "repo": "GEDv1",
+    "file": "apps/erpconnect/Services/KTimeClient.php"
+  },
+  "routes": [
+    {
+      "id": "health",
+      "method": "GET",
+      "path": "/api/ged/health",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "health" },
+      "client_method": "health",
+      "params": { "query": [], "body": [] },
+      "status_codes": [200, 401],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.1"
+    },
+    {
+      "id": "suppliers.lookup",
+      "method": "GET",
+      "path": "/api/ged/suppliers/lookup",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "supplierLookup" },
+      "client_method": "lookupSupplier",
+      "params": { "query": ["q", "iban", "ad_numero"], "body": [] },
+      "status_codes": [200, 401],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.2"
+    },
+    {
+      "id": "suppliers.ventilation",
+      "method": "GET",
+      "path": "/api/ged/suppliers/{id}/ventilation",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "supplierVentilation" },
+      "client_method": "ventilation",
+      "params": { "query": [], "body": [] },
+      "status_codes": [200, 401],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.3"
+    },
+    {
+      "id": "received-invoices.exists",
+      "method": "GET",
+      "path": "/api/ged/received-invoices/exists",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "exists" },
+      "client_method": "invoiceExists",
+      "params": { "query": ["supplier_id", "supplier_ref", "amount"], "body": [] },
+      "status_codes": [200, 401],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.4"
+    },
+    {
+      "id": "received-invoices.show",
+      "method": "GET",
+      "path": "/api/ged/received-invoices/{id}",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "show" },
+      "client_method": "getReceivedInvoice",
+      "params": { "query": [], "body": [] },
+      "status_codes": [200, 401, 404],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.6"
+    },
+    {
+      "id": "received-invoices.create",
+      "method": "POST",
+      "path": "/api/ged/received-invoices",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "create" },
+      "client_method": "createReceivedInvoice",
+      "params": {
+        "query": [],
+        "body": ["external_ref", "supplier", "supplier_ref", "invoice_date", "due_date", "total_ht", "total_tva", "total_ttc", "currency", "lines", "note"]
+      },
+      "status_codes": [200, 401, 422],
+      "spec_ref": "SPEC-GED-INTEGRATION.md §3.5"
+    },
+    {
+      "id": "received-invoices.block",
+      "method": "POST",
+      "path": "/api/ged/received-invoices/{id}/block",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "block" },
+      "client_method": "blockReceivedInvoice",
+      "params": { "query": [], "body": ["kind", "cause"] },
+      "status_codes": [200, 401, 422],
+      "spec_ref": "SPEC-GED-INTEGRATION.md addendum 2026-07-07 (GED-6)"
+    },
+    {
+      "id": "received-invoices.partial-validate",
+      "method": "POST",
+      "path": "/api/ged/received-invoices/{id}/partial-validate",
+      "requires_api_key": true,
+      "ktime": { "controller": "GedApiController", "action": "partialValidate" },
+      "client_method": "partialValidate",
+      "params": { "query": [], "body": ["confirmed_allocation_ids", "note"] },
+      "status_codes": [200, 401, 422],
+      "spec_ref": "SPEC-GED-INTEGRATION.md addendum 2026-07-07 (GED-6)"
+    }
+  ]
+}

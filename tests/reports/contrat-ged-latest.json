@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-08-06T15:41:34.035Z",
+  "contract_version": "1.0.0",
+  "ktime_repo": "F:/DATA/DEVELOPPEMENT/K-TIME",
+  "checks": [
+    {
+      "name": "ktime-repo-routes",
+      "status": "ok",
+      "detail": "8 route(s) /api/ged/* trouvee(s) dans k-time-web/src/routes.php, conformes au contrat"
+    },
+    {
+      "name": "ktime-live-health",
+      "status": "ok",
+      "detail": "GET http://127.0.0.1:8090/api/ged/health -> 200 (cle API presente dans .env)"
+    },
+    {
+      "name": "client-interne",
+      "status": "ok",
+      "detail": "8 appel(s) trouve(s) dans KTimeClient.php, conformes au contrat"
+    }
+  ],
+  "divergences": [],
+  "verdict": "OK"
+}
