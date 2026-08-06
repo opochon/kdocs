@@ -1,0 +1,32 @@
+{
+  "_doc": "Backlog mesure de GEDv1. FAIT = la sonde passe. TESTE = fait ET l oracle nomme est vert au dernier harness. Un item sans oracle ne peut jamais atteindre TESTE : la dette d instrumentation doit se voir.",
+  "blocs": {
+    "socle": {
+      "titre": "Socle — mesurabilite",
+      "items": [
+        { "id": "socle.preflight", "titre": "Preflight environnement (vendor, playwright, DB, K-Time)", "probe": { "type": "file", "path": "tools/preflight.php" }, "oracle": null },
+        { "id": "socle.harness-json", "titre": "Le harness produit un rapport machine (harness-latest.json)", "probe": { "type": "file", "path": "tests/reports/harness-latest.json" }, "oracle": null },
+        { "id": "socle.specs-registre", "titre": "Specs Playwright decouvertes, non listees en dur dans le .bat", "probe": { "type": "file", "path": "governance/specs.json" }, "oracle": null },
+        { "id": "socle.rapports-ranges", "titre": "Les 8 RAPPORT_*.md de la racine ranges", "probe": { "type": "file", "path": "docs/rapports/README.md" }, "oracle": null }
+      ]
+    },
+    "erp": {
+      "titre": "Integration K-Time (erpconnect)",
+      "items": [
+        { "id": "erp.preflight-health", "titre": "K-Time /api/ged/health verifie au preflight", "probe": { "type": "grep", "file": "tools/preflight.php", "pattern": "api/ged/health" }, "oracle": null },
+        { "id": "erp.roundtrip-reel", "titre": "Oracle d aller-retour REEL contre K-Time (pas moque)", "probe": { "type": "file", "path": "tests/integration/KTimeRoundtripTest.php" }, "oracle": "ktime-roundtrip" },
+        { "id": "erp.contrat-partage", "titre": "Contrat GED<->K-Time versionne des deux cotes", "probe": { "type": "file", "path": "governance/contrat-ged-ktime.json" }, "oracle": "ktime-contract" },
+        { "id": "erp.cle-masquee", "titre": "KTIME_GED_API_KEY jamais serialisee dans un log ou rapport", "probe": { "type": "grep", "file": "apps/erpconnect/Services/KTimeClient.php", "pattern": "MASQUE|redact|\\*\\*\\*" }, "oracle": null }
+      ]
+    },
+    "qualite": {
+      "titre": "Qualite — cliquets et perimetres",
+      "items": [
+        { "id": "qa.phpstan-dette", "titre": "260 erreurs phpstan en baseline : decision tracee", "probe": { "type": "file", "path": "governance/phpstan-decision.md" }, "oracle": null },
+        { "id": "qa.cliquet", "titre": "Au moins un cliquet qui ne peut que descendre", "probe": { "type": "file", "path": "governance/budgets.json" }, "oracle": null },
+        { "id": "qa.secteurs", "titre": "Secteurs declares avec leurs oracles (anti-orphelin)", "probe": { "type": "file", "path": "governance/sectors.json" }, "oracle": null },
+        { "id": "qa.gate-externe", "titre": "Un gate dont la verite est exterieure au code (regle 9)", "probe": { "type": "file", "path": "tools/lint-contrat.mjs" }, "oracle": null }
+      ]
+    }
+  }
+}
