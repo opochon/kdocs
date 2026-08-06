@@ -1,0 +1,28 @@
+{
+  "_doc": "Registre des specs Playwright de tests/visual/specs/. Source de verite pour tools/run-harness.mjs : le harness decouvre les fichiers *.spec.ts sur disque et refuse de continuer (fail bruyant) si l'un d'eux est absent de ce registre. Statut 'active' => execute a chaque harness. Statut 'retired' => exclu du run, raison obligatoire dans 'note'. Item backlog socle.specs-registre.",
+  "specs": {
+    "a11y":                        { "status": "active" },
+    "admin-hub":                   { "status": "active" },
+    "ai-assistant":                { "status": "active" },
+    "ai-confidence-badge":         { "status": "active" },
+    "audit-coherence":             { "status": "active", "note": "jamais executee avant le lot socle.specs-registre (absente de la liste en dur du .bat) — entre active ; si elle tombe elle tombe, pas de mise en quarantaine." },
+    "bugs":                        { "status": "active", "note": "jamais executee avant le lot socle.specs-registre (absente de la liste en dur du .bat) — entre active ; si elle tombe elle tombe, pas de mise en quarantaine." },
+    "bugs-click":                  { "status": "active" },
+    "bugs-misc":                   { "status": "active" },
+    "chrome-coherence":            { "status": "active" },
+    "cmdv4-freshness-badge":       { "status": "active" },
+    "erp-connect":                 { "status": "active", "note": "jamais executee avant le lot socle.specs-registre (absente de la liste en dur du .bat) — entre active ; si elle tombe elle tombe, pas de mise en quarantaine." },
+    "fiche-document":              { "status": "active" },
+    "legal-seal":                  { "status": "active" },
+    "lib-operations":              { "status": "active" },
+    "persona":                     { "status": "active" },
+    "persona-parcours-ecm":        { "status": "active" },
+    "persona-preview":             { "status": "active" },
+    "persona-redx-expert":         { "status": "active" },
+    "pipeline-ui":                 { "status": "active" },
+    "search-tasks":                { "status": "active" },
+    "shell":                       { "status": "active" },
+    "smq-versions":                { "status": "active", "note": "jamais executee avant le lot socle.specs-registre (absente de la liste en dur du .bat) — entre active ; si elle tombe elle tombe, pas de mise en quarantaine." },
+    "workflow-doc-identification": { "status": "active" }
+  }
+}

@@ -36,7 +36,7 @@
       "items": [
         { "id": "erp.preflight-health", "titre": "K-Time /api/ged/health verifie au preflight", "probe": { "type": "grep", "file": "tools/preflight.php", "pattern": "api/ged/health" }, "oracle": null },
         { "id": "erp.contrat-partage", "titre": "Contrat /api/ged/* versionne et compare aux deux depots", "probe": { "type": "file", "path": "governance/contrat-ged-ktime.json" }, "oracle": "ktime-contract" },
-        { "id": "erp.cle-masquee", "titre": "KTIME_GED_API_KEY jamais serialisee dans un log ou rapport", "probe": { "type": "grep", "file": "apps/erpconnect/Services/KTimeClient.php", "pattern": "MASQUE|redact|\\*\\*\\*" }, "oracle": null }
+        { "id": "erp.cle-masquee", "titre": "KTIME_GED_API_KEY jamais serialisee dans un log ou rapport", "probe": { "type": "grep", "file": "apps/erpconnect/Services/KTimeClient.php", "pattern": "MASQUE|redact|\\*\\*\\*" }, "oracle": "api-key-redaction" }
       ]
     },
     "qualite": {

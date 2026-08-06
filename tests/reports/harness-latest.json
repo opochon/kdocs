@@ -1,0 +1,323 @@
+{
+  "generatedAt": "2026-08-06T18:36:59.556Z",
+  "verdict": "ROUGE",
+  "exitCode": 1,
+  "durationMs": 597425,
+  "suites": [
+    {
+      "name": "migration-smoke",
+      "ok": true,
+      "source": "tests/migration_smoke_test.php",
+      "durationMs": 104,
+      "testCount": 215,
+      "failures": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "documents-innodb",
+      "ok": true,
+      "source": "tools/fix-documents-innodb.php",
+      "durationMs": 78,
+      "exitCode": 0
+    },
+    {
+      "name": "phpunit-all",
+      "ok": true,
+      "source": "vendor/bin/phpunit (toutes suites tests/Unit + tests/Feature)",
+      "testCount": 493,
+      "failures": 0,
+      "skipped": 3,
+      "durationMs": 48204
+    },
+    {
+      "name": "folder-permissions",
+      "ok": true,
+      "source": "tests/Unit/FolderPermissionTest.php",
+      "testCount": 10,
+      "failures": 0,
+      "durationMs": 3
+    },
+    {
+      "name": "thumbnails",
+      "ok": true,
+      "source": "tests/Unit/Services/ThumbnailGeneratorTest.php",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 409
+    },
+    {
+      "name": "classifier-taxonomie",
+      "ok": true,
+      "source": "tests/Unit/Adapters/HtmleditorTaxonomyAdapterTest.php + tests/Unit/Services/DocumentTypeIdentificationTest.php",
+      "testCount": 15,
+      "failures": 0,
+      "durationMs": 2
+    },
+    {
+      "name": "soft-delete",
+      "ok": true,
+      "source": "tests/Unit/Services/TrashServiceTest.php (testSoftDeleteKeepsRecord, testDeletedAtTimestamp)",
+      "testCount": 2,
+      "failures": 0,
+      "durationMs": 0
+    },
+    {
+      "name": "trash-retention",
+      "ok": true,
+      "source": "tests/Unit/Services/TrashServiceTest.php (testTrashRetentionPeriod, testTrashPathIsConfigured)",
+      "testCount": 2,
+      "failures": 0,
+      "durationMs": 0
+    },
+    {
+      "name": "ktime-contract",
+      "ok": true,
+      "source": "tests/Feature/KTimeContractTest.php",
+      "testCount": 4,
+      "failures": 0,
+      "durationMs": 3
+    },
+    {
+      "name": "api-key-redaction",
+      "ok": true,
+      "source": "tests/Feature/ApiKeyRedactionTest.php",
+      "testCount": 5,
+      "failures": 0,
+      "durationMs": 3
+    },
+    {
+      "name": "search-fulltext",
+      "ok": false,
+      "source": "tests/integration/test_fulltext_search.php",
+      "durationMs": 2393,
+      "testCount": 12,
+      "failures": 1,
+      "failedCases": [
+        "Requête MATCH AGAINST exécutable - SQLSTATE[42000]: Syntax error or access violation: 1064 syntax error, unexpected $end, expecting FTS_TERM or FTS_NUMB or '*'"
+      ],
+      "exitCode": 1,
+      "stderrTail": "Failed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\n"
+    },
+    {
+      "name": "eval-full",
+      "ok": true,
+      "source": "tools/eval-full.php --no-ocr",
+      "durationMs": 27204,
+      "testCount": 60,
+      "failures": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "specs-registre",
+      "ok": true,
+      "source": "governance/specs.json vs tests/visual/specs/*.spec.ts",
+      "testCount": 23
+    },
+    {
+      "name": "a11y",
+      "ok": true,
+      "source": "tests/visual/specs/a11y.spec.ts",
+      "testCount": 8,
+      "failures": 0,
+      "durationMs": 14602
+    },
+    {
+      "name": "admin-hub",
+      "ok": true,
+      "source": "tests/visual/specs/admin-hub.spec.ts",
+      "testCount": 6,
+      "failures": 0,
+      "durationMs": 15664
+    },
+    {
+      "name": "ai-assistant",
+      "ok": true,
+      "source": "tests/visual/specs/ai-assistant.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 207
+    },
+    {
+      "name": "ai-confidence-badge",
+      "ok": true,
+      "source": "tests/visual/specs/ai-confidence-badge.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 2510
+    },
+    {
+      "name": "audit-coherence",
+      "ok": true,
+      "source": "tests/visual/specs/audit-coherence.spec.ts",
+      "testCount": 14,
+      "failures": 0,
+      "durationMs": 41219
+    },
+    {
+      "name": "bugs",
+      "ok": true,
+      "source": "tests/visual/specs/bugs.spec.ts",
+      "testCount": 5,
+      "failures": 0,
+      "durationMs": 20671
+    },
+    {
+      "name": "bugs-click",
+      "ok": true,
+      "source": "tests/visual/specs/bugs-click.spec.ts",
+      "testCount": 3,
+      "failures": 0,
+      "durationMs": 9742
+    },
+    {
+      "name": "bugs-misc",
+      "ok": true,
+      "source": "tests/visual/specs/bugs-misc.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 880
+    },
+    {
+      "name": "chrome-coherence",
+      "ok": true,
+      "source": "tests/visual/specs/chrome-coherence.spec.ts",
+      "testCount": 8,
+      "failures": 0,
+      "durationMs": 17630
+    },
+    {
+      "name": "cmdv4-freshness-badge",
+      "ok": true,
+      "source": "tests/visual/specs/cmdv4-freshness-badge.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 1741
+    },
+    {
+      "name": "erp-connect",
+      "ok": false,
+      "source": "tests/visual/specs/erp-connect.spec.ts",
+      "testCount": 2,
+      "failures": 1,
+      "failedCases": [
+        "lien d'évidence persisté côté GED (erp_links)"
+      ],
+      "durationMs": 254
+    },
+    {
+      "name": "fiche-document",
+      "ok": true,
+      "source": "tests/visual/specs/fiche-document.spec.ts",
+      "testCount": 6,
+      "failures": 0,
+      "durationMs": 7733
+    },
+    {
+      "name": "legal-seal",
+      "ok": true,
+      "source": "tests/visual/specs/legal-seal.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 304
+    },
+    {
+      "name": "lib-operations",
+      "ok": false,
+      "source": "tests/visual/specs/lib-operations.spec.ts",
+      "testCount": 5,
+      "failures": 1,
+      "failedCases": [
+        "F-LIB-06: déplacer dossier sous destination"
+      ],
+      "durationMs": 62753
+    },
+    {
+      "name": "persona",
+      "ok": true,
+      "source": "tests/visual/specs/persona.spec.ts",
+      "testCount": 8,
+      "failures": 0,
+      "durationMs": 12778
+    },
+    {
+      "name": "persona-parcours-ecm",
+      "ok": false,
+      "source": "tests/visual/specs/persona-parcours-ecm.spec.ts",
+      "testCount": 1,
+      "failures": 1,
+      "failedCases": [
+        "Lot A — ingérer → classer → analyser (eval_redx_expert)"
+      ],
+      "durationMs": 191949
+    },
+    {
+      "name": "persona-preview",
+      "ok": true,
+      "source": "tests/visual/specs/persona-preview.spec.ts",
+      "testCount": 4,
+      "failures": 0,
+      "durationMs": 7847
+    },
+    {
+      "name": "persona-redx-expert",
+      "ok": true,
+      "source": "tests/visual/specs/persona-redx-expert.spec.ts",
+      "testCount": 4,
+      "failures": 0,
+      "durationMs": 5045
+    },
+    {
+      "name": "pipeline-ui",
+      "ok": false,
+      "source": "tests/visual/specs/pipeline-ui.spec.ts",
+      "testCount": 1,
+      "failures": 1,
+      "failedCases": [
+        "UI pipeline : upload → suggestion IA → sauvegarde → recherche"
+      ],
+      "durationMs": 66717
+    },
+    {
+      "name": "search-tasks",
+      "ok": true,
+      "source": "tests/visual/specs/search-tasks.spec.ts",
+      "testCount": 5,
+      "failures": 0,
+      "durationMs": 19420
+    },
+    {
+      "name": "shell",
+      "ok": true,
+      "source": "tests/visual/specs/shell.spec.ts",
+      "testCount": 6,
+      "failures": 0,
+      "durationMs": 1828
+    },
+    {
+      "name": "smq-versions",
+      "ok": true,
+      "source": "tests/visual/specs/smq-versions.spec.ts",
+      "testCount": 2,
+      "failures": 0,
+      "durationMs": 876
+    },
+    {
+      "name": "workflow-doc-identification",
+      "ok": true,
+      "source": "tests/visual/specs/workflow-doc-identification.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 4296
+    },
+    {
+      "name": "ui-chrome",
+      "ok": true,
+      "source": "alias de chrome-coherence — tests/visual/specs/chrome-coherence.spec.ts",
+      "testCount": 8,
+      "failures": 0,
+      "durationMs": 17630
+    }
+  ],
+  "patchedAt": "2026-08-06T18:47:24.194Z",
+  "patchedSuite": "search-fulltext"
+}

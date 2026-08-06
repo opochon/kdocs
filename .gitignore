@@ -168,3 +168,10 @@ claude_api_key.txt
 tests/visual/audit/
 !.claude/commands/
 !.claude/skills/
+
+# Artefacts bruts de run du harness (regeneres a chaque passage, non versionnes).
+# playwright-latest.json serialise les en-tetes des requetes API, dont X-Api-Key :
+# il ne doit jamais entrer dans l historique. Voir item erp.cle-masquee.
+tests/reports/playwright-latest.json
+tests/reports/phpunit-junit.xml
+tests/reports/checklist-latest.json
