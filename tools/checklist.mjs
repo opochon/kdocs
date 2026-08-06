@@ -94,10 +94,10 @@ for (const [key, bloc] of Object.entries(backlog.blocs)) {
 const pc = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 const sym = { 'TESTE': '[x]', 'FAIT': '[~]', 'A FAIRE': '[ ]' };
 
-let out = `# Checklist K-Time\n\n> Genere par \`npm run checklist\`. **Ne pas editer a la main.**\n> \`[x]\` teste (oracle vert) · \`[~]\` fait mais non garanti · \`[ ]\` a faire\n> Genere le ${new Date().toISOString().slice(0, 16).replace('T', ' ')}\n\n`;
+let out = `# Checklist GEDv1\n\n> Genere par \`npm run checklist\`. **Ne pas editer a la main.**\n> \`[x]\` teste (oracle vert) · \`[~]\` fait mais non garanti · \`[ ]\` a faire\n> Genere le ${new Date().toISOString().slice(0, 16).replace('T', ' ')}\n\n`;
 out += `**Global : ${pc(totFait, totN)} % fait · ${pc(totTeste, totN)} % teste** (${totN} items)\n\n`;
 
-console.log('Checklist K-Time');
+console.log('Checklist GEDv1');
 console.log('='.repeat(72));
 for (const b of lignes) {
   const head = `${b.titre} — ${pc(b.fait, b.n)}% fait · ${pc(b.teste, b.n)}% teste (${b.n})`;

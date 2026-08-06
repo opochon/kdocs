@@ -1,6 +1,27 @@
 {
-  "_doc": "Backlog mesure de GEDv1. FAIT = la sonde passe. TESTE = fait ET l oracle nomme est vert au dernier harness. Un item sans oracle ne peut jamais atteindre TESTE : la dette d instrumentation doit se voir.",
+  "_doc": "Backlog mesure de GEDv1 (K-Docs). Le produit, pas seulement la plomberie. FAIT = la sonde passe. TESTE = fait ET l oracle nomme est vert. Un item sans oracle ne peut jamais atteindre TESTE. Source produit : docs/AUDIT-SYNTHESE-EXECUTIVE.md (18-06), docs/DELTA-REDX.md, docs/stabilisation/.",
   "blocs": {
+    "produit": {
+      "titre": "Produit — les 5 gaps critiques de l audit",
+      "items": [
+        { "id": "prod.ui-pro", "titre": "UI professionnelle (audit 3,5/10 : sidebar melangee, emojis, compteurs incoherents)", "probe": { "type": "file", "path": "tools/lint-ui.mjs" }, "oracle": "ui-chrome" },
+        { "id": "prod.ingestion-async", "titre": "Ingestion asynchrone : OCR/classification hors requete HTTP", "probe": { "type": "grep", "file": "app/Services/DocumentProcessor.php", "pattern": "QueueService|enqueue|dispatch" }, "oracle": "ingestion-queue" },
+        { "id": "prod.taxonomie", "titre": "IA alignee sur la taxonomie HTMLEDITOR (variables, sections, tags)", "probe": { "type": "file", "path": "governance/taxonomie-htmleditor.json" }, "oracle": "classifier-taxonomie" },
+        { "id": "prod.apps-stub", "titre": "Apps stub invoices/mail : livrees ou retirees de l UI (plus de 404)", "probe": { "type": "file", "path": "governance/apps-status.json" }, "oracle": "apps-routes" },
+        { "id": "prod.archivage-ch", "titre": "Conformite archivage CH : WORM, retention, horodatage", "probe": { "type": "file", "path": "docs/CONFORMITE-ARCHIVAGE-CH.md" }, "oracle": "legal-seal" }
+      ]
+    },
+    "coeur": {
+      "titre": "Coeur documentaire — ce que la GED doit garantir",
+      "items": [
+        { "id": "coeur.recherche", "titre": "Recherche FULLTEXT operante sans Qdrant", "probe": { "type": "grep", "file": "app/Services/SearchService.php", "pattern": "buildFulltextQuery|MATCH.*AGAINST" }, "oracle": "search-fulltext" },
+        { "id": "coeur.coherence-suppr", "titre": "Zero incoherence is_deleted / deleted_at", "probe": { "type": "file", "path": "tests/integration/SoftDeleteCoherenceTest.php" }, "oracle": "soft-delete" },
+        { "id": "coeur.miniatures", "titre": "Miniatures PDF et bureautique generees (LibreOffice/Ghostscript)", "probe": { "type": "file", "path": "tests/integration/ThumbnailTest.php" }, "oracle": "thumbnails" },
+        { "id": "coeur.ocr", "titre": "OCR eprouve sur un lot de controle mesure", "probe": { "type": "file", "path": "governance/ocr-benchmark.json" }, "oracle": "ocr-benchmark" },
+        { "id": "coeur.droits-dossiers", "titre": "Permissions de dossiers verifiees cote serveur, pas a l affichage", "probe": { "type": "file", "path": "tests/Feature/FolderPermissionServerSideTest.php" }, "oracle": "folder-permissions" },
+        { "id": "coeur.retention", "titre": "Corbeille et retention : purge tracee et reversible", "probe": { "type": "grep", "file": "app/Services/TrashService.php", "pattern": "retention|purge" }, "oracle": "trash-retention" }
+      ]
+    },
     "socle": {
       "titre": "Socle — mesurabilite",
       "items": [
@@ -14,8 +35,7 @@
       "titre": "Integration K-Time (erpconnect)",
       "items": [
         { "id": "erp.preflight-health", "titre": "K-Time /api/ged/health verifie au preflight", "probe": { "type": "grep", "file": "tools/preflight.php", "pattern": "api/ged/health" }, "oracle": null },
-        { "id": "erp.roundtrip-reel", "titre": "Oracle d aller-retour REEL contre K-Time (pas moque)", "probe": { "type": "file", "path": "tests/integration/KTimeRoundtripTest.php" }, "oracle": "ktime-roundtrip" },
-        { "id": "erp.contrat-partage", "titre": "Contrat GED<->K-Time versionne des deux cotes", "probe": { "type": "file", "path": "governance/contrat-ged-ktime.json" }, "oracle": "ktime-contract" },
+        { "id": "erp.contrat-partage", "titre": "Contrat /api/ged/* versionne et compare aux deux depots", "probe": { "type": "file", "path": "governance/contrat-ged-ktime.json" }, "oracle": "ktime-contract" },
         { "id": "erp.cle-masquee", "titre": "KTIME_GED_API_KEY jamais serialisee dans un log ou rapport", "probe": { "type": "grep", "file": "apps/erpconnect/Services/KTimeClient.php", "pattern": "MASQUE|redact|\\*\\*\\*" }, "oracle": null }
       ]
     },
