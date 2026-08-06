@@ -1,8 +1,8 @@
-# Checklist K-Time
+# Checklist GEDv1
 
 > Genere par `npm run checklist`. **Ne pas editer a la main.**
 > `[x]` teste (oracle vert) · `[~]` fait mais non garanti · `[ ]` a faire
-> Genere le 2026-08-06 15:24
+> Genere le 2026-08-06 15:25
 
 **Global : 18 % fait · 0 % teste** (22 items)
 
