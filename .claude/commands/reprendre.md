@@ -29,6 +29,20 @@ l executes, tu ne le proposes pas.
 `node tools/claim.mjs take <id>` — sortie 1 = pris ailleurs, tu passes au suivant
 sans commentaire. `beat` pendant, `release` a la fin, meme en echec.
 
+## PERIMETRE — absolu
+
+Tu travailles **uniquement dans `F:\DATA\DEVELOPPEMENT\GEDv1`**. Tu n ecris jamais,
+sous aucun pretexte, dans `F:\DATA\DEVELOPPEMENT\K-TIME` ni dans aucun autre depot.
+
+K-TIME est consultable en **lecture seule**, et uniquement pour verifier le contrat
+`/api/ged/*` (`k-time-web/src/routes.php`, `docs/SPEC-GED-INTEGRATION.md`). Si une
+modification cote K-TIME s avere necessaire, tu ne la fais pas : tu l ecris comme
+item BLOQUE dans le journal, avec la route et le changement attendu. C est une
+session `claude-s` qui la traitera, dans son propre depot.
+
+Un agent qui modifie les deux cotes d un contrat en meme temps supprime la seule
+chose qui protege ce contrat : le fait que les deux cotes soient d accord
+independamment.
 ## 3. Regles propres a ce depot
 
 - **Le mock n est pas une preuve.** `tests/Feature/ErpConnectTest.php` teste K-Time
