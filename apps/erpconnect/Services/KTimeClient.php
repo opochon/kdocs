@@ -20,6 +20,9 @@ class KTimeClient
     private const TIMEOUT_CONNECT = 5;
     private const TIMEOUT_READ    = 5;
 
+    /** Marqueur de masquage — remplace la valeur de la clé partout où elle pourrait fuiter. */
+    private const MASK = '***MASQUE***';
+
     /** @var callable|null */
     private $transport;
 
@@ -179,7 +182,7 @@ class KTimeClient
 
         if ($raw['status'] === 0 || $raw['status'] >= 500) {
             throw new KTimeUnavailableException(
-                sprintf('K-Time indisponible : %s %s → HTTP %d', $method, $path, $raw['status'])
+                self::redactValue(sprintf('K-Time indisponible : %s %s → HTTP %d', $method, $path, $raw['status']))
             );
         }
 
@@ -195,7 +198,68 @@ class KTimeClient
 
     private function apiKey(): string
     {
+        return self::currentApiKey();
+    }
+
+    private static function currentApiKey(): string
+    {
         return (string) env('KTIME_GED_API_KEY', '');
+    }
+
+    // -------------------------------------------------------------------------
+    // Masquage — réutilisable par tout code qui sérialise une requête/erreur K-Time
+    // (contrôleur, logs applicatifs, outils de diagnostic type tools/preflight.php).
+    // -------------------------------------------------------------------------
+
+    /**
+     * Masque toute occurrence de la clé API dans une chaîne (message d'exception,
+     * ligne de log, extrait de rapport…).
+     *
+     * Porte sur la VALEUR de la clé, pas sur son nom : une URL, un header ou un message
+     * qui contient la clé en clair ressort masqué. Si la clé est vide/absente, ne fait
+     * rien (ne remplace jamais des chaînes vides ni ne dégénère en no-op destructeur).
+     *
+     * @param string|null $key Clé à masquer ; par défaut celle de KTIME_GED_API_KEY (env).
+     */
+    public static function redactValue(string $text, ?string $key = null): string
+    {
+        $key ??= self::currentApiKey();
+        if ($key === '') {
+            return $text;
+        }
+        return str_replace($key, self::MASK, $text);
+    }
+
+    /**
+     * Masque récursivement une structure (ex : options de requête, headers) :
+     *  - toute valeur de header nommée X-Api-Key (insensible à la casse) est masquée
+     *    quel que soit son contenu ;
+     *  - toute chaîne contenant la valeur de la clé est masquée.
+     *
+     * @param mixed $data
+     * @return mixed Structure de même forme, valeurs sensibles masquées.
+     */
+    public static function redactStructure(mixed $data, ?string $key = null): mixed
+    {
+        $key ??= self::currentApiKey();
+
+        if (is_string($data)) {
+            return $key === '' ? $data : str_replace($key, self::MASK, $data);
+        }
+
+        if (is_array($data)) {
+            $out = [];
+            foreach ($data as $k => $v) {
+                if (is_string($k) && strcasecmp($k, 'X-Api-Key') === 0) {
+                    $out[$k] = self::MASK;
+                    continue;
+                }
+                $out[$k] = self::redactStructure($v, $key);
+            }
+            return $out;
+        }
+
+        return $data;
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace KDocs\Apps\Erpconnect\Controllers;
 
 use KDocs\Apps\Erpconnect\Services\ErpConnectService;
+use KDocs\Apps\Erpconnect\Services\KTimeClient;
 use KDocs\Apps\Erpconnect\Services\KTimeUnavailableException;
 use KDocs\Core\Database;
 
@@ -42,7 +43,7 @@ class ErpConnectController
         try {
             $proposal = $this->makeService()->buildProposal($documentId);
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            $response->getBody()->write(json_encode(['error' => KTimeClient::redactValue($e->getMessage())]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
 
@@ -74,11 +75,11 @@ class ErpConnectController
             $response->getBody()->write(json_encode([
                 'error'           => 'K-Time indisponible',
                 'ktime_available' => false,
-                'detail'          => $e->getMessage(),
+                'detail'          => KTimeClient::redactValue($e->getMessage()),
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            $response->getBody()->write(json_encode(['error' => KTimeClient::redactValue($e->getMessage())]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
 
@@ -110,7 +111,7 @@ class ErpConnectController
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            $response->getBody()->write(json_encode(['error' => KTimeClient::redactValue($e->getMessage())]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
 
@@ -144,11 +145,11 @@ class ErpConnectController
             $response->getBody()->write(json_encode([
                 'error'           => 'K-Time indisponible',
                 'ktime_available' => false,
-                'detail'          => $e->getMessage(),
+                'detail'          => KTimeClient::redactValue($e->getMessage()),
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            $response->getBody()->write(json_encode(['error' => KTimeClient::redactValue($e->getMessage())]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
 

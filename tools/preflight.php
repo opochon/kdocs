@@ -56,9 +56,15 @@ curl_setopt_array($ch, [
 $body = (string) curl_exec($ch);
 $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
+// Extrait de reponse serveur affiche tel quel : masquage defensif de la cle au cas ou
+// K-Time la reverberait dans un message d'erreur (jamais la cle en clair sur ce terminal).
+$bodySnippet = substr($body, 0, 60);
+if ($key !== '' && str_contains($bodySnippet, $key)) {
+    $bodySnippet = str_replace($key, '***MASQUE***', $bodySnippet);
+}
 $ktMsg = $code === 200
     ? 'aller-retour reel disponible'
-    : ($code === 0 ? "injoignable sur $kt" : "HTTP $code" . ($key === '' ? ' (KTIME_GED_API_KEY absente du .env)' : ' malgre la cle') . " — " . substr($body, 0, 60));
+    : ($code === 0 ? "injoignable sur $kt" : "HTTP $code" . ($key === '' ? ' (KTIME_GED_API_KEY absente du .env)' : ' malgre la cle') . " — " . $bodySnippet);
 $checks[] = ['K-Time /api/ged/health', $code === 200, $ktMsg];
 
 echo 'GEDv1 preflight', PHP_EOL, str_repeat('-', 66), PHP_EOL;
