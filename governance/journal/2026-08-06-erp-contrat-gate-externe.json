@@ -1,0 +1,17 @@
+{
+  "lot": "erp.contrat-partage + qa.gate-externe",
+  "resume": "Le contrat /api/ged/* est desormais versionne dans GEDv1 (governance/contrat-ged-ktime.json : 8 routes, methode, chemin, controleur/action K-Time, methode PHP appelante du client, params, codes HTTP, auth X-Api-Key). tools/lint-contrat.mjs est le gate externe de la regle 9 : il confronte ce contrat a trois sources, dont deux exterieures au code GEDv1 — le depot K-Time lu en lecture seule sur disque (k-time-web/src/routes.php et sa liste $apiKeyRoutes) et le serveur K-Time vivant (aller-retour REEL GET /api/ged/health, pas un mock) — la troisieme etant les appels reellement presents dans apps/erpconnect/Services/KTimeClient.php. Divergence entre deux quelconques des trois = sortie 1. Rapport machine ecrit dans tests/reports/contrat-ged-latest.json.",
+  "test": "vendor/bin/phpunit : 488 tests, 1251 assertions, OK (3 skipped preexistants). tests/Feature/KTimeContractTest.php ajoute (4 tests / 47 assertions), oracle sans reseau. node tools/lint-contrat.mjs : verdict OK, les 3 controles verts, health reel 200 sur http://127.0.0.1:8090. Gate verifie descendant, pas seulement vert : injection d une route fantome dans le contrat -> verdict DIVERGENT, exit 1, avec les deux ecarts nommes ; contrat restaure -> OK, exit 0. Depot K-Time rendu introuvable -> controle SKIP explicite et non un succes silencieux.",
+  "reste": [
+    "L oracle 'ktime-contract' declare au backlog ne peut pas passer TESTE tant que tests/reports/harness-latest.json n existe pas : le nom de suite doit y etre publie. Item socle.harness-json, tenu par la session GED-DESKTOP-B386FU3-9887. Des qu il atterrit, il faut y enregistrer la suite sous le nom exact 'ktime-contract'.",
+    "Seule la route health est confrontee au serveur vivant. Les 7 autres routes ne sont verifiees que contre les deux sources statiques : elles ecrivent ou dependent de donnees metier. Une preuve d integration reelle sur suppliers/lookup et received-invoices/exists (deux GET sans effet de bord) reste a faire.",
+    "Message de divergence cosmetiquement imprecis cote client-interne quand deux entrees du contrat partagent la meme client_method : il nomme la mauvaise route attendue. N affecte pas la detection ni le code de sortie."
+  ],
+  "decisions": [
+    "Le contrat vit dans GEDv1 mais sa verite est ailleurs. C est le point entier de la regle 9 : un oracle dont la source de verite est le code qu il surveille ne prouve rien. Ici le contrat n est jamais confronte a lui-meme.",
+    "Aucune ecriture dans K-TIME. Le depot y est lu seul, via KTIME_REPO (defaut F:/DATA/DEVELOPPEMENT/K-TIME). Les deux cotes du contrat restent d accord independamment — un agent qui modifierait les deux supprimerait la seule protection du contrat.",
+    "Depot K-Time absent ou KTIME_URL absent = SKIP annonce a l ecran, jamais un OK silencieux. Un controle qui ne s execute pas ne doit pas ressembler a un controle qui passe.",
+    "Le contrat porte un id stable par route et un client_method qui pointe la methode PHP : le linter n a pas a deviner l appariement par heuristique.",
+    "KTIME_GED_API_KEY n apparait ni dans la sortie du linter ni dans le rapport JSON : seule sa presence booleenne dans .env est notee. Verifie par relecture et par grep."
+  ]
+}

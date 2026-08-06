@@ -1,0 +1,17 @@
+{
+  "lot": "erp.cle-masquee",
+  "resume": "KTIME_GED_API_KEY ne peut plus sortir en clair par un chemin d erreur. Masquage centralise dans apps/erpconnect/Services/KTimeClient.php (redactValue / redactStructure, marqueur ***MASQUE***), applique aux six catch de apps/erpconnect/Controllers/ErpConnectController.php (proposal, submit, refresh, block) qui recopiaient $e->getMessage() tel quel dans la reponse JSON rendue au navigateur, et a l extrait de reponse serveur affiche par tools/preflight.php. Le masquage porte sur la VALEUR de la cle et sur le header X-Api-Key serialise, pas sur le nom de la variable. La requete reelle continue de porter la vraie cle : on masque a l affichage et a la serialisation, jamais a l emission.",
+  "test": "tests/Feature/ApiKeyRedactionTest.php ajoute (5 tests / 11 assertions). vendor/bin/phpunit complet : 493 tests, 1262 assertions, vert, 3 skipped preexistants. Oracle verifie descendant, controle refait independamment du sous-traitant : les 6 appels a redactValue retires du controleur -> 2 tests tombent, avec la cle factice FAKE-KTIME-KEY-7f3c9a2b1d visible en clair dans le corps JSON, sous la forme headers={\"X-Api-Key\":\"...\"} ; masquage restaure -> 5/5 vert, arbre de travail propre.",
+  "reste": [
+    "L item erp.cle-masquee porte oracle:null dans governance/backlog.json : il restera FAIT et jamais TESTE tant que tests/Feature/ApiKeyRedactionTest.php n y sera pas declare comme oracle. Le controle existe et il est prouve descendant ; c est seulement sa declaration qui manque. backlog.json non modifie a dessein — la nomenclature des suites depend de socle.harness-json, tenu par la session GED-DESKTOP-B386FU3-9887.",
+    "Fuite non traitee car hors perimetre du lot, infra partagee : app/Core/ErrorTracker.php et app/Middleware/Error*Middleware.php journalisent $e->getMessage() a l echelle de l application vers storage/logs/errors.log et .cursor/debug.log. Les routes erpconnect attrapent tout \\Throwable avant le middleware global, donc ce chemin n est pas atteint aujourd hui par la cle K-Time — mais rien ne l empeche structurellement. A traiter comme un lot propre.",
+    "run-erp-simulation.bat porte une cle de developpement en clair (script de dev, jamais echoee). Non touche."
+  ],
+  "decisions": [
+    "Regle 9 respectee dans l ordre : l ecart n avait ete vu par aucun test, donc le premier livrable est le controle qui le rend detectable. Le test a ete ecrit puis prouve tombant avant que le correctif soit considere comme acquis.",
+    "La vraie fuite etait dans le controleur, pas dans le client. Le message de KTimeUnavailableException n embarque pas la cle ; c est la recopie de $e->getMessage() vers la reponse HTTP qui exposait le transport. Le transport etant injectable, une implementation qui journalise sa requete dans le message ferait remonter le header jusqu au navigateur — c est exactement le chemin reproduit par le test.",
+    "Masquage centralise et non disperse : une seule paire de fonctions reutilisable, pas une rustine par site d appel.",
+    "curlRequest et streamRequest non modifies : ils construisent le header reel qui doit partir sur le fil. Masquer la n aurait pas protege une sortie, il aurait casse la requete.",
+    ".env jamais lu en clair vers un rapport, jamais modifie. Aucune valeur de cle reelle dans un artefact produit par ce lot — verifie par grep sur tests/reports/ et storage/."
+  ]
+}

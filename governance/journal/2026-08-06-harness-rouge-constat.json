@@ -1,0 +1,15 @@
+{
+  "lot": "constat.harness-rouge",
+  "resume": "Constat pose en fin de tour, pas un lot de correction. run-harness.bat sort ROUGE : 68 specs Playwright passent, 3 tombent. Aucune n est imputable aux lots erp.contrat-partage, qa.gate-externe et erp.cle-masquee livres ce jour. Les 3 echecs sont : lib-operations.spec.ts:155 F-LIB-07 supprimer dossier (corbeille) ; persona-parcours-ecm.spec.ts:21 Lot A ingerer -> classer -> analyser ; pipeline-ui.spec.ts:36 upload -> suggestion IA -> sauvegarde -> recherche (locator #preview-type-select jamais visible).",
+  "test": "Preuve de non-imputabilite, deux angles. (1) Aucune des trois specs ne reference erpconnect, ktime ou erp-connect : grep -lni sur les trois fichiers ne remonte rien. (2) Le diff complet des deux commits du tour (372d6af..HEAD) se limite a apps/erpconnect/Controllers/ErpConnectController.php, apps/erpconnect/Services/KTimeClient.php, tools/preflight.php, tools/lint-contrat.mjs, governance/contrat-ged-ktime.json, tests/Feature/*.php, tests/reports/contrat-ged-latest.json. Aucun de ces fichiers ne sert les routes UI kdocs exercees par les trois specs. Cote PHP, phpunit est vert : 493 tests, 1262 assertions, 3 skipped preexistants.",
+  "reste": [
+    "Les 3 echecs correspondent chacun a un item du backlog encore ouvert, ce qui les explique sans les excuser : F-LIB-07 corbeille -> coeur.coherence-suppr et coeur.retention ; ingerer/classer/analyser -> prod.ingestion-async et coeur.ocr ; pipeline UI -> prod.ui-pro. Ce sont des trous connus, pas des regressions.",
+    "Non demontre formellement que les 3 etaient deja rouges avant ce tour : le rejeu du commit precedent exigeait de remettre l ancien code dans le repertoire servi sur le port 8765, pendant qu une autre session y travaille. La non-imputabilite repose sur l analyse du diff et l absence de recouvrement, pas sur un rejeu. A confirmer par rejeu quand le depot sera libre.",
+    "run-harness.bat liste 19 specs en dur alors que la campagne a execute 71 cas : toute spec ajoutee hors de cette liste ne tourne jamais et personne ne le voit. Item socle.specs-registre, tenu par GED-DESKTOP-B386FU3-9887.",
+    "Le harness n a livre le nom des suites tombees que parce que la sortie Playwright a ete lue a la main. Il ne produit toujours pas tests/reports/harness-latest.json : tant que ce fichier manque, aucun item du backlog ne peut passer TESTE, et le taux reste bloque a 0 % teste quelle que soit la qualite des oracles ecrits. Item socle.harness-json, meme session."
+  ],
+  "decisions": [
+    "Rouge annonce tel quel plutot que contourne. Un harness rouge dont on explique les echecs reste rouge : les deux lots du tour sont livres et prouves, le harness global ne l est pas.",
+    "Aucune des trois specs n a ete touchee, desactivee ni mise en quarantaine. Masquer un echec connu couterait plus tard exactement ce qu il aurait fait gagner aujourd hui."
+  ]
+}
