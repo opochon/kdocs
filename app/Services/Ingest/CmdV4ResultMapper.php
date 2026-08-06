@@ -60,9 +60,15 @@ class CmdV4ResultMapper
 
             'supplier' => $this->fieldString($fields, 'fournisseur'),
 
+            'supplier_iban' => $this->fieldString($fields, 'iban'),
+
             'total_ht' => $this->fieldAmount($fields, 'montant_ht'),
 
+            'total_tva' => $this->fieldAmount($fields, 'montant_tva'),
+
             'total_ttc' => $this->fieldAmount($fields, 'montant_ttc'),
+
+            'due_date' => $this->fieldString($fields, 'echeance'),
 
         ];
 
