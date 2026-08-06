@@ -1,0 +1,18 @@
+{
+  "lot": "socle.rapports-ranges",
+  "resume": "Les 8 RAPPORT_*.md de la racine sont ranges dans docs/rapports/ sous un nommage minuscules-tirets sans le prefixe devenu redondant, avec docs/rapports/README.md en index. L index n est pas une liste de liens : chaque rapport porte sa date, ce qu il etablit, et un statut verifie contre le code d aujourd hui — integre, partiellement perime, ou indetermine. Les 8 autres .md de la racine (AGENT_BOOTSTRAP, BEFORE_YOU_START, CHANGELOG, CONTRIBUTING, COORDINATION, FIX_FALLBACK_OLLAMA, README, SESSION-STATUS) sont intacts.",
+  "test": "Aucun oracle : l item porte oracle:null au backlog, il ne peut pas atteindre TESTE. Verifications faites a la main : plus aucun RAPPORT_*.md a la racine ; les 8 fichiers presents dans docs/rapports/ et lies depuis l index, chaque lien verifie sur disque un par un ; git show --stat 5da2660 confirme 9 fichiers, 1645 insertions, aucune suppression ; grep sur le depot (hors vendor, node_modules, .git, test-results) ne trouve aucune reference residuelle aux anciens chemins. run-harness.bat non lance : il est en cours de reecriture par le lot socle.harness-json au moment de ce commit, et ce lot ne touche que des fichiers .md hors de tout chemin d execution.",
+  "reste": [
+    "La cause est toujours en place : .gitignore ligne 130 porte le motif RAPPORT_*.md. Tout futur rapport ecrit a la racine sous ce nom sera de nouveau ignore en silence. Le rangement traite les 8 fichiers existants, pas le mecanisme qui les avait rendus invisibles. Decider : retirer le motif, ou documenter que les rapports s ecrivent directement dans docs/rapports/.",
+    "analyse-document-52.md point 5 — metadonnees non extraites sur le document 52 — n est referme par aucun rapport de suivi. Statut indetermine, jamais traite.",
+    "ocr-complet.md recommande de migrer les colonnes content et ocr_text de TEXT vers LONGTEXT. Non applique : la troncature a 65000 caracteres tient lieu de contournement et perd du texte au-dela. Aucune migration existante ne porte ce changement.",
+    "correction-date-bouton.md cite templates/documents/show.php, fichier qui n existe plus. Mention obsolete conservee telle quelle dans l archive, signalee dans l index."
+  ],
+  "decisions": [
+    "Constat qui change la nature du lot : les 8 fichiers n avaient jamais ete suivis par git. git mv echoue avec 'not under version control'. Ce n etait donc pas un rangement mais une mise sous suivi — 1645 lignes de comptes rendus n existaient que sur cette machine et disparaissaient au premier clone.",
+    "Deplacement simple puis git add a la destination, faute de mieux : il n y a pas d historique de renommage a faire remonter puisqu il n y avait pas d historique. Le point est ecrit noir sur blanc en bas de l index pour ne pas laisser croire a une continuite qui n existe pas.",
+    "Le nouveau nommage sans prefixe RAPPORT_ a un effet de bord voulu : il ne correspond plus au motif d exclusion, donc les fichiers restent suivis.",
+    "Statut d actualite etabli par verification contre le code courant, pas par lecture du rapport seul. Un rapport qui se declare termine mais dont le code a disparu est signale comme obsolete ; quand la verification ne tranche pas, l index ecrit indetermine plutot que de deviner.",
+    "Aucun contenu elague. Deux rapports font quasi doublon (execution-complete et final-corrections-document-52) : le fait est note dans l index, les deux sont conserves."
+  ]
+}
