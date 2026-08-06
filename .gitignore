@@ -166,3 +166,5 @@ claude_api_key.txt
 
 # Captures d audit visuel (artefacts, non versionnes)
 tests/visual/audit/
+!.claude/commands/
+!.claude/skills/
