@@ -96,13 +96,30 @@ class SearchService implements SearchServiceInterface
         $where = ["d.deleted_at IS NULL"];
         $select = "SELECT d.*, c.name as correspondent_name, dt.label as document_type_name, df.path as folder_path";
 
-        // FULLTEXT scoring
+        // FULLTEXT scoring.
+        // buildFulltextQuery() peut legitimement ne rien produire : termes tous plus
+        // courts que la longueur minimale, requete reduite a des operateurs. Envoyer
+        // le resultat vide a MySQL leve SQLSTATE 42000 / 1064 (unexpected $end,
+        // expecting FTS_TERM) et fait tomber toute la recherche. Une requete sans
+        // terme exploitable n'est pas une erreur : on retombe sur un LIKE.
         if (!empty($query->text)) {
             $ftQuery = $this->buildFulltextQuery($query->text);
-            $select .= ", MATCH(d.title, d.ocr_text, d.content) AGAINST(:ft_query IN BOOLEAN MODE) AS ft_score";
-            $where[] = "MATCH(d.title, d.ocr_text, d.content) AGAINST(:ft_query_where IN BOOLEAN MODE)";
-            $params['ft_query'] = $ftQuery;
-            $params['ft_query_where'] = $ftQuery;
+
+            if ($ftQuery !== '') {
+                $select .= ", MATCH(d.title, d.ocr_text, d.content) AGAINST(:ft_query IN BOOLEAN MODE) AS ft_score";
+                $where[] = "MATCH(d.title, d.ocr_text, d.content) AGAINST(:ft_query_where IN BOOLEAN MODE)";
+                $params['ft_query'] = $ftQuery;
+                $params['ft_query_where'] = $ftQuery;
+            } else {
+                // Placeholders distincts : PDO en mode non emule refuse qu'un meme
+                // nom soit lie plusieurs fois (SQLSTATE HY093).
+                $select .= ", 0 AS ft_score";
+                $where[] = "(d.title LIKE :ft_like_title OR d.ocr_text LIKE :ft_like_ocr OR d.content LIKE :ft_like_content)";
+                $like = '%' . trim($query->text) . '%';
+                $params['ft_like_title']   = $like;
+                $params['ft_like_ocr']     = $like;
+                $params['ft_like_content'] = $like;
+            }
         }
 
         $from = "FROM documents d
@@ -263,8 +280,10 @@ class SearchService implements SearchServiceInterface
     {
         $userQuery = trim($userQuery);
 
-        // If already formatted for BOOLEAN MODE, return as-is
-        if (preg_match('/[+\-"]/', $userQuery)) {
+        // Deja formatee pour BOOLEAN MODE : on la rend telle quelle, mais seulement
+        // si elle porte au moins un terme reel. Une saisie reduite aux operateurs
+        // (« - », « "" », « + ») produirait sinon une expression que MySQL refuse.
+        if (preg_match('/[+\-"]/', $userQuery) && preg_match('/[\p{L}\p{N}]/u', $userQuery)) {
             return $userQuery;
         }
 
@@ -279,13 +298,22 @@ class SearchService implements SearchServiceInterface
 
         foreach ($terms as $term) {
             $term = trim($term);
-            if (empty($term) || mb_strlen($term) < 2) continue;
+            if ($term === '') continue;
 
-            if (str_starts_with($term, '-')) {
-                $result[] = '-' . substr($term, 1) . '*';
-            } else {
-                $result[] = '+' . $term . '*';
+            $negatif = str_starts_with($term, '-');
+            if ($negatif) {
+                $term = substr($term, 1);
             }
+
+            // Les caracteres d'operateur ne sont pas des termes. Les laisser passer
+            // produit une expression que MySQL refuse (1064) : une saisie comme `""`
+            // devenait `+""*`. On ne garde que ce qui peut reellement s'indexer.
+            $term = preg_replace('/["\'()~*+<>@]/u', '', $term);
+            if ($term === null || mb_strlen($term) < 2 || !preg_match('/[\p{L}\p{N}]/u', $term)) {
+                continue;
+            }
+
+            $result[] = ($negatif ? '-' : '+') . $term . '*';
         }
 
         return implode(' ', $result);
