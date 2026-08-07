@@ -175,3 +175,9 @@ tests/visual/audit/
 tests/reports/playwright-latest.json
 tests/reports/phpunit-junit.xml
 tests/reports/checklist-latest.json
+
+# Exception aux motifs test_*.php / tests-ignores ci-dessus : les sondes que le
+# harness execute doivent etre versionnees. Une suite dont le fichier n'existe
+# que sur une machine disparait au premier clone, sans que personne le voie.
+!tests/integration/
+!tests/integration/test_*.php
