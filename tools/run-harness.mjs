@@ -281,6 +281,7 @@ async function main() {
       byMethods('Tests\\Unit\\Services\\TrashServiceTest', ['testTrashRetentionPeriod', 'testTrashPathIsConfigured'])));
     push(suiteFromCases('ktime-contract', 'tests/Feature/KTimeContractTest.php', byExactClass('Tests\\Feature\\KTimeContractTest')));
     push(suiteFromCases('api-key-redaction', 'tests/Feature/ApiKeyRedactionTest.php', byExactClass('Tests\\Feature\\ApiKeyRedactionTest')));
+    push(suiteFromCases('no-hard-delete', 'tests/Feature/NoHardDeleteTest.php (cliquet governance/budgets.json)', byExactClass('Tests\\Feature\\NoHardDeleteTest')));
 
     // -- search-fulltext (script autonome, pas PHPUnit) ----------------------
     console.log('\n[2b] search-fulltext (tests/integration/test_fulltext_search.php)...');

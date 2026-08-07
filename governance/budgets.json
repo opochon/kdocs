@@ -1,0 +1,34 @@
+{
+  "_doc": "Cliquets K-Docs. Un budget est un PLAFOND qui ne peut que descendre. Le controle echoue si la valeur mesuree depasse le plafond ; quand elle descend durablement, on abaisse le plafond et on ne le remonte jamais. Un cliquet qu'on desserre n'est plus un cliquet. Oracle : tests/Feature/NoHardDeleteTest.php (suite harness 'no-hard-delete').",
+
+  "invariant": {
+    "titre": "Zero suppression dure dans le produit",
+    "enonce": "Aucune ligne n'est jamais supprimee d'une table par un chemin atteignable depuis le produit. La suppression se fait par marquage (deleted_at), jamais par DELETE.",
+    "pose_par": "Direction Karbonic, 2026-08-07 — invariant de conception, pas preference d'implementation",
+    "raison": "Une donnee effacable ne peut pas servir de preuve. Perdre la chaine de tracabilite est pire que conserver des lignes inutiles. La base est indexee : exclure les lignes marquees supprimees ne coute rien en performance, l'argument de la purge pour alleger ne tient pas.",
+    "perimetre_protege": ["app/", "apps/"],
+    "perimetre_exclu": ["tools/", "tests/", "database/", "connectors/"],
+    "exclusion_motivee": "La reconstruction de base pour les tests est legitime mais n'appartient pas au produit : c'est un outil externe, et il doit etre precede d'un dump. Aucune fonction de vidage ne doit jamais etre integree a l'application."
+  },
+
+  "budgets": {
+    "hard-delete-documents": {
+      "max": 0,
+      "mesure": "occurrences de DELETE FROM documents dans app/ et apps/",
+      "atteint": "2026-08-07",
+      "note": "Etait 3 : TrashService::deletePermanently, TaskService::cleanupTrash (cron 0 3 * * 0, active, jamais execute — 156 documents etaient a une execution de la destruction), DocumentRepository::forceDelete. Les trois levent desormais HardDeleteForbiddenException. Ce plafond ne remontera jamais."
+    },
+    "hard-delete-tracabilite": {
+      "max": 3,
+      "tables": ["classification_audit_log", "document_versions", "document_notes"],
+      "mesure": "occurrences de DELETE FROM sur ces tables dans app/ et apps/",
+      "note": "Tables porteuses de la piste de revision. Un journal d'audit effacable n'est pas un journal d'audit. Cible 0 — chantier ouvert, pas encore traite."
+    },
+    "hard-delete-total": {
+      "max": 73,
+      "mesure": "toutes occurrences de DELETE FROM dans app/ et apps/",
+      "atteint": "2026-08-07",
+      "note": "Etait 76 avant la neutralisation des trois chemins documents. Reste 73 sur une quarantaine de tables (document_tags 11, tags 4, snapshots 3, correspondents 3...). Descente table par table a instruire : certaines suppressions sont des reecritures de liaison (document_tags resynchronise), d'autres de vraies destructions."
+    }
+  }
+}

@@ -267,12 +267,16 @@ class DocumentRepository
     }
     
     /**
-     * Suppression définitive
+     * DESACTIVEE — la suppression definitive n'existe plus dans K-Docs.
+     *
+     * Un document se marque supprime (deleted_at), il ne se detruit pas. Voir
+     * \KDocs\Exceptions\HardDeleteForbiddenException pour le raisonnement complet.
+     *
+     * @throws \KDocs\Exceptions\HardDeleteForbiddenException toujours
      */
     public function forceDelete(int $id): bool
     {
-        $stmt = $this->db->prepare('DELETE FROM documents WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        throw \KDocs\Exceptions\HardDeleteForbiddenException::forRecord('documents', $id);
     }
     
     /**

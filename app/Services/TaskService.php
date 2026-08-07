@@ -145,24 +145,25 @@ class TaskService
     }
     
     /**
-     * Nettoie la corbeille
+     * DESACTIVEE — le nettoyage de corbeille n'existe plus dans K-Docs.
+     *
+     * Cette tache planifiee (cron 0 3 * * 0, active en base) detruisait chaque
+     * dimanche toute ligne documents en corbeille depuis plus de 30 jours. Sans
+     * controle de legal_sealed ni de retention_until, sans audit, sans retour
+     * possible. Elle n'a jamais tourne faute d'ordonnanceur branche — c'est le
+     * seul hasard qui a evite la perte de 156 documents au 2026-08-07.
+     *
+     * Elle ne supprime plus rien et signale son refus, plutot que de lever une
+     * exception hebdomadaire dans le worker. La ligne scheduled_tasks
+     * correspondante est passee a is_active = 0.
      */
     private static function cleanupTrash(): array
     {
-        try {
-            $db = Database::getInstance();
-            // Supprimer les documents dans la corbeille depuis plus de 30 jours
-            $stmt = $db->prepare("
-                DELETE FROM documents
-                WHERE deleted_at IS NOT NULL
-                AND deleted_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-            ");
-            $stmt->execute();
-            $deleted = $stmt->rowCount();
-            return ['success' => true, 'message' => "$deleted documents supprimés définitivement"];
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        return [
+            'success' => false,
+            'error'   => 'Tache desactivee : K-Docs ne supprime jamais de ligne. '
+                       . 'Les documents restent en corbeille, marques par deleted_at.',
+        ];
     }
     
     /**

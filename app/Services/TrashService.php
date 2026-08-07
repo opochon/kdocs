@@ -8,6 +8,7 @@ namespace KDocs\Services;
 
 use KDocs\Core\Database;
 use KDocs\Core\Config;
+use KDocs\Exceptions\HardDeleteForbiddenException;
 use KDocs\Jobs\EmbedDocumentJob;
 
 class TrashService
@@ -129,76 +130,36 @@ class TrashService
     }
     
     /**
-     * Supprime définitivement un document (vide la corbeille)
+     * DESACTIVEE — la suppression definitive n'existe plus dans K-Docs.
+     *
+     * Cette methode detruisait la ligne documents ET le fichier physique, sans
+     * consulter legal_sealed ni retention_until, et sans ecrire de ligne d'audit.
+     * Elle rompait la chaine de tracabilite : c'est precisement ce que l'invariant
+     * de conception interdit.
+     *
+     * Un document supprime reste en corbeille indefiniment, marque par deleted_at.
+     * La base est indexee : l'exclure des listings ne coute rien en performance.
+     *
+     * @throws HardDeleteForbiddenException toujours
      */
     public function deletePermanently(int $documentId): bool
     {
-        $document = $this->db->prepare("SELECT * FROM documents WHERE id = ? AND deleted_at IS NOT NULL");
-        $document->execute([$documentId]);
-        $doc = $document->fetch();
-        
-        if (!$doc) {
-            return false;
-        }
-        
-        try {
-            $this->db->beginTransaction();
-            
-            // Supprimer le fichier physique s'il est dans le trash
-            if (!empty($doc['file_path']) && file_exists($doc['file_path']) && strpos($doc['file_path'], $this->trashPath) !== false) {
-                @unlink($doc['file_path']);
-            }
-            
-            // Supprimer l'embedding du document dans Qdrant (au cas où)
-            try {
-                EmbedDocumentJob::dispatchDelete($documentId);
-            } catch (\Exception $e) {
-                error_log("deletePermanently: Erreur suppression embedding: " . $e->getMessage());
-            }
-
-            // Supprimer de la base de données
-            $stmt = $this->db->prepare("DELETE FROM documents WHERE id = ?");
-            $stmt->execute([$documentId]);
-
-            $this->db->commit();
-            return true;
-
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            error_log("Erreur suppression définitive: " . $e->getMessage());
-            return false;
-        }
+        throw HardDeleteForbiddenException::forRecord('documents', $documentId);
     }
     
     /**
-     * Vide la corbeille (supprime définitivement tous les documents supprimés)
+     * DESACTIVEE — le vidage de corbeille n'existe plus dans K-Docs.
+     *
+     * Purgeait en masse tout document en corbeille depuis plus de N jours, via
+     * deletePermanently(). Aucun garde-fou : ni legal_sealed, ni retention_until,
+     * ni audit. La corbeille est desormais un etat durable, pas une antichambre
+     * de la destruction.
+     *
+     * @throws HardDeleteForbiddenException toujours
      */
     public function emptyTrash(int $olderThanDays = 30): array
     {
-        $stats = ['deleted' => 0, 'errors' => 0];
-        
-        try {
-            $stmt = $this->db->prepare("
-                SELECT id FROM documents 
-                WHERE deleted_at IS NOT NULL 
-                AND deleted_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-            ");
-            $stmt->execute([$olderThanDays]);
-            $documents = $stmt->fetchAll();
-            
-            foreach ($documents as $doc) {
-                if ($this->deletePermanently($doc['id'])) {
-                    $stats['deleted']++;
-                } else {
-                    $stats['errors']++;
-                }
-            }
-            
-        } catch (\Exception $e) {
-            error_log("Erreur vidage corbeille: " . $e->getMessage());
-        }
-        
-        return $stats;
+        throw HardDeleteForbiddenException::forPurge('TrashService::emptyTrash');
     }
     
     /**
