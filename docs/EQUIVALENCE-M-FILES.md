@@ -8,6 +8,13 @@
 > Ce document ne remplace pas `PANORAMA-GED-REDX.md` (analyse marché) ni
 > `PARITE-REDX-TESTS.md` (registre des 38 gaps). Il répond à une autre question :
 > **qu'est-ce qui est prouvé, par opposition à ce qui est écrit ?**
+>
+> **Révision du 2026-08-09.** La première version portait deux constats faux, tous
+> deux par sous-estimation : la piste de révision déclarée vide alors que
+> `audit_logs` portait 1 261 lignes (deux tables homonymes vides avaient été
+> interrogées à sa place), et les vues dynamiques déclarées absentes alors que
+> `logical_folders` les fournit depuis longtemps. L'équivalence prouvée passe de
+> 25 % à 45 %. Les sections corrigées portent la mention.
 
 ---
 
@@ -52,17 +59,31 @@ eux qui décident d'un choix en fiduciaire.
 
 ## 3. La différence qui commande tout le reste
 
+> **Révisé le 2026-08-09.** La première version de cette section présentait
+> l'écart comme un gap à combler et classait les vues dynamiques en ABSENT.
+> C'était faux deux fois : le modèle est un choix délibéré, et les vues
+> dynamiques existent et fonctionnent.
+
 **M-Files est métadonnées-first.** Il n'y a pas de dossiers physiques : un document
 existe indépendamment de son emplacement, et les vues sont calculées dynamiquement
-à partir des métadonnées. Le même document apparaît sous « Client X », « Factures
-2026 » et « À valider » sans être dupliqué ni déplacé. Le classement n'est pas une
-arborescence, c'est une requête.
+à partir des métadonnées. Le classement n'est pas une arborescence, c'est une requête.
 
-**GEDv1 est filesystem-first**, et c'est un invariant assumé, écrit dans
-`docs/ORACLES.md` : *« le fichier physique est la source ; la BDD porte métadonnées,
-index et relations »*.
+**GEDv1 est hybride, et c'est une décision.** Le fichier reste sur disque, lisible
+directement, sous son vrai nom — invariant écrit dans `docs/ORACLES.md` : *« le
+fichier physique est la source ; la BDD porte métadonnées, index et relations »*.
+Les métadonnées, elles, portent exactement ce que M-Files en tire : recherche
+transverse et **vues dynamiques**. Un dossier « Factures » rassemble toutes les
+factures où qu'elles soient, sans déplacer un fichier (`logical_folders`,
+oracle `logical-folders`).
 
-Ce n'est pas un retard de fonctionnalité, c'est un choix inverse.
+Le raisonnement, posé par la direction : on doit pouvoir poser la GED sur un
+stockage existant sans tout importer, sans alourdir la base de blobs, et sans
+produire des fichiers aux noms aberrants qu'on ne peut plus ouvrir sans
+l'application.
+
+Ce n'est donc pas un retard sur M-Files. C'est le même service de classement, sur
+un socle de stockage différent — et le socle est le seul point où l'équivalence
+n'est pas recherchée.
 
 | | Métadonnées-first (M-Files) | Filesystem-first (GEDv1) |
 |---|---|---|
@@ -89,11 +110,11 @@ Trois statuts, et pas un de plus :
 | **Capture** | Scan MFP, mail, upload, drag-drop | Upload + dossier `consume`. Module mail IMAP présent mais désactivé. | **ABSENT** en preuve — `persona-parcours-ecm` (ingérer → classer → analyser) est **ROUGE**, timeout 180 s |
 | **OCR / indexation** | Texte intégral, métadonnées auto | OCR opérationnel, contenu indexé | **DÉCLARÉ** — aucune suite nommée ; `ocr-benchmark` est un oracle sans test |
 | **Recherche** | Métadonnées, contexte, IA | FULLTEXT MySQL, Qdrant optionnel (désactivé) | **ABSENT** en preuve — `search-fulltext` **ROUGE** : `MATCH AGAINST` casse en SQL 1064 sur expression booléenne vide |
-| **Organisation** | Métadonnées, vues dynamiques | Arborescence + métadonnées en base | **ABSENT** — différence structurelle (§3), pas un gap à combler |
+| **Organisation** | Métadonnées, vues dynamiques | Fichiers sur disque + vues dynamiques calculées | **PROUVÉ** — `logical-folders` vert (9 cas). `logical_folders` porte `filter_type` et `filter_config` ; un dossier « Factures » sur `{document_type_code: facture}` rassemble les factures où qu'elles soient, sans déplacer un fichier |
 | **Workflow** | Validation factures, approbations | `WorkflowEngine`, nœuds typés, validation par rôles | **PROUVÉ, mince** — `workflow-doc-identification` vert (1 cas) |
 | **Classification** | Métadonnées auto | Cascade IA configurable + taxonomie ECM | **PROUVÉ** — `classifier-taxonomie` vert (15 cas) |
 | **Archivage légal CH** | Conforme GeBüV / Olico, 10 ans | Colonnes `legal_sealed`, `retention_until`, `tsa_token` déployées ; **10 documents scellés** sur 279 | **PARTIEL** — `legal-seal` vert (1 cas). Mais `TSA_URL` absent du `.env` : **aucun horodatage qualifié réel**. Et le scellé était contournable par la purge jusqu'au 07-08 |
-| **Piste de révision** | Audit complet, export | Table `classification_audit_log` déployée | **ABSENT** — **0 ligne** en base pour 279 documents. La piste n'est pas alimentée |
+| **Piste de révision** | Audit complet, export | `audit_logs` alimentée, **1 261 lignes** | **PROUVÉ** — `audit-trail-api` vert. La piste fonctionnait déjà pour l'authentification et les contrôleurs web ; les mutations passées par l'API ne laissaient aucune trace, elles sont journalisées depuis le 09-08. Restent : `classification_audit_log` à 0 ligne, et une table `audit_log` (singulier) vide en doublon |
 | **Versioning** | Contrôle de version natif | Table `document_versions` déployée | **ABSENT** — **0 ligne** en base |
 | **Sécurité / ACL** | RBAC, permissions fines | `FolderPermissionService` écrit et testé (10 cas verts) | **ABSENT** — le service n'est **appelé par aucune ligne de code applicatif**, et la table `folder_permissions` a **0 ligne**. Voir §5 |
 | **Intégration ERP** | Comptable via intégrateur | Contrat `/api/ged/*` versionné, 8 routes, K-Time | **PROUVÉ** — `ktime-contract` vert + aller-retour réel `/api/ged/health` 200. Le point le plus solide du produit |
@@ -110,7 +131,7 @@ plugin WinBiz est comblé et épinglé par un test vert ». Vérification par é
 
 | Gap | Déclaré | Constaté |
 |---|---|---|
-| GAP-040 — ACL document fine | ✅ 🧪 `Unit\FolderPermissionTest` (10 tests) | **Le test existe et il est vert.** Mais `FolderPermissionService` n'est référencé par **aucun** contrôleur, middleware ou route. Le test valide un service que l'application n'appelle jamais. Table à 0 ligne. |
+| GAP-040 — ACL document fine | ✅ 🧪 `Unit\FolderPermissionTest` (10 tests) | **Le test existait et il était vert.** Mais `FolderPermissionService` n'était référencé par **aucun** contrôleur, middleware ou route : le test validait un service que l'application n'appelait jamais. **Corrigé le 09-08** — le garde est branché, oracle `folder-permissions-serverside`. La table reste à 0 ligne : aucune règle n'est configurée. |
 | GAP-020/024 — scellé WORM | ✅ 🧪 | Colonnes déployées, 10 documents scellés, suite verte. **Mais** le scellé ne couvrait pas le chemin de purge : `TrashService::deletePermanently` et `TaskService::cleanupTrash` détruisaient sans consulter `legal_sealed`. Corrigé le 07-08. |
 | GAP-023 — horodatage TSA | ✅ 🧪 (mock TSA) | Test vert **avec transport moqué**. `TSA_URL` absent du `.env` : aucun horodatage réel n'a jamais été produit. |
 | GAP-030/033/034/042 — contrats, RH, mail, portail | ✅ 🧪 | Tests verts, drapeaux absents du `.env`, tables à 0 ligne. Modules non déployés. |
@@ -132,15 +153,20 @@ l'audit (52 %). Compte les capacités pour lesquelles du code existe, qu'il soit
 branché ou non. Dénominateur : les 12 domaines du §4. Ignore : le déploiement,
 l'alimentation des tables, l'activation des modules.
 
-**Équivalence prouvée par la mesure : ~25 %.** Compte les seuls domaines portés par
-une suite nommée et verte au dernier harness, dont on a vérifié qu'elle atteste la
-capacité et non seulement le code. Soit 3 domaines pleins sur 12 — classification,
-intégration ERP, hébergement — plus deux partiels — workflow et archivage légal.
-Dénominateur identique.
+**Équivalence prouvée par la mesure : ~45 %** *(révisé le 09-08 ; la première
+version disait 25 %, sur la foi de deux constats faux — voir §3 et §5)*. Compte les
+seuls domaines portés par une suite nommée et verte au dernier harness, dont on a
+vérifié qu'elle atteste la capacité et non seulement le code. Soit 6 domaines pleins
+sur 12 — classification, organisation, piste de révision, sécurité/ACL, intégration
+ERP, hébergement — plus deux partiels : workflow et archivage légal.
 
-**L'écart entre les deux est le résultat.** La moitié de ce qui est écrit n'est pas
-en service : modules désactivés, ACL non branchée, piste de révision vide,
-versioning inutilisé. Ce n'est pas du code manquant, c'est du code non raccordé.
+**L'écart entre les deux reste le résultat**, mais il s'est resserré en un jour de
+travail, et pas en écrivant du code : en le raccordant. L'ACL existait et n'était
+appelée par personne ; l'audit fonctionnait mais ne couvrait pas le chemin que
+l'interface emprunte ; les vues dynamiques marchaient sans que rien ne l'atteste.
+
+Ce qui reste non raccordé : versioning inutilisé (0 ligne), 5 modules aux drapeaux
+absents du `.env`, horodatage TSA jamais configuré.
 
 Réserve honnête sur ces deux chiffres : un découpage en 12 domaines est un choix.
 Un découpage plus fin déplacerait les valeurs de quelques points. Ce qui ne bouge
@@ -150,17 +176,27 @@ pas, c'est le rapport d'environ 1 à 2 entre déclaré et prouvé.
 
 ## 7. Ce qui manquerait pour un usage fiduciaire réel
 
-**À portée — raccordement, pas développement**
+**Fait le 2026-08-09** — tout était du raccordement, aucun développement neuf :
 
-1. **Brancher l'ACL.** Le service existe et il est correct. Aucun contrôleur ne
-   l'appelle. Sans cela, les permissions de dossier n'existent pas côté serveur.
-2. **Alimenter la piste de révision.** La table est là, vide. Sans piste, pas de
-   conformité GeBüV défendable, quel que soit le scellé.
-3. **Réparer la recherche FULLTEXT.** Bug SQL 1064 identifié et localisé.
-4. **Activer les modules déjà écrits** — ou les retirer de l'interface. Un module
-   désactivé qui apparaît dans le menu produit des 404.
-5. **Horodatage TSA réel.** `TSA_URL` à renseigner ; le code accepte déjà un
+1. ~~Brancher l'ACL.~~ Consultée sur `show`, `content`, `download`, `update`,
+   `delete`. Refus en 404, pour ne pas révéler l'existence d'une pièce interdite.
+2. ~~Couvrir la piste de révision.~~ Sept mutations de l'API journalisées.
+3. ~~Réparer la recherche FULLTEXT.~~ Deux bugs distincts, sonde et produit.
+
+**Reste à portée**
+
+4. **Trancher `storage.base_path`.** Il pointe vers `C:\wamp64`, l'installation
+   d'avant migration : 129 des 191 documents vivants y sont. Aucun fichier n'est
+   perdu, mais le fonds est à cheval sur deux arborescences.
+5. **Brancher le versioning.** Le modèle `DocumentVersion` est complet et n'est
+   appelé par personne — 0 ligne pour 337 documents.
+6. **Activer les 5 modules éteints** — ou les retirer. Aucun n'est lié depuis
+   l'interface aujourd'hui, donc pas de 404 : c'est une décision produit, pas une
+   urgence technique.
+7. **Horodatage TSA réel.** `TSA_URL` à renseigner ; le code accepte déjà un
    transport injectable.
+8. **Poser des règles d'ACL.** Le garde est en place mais `folder_permissions` est
+   vide et aucun écran ne permet d'en créer.
 
 **Structurel — ne se rattrape pas par incréments**
 
