@@ -51,14 +51,22 @@ function evalue(sec) {
     if (s.ok) verts++; else { rouges++; rougesNoms.push(nom); }
   }
 
-  let etat = rouges ? 'ROUGE' : (inconnus === oracles.length ? 'ORPHELIN' : 'VERT');
+  // ORPHELIN et NON-MESURE ne sont pas la meme chose. Un secteur sans aucun
+  // oracle declare est une dette de conception ; un secteur dont les oracles
+  // existent mais n'ont pas encore tourne attend seulement un passage du
+  // harness. Les confondre fait passer un travail fait pour un travail absent.
+  let etat;
+  if (rouges) etat = 'ROUGE';
+  else if (inconnus === oracles.length) etat = 'NON-MESURE';
+  else etat = 'VERT';
+
   if (etat === 'VERT' && FANTOME.test(sec.etatConnu || '')) etat = 'FANTOME';
 
   return { etat, verts, rouges, inconnus, rougesNoms, inconnusNoms };
 }
 
-const ICONE = { VERT: '🟢', ROUGE: '🔴', ORPHELIN: '⚪', FANTOME: '👻' };
-const ORDRE = { FANTOME: 0, ROUGE: 1, ORPHELIN: 2, VERT: 3 };
+const ICONE = { VERT: '🟢', ROUGE: '🔴', ORPHELIN: '⚪', FANTOME: '👻', 'NON-MESURE': '🕓' };
+const ORDRE = { FANTOME: 0, ROUGE: 1, ORPHELIN: 2, 'NON-MESURE': 3, VERT: 4 };
 
 const lignes = [];
 for (const [id, sec] of Object.entries(registre.sectors)) {
@@ -74,14 +82,14 @@ console.log('='.repeat(74));
 if (!harness) console.log('AUCUN harness : lancer run-harness.bat. Les etats sont indetermines.\n');
 
 for (const l of lignes) {
-  const det = l.etat === 'ORPHELIN' ? 'aucun oracle'
+  const det = l.etat === 'ORPHELIN' ? 'aucun oracle declare'
     : `${l.verts} vert(s)` + (l.rouges ? `, ${l.rouges} rouge(s) : ${l.rougesNoms.join(', ')}` : '')
       + (l.inconnus ? `, ${l.inconnus} jamais execute(s) : ${l.inconnusNoms.join(', ')}` : '');
   console.log(`${ICONE[l.etat]} ${l.etat.padEnd(9)} ${l.id.padEnd(22)} ${det}`);
 }
 
 console.log('='.repeat(74));
-console.log(`${lignes.length} secteurs — ${compte('VERT')} verts · ${compte('ROUGE')} rouges · ${compte('ORPHELIN')} orphelins · ${compte('FANTOME')} fantomes`);
+console.log(`${lignes.length} secteurs — ${compte('VERT')} verts · ${compte('ROUGE')} rouges · ${compte('ORPHELIN')} orphelins · ${compte('FANTOME')} fantomes · ${compte('NON-MESURE')} non mesures`);
 if (compte('FANTOME')) console.log('Un secteur FANTOME ressemble a un vert et ne prouve rien. A traiter en premier.');
 
 // ---------- docs/STATUS-SECTEURS.md ----------
@@ -97,7 +105,7 @@ if (process.argv.includes('--write')) {
     ? `> Dernier harness : **${harness.verdict}** · ${(harness.suites || []).length} suites · ${harness.generatedAt}`
     : '> **Aucun harness disponible** — lancer `run-harness.bat`. Les etats ci-dessous sont indetermines.');
   md.push('');
-  md.push(`**${lignes.length} secteurs** — ${compte('VERT')} 🟢 verts · ${compte('ROUGE')} 🔴 rouges · ${compte('ORPHELIN')} ⚪ orphelins · ${compte('FANTOME')} 👻 fantomes`);
+  md.push(`**${lignes.length} secteurs** — ${compte('VERT')} 🟢 verts · ${compte('ROUGE')} 🔴 rouges · ${compte('ORPHELIN')} ⚪ orphelins · ${compte('FANTOME')} 👻 fantomes · ${compte('NON-MESURE')} 🕓 non mesures`);
   md.push('');
   md.push('| | Secteur | Etat | Oracles | Depend de |');
   md.push('|---|---|---|---|---|');
@@ -111,7 +119,8 @@ if (process.argv.includes('--write')) {
   md.push('');
   md.push('- 🟢 **VERT** — tous les oracles declares sont verts au dernier harness.');
   md.push('- 🔴 **ROUGE** — au moins un oracle tombe. Le detail est ci-dessous.');
-  md.push('- ⚪ **ORPHELIN** — aucun oracle. Le secteur peut etre casse sans que rien ne rougisse.');
+  md.push('- ⚪ **ORPHELIN** — aucun oracle declare. Le secteur peut etre casse sans que rien ne rougisse.');
+  md.push('- 🕓 **NON MESURE** — des oracles existent mais aucun n a tourne au dernier harness. Ce n est pas une dette : c est un run qui manque.');
   md.push('- 👻 **FANTOME** — oracles verts, **cablage non prouve**. Le plus dangereux : il a l apparence du vert. Cas fondateur : `folder-permissions` etait vert sur 10 tests unitaires alors que `FolderPermissionService` n est appele par aucune ligne applicative.');
   md.push('');
   md.push('## Detail par secteur');

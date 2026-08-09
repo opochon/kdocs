@@ -6,7 +6,7 @@
 
 > Dernier harness : **ROUGE** · 38 suites · 2026-08-09T07:53:24.909Z
 
-**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 3 ⚪ orphelins · 1 👻 fantomes
+**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 2 ⚪ orphelins · 1 👻 fantomes · 1 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
@@ -15,8 +15,8 @@
 | 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
 | ⚪ | `recherche-transverse` | ORPHELIN | — | recherche, classification-ia |
-| ⚪ | `tracabilite-audit` | ORPHELIN | — | — |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
+| 🕓 | `tracabilite-audit` | NON-MESURE | 0✓ 1? | — |
 | 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
@@ -30,7 +30,8 @@
 
 - 🟢 **VERT** — tous les oracles declares sont verts au dernier harness.
 - 🔴 **ROUGE** — au moins un oracle tombe. Le detail est ci-dessous.
-- ⚪ **ORPHELIN** — aucun oracle. Le secteur peut etre casse sans que rien ne rougisse.
+- ⚪ **ORPHELIN** — aucun oracle declare. Le secteur peut etre casse sans que rien ne rougisse.
+- 🕓 **NON MESURE** — des oracles existent mais aucun n a tourne au dernier harness. Ce n est pas une dette : c est un run qui manque.
 - 👻 **FANTOME** — oracles verts, **cablage non prouve**. Le plus dangereux : il a l apparence du vert. Cas fondateur : `folder-permissions` etait vert sur 10 tests unitaires alors que `FolderPermissionService` n est appele par aucune ligne applicative.
 
 ## Detail par secteur
@@ -123,7 +124,23 @@
 
 ---
 
-### ⚪ tracabilite-audit — ORPHELIN
+### ⚪ versioning — ORPHELIN
+
+**Versions de documents — stockage en sous-dossier cache aupres du fichier**
+
+> *Invariant* — La version courante reste le fichier nu, ouvrable directement. Les anterieures vivent dans un sous-dossier cache voisin (modele .versions/, inspire de la convention .DS_Store), jamais en base.
+
+**Etat connu.** ORPHELIN. document_versions porte 0 ligne pour 279 documents : la table est deployee, la fonction n est pas en service. Design a poser avec le dirigeant avant code.
+
+**Agent** : `.claude/agents/versioning.md` · **Oracles** : _aucun_
+
+**Fichiers** : `app/Services/SnapshotService.php`
+
+**Tables** : `document_versions`, `snapshots`
+
+---
+
+### 🕓 tracabilite-audit — NON-MESURE
 
 **Piste de revision — journal de toutes les actions**
 
@@ -138,22 +155,6 @@
 **Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
 
 **Tables** : `audit_logs`, `audit_log`, `classification_audit_log`
-
----
-
-### ⚪ versioning — ORPHELIN
-
-**Versions de documents — stockage en sous-dossier cache aupres du fichier**
-
-> *Invariant* — La version courante reste le fichier nu, ouvrable directement. Les anterieures vivent dans un sous-dossier cache voisin (modele .versions/, inspire de la convention .DS_Store), jamais en base.
-
-**Etat connu.** ORPHELIN. document_versions porte 0 ligne pour 279 documents : la table est deployee, la fonction n est pas en service. Design a poser avec le dirigeant avant code.
-
-**Agent** : `.claude/agents/versioning.md` · **Oracles** : _aucun_
-
-**Fichiers** : `app/Services/SnapshotService.php`
-
-**Tables** : `document_versions`, `snapshots`
 
 ---
 
