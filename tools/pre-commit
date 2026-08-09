@@ -35,6 +35,21 @@ if [ -n "$STAGED_PHP" ]; then
     done
 fi
 
+echo "-> Node syntax check (tools/*.mjs)..."
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(mjs|js)$')
+if [ -n "$STAGED_JS" ]; then
+    for FILE in $STAGED_JS; do
+        if [ -f "$FILE" ]; then
+            node --check "$FILE" > /dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo "${RED}   x Syntax error: $FILE${NC}"
+                echo "     node --check \"$FILE\""
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    done
+fi
+
 if [ $ERRORS -gt 0 ]; then
     exit 1
 fi
