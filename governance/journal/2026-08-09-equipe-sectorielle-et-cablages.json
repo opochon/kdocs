@@ -1,0 +1,41 @@
+{
+  "lot": "equipe-sectorielle + cablages (securite-acl, tracabilite-audit, recherche-transverse, plugins, stockage, versioning)",
+
+  "resume": "Tour fondateur de la gouvernance sectorielle de GEDv1, puis raccordement de ce qui existait sans etre branche. Quinze secteurs declares dans governance/sectors.json avec leur agent proprietaire, leurs fichiers, tables, routes, oracles et dependances. tools/status-secteurs.mjs croise ce registre avec tests/reports/harness-latest.json et produit docs/STATUS-SECTEURS.md — la vue d ensemble qui manquait. AGENTS.md devient le canonique (58 lignes), CLAUDE.md se reduit a @AGENTS.md. governance/ATTENDUS-PRODUIT.md scelle l attendu pose par la direction : equivalence fonctionnelle M-Files plus les fonctions Karbonic, sur un socle ou la base est un dossier.",
+
+  "test": "phpunit 517 tests, 1362 assertions, 3 skipped preexistants. Harness complet : 35/41 suites vertes. Quatre oracles neufs, tous prouves descendants — folder-permissions-serverside (garde retire de download, le test nomme la methode), audit-trail-api (8 cas sur 9 rouges avant cablage), logical-folders (filtre retire, 27 intrus apparaissent), apps-routes (un lien vers /contracts pose dans templates/ fait tomber le test). stockage-coherence est ROUGE a dessein : il epingle une dette reelle qu il ne corrige pas.",
+
+  "reste": [
+    "DECISION DIRECTION — storage.base_path vaut C:\\wamp64\\www\\kdocs\\storage\\documents, l installation d avant migration. 129 des 191 documents vivants y resident, 62 sur F:. Aucun fichier n est perdu, les deux arborescences sont vivantes. Trois options : basculer sur F:, rester sur C:, ou migrer les fichiers puis basculer. La troisieme touche aux fichiers.",
+    "DECISION DIRECTION — instantane initial du versioning : 191 documents, 73,5 Mo de copie complete. Sans lui, le versioning ne protege que les documents crees a partir de maintenant. tools/versioning-snapshot.php --dry-run chiffre avant d agir.",
+    "DECISION DIRECTION — erp-connect attend un simulateur ERP sur 127.0.0.1:8091, absent. Le monter dans le harness, ou marquer la spec retired avec sa raison.",
+    "lib-operations est instable — le cas en echec change d un run a l autre (F-LIB-06 puis F-LIB-07) — et laisse une vingtaine de dossiers de test orphelins en base a chaque passage.",
+    "folder_permissions porte 0 ligne : le garde ACL est en place mais ne garde rien, et aucun ecran ne permet de poser une regle. Six methodes du controleur restent non gardees (updateType, updateCorrespondent, updateFields, addTags, removeTag, triggerOcr) ainsi que index, qui expose les titres.",
+    "100 documents vivants sur 191 n ont aucun folder_id et n apparaissent dans aucune vue par dossier.",
+    "16 des 20 factures sont en statut pending, donc invisibles dans la vue dynamique qui n en rend que 4.",
+    "classification_audit_log a toujours 0 ligne. La table audit_log (singulier) existe vide en doublon d audit_logs, avec des colonnes differentes : y ecrire echoue en silence.",
+    "Cinq applications sur huit restent eteintes (contracts, rh, mail, portal, invoices). Aucun template ne pointe vers elles, donc pas de 404 : c est une decision produit, pas une urgence technique."
+  ],
+
+  "decisions": [
+    "Un nouvel etat de secteur a ete introduit : FANTOME — oracles verts, cablage non prouve. Il ressemble a VERT et ne vaut rien. Trois secteurs y etaient. Cas fondateur : folder-permissions etait vert sur 10 tests unitaires alors que FolderPermissionService n etait appele par aucune ligne applicative. La regle qui en decoule est inscrite au registre et dans AGENTS.md : un oracle ne compte que s il prouve le CABLAGE ; verifier hasMethod() ou l existence d une route ne suffit jamais.",
+    "ORPHELIN et NON MESURE ont ete separes apres coup. L outil les confondait et faisait passer un travail fait pour un travail absent — exactement le defaut qu il existe pour corriger.",
+    "Les fiches d agents ne portent aucun verdict d etat. Codex en avait fige un dans chacune ; celui de securite-acl etait deja faux a la livraison. L etat se calcule, il ne se raconte : les fiches renvoient a l instrument.",
+    "Refus de rendre en 403 sur ACL : le garde repond 404, comme l isolation multi-mandant, pour ne pas reveler l existence d une piece qu on n a pas le droit de voir.",
+    "Versioning declenche par le HASH, decision de la direction. Meme regle a l upload et a l indexation, ce qui couvre le dossier partage modifie hors de la GED. Archives dans un sous-dossier cache voisin .versions/ ; la version courante reste le fichier nu, ouvrable sans l application. .versions exclu EN DUR de l indexation — sinon l indexeur indexerait les archives puis versionnerait les archives, sans fin.",
+    "L instantane initial est un outil separe et non une etape d indexation : il copie l integralite du fonds, et personne ne doit payer ce prix par surprise au detour d une indexation de routine. La difficulte est propre au modele filesystem-first — quand un fichier est modifie de l exterieur, ses octets d origine ont deja disparu quand on detecte le changement. Un fonds auquel la GED seule ecrit n a pas ce cout. C est le mode d acces qui decide, pas la fonctionnalite.",
+    "DocumentVersion::pruneOldVersions neutralisee : elle detruisait l historique au-dela des N dernieres versions, sur une table de tracabilite. Aucun appelant — mais ce qui existe finit par etre appele. Cliquet resserre : tracabilite 3 -> 2, total 73 -> 72.",
+    "file_count recalcule globalement plutot qu incrementalement : une valeur derivee doit pouvoir se reconstruire entierement a tout moment.",
+    "AGENTS.md canonique, CLAUDE.md reduit a un renvoi. Aucun agent-rules.md cree a cote : cela aurait recree le probleme de synchronisation que cette architecture supprime.",
+    "Quatre fichiers etaient masques par .gitignore : les 8 RAPPORT_*.md, tests/integration/ en entier — dont une sonde executee par le harness et absente du depot — et .claude/ en bloc, ce qui aurait fait disparaitre les 15 fiches d agents au premier clone. Git ne descend jamais dans un repertoire exclu, donc les re-inclusions !.claude/commands/ ne fonctionnaient pas.",
+    "Le hook de pre-commit verifie desormais la syntaxe Node. J avais commite un run-harness.mjs qui ne parsait plus et rien ne l avait arrete : le harness etait hors service. tools/pre-commit et .git/hooks/pre-commit avaient aussi diverge, editer le premier ne changeait rien."
+  ],
+
+  "erreurs_de_l_agent": [
+    "Quatre constats faux sur l existant, tous par sous-estimation : piste de revision declaree vide alors qu audit_logs porte 1261 lignes (deux tables homonymes vides interrogees a sa place) ; vues dynamiques declarees absentes alors que logical_folders les fournit ; plugins etiquete FANTOME alors que le gating tient et que 3 apps sur 8 sont actives ; search-fulltext annonce comme un bug produit alors que la sonde testait sa propre syntaxe, AGAINST('*') n etant pas une expression BOOLEAN MODE valide.",
+    "Cause commune : reconstruction d une vue partielle a chaque question, faute de vue d ensemble. C est le diagnostic pose par la direction, et l origine de docs/STATUS-SECTEURS.md.",
+    "run-harness.mjs casse trois fois par le meme defaut d echappement d un \\n dans un script d edition. Une fois commite. Outille depuis par le hook.",
+    "Un premier test de regression sur la recherche etait un faux vert : il verifiait l absence d exception alors qu advancedSearch avale les erreurs SQL et rend zero resultat. Corrige pour lire $result->error.",
+    "Un premier schema de test ACL etait faux (user_id/group_id au lieu de subject_type/subject_id) : sonde fautive corrigee avant toute conclusion sur le service."
+  ]
+}
