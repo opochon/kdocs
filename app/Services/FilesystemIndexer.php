@@ -23,7 +23,16 @@ class FilesystemIndexer
         $extensions = $storageConfig['allowed_extensions'] ?? ['pdf', 'jpg', 'jpeg', 'png', 'tiff', 'tif', 'doc', 'docx'];
         $this->allowedExtensions = is_array($extensions) ? $extensions : array_map('trim', explode(',', $extensions));
         $ignoreFolders = $storageConfig['ignore_folders'] ?? ['.git', 'node_modules', 'vendor', '__MACOSX', 'Thumbs.db'];
-        $this->ignoreFolders = is_array($ignoreFolders) ? $ignoreFolders : array_map('trim', explode(',', $ignoreFolders));
+        $ignoreFolders = is_array($ignoreFolders) ? $ignoreFolders : array_map('trim', explode(',', $ignoreFolders));
+
+        // .versions est exclu EN DUR, jamais par configuration : l'indexer
+        // reviendrait a indexer les archives comme des documents, puis a
+        // versionner les archives. La croissance serait sans fin.
+        if (!in_array('.versions', $ignoreFolders, true)) {
+            $ignoreFolders[] = '.versions';
+        }
+
+        $this->ignoreFolders = $ignoreFolders;
         $this->db = Database::getInstance();
         $this->progressFile = dirname(__DIR__, 2) . '/storage/.indexing_progress.json';
     }
@@ -244,6 +253,140 @@ class FilesystemIndexer
         return (int)$this->db->lastInsertId();
     }
 
+    /**
+     * Archive l'etat courant d'un fichier comme version, dans un sous-dossier
+     * cache voisin — modele `.versions/`, convention comparable a `.DS_Store`.
+     *
+     * DECISION D'ARCHITECTURE, 2026-08-09 (direction Karbonic).
+     *
+     * C'est le HASH qui determine qu'une version existe. A l'upload comme a
+     * l'indexation : si le checksum en base differe de celui du fichier, le
+     * fichier a ete modifie et cela fait une version. Meme regle des deux cotes,
+     * ce qui couvre le cas du dossier partage modifie hors de la GED.
+     *
+     * Consequence, et c'est la difficulte propre au modele filesystem-first :
+     * quand un fichier est modifie de l'exterieur, ses octets d'origine ont deja
+     * disparu au moment ou on detecte le changement. On ne peut pas reconstruire
+     * a posteriori ce qu'on n'a pas garde. Le versioning sur un dossier
+     * accessible en filesystem exige donc une COPIE COMPLETE au depart — sans
+     * base de comparaison, un delta ne veut rien dire. C'est ce que fait
+     * l'instantane initial pose a la premiere indexation.
+     *
+     * Le mode sans acces filesystem — la GED seule ecrit — n'a pas ce cout :
+     * elle archive au moment du write. C'est le mode d'acces qui decide, pas la
+     * fonctionnalite.
+     *
+     * La version courante reste le fichier nu, a sa place, ouvrable directement.
+     * Seules les archives vivent dans `.versions/`.
+     */
+    private function enregistrerVersion(
+        int $documentId,
+        string $filename,
+        string $fullPath,
+        int $filesize,
+        string $mimeType,
+        string $checksum,
+        ?string $checksumPrecedent
+    ): void {
+        try {
+            $dossier  = dirname($fullPath) . DIRECTORY_SEPARATOR . '.versions' . DIRECTORY_SEPARATOR . $filename;
+            $ext      = pathinfo($filename, PATHINFO_EXTENSION);
+            $numero   = \KDocs\Models\DocumentVersion::countByDocument($documentId) + 1;
+            $archive  = $dossier . DIRECTORY_SEPARATOR . sprintf('v%03d_%s%s', $numero, substr($checksum, 0, 8), $ext !== '' ? '.' . $ext : '');
+
+            if (!is_dir($dossier) && !@mkdir($dossier, 0775, true) && !is_dir($dossier)) {
+                error_log("Versioning: impossible de creer {$dossier}");
+                return;
+            }
+
+            // L'archive est une copie, jamais un deplacement : le fichier courant
+            // ne bouge pas de sa place et reste ouvrable sans l'application.
+            if (!@copy($fullPath, $archive)) {
+                error_log("Versioning: copie impossible vers {$archive}");
+                return;
+            }
+
+            \KDocs\Models\DocumentVersion::create([
+                'document_id'     => $documentId,
+                'filename'        => $filename,
+                'file_path'       => $archive,
+                'file_size'       => $filesize,
+                'mime_type'       => $mimeType,
+                'checksum'        => $checksum,
+                'changes_summary' => $checksumPrecedent === null
+                    ? 'Instantane initial — base de comparaison du versioning'
+                    : 'Modification detectee par divergence de hash (' . substr($checksumPrecedent, 0, 8) . ' -> ' . substr($checksum, 0, 8) . ')',
+            ]);
+        } catch (\Throwable $e) {
+            // Une version non enregistree ne doit jamais faire echouer
+            // l'indexation : on perd une archive, pas le document.
+            error_log('Versioning #' . $documentId . ' : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Instantane initial de TOUS les documents deja indexes.
+     *
+     * A lancer une seule fois, a l'activation du versioning sur un fonds
+     * existant. L'indexation ordinaire ne pose d'instantane que sur les
+     * documents nouveaux : un fichier deja connu et inchange n'a aucune raison
+     * d'etre recopie a chaque passage.
+     *
+     * Sans cette passe, un fonds existant n'a pas de base de comparaison : le
+     * jour ou un fichier est modifie hors de la GED, on sait que le hash a
+     * change mais on n'a rien a quoi le comparer, et l'etat d'avant est perdu.
+     *
+     * Cout assume : une copie complete du fonds. C'est le prix du versioning
+     * sur un stockage accessible en filesystem. Un fonds auquel la GED seule
+     * ecrit n'en a pas besoin — elle archive au moment du write.
+     *
+     * @return array{documents:int, archives:int, ignores:int, erreurs:int}
+     */
+    public function snapshotInitial(bool $verbose = false): array
+    {
+        $stats = ['documents' => 0, 'archives' => 0, 'ignores' => 0, 'erreurs' => 0];
+
+        $stmt = $this->db->query(
+            "SELECT d.id, d.filename, d.file_path, d.file_size, d.mime_type, d.checksum
+             FROM documents d
+             WHERE d.deleted_at IS NULL AND d.file_path IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM document_versions v WHERE v.document_id = d.id)"
+        );
+
+        foreach ($stmt as $doc) {
+            $stats['documents']++;
+            $chemin = (string) $doc['file_path'];
+
+            if (!is_file($chemin)) {
+                $stats['ignores']++;
+                if ($verbose) echo "   ignore (fichier absent) : {$doc['filename']}\n";
+                continue;
+            }
+
+            $avant = \KDocs\Models\DocumentVersion::countByDocument((int) $doc['id']);
+
+            $this->enregistrerVersion(
+                (int) $doc['id'],
+                (string) $doc['filename'],
+                $chemin,
+                (int) ($doc['file_size'] ?: @filesize($chemin) ?: 0),
+                (string) ($doc['mime_type'] ?: 'application/octet-stream'),
+                (string) ($doc['checksum'] ?: @md5_file($chemin) ?: ''),
+                null
+            );
+
+            if (\KDocs\Models\DocumentVersion::countByDocument((int) $doc['id']) > $avant) {
+                $stats['archives']++;
+                if ($verbose) echo "   archive : {$doc['filename']}\n";
+            } else {
+                $stats['erreurs']++;
+                if ($verbose) echo "   ECHEC : {$doc['filename']}\n";
+            }
+        }
+
+        return $stats;
+    }
+
     private function upsertDocument(string $relativePath, int $folderId, string $fullPath): bool
     {
         $filename = basename($relativePath);
@@ -280,6 +423,13 @@ class FilesystemIndexer
 
         if ($existing) {
             if ($existing['checksum'] === $checksum) return false;
+
+            // Le hash a change : le fichier a ete modifie, potentiellement hors
+            // de la GED (dossier partage). C'est le declencheur de version retenu
+            // — decision du 2026-08-09 : c'est le hash qui determine qu'une
+            // version existe, a l'upload comme a l'indexation.
+            $this->enregistrerVersion((int) $existing['id'], $filename, $fullPath, $filesize, $mimeType, $checksum, (string) $existing['checksum']);
+
             $stmt = $this->db->prepare("UPDATE documents SET checksum = ?, file_size = ?, file_path = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$checksum, $filesize, $fullPath, $existing['id']]);
             return false;
@@ -287,6 +437,12 @@ class FilesystemIndexer
 
         $stmt = $this->db->prepare("INSERT INTO documents (filename, original_filename, file_path, relative_path, folder_id, file_size, mime_type, checksum, is_indexed, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, NOW())");
         $stmt->execute([$filename, $filename, $fullPath, $relativePath, $folderId, $filesize, $mimeType, $checksum]);
+        $documentId = (int) $this->db->lastInsertId();
+
+        // Instantane initial : sans lui, un fichier modifie hors de la GED n'a
+        // pas de version de reference a laquelle se comparer. C'est la v1.
+        $this->enregistrerVersion($documentId, $filename, $fullPath, $filesize, $mimeType, $checksum, null);
+
         return true;
     }
 
