@@ -1,15 +1,12 @@
 {
   "_doc": "Registre des secteurs de GEDv1 (K-Docs). Source unique du decoupage. Tout agent — Claude, Codex, Cursor — choisit EXACTEMENT UN secteur avant de coder, lit son ownerAgent, ses fichiers, ses oracles et ses dependsOn, et ne sort pas de ce perimetre sans arbitrage trace. Le statut vivant est docs/STATUS-SECTEURS.md, genere par tools/status-secteurs.mjs a partir de ce fichier et de tests/reports/harness-latest.json. Regles contraignantes : governance/agent-rules.md.",
-
   "_regle_oracle": "Un oracle ne compte que s il prouve le CABLAGE : que la fonction est atteignable et executee par le produit, pas seulement que le code est coherent avec lui-meme. Cas fondateur du 2026-08-07 : folder-permissions etait vert sur 10 tests unitaires alors que FolderPermissionService n etait appele par aucune ligne applicative. Un test qui aurait execute une requete HTTP sur un document interdit aurait rougi. Verifier hasMethod() ou l existence d une route ne suffit jamais.",
-
   "_etats": {
     "vert": "tous les oracles du secteur sont verts au dernier harness",
     "rouge": "au moins un oracle du secteur est rouge",
     "orphelin": "le secteur n a aucun oracle declare — interdit a terme, c est une dette visible",
     "fantome": "le secteur a des oracles verts mais son cablage n est pas prouve — le pire des trois"
   },
-
   "sectors": {
     "stockage": {
       "ownerAgent": ".claude/agents/stockage.md",
@@ -23,177 +20,389 @@
         "app/Controllers/IndexingController.php",
         "app/Repositories/DocumentRepository.php"
       ],
-      "tables": ["documents", "document_folders", "storage_paths"],
-      "routes": ["/documents", "/documents/*", "/indexing/*"],
-      "oracles": ["lib-operations", "audit-coherence"],
+      "tables": [
+        "documents",
+        "document_folders",
+        "storage_paths"
+      ],
+      "routes": [
+        "/documents",
+        "/documents/*",
+        "/indexing/*"
+      ],
+      "oracles": [
+        "lib-operations",
+        "audit-coherence"
+      ],
       "dependsOn": [],
       "etatConnu": "document_folders porte 36 dossiers scannes du disque : le modele fonctionne. lib-operations est ROUGE (timeout 60 s sur deplacement de dossier, cas variable d un run a l autre — instabilite plus qu echec franc)."
     },
-
     "versioning": {
       "ownerAgent": ".claude/agents/versioning.md",
       "label": "Versions de documents — stockage en sous-dossier cache aupres du fichier",
       "invariant": "La version courante reste le fichier nu, ouvrable directement. Les anterieures vivent dans un sous-dossier cache voisin (modele .versions/, inspire de la convention .DS_Store), jamais en base.",
-      "fichiers": ["app/Services/SnapshotService.php"],
-      "tables": ["document_versions", "snapshots"],
-      "routes": ["/documents/{id}/versions", "/documents/{id}/versions/*"],
+      "fichiers": [
+        "app/Services/SnapshotService.php"
+      ],
+      "tables": [
+        "document_versions",
+        "snapshots"
+      ],
+      "routes": [
+        "/documents/{id}/versions",
+        "/documents/{id}/versions/*"
+      ],
       "oracles": [],
-      "dependsOn": ["stockage"],
+      "dependsOn": [
+        "stockage"
+      ],
       "etatConnu": "ORPHELIN. document_versions porte 0 ligne pour 279 documents : la table est deployee, la fonction n est pas en service. Design a poser avec le dirigeant avant code."
     },
-
     "recherche": {
       "ownerAgent": ".claude/agents/recherche.md",
       "label": "Recherche plein texte — FULLTEXT MySQL, repli LIKE, semantique optionnelle",
       "invariant": "Une recherche qui echoue doit se voir. Aujourd hui advancedSearch avale les erreurs SQL et rend zero resultat : indiscernable d une recherche sans reponse.",
-      "fichiers": ["app/Services/SearchService.php", "app/Search/SearchQuery.php", "app/Search/SearchResult.php"],
-      "tables": ["documents", "saved_searches"],
-      "routes": ["/search", "/api/search/*", "/api/semantic-search/*"],
-      "oracles": ["search-fulltext", "search-tasks"],
-      "dependsOn": ["stockage"],
+      "fichiers": [
+        "app/Services/SearchService.php",
+        "app/Search/SearchQuery.php",
+        "app/Search/SearchResult.php"
+      ],
+      "tables": [
+        "documents",
+        "saved_searches"
+      ],
+      "routes": [
+        "/search",
+        "/api/search/*",
+        "/api/semantic-search/*"
+      ],
+      "oracles": [
+        "search-fulltext",
+        "search-tasks"
+      ],
+      "dependsOn": [
+        "stockage"
+      ],
       "etatConnu": "VERT depuis le 2026-08-07 (17/17). Deux bugs corriges : sonde testant AGAINST('*'), et operateurs laisses comme termes produisant +\"\"* -> 1064. Dette ouverte : les erreurs SQL restent avalees."
     },
-
     "recherche-transverse": {
       "ownerAgent": ".claude/agents/recherche-transverse.md",
       "label": "Vues dynamiques : dossiers filtres, tags, types, champs personnalises",
       "invariant": "L equivalent des vues M-Files sur un stockage disque. Un dossier Factures rassemble toutes les factures ou qu elles soient, sans deplacer un fichier.",
-      "fichiers": ["app/Models/LogicalFolder.php", "app/Models/Tag.php", "app/Models/ClassificationField.php"],
-      "tables": ["logical_folders", "saved_searches", "tags", "document_tags", "custom_fields", "document_custom_fields"],
-      "routes": ["/folders/logical/*", "/tags", "/tags/*"],
-      "oracles": [],
-      "dependsOn": ["recherche", "classification-ia"],
-      "etatConnu": "ORPHELIN, et sous-estime par erreur dans EQUIVALENCE-M-FILES.md. L infrastructure EXISTE : logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 dossiers systeme dont Factures sur {document_type_code: facture}. Le manque est l usage : 1 seule affectation de tag pour 279 documents, 0 champ personnalise, 0 recherche sauvegardee."
+      "fichiers": [
+        "app/Models/LogicalFolder.php",
+        "app/Models/Tag.php",
+        "app/Models/ClassificationField.php"
+      ],
+      "tables": [
+        "logical_folders",
+        "saved_searches",
+        "tags",
+        "document_tags",
+        "custom_fields",
+        "document_custom_fields"
+      ],
+      "routes": [
+        "/folders/logical/*",
+        "/tags",
+        "/tags/*"
+      ],
+      "oracles": [
+        "logical-folders"
+      ],
+      "dependsOn": [
+        "recherche",
+        "classification-ia"
+      ],
+      "etatConnu": "N est plus orphelin depuis le 2026-08-09. L infrastructure existait et etait CABLEE — LogicalFolder est appele par DocumentsApiController, DocumentsController et templates/documents/index.php ; logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 vues dont Factures sur {document_type_code: facture}. Elle n avait aucun oracle : le secteur pouvait casser sans que rien ne rougisse. Sonde tests/integration/test_logical_folders.php, 9 cas, executee contre la base reelle : aucun intrus d un autre type, aucun document perdu, compteur concordant, corbeille exclue. Prouvee descendante — filtre retire, 27 intrus apparaissent. RESTE : l usage est faible — 1 seule affectation de tag pour 337 documents, 0 champ personnalise, 0 recherche sauvegardee. Et 16 des 20 factures sont en statut pending, donc invisibles dans la vue."
     },
-
     "ingestion-ocr": {
       "ownerAgent": ".claude/agents/ingestion-ocr.md",
       "label": "Ingestion, OCR, extraction de contenu",
       "invariant": "L OCR et la classification sortent de la requete HTTP. Une ingestion ne bloque pas l utilisateur.",
-      "fichiers": ["app/Services/DocumentProcessor.php", "app/Services/TaskService.php", "app/workers/task_worker.php"],
-      "tables": ["documents", "tasks", "scheduled_tasks"],
-      "routes": ["/consume", "/api/consumption/*", "/api/documents/upload"],
-      "oracles": ["persona-parcours-ecm", "pipeline-ui"],
-      "dependsOn": ["stockage"],
+      "fichiers": [
+        "app/Services/DocumentProcessor.php",
+        "app/Services/TaskService.php",
+        "app/workers/task_worker.php"
+      ],
+      "tables": [
+        "documents",
+        "tasks",
+        "scheduled_tasks"
+      ],
+      "routes": [
+        "/consume",
+        "/api/consumption/*",
+        "/api/documents/upload"
+      ],
+      "oracles": [
+        "persona-parcours-ecm",
+        "pipeline-ui"
+      ],
+      "dependsOn": [
+        "stockage"
+      ],
       "etatConnu": "ROUGE sur les deux oracles. persona-parcours-ecm depasse 180 s en attente de reponse ; pipeline-ui ne trouve jamais #preview-type-select. Aucun ordonnanceur ne tourne : les taches planifiees affichent dernier_run=JAMAIS."
     },
-
     "classification-ia": {
       "ownerAgent": ".claude/agents/classification-ia.md",
       "label": "Classement automatise — cascade IA, taxonomie ECM, suggestions",
       "invariant": "Une suggestion n est jamais appliquee seule. Toute modification de classification est tracable.",
-      "fichiers": ["app/Services/AIClassifierService.php", "app/Services/AIProviderService.php", "app/Adapters/HtmleditorTaxonomyAdapter.php"],
-      "tables": ["classification_suggestions", "classification_training_data", "classification_audit_log", "document_types"],
-      "routes": ["/api/classification/*", "/api/ai/*"],
-      "oracles": ["classifier-taxonomie", "ai-confidence-badge", "ai-assistant"],
-      "dependsOn": ["ingestion-ocr"],
+      "fichiers": [
+        "app/Services/AIClassifierService.php",
+        "app/Services/AIProviderService.php",
+        "app/Adapters/HtmleditorTaxonomyAdapter.php"
+      ],
+      "tables": [
+        "classification_suggestions",
+        "classification_training_data",
+        "classification_audit_log",
+        "document_types"
+      ],
+      "routes": [
+        "/api/classification/*",
+        "/api/ai/*"
+      ],
+      "oracles": [
+        "classifier-taxonomie",
+        "ai-confidence-badge",
+        "ai-assistant"
+      ],
+      "dependsOn": [
+        "ingestion-ocr"
+      ],
       "etatConnu": "VERT (15 cas). Cascade training -> claude -> ollama -> rules. classification_audit_log porte 0 ligne : l audit de classification n est pas alimente."
     },
-
     "interface": {
       "ownerAgent": ".claude/agents/interface.md",
       "label": "Interface, chrome, navigation, accessibilite",
       "invariant": "Une fonction sans entree de menu est une fonction perdue. Un module desactive ne doit pas rester visible et produire des 404.",
-      "fichiers": ["templates/", "public/assets/"],
+      "fichiers": [
+        "templates/",
+        "public/assets/"
+      ],
       "tables": [],
-      "routes": ["/", "/documents", "/admin/*"],
-      "oracles": ["ui-chrome", "chrome-coherence", "shell", "a11y", "fiche-document", "bugs", "bugs-click", "bugs-misc", "persona", "persona-preview", "persona-redx-expert"],
+      "routes": [
+        "/",
+        "/documents",
+        "/admin/*"
+      ],
+      "oracles": [
+        "ui-chrome",
+        "chrome-coherence",
+        "shell",
+        "a11y",
+        "fiche-document",
+        "bugs",
+        "bugs-click",
+        "bugs-misc",
+        "persona",
+        "persona-preview",
+        "persona-redx-expert"
+      ],
       "dependsOn": [],
       "etatConnu": "Majoritairement VERT. Audit UI-UX a 3,5/10 : sidebar melangee, emojis, compteurs incoherents. Reference : docs/AUDIT-UI-UX.md, docs/DETTE-UI-ORPHELINS.md."
     },
-
     "plugins": {
       "ownerAgent": ".claude/agents/plugins.md",
       "label": "Registre de plugins et applications satellites",
       "invariant": "Un module declare est soit livre et atteignable, soit retire de l interface. Jamais un menu vers un 404.",
-      "fichiers": ["app/Core/PluginRegistry.php", "apps/"],
-      "tables": ["contracts", "hr_employees", "mail_accounts", "mail_sync_log"],
-      "routes": ["/contracts", "/rh/*", "/mail/*", "/portal/*", "/invoices"],
-      "oracles": ["smq-versions", "admin-hub", "apps-routes"],
-      "dependsOn": ["interface"],
+      "fichiers": [
+        "app/Core/PluginRegistry.php",
+        "apps/"
+      ],
+      "tables": [
+        "contracts",
+        "hr_employees",
+        "mail_accounts",
+        "mail_sync_log"
+      ],
+      "routes": [
+        "/contracts",
+        "/rh/*",
+        "/mail/*",
+        "/portal/*",
+        "/invoices"
+      ],
+      "oracles": [
+        "smq-versions",
+        "admin-hub",
+        "apps-routes"
+      ],
+      "dependsOn": [
+        "interface"
+      ],
       "etatConnu": "Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time."
     },
-
     "securite-acl": {
       "ownerAgent": ".claude/agents/securite-acl.md",
       "label": "Authentification, permissions de dossiers, CSRF, cloisonnement",
       "invariant": "Les droits se verifient cote serveur, jamais a l affichage. Un document interdit ne doit pas etre servi.",
-      "fichiers": ["app/Core/Auth.php", "app/Services/FolderPermissionService.php", "app/Services/TenantScopeService.php", "app/Middleware/"],
-      "tables": ["users", "groups", "folder_permissions", "sessions"],
-      "routes": ["/login", "/api/*"],
-      "oracles": ["folder-permissions", "folder-permissions-serverside"],
+      "fichiers": [
+        "app/Core/Auth.php",
+        "app/Services/FolderPermissionService.php",
+        "app/Services/TenantScopeService.php",
+        "app/Middleware/"
+      ],
+      "tables": [
+        "users",
+        "groups",
+        "folder_permissions",
+        "sessions"
+      ],
+      "routes": [
+        "/login",
+        "/api/*"
+      ],
+      "oracles": [
+        "folder-permissions",
+        "folder-permissions-serverside"
+      ],
       "dependsOn": [],
       "etatConnu": "CABLE le 2026-08-09. C etait le cas fondateur de la regle du cablage : folder-permissions etait VERT (10 tests) alors que FolderPermissionService n etait appele par AUCUNE ligne applicative — les permissions de dossier n existaient pas en service. Le garde est desormais consulte par DocumentsApiController sur show, content, download (lecture), update (ecriture) et delete (suppression), via peutAccederAuDocument(). Refus rendu en 404 et non 403, pour ne pas reveler l existence d une piece interdite. Le service est ouvert par defaut : sans regle sur la chaine des dossiers il autorise, donc le branchement ne change rien au comportement actuel et ferme des qu une regle est posee. Oracle folder-permissions-serverside, prouve descendant. RESTE : folder_permissions porte toujours 0 ligne — aucune regle n est configuree, et aucun ecran ne permet d en poser."
     },
-
     "tracabilite-audit": {
       "ownerAgent": ".claude/agents/tracabilite-audit.md",
       "label": "Piste de revision — journal de toutes les actions",
       "invariant": "Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.",
-      "fichiers": ["app/Services/AuditService.php", "app/Models/AuditLog.php"],
-      "tables": ["audit_logs", "audit_log", "classification_audit_log"],
-      "routes": ["/admin/audit", "/admin/audit/export"],
-      "oracles": ["audit-trail-api"],
+      "fichiers": [
+        "app/Services/AuditService.php",
+        "app/Models/AuditLog.php"
+      ],
+      "tables": [
+        "audit_logs",
+        "audit_log",
+        "classification_audit_log"
+      ],
+      "routes": [
+        "/admin/audit",
+        "/admin/audit/export"
+      ],
+      "oracles": [
+        "audit-trail-api"
+      ],
       "dependsOn": [],
       "etatConnu": "N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises."
     },
-
     "conformite-archivage": {
       "ownerAgent": ".claude/agents/conformite-archivage.md",
       "label": "Archivage legal suisse — scelle WORM, retention, horodatage qualifie",
       "invariant": "Un document scelle ne peut etre ni modifie ni detruit, par AUCUN chemin. Retention 10 ans (CO 958f, GeBuV / Olico).",
-      "fichiers": ["app/Services/Compliance/"],
-      "tables": ["documents"],
-      "routes": ["/api/documents/{id}/legal-seal", "/api/documents/{id}/sign"],
-      "oracles": ["legal-seal"],
-      "dependsOn": ["corbeille-retention", "tracabilite-audit"],
+      "fichiers": [
+        "app/Services/Compliance/"
+      ],
+      "tables": [
+        "documents"
+      ],
+      "routes": [
+        "/api/documents/{id}/legal-seal",
+        "/api/documents/{id}/sign"
+      ],
+      "oracles": [
+        "legal-seal"
+      ],
+      "dependsOn": [
+        "corbeille-retention",
+        "tracabilite-audit"
+      ],
       "etatConnu": "PARTIEL. Colonnes legal_sealed, retention_until, tsa_token deployees ; 10 documents scelles sur 279. Le scelle ne couvrait QUE les routes API : la purge le contournait entierement jusqu au 2026-08-07. TSA_URL absent : aucun horodatage qualifie reel n a jamais ete produit."
     },
-
     "corbeille-retention": {
       "ownerAgent": ".claude/agents/corbeille-retention.md",
       "label": "Corbeille, retention, sauvegarde — zero suppression dure",
       "invariant": "INVARIANT ABSOLU pose par la direction le 2026-08-07 : aucune ligne n est jamais supprimee d une table par le produit. La corbeille est un etat durable, pas une antichambre de la destruction. Reconstruire une base pour les tests reste legitime mais n appartient PAS a l application : outil externe, precede d un dump.",
-      "fichiers": ["app/Services/TrashService.php", "app/Services/BackupService.php", "app/Exceptions/HardDeleteForbiddenException.php"],
-      "tables": ["documents"],
-      "routes": ["/trash", "/admin/backups"],
-      "oracles": ["no-hard-delete", "soft-delete", "trash-retention"],
+      "fichiers": [
+        "app/Services/TrashService.php",
+        "app/Services/BackupService.php",
+        "app/Exceptions/HardDeleteForbiddenException.php"
+      ],
+      "tables": [
+        "documents"
+      ],
+      "routes": [
+        "/trash",
+        "/admin/backups"
+      ],
+      "oracles": [
+        "no-hard-delete",
+        "soft-delete",
+        "trash-retention"
+      ],
       "dependsOn": [],
       "etatConnu": "VERT depuis le 2026-08-07. Trois chemins de destruction neutralises, tache planifiee cleanup_trash passee a is_active=0 : 156 documents etaient a une execution de la destruction. Cliquet governance/budgets.json, plafond documents fige a 0, total 73. RESTE : sauvegarde quotidienne avec rotation (BackupService existe, storage/backups vide, aucune sauvegarde jamais produite) et chaine de hachage anti-modification silencieuse."
     },
-
     "workflow-validation": {
       "ownerAgent": ".claude/agents/workflow-validation.md",
       "label": "Workflows visuels et validation par roles",
       "invariant": "Une validation engage une personne : elle est tracee, avec son montant et son perimetre.",
-      "fichiers": ["app/Services/WorkflowEngine.php", "app/Services/ValidationService.php"],
-      "tables": ["workflows", "workflow_nodes", "role_types", "user_roles"],
-      "routes": ["/workflows", "/workflow/approve/{token}", "/api/validation/*"],
-      "oracles": ["workflow-doc-identification"],
-      "dependsOn": ["securite-acl"],
+      "fichiers": [
+        "app/Services/WorkflowEngine.php",
+        "app/Services/ValidationService.php"
+      ],
+      "tables": [
+        "workflows",
+        "workflow_nodes",
+        "role_types",
+        "user_roles"
+      ],
+      "routes": [
+        "/workflows",
+        "/workflow/approve/{token}",
+        "/api/validation/*"
+      ],
+      "oracles": [
+        "workflow-doc-identification"
+      ],
+      "dependsOn": [
+        "securite-acl"
+      ],
       "etatConnu": "Un seul oracle vert, tres mince (1 cas). Couverture reelle du moteur de workflow non etablie."
     },
-
     "erpconnect": {
       "ownerAgent": ".claude/agents/erpconnect.md",
       "label": "Integration K-Time — contrat /api/ged/*",
       "invariant": "La GED n ecrit JAMAIS dans WinBiz. Le flux passe par CMD v4 (extraction) puis K-Time (introduction, validation, sync). Le contrat appartient aux deux depots : K-TIME est en LECTURE SEULE depuis GEDv1.",
-      "fichiers": ["apps/erpconnect/", "tools/lint-contrat.mjs", "governance/contrat-ged-ktime.json"],
-      "tables": ["erp_links"],
-      "routes": ["/erpconnect/*"],
-      "oracles": ["ktime-contract", "api-key-redaction", "erp-connect"],
-      "dependsOn": ["securite-acl"],
+      "fichiers": [
+        "apps/erpconnect/",
+        "tools/lint-contrat.mjs",
+        "governance/contrat-ged-ktime.json"
+      ],
+      "tables": [
+        "erp_links"
+      ],
+      "routes": [
+        "/erpconnect/*"
+      ],
+      "oracles": [
+        "ktime-contract",
+        "api-key-redaction",
+        "erp-connect"
+      ],
+      "dependsOn": [
+        "securite-acl"
+      ],
       "etatConnu": "Le secteur le mieux prouve du produit. Contrat de 8 routes versionne, confronte au depot K-Time sur disque ET au serveur vivant (health 200). erp-connect ROUGE : la spec attend un simulateur sur 127.0.0.1:8091, absent — prerequis d environnement, pas regression."
     },
-
     "socle-mesure": {
       "ownerAgent": ".claude/agents/socle-mesure.md",
       "label": "Mesurabilite : harness, checklist, registres, cliquets, reservations",
       "invariant": "Ce qui n est pas mesure n existe pas. Le harness nomme ce qui tombe. Un cliquet ne remonte jamais.",
-      "fichiers": ["tools/run-harness.mjs", "tools/checklist.mjs", "tools/claim.mjs", "tools/preflight.php", "tools/status-secteurs.mjs", "governance/"],
+      "fichiers": [
+        "tools/run-harness.mjs",
+        "tools/checklist.mjs",
+        "tools/claim.mjs",
+        "tools/preflight.php",
+        "tools/status-secteurs.mjs",
+        "governance/"
+      ],
       "tables": [],
       "routes": [],
-      "oracles": ["specs-registre", "migration-smoke", "phpunit-all", "eval-full"],
+      "oracles": [
+        "specs-registre",
+        "migration-smoke",
+        "phpunit-all",
+        "eval-full"
+      ],
       "dependsOn": [],
       "etatConnu": "VERT. 37 suites nommees produites dans tests/reports/harness-latest.json. Avant le 2026-08-06 le harness sortait 0 ou 1 sans dire quoi : tout le backlog etait bloque a 0 % teste. Dette : .gitignore masque des fichiers qui comptent — 8 rapports racine et tests/integration/ entier, dont une sonde executee par le harness."
     }

@@ -70,6 +70,7 @@ const ONLY_STANDALONE = {
   'migration-smoke': () => suiteFromCapture('migration-smoke', 'tests/migration_smoke_test.php', runCapture('php', ['tests/migration_smoke_test.php'])),
   'documents-innodb': () => suiteFromCapture('documents-innodb', 'tools/fix-documents-innodb.php', runCapture('php', ['tools/fix-documents-innodb.php']), { parse: false }),
   'search-fulltext': () => suiteFromCapture('search-fulltext', 'tests/integration/test_fulltext_search.php', runCapture('php', ['tests/integration/test_fulltext_search.php'])),
+  'logical-folders': () => suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', runCapture('php', ['tests/integration/test_logical_folders.php'])),
   'eval-full': () => suiteFromCapture('eval-full', 'tools/eval-full.php --no-ocr', runCapture('php', ['tools/eval-full.php', '--no-ocr'])),
 };
 
@@ -291,6 +292,13 @@ async function main() {
     const ft = runCapture('php', ['tests/integration/test_fulltext_search.php']);
     console.log(strip(ft.stdout));
     push(suiteFromCapture('search-fulltext', 'tests/integration/test_fulltext_search.php', ft));
+
+    // -- vues dynamiques (secteur recherche-transverse) ---------------------
+    console.log('
+[2c] logical-folders (tests/integration/test_logical_folders.php)...');
+    const lf = runCapture('php', ['tests/integration/test_logical_folders.php']);
+    console.log(strip(lf.stdout));
+    push(suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', lf));
 
     // -- 3. eval-full ---------------------------------------------------------
     console.log('\n[3] eval-full (personas + types ECM + lot eval)...');

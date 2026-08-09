@@ -6,7 +6,7 @@
 
 > Dernier harness : **ROUGE** · 38 suites · 2026-08-09T07:53:24.909Z
 
-**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 2 ⚪ orphelins · 1 👻 fantomes · 1 🕓 non mesures
+**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 1 ⚪ orphelins · 1 👻 fantomes · 2 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
@@ -14,8 +14,8 @@
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
 | 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
-| ⚪ | `recherche-transverse` | ORPHELIN | — | recherche, classification-ia |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
+| 🕓 | `recherche-transverse` | NON-MESURE | 0✓ 1? | recherche, classification-ia |
 | 🕓 | `tracabilite-audit` | NON-MESURE | 0✓ 1? | — |
 | 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
@@ -108,22 +108,6 @@
 
 ---
 
-### ⚪ recherche-transverse — ORPHELIN
-
-**Vues dynamiques : dossiers filtres, tags, types, champs personnalises**
-
-> *Invariant* — L equivalent des vues M-Files sur un stockage disque. Un dossier Factures rassemble toutes les factures ou qu elles soient, sans deplacer un fichier.
-
-**Etat connu.** ORPHELIN, et sous-estime par erreur dans EQUIVALENCE-M-FILES.md. L infrastructure EXISTE : logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 dossiers systeme dont Factures sur {document_type_code: facture}. Le manque est l usage : 1 seule affectation de tag pour 279 documents, 0 champ personnalise, 0 recherche sauvegardee.
-
-**Agent** : `.claude/agents/recherche-transverse.md` · **Oracles** : _aucun_
-
-**Fichiers** : `app/Models/LogicalFolder.php` · `app/Models/Tag.php` · `app/Models/ClassificationField.php`
-
-**Tables** : `logical_folders`, `saved_searches`, `tags`, `document_tags`, `custom_fields`, `document_custom_fields`
-
----
-
 ### ⚪ versioning — ORPHELIN
 
 **Versions de documents — stockage en sous-dossier cache aupres du fichier**
@@ -137,6 +121,24 @@
 **Fichiers** : `app/Services/SnapshotService.php`
 
 **Tables** : `document_versions`, `snapshots`
+
+---
+
+### 🕓 recherche-transverse — NON-MESURE
+
+**Vues dynamiques : dossiers filtres, tags, types, champs personnalises**
+
+> *Invariant* — L equivalent des vues M-Files sur un stockage disque. Un dossier Factures rassemble toutes les factures ou qu elles soient, sans deplacer un fichier.
+
+**Etat connu.** N est plus orphelin depuis le 2026-08-09. L infrastructure existait et etait CABLEE — LogicalFolder est appele par DocumentsApiController, DocumentsController et templates/documents/index.php ; logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 vues dont Factures sur {document_type_code: facture}. Elle n avait aucun oracle : le secteur pouvait casser sans que rien ne rougisse. Sonde tests/integration/test_logical_folders.php, 9 cas, executee contre la base reelle : aucun intrus d un autre type, aucun document perdu, compteur concordant, corbeille exclue. Prouvee descendante — filtre retire, 27 intrus apparaissent. RESTE : l usage est faible — 1 seule affectation de tag pour 337 documents, 0 champ personnalise, 0 recherche sauvegardee. Et 16 des 20 factures sont en statut pending, donc invisibles dans la vue.
+
+**Oracles declares jamais executes** : `logical-folders`
+
+**Agent** : `.claude/agents/recherche-transverse.md` · **Oracles** : `logical-folders`
+
+**Fichiers** : `app/Models/LogicalFolder.php` · `app/Models/Tag.php` · `app/Models/ClassificationField.php`
+
+**Tables** : `logical_folders`, `saved_searches`, `tags`, `document_tags`, `custom_fields`, `document_custom_fields`
 
 ---
 
