@@ -4,25 +4,25 @@
 > Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.
 > Regles contraignantes : `governance/agent-rules.md`.
 
-> Dernier harness : **ROUGE** · 38 suites · 2026-08-09T07:53:24.909Z
+> Dernier harness : **ROUGE** · 42 suites · 2026-08-09T10:57:06.154Z
 
-**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 1 ⚪ orphelins · 1 👻 fantomes · 2 🕓 non mesures
+**15 secteurs** — 8 🟢 verts · 5 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 1 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
-| 👻 | `plugins` | FANTOME | 2✓ 1? | interface |
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
 | 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
+| 🔴 | `plugins` | ROUGE | 2✓ 1✗ | interface |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
+| 🔴 | `tracabilite-audit` | ROUGE | 0✓ 1✗ | — |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
 | 🕓 | `recherche-transverse` | NON-MESURE | 0✓ 1? | recherche, classification-ia |
-| 🕓 | `tracabilite-audit` | NON-MESURE | 0✓ 1? | — |
 | 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
 | 🟢 | `interface` | VERT | 11✓ | — |
 | 🟢 | `recherche` | VERT | 2✓ | stockage |
-| 🟢 | `securite-acl` | VERT | 1✓ 1? | — |
+| 🟢 | `securite-acl` | VERT | 2✓ | — |
 | 🟢 | `socle-mesure` | VERT | 4✓ | — |
 | 🟢 | `workflow-validation` | VERT | 1✓ | securite-acl |
 
@@ -35,24 +35,6 @@
 - 👻 **FANTOME** — oracles verts, **cablage non prouve**. Le plus dangereux : il a l apparence du vert. Cas fondateur : `folder-permissions` etait vert sur 10 tests unitaires alors que `FolderPermissionService` n est appele par aucune ligne applicative.
 
 ## Detail par secteur
-
-### 👻 plugins — FANTOME
-
-**Registre de plugins et applications satellites**
-
-> *Invariant* — Un module declare est soit livre et atteignable, soit retire de l interface. Jamais un menu vers un 404.
-
-**Etat connu.** Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time.
-
-**Oracles declares jamais executes** : `apps-routes`
-
-**Agent** : `.claude/agents/plugins.md` · **Oracles** : `smq-versions`, `admin-hub`, `apps-routes`
-
-**Fichiers** : `app/Core/PluginRegistry.php` · `apps/`
-
-**Tables** : `contracts`, `hr_employees`, `mail_accounts`, `mail_sync_log`
-
----
 
 ### 🔴 erpconnect — ROUGE
 
@@ -90,6 +72,24 @@
 
 ---
 
+### 🔴 plugins — ROUGE
+
+**Registre de plugins et applications satellites**
+
+> *Invariant* — Un module declare est soit livre et atteignable, soit retire de l interface. Jamais un menu vers un 404.
+
+**Etat connu.** Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time.
+
+**Oracles rouges** : `apps-routes`
+
+**Agent** : `.claude/agents/plugins.md` · **Oracles** : `smq-versions`, `admin-hub`, `apps-routes`
+
+**Fichiers** : `app/Core/PluginRegistry.php` · `apps/`
+
+**Tables** : `contracts`, `hr_employees`, `mail_accounts`, `mail_sync_log`
+
+---
+
 ### 🔴 stockage — ROUGE
 
 **Stockage filesystem-first : le fichier sur disque est la source, la base porte metadonnees et index**
@@ -105,6 +105,24 @@
 **Fichiers** : `app/Services/FilesystemIndexer.php` · `app/Services/FolderIndexService.php` · `app/Services/ConsumeFolderService.php` · `app/Services/IndexingService.php` · `app/Controllers/IndexingController.php` · `app/Repositories/DocumentRepository.php`
 
 **Tables** : `documents`, `document_folders`, `storage_paths`
+
+---
+
+### 🔴 tracabilite-audit — ROUGE
+
+**Piste de revision — journal de toutes les actions**
+
+> *Invariant* — Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.
+
+**Etat connu.** N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises.
+
+**Oracles rouges** : `audit-trail-api`
+
+**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : `audit-trail-api`
+
+**Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
+
+**Tables** : `audit_logs`, `audit_log`, `classification_audit_log`
 
 ---
 
@@ -139,24 +157,6 @@
 **Fichiers** : `app/Models/LogicalFolder.php` · `app/Models/Tag.php` · `app/Models/ClassificationField.php`
 
 **Tables** : `logical_folders`, `saved_searches`, `tags`, `document_tags`, `custom_fields`, `document_custom_fields`
-
----
-
-### 🕓 tracabilite-audit — NON-MESURE
-
-**Piste de revision — journal de toutes les actions**
-
-> *Invariant* — Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.
-
-**Etat connu.** N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises.
-
-**Oracles declares jamais executes** : `audit-trail-api`
-
-**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : `audit-trail-api`
-
-**Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
-
-**Tables** : `audit_logs`, `audit_log`, `classification_audit_log`
 
 ---
 
@@ -245,8 +245,6 @@
 > *Invariant* — Les droits se verifient cote serveur, jamais a l affichage. Un document interdit ne doit pas etre servi.
 
 **Etat connu.** CABLE le 2026-08-09. C etait le cas fondateur de la regle du cablage : folder-permissions etait VERT (10 tests) alors que FolderPermissionService n etait appele par AUCUNE ligne applicative — les permissions de dossier n existaient pas en service. Le garde est desormais consulte par DocumentsApiController sur show, content, download (lecture), update (ecriture) et delete (suppression), via peutAccederAuDocument(). Refus rendu en 404 et non 403, pour ne pas reveler l existence d une piece interdite. Le service est ouvert par defaut : sans regle sur la chaine des dossiers il autorise, donc le branchement ne change rien au comportement actuel et ferme des qu une regle est posee. Oracle folder-permissions-serverside, prouve descendant. RESTE : folder_permissions porte toujours 0 ligne — aucune regle n est configuree, et aucun ecran ne permet d en poser.
-
-**Oracles declares jamais executes** : `folder-permissions-serverside`
 
 **Agent** : `.claude/agents/securite-acl.md` · **Oracles** : `folder-permissions`, `folder-permissions-serverside`
 

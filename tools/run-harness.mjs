@@ -71,6 +71,7 @@ const ONLY_STANDALONE = {
   'documents-innodb': () => suiteFromCapture('documents-innodb', 'tools/fix-documents-innodb.php', runCapture('php', ['tools/fix-documents-innodb.php']), { parse: false }),
   'search-fulltext': () => suiteFromCapture('search-fulltext', 'tests/integration/test_fulltext_search.php', runCapture('php', ['tests/integration/test_fulltext_search.php'])),
   'logical-folders': () => suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', runCapture('php', ['tests/integration/test_logical_folders.php'])),
+  'stockage-coherence': () => suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', runCapture('php', ['tests/integration/test_stockage_coherence.php'])),
   'eval-full': () => suiteFromCapture('eval-full', 'tools/eval-full.php --no-ocr', runCapture('php', ['tools/eval-full.php', '--no-ocr'])),
 };
 
@@ -298,6 +299,12 @@ async function main() {
     const lf = runCapture('php', ['tests/integration/test_logical_folders.php']);
     console.log(strip(lf.stdout));
     push(suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', lf));
+
+    // -- coherence disque <-> base (secteur stockage) -----------------------
+    console.log('\n[2d] stockage-coherence (tests/integration/test_stockage_coherence.php)...');
+    const sc = runCapture('php', ['tests/integration/test_stockage_coherence.php']);
+    console.log(strip(sc.stdout));
+    push(suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', sc));
 
     // -- 3. eval-full ---------------------------------------------------------
     console.log('\n[3] eval-full (personas + types ECM + lot eval)...');
