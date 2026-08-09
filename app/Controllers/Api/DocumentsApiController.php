@@ -394,6 +394,8 @@ class DocumentsApiController extends ApiController
             $updated = Document::findById($id);
             // Auto-apprentissage : enregistre la correction de classification (type/correspondent).
             $this->recordClassificationCorrection($id, $document, $updated);
+            $this->journaliser('document.updated', $id, $request);
+
             return $this->successResponse($response, $this->formatDocument($updated), 'Document mis à jour avec succès');
             
         } catch (\Exception $e) {
@@ -423,6 +425,8 @@ class DocumentsApiController extends ApiController
 
         $trash = new TrashService();
         if ($trash->moveToTrash($id, $user['id'])) {
+            $this->journaliser('document.trashed', $id, $request);
+
             return $this->successResponse($response, null, 'Document supprimé avec succès');
         }
         
@@ -877,6 +881,33 @@ class DocumentsApiController extends ApiController
             // Table absente ou schema partiel : ouvert, comme le service lui-meme.
             error_log('FolderPermission: ' . $e->getMessage());
             return true;
+        }
+    }
+
+    /**
+     * Piste de revision des mutations de l'API — secteur tracabilite-audit.
+     *
+     * Avant le 2026-08-09 aucun controleur de app/Controllers/Api/ n'ecrivait
+     * de ligne d'audit, alors que l'interface passe par /api/documents/. Les
+     * mutations modernes ne laissaient aucune trace : la piste paraissait
+     * alimentee (1261 lignes) mais couvrait surtout auth.login et les vieux
+     * controleurs web.
+     *
+     * Ne leve jamais : un echec de journalisation ne doit pas casser l'action
+     * de l'utilisateur, mais il laisse une trace dans le log d'erreurs.
+     *
+     * @see \Tests\Feature\ApiAuditTrailTest
+     */
+    protected function journaliser(string $action, int $documentId, $request = null): void
+    {
+        try {
+            $user   = is_object($request) && method_exists($request, 'getAttribute')
+                ? $request->getAttribute('user') : null;
+            $userId = is_array($user) ? ($user['id'] ?? null) : null;
+
+            \KDocs\Services\AuditService::log($action, 'document', $documentId, null, null, $userId);
+        } catch (\Throwable $e) {
+            error_log('Audit ' . $action . ' #' . $documentId . ' : ' . $e->getMessage());
         }
     }
 
@@ -1384,7 +1415,9 @@ class DocumentsApiController extends ApiController
             $stmt->execute([$id]);
             $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            return $this->successResponse($response, ['tags' => $tags], 'Tags ajoutés');
+                        $this->journaliser('document.tags_added', $id, $request);
+
+                        return $this->successResponse($response, ['tags' => $tags], 'Tags ajoutés');
 
         } catch (\Exception $e) {
             return $this->errorResponse($response, $e->getMessage(), 500);
@@ -1405,6 +1438,8 @@ class DocumentsApiController extends ApiController
         try {
             $stmt = $db->prepare("DELETE FROM document_tags WHERE document_id = ? AND tag_id = ?");
             $stmt->execute([$docId, $tagId]);
+
+            $this->journaliser('document.tag_removed', $id, $request);
 
             return $this->successResponse($response, null, 'Tag retiré');
 
@@ -1436,6 +1471,8 @@ class DocumentsApiController extends ApiController
 
             $after = Document::findById($id);
             $this->recordClassificationCorrection($id, $before ?: [], $after ?: []);
+            $this->journaliser('document.type_changed', $id, $request);
+
             return $this->successResponse($response, ['document_type_id' => $typeId], 'Type mis à jour');
 
         } catch (\Exception $e) {
@@ -1466,6 +1503,8 @@ class DocumentsApiController extends ApiController
 
             $after = Document::findById($id);
             $this->recordClassificationCorrection($id, $before ?: [], $after ?: []);
+            $this->journaliser('document.correspondent_changed', $id, $request);
+
             return $this->successResponse($response, ['correspondent_id' => $correspondentId], 'Correspondant mis à jour');
 
         } catch (\Exception $e) {
@@ -1523,6 +1562,8 @@ class DocumentsApiController extends ApiController
             $stmt->execute($params);
 
             $updated = Document::findById($id);
+            $this->journaliser('document.fields_changed', $id, $request);
+
             return $this->successResponse($response, $this->formatDocument($updated), 'Document mis à jour');
 
         } catch (\Exception $e) {

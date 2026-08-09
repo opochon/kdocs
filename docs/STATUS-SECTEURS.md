@@ -129,9 +129,11 @@
 
 > *Invariant* — Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.
 
-**Etat connu.** ORPHELIN mais FONCTIONNEL — corrige le 2026-08-08 apres erreur d analyse. audit_logs porte 1261 lignes et s alimente (auth.login 1022, document.updated 42, document.created 20, folder_* 64). Deux defauts reels : derive de schema, la table audit_log (singulier) existe vide en doublon avec des colonnes differentes ; et classification_audit_log a 0 ligne. Couverture partielle : les suppressions et les changements de droits ne sont pas journalises.
+**Etat connu.** N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises.
 
-**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : _aucun_
+**Oracles declares jamais executes** : `audit-trail-api`
+
+**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : `audit-trail-api`
 
 **Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
 

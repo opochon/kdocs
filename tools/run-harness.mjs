@@ -284,6 +284,7 @@ async function main() {
     push(suiteFromCases('no-hard-delete', 'tests/Feature/NoHardDeleteTest.php (cliquet governance/budgets.json)', byExactClass('Tests\\Feature\\NoHardDeleteTest')));
     push(suiteFromCases('folder-permissions-serverside', 'tests/Feature/FolderPermissionServerSideTest.php (cablage ACL dans DocumentsApiController)', byExactClass('Tests\\Feature\\FolderPermissionServerSideTest')));
     push(suiteFromCases('apps-routes', 'tests/Feature/AppsRoutesTest.php (registre governance/apps-status.json vs .env vs templates)', byExactClass('Tests\Feature\AppsRoutesTest')));
+    push(suiteFromCases('audit-trail-api', 'tests/Feature/ApiAuditTrailTest.php (cablage de la piste de revision sur les mutations API)', byExactClass('Tests\Feature\ApiAuditTrailTest')));
 
     // -- search-fulltext (script autonome, pas PHPUnit) ----------------------
     console.log('\n[2b] search-fulltext (tests/integration/test_fulltext_search.php)...');
