@@ -349,11 +349,11 @@
       "name": "stockage-coherence",
       "ok": false,
       "source": "tests/integration/test_stockage_coherence.php",
-      "durationMs": 83,
+      "durationMs": 84,
       "exitCode": 1,
       "stderrTail": "Failed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\n"
     }
   ],
-  "patchedAt": "2026-08-09T12:02:55.011Z",
+  "patchedAt": "2026-08-09T12:15:50.255Z",
   "patchedSuite": "stockage-coherence"
 }

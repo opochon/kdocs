@@ -77,6 +77,7 @@ class FilesystemIndexer
         }
 
         $this->indexDirectory('', $stats, null, $trackProgress);
+        $this->recomputeFileCounts();
         $this->setLastIndexTime();
 
         if ($trackProgress) {
@@ -84,6 +85,31 @@ class FilesystemIndexer
         }
 
         return $stats;
+    }
+
+    /**
+     * Recalcule document_folders.file_count depuis le contenu reel.
+     *
+     * La colonne existait depuis toujours et n'etait alimentee nulle part :
+     * les 40 dossiers annoncaient 0, dont un qui portait 39 fichiers. Une
+     * colonne derivee qui ment est pire qu'une colonne absente — l'interface
+     * s'en sert pour afficher des compteurs, et l'utilisateur les croit.
+     *
+     * Recalcul global plutot qu'incremental : l'indexation est deja un
+     * parcours complet, et une valeur derivee doit pouvoir se reconstruire
+     * entierement a tout moment.
+     *
+     * @see tests/integration/test_stockage_coherence.php
+     */
+    private function recomputeFileCounts(): void
+    {
+        $this->db->exec(
+            "UPDATE document_folders f
+             SET f.file_count = (
+                 SELECT COUNT(*) FROM documents d
+                 WHERE d.folder_id = f.id AND d.deleted_at IS NULL
+             )"
+        );
     }
 
     /**
