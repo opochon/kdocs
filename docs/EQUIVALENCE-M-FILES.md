@@ -85,15 +85,15 @@ Ce n'est donc pas un retard sur M-Files. C'est le même service de classement, s
 un socle de stockage différent — et le socle est le seul point où l'équivalence
 n'est pas recherchée.
 
-| | Métadonnées-first (M-Files) | Filesystem-first (GEDv1) |
+| | Métadonnées-first (M-Files) | Hybride (GEDv1) |
 |---|---|---|
-| Gain | Un document, N contextes. Classement sans arbitrage d'arborescence. Recherche naturelle. | Le fichier reste lisible sans l'application. Aucun enfermement. Sauvegarde et reprise triviales. |
-| Coût | Dépendance forte au produit : sans lui, on a des blobs et une base propriétaire. | Le classement redevient une arborescence, avec ses arbitrages. Les vues transverses sont à construire. |
+| Gain | Un document, N contextes. Classement sans arbitrage d'arborescence. | Mêmes vues transverses, **plus** un fichier ouvrable sans l'application. Aucun enfermement. Sauvegarde et reprise triviales. On se pose sur un stockage existant. |
+| Coût | Dépendance forte au produit : sans lui, on a des blobs et une base propriétaire. | Deux sources à tenir d'accord — disque et base. Une dérive est invisible sans contrôle : au 09-08, 5 dossiers du disque n'étaient pas indexés et `file_count` mentait sur les 40. |
 
-**Conséquence pratique** : rattraper M-Files sur ce point ne se fait pas en ajoutant
-des fonctions, mais en changeant de modèle. Toute comparaison ligne à ligne qui
-ignore cette bascule sous-estime l'écart réel sur l'organisation, et surestime
-l'écart sur la souveraineté.
+**Conséquence pratique** : le coût du modèle hybride n'est pas fonctionnel, il est
+opérationnel. Il ne se paie pas en fonctions manquantes mais en cohérence à
+maintenir, et cette cohérence doit être mesurée en continu — d'où l'oracle
+`stockage-coherence`.
 
 ---
 
@@ -109,7 +109,7 @@ Trois statuts, et pas un de plus :
 |---|---|---|---|
 | **Capture** | Scan MFP, mail, upload, drag-drop | Upload + dossier `consume`. Module mail IMAP présent mais désactivé. | **ABSENT** en preuve — `persona-parcours-ecm` (ingérer → classer → analyser) est **ROUGE**, timeout 180 s |
 | **OCR / indexation** | Texte intégral, métadonnées auto | OCR opérationnel, contenu indexé | **DÉCLARÉ** — aucune suite nommée ; `ocr-benchmark` est un oracle sans test |
-| **Recherche** | Métadonnées, contexte, IA | FULLTEXT MySQL, Qdrant optionnel (désactivé) | **ABSENT** en preuve — `search-fulltext` **ROUGE** : `MATCH AGAINST` casse en SQL 1064 sur expression booléenne vide |
+| **Recherche** | Métadonnées, contexte, IA | FULLTEXT MySQL, Qdrant optionnel (désactivé) | **PROUVÉ** — `search-fulltext` vert (17 cas) depuis le 07-08. Deux bugs distincts corrigés : une sonde qui testait sa propre syntaxe, et un opérateur laissé comme terme qui cassait toute recherche en SQL 1064. Dette ouverte : les erreurs SQL restent avalées, une recherche cassée rend zéro résultat |
 | **Organisation** | Métadonnées, vues dynamiques | Fichiers sur disque + vues dynamiques calculées | **PROUVÉ** — `logical-folders` vert (9 cas). `logical_folders` porte `filter_type` et `filter_config` ; un dossier « Factures » sur `{document_type_code: facture}` rassemble les factures où qu'elles soient, sans déplacer un fichier |
 | **Workflow** | Validation factures, approbations | `WorkflowEngine`, nœuds typés, validation par rôles | **PROUVÉ, mince** — `workflow-doc-identification` vert (1 cas) |
 | **Classification** | Métadonnées auto | Cascade IA configurable + taxonomie ECM | **PROUVÉ** — `classifier-taxonomie` vert (15 cas) |
