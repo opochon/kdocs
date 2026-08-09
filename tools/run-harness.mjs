@@ -294,8 +294,7 @@ async function main() {
     push(suiteFromCapture('search-fulltext', 'tests/integration/test_fulltext_search.php', ft));
 
     // -- vues dynamiques (secteur recherche-transverse) ---------------------
-    console.log('
-[2c] logical-folders (tests/integration/test_logical_folders.php)...');
+    console.log('\n[2c] logical-folders (tests/integration/test_logical_folders.php)...');
     const lf = runCapture('php', ['tests/integration/test_logical_folders.php']);
     console.log(strip(lf.stdout));
     push(suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', lf));
