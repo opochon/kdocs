@@ -61,7 +61,12 @@ nul
 /config/*.backup_*
 
 # Agents / IDE locaux
-.claude/
+# .claude/ n est PAS exclu en bloc : git ne descend jamais dans un repertoire
+# exclu, donc les re-inclusions !.claude/xxx/ plus bas ne fonctionnaient pas —
+# .claude/commands/reprendre.md n etait suivi que parce qu il avait ete force.
+# On exclut donc seulement ce qui est local a la machine.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
 .cursor/
 
 # Tests locaux / artefacts
@@ -166,8 +171,6 @@ claude_api_key.txt
 
 # Captures d audit visuel (artefacts, non versionnes)
 tests/visual/audit/
-!.claude/commands/
-!.claude/skills/
 
 # Artefacts bruts de run du harness (regeneres a chaque passage, non versionnes).
 # playwright-latest.json serialise les en-tetes des requetes API, dont X-Api-Key :
