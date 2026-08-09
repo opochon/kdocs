@@ -4,9 +4,9 @@
 > Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.
 > Regles contraignantes : `governance/agent-rules.md`.
 
-> Dernier harness : **ROUGE** · 37 suites · 2026-08-06T18:36:59.556Z
+> Dernier harness : **ROUGE** · 38 suites · 2026-08-09T07:53:24.909Z
 
-**15 secteurs** — 6 🟢 verts · 4 🔴 rouges · 3 ⚪ orphelins · 2 👻 fantomes
+**15 secteurs** — 7 🟢 verts · 3 🔴 rouges · 3 ⚪ orphelins · 2 👻 fantomes
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
@@ -14,15 +14,15 @@
 | 👻 | `securite-acl` | FANTOME | 1✓ | — |
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
 | 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
-| 🔴 | `recherche` | ROUGE | 1✓ 1✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
 | ⚪ | `recherche-transverse` | ORPHELIN | — | recherche, classification-ia |
 | ⚪ | `tracabilite-audit` | ORPHELIN | — | — |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
 | 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
-| 🟢 | `corbeille-retention` | VERT | 2✓ 1? | — |
+| 🟢 | `corbeille-retention` | VERT | 3✓ | — |
 | 🟢 | `interface` | VERT | 11✓ | — |
+| 🟢 | `recherche` | VERT | 2✓ | stockage |
 | 🟢 | `socle-mesure` | VERT | 4✓ | — |
 | 🟢 | `workflow-validation` | VERT | 1✓ | securite-acl |
 
@@ -100,24 +100,6 @@
 **Fichiers** : `app/Services/DocumentProcessor.php` · `app/Services/TaskService.php` · `app/workers/task_worker.php`
 
 **Tables** : `documents`, `tasks`, `scheduled_tasks`
-
----
-
-### 🔴 recherche — ROUGE
-
-**Recherche plein texte — FULLTEXT MySQL, repli LIKE, semantique optionnelle**
-
-> *Invariant* — Une recherche qui echoue doit se voir. Aujourd hui advancedSearch avale les erreurs SQL et rend zero resultat : indiscernable d une recherche sans reponse.
-
-**Etat connu.** VERT depuis le 2026-08-07 (17/17). Deux bugs corriges : sonde testant AGAINST('*'), et operateurs laisses comme termes produisant +""* -> 1064. Dette ouverte : les erreurs SQL restent avalees.
-
-**Oracles rouges** : `search-fulltext`
-
-**Agent** : `.claude/agents/recherche.md` · **Oracles** : `search-fulltext`, `search-tasks`
-
-**Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
-
-**Tables** : `documents`, `saved_searches`
 
 ---
 
@@ -227,8 +209,6 @@
 
 **Etat connu.** VERT depuis le 2026-08-07. Trois chemins de destruction neutralises, tache planifiee cleanup_trash passee a is_active=0 : 156 documents etaient a une execution de la destruction. Cliquet governance/budgets.json, plafond documents fige a 0, total 73. RESTE : sauvegarde quotidienne avec rotation (BackupService existe, storage/backups vide, aucune sauvegarde jamais produite) et chaine de hachage anti-modification silencieuse.
 
-**Oracles declares jamais executes** : `no-hard-delete`
-
 **Agent** : `.claude/agents/corbeille-retention.md` · **Oracles** : `no-hard-delete`, `soft-delete`, `trash-retention`
 
 **Fichiers** : `app/Services/TrashService.php` · `app/Services/BackupService.php` · `app/Exceptions/HardDeleteForbiddenException.php`
@@ -248,6 +228,22 @@
 **Agent** : `.claude/agents/interface.md` · **Oracles** : `ui-chrome`, `chrome-coherence`, `shell`, `a11y`, `fiche-document`, `bugs`, `bugs-click`, `bugs-misc`, `persona`, `persona-preview`, `persona-redx-expert`
 
 **Fichiers** : `templates/` · `public/assets/`
+
+---
+
+### 🟢 recherche — VERT
+
+**Recherche plein texte — FULLTEXT MySQL, repli LIKE, semantique optionnelle**
+
+> *Invariant* — Une recherche qui echoue doit se voir. Aujourd hui advancedSearch avale les erreurs SQL et rend zero resultat : indiscernable d une recherche sans reponse.
+
+**Etat connu.** VERT depuis le 2026-08-07 (17/17). Deux bugs corriges : sonde testant AGAINST('*'), et operateurs laisses comme termes produisant +""* -> 1064. Dette ouverte : les erreurs SQL restent avalees.
+
+**Agent** : `.claude/agents/recherche.md` · **Oracles** : `search-fulltext`, `search-tasks`
+
+**Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
+
+**Tables** : `documents`, `saved_searches`
 
 ---
 
