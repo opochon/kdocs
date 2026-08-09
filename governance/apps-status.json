@@ -1,0 +1,58 @@
+{
+  "_doc": "Statut declare de chaque application satellite de apps/. Source de verite du secteur plugins. La verite d'execution reste apps/{nom}/config.php -> app.enabled, alimente par le .env ; ce fichier declare ce qui DOIT etre, et l'oracle apps-routes confronte les deux. Item backlog prod.apps-stub.",
+
+  "_regle": "Une application est soit livree et atteignable, soit eteinte et invisible. Jamais une entree de menu vers une application eteinte : c'est un 404 pour l'utilisateur, et le mode de defaillance que cet item existe pour empecher.",
+
+  "_verifie_le": "2026-08-09",
+
+  "apps": {
+    "timetrack": {
+      "statut": "livree",
+      "drapeau": null,
+      "actif": true,
+      "note": "Enregistree explicitement dans index.php pour raisons historiques, hors PluginRegistry. Toujours active, sans drapeau."
+    },
+    "erpconnect": {
+      "statut": "livree",
+      "drapeau": "ERPCONNECT_APP_ENABLED",
+      "actif": true,
+      "note": "Presente dans le .env a true. Contrat /api/ged/* versionne et confronte au depot K-Time et au serveur vivant. Le secteur le mieux prouve du produit."
+    },
+    "smq": {
+      "statut": "livree",
+      "drapeau": "SMQ_APP_ENABLED",
+      "actif": true,
+      "note": "Presente dans le .env a true. Oracle smq-versions vert : onglet Versions et quittance de lecture."
+    },
+    "contracts": {
+      "statut": "eteinte",
+      "drapeau": "CONTRACTS_APP_ENABLED",
+      "actif": false,
+      "note": "Module ecrit et couvert par Feature\\ContractsModuleTest (9 tests). Drapeau absent du .env, table contracts a 0 ligne. Aucun lien depuis les templates : pas de 404. A activer ou a retirer — decision produit."
+    },
+    "rh": {
+      "statut": "eteinte",
+      "drapeau": "RH_APP_ENABLED",
+      "actif": false,
+      "note": "Module ecrit et couvert par Feature\\HrModuleTest (7 tests). Drapeau absent du .env, table hr_employees a 0 ligne. Aucun lien depuis les templates."
+    },
+    "mail": {
+      "statut": "eteinte",
+      "drapeau": "MAIL_APP_ENABLED",
+      "actif": false,
+      "note": "Module ecrit et couvert par Feature\\MailSyncTest (5 tests, IMAP moque). Drapeau absent du .env, table mail_sync_log a 0 ligne. Aucun lien depuis les templates. Cible du plugin ClearMyMails des attendus produit (D4)."
+    },
+    "portal": {
+      "statut": "eteinte",
+      "drapeau": "PORTAL_APP_ENABLED",
+      "actif": false,
+      "note": "Module ecrit et couvert par Feature\\PortalReadOnlyTest. Drapeau absent du .env. Aucun lien depuis les templates."
+    },
+    "invoices": {
+      "statut": "eteinte",
+      "drapeau": "INVOICES_APP_ENABLED",
+      "actif": false,
+      "note": "Drapeau absent du .env. Aucun lien depuis les templates. Historiquement l'app stub citee par l'audit ; le flux facture passe desormais par erpconnect et K-Time (decision 2026-07-03), ce qui en fait un candidat au retrait plutot qu'a l'activation."
+    }
+  }
+}

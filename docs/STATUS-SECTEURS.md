@@ -6,12 +6,11 @@
 
 > Dernier harness : **ROUGE** · 38 suites · 2026-08-09T07:53:24.909Z
 
-**15 secteurs** — 7 🟢 verts · 3 🔴 rouges · 3 ⚪ orphelins · 2 👻 fantomes
+**15 secteurs** — 8 🟢 verts · 3 🔴 rouges · 3 ⚪ orphelins · 1 👻 fantomes
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
-| 👻 | `plugins` | FANTOME | 2✓ | interface |
-| 👻 | `securite-acl` | FANTOME | 1✓ | — |
+| 👻 | `plugins` | FANTOME | 2✓ 1? | interface |
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
 | 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
@@ -23,6 +22,7 @@
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
 | 🟢 | `interface` | VERT | 11✓ | — |
 | 🟢 | `recherche` | VERT | 2✓ | stockage |
+| 🟢 | `securite-acl` | VERT | 1✓ 1? | — |
 | 🟢 | `socle-mesure` | VERT | 4✓ | — |
 | 🟢 | `workflow-validation` | VERT | 1✓ | securite-acl |
 
@@ -41,29 +41,15 @@
 
 > *Invariant* — Un module declare est soit livre et atteignable, soit retire de l interface. Jamais un menu vers un 404.
 
-**Etat connu.** Tests verts, modules NON DEPLOYES. Les 7 drapeaux CONTRACTS_APP_ENABLED, RH_APP_ENABLED, MAIL_APP_ENABLED, PORTAL_APP_ENABLED, MULTI_TENANT_ENABLED, CLAMAV_ENABLED, TSA_URL sont absents du .env. Toutes les tables associees a 0 ligne. Secteur FANTOME.
+**Etat connu.** Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time.
 
-**Agent** : `.claude/agents/plugins.md` · **Oracles** : `smq-versions`, `admin-hub`
+**Oracles declares jamais executes** : `apps-routes`
+
+**Agent** : `.claude/agents/plugins.md` · **Oracles** : `smq-versions`, `admin-hub`, `apps-routes`
 
 **Fichiers** : `app/Core/PluginRegistry.php` · `apps/`
 
 **Tables** : `contracts`, `hr_employees`, `mail_accounts`, `mail_sync_log`
-
----
-
-### 👻 securite-acl — FANTOME
-
-**Authentification, permissions de dossiers, CSRF, cloisonnement**
-
-> *Invariant* — Les droits se verifient cote serveur, jamais a l affichage. Un document interdit ne doit pas etre servi.
-
-**Etat connu.** SECTEUR FANTOME — cas fondateur de la regle du cablage. folder-permissions est VERT (10 tests) mais FolderPermissionService n est appele par AUCUNE ligne de code applicatif, et folder_permissions porte 0 ligne. Les permissions de dossier n existent pas en service. Priorite haute.
-
-**Agent** : `.claude/agents/securite-acl.md` · **Oracles** : `folder-permissions`
-
-**Fichiers** : `app/Core/Auth.php` · `app/Services/FolderPermissionService.php` · `app/Services/TenantScopeService.php` · `app/Middleware/`
-
-**Tables** : `users`, `groups`, `folder_permissions`, `sessions`
 
 ---
 
@@ -244,6 +230,24 @@
 **Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
 
 **Tables** : `documents`, `saved_searches`
+
+---
+
+### 🟢 securite-acl — VERT
+
+**Authentification, permissions de dossiers, CSRF, cloisonnement**
+
+> *Invariant* — Les droits se verifient cote serveur, jamais a l affichage. Un document interdit ne doit pas etre servi.
+
+**Etat connu.** CABLE le 2026-08-09. C etait le cas fondateur de la regle du cablage : folder-permissions etait VERT (10 tests) alors que FolderPermissionService n etait appele par AUCUNE ligne applicative — les permissions de dossier n existaient pas en service. Le garde est desormais consulte par DocumentsApiController sur show, content, download (lecture), update (ecriture) et delete (suppression), via peutAccederAuDocument(). Refus rendu en 404 et non 403, pour ne pas reveler l existence d une piece interdite. Le service est ouvert par defaut : sans regle sur la chaine des dossiers il autorise, donc le branchement ne change rien au comportement actuel et ferme des qu une regle est posee. Oracle folder-permissions-serverside, prouve descendant. RESTE : folder_permissions porte toujours 0 ligne — aucune regle n est configuree, et aucun ecran ne permet d en poser.
+
+**Oracles declares jamais executes** : `folder-permissions-serverside`
+
+**Agent** : `.claude/agents/securite-acl.md` · **Oracles** : `folder-permissions`, `folder-permissions-serverside`
+
+**Fichiers** : `app/Core/Auth.php` · `app/Services/FolderPermissionService.php` · `app/Services/TenantScopeService.php` · `app/Middleware/`
+
+**Tables** : `users`, `groups`, `folder_permissions`, `sessions`
 
 ---
 

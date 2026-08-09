@@ -109,9 +109,9 @@
       "fichiers": ["app/Core/PluginRegistry.php", "apps/"],
       "tables": ["contracts", "hr_employees", "mail_accounts", "mail_sync_log"],
       "routes": ["/contracts", "/rh/*", "/mail/*", "/portal/*", "/invoices"],
-      "oracles": ["smq-versions", "admin-hub"],
+      "oracles": ["smq-versions", "admin-hub", "apps-routes"],
       "dependsOn": ["interface"],
-      "etatConnu": "Tests verts, modules NON DEPLOYES. Les 7 drapeaux CONTRACTS_APP_ENABLED, RH_APP_ENABLED, MAIL_APP_ENABLED, PORTAL_APP_ENABLED, MULTI_TENANT_ENABLED, CLAMAV_ENABLED, TSA_URL sont absents du .env. Toutes les tables associees a 0 ligne. Secteur FANTOME."
+      "etatConnu": "Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time."
     },
 
     "securite-acl": {
