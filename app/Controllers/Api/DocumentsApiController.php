@@ -151,6 +151,12 @@ class DocumentsApiController extends ApiController
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
 
+        // ACL par dossier (securite-acl) : 404 comme ci-dessus, pour ne pas
+        // revéler l'existence d'un document qu'on n'a pas le droit de lire.
+        if (!$this->peutAccederAuDocument($user, $document, 'read')) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
         // Récupérer les tags du document
         $tags = [];
         try {
@@ -280,6 +286,11 @@ class DocumentsApiController extends ApiController
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
 
+        // ACL par dossier (securite-acl) — droit d'ecriture.
+        if (!$this->peutAccederAuDocument($request->getAttribute('user'), $document, 'write')) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
         if ($sealed = $this->guardNotSealed($id, $response)) {
             return $sealed;
         }
@@ -398,6 +409,13 @@ class DocumentsApiController extends ApiController
     {
         $id = (int)$args['id'];
         $user = $request->getAttribute('user');
+
+        // ACL par dossier (securite-acl) — mettre a la corbeille demande le
+        // droit de suppression sur le dossier du document.
+        $document = Document::findById($id);
+        if ($document && !$this->peutAccederAuDocument($user, $document, 'delete')) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
 
         if ($sealed = $this->guardNotSealed($id, $response)) {
             return $sealed;
@@ -836,6 +854,37 @@ class DocumentsApiController extends ApiController
     /**
      * Fabrique surchargeable en test (GAP-041).
      */
+    /**
+     * Garde ACL par dossier — secteur securite-acl.
+     *
+     * FolderPermissionService est ouvert par defaut : sans regle sur la chaine
+     * des dossiers, il autorise. Le brancher ne change donc rien au
+     * comportement actuel (folder_permissions est vide) et ferme la porte des
+     * qu'une regle est posee. Avant le 2026-08-08 il n'etait appele par aucune
+     * ligne applicative : les droits n'existaient pas cote serveur.
+     *
+     * @see \Tests\Feature\FolderPermissionServerSideTest
+     */
+    protected function peutAccederAuDocument($user, array $document, string $action): bool
+    {
+        if (!is_array($user)) {
+            return true; // pas d'utilisateur resolu : l'authentification a deja tranche
+        }
+
+        try {
+            return $this->makeFolderPermissionService()->can($user, $document, $action);
+        } catch (\Throwable $e) {
+            // Table absente ou schema partiel : ouvert, comme le service lui-meme.
+            error_log('FolderPermission: ' . $e->getMessage());
+            return true;
+        }
+    }
+
+    protected function makeFolderPermissionService(): \KDocs\Services\FolderPermissionService
+    {
+        return new \KDocs\Services\FolderPermissionService();
+    }
+
     protected function makeTenantScopeService(): \KDocs\Services\TenantScopeService
     {
         return new \KDocs\Services\TenantScopeService();
@@ -1182,11 +1231,16 @@ class DocumentsApiController extends ApiController
         $id = (int)$args['id'];
         $db = Database::getInstance();
 
-        $stmt = $db->prepare("SELECT id, ocr_text, content FROM documents WHERE id = ? AND deleted_at IS NULL");
+        $stmt = $db->prepare("SELECT id, folder_id, ocr_text, content FROM documents WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$id]);
         $doc = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$doc) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        // ACL par dossier (securite-acl) — le contenu OCR est du contenu.
+        if (!$this->peutAccederAuDocument($request->getAttribute('user'), $doc, 'read')) {
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
 
@@ -1228,6 +1282,11 @@ class DocumentsApiController extends ApiController
         $doc = Document::findById($id);
 
         if (!$doc || $doc['deleted_at']) {
+            return $this->errorResponse($response, 'Document non trouvé', 404);
+        }
+
+        // ACL par dossier (securite-acl) — telecharger, c'est lire.
+        if (!$this->peutAccederAuDocument($request->getAttribute('user'), $doc, 'read')) {
             return $this->errorResponse($response, 'Document non trouvé', 404);
         }
 

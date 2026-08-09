@@ -121,9 +121,9 @@
       "fichiers": ["app/Core/Auth.php", "app/Services/FolderPermissionService.php", "app/Services/TenantScopeService.php", "app/Middleware/"],
       "tables": ["users", "groups", "folder_permissions", "sessions"],
       "routes": ["/login", "/api/*"],
-      "oracles": ["folder-permissions"],
+      "oracles": ["folder-permissions", "folder-permissions-serverside"],
       "dependsOn": [],
-      "etatConnu": "SECTEUR FANTOME — cas fondateur de la regle du cablage. folder-permissions est VERT (10 tests) mais FolderPermissionService n est appele par AUCUNE ligne de code applicatif, et folder_permissions porte 0 ligne. Les permissions de dossier n existent pas en service. Priorite haute."
+      "etatConnu": "CABLE le 2026-08-09. C etait le cas fondateur de la regle du cablage : folder-permissions etait VERT (10 tests) alors que FolderPermissionService n etait appele par AUCUNE ligne applicative — les permissions de dossier n existaient pas en service. Le garde est desormais consulte par DocumentsApiController sur show, content, download (lecture), update (ecriture) et delete (suppression), via peutAccederAuDocument(). Refus rendu en 404 et non 403, pour ne pas reveler l existence d une piece interdite. Le service est ouvert par defaut : sans regle sur la chaine des dossiers il autorise, donc le branchement ne change rien au comportement actuel et ferme des qu une regle est posee. Oracle folder-permissions-serverside, prouve descendant. RESTE : folder_permissions porte toujours 0 ligne — aucune regle n est configuree, et aucun ecran ne permet d en poser."
     },
 
     "tracabilite-audit": {

@@ -18,7 +18,7 @@
         { "id": "coeur.coherence-suppr", "titre": "Zero incoherence is_deleted / deleted_at", "probe": { "type": "file", "path": "tests/integration/SoftDeleteCoherenceTest.php" }, "oracle": "soft-delete" },
         { "id": "coeur.miniatures", "titre": "Miniatures PDF et bureautique generees (LibreOffice/Ghostscript)", "probe": { "type": "file", "path": "tests/integration/ThumbnailTest.php" }, "oracle": "thumbnails" },
         { "id": "coeur.ocr", "titre": "OCR eprouve sur un lot de controle mesure", "probe": { "type": "file", "path": "governance/ocr-benchmark.json" }, "oracle": "ocr-benchmark" },
-        { "id": "coeur.droits-dossiers", "titre": "Permissions de dossiers verifiees cote serveur, pas a l affichage", "probe": { "type": "file", "path": "tests/Feature/FolderPermissionServerSideTest.php" }, "oracle": "folder-permissions" },
+        { "id": "coeur.droits-dossiers", "titre": "Permissions de dossiers verifiees cote serveur, pas a l affichage", "probe": { "type": "file", "path": "tests/Feature/FolderPermissionServerSideTest.php" }, "oracle": "folder-permissions-serverside" },
         { "id": "coeur.retention", "titre": "Corbeille et retention : purge tracee et reversible", "probe": { "type": "grep", "file": "app/Services/TrashService.php", "pattern": "retention|purge" }, "oracle": "trash-retention" }
       ]
     },
