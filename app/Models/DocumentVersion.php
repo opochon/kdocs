@@ -193,28 +193,23 @@ class DocumentVersion
     /**
      * Supprime les anciennes versions (garder les N dernières)
      */
+    /**
+     * DESACTIVEE — l elagage des anciennes versions n existe plus dans K-Docs.
+     *
+     * Detruisait toutes les versions au-dela des N dernieres, par un DELETE sec
+     * sur une table de tracabilite. Perdre l historique d un document est
+     * exactement ce que l invariant de conception interdit : une version
+     * effacable ne peut pas servir de preuve.
+     *
+     * Aucun appelant a ce jour — mais ce qui existe finit par etre appele.
+     *
+     * @throws \KDocs\Exceptions\HardDeleteForbiddenException toujours
+     */
     public static function pruneOldVersions(int $documentId, int $keepCount = 50): int
     {
-        $db = Database::getInstance();
-
-        $stmt = $db->prepare("
-            DELETE FROM document_versions
-            WHERE document_id = :document_id
-            AND id NOT IN (
-                SELECT id FROM (
-                    SELECT id FROM document_versions
-                    WHERE document_id = :document_id2
-                    ORDER BY version_number DESC
-                    LIMIT :keep_count
-                ) as keep
-            )
-        ");
-        $stmt->bindValue(':document_id', $documentId, PDO::PARAM_INT);
-        $stmt->bindValue(':document_id2', $documentId, PDO::PARAM_INT);
-        $stmt->bindValue(':keep_count', $keepCount, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount();
+        throw \KDocs\Exceptions\HardDeleteForbiddenException::forPurge(
+            'DocumentVersion::pruneOldVersions #' . $documentId
+        );
     }
 
     /**
