@@ -2,7 +2,7 @@
 
 > **Genere** par `node tools/status-secteurs.mjs --write`. Ne pas editer a la main.
 > Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.
-> Regles contraignantes : `governance/agent-rules.md`.
+> Regles contraignantes : `AGENTS.md` · Attendus : `governance/ATTENDUS-PRODUIT.md`.
 
 > Dernier harness : **ROUGE** · 42 suites · 2026-08-09T10:57:06.154Z
 

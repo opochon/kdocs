@@ -99,7 +99,7 @@ if (process.argv.includes('--write')) {
   md.push('');
   md.push('> **Genere** par `node tools/status-secteurs.mjs --write`. Ne pas editer a la main.');
   md.push('> Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.');
-  md.push('> Regles contraignantes : `governance/agent-rules.md`.');
+  md.push('> Regles contraignantes : `AGENTS.md` · Attendus : `governance/ATTENDUS-PRODUIT.md`.');
   md.push('');
   md.push(harness
     ? `> Dernier harness : **${harness.verdict}** · ${(harness.suites || []).length} suites · ${harness.generatedAt}`
