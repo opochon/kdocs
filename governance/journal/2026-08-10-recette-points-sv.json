@@ -1,0 +1,29 @@
+{
+  "lot": "recette-points-sv",
+  "date": "2026-08-10",
+  "resume": "Maillon 2 de la chaine pose pour les 5 demandes d'Olivier. Les ids SV-01..SV-14 etaient declares dans recette/demandes.json sans exister dans recette/partition.json : les 5 demandes etaient en TROU, etat que la regle 12 designe comme le premier livrable (le point, pas le correctif). 14 points crees dans la section socle, derives de governance/ATTENDUS-PRODUIT.md (A1-A4, B1-B12, C1-C6, E) et non du code. Aucun attendu modifie. Dans demandes.json seul le champ points de D-GED-05 a ete touche (D-GED-02 avait ete cable par une session parallele pendant ce lot).",
+  "test": "node EcosystemK/gouvernance/tools/demandes.mjs : 5 demandes, 0 TROU, 5 NON CABLE (etait 5 TROU). Sondes rejouees reellement le 2026-08-10 : SV-03 test_logical_folders.php 9/9 VERT ; SV-06 et SV-09 phpunit --filter NoHardDeleteTest 4/4 VERT ; SV-08 phpunit --filter FolderPermissionServerSideTest 7/7 VERT ; SV-07 test_stockage_coherence.php ROUGE (100/191 documents vivants detaches de tout dossier, 12 fichiers .versions/ non indexes). preflight.php : EVALUABLE apres demarrage de K-Time :8090 (etait NON EVALUABLE).",
+  "reste": [
+    "10 des 14 points restent cmd null = NON CABLE. C'est l'etat honnete : aucune sonde fabriquee pour paraitre verte. Le detail et la cause vivent dans le champ _note de chaque point.",
+    "SV-01 : tests/Feature/DocumentUploadTest.php tape le chemin reel mais SKIP en silence quand l'authentification admin echoue — 3 cas, 0 assertion, exit 0. Un skip qui sort vert est le piege folder-permissions sous un autre nom. Fiabiliser l'authentification du test avant de cabler ce point ou G-04.",
+    "SV-07 ROUGE : la coherence disque <-> base annoncee par l'attendu A1 n'est pas tenue. C'est un rouge a dessein, pas une regression a masquer.",
+    "SV-13 (egalite lignes + TVA = total) est le point le plus urgent a cabler des qu'une extraction de lignes existe : c'est la seule assertion de D-GED-02 qui ne depend d'aucune reference externe.",
+    "Aucun seuil chiffre n'a ete pose : aucun point ne porte seuil_ms, donc aucun ne porte seuil_pose_par. Un seuil appartient a Olivier (regle 9)."
+  ],
+  "decisions": [
+    "Les points sont ecrits par un agent qui ne codera aucune des fonctionnalites mesurees (regle 3 et maillon 2 : le test precede le traitement).",
+    "SV-06 et SV-09 partagent le meme oracle NoHardDeleteTest. Deux ids distincts et non un id partage, pour que D-GED-04 ne dependen pas d'un point appartenant a D-GED-01. Reutilisation documentee dans les deux _note, aucune sonde dupliquee.",
+    "SV-05 (interface claire) laisse NON CABLE plutot que de repointer vers run-harness.bat sous un autre nom : le vert des 11 specs Playwright dit que les templates ne cassent pas, pas que l'interface est claire (audit UI-UX a 3,5/10).",
+    "SV-14 mesure que la decision sur la liaison ERP est TRANCHEE ET TRACEE, pas qu'elle est codee. D-GED-05 est une decision en attente d'Olivier, pas un defaut."
+  ],
+  "bloque": [
+    {
+      "item": "erp-connect (secteur erpconnect, seul oracle rouge du secteur le mieux prouve)",
+      "cause_mesuree": "run-erp-simulation.bat tombe a l'etape 3/4. tools/erp-sim-seed.php se declare idempotent et ne l'est pas : PDOException 1062, duplicata du champ 9990 pour la clef uq_client_ad_numero_active, a la ligne 70. La cause n'est pas celle inscrite dans governance/sectors.json (« simulateur absent sur 127.0.0.1:8091 »).",
+      "constat_sensible": "La cle ad_numero 9990 est occupee dans la base k_time par un client REEL (id 14259, « Baudrey Sylvain »). La table porte 25 647 clients. tools/erp-sim-seed.php ecrit dans la base k_time depuis GEDv1 et y execute des DELETE en dur (clients, party_roles, party_bank_accounts, product_suppliers, received_invoices, received_invoice_lines, invoices, invoice_lines, products). Les DELETE exécutés lors de ce run etaient portes par des WHERE marques ERPSIM-% / ERP-SIM, donc limites aux lignes de simulation — par chance du filtre, pas par conception.",
+      "pourquoi_non_traite": "Cas sensible au sens d'AGENTS.md : suppression en dur et donnees d'un autre produit. Choisir un ad_numero libre ou changer la strategie de purge est une decision sur les donnees K-Time, pas sur GEDv1. Un agent qui touche les deux cotes supprime la protection du contrat.",
+      "changement_attendu": "Cote GEDv1 : erp-sim-seed.php ne doit ni INSERT sur un ad_numero fixe ni DELETE dans k_time — il doit viser une base de simulation dediee ou passer par les routes /api/ged/* du contrat. Cote K-TIME (session claude-s) : exposer un endpoint de seed de simulation, ou une plage d'ad_numero reservee a la simulation.",
+      "effet_de_bord_du_script": "run-erp-simulation.bat imprime « OK » aux etapes 1/4 et 2/4 meme quand le demarrage des serveurs echoue (la redirection d'entree de `start` n'est pas supportee dans ce shell) : le script affirme un etat qu'il n'a pas mesure."
+    }
+  ]
+}
