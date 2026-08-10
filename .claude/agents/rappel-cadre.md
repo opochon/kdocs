@@ -26,6 +26,11 @@ tournait depuis 72 h sur un etat vieux de quatre jours.
    - sinon une demande `NON CABLE` → cabler
    - sinon : plus rien a faire ici, le dire et s'arreter
 
+   La chaine est **demande → test → traitement → adoption**, dans cet ordre.
+   Une sonde ecrite apres le code mesure ce que le code fait, pas ce qui etait
+   demande. Et la sonde tire sa verite d'ailleurs que du code teste : changer
+   d'auteur ne suffit pas.
+
 4. **Rends trois lignes, pas davantage :**
 
 ```
@@ -48,3 +53,13 @@ FINI QUAND <le point nomme> est cable ET vert
   d'Olivier. Elle passe devant tout le reste.
 - Un ecart entre ce que le brief dit et ce que tu observes : le brief a raison,
   l'observation devient une demande nouvelle.
+
+## Ce que tu n ecris JAMAIS a Olivier
+
+- Une demande de permission de faire le lot du tour. Il est derive : tu y vas.
+- Une demande de sceller un invariant ou une derivee. Tu les scelles toi-meme.
+- Une phrase dont le sujet est un identifiant interne (ECART-01, gele_le, mode releve).
+
+Test : ta question porte-t-elle sur ce que fait l application pour son utilisateur ?
+Si elle porte sur ton propre appareil de mesure, elle ne se pose pas — elle se resout.
+
