@@ -1,12 +1,26 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-10 07:30 depuis les instruments.
+> Genere le 2026-08-10 07:35 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
 ## Ce qu Olivier a demande et qui n est pas ferme
 
-_Registre vide. **Premier lot : le remplir.** Une demande qui n existe pas ici retombe dans un trou a chaque session._
+- `TROU` **D-GED-01** — Atteindre le niveau de M-Files : introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite
+  points : SV-01, SV-02, SV-03, SV-04, SV-05, SV-06, SV-07, SV-08
+  Formulation d'Olivier : « quand on atteint le niveau de M-Files, c'est-a-dire introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite ». Detail deja pose dans governance/ATTENDUS-PRODUIT.md (A1-A4, B1-B12) — aucun agent ne modifie un attendu.
+- `TROU` **D-GED-02** — Une facture fournisseur entrante : lire le QR, verifier que l'adressage est bien le mien, lire les coordonnees du vendeur, lire tous les produits avec leur montant, et que le total des produits + TVA corresponde au total de la facture
+  points : _aucun — ecrire le point AVANT le correctif_
+  TROU. La question maitresse est l'egalite lignes + TVA = total : c'est la seule qui se verifie sans reference externe. Une extraction qui echoue la a echoue, quoi qu'elle rende par ailleurs. Le premier lot est d'ecrire ces points, pas l'extraction.
+- `TROU` **D-GED-03** — Classer la facture par date et par fournisseur, savoir si elle est payee ou non, voir la mention d'echeance, puis interroger K-Time pour savoir ou en est le paiement
+  points : SV-11
+  Le volet K-Time est la liaison ERP. Regle 4 du depot : le mock n'est pas une preuve — aller-retour reel contre KTIME_URL.
+- `TROU` **D-GED-04** — Zero suppression : aucune ligne n'est jamais supprimee d'une table par le produit, l'original sur disque n'est jamais modifie
+  points : SV-06, SV-09, SV-10
+  ATTENDUS-PRODUIT A4. Invariant de conception : si une seule piece peut disparaitre, c'est la conception qui est en cause, pas le code.
+- `TROU` **D-GED-05** — Trancher comment traiter la liaison ERP
+  points : _aucun — ecrire le point AVANT le correctif_
+  TROU — decision produit en attente, pas un defaut. Elle reste ouverte et visible jusqu'a arbitrage d'Olivier. Contexte : truth.k.toml declare ged->ktime `interroge+action`, et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml.
 
 ## Socle
 
@@ -28,8 +42,8 @@ Points NON CABLES — un point non cable ne prouve rien :
 
 ## Depot
 
-- branche `main` · 6 fichiers modifies
-- dernier commit : 39e214b 2026-08-10 recette : registre des demandes (vide — a remplir au premier lot)
+- branche `main` · 5 fichiers modifies
+- dernier commit : 621722e 2026-08-10 gouvernance : sous-agent rappel-cadre + brief regenere a chaque tour
 
 ## Definition de « fait » pour ce tour
 

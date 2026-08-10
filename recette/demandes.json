@@ -1,6 +1,57 @@
 {
-  "_doc": "Registre des DEMANDES d'Olivier. Une demande n'est JAMAIS fermee par un agent : elle se ferme quand un point de partition la couvre, que ce point est VERT, et qu'Olivier a pose adoptee_le. Une demande sans point est un TROU (rouge). Une demande redemandee est un defaut du systeme. Seul Olivier ajoute une demande, incremente redemandes, et pose adoptee_le. Premier lot de la session : transcrire ici les demandes deja formulees, chacune rattachee a un point.",
+  "_doc": "Registre des DEMANDES d'Olivier. Une demande n'est JAMAIS fermee par un agent : trois conditions cumulatives — un point de partition la couvre, ce point est VERT, Olivier a pose adoptee_le. Une demande sans point est un TROU (bloque le push). Le champ `origine` dit d'ou elle vient : `verbatim` = mots d'Olivier, transcrits sans interpretation ; `derive` = proposition d'agent, NON VALIDEE, a confirmer ou supprimer par Olivier. Un agent ne cree jamais une entree `verbatim`.",
   "projet": "GEDv1 / K-Docs",
-  "referent": "M-Files + governance/ATTENDUS-PRODUIT.md",
-  "demandes": []
+  "referent": "M-Files",
+  "demandes": [
+    {
+      "id": "D-GED-01",
+      "demande": "Atteindre le niveau de M-Files : introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite",
+      "origine": "verbatim",
+      "posee_le": "2026-08-09",
+      "redemandes": 0,
+      "points": ["SV-01", "SV-02", "SV-03", "SV-04", "SV-05", "SV-06", "SV-07", "SV-08"],
+      "adoptee_le": null,
+      "note": "Formulation d'Olivier : « quand on atteint le niveau de M-Files, c'est-a-dire introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite ». Detail deja pose dans governance/ATTENDUS-PRODUIT.md (A1-A4, B1-B12) — aucun agent ne modifie un attendu."
+    },
+    {
+      "id": "D-GED-02",
+      "demande": "Une facture fournisseur entrante : lire le QR, verifier que l'adressage est bien le mien, lire les coordonnees du vendeur, lire tous les produits avec leur montant, et que le total des produits + TVA corresponde au total de la facture",
+      "origine": "verbatim",
+      "posee_le": "2026-08-09",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "note": "TROU. La question maitresse est l'egalite lignes + TVA = total : c'est la seule qui se verifie sans reference externe. Une extraction qui echoue la a echoue, quoi qu'elle rende par ailleurs. Le premier lot est d'ecrire ces points, pas l'extraction."
+    },
+    {
+      "id": "D-GED-03",
+      "demande": "Classer la facture par date et par fournisseur, savoir si elle est payee ou non, voir la mention d'echeance, puis interroger K-Time pour savoir ou en est le paiement",
+      "origine": "verbatim",
+      "posee_le": "2026-08-09",
+      "redemandes": 0,
+      "points": ["SV-11"],
+      "adoptee_le": null,
+      "note": "Le volet K-Time est la liaison ERP. Regle 4 du depot : le mock n'est pas une preuve — aller-retour reel contre KTIME_URL."
+    },
+    {
+      "id": "D-GED-04",
+      "demande": "Zero suppression : aucune ligne n'est jamais supprimee d'une table par le produit, l'original sur disque n'est jamais modifie",
+      "origine": "verbatim",
+      "posee_le": "2026-08-09",
+      "redemandes": 0,
+      "points": ["SV-06", "SV-09", "SV-10"],
+      "adoptee_le": null,
+      "note": "ATTENDUS-PRODUIT A4. Invariant de conception : si une seule piece peut disparaitre, c'est la conception qui est en cause, pas le code."
+    },
+    {
+      "id": "D-GED-05",
+      "demande": "Trancher comment traiter la liaison ERP",
+      "origine": "verbatim",
+      "posee_le": "2026-08-10",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "note": "TROU — decision produit en attente, pas un defaut. Elle reste ouverte et visible jusqu'a arbitrage d'Olivier. Contexte : truth.k.toml declare ged->ktime `interroge+action`, et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml."
+    }
+  ]
 }
