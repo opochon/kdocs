@@ -35,6 +35,7 @@ echo ===========================================================================
 echo   TOUR %T%   -   Ctrl+C pour arreter
 echo ===========================================================================
 echo.
+node "F:/DATA/DEVELOPPEMENT/EcosystemK/gouvernance/tools/brief.mjs" >nul 2>&1
 git add -u >nul 2>&1
 git commit -q -m "wip(filet): avant tour %T% (%KS_AGENT%)" >nul 2>&1
 claude %FLAGS% "/reprendre"
