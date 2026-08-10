@@ -16,8 +16,8 @@
       ],
       "pose_par": "Claude (session pilotage)",
       "pose_le": "2026-08-10",
-      "tranche_le": null,
-      "choix": null
+      "tranche_le": "2026-08-10",
+      "choix": "Aucune des trois options proposees : la GED CONSOMME une fonction et une interface servies par K-Time, elle ne les reimplemente pas. Elle detecte une facture fournisseur par OCR, passe la main a K-Time, et affiche l interface que K-Time sert. Voir D-KT-13 et D-GED-06."
     }
   ]
 }

@@ -1,49 +1,65 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-10 10:07 depuis les instruments.
+> Genere le 2026-08-10 12:49 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
 ## Ce qu Olivier a demande et qui n est pas ferme
 
-- `TROU` **D-GED-01** — Atteindre le niveau de M-Files : introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite
+- `NON CABLE` **D-GED-01** — Atteindre le niveau de M-Files : introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite
   points : SV-01, SV-02, SV-03, SV-04, SV-05, SV-06, SV-07, SV-08
   Formulation d'Olivier : « quand on atteint le niveau de M-Files, c'est-a-dire introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite ». Detail deja pose dans governance/ATTENDUS-PRODUIT.md (A1-A4, B1-B12) — aucun agent ne modifie un attendu.
-- `TROU` **D-GED-02** — Une facture fournisseur entrante : lire le QR, verifier que l'adressage est bien le mien, lire les coordonnees du vendeur, lire tous les produits avec leur montant, et que le total des produits + TVA corresponde au total de la facture
+- `NON CABLE` **D-GED-02** — Une facture fournisseur entrante : lire le QR, verifier que l'adressage est bien le mien, lire les coordonnees du vendeur, lire tous les produits avec leur montant, et que le total des produits + TVA corresponde au total de la facture
   points : SV-12, SV-13
   TROU. La question maitresse est l'egalite lignes + TVA = total : c'est la seule qui se verifie sans reference externe. Une extraction qui echoue la a echoue, quoi qu'elle rende par ailleurs. Le premier lot est d'ecrire ces points, pas l'extraction.
-- `TROU` **D-GED-03** — Classer la facture par date et par fournisseur, savoir si elle est payee ou non, voir la mention d'echeance, puis interroger K-Time pour savoir ou en est le paiement
+- `NON CABLE` **D-GED-03** — Classer la facture par date et par fournisseur, savoir si elle est payee ou non, voir la mention d'echeance, puis interroger K-Time pour savoir ou en est le paiement
   points : SV-11
   Le volet K-Time est la liaison ERP. Regle 4 du depot : le mock n'est pas une preuve — aller-retour reel contre KTIME_URL.
-- `TROU` **D-GED-04** — Zero suppression : aucune ligne n'est jamais supprimee d'une table par le produit, l'original sur disque n'est jamais modifie
+- `NON CABLE` **D-GED-04** — Zero suppression : aucune ligne n'est jamais supprimee d'une table par le produit, l'original sur disque n'est jamais modifie
   points : SV-06, SV-09, SV-10
   ATTENDUS-PRODUIT A4. Invariant de conception : si une seule piece peut disparaitre, c'est la conception qui est en cause, pas le code.
-- `TROU` **D-GED-05** — Trancher comment traiter la liaison ERP
-  points : _aucun — ecrire le point AVANT le correctif_
+- `NON CABLE` **D-GED-05** — Trancher comment traiter la liaison ERP
+  points : SV-14
   TROU — decision produit en attente, pas un defaut. Elle reste ouverte et visible jusqu'a arbitrage d'Olivier. Contexte : truth.k.toml declare ged->ktime `interroge+action`, et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml.
+- `TROU` **D-GED-06** — La GED detecte une facture fournisseur depuis l OCR, ne refait pas le travail, et affiche l interface de rapprochement servie par K-Time
+  points : _aucun — ecrire le point AVANT le correctif_
+  TROU. Contrepartie de D-KT-13. Le point doit rougir si une analyse de facture fournisseur ou un ecran de rapprochement apparait cote GED : ce serait une seconde implementation, donc deux verites qui divergeront.
 
 ## Socle
 
-Cable : **4/7** · **jamais jouee**
+Cable : **9/21** · derniere recette 2026-08-10 : 7V / 2R / 12NC
 
 Points NON CABLES — un point non cable ne prouve rien :
 - `G-04` cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout
 - `G-06` JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)
 - `G-07` contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie
+- `SV-01` D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)
+- `SV-02` D-GED-01 verbe 2/8 — lire : OCR et indexation plein texte (ATTENDUS-PRODUIT B2)
+- `SV-04` D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)
+- `SV-05` D-GED-01 verbe 5/8 — interface claire : la fonction est atteignable par un utilisateur depuis l'interface (ATTENDUS-PRODUIT E.1)
+- `SV-10` D-GED-04 — l'original sur disque n'est jamais modifie (ATTENDUS-PRODUIT A4, seconde clause)
+- `SV-11` D-GED-03 — facture classee par date ET fournisseur, statut paye/non-paye, mention d'echeance, interrogation REELLE de K-Time sur l'etat du paiement
+- `SV-12` D-GED-02 — lire le QR d'une facture, verifier que l'adressage est le mien, lire les coordonnees du vendeur, lire les lignes produits avec montants
+- `SV-13` D-GED-02 — egalite somme des lignes + TVA = total facture (question maitresse, verifiable sans reference externe)
+- `SV-14` D-GED-05 — la liaison ERP a une decision tranchee et tracee (pas codee) sur son traitement
+
+Points ROUGES :
+- `G-03` harness complet (gate)
+- `SV-07` D-GED-01 verbe 7/8 — stockage : la base est un dossier, le document reste lisible sans l'application (ATTENDUS-PRODUIT A1)
 
 ## Deja tranche — ne pas redemander
 
+- **recette-points-sv** — Les points sont ecrits par un agent qui ne codera aucune des fonctionnalites mesurees (regle 3 et maillon 2 : le test precede le traitement). ; SV-06 et SV-09 partagent le meme oracle NoHardDeleteTest. Deux ids distincts et non un id partage, pour que D-GED-04 ne dependen pas d'un point appartenant a D-GED-01. Reutilisation documentee dans les deux _note, aucune sonde dupliquee. ; SV-05 (interface claire) laisse NON CABLE plutot que de repointer vers run-harness.bat sous un autre nom : le vert des 11 specs Playwright dit que les templates ne cassent pas, pas que l'interface est claire (audit UI-UX a 3,5/10). ; SV-14 mesure que la decision sur la liaison ERP est TRANCHEE ET TRACEE, pas qu'elle est codee. D-GED-05 est une decision en attente d'Olivier, pas un defaut.
 - **equipe-sectorielle + cablages (securite-acl, tracabilite-audit, recherche-transverse, plugins, stockage, versioning)** — Un nouvel etat de secteur a ete introduit : FANTOME — oracles verts, cablage non prouve. Il ressemble a VERT et ne vaut rien. Trois secteurs y etaient. Cas fondateur : folder-permissions etait vert sur 10 tests unitaires alors que FolderPermissionService n etait appele par aucune ligne applicative. La regle qui en decoule est inscrite au registre et dans AGENTS.md : un oracle ne compte que s il prouve le CABLAGE ; verifier hasMethod() ou l existence d une route ne suffit jamais. ; ORPHELIN et NON MESURE ont ete separes apres coup. L outil les confondait et faisait passer un travail fait pour un travail absent — exactement le defaut qu il existe pour corriger. ; Les fiches d agents ne portent aucun verdict d etat. Codex en avait fige un dans chacune ; celui de securite-acl etait deja faux a la livraison. L etat se calcule, il ne se raconte : les fiches renvoient a l instrument. ; Refus de rendre en 403 sur ACL : le garde repond 404, comme l isolation multi-mandant, pour ne pas reveler l existence d une piece qu on n a pas le droit de voir. ; Versioning declenche par le HASH, decision de la direction. Meme regle a l upload et a l indexation, ce qui couvre le dossier partage modifie hors de la GED. Archives dans un sous-dossier cache voisin .versions/ ; la version courante reste le fichier nu, ouvrable sans l application. .versions exclu EN DUR de l indexation — sinon l indexeur indexerait les archives puis versionnerait les archives, sans fin. ; L instantane initial est un outil separe et non une etape d indexation : il copie l integralite du fonds, et personne ne doit payer ce prix par surprise au detour d une indexation de routine. La difficulte est propre au modele filesystem-first — quand un fichier est modifie de l exterieur, ses octets d origine ont deja disparu quand on detecte le changement. Un fonds auquel la GED seule ecrit n a pas ce cout. C est le mode d acces qui decide, pas la fonctionnalite. ; DocumentVersion::pruneOldVersions neutralisee : elle detruisait l historique au-dela des N dernieres versions, sur une table de tracabilite. Aucun appelant — mais ce qui existe finit par etre appele. Cliquet resserre : tracabilite 3 -> 2, total 73 -> 72. ; file_count recalcule globalement plutot qu incrementalement : une valeur derivee doit pouvoir se reconstruire entierement a tout moment. ; AGENTS.md canonique, CLAUDE.md reduit a un renvoi. Aucun agent-rules.md cree a cote : cela aurait recree le probleme de synchronisation que cette architecture supprime. ; Quatre fichiers etaient masques par .gitignore : les 8 RAPPORT_*.md, tests/integration/ en entier — dont une sonde executee par le harness et absente du depot — et .claude/ en bloc, ce qui aurait fait disparaitre les 15 fiches d agents au premier clone. Git ne descend jamais dans un repertoire exclu, donc les re-inclusions !.claude/commands/ ne fonctionnaient pas. ; Le hook de pre-commit verifie desormais la syntaxe Node. J avais commite un run-harness.mjs qui ne parsait plus et rien ne l avait arrete : le harness etait hors service. tools/pre-commit et .git/hooks/pre-commit avaient aussi diverge, editer le premier ne changeait rien.
 - **socle.harness-json + socle.specs-registre** — La logique est sortie du .bat vers tools/run-harness.mjs, en Node ESM comme checklist.mjs et claim.mjs. Un .bat est un mauvais producteur de JSON. Les sources structurees sont preferees au parsing de console : JUnit XML pour PHPUnit, reporter JSON pour Playwright. ; Le harness s est plie au lecteur, pas l inverse : checklist.mjs n a pas ete modifie. Il attendait suites[].name et suites[].ok depuis toujours ; c est le producteur qui manquait. ; Aucune suite verte fabriquee pour satisfaire un oracle. Un oracle sans test reel reste sans suite et s affiche 'oracle inexistant' — c est l information qu on veut voir, un vert invente aurait detruit le seul apport du lot. ; Les 4 specs jamais executees entrent actives, pas en quarantaine. erp-connect tombe : elle est rapportee rouge. Le lot livre la visibilite, pas le vert. ; erp.cle-masquee gagne son oracle api-key-redaction dans backlog.json, car la suite existe reellement et a ete prouvee descendante. Aucun autre champ du backlog n a ete touche. ; Artefacts bruts de run non versionnes (playwright-latest.json, phpunit-junit.xml, checklist-latest.json). harness-latest.json l est : c est la mesure elle-meme et la sonde de l item. Pour playwright-latest.json la raison n est pas seulement le bruit, c est la cle en clair. ; Le harness reste ROUGE et sort 1. Annonce tel quel : ce lot rend les echecs lisibles, il ne les corrige pas.
 - **socle.rapports-ranges** — Constat qui change la nature du lot : les 8 fichiers n avaient jamais ete suivis par git. git mv echoue avec 'not under version control'. Ce n etait donc pas un rangement mais une mise sous suivi — 1645 lignes de comptes rendus n existaient que sur cette machine et disparaissaient au premier clone. ; Deplacement simple puis git add a la destination, faute de mieux : il n y a pas d historique de renommage a faire remonter puisqu il n y avait pas d historique. Le point est ecrit noir sur blanc en bas de l index pour ne pas laisser croire a une continuite qui n existe pas. ; Le nouveau nommage sans prefixe RAPPORT_ a un effet de bord voulu : il ne correspond plus au motif d exclusion, donc les fichiers restent suivis. ; Statut d actualite etabli par verification contre le code courant, pas par lecture du rapport seul. Un rapport qui se declare termine mais dont le code a disparu est signale comme obsolete ; quand la verification ne tranche pas, l index ecrit indetermine plutot que de deviner. ; Aucun contenu elague. Deux rapports font quasi doublon (execution-complete et final-corrections-document-52) : le fait est note dans l index, les deux sont conserves.
 - **constat.harness-rouge** — Rouge annonce tel quel plutot que contourne. Un harness rouge dont on explique les echecs reste rouge : les deux lots du tour sont livres et prouves, le harness global ne l est pas. ; Aucune des trois specs n a ete touchee, desactivee ni mise en quarantaine. Masquer un echec connu couterait plus tard exactement ce qu il aurait fait gagner aujourd hui.
 - **erp.cle-masquee** — Regle 9 respectee dans l ordre : l ecart n avait ete vu par aucun test, donc le premier livrable est le controle qui le rend detectable. Le test a ete ecrit puis prouve tombant avant que le correctif soit considere comme acquis. ; La vraie fuite etait dans le controleur, pas dans le client. Le message de KTimeUnavailableException n embarque pas la cle ; c est la recopie de $e->getMessage() vers la reponse HTTP qui exposait le transport. Le transport etant injectable, une implementation qui journalise sa requete dans le message ferait remonter le header jusqu au navigateur — c est exactement le chemin reproduit par le test. ; Masquage centralise et non disperse : une seule paire de fonctions reutilisable, pas une rustine par site d appel. ; curlRequest et streamRequest non modifies : ils construisent le header reel qui doit partir sur le fil. Masquer la n aurait pas protege une sortie, il aurait casse la requete. ; .env jamais lu en clair vers un rapport, jamais modifie. Aucune valeur de cle reelle dans un artefact produit par ce lot — verifie par grep sur tests/reports/ et storage/.
-- **erp.contrat-partage + qa.gate-externe** — Le contrat vit dans GEDv1 mais sa verite est ailleurs. C est le point entier de la regle 9 : un oracle dont la source de verite est le code qu il surveille ne prouve rien. Ici le contrat n est jamais confronte a lui-meme. ; Aucune ecriture dans K-TIME. Le depot y est lu seul, via KTIME_REPO (defaut F:/DATA/DEVELOPPEMENT/K-TIME). Les deux cotes du contrat restent d accord independamment — un agent qui modifierait les deux supprimerait la seule protection du contrat. ; Depot K-Time absent ou KTIME_URL absent = SKIP annonce a l ecran, jamais un OK silencieux. Un controle qui ne s execute pas ne doit pas ressembler a un controle qui passe. ; Le contrat porte un id stable par route et un client_method qui pointe la methode PHP : le linter n a pas a deviner l appariement par heuristique. ; KTIME_GED_API_KEY n apparait ni dans la sortie du linter ni dans le rapport JSON : seule sa presence booleenne dans .env est notee. Verifie par relecture et par grep.
 
 ## Depot
 
-- branche `main` · 19 fichiers modifies
-- dernier commit : 4d7eea0 2026-08-10 lanceur : aucun parametre — demande derivee de l etat + fin de tour (etat, delta, controle)
+- branche `main` · 4 fichiers modifies
+- dernier commit : dce52ce 2026-08-10 recette : arbitrages en attente d Olivier deposes (le journal n est pas un canal d escalade)
 
 ## Definition de « fait » pour ce tour
 

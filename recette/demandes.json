@@ -9,7 +9,16 @@
       "origine": "verbatim",
       "posee_le": "2026-08-09",
       "redemandes": 0,
-      "points": ["SV-01", "SV-02", "SV-03", "SV-04", "SV-05", "SV-06", "SV-07", "SV-08"],
+      "points": [
+        "SV-01",
+        "SV-02",
+        "SV-03",
+        "SV-04",
+        "SV-05",
+        "SV-06",
+        "SV-07",
+        "SV-08"
+      ],
       "adoptee_le": null,
       "note": "Formulation d'Olivier : « quand on atteint le niveau de M-Files, c'est-a-dire introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite ». Detail deja pose dans governance/ATTENDUS-PRODUIT.md (A1-A4, B1-B12) — aucun agent ne modifie un attendu."
     },
@@ -19,7 +28,10 @@
       "origine": "verbatim",
       "posee_le": "2026-08-09",
       "redemandes": 0,
-      "points": ["SV-12", "SV-13"],
+      "points": [
+        "SV-12",
+        "SV-13"
+      ],
       "adoptee_le": null,
       "note": "TROU. La question maitresse est l'egalite lignes + TVA = total : c'est la seule qui se verifie sans reference externe. Une extraction qui echoue la a echoue, quoi qu'elle rende par ailleurs. Le premier lot est d'ecrire ces points, pas l'extraction."
     },
@@ -29,7 +41,9 @@
       "origine": "verbatim",
       "posee_le": "2026-08-09",
       "redemandes": 0,
-      "points": ["SV-11"],
+      "points": [
+        "SV-11"
+      ],
       "adoptee_le": null,
       "note": "Le volet K-Time est la liaison ERP. Regle 4 du depot : le mock n'est pas une preuve — aller-retour reel contre KTIME_URL."
     },
@@ -39,7 +53,11 @@
       "origine": "verbatim",
       "posee_le": "2026-08-09",
       "redemandes": 0,
-      "points": ["SV-06", "SV-09", "SV-10"],
+      "points": [
+        "SV-06",
+        "SV-09",
+        "SV-10"
+      ],
       "adoptee_le": null,
       "note": "ATTENDUS-PRODUIT A4. Invariant de conception : si une seule piece peut disparaitre, c'est la conception qui est en cause, pas le code."
     },
@@ -49,9 +67,21 @@
       "origine": "verbatim",
       "posee_le": "2026-08-10",
       "redemandes": 0,
-      "points": ["SV-14"],
+      "points": [
+        "SV-14"
+      ],
       "adoptee_le": null,
       "note": "TROU — decision produit en attente, pas un defaut. Elle reste ouverte et visible jusqu'a arbitrage d'Olivier. Contexte : truth.k.toml declare ged->ktime `interroge+action`, et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml."
+    },
+    {
+      "id": "D-GED-06",
+      "origine": "verbatim",
+      "posee_le": "2026-08-10",
+      "redemandes": 0,
+      "adoptee_le": null,
+      "points": [],
+      "demande": "La GED detecte une facture fournisseur depuis l OCR, ne refait pas le travail, et affiche l interface de rapprochement servie par K-Time",
+      "note": "TROU. Contrepartie de D-KT-13. Le point doit rougir si une analyse de facture fournisseur ou un ecran de rapprochement apparait cote GED : ce serait une seconde implementation, donc deux verites qui divergeront."
     }
   ]
 }
