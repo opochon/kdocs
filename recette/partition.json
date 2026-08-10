@@ -3,33 +3,184 @@
   "projet": "GEDv1 / K-Docs",
   "referent": "M-Files + governance/ATTENDUS-PRODUIT.md",
   "socle": [
-    { "id": "G-01", "point": "preflight (vendor, playwright, DB, K-Time)", "cmd": "php tools/preflight.php", "timeout_ms": 120000 },
-    { "id": "G-02", "point": "suite PHPUnit (dont NoHardDeleteTest = zero suppression)", "cmd": "vendor\\bin\\phpunit --no-coverage", "timeout_ms": 300000 },
-    { "id": "G-03", "point": "harness complet (gate)", "cmd": "run-harness.bat", "timeout_ms": 900000 },
-    { "id": "G-04", "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout", "cmd": null, "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit" },
-    { "id": "G-05", "point": "contrat K-Time reel : aller-retour KTIME_URL /api/ged/health = 200", "cmd": "node tools/lint-contrat.mjs", "timeout_ms": 120000, "_note": "exige K-Time :8090 lance (k up ged-ktime)" },
-    { "id": "G-06", "point": "JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)", "cmd": null, "_note": "jeu a materialiser en governance/jeux/JC-GED.attendus.json puis cabler" },
-    { "id": "G-07", "point": "contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie", "cmd": null },
-
-    { "id": "SV-01", "point": "D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)", "cmd": null, "_note": "tests/Feature/DocumentUploadTest.php tape le chemin reel (curl HTTP contre http://localhost/kdocs, upload PDF) mais SKIP silencieusement des que l'authentification admin/admin echoue — 0 assertion, exit 0 : un skip qui rend VERT est le meme piege que folder-permissions (regle 2, cablage non prouve). Verifie le 2026-08-10 : 3 cas, tous SKIP, 2 min 10. G-04 (cycle complet deposer->lire->classer->versionner->retrouver) est deja NON CABLE pour la meme raison. Rien de fiable a cabler ici sans d'abord fiabiliser l'authentification du test." },
-    { "id": "SV-02", "point": "D-GED-01 verbe 2/8 — lire : OCR et indexation plein texte (ATTENDUS-PRODUIT B2)", "cmd": null, "_note": "Secteur ingestion-ocr est ROUGE (persona-parcours-ecm depasse 180 s, pipeline-ui ne trouve jamais #preview-type-select) : aucune preuve cablee de l'OCR reel. La moitie « indexation » est prouvee par l'oracle search-fulltext (secteur recherche, VERT) mais ce dernier interroge un texte deja indexe — il ne prouve pas l'extraction OCR elle-meme. tools/eval-full.php tourne avec --no-ocr dans le harness : l'OCR est explicitement debranche de la mesure actuelle. Combiner les deux fabriquerait un vert trompeur sur la moitie non prouvee." },
-    { "id": "SV-03", "point": "D-GED-01 verbe 3/8 — structurer et classer : organisation par metadonnees et vues dynamiques (ATTENDUS-PRODUIT A2, B3), le document trouve sa place (C3)", "cmd": "php tests/integration/test_logical_folders.php", "timeout_ms": 60000, "_note": "Reutilise l'oracle logical-folders du secteur recherche-transverse (deja cable, prouve descendant le 2026-08-09 : filtre retire, 27 intrus apparaissent). Pas de sonde dupliquee : execution directe du meme fichier. Rejoue et VERT le 2026-08-10 (9/9)." },
-    { "id": "SV-04", "point": "D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)", "cmd": null, "_note": "Secteur versioning est ORPHELIN (governance/sectors.json) : document_versions porte 0 ligne pour 279+ documents, aucun oracle declare. Design a poser avec le dirigeant avant code — rien a cabler tant que le service n'est pas en service." },
-    { "id": "SV-05", "point": "D-GED-01 verbe 5/8 — interface claire : la fonction est atteignable par un utilisateur depuis l'interface (ATTENDUS-PRODUIT E.1)", "cmd": null, "_note": "Secteur interface est VERT sur 11 oracles Playwright (ui-chrome, shell, a11y, fiche-document, persona*...) mais ce sont des specs qui ne s'executent que dans le harness complet (npx playwright, ~10 min, npm install + serveur requis) : aucune ne se rejoue isolement et fiablement en moins de 3 minutes pour ce point. Audit UI-UX pose a 3,5/10 (docs/AUDIT-UI-UX.md) : le vert du secteur dit que les templates ne cassent pas, pas que l'interface est claire. Laisse NON CABLE plutot que de repointer vers run-harness.bat (deja G-03) sous un autre nom." },
-    { "id": "SV-06", "point": "D-GED-01 verbe 6/8 — zero perte de donnees possible (ATTENDUS-PRODUIT A4)", "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest", "timeout_ms": 60000, "_note": "Cliquet governance/budgets.json (plafonds a 0) via tests/Feature/NoHardDeleteTest.php. Rejoue et VERT le 2026-08-10 (4/4, 26 assertions, 0.165 s). Meme oracle que no-hard-delete du secteur corbeille-retention — pas de sonde dupliquee, execution directe filtree. Reutilise tel quel par D-GED-04 (voir SV-09)." },
-    { "id": "SV-07", "point": "D-GED-01 verbe 7/8 — stockage : la base est un dossier, le document reste lisible sans l'application (ATTENDUS-PRODUIT A1)", "cmd": "php tests/integration/test_stockage_coherence.php", "timeout_ms": 60000, "_note": "Meme sonde que la suite stockage-coherence de tools/run-harness.mjs (ONLY_STANDALONE). ROUGE rejoue le 2026-08-10 : 100/191 documents vivants detaches de tout dossier, et 12 fichiers de .versions/ presents sur disque mais non indexes en base — la coherence disque<->base annoncee par A1 n'est pas tenue partout." },
-    { "id": "SV-08", "point": "D-GED-01 verbe 8/8 — securite : droits par role, permissions de dossiers verifiees cote serveur (ATTENDUS-PRODUIT B6)", "cmd": "vendor\\bin\\phpunit --no-coverage --filter FolderPermissionServerSideTest", "timeout_ms": 60000, "_note": "Meme oracle que folder-permissions-serverside du secteur securite-acl (cas fondateur du cablage, 2026-08-09). Rejoue et VERT le 2026-08-10 (7/7, 20 assertions, 0.027 s). RESTE deja documente au secteur : folder_permissions porte 0 ligne, aucune regle configuree — le garde autorise par defaut tant que rien n'est pose." },
-    { "id": "SV-09", "point": "D-GED-04 — aucune ligne n'est jamais supprimee d'une table par le produit (ATTENDUS-PRODUIT A4, premiere clause)", "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest", "timeout_ms": 60000, "_note": "D-GED-04 redemande explicitement l'invariant deja couvert par SV-06 (meme phrase, meme oracle NoHardDeleteTest) : cree comme point distinct pour que D-GED-04 ne depende pas d'un id ne appartenant qu'a D-GED-01. Pas de nouvelle sonde. Rejoue et VERT le 2026-08-10 (4/4)." },
-    { "id": "SV-10", "point": "D-GED-04 — l'original sur disque n'est jamais modifie (ATTENDUS-PRODUIT A4, seconde clause)", "cmd": null, "_note": "Aucune sonde n'existe pour verifier qu'un fichier original n'est jamais reecrit sur disque : pas de chaine de hachage. Dette deja nommee au secteur corbeille-retention (docs/STATUS-SECTEURS.md) : « RESTE : ... chaine de hachage anti-modification silencieuse » (BackupService existe, storage/backups vide, aucune sauvegarde jamais produite). Rien a cabler avant qu'un controle d'integrite (checksum stocke a l'ingestion, revenue comparee a intervalle) existe." },
-    { "id": "SV-11", "point": "D-GED-03 — facture classee par date ET fournisseur, statut paye/non-paye, mention d'echeance, interrogation REELLE de K-Time sur l'etat du paiement", "cmd": null, "_note": "Compound de quatre exigences ; aucune n'est prouvee ensemble par une seule sonde reelle. Ce qui existe : documents.doc_date + documents.correspondent_id (colonnes reelles, classement deja teste via SV-03/logical-folders) ; erp_links.status et ErpConnectService::refreshStatus() (tests/Feature/ErpConnectTest.php) mais entierement MOCKES — transport HTTP factice, aucun aller-retour reseau reel contre KTIME_URL pour le statut d'UNE facture donnee (seul /api/ged/health l'est, via tools/lint-contrat.mjs, regle 4 du depot) ; aucune colonne echeance/due_date sur documents ni invoice_extraction_results — la mention d'echeance n'existe nulle part en base. Cabler ce point exige d'abord une colonne echeance et un appel reel non mocke a un endpoint de statut par facture (KTimeClient n'expose aujourd'hui que health/lookup/ventilation/exists/create/status-by-id, ce dernier teste seulement en mock)." },
-    { "id": "SV-12", "point": "D-GED-02 — lire le QR d'une facture, verifier que l'adressage est le mien, lire les coordonnees du vendeur, lire les lignes produits avec montants", "cmd": null, "_note": "Aucun code de lecture de QR-facture (QR-bill suisse) dans le depot : recherche 'SwissQR', 'QrBill', 'QRCode', 'Zxing', 'BarcodeReader' sans resultat dans app/. L'extraction de lignes existe (app/Services/Extraction/InvoiceLineItemExtractor.php, app/Services/Ingest/CmdV4ResultMapper.php) mais part de CMD v4 / IA, pas d'un QR scanne, et ne verifie ni l'adressage ni les coordonnees vendeur en tant que telles. Rien a cabler : le premier lot serait d'ecrire la brique de lecture QR elle-meme — hors perimetre de ce lot (maillon 2 seulement)." },
-    { "id": "SV-13", "point": "D-GED-02 — egalite somme des lignes + TVA = total facture (question maitresse, verifiable sans reference externe)", "cmd": null, "_note": "Separee de SV-12 par l'agent redacteur du point, sur la note de D-GED-02 (« la question maitresse est l'egalite lignes + TVA = total ») : c'est la seule assertion qui ne depend d'aucune reference externe (ni QR, ni fournisseur connu), uniquement d'une addition. Aucune fonction de reconciliation n'existe : recherche array_sum/reconcil/ecart dans app/Services/Ingest sans resultat. Point candidat le plus urgent a cabler des qu'une extraction de lignes+TVA+total existe pour une facture donnee, quelle que soit la source (QR, OCR ou CMD v4) : abs((somme(lignes)+tva) - total) < 0.01." },
-    { "id": "SV-14", "point": "D-GED-05 — la liaison ERP a une decision tranchee et tracee (pas codee) sur son traitement", "cmd": null, "_note": "Mesure que la decision est TRANCHEE ET TRACEE, pas qu'elle est codee. Aucun artefact de decision n'existe aujourd'hui : pas de governance/decisions/, pas de champ dans truth.k.toml documentant un choix explicite. Contexte transmis par la demande : truth.k.toml declare ged->ktime en 'interroge+action', et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml — divergence non arbitree. Une fois la decision prise, la sonde a ecrire verifiera l'existence d'un enregistrement date portant la marque d'Olivier (jamais posee par un agent — regle 9)." }
+    {
+      "id": "G-01",
+      "point": "preflight (vendor, playwright, DB, K-Time)",
+      "cmd": "php tools/preflight.php",
+      "timeout_ms": 120000,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-02",
+      "point": "suite PHPUnit (dont NoHardDeleteTest = zero suppression)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage",
+      "timeout_ms": 300000,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-03",
+      "point": "harness complet (gate)",
+      "cmd": "run-harness.bat",
+      "timeout_ms": 900000,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-04",
+      "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout",
+      "cmd": null,
+      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-05",
+      "point": "contrat K-Time reel : aller-retour KTIME_URL /api/ged/health = 200",
+      "cmd": "node tools/lint-contrat.mjs",
+      "timeout_ms": 120000,
+      "_note": "exige K-Time :8090 lance (k up ged-ktime)",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-06",
+      "point": "JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)",
+      "cmd": null,
+      "_note": "jeu a materialiser en governance/jeux/JC-GED.attendus.json puis cabler",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-07",
+      "point": "contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie",
+      "cmd": null,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-01",
+      "point": "D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)",
+      "cmd": null,
+      "_note": "tests/Feature/DocumentUploadTest.php tape le chemin reel (curl HTTP contre http://localhost/kdocs, upload PDF) mais SKIP silencieusement des que l'authentification admin/admin echoue — 0 assertion, exit 0 : un skip qui rend VERT est le meme piege que folder-permissions (regle 2, cablage non prouve). Verifie le 2026-08-10 : 3 cas, tous SKIP, 2 min 10. G-04 (cycle complet deposer->lire->classer->versionner->retrouver) est deja NON CABLE pour la meme raison. Rien de fiable a cabler ici sans d'abord fiabiliser l'authentification du test.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-02",
+      "point": "D-GED-01 verbe 2/8 — lire : OCR et indexation plein texte (ATTENDUS-PRODUIT B2)",
+      "cmd": null,
+      "_note": "Secteur ingestion-ocr est ROUGE (persona-parcours-ecm depasse 180 s, pipeline-ui ne trouve jamais #preview-type-select) : aucune preuve cablee de l'OCR reel. La moitie « indexation » est prouvee par l'oracle search-fulltext (secteur recherche, VERT) mais ce dernier interroge un texte deja indexe — il ne prouve pas l'extraction OCR elle-meme. tools/eval-full.php tourne avec --no-ocr dans le harness : l'OCR est explicitement debranche de la mesure actuelle. Combiner les deux fabriquerait un vert trompeur sur la moitie non prouvee.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-03",
+      "point": "D-GED-01 verbe 3/8 — structurer et classer : organisation par metadonnees et vues dynamiques (ATTENDUS-PRODUIT A2, B3), le document trouve sa place (C3)",
+      "cmd": "php tests/integration/test_logical_folders.php",
+      "timeout_ms": 60000,
+      "_note": "Reutilise l'oracle logical-folders du secteur recherche-transverse (deja cable, prouve descendant le 2026-08-09 : filtre retire, 27 intrus apparaissent). Pas de sonde dupliquee : execution directe du meme fichier. Rejoue et VERT le 2026-08-10 (9/9).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-04",
+      "point": "D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)",
+      "cmd": null,
+      "_note": "Secteur versioning est ORPHELIN (governance/sectors.json) : document_versions porte 0 ligne pour 279+ documents, aucun oracle declare. Design a poser avec le dirigeant avant code — rien a cabler tant que le service n'est pas en service.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-05",
+      "point": "D-GED-01 verbe 5/8 — interface claire : la fonction est atteignable par un utilisateur depuis l'interface (ATTENDUS-PRODUIT E.1)",
+      "cmd": null,
+      "_note": "Secteur interface est VERT sur 11 oracles Playwright (ui-chrome, shell, a11y, fiche-document, persona*...) mais ce sont des specs qui ne s'executent que dans le harness complet (npx playwright, ~10 min, npm install + serveur requis) : aucune ne se rejoue isolement et fiablement en moins de 3 minutes pour ce point. Audit UI-UX pose a 3,5/10 (docs/AUDIT-UI-UX.md) : le vert du secteur dit que les templates ne cassent pas, pas que l'interface est claire. Laisse NON CABLE plutot que de repointer vers run-harness.bat (deja G-03) sous un autre nom.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-06",
+      "point": "D-GED-01 verbe 6/8 — zero perte de donnees possible (ATTENDUS-PRODUIT A4)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest",
+      "timeout_ms": 60000,
+      "_note": "Cliquet governance/budgets.json (plafonds a 0) via tests/Feature/NoHardDeleteTest.php. Rejoue et VERT le 2026-08-10 (4/4, 26 assertions, 0.165 s). Meme oracle que no-hard-delete du secteur corbeille-retention — pas de sonde dupliquee, execution directe filtree. Reutilise tel quel par D-GED-04 (voir SV-09).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-07",
+      "point": "D-GED-01 verbe 7/8 — stockage : la base est un dossier, le document reste lisible sans l'application (ATTENDUS-PRODUIT A1)",
+      "cmd": "php tests/integration/test_stockage_coherence.php",
+      "timeout_ms": 60000,
+      "_note": "Meme sonde que la suite stockage-coherence de tools/run-harness.mjs (ONLY_STANDALONE). ROUGE rejoue le 2026-08-10 : 100/191 documents vivants detaches de tout dossier, et 12 fichiers de .versions/ presents sur disque mais non indexes en base — la coherence disque<->base annoncee par A1 n'est pas tenue partout.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-08",
+      "point": "D-GED-01 verbe 8/8 — securite : droits par role, permissions de dossiers verifiees cote serveur (ATTENDUS-PRODUIT B6)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter FolderPermissionServerSideTest",
+      "timeout_ms": 60000,
+      "_note": "Meme oracle que folder-permissions-serverside du secteur securite-acl (cas fondateur du cablage, 2026-08-09). Rejoue et VERT le 2026-08-10 (7/7, 20 assertions, 0.027 s). RESTE deja documente au secteur : folder_permissions porte 0 ligne, aucune regle configuree — le garde autorise par defaut tant que rien n'est pose.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-09",
+      "point": "D-GED-04 — aucune ligne n'est jamais supprimee d'une table par le produit (ATTENDUS-PRODUIT A4, premiere clause)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest",
+      "timeout_ms": 60000,
+      "_note": "D-GED-04 redemande explicitement l'invariant deja couvert par SV-06 (meme phrase, meme oracle NoHardDeleteTest) : cree comme point distinct pour que D-GED-04 ne depende pas d'un id ne appartenant qu'a D-GED-01. Pas de nouvelle sonde. Rejoue et VERT le 2026-08-10 (4/4).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-10",
+      "point": "D-GED-04 — l'original sur disque n'est jamais modifie (ATTENDUS-PRODUIT A4, seconde clause)",
+      "cmd": null,
+      "_note": "Aucune sonde n'existe pour verifier qu'un fichier original n'est jamais reecrit sur disque : pas de chaine de hachage. Dette deja nommee au secteur corbeille-retention (docs/STATUS-SECTEURS.md) : « RESTE : ... chaine de hachage anti-modification silencieuse » (BackupService existe, storage/backups vide, aucune sauvegarde jamais produite). Rien a cabler avant qu'un controle d'integrite (checksum stocke a l'ingestion, revenue comparee a intervalle) existe.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-11",
+      "point": "D-GED-03 — facture classee par date ET fournisseur, statut paye/non-paye, mention d'echeance, interrogation REELLE de K-Time sur l'etat du paiement",
+      "cmd": null,
+      "_note": "Compound de quatre exigences ; aucune n'est prouvee ensemble par une seule sonde reelle. Ce qui existe : documents.doc_date + documents.correspondent_id (colonnes reelles, classement deja teste via SV-03/logical-folders) ; erp_links.status et ErpConnectService::refreshStatus() (tests/Feature/ErpConnectTest.php) mais entierement MOCKES — transport HTTP factice, aucun aller-retour reseau reel contre KTIME_URL pour le statut d'UNE facture donnee (seul /api/ged/health l'est, via tools/lint-contrat.mjs, regle 4 du depot) ; aucune colonne echeance/due_date sur documents ni invoice_extraction_results — la mention d'echeance n'existe nulle part en base. Cabler ce point exige d'abord une colonne echeance et un appel reel non mocke a un endpoint de statut par facture (KTimeClient n'expose aujourd'hui que health/lookup/ventilation/exists/create/status-by-id, ce dernier teste seulement en mock).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-12",
+      "point": "D-GED-02 — lire le QR d'une facture, verifier que l'adressage est le mien, lire les coordonnees du vendeur, lire les lignes produits avec montants",
+      "cmd": null,
+      "_note": "Aucun code de lecture de QR-facture (QR-bill suisse) dans le depot : recherche 'SwissQR', 'QrBill', 'QRCode', 'Zxing', 'BarcodeReader' sans resultat dans app/. L'extraction de lignes existe (app/Services/Extraction/InvoiceLineItemExtractor.php, app/Services/Ingest/CmdV4ResultMapper.php) mais part de CMD v4 / IA, pas d'un QR scanne, et ne verifie ni l'adressage ni les coordonnees vendeur en tant que telles. Rien a cabler : le premier lot serait d'ecrire la brique de lecture QR elle-meme — hors perimetre de ce lot (maillon 2 seulement).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-13",
+      "point": "D-GED-02 — egalite somme des lignes + TVA = total facture (question maitresse, verifiable sans reference externe)",
+      "cmd": null,
+      "_note": "Separee de SV-12 par l'agent redacteur du point, sur la note de D-GED-02 (« la question maitresse est l'egalite lignes + TVA = total ») : c'est la seule assertion qui ne depend d'aucune reference externe (ni QR, ni fournisseur connu), uniquement d'une addition. Aucune fonction de reconciliation n'existe : recherche array_sum/reconcil/ecart dans app/Services/Ingest sans resultat. Point candidat le plus urgent a cabler des qu'une extraction de lignes+TVA+total existe pour une facture donnee, quelle que soit la source (QR, OCR ou CMD v4) : abs((somme(lignes)+tva) - total) < 0.01.",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-14",
+      "point": "D-GED-05 — la liaison ERP a une decision tranchee et tracee (pas codee) sur son traitement",
+      "cmd": null,
+      "_note": "Mesure que la decision est TRANCHEE ET TRACEE, pas qu'elle est codee. Aucun artefact de decision n'existe aujourd'hui : pas de governance/decisions/, pas de champ dans truth.k.toml documentant un choix explicite. Contexte transmis par la demande : truth.k.toml declare ged->ktime en 'interroge+action', et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml — divergence non arbitree. Une fois la decision prise, la sonde a ecrire verifiera l'existence d'un enregistrement date portant la marque d'Olivier (jamais posee par un agent — regle 9).",
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    }
   ],
   "etendue": [
-    { "id": "G-10", "point": "equivalence M-Files B1..B12 : releve par attendu (capture, OCR, vues, workflows, GeBuV, droits serveur, audit, versions, recherche, compta, SMQ, souverainete)", "cmd": null },
-    { "id": "G-11", "point": "modules livres non deployes : chaque flag .env absent est un choix trace, pas un oubli (CONTRACTS/RH/MAIL/PORTAL/MULTI_TENANT/CLAMAV/TSA)", "cmd": null },
-    { "id": "G-12", "point": "ordonnanceur : scheduled_tasks a un dernier_run reel", "cmd": null },
-    { "id": "G-13", "point": "e2e navigateur sur le cycle vital", "cmd": null }
-  ]
+    {
+      "id": "G-10",
+      "point": "equivalence M-Files B1..B12 : releve par attendu (capture, OCR, vues, workflows, GeBuV, droits serveur, audit, versions, recherche, compta, SMQ, souverainete)",
+      "cmd": null,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-11",
+      "point": "modules livres non deployes : chaque flag .env absent est un choix trace, pas un oubli (CONTRACTS/RH/MAIL/PORTAL/MULTI_TENANT/CLAMAV/TSA)",
+      "cmd": null,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-12",
+      "point": "ordonnanceur : scheduled_tasks a un dernier_run reel",
+      "cmd": null,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "G-13",
+      "point": "e2e navigateur sur le cycle vital",
+      "cmd": null,
+      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    }
+  ],
+  "_donnees": "Regle 17 : chaque point declare `donnees` — `reelles` (donnees de production), `semees` (jeu maitrise, SANS porte de sortie), `fixture` (fabriquee pour le test). Une demande formulee par un utilisateur reel ne se prouve QUE sur `reelles`. Regle 16 : donnee absente = INCONCLUANT, jamais VERT."
 }
