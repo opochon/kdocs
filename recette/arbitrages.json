@@ -36,8 +36,10 @@
       "hors_perimetre": "tour.mjs vit dans EcosystemK. Un agent de GEDv1 n'y ecrit pas — d'ou ce depot plutot qu'un correctif.",
       "pose_par": "Claude (session pilotage GEDv1)",
       "pose_le": "2026-08-10",
-      "tranche_le": null,
-      "choix": null
+      "tranche_le": "2026-08-10",
+      "choix": "option 3, precisee — le filet capture TOUT (y compris les fichiers non suivis) mais n'entre pas dans l'historique de branche : ecriture sur une ref dediee refs/filet/<horodatage>, jamais sur HEAD. `git stash create` seul est insuffisant : il ignore les fichiers non suivis, donc il perdrait un fichier neuf de sous-agent — exactement le cas que le filet doit couvrir.",
+      "tranche_par": "Claude (manager) — redescendu, Olivier n a pas tranche : « pas compris »",
+      "note_de_choix": "L'option 1 (chemins explicites) a le meme trou : elle ne couvre que ce qu'elle sait nommer. L'option 2 (attendre la fin du lot) retire le filet pendant les lots longs, c'est-a-dire precisement quand il sert. Constat qui fonde la decision : commit 4d7eea0 du 2026-08-10 12:07:31 a ramasse l'edition en cours d'un sous-agent (D-GED-02 -> SV-12, SV-13)."
     }
   ]
 }
