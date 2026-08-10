@@ -1,0 +1,20 @@
+{
+  "_doc": "Partition de recette GEDv1 / K-Docs. Jouee par EcosystemK/gouvernance/tools/recette.mjs. socle = les absolus, a CHAQUE liberation. Referent : M-Files + governance/ATTENDUS-PRODUIT.md (pose par Olivier le 2026-08-09, aucun agent ne le modifie). cmd null = NON CABLE, bloque en --release.",
+  "projet": "GEDv1 / K-Docs",
+  "referent": "M-Files + governance/ATTENDUS-PRODUIT.md",
+  "socle": [
+    { "id": "G-01", "point": "preflight (vendor, playwright, DB, K-Time)", "cmd": "php tools/preflight.php", "timeout_ms": 120000 },
+    { "id": "G-02", "point": "suite PHPUnit (dont NoHardDeleteTest = zero suppression)", "cmd": "vendor\\bin\\phpunit --no-coverage", "timeout_ms": 300000 },
+    { "id": "G-03", "point": "harness complet (gate)", "cmd": "run-harness.bat", "timeout_ms": 900000 },
+    { "id": "G-04", "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout", "cmd": null, "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit" },
+    { "id": "G-05", "point": "contrat K-Time reel : aller-retour KTIME_URL /api/ged/health = 200", "cmd": "node tools/lint-contrat.mjs", "timeout_ms": 120000, "_note": "exige K-Time :8090 lance (k up ged-ktime)" },
+    { "id": "G-06", "point": "JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)", "cmd": null, "_note": "jeu a materialiser en governance/jeux/JC-GED.attendus.json puis cabler" },
+    { "id": "G-07", "point": "contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie", "cmd": null }
+  ],
+  "etendue": [
+    { "id": "G-10", "point": "equivalence M-Files B1..B12 : releve par attendu (capture, OCR, vues, workflows, GeBuV, droits serveur, audit, versions, recherche, compta, SMQ, souverainete)", "cmd": null },
+    { "id": "G-11", "point": "modules livres non deployes : chaque flag .env absent est un choix trace, pas un oubli (CONTRACTS/RH/MAIL/PORTAL/MULTI_TENANT/CLAMAV/TSA)", "cmd": null },
+    { "id": "G-12", "point": "ordonnanceur : scheduled_tasks a un dernier_run reel", "cmd": null },
+    { "id": "G-13", "point": "e2e navigateur sur le cycle vital", "cmd": null }
+  ]
+}

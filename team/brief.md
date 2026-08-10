@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-10 07:35 depuis les instruments.
+> Genere le 2026-08-10 07:38 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -42,8 +42,8 @@ Points NON CABLES — un point non cable ne prouve rien :
 
 ## Depot
 
-- branche `main` · 5 fichiers modifies
-- dernier commit : 621722e 2026-08-10 gouvernance : sous-agent rappel-cadre + brief regenere a chaque tour
+- branche `main` · 4 fichiers modifies
+- dernier commit : 8c9ee7c 2026-08-10 recette : registre des demandes transcrit depuis les echanges (origine verbatim / derive)
 
 ## Definition de « fait » pour ce tour
 
