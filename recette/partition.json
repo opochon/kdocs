@@ -27,9 +27,10 @@
     {
       "id": "G-04",
       "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout",
-      "cmd": null,
-      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit",
-      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+      "cmd": "php tests/integration/test_chaine_bout_en_bout.php",
+      "timeout_ms": 300000,
+      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit. CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_chaine_bout_en_bout.php : deposer/decouper/classer/retrouver executes contre le chemin reel (IngestClassificationService, aucun mock IA), PAS 'lire' (OCR complet, secteur ingestion-ocr ROUGE) ni 'versionner' (secteur ORPHELIN, aucun service — voir SV-04). ROUGE le 2026-08-10 (8/9) : deposer/decouper/classer passent, 'retrouver' echoue — les documents separes restent status=pending et sont exclus de la vue standard (documents non-pending) tant que personne ne valide manuellement. Le vert de ce point ne doit jamais etre lu comme preuve du cycle complet tant que lire/versionner ne sont pas eux-memes cables.",
+      "donnees": "fixture (tests/fixtures/probe_multidoc.pdf, trace et nettoye par la sonde, jamais de DELETE)"
     },
     {
       "id": "G-05",
@@ -55,9 +56,10 @@
     {
       "id": "SV-01",
       "point": "D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)",
-      "cmd": null,
-      "_note": "tests/Feature/DocumentUploadTest.php tape le chemin reel (curl HTTP contre http://localhost/kdocs, upload PDF) mais SKIP silencieusement des que l'authentification admin/admin echoue — 0 assertion, exit 0 : un skip qui rend VERT est le meme piege que folder-permissions (regle 2, cablage non prouve). Verifie le 2026-08-10 : 3 cas, tous SKIP, 2 min 10. G-04 (cycle complet deposer->lire->classer->versionner->retrouver) est deja NON CABLE pour la meme raison. Rien de fiable a cabler ici sans d'abord fiabiliser l'authentification du test.",
-      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+      "cmd": "php tests/integration/test_ingestion_reelle.php",
+      "timeout_ms": 120000,
+      "_note": "CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_ingestion_reelle.php, qui contourne le piege HTTP de DocumentUploadTest.php (SKIP silencieux sur echec auth admin/admin, 0 assertion — cas toujours reel, non corrige) en reflechissant directement dans la methode privee ConsumeFolderService::importFile() : chemin filesystem reel (storage/consume/ -> DB -> disque -> OCR), aucune authentification a contourner donc aucun skip possible. VERT le 2026-08-10 (12/12, ~15s), execute sous un timeout dur de 90s en sous-processus car le chemin complet ConsumeFolderService::importFile()->DocumentProcessor::process() a mis jusqu'a ~10 min a terminer une fois pendant l'investigation de ce lot (cause non identifiee, non reproduite ensuite — a surveiller, 11 fichiers reels attendaient dans storage/consume/ au moment de la mesure). G-04 (cycle complet) reste couvert separement par SV-19.",
+      "donnees": "fixture (tests/fixtures/probe_ingestion.pdf, trace et nettoye par la sonde, jamais de DELETE)"
     },
     {
       "id": "SV-02",
