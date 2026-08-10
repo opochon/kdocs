@@ -2,30 +2,30 @@
 
 > Genere par `npm run checklist`. **Ne pas editer a la main.**
 > `[x]` teste (oracle vert) · `[~]` fait mais non garanti · `[ ]` a faire
-> Genere le 2026-08-06 20:51
+> Genere le 2026-08-10 10:07
 
-**Global : 45 % fait · 9 % teste** (22 items)
+**Global : 68 % fait · 27 % teste** (22 items)
 
 ## Produit — les 5 gaps critiques de l audit
 
-20 % fait · 0 % teste — 5 items
+40 % fait · 0 % teste — 5 items
 
 - [ ] **UI professionnelle (audit 3,5/10 : sidebar melangee, emojis, compteurs incoherents)**
 - [~] **Ingestion asynchrone : OCR/classification hors requete HTTP**
 - [ ] **IA alignee sur la taxonomie HTMLEDITOR (variables, sections, tags)**
-- [ ] **Apps stub invoices/mail : livrees ou retirees de l UI (plus de 404)**
+- [~] **Apps stub invoices/mail : livrees ou retirees de l UI (plus de 404)**
 - [ ] **Conformite archivage CH : WORM, retention, horodatage**
 
 ## Coeur documentaire — ce que la GED doit garantir
 
-17 % fait · 0 % teste — 6 items
+50 % fait · 50 % teste — 6 items
 
-- [~] **Recherche FULLTEXT operante sans Qdrant**
+- [x] **Recherche FULLTEXT operante sans Qdrant**
 - [ ] **Zero incoherence is_deleted / deleted_at**
 - [ ] **Miniatures PDF et bureautique generees (LibreOffice/Ghostscript)**
 - [ ] **OCR eprouve sur un lot de controle mesure**
-- [ ] **Permissions de dossiers verifiees cote serveur, pas a l affichage**
-- [ ] **Corbeille et retention : purge tracee et reversible**
+- [x] **Permissions de dossiers verifiees cote serveur, pas a l affichage**
+- [x] **Corbeille et retention : purge tracee et reversible**
 
 ## Socle — mesurabilite
 
@@ -46,10 +46,10 @@
 
 ## Qualite — cliquets et perimetres
 
-25 % fait · 0 % teste — 4 items
+75 % fait · 25 % teste — 4 items
 
 - [ ] **260 erreurs phpstan en baseline : decision tracee** — aucun oracle — ne pourra jamais etre TESTE
-- [ ] **Au moins un cliquet qui ne peut que descendre** — aucun oracle — ne pourra jamais etre TESTE
-- [ ] **Secteurs declares avec leurs oracles (anti-orphelin)** — aucun oracle — ne pourra jamais etre TESTE
+- [x] **Au moins un cliquet qui ne peut que descendre**
+- [~] **Secteurs declares avec leurs oracles (anti-orphelin)** — aucun oracle — ne pourra jamais etre TESTE
 - [~] **Un gate dont la verite est exterieure au code (regle 9)** — aucun oracle — ne pourra jamais etre TESTE
 

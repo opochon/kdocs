@@ -1,0 +1,43 @@
+{
+  "date": "2026-08-10T10:07:37.095Z",
+  "cible": "D-GED-01",
+  "dem": [
+    {
+      "id": "D-GED-01",
+      "demande": "Atteindre le niveau de M-Files : introduire, lire, structurer, classer, versionner, interface claire, zero perte de donnees possible, stockage, securite",
+      "etat": "TROU",
+      "redemandes": 0,
+      "secteur": null
+    },
+    {
+      "id": "D-GED-02",
+      "demande": "Une facture fournisseur entrante : lire le QR, verifier que l'adressage est bien le mien, lire les coordonnees du vendeur, lire tous les produits avec leur montant, et que le total des produits + TVA corresponde au total de la facture",
+      "etat": "TROU",
+      "redemandes": 0,
+      "secteur": null
+    },
+    {
+      "id": "D-GED-03",
+      "demande": "Classer la facture par date et par fournisseur, savoir si elle est payee ou non, voir la mention d'echeance, puis interroger K-Time pour savoir ou en est le paiement",
+      "etat": "TROU",
+      "redemandes": 0,
+      "secteur": null
+    },
+    {
+      "id": "D-GED-04",
+      "demande": "Zero suppression : aucune ligne n'est jamais supprimee d'une table par le produit, l'original sur disque n'est jamais modifie",
+      "etat": "TROU",
+      "redemandes": 0,
+      "secteur": null
+    },
+    {
+      "id": "D-GED-05",
+      "demande": "Trancher comment traiter la liaison ERP",
+      "etat": "TROU",
+      "redemandes": 0,
+      "secteur": null
+    }
+  ],
+  "cables": 4,
+  "socle": 7
+}
