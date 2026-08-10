@@ -71,6 +71,18 @@ return [
         ],
     ],
     
+    'classification' => [
+        // Mode : 'rules' | 'ai' | 'auto'
+        'method' => 'auto',
+
+        // Auto-appliquer si confiance élevée (seuil pose par Olivier, ne pas modifier)
+        'auto_apply' => true,
+        'auto_apply_threshold' => 0.8,
+
+        // Split IA (repli sur règles en dur si aucun fournisseur IA disponible)
+        'ai_split_enabled' => true,
+    ],
+
     'ollama' => [
         'url' => 'http://localhost:11434',
         'model' => 'llama3.1:8b',

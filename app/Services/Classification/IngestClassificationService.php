@@ -11,11 +11,13 @@ namespace KDocs\Services\Classification;
 
 
 use KDocs\Contracts\PdfSplitInterface;
+use KDocs\Core\Config;
 use KDocs\Core\Database;
 use KDocs\DTO\ClassificationResult;
 use KDocs\Jobs\ClassifyDocumentJob;
 use KDocs\Models\Document;
 
+use KDocs\Services\Audit\ClassificationAuditService;
 use KDocs\Services\Classifiers\UnifiedClassifier;
 
 use KDocs\Services\PdfSplit\PdfSplitService;
@@ -81,8 +83,15 @@ class IngestClassificationService
 
         $this->markPending($documentId);
 
-        if (class_exists(QueueService::class) && QueueService::queueClassification($documentId)) {
-            return true;
+        // Best-effort : job_queue_jobs sert d'historique, mais rien ne le draine sur ce poste
+        // (aucun ordonnanceur actif). n0nag0n\Job_Queue peut même être absent (Error non catché
+        // par QueueService) : on ne laisse jamais cette dépendance faire échouer l'ingestion.
+        try {
+            if (class_exists(QueueService::class) && QueueService::queueClassification($documentId)) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            error_log('IngestClassificationService::queue queueClassification: ' . $e->getMessage());
         }
 
         return (new ClassifyDocumentJob($documentId))->handle();
@@ -316,30 +325,80 @@ class IngestClassificationService
 
 
 
-    /** Persiste document_type_id quand la classification unifiée est assez confiante. */
+    /**
+     * Tri auto au-dessus du seuil (classement appliqué + tracé dans classification_audit_log),
+     * sinon suggestion tracée dans classification_suggestions — jamais de type imposé sous le seuil.
+     * Seuil et flag auto_apply : config('classification.*'), fixés par Olivier — non modifiés ici.
+     */
     private function applyCategoryToDocumentType(int $documentId, ClassificationResult $classification): void
     {
+        $db = Database::getInstance();
+        $typeId = $this->resolveDocumentTypeId($db, $classification);
+        if ($typeId === null) {
+            return;
+        }
+
+        $autoApply = filter_var(Config::get('classification.auto_apply', false), FILTER_VALIDATE_BOOLEAN);
+        $threshold = (float) Config::get('classification.auto_apply_threshold', 0.8);
+
+        if ($autoApply && $classification->confidence >= $threshold) {
+            $stmt = $db->prepare('SELECT document_type_id FROM documents WHERE id = ?');
+            $stmt->execute([$documentId]);
+            $previousTypeId = $stmt->fetchColumn();
+
+            $db->prepare(
+                'UPDATE documents SET document_type_id = ?, classification_confidence = ?, last_classified_at = NOW(), last_classified_by = ?, updated_at = NOW() WHERE id = ?'
+            )->execute([$typeId, $classification->confidence, 'ai', $documentId]);
+
+            (new ClassificationAuditService())->log(
+                $documentId,
+                'document_type_id',
+                $previousTypeId !== false ? $previousTypeId : null,
+                $typeId,
+                'ai',
+                ['reason' => 'auto_apply confidence=' . $classification->confidence . ' source=' . $classification->source]
+            );
+
+            return;
+        }
+
+        // Sous le seuil : suggestion tracée, aucun type imposé au document.
+        try {
+            $db->prepare(
+                'INSERT INTO classification_suggestions
+                    (document_id, field_code, suggested_value, confidence, source, status, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, NOW())'
+            )->execute([$documentId, 'document_type_id', (string) $typeId, $classification->confidence, 'ai', 'pending']);
+        } catch (\Throwable $e) {
+            error_log('IngestClassificationService::applyCategoryToDocumentType suggestion: ' . $e->getMessage());
+        }
+    }
+
+    /** Résout le document_type_id suggéré, quel que soit l'adaptateur source (suggestions plates, imbriquées, ou label). */
+    private function resolveDocumentTypeId(\PDO $db, ClassificationResult $classification): ?int
+    {
+        $candidate = $classification->suggestions['document_type_id']
+            ?? $classification->suggestions['matched']['document_type_id']
+            ?? null;
+
+        if (is_numeric($candidate) && (int) $candidate > 0) {
+            $stmt = $db->prepare('SELECT id FROM document_types WHERE id = ?');
+            $stmt->execute([(int) $candidate]);
+            if ($stmt->fetchColumn()) {
+                return (int) $candidate;
+            }
+        }
+
         $category = trim((string) ($classification->category ?? ''));
         if ($category === '') {
-            return;
+            return null;
         }
 
-        $minConfidence = (float) env('CLASSIFY_AUTO_APPLY_THRESHOLD', 0.5);
-        if ($classification->confidence < $minConfidence) {
-            return;
-        }
-
-        $db = Database::getInstance();
         $stmt = $db->prepare('SELECT id FROM document_types WHERE LOWER(label) = LOWER(?) LIMIT 1');
         $stmt->execute([$category]);
         $typeId = $stmt->fetchColumn();
-        if (!$typeId) {
-            return;
-        }
 
-        $db->prepare(
-            'UPDATE documents SET document_type_id = ?, classification_confidence = ?, updated_at = NOW() WHERE id = ?'
-        )->execute([(int) $typeId, $classification->confidence, $documentId]);
+        return $typeId ? (int) $typeId : null;
     }
 
 

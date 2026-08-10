@@ -9,7 +9,7 @@ namespace KDocs\Services;
 
 use KDocs\Core\Database;
 use KDocs\Core\Config;
-use KDocs\Services\ClaudeService;
+use KDocs\Services\AIProviderService;
 use KDocs\Helpers\SystemHelper;
 
 class PDFSplitterService
@@ -17,15 +17,18 @@ class PDFSplitterService
     private $db;
     private $tempDir;
     private $documentsPath;
-    private $claude;
-    
-    public function __construct()
+    /** Fournisseur IA actif (cascade Infomaniak > Claude > Ollama), remplace l'ancienne dépendance directe à ClaudeService. */
+    private AIProviderService $aiProvider;
+    /** Méthode utilisée par la dernière analyse de pages : 'ai' | 'rules' | 'none'. Sert à annoter le résultat du split. */
+    private string $lastSplitMethod = 'none';
+
+    public function __construct(?AIProviderService $aiProvider = null)
     {
         $this->db = Database::getInstance();
         $config = Config::load();
         $this->tempDir = $config['storage']['temp'] ?? __DIR__ . '/../../storage/temp';
         $this->documentsPath = $config['storage']['documents'] ?? __DIR__ . '/../../storage/documents';
-        $this->claude = new ClaudeService();
+        $this->aiProvider = $aiProvider ?? new AIProviderService();
         
         if (!is_dir($this->tempDir)) {
             @mkdir($this->tempDir, 0755, true);
@@ -33,8 +36,59 @@ class PDFSplitterService
     }
     
     /**
+     * Détection légère (sans appel IA) : le document est-il candidat à la séparation ?
+     * Utilisée par {@see \KDocs\Services\PdfSplit\PdfSplitService::detectPageGroups()}.
+     * La décision définitive (nombre de documents distincts, page_groups) est prise par
+     * analyzeAndSplit() qui fait l'analyse réelle (IA ou règles en dur).
+     *
+     * @return array{should_split: bool, page_groups: array, source: string, audit: array}
+     */
+    public function detectCandidate(int $documentId): array
+    {
+        $audit = ['document_id' => $documentId];
+
+        $stmt = $this->db->prepare("SELECT mime_type, file_path FROM documents WHERE id = ?");
+        $stmt->execute([$documentId]);
+        $document = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$document) {
+            return ['should_split' => false, 'page_groups' => [], 'source' => 'not_found', 'audit' => $audit];
+        }
+
+        if ($document['mime_type'] !== 'application/pdf') {
+            return ['should_split' => false, 'page_groups' => [], 'source' => 'not_pdf', 'audit' => $audit];
+        }
+
+        $config = Config::load();
+        if (!($config['classification']['ai_split_enabled'] ?? false)) {
+            return ['should_split' => false, 'page_groups' => [], 'source' => 'disabled', 'audit' => $audit];
+        }
+
+        $filePath = $document['file_path'];
+        if (!file_exists($filePath)) {
+            $filePath = $this->documentsPath . '/' . basename($filePath);
+        }
+        if (!file_exists($filePath)) {
+            return ['should_split' => false, 'page_groups' => [], 'source' => 'file_missing', 'audit' => $audit];
+        }
+
+        $numPages = $this->countPDFPages($filePath);
+        $audit['pages'] = $numPages;
+
+        if ($numPages <= 1) {
+            return ['should_split' => false, 'page_groups' => [], 'source' => 'single_page', 'audit' => $audit];
+        }
+
+        return [
+            'should_split' => true,
+            'page_groups' => [],
+            'source' => $this->aiProvider->isAIAvailable() ? 'ai' : 'rules',
+            'audit' => $audit,
+        ];
+    }
+
+    /**
      * Analyse un PDF multi-pages et le sépare si nécessaire
-     * 
+     *
      * @param int $documentId ID du document à analyser
      * @return array Résultat avec les documents créés ou null si pas de séparation nécessaire
      */
@@ -74,14 +128,15 @@ class PDFSplitterService
             return null;
         }
         
-        // Vérifier que Claude est configuré
-        if (!$this->claude->isConfigured()) {
-            error_log("PDFSplitterService: Claude non configuré, séparation désactivée");
-            return null;
+        // Repli sur les règles en dur (heuristiques POC : indicateur de page, date, expéditeur, type)
+        // si aucun fournisseur IA n'est disponible — ne bloque plus la séparation (voir docs/IA-ROADMAP.md).
+        $aiAvailable = $this->aiProvider->isAIAvailable();
+        if (!$aiAvailable) {
+            error_log("PDFSplitterService: aucun fournisseur IA disponible, repli sur les règles en dur (heuristiques)");
         }
-        
+
         error_log("PDFSplitterService: PDF multi-pages détecté ({$numPages} pages) pour document {$documentId}");
-        
+
         // Analyser chaque page
         try {
             $pageAnalyses = $this->analyzePages($filePath, $documentId, $numPages);
@@ -127,9 +182,10 @@ class PDFSplitterService
                 $document,
                 $pageGroup,
                 $analysis,
-                $documentId // parent_id
+                $documentId, // parent_id
+                $this->lastSplitMethod
             );
-            
+
             if ($newDocId) {
                 $createdDocuments[] = [
                     'id' => $newDocId,
@@ -138,15 +194,18 @@ class PDFSplitterService
                 ];
             }
         }
-        
-        // Marquer le document original comme "split"
-        $this->db->prepare("UPDATE documents SET status = 'split', split_into_count = ? WHERE id = ?")
-            ->execute([count($createdDocuments), $documentId]);
-        
+
+        // Marquer le document original comme "split" (split_into_count n'existe pas en colonne
+        // dans ce schéma ; le compte reste disponible via split_count ci-dessous / classification_suggestions)
+        $this->db->prepare("UPDATE documents SET status = 'split' WHERE id = ?")
+            ->execute([$documentId]);
+
         return [
             'parent_id' => $documentId,
             'split_count' => count($createdDocuments),
-            'documents' => $createdDocuments
+            'method_used' => $this->lastSplitMethod, // 'ai' | 'rules' — l'aval distingue un split IA d'un split par règles
+            'documents' => $createdDocuments,
+            'created_documents' => array_column($createdDocuments, 'id'), // compat KDocs\Services\PdfSplit\PdfSplitService::split()
         ];
     }
     
@@ -209,7 +268,7 @@ PYTHON;
     }
     
     /**
-     * Analyse chaque page du PDF avec Claude IA
+     * Analyse chaque page du PDF avec le fournisseur IA actif (repli sur les règles en dur si indisponible)
      */
     private function analyzePages(string $filePath, int $documentId, int $numPages): array
     {
@@ -232,7 +291,7 @@ PYTHON;
                     continue;
                 }
                 
-                // Analyser avec Claude IA (peut retourner null si API non disponible)
+                // Analyser avec le fournisseur IA actif (retombe sur les heuristiques si indisponible)
                 $analysis = $this->analyzePageWithAI($pageText, $pageNum + 1);
                 
                 if ($analysis) {
@@ -255,7 +314,19 @@ PYTHON;
         if ($successCount === 0 && $errorCount > 0) {
             error_log("PDFSplitterService: Aucune page analysée avec succès (API non disponible ou erreurs). Traitement normal du document.");
         }
-        
+
+        // Déterminer la méthode dominante (annonce IA vs règles dans le résultat final)
+        $aiPages = 0;
+        $rulesPages = 0;
+        foreach ($analyses as $analysis) {
+            if (($analysis['_source'] ?? null) === 'ai') {
+                $aiPages++;
+            } elseif (($analysis['_source'] ?? null) === 'rules') {
+                $rulesPages++;
+            }
+        }
+        $this->lastSplitMethod = $aiPages > 0 ? 'ai' : ($rulesPages > 0 ? 'rules' : 'none');
+
         return $analyses;
     }
     
@@ -309,17 +380,18 @@ PYTHON;
     }
     
     /**
-     * Analyse une page avec Claude IA pour déterminer son type de document
-     * Enhanced with POC heuristics for page indicators and date extraction
+     * Analyse une page avec le fournisseur IA actif pour déterminer son type de document
+     * Enhanced with POC heuristics for page indicators and date extraction (repli si IA indisponible)
      */
     private function analyzePageWithAI(string $pageText, int $pageNumber): ?array
     {
         // POC Enhancement: Always extract heuristics first (works without AI)
         $heuristics = $this->extractPageHeuristics($pageText);
 
-        if (!$this->claude->isConfigured()) {
-            // Return heuristics-only analysis if AI unavailable
+        if (!$this->aiProvider->isAIAvailable()) {
+            // Repli règles en dur (heuristiques POC) si aucun fournisseur IA n'est disponible
             if (!empty($heuristics)) {
+                $heuristics['_source'] = 'rules';
                 return $heuristics;
             }
             return null;
@@ -342,31 +414,36 @@ PROMPT;
         $prompt .= "TEXTE DE LA PAGE:\n" . substr($pageText, 0, 8000);
         
         try {
-            // Vérifier que Claude est toujours configuré (peut changer entre les appels)
-            if (!$this->claude->isConfigured()) {
-                return null; // API non configurée, ignorer silencieusement
+            // Vérifier qu'un fournisseur IA est toujours disponible (peut changer entre les appels)
+            if (!$this->aiProvider->isAIAvailable()) {
+                return null; // Aucun fournisseur configuré, ignorer silencieusement
             }
-            
-            $response = $this->claude->sendMessage($prompt, $systemPrompt);
-            if (!$response) {
-                // API n'a pas répondu (timeout, erreur réseau, etc.)
+
+            $response = $this->aiProvider->complete($systemPrompt . "\n\n" . $prompt, ['max_tokens' => 600]);
+            if (!$response || empty($response['text'])) {
+                // Aucun fournisseur n'a répondu (timeout, erreur réseau, etc.) : repli sur les heuristiques
                 // Ne pas logger à chaque page pour éviter le spam, seulement si toutes les pages échouent
+                if (!empty($heuristics)) {
+                    $heuristics['_source'] = 'rules';
+                    return $heuristics;
+                }
                 return null;
             }
-            
-            $text = $this->claude->extractText($response);
-            if (empty($text)) {
-                return null;
-            }
-            
+
+            $text = $response['text'];
+
             // Nettoyer le JSON
             $text = preg_replace('/^```json\s*/', '', $text);
             $text = preg_replace('/\s*```$/', '', $text);
             $text = trim($text);
-            
+
             $result = json_decode($text, true);
             if (!$result || json_last_error() !== JSON_ERROR_NONE) {
-                // JSON invalide, ignorer cette page
+                // JSON invalide : repli sur les heuristiques pour cette page
+                if (!empty($heuristics)) {
+                    $heuristics['_source'] = 'rules';
+                    return $heuristics;
+                }
                 return null;
             }
             
@@ -377,12 +454,15 @@ PROMPT;
                     'document_type' => $result['document_type'] ?? null,
                     'date' => $result['date'] ?? $heuristics['date'] ?? null,
                     'amount' => isset($result['amount']) ? (float)$result['amount'] : null,
+                    '_source' => 'ai',
                 ]);
             }
         } catch (\Exception $e) {
-            // Erreur lors de l'appel API (timeout, rate limit, etc.)
-            // Ne pas logger à chaque page pour éviter le spam
-            // Le log sera fait au niveau supérieur si toutes les pages échouent
+            // Erreur lors de l'appel API (timeout, rate limit, etc.) : repli sur les heuristiques de cette page
+            if (!empty($heuristics)) {
+                $heuristics['_source'] = 'rules';
+                return $heuristics;
+            }
             return null;
         }
         
@@ -668,7 +748,7 @@ PYTHON;
     /**
      * Crée un nouveau document à partir d'un PDF séparé
      */
-    private function createDocumentFromSplit(string $splitFile, array $parentDoc, array $pageGroup, ?array $analysis, int $parentId): ?int
+    private function createDocumentFromSplit(string $splitFile, array $parentDoc, array $pageGroup, ?array $analysis, int $parentId, string $splitMethod = 'none'): ?int
     {
         try {
             // Copier le fichier vers un dossier pending/ pour les fichiers séparés en attente de validation
@@ -687,14 +767,17 @@ PYTHON;
             // Créer le document
             $title = pathinfo($parentDoc['original_filename'], PATHINFO_FILENAME) . ' (pages ' . ($pageGroup[0] + 1) . '-' . ($pageGroup[count($pageGroup) - 1] + 1) . ')';
             
+            // Filiation (parent_document_id, split_pages, split_method) : colonnes dédiées, pas
+            // classification_suggestions — cette colonne JSON est écrasée à chaque classement
+            // automatique de l'enfant (UnifiedClassifier), la filiation ne doit jamais y transiter.
             $stmt = $this->db->prepare("
                 INSERT INTO documents (
-                    title, filename, original_filename, file_path, file_size, mime_type, 
-                    checksum, status, parent_document_id, split_pages, uploaded_at, created_at, updated_at
+                    title, filename, original_filename, file_path, file_size, mime_type,
+                    checksum, status, parent_document_id, split_pages, split_method, uploaded_at, created_at, updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, NOW(), NOW(), NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, NOW(), NOW(), NOW())
             ");
-            
+
             $stmt->execute([
                 $title,
                 $unique,
@@ -704,23 +787,22 @@ PYTHON;
                 'application/pdf',
                 md5_file($dest),
                 $parentId,
-                json_encode($pageGroup)
+                json_encode($pageGroup),
+                $splitMethod,
             ]);
-            
+
             $newDocId = $this->db->lastInsertId();
-            
-            // Appliquer les suggestions de classification si disponibles
-            if ($analysis) {
-                $suggestions = [
-                    'correspondent' => $analysis['correspondent'] ?? null,
-                    'document_type' => $analysis['document_type'] ?? null,
-                    'date' => $analysis['date'] ?? null,
-                    'amount' => $analysis['amount'] ?? null,
-                ];
-                
-                $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
-                    ->execute([json_encode($suggestions), $newDocId]);
-            }
+
+            // Suggestions de classification (correspondant/type/date/montant devinés lors du split)
+            $suggestions = [
+                'correspondent' => $analysis['correspondent'] ?? null,
+                'document_type' => $analysis['document_type'] ?? null,
+                'date' => $analysis['date'] ?? null,
+                'amount' => $analysis['amount'] ?? null,
+            ];
+
+            $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
+                ->execute([json_encode($suggestions), $newDocId]);
             
             // Supprimer le fichier temporaire
             @unlink($splitFile);

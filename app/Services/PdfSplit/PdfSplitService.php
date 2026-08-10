@@ -9,9 +9,10 @@ use KDocs\Services\PDFSplitterService;
 
 /**
  * Façade documentée pour le split PDF multi-contenu.
- * Délègue à {@see PDFSplitterService} (legacy). Le sidecar ClearMyDocs v3 a été
- * retiré (ancienne version) — la détection automatique de groupes de pages est
- * donc désactivée ; le split explicite reste disponible via {@see self::split()}.
+ * Délègue à {@see PDFSplitterService} : détection candidate légère (page count, PDF,
+ * config) via {@see PDFSplitterService::detectCandidate()}, puis analyse réelle
+ * (fournisseur IA actif, repli sur règles en dur si indisponible) et séparation via
+ * {@see PDFSplitterService::analyzeAndSplit()} dans {@see self::split()}.
  */
 class PdfSplitService implements PdfSplitInterface
 {
@@ -33,15 +34,7 @@ class PdfSplitService implements PdfSplitInterface
             ];
         }
 
-        return [
-            'should_split' => false,
-            'page_groups' => [],
-            'source' => 'ged-legacy',
-            'audit' => [
-                'document_id' => $documentId,
-                'note' => 'Détection auto indisponible (sidecar ClearMyDocs v3 retiré) — utiliser split() legacy',
-            ],
-        ];
+        return $this->legacy->detectCandidate($documentId);
     }
 
     public function split(int $documentId): ?array
