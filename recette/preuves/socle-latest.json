@@ -1,0 +1,208 @@
+{
+  "projet": "GEDv1 / K-Docs",
+  "referent": "M-Files + governance/ATTENDUS-PRODUIT.md",
+  "niveau": "socle",
+  "release": false,
+  "date": "2026-08-10T10:10:48.102Z",
+  "duree_ms": 46685,
+  "vert": 7,
+  "rouge": 2,
+  "non_cable": 12,
+  "total": 21,
+  "points": [
+    {
+      "id": "G-01",
+      "point": "preflight (vendor, playwright, DB, K-Time)",
+      "cmd": "php tools/preflight.php",
+      "timeout_ms": 120000,
+      "etat": "VERT",
+      "ms": 86,
+      "preuve": "GEDv1 preflight\r\n------------------------------------------------------------------\r\nvendor composer          OK        \r\nplaywright               OK        \r\nstorage inscriptible     OK        \r\n.env present             OK        \r\nbase de donnees          OK        kdocs sur 3307 — 356 document(s)\r\nK-Time /api/ged/health   OK        \r\n------------------------------------------------------------------\r\nVERDICT  EVALUABLE.\r\n"
+    },
+    {
+      "id": "G-02",
+      "point": "suite PHPUnit (dont NoHardDeleteTest = zero suppression)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage",
+      "timeout_ms": 300000,
+      "etat": "VERT",
+      "ms": 45486,
+      "preuve": "PHPUnit 10.5.63 by Sebastian Bergmann and contributors.\r\n\r\nRuntime:       PHP 8.4.0\nConfiguration: F:\\DATA\\DEVELOPPEMENT\\GEDv1\\phpunit.xml\n\r\n...............................................................  63 / 517 ( 12%)\n............................................................... 126 / 517 ( 24%)\n............................................................... 189 / 517 ( 36%)\n............................................................... 252 / 517 ( 48%)\n............................................................... 315 / 517 ( 60%)\n............................................................... 378 / 517 ( 73%)\n.....................................SSS....................... 441 / 517 ( 85%)\n............................................................... 504 / 517 ( 97%)\n.............                                                   517 / 517 (100%)\r\n\r\nTime: 00:45.275, Memory: 20.00 MB\r\n\r\nOK, but some tests were skipped!\r\nTests: 517, Assertions: 1362, Skipped: 3.\r\n"
+    },
+    {
+      "id": "G-03",
+      "point": "harness complet (gate)",
+      "cmd": "run-harness.bat",
+      "timeout_ms": 900000,
+      "etat": "ROUGE",
+      "ms": 18,
+      "preuve": "'run-harness.bat' n'est pas reconnu en tant que commande interne\r\nou externe, un programme ex�cutable ou un fichier de commandes.\r\nCommand failed: run-harness.bat\n'run-harness.bat' n'est pas reconnu en tant que commande interne\r\nou externe, un programme ex�cutable ou un fichier de commandes.\r\n"
+    },
+    {
+      "id": "G-04",
+      "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout",
+      "cmd": null,
+      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "G-05",
+      "point": "contrat K-Time reel : aller-retour KTIME_URL /api/ged/health = 200",
+      "cmd": "node tools/lint-contrat.mjs",
+      "timeout_ms": 120000,
+      "_note": "exige K-Time :8090 lance (k up ged-ktime)",
+      "etat": "VERT",
+      "ms": 113,
+      "preuve": "lint-contrat — GEDv1 <-> K-Time /api/ged/*\n\n[OK]   ktime-repo-routes — 8 route(s) /api/ged/* trouvee(s) dans k-time-web/src/routes.php, conformes au contrat\n[OK]   ktime-live-health — GET http://127.0.0.1:8090/api/ged/health -> 200 (cle API presente dans .env)\n[OK]   client-interne — 8 appel(s) trouve(s) dans KTimeClient.php, conformes au contrat\n\nVerdict final : OK\n"
+    },
+    {
+      "id": "G-06",
+      "point": "JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)",
+      "cmd": null,
+      "_note": "jeu a materialiser en governance/jeux/JC-GED.attendus.json puis cabler",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "G-07",
+      "point": "contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie",
+      "cmd": null,
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-01",
+      "point": "D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)",
+      "cmd": null,
+      "_note": "tests/Feature/DocumentUploadTest.php tape le chemin reel (curl HTTP contre http://localhost/kdocs, upload PDF) mais SKIP silencieusement des que l'authentification admin/admin echoue — 0 assertion, exit 0 : un skip qui rend VERT est le meme piege que folder-permissions (regle 2, cablage non prouve). Verifie le 2026-08-10 : 3 cas, tous SKIP, 2 min 10. G-04 (cycle complet deposer->lire->classer->versionner->retrouver) est deja NON CABLE pour la meme raison. Rien de fiable a cabler ici sans d'abord fiabiliser l'authentification du test.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-02",
+      "point": "D-GED-01 verbe 2/8 — lire : OCR et indexation plein texte (ATTENDUS-PRODUIT B2)",
+      "cmd": null,
+      "_note": "Secteur ingestion-ocr est ROUGE (persona-parcours-ecm depasse 180 s, pipeline-ui ne trouve jamais #preview-type-select) : aucune preuve cablee de l'OCR reel. La moitie « indexation » est prouvee par l'oracle search-fulltext (secteur recherche, VERT) mais ce dernier interroge un texte deja indexe — il ne prouve pas l'extraction OCR elle-meme. tools/eval-full.php tourne avec --no-ocr dans le harness : l'OCR est explicitement debranche de la mesure actuelle. Combiner les deux fabriquerait un vert trompeur sur la moitie non prouvee.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-03",
+      "point": "D-GED-01 verbe 3/8 — structurer et classer : organisation par metadonnees et vues dynamiques (ATTENDUS-PRODUIT A2, B3), le document trouve sa place (C3)",
+      "cmd": "php tests/integration/test_logical_folders.php",
+      "timeout_ms": 60000,
+      "_note": "Reutilise l'oracle logical-folders du secteur recherche-transverse (deja cable, prouve descendant le 2026-08-09 : filtre retire, 27 intrus apparaissent). Pas de sonde dupliquee : execution directe du meme fichier. Rejoue et VERT le 2026-08-10 (9/9).",
+      "etat": "VERT",
+      "ms": 102,
+      "preuve": "\n+==============================================================+\n|        K-DOCS - VUES DYNAMIQUES (dossiers filtres)           |\n+==============================================================+\n\n--- 1. REGISTRE DES VUES ---\n\n\u001b[32m[OK]\u001b[0m Au moins une vue dynamique declaree - 4 vue(s)\n    filesystem : 1\n    document_type : 3\n\n--- 2. FILTRE PAR TYPE DE DOCUMENT ---\n\n\u001b[32m[OK]\u001b[0m La vue « 📄 Factures » resout son type - type_id=1\n\u001b[32m[OK]\u001b[0m Aucun document d un autre type dans la vue - 3 document(s), tous du bon type\n\u001b[32m[OK]\u001b[0m La vue ne perd aucun document de son type - vue=3 attendu=3\n\u001b[32m[OK]\u001b[0m Le compteur de la vue concorde avec son contenu - compteur=3 attendu=3\n\n--- 3. VUE FILESYSTEM (tous les documents) ---\n\n\u001b[32m[OK]\u001b[0m La vue « tout » compte tous les documents visibles - vue=31 attendu=31\n\u001b[32m[OK]\u001b[0m Les documents en corbeille restent hors des vues - 165 en corbeille sur 356, jamais listes\n\n--- 4. ROBUSTESSE ---\n\n\u001b[32m[OK]\u001b[0m Une vue inexistante rend une liste vide, sans erreur\n\u001b[32m[OK]\u001b[0m Le compteur d une vue inexistante vaut 0\n\n==============================================================\nRESUME: 9 reussis, 0 echoues\n==============================================================\n\n\u001b[32mTous les tests passent!\u001b[0m\n"
+    },
+    {
+      "id": "SV-04",
+      "point": "D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)",
+      "cmd": null,
+      "_note": "Secteur versioning est ORPHELIN (governance/sectors.json) : document_versions porte 0 ligne pour 279+ documents, aucun oracle declare. Design a poser avec le dirigeant avant code — rien a cabler tant que le service n'est pas en service.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-05",
+      "point": "D-GED-01 verbe 5/8 — interface claire : la fonction est atteignable par un utilisateur depuis l'interface (ATTENDUS-PRODUIT E.1)",
+      "cmd": null,
+      "_note": "Secteur interface est VERT sur 11 oracles Playwright (ui-chrome, shell, a11y, fiche-document, persona*...) mais ce sont des specs qui ne s'executent que dans le harness complet (npx playwright, ~10 min, npm install + serveur requis) : aucune ne se rejoue isolement et fiablement en moins de 3 minutes pour ce point. Audit UI-UX pose a 3,5/10 (docs/AUDIT-UI-UX.md) : le vert du secteur dit que les templates ne cassent pas, pas que l'interface est claire. Laisse NON CABLE plutot que de repointer vers run-harness.bat (deja G-03) sous un autre nom.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-06",
+      "point": "D-GED-01 verbe 6/8 — zero perte de donnees possible (ATTENDUS-PRODUIT A4)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest",
+      "timeout_ms": 60000,
+      "_note": "Cliquet governance/budgets.json (plafonds a 0) via tests/Feature/NoHardDeleteTest.php. Rejoue et VERT le 2026-08-10 (4/4, 26 assertions, 0.165 s). Meme oracle que no-hard-delete du secteur corbeille-retention — pas de sonde dupliquee, execution directe filtree. Reutilise tel quel par D-GED-04 (voir SV-09).",
+      "etat": "VERT",
+      "ms": 297,
+      "preuve": "PHPUnit 10.5.63 by Sebastian Bergmann and contributors.\r\n\r\nRuntime:       PHP 8.4.0\nConfiguration: F:\\DATA\\DEVELOPPEMENT\\GEDv1\\phpunit.xml\n\r\n....                                                                4 / 4 (100%)\r\n\r\nTime: 00:00.118, Memory: 14.00 MB\r\n\r\nOK (4 tests, 26 assertions)\r\n"
+    },
+    {
+      "id": "SV-07",
+      "point": "D-GED-01 verbe 7/8 — stockage : la base est un dossier, le document reste lisible sans l'application (ATTENDUS-PRODUIT A1)",
+      "cmd": "php tests/integration/test_stockage_coherence.php",
+      "timeout_ms": 60000,
+      "_note": "Meme sonde que la suite stockage-coherence de tools/run-harness.mjs (ONLY_STANDALONE). ROUGE rejoue le 2026-08-10 : 100/191 documents vivants detaches de tout dossier, et 12 fichiers de .versions/ presents sur disque mais non indexes en base — la coherence disque<->base annoncee par A1 n'est pas tenue partout.",
+      "etat": "ROUGE",
+      "ms": 92,
+      "preuve": "\n+==============================================================+\n|      K-DOCS - COHERENCE STOCKAGE (disque <-> base)           |\n+==============================================================+\n\n--- 1. INTEGRITE REFERENTIELLE ---\n\n\u001b[32m[OK]\u001b[0m Aucun document ne pointe vers un dossier inexistant - integrite respectee\n\n--- 2. RATTACHEMENT AUX DOSSIERS ---\n\n    documents vivants : 191  (rattaches 91, detaches 100)\n\n\u001b[31m[KO]\u001b[0m Moins de la moitie des documents sont detaches de tout dossier - 100 / 191 detache(s) — un document detache n'apparait dans aucune vue par dossier\n\n--- 3. COMPTEURS DE DOSSIERS ---\n\n\u001b[32m[OK]\u001b[0m file_count concorde avec le contenu reel des dossiers - 42 dossier(s) coherent(s)\n\n--- 4. DISQUE VS BASE ---\n\n\u001b[32m[OK]\u001b[0m La racine de stockage existe - F:\\DATA\\DEVELOPPEMENT\\GEDv1\\storage\\documents\n\u001b[31m[KO]\u001b[0m Tout dossier du disque portant des fichiers est indexe - 12 non indexe(s) : .versions/6a4784ae05e2f.pdf · .versions/6a47924cbfebe.pdf · .versions/6a47aff88ea87.pdf · .versions/6a47b1759ff27.pdf · .versions/6a74addb5e05f.pdf\n\n--- 5. INVARIANT ZERO SUPPRESSION ---\n\n\u001b[32m[OK]\u001b[0m La corbeille conserve, elle ne detruit pas - 165 document(s) en corbeille sur 356, tous conserves\n\n==============================================================\nRESUME: 4 reussis, 2 echoues\n==============================================================\n\n\u001b[31mDes controles ont echoue — la correspondance disque/base a derive.\u001b[0m\nFailed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\nCommand failed: php tests/integration/test_stockage_coherence.php\nFailed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\n"
+    },
+    {
+      "id": "SV-08",
+      "point": "D-GED-01 verbe 8/8 — securite : droits par role, permissions de dossiers verifiees cote serveur (ATTENDUS-PRODUIT B6)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter FolderPermissionServerSideTest",
+      "timeout_ms": 60000,
+      "_note": "Meme oracle que folder-permissions-serverside du secteur securite-acl (cas fondateur du cablage, 2026-08-09). Rejoue et VERT le 2026-08-10 (7/7, 20 assertions, 0.027 s). RESTE deja documente au secteur : folder_permissions porte 0 ligne, aucune regle configuree — le garde autorise par defaut tant que rien n'est pose.",
+      "etat": "VERT",
+      "ms": 199,
+      "preuve": "PHPUnit 10.5.63 by Sebastian Bergmann and contributors.\r\n\r\nRuntime:       PHP 8.4.0\nConfiguration: F:\\DATA\\DEVELOPPEMENT\\GEDv1\\phpunit.xml\n\r\n.......                                                             7 / 7 (100%)\r\n\r\nTime: 00:00.021, Memory: 14.00 MB\r\n\r\nOK (7 tests, 20 assertions)\r\n"
+    },
+    {
+      "id": "SV-09",
+      "point": "D-GED-04 — aucune ligne n'est jamais supprimee d'une table par le produit (ATTENDUS-PRODUIT A4, premiere clause)",
+      "cmd": "vendor\\bin\\phpunit --no-coverage --filter NoHardDeleteTest",
+      "timeout_ms": 60000,
+      "_note": "D-GED-04 redemande explicitement l'invariant deja couvert par SV-06 (meme phrase, meme oracle NoHardDeleteTest) : cree comme point distinct pour que D-GED-04 ne depende pas d'un id ne appartenant qu'a D-GED-01. Pas de nouvelle sonde. Rejoue et VERT le 2026-08-10 (4/4).",
+      "etat": "VERT",
+      "ms": 290,
+      "preuve": "PHPUnit 10.5.63 by Sebastian Bergmann and contributors.\r\n\r\nRuntime:       PHP 8.4.0\nConfiguration: F:\\DATA\\DEVELOPPEMENT\\GEDv1\\phpunit.xml\n\r\n....                                                                4 / 4 (100%)\r\n\r\nTime: 00:00.114, Memory: 14.00 MB\r\n\r\nOK (4 tests, 26 assertions)\r\n"
+    },
+    {
+      "id": "SV-10",
+      "point": "D-GED-04 — l'original sur disque n'est jamais modifie (ATTENDUS-PRODUIT A4, seconde clause)",
+      "cmd": null,
+      "_note": "Aucune sonde n'existe pour verifier qu'un fichier original n'est jamais reecrit sur disque : pas de chaine de hachage. Dette deja nommee au secteur corbeille-retention (docs/STATUS-SECTEURS.md) : « RESTE : ... chaine de hachage anti-modification silencieuse » (BackupService existe, storage/backups vide, aucune sauvegarde jamais produite). Rien a cabler avant qu'un controle d'integrite (checksum stocke a l'ingestion, revenue comparee a intervalle) existe.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-11",
+      "point": "D-GED-03 — facture classee par date ET fournisseur, statut paye/non-paye, mention d'echeance, interrogation REELLE de K-Time sur l'etat du paiement",
+      "cmd": null,
+      "_note": "Compound de quatre exigences ; aucune n'est prouvee ensemble par une seule sonde reelle. Ce qui existe : documents.doc_date + documents.correspondent_id (colonnes reelles, classement deja teste via SV-03/logical-folders) ; erp_links.status et ErpConnectService::refreshStatus() (tests/Feature/ErpConnectTest.php) mais entierement MOCKES — transport HTTP factice, aucun aller-retour reseau reel contre KTIME_URL pour le statut d'UNE facture donnee (seul /api/ged/health l'est, via tools/lint-contrat.mjs, regle 4 du depot) ; aucune colonne echeance/due_date sur documents ni invoice_extraction_results — la mention d'echeance n'existe nulle part en base. Cabler ce point exige d'abord une colonne echeance et un appel reel non mocke a un endpoint de statut par facture (KTimeClient n'expose aujourd'hui que health/lookup/ventilation/exists/create/status-by-id, ce dernier teste seulement en mock).",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-12",
+      "point": "D-GED-02 — lire le QR d'une facture, verifier que l'adressage est le mien, lire les coordonnees du vendeur, lire les lignes produits avec montants",
+      "cmd": null,
+      "_note": "Aucun code de lecture de QR-facture (QR-bill suisse) dans le depot : recherche 'SwissQR', 'QrBill', 'QRCode', 'Zxing', 'BarcodeReader' sans resultat dans app/. L'extraction de lignes existe (app/Services/Extraction/InvoiceLineItemExtractor.php, app/Services/Ingest/CmdV4ResultMapper.php) mais part de CMD v4 / IA, pas d'un QR scanne, et ne verifie ni l'adressage ni les coordonnees vendeur en tant que telles. Rien a cabler : le premier lot serait d'ecrire la brique de lecture QR elle-meme — hors perimetre de ce lot (maillon 2 seulement).",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-13",
+      "point": "D-GED-02 — egalite somme des lignes + TVA = total facture (question maitresse, verifiable sans reference externe)",
+      "cmd": null,
+      "_note": "Separee de SV-12 a la demande explicite d'Olivier : c'est la seule assertion qui ne depend d'aucune reference externe (ni QR, ni fournisseur connu), uniquement d'une addition. Aucune fonction de reconciliation n'existe : recherche array_sum/reconcil/ecart dans app/Services/Ingest sans resultat. Point candidat le plus urgent a cabler des qu'une extraction de lignes+TVA+total existe pour une facture donnee, quelle que soit la source (QR, OCR ou CMD v4) : abs((somme(lignes)+tva) - total) < 0.01.",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    },
+    {
+      "id": "SV-14",
+      "point": "D-GED-05 — la liaison ERP a une decision tranchee et tracee (pas codee) sur son traitement",
+      "cmd": null,
+      "_note": "Mesure que la decision est TRANCHEE ET TRACEE, pas qu'elle est codee. Aucun artefact de decision n'existe aujourd'hui : pas de governance/decisions/, pas de champ dans truth.k.toml documentant un choix explicite. Contexte transmis par la demande : truth.k.toml declare ged->ktime en 'interroge+action', et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml — divergence non arbitree. Une fois la decision prise, la sonde a ecrire verifiera l'existence d'un enregistrement date portant la marque d'Olivier (jamais posee par un agent — regle 9).",
+      "etat": "NON CABLE",
+      "ms": 0,
+      "preuve": ""
+    }
+  ]
+}

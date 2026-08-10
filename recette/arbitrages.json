@@ -1,0 +1,23 @@
+{
+  "_doc": "Arbitrages en attente d'Olivier. Un agent DEPOSE, il ne tranche jamais. Olivier pose tranche_le et choix.",
+  "arbitrages": [
+    {
+      "id": "A-GED-01",
+      "question": "Comment traiter la liaison ERP avec K-Time ?",
+      "options": [
+        "interrogation seule (lecture factures/adresses/articles)",
+        "interrogation + action (pousser un brouillon de facture)",
+        "differer apres la demo Waelti"
+      ],
+      "defaut": "interrogation seule d'abord",
+      "bloque": [
+        "D-GED-05 reste en TROU",
+        "l'arete ktime->ged reste declaree jamais prouvee"
+      ],
+      "pose_par": "Claude (session pilotage)",
+      "pose_le": "2026-08-10",
+      "tranche_le": null,
+      "choix": null
+    }
+  ]
+}
