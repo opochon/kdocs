@@ -279,6 +279,32 @@ class FilesystemIndexer
      * La version courante reste le fichier nu, a sa place, ouvrable directement.
      * Seules les archives vivent dans `.versions/`.
      */
+    /**
+     * Le fichier est-il reellement SUIVI par git ?
+     *
+     * On interroge git, on ne devine pas. Chercher un `.git` en remontant
+     * l'arborescence est un faux ami : storage/documents vit dans le depot
+     * GEDv1 et n'a pourtant aucun fichier suivi — .gitignore ligne 37 exclut
+     * /storage/documents/**. Un fichier dans un depot n'est pas un fichier
+     * versionne.
+     *
+     * Utile le jour ou la GED se pose sur un stockage reellement gere par git :
+     * inutile de doubler une histoire qui existe deja.
+     */
+    private function estSuiviParGit(string $fullPath): bool
+    {
+        $dossier = dirname($fullPath);
+        $cmd = sprintf(
+            'git -C %s ls-files --error-unmatch %s 2>&1',
+            escapeshellarg($dossier),
+            escapeshellarg(basename($fullPath))
+        );
+
+        @exec($cmd, $sortie, $code);
+
+        return $code === 0;
+    }
+
     private function enregistrerVersion(
         int $documentId,
         string $filename,
@@ -289,6 +315,16 @@ class FilesystemIndexer
         ?string $checksumPrecedent
     ): void {
         try {
+            // Un fichier reellement SUIVI par git est deja versionne : le
+            // recopier serait redondant. Attention au faux ami — etre situe
+            // dans l'arborescence d'un depot ne suffit pas. storage/documents
+            // vit dans le depot GEDv1 et n'a pourtant aucun fichier suivi
+            // (.gitignore ligne 37 : /storage/documents/**). Seul git peut
+            // repondre, on le lui demande.
+            if ($this->estSuiviParGit($fullPath)) {
+                return;
+            }
+
             $dossier  = dirname($fullPath) . DIRECTORY_SEPARATOR . '.versions' . DIRECTORY_SEPARATOR . $filename;
             $ext      = pathinfo($filename, PATHINFO_EXTENSION);
             $numero   = \KDocs\Models\DocumentVersion::countByDocument($documentId) + 1;
@@ -346,10 +382,14 @@ class FilesystemIndexer
     {
         $stats = ['documents' => 0, 'archives' => 0, 'ignores' => 0, 'erreurs' => 0];
 
+        // Les fixtures de test (eval/) sont exclues : elles sont regenerees a
+        // chaque campagne, les archiver ne protege rien et coute du disque.
         $stmt = $this->db->query(
             "SELECT d.id, d.filename, d.file_path, d.file_size, d.mime_type, d.checksum
              FROM documents d
              WHERE d.deleted_at IS NULL AND d.file_path IS NOT NULL
+               AND COALESCE(d.relative_path, '') NOT LIKE 'eval/%'
+               AND d.file_path NOT LIKE '%\\\\eval\\\\%'
                AND NOT EXISTS (SELECT 1 FROM document_versions v WHERE v.document_id = d.id)"
         );
 

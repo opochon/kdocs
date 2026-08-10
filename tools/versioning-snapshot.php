@@ -37,6 +37,8 @@ $db = Database::getInstance();
 $aTraiter = (int) $db->query(
     "SELECT COUNT(*) FROM documents d
      WHERE d.deleted_at IS NULL AND d.file_path IS NOT NULL
+       AND COALESCE(d.relative_path, '') NOT LIKE 'eval/%'
+       AND d.file_path NOT LIKE '%\\eval\\%'
        AND NOT EXISTS (SELECT 1 FROM document_versions v WHERE v.document_id = d.id)"
 )->fetchColumn();
 
@@ -46,6 +48,8 @@ $poids = 0;
 $stmt = $db->query(
     "SELECT COALESCE(SUM(d.file_size), 0) FROM documents d
      WHERE d.deleted_at IS NULL AND d.file_path IS NOT NULL
+       AND COALESCE(d.relative_path, '') NOT LIKE 'eval/%'
+       AND d.file_path NOT LIKE '%\\eval\\%'
        AND NOT EXISTS (SELECT 1 FROM document_versions v WHERE v.document_id = d.id)"
 );
 $poids = (int) $stmt->fetchColumn();
