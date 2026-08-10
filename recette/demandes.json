@@ -49,7 +49,7 @@
       "origine": "verbatim",
       "posee_le": "2026-08-10",
       "redemandes": 0,
-      "points": [],
+      "points": ["SV-14"],
       "adoptee_le": null,
       "note": "TROU — decision produit en attente, pas un defaut. Elle reste ouverte et visible jusqu'a arbitrage d'Olivier. Contexte : truth.k.toml declare ged->ktime `interroge+action`, et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml."
     }
