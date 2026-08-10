@@ -1,0 +1,6 @@
+{
+  "_doc": "Registre des DEMANDES d'Olivier. Une demande n'est JAMAIS fermee par un agent : elle se ferme quand un point de partition la couvre, que ce point est VERT, et qu'Olivier a pose adoptee_le. Une demande sans point est un TROU (rouge). Une demande redemandee est un defaut du systeme. Seul Olivier ajoute une demande, incremente redemandes, et pose adoptee_le. Premier lot de la session : transcrire ici les demandes deja formulees, chacune rattachee a un point.",
+  "projet": "GEDv1 / K-Docs",
+  "referent": "M-Files + governance/ATTENDUS-PRODUIT.md",
+  "demandes": []
+}
