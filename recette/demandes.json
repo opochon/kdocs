@@ -19,7 +19,7 @@
       "origine": "verbatim",
       "posee_le": "2026-08-09",
       "redemandes": 0,
-      "points": [],
+      "points": ["SV-12", "SV-13"],
       "adoptee_le": null,
       "note": "TROU. La question maitresse est l'egalite lignes + TVA = total : c'est la seule qui se verifie sans reference externe. Une extraction qui echoue la a echoue, quoi qu'elle rende par ailleurs. Le premier lot est d'ecrire ces points, pas l'extraction."
     },
