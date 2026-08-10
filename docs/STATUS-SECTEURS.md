@@ -4,9 +4,9 @@
 > Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.
 > Regles contraignantes : `AGENTS.md` · Attendus : `governance/ATTENDUS-PRODUIT.md`.
 
-> Dernier harness : **ROUGE** · 42 suites · 2026-08-09T10:57:06.154Z
+> Dernier harness : **ROUGE** · 43 suites · 2026-08-10T10:40:31.552Z
 
-**15 secteurs** — 8 🟢 verts · 5 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 1 🕓 non mesures
+**15 secteurs** — 9 🟢 verts · 5 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 0 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
@@ -16,12 +16,12 @@
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
 | 🔴 | `tracabilite-audit` | ROUGE | 0✓ 1✗ | — |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
-| 🕓 | `recherche-transverse` | NON-MESURE | 0✓ 1? | recherche, classification-ia |
 | 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
 | 🟢 | `interface` | VERT | 11✓ | — |
 | 🟢 | `recherche` | VERT | 2✓ | stockage |
+| 🟢 | `recherche-transverse` | VERT | 1✓ | recherche, classification-ia |
 | 🟢 | `securite-acl` | VERT | 2✓ | — |
 | 🟢 | `socle-mesure` | VERT | 4✓ | — |
 | 🟢 | `workflow-validation` | VERT | 1✓ | securite-acl |
@@ -142,24 +142,6 @@
 
 ---
 
-### 🕓 recherche-transverse — NON-MESURE
-
-**Vues dynamiques : dossiers filtres, tags, types, champs personnalises**
-
-> *Invariant* — L equivalent des vues M-Files sur un stockage disque. Un dossier Factures rassemble toutes les factures ou qu elles soient, sans deplacer un fichier.
-
-**Etat connu.** N est plus orphelin depuis le 2026-08-09. L infrastructure existait et etait CABLEE — LogicalFolder est appele par DocumentsApiController, DocumentsController et templates/documents/index.php ; logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 vues dont Factures sur {document_type_code: facture}. Elle n avait aucun oracle : le secteur pouvait casser sans que rien ne rougisse. Sonde tests/integration/test_logical_folders.php, 9 cas, executee contre la base reelle : aucun intrus d un autre type, aucun document perdu, compteur concordant, corbeille exclue. Prouvee descendante — filtre retire, 27 intrus apparaissent. RESTE : l usage est faible — 1 seule affectation de tag pour 337 documents, 0 champ personnalise, 0 recherche sauvegardee. Et 16 des 20 factures sont en statut pending, donc invisibles dans la vue.
-
-**Oracles declares jamais executes** : `logical-folders`
-
-**Agent** : `.claude/agents/recherche-transverse.md` · **Oracles** : `logical-folders`
-
-**Fichiers** : `app/Models/LogicalFolder.php` · `app/Models/Tag.php` · `app/Models/ClassificationField.php`
-
-**Tables** : `logical_folders`, `saved_searches`, `tags`, `document_tags`, `custom_fields`, `document_custom_fields`
-
----
-
 ### 🟢 classification-ia — VERT
 
 **Classement automatise — cascade IA, taxonomie ECM, suggestions**
@@ -235,6 +217,22 @@
 **Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
 
 **Tables** : `documents`, `saved_searches`
+
+---
+
+### 🟢 recherche-transverse — VERT
+
+**Vues dynamiques : dossiers filtres, tags, types, champs personnalises**
+
+> *Invariant* — L equivalent des vues M-Files sur un stockage disque. Un dossier Factures rassemble toutes les factures ou qu elles soient, sans deplacer un fichier.
+
+**Etat connu.** N est plus orphelin depuis le 2026-08-09. L infrastructure existait et etait CABLEE — LogicalFolder est appele par DocumentsApiController, DocumentsController et templates/documents/index.php ; logical_folders porte filter_type (filesystem, document_type, correspondent, tag, custom) et filter_config, avec 4 vues dont Factures sur {document_type_code: facture}. Elle n avait aucun oracle : le secteur pouvait casser sans que rien ne rougisse. Sonde tests/integration/test_logical_folders.php, 9 cas, executee contre la base reelle : aucun intrus d un autre type, aucun document perdu, compteur concordant, corbeille exclue. Prouvee descendante — filtre retire, 27 intrus apparaissent. RESTE : l usage est faible — 1 seule affectation de tag pour 337 documents, 0 champ personnalise, 0 recherche sauvegardee. Et 16 des 20 factures sont en statut pending, donc invisibles dans la vue.
+
+**Agent** : `.claude/agents/recherche-transverse.md` · **Oracles** : `logical-folders`
+
+**Fichiers** : `app/Models/LogicalFolder.php` · `app/Models/Tag.php` · `app/Models/ClassificationField.php`
+
+**Tables** : `logical_folders`, `saved_searches`, `tags`, `document_tags`, `custom_fields`, `document_custom_fields`
 
 ---
 

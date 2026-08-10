@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-08-09T10:57:06.154Z",
+  "generatedAt": "2026-08-10T10:40:31.552Z",
   "verdict": "ROUGE",
   "exitCode": 1,
-  "durationMs": 721403,
+  "durationMs": 941303,
   "suites": [
     {
       "name": "migration-smoke",
       "ok": true,
       "source": "tests/migration_smoke_test.php",
-      "durationMs": 91,
+      "durationMs": 100,
       "testCount": 215,
       "failures": 0,
       "exitCode": 0
@@ -17,7 +17,7 @@
       "name": "documents-innodb",
       "ok": true,
       "source": "tools/fix-documents-innodb.php",
-      "durationMs": 75,
+      "durationMs": 79,
       "exitCode": 0
     },
     {
@@ -27,7 +27,7 @@
       "testCount": 517,
       "failures": 0,
       "skipped": 3,
-      "durationMs": 48017
+      "durationMs": 46159
     },
     {
       "name": "folder-permissions",
@@ -43,7 +43,7 @@
       "source": "tests/Unit/Services/ThumbnailGeneratorTest.php",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 36
+      "durationMs": 41
     },
     {
       "name": "classifier-taxonomie",
@@ -51,7 +51,7 @@
       "source": "tests/Unit/Adapters/HtmleditorTaxonomyAdapterTest.php + tests/Unit/Services/DocumentTypeIdentificationTest.php",
       "testCount": 15,
       "failures": 0,
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "name": "soft-delete",
@@ -83,7 +83,7 @@
       "source": "tests/Feature/ApiKeyRedactionTest.php",
       "testCount": 5,
       "failures": 0,
-      "durationMs": 3
+      "durationMs": 5
     },
     {
       "name": "no-hard-delete",
@@ -91,7 +91,7 @@
       "source": "tests/Feature/NoHardDeleteTest.php (cliquet governance/budgets.json)",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 91
+      "durationMs": 113
     },
     {
       "name": "folder-permissions-serverside",
@@ -121,16 +121,31 @@
       "name": "search-fulltext",
       "ok": true,
       "source": "tests/integration/test_fulltext_search.php",
-      "durationMs": 4625,
+      "durationMs": 4660,
       "testCount": 18,
       "failures": 0,
       "exitCode": 0
     },
     {
+      "name": "logical-folders",
+      "ok": true,
+      "source": "tests/integration/test_logical_folders.php",
+      "durationMs": 86,
+      "exitCode": 0
+    },
+    {
+      "name": "stockage-coherence",
+      "ok": false,
+      "source": "tests/integration/test_stockage_coherence.php",
+      "durationMs": 96,
+      "exitCode": 1,
+      "stderrTail": "Failed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\n"
+    },
+    {
       "name": "eval-full",
       "ok": true,
       "source": "tools/eval-full.php --no-ocr",
-      "durationMs": 26032,
+      "durationMs": 212101,
       "testCount": 60,
       "failures": 0,
       "exitCode": 0
@@ -147,7 +162,7 @@
       "source": "tests/visual/specs/a11y.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 18631
+      "durationMs": 20369
     },
     {
       "name": "admin-hub",
@@ -155,7 +170,7 @@
       "source": "tests/visual/specs/admin-hub.spec.ts",
       "testCount": 6,
       "failures": 0,
-      "durationMs": 15739
+      "durationMs": 24189
     },
     {
       "name": "ai-assistant",
@@ -163,7 +178,7 @@
       "source": "tests/visual/specs/ai-assistant.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 206
+      "durationMs": 272
     },
     {
       "name": "ai-confidence-badge",
@@ -171,7 +186,7 @@
       "source": "tests/visual/specs/ai-confidence-badge.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 2757
+      "durationMs": 2088
     },
     {
       "name": "audit-coherence",
@@ -179,7 +194,7 @@
       "source": "tests/visual/specs/audit-coherence.spec.ts",
       "testCount": 14,
       "failures": 0,
-      "durationMs": 42422
+      "durationMs": 54606
     },
     {
       "name": "bugs",
@@ -187,7 +202,7 @@
       "source": "tests/visual/specs/bugs.spec.ts",
       "testCount": 5,
       "failures": 0,
-      "durationMs": 20933
+      "durationMs": 33145
     },
     {
       "name": "bugs-click",
@@ -195,7 +210,7 @@
       "source": "tests/visual/specs/bugs-click.spec.ts",
       "testCount": 3,
       "failures": 0,
-      "durationMs": 9793
+      "durationMs": 15982
     },
     {
       "name": "bugs-misc",
@@ -203,7 +218,7 @@
       "source": "tests/visual/specs/bugs-misc.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 893
+      "durationMs": 937
     },
     {
       "name": "chrome-coherence",
@@ -211,7 +226,7 @@
       "source": "tests/visual/specs/chrome-coherence.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 18519
+      "durationMs": 23459
     },
     {
       "name": "cmdv4-freshness-badge",
@@ -219,18 +234,19 @@
       "source": "tests/visual/specs/cmdv4-freshness-badge.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 1489
+      "durationMs": 1553
     },
     {
       "name": "erp-connect",
       "ok": false,
       "source": "tests/visual/specs/erp-connect.spec.ts",
       "testCount": 2,
-      "failures": 1,
+      "failures": 2,
       "failedCases": [
+        "proposition → introduction → validation K-Time → bon pour accord",
         "lien d'évidence persisté côté GED (erp_links)"
       ],
-      "durationMs": 257
+      "durationMs": 15486
     },
     {
       "name": "fiche-document",
@@ -238,7 +254,7 @@
       "source": "tests/visual/specs/fiche-document.spec.ts",
       "testCount": 6,
       "failures": 0,
-      "durationMs": 7265
+      "durationMs": 8041
     },
     {
       "name": "legal-seal",
@@ -246,7 +262,7 @@
       "source": "tests/visual/specs/legal-seal.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 311
+      "durationMs": 348
     },
     {
       "name": "lib-operations",
@@ -257,7 +273,7 @@
       "failedCases": [
         "F-LIB-06: déplacer dossier sous destination"
       ],
-      "durationMs": 63774
+      "durationMs": 64338
     },
     {
       "name": "persona",
@@ -265,7 +281,7 @@
       "source": "tests/visual/specs/persona.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 12926
+      "durationMs": 13446
     },
     {
       "name": "persona-parcours-ecm",
@@ -276,7 +292,7 @@
       "failedCases": [
         "Lot A — ingérer → classer → analyser (eval_redx_expert)"
       ],
-      "durationMs": 301866
+      "durationMs": 307191
     },
     {
       "name": "persona-preview",
@@ -284,7 +300,7 @@
       "source": "tests/visual/specs/persona-preview.spec.ts",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 9654
+      "durationMs": 12359
     },
     {
       "name": "persona-redx-expert",
@@ -292,7 +308,7 @@
       "source": "tests/visual/specs/persona-redx-expert.spec.ts",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 5163
+      "durationMs": 6057
     },
     {
       "name": "pipeline-ui",
@@ -303,7 +319,7 @@
       "failedCases": [
         "UI pipeline : upload → suggestion IA → sauvegarde → recherche"
       ],
-      "durationMs": 64844
+      "durationMs": 21068
     },
     {
       "name": "search-tasks",
@@ -311,7 +327,7 @@
       "source": "tests/visual/specs/search-tasks.spec.ts",
       "testCount": 5,
       "failures": 0,
-      "durationMs": 20726
+      "durationMs": 22543
     },
     {
       "name": "shell",
@@ -319,7 +335,7 @@
       "source": "tests/visual/specs/shell.spec.ts",
       "testCount": 6,
       "failures": 0,
-      "durationMs": 2017
+      "durationMs": 2280
     },
     {
       "name": "smq-versions",
@@ -327,7 +343,7 @@
       "source": "tests/visual/specs/smq-versions.spec.ts",
       "testCount": 2,
       "failures": 0,
-      "durationMs": 868
+      "durationMs": 988
     },
     {
       "name": "workflow-doc-identification",
@@ -335,7 +351,7 @@
       "source": "tests/visual/specs/workflow-doc-identification.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 4284
+      "durationMs": 5272
     },
     {
       "name": "ui-chrome",
@@ -343,17 +359,7 @@
       "source": "alias de chrome-coherence — tests/visual/specs/chrome-coherence.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 18519
-    },
-    {
-      "name": "stockage-coherence",
-      "ok": false,
-      "source": "tests/integration/test_stockage_coherence.php",
-      "durationMs": 84,
-      "exitCode": 1,
-      "stderrTail": "Failed loading E:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\n"
+      "durationMs": 23459
     }
-  ],
-  "patchedAt": "2026-08-09T12:15:50.255Z",
-  "patchedSuite": "stockage-coherence"
+  ]
 }
