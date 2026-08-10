@@ -1,0 +1,26 @@
+{
+  "lot": "claim-reservations-fiables",
+  "date": "2026-08-10",
+  "resume": "Les reservations entre sessions ne protegeaient pas un lot long. tools/claim.mjs calculait la peremption sur l'age du dernier battement seul (PERIME_MS = 20 min), et rien n'emettait de battement automatiquement : une reservation prise a 11:59 pour un lot de 16 min avait disparu a 12:20 alors que le lot tournait toujours — et gc() effaçait le fichier, donc une autre session pouvait reprendre l'item en cours de travail. Second defaut : release imprimait LIBERE meme quand aucun fichier n'existait, et effaçait sans controle la reservation vivante d'un autre agent. La reservation est desormais ancree sur le processus de SESSION : take remonte la chaine des parents jusqu'a un ancetre claude.exe et enregistre ce pid avec son nom ; tant que ce processus repond et porte toujours ce nom, la reservation n'est jamais reputee morte, quel que soit son age.",
+  "test": "tests/integration/test-claim-reservations.mjs — 13 assertions, VERT (13 reussis, 0 echoues, exit 0). Prouvee descendante : le bug reintroduit (pid: process.pid au lieu du pid de session), la sonde rougit sur l'assertion decisive — RESUME: 12 reussis, 1 echoues, exit 1, 'le pid enregistre par take reste vivant APRES la fin du processus node qui l a ecrit — pid=32824 vivant=false'. Verification independante du manager : node tools/claim.mjs take verif-manager ecrit pid 1736 / pid_name claude.exe, et Get-Process -Id 1736 rend le processus claude demarre a 11:43:19, soit la session elle-meme. Cout mesure : take 687 ms, list 364 ms, release 414 ms — le surcout CIM ne pese que sur take, qui est rare.",
+  "reste": [
+    "Le comportement sur une machine sans ancetre claude.exe (CI headless, execution manuelle) retombe sur le TTL, couvert par la section 3 de la sonde (format sans pid) mais non verifie sur un second poste.",
+    "La cause reelle des collisions n'est PAS corrigee par ce lot : voir A-GED-02."
+  ],
+  "decisions": [
+    "PERIME_MS = 20 * 60 * 1000 n'est pas touche. Un seuil chiffre appartient a Olivier (regle 9) : le lot change la CONDITION de peremption, jamais le nombre.",
+    "Le pid enregistre est celui de la session claude, pas celui du CLI. Premiere version du correctif : pid = process.pid, c'est-a-dire le pid du processus node tools/claim.mjs qui se termine en quelques millisecondes — le pid etait donc toujours mort a la lecture suivante et le TTL jugeait encore seul. Le correctif ne corrigeait rien, et sa sonde ne pouvait pas le voir.",
+    "La sonde v1 passait 10/10 sur un code inchange en usage reel : elle ecrivait elle-meme les fichiers de reservation avec un pid choisi vivant, sans jamais executer take puis relire ce que take avait ecrit. Verite tiree des fichiers qu'elle fabriquait, pas du chemin reel — regle 7, sur le lot meme cense reparer un defaut de gouvernance. L'assertion ajoutee execute take par spawnSync et sonde le pid APRES la fin du processus qui l'a ecrit.",
+    "processVivant verifie l'existence du pid ET le nom du processus : le piege du pid recycle, accepte et documente dans la v1, disparait au lieu d'etre tolere.",
+    "La sonde travaille sur un repertoire jetable via KS_CLAIMS_DIR et ne touche jamais governance/claims/ : une session peut tourner pendant qu'elle s'execute."
+  ],
+  "bloque": [
+    {
+      "item": "collisions d'ecriture entre une session en cours et le filet de tour",
+      "cause_mesuree": "EcosystemK/gouvernance/tools/tour.mjs execute `git add -A` puis commit deux fois par tour (wip(filet): avant tour N, chore(etat): fin de tour N). Le 2026-08-10 a 12:07:31, le commit 4d7eea0 a ramasse l'edition en cours d'un sous-agent dans recette/demandes.json et l'a versee dans un commit de lanceur. `git add -A` est interdit nommement par l'AGENTS.md de ce depot.",
+      "pourquoi_non_traite": "tour.mjs vit dans EcosystemK. Un agent de GEDv1 n'y ecrit pas.",
+      "depose": "recette/arbitrages.json — A-GED-02, trois options, defaut recommande : le filet ne se pose que si claim.mjs list ne montre aucune reservation vivante.",
+      "portee": "ce lot protege la RESERVATION ; il ne protege pas le fichier en cours d'ecriture. Les deux moities sont necessaires."
+    }
+  ]
+}

@@ -18,6 +18,26 @@
       "pose_le": "2026-08-10",
       "tranche_le": "2026-08-10",
       "choix": "Aucune des trois options proposees : la GED CONSOMME une fonction et une interface servies par K-Time, elle ne les reimplemente pas. Elle detecte une facture fournisseur par OCR, passe la main a K-Time, et affiche l interface que K-Time sert. Voir D-KT-13 et D-GED-06."
+    },
+    {
+      "id": "A-GED-02",
+      "question": "EcosystemK/gouvernance/tools/tour.mjs fait `git add -A` puis commit deux fois par tour (wip(filet): avant tour N, chore(etat): fin de tour N). Le depot GEDv1 interdit `git add -A` nommement dans son AGENTS.md. Que fait-on ?",
+      "constat": "Le 2026-08-10 a 12:07:31, le commit 4d7eea0 a ramasse l'edition EN COURS d'un sous-agent dans recette/demandes.json (D-GED-02 -> SV-12, SV-13) et l'a versee dans un commit de lanceur portant un autre message. Rien n'a ete perdu cette fois. Un `git add -A` ne distingue pas un travail fini d'un travail a moitie ecrit : il ne peut pas voir la difference, donc il ne peut pas la respecter. C'est la cause reelle de ce que j'avais d'abord attribue a tort a une session parallele.",
+      "options": [
+        "tour.mjs stage des chemins explicites au lieu de `git add -A` (le filet ne couvre plus que ce qu'il sait nommer)",
+        "tour.mjs ne pose le filet que si `node tools/claim.mjs list` ne montre aucune reservation vivante (le filet attend la fin du lot)",
+        "le filet devient `git stash create` + tag, sans commit : rien n'entre dans l'historique, rien n'est perdu"
+      ],
+      "defaut": "option 2 — c'est la seule qui garde le filet intact tout en respectant un lot en cours, et elle s'appuie sur un mecanisme qui existe deja",
+      "bloque": [
+        "toute session longue de ce depot : un sous-agent qui ecrit pendant plus d'un tour voit son travail commite par quelqu'un d'autre, sous un message qui ne le decrit pas",
+        "la lecture de l'historique : un commit de lanceur contient du travail de recette"
+      ],
+      "hors_perimetre": "tour.mjs vit dans EcosystemK. Un agent de GEDv1 n'y ecrit pas — d'ou ce depot plutot qu'un correctif.",
+      "pose_par": "Claude (session pilotage GEDv1)",
+      "pose_le": "2026-08-10",
+      "tranche_le": null,
+      "choix": null
     }
   ]
 }
