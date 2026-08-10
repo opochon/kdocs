@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-10 12:49 depuis les instruments.
+> Genere le 2026-08-10 12:50 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -58,8 +58,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 4 fichiers modifies
-- dernier commit : dce52ce 2026-08-10 recette : arbitrages en attente d Olivier deposes (le journal n est pas un canal d escalade)
+- branche `main` · 3 fichiers modifies
+- dernier commit : b33b5b2 2026-08-10 recette : 4 points tranches par Olivier — chaine facture fournisseur servie par K-Time, liaison CMM documentaire, TTL par sonde, seuil relatif + barre
 
 ## Definition de « fait » pour ce tour
 
