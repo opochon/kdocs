@@ -2,6 +2,9 @@
 
 Canonique. `CLAUDE.md` pointe ici. Vaut pour Claude Code, Codex, Cursor.
 
+> **Transverse.** Ce depot herite des dix regles et de l'ordre de preseance de
+> `EcosystemK/AGENTS.md` — importe : @../EcosystemK/AGENTS.md
+
 ## Commandes
 
 ```bash

@@ -1,0 +1,17 @@
+#!/bin/sh
+# pre-push — la seule barriere qu aucun outil ne contourne.
+# Cursor, Grok, Codex, Claude ou un humain : tous poussent par git.
+# Un fichier d instruction est consultatif ; ceci ne l est pas.
+# --no-verify reste possible et reste trace : decision d Olivier,
+# notee dans SESSION-STATUS.md, jamais un defaut.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+echo ""; echo "--- pre-push : cablage des consignes ---"
+node "F:/DATA/DEVELOPPEMENT/EcosystemK/gouvernance/tools/consignes.mjs" --repo ged || {
+  echo "[X] G-CONSIGNES rouge — les portes de ce depot ne menent pas au canonique."
+  echo "    Corriger, ou pousser --no-verify et le noter dans SESSION-STATUS.md."
+  exit 1
+}
+echo ""; echo "--- pre-push : gate du projet ---"
+cmd //c run-harness.bat || { echo "[X] Gate rouge. Une poussee sur rouge n est pas une tache finie."; exit 1; }
+echo ""; echo "--- pre-push : vert ---"
