@@ -1,0 +1,6 @@
+#!/bin/sh
+# Fin de tour universelle : Cursor, Codex, Claude ou humain passent tous par git commit.
+# Silencieux si le commit ne touche que la gouvernance. Ne bloque jamais.
+[ -n "$GIT_REBASE_TODO" ] && exit 0
+command -v node >/dev/null 2>&1 || exit 0
+node "F:\DATA\DEVELOPPEMENT\EcosystemK\gouvernance/tools/apres-commit.mjs" 2>/dev/null || true

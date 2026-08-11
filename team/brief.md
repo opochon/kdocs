@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-10 13:18 depuis les instruments.
+> Genere le 2026-08-11 05:00 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -27,13 +27,11 @@
 
 ## Socle
 
-Cable : **9/21** · derniere recette 2026-08-10 : 7V / 2R / 12NC
+Cable : **11/21** · derniere recette 2026-08-10 : 7V / 2R / 12NC
 
 Points NON CABLES — un point non cable ne prouve rien :
-- `G-04` cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout
 - `G-06` JC-GED extraction facture QR : Q-GED-01..08, dont Q-GED-05 (somme lignes+TVA = total) et Q-GED-14 (champ absent declare absent, jamais invente)
 - `G-07` contre-jeu : suppression d'un document rattache a une ecriture = refus motive ; original jamais modifie
-- `SV-01` D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)
 - `SV-02` D-GED-01 verbe 2/8 — lire : OCR et indexation plein texte (ATTENDUS-PRODUIT B2)
 - `SV-04` D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)
 - `SV-05` D-GED-01 verbe 5/8 — interface claire : la fonction est atteignable par un utilisateur depuis l'interface (ATTENDUS-PRODUIT E.1)
@@ -58,8 +56,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 2 fichiers modifies
-- dernier commit : e36ef15 2026-08-10 claim : la reservation tient tant que la session vit — sonde 13/13, prouvee descendante
+- branche `main` · 9 fichiers modifies
+- dernier commit : 0f8611e 2026-08-10 methode : recette manuelle instrumentee — passer un geste vaut signature
 
 ## Definition de « fait » pour ce tour
 
