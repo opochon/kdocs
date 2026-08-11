@@ -279,7 +279,8 @@ class ConsumeFolderService
             FROM documents d
             LEFT JOIN correspondents c ON d.correspondent_id = c.id
             LEFT JOIN document_types dt ON d.document_type_id = dt.id
-            WHERE d.status IN ('pending', 'needs_review')
+            WHERE d.deleted_at IS NULL
+              AND d.status IN ('pending', 'needs_review')
             ORDER BY d.created_at DESC
         ")->fetchAll(\PDO::FETCH_ASSOC);
     }

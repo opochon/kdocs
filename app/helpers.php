@@ -158,8 +158,13 @@ if (!function_exists('shellSidebarStats')) {
             $stats['documents'] = (int) $db->query(
                 "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND {$docFilter}"
             )->fetchColumn();
+            // deleted_at IS NULL : sans cette clause le compteur additionnait la corbeille.
+            // Mesure du 2026-08-11 : 385 = 195 vivants + 190 supprimes. L'ecart entre le
+            // badge (385) et la page /mes-taches (195) etait exactement le nombre de
+            // documents a la corbeille — on annoncait a l'utilisateur du travail sur des
+            // documents qu'il avait supprimes.
             $stats['pending_validation'] = (int) $db->query(
-                "SELECT COUNT(*) FROM documents WHERE status IN ('pending', 'needs_review')"
+                "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND status IN ('pending', 'needs_review')"
             )->fetchColumn();
 
             if ($userId !== null && $userId > 0) {
