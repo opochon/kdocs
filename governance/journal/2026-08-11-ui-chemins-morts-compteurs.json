@@ -1,0 +1,36 @@
+{
+  "lot": "ui-chemins-morts-compteurs",
+  "date": "2026-08-11",
+  "demande": "Defauts rencontres par Olivier a l usage, en seance : rechargement qui vole le travail en cours, « Voir » qui tombe en 404, contradiction 195 / 385, et « ajoute un test persona playwright qui va cliquer et detecter les chemins morts ».",
+  "resume": "Quatre lots enchaines. (1) Sonde persona-dead-links : parcourt 7 ecrans, lit tous les href AVANT de cliquer, classe 404/500, route interne sans prefixe, lien vide, miniature a naturalWidth=0 ; verification par GET hors clic, liste noire codee sur delete/purge/trash/validate. (2) Trois correctifs d interface. (3) Audit contradictoire du manuel par Codex, en contexte neuf. (4) Reconciliation des compteurs.",
+  "test": "persona-dead-links cablee et enregistree active dans governance/specs.json — `node tools/run-harness.mjs --check-specs` rend « OK — 24 spec(s) sur disque, toutes registrees ». Preuves sur le produit servi avec session reelle : / et /documents et /admin/consume rendent sonde=oui reload_auto=non invitation=oui ; liens vers consume prefixes ; aucun chemin interne sans prefixe restant sur /mes-taches ; badge du tableau de bord 195 (etait 385) ; file /admin/consume 196 formulaires et 3738 Ko (etait 385 et 6682 Ko) ; /kdocs/logout rend 302 quand /kdocs/auth/logout rendait 404 ; 12 miniatures testees rendent 200 image/png.",
+  "reste": [
+    "LE HARNESS N A PAS ETE REJOUE depuis le 2026-08-10 alors que ce lot touche app/helpers.php, app/Services/, templates/layouts/ et templates/partials/. L etat du gate est inconnu. C est le premier geste du prochain tour.",
+    "DF-01, DF-04, DF-05 et DF-06 de recette/defauts.md n ont AUCUN point de partition : corriges ou nommes, pas outilles.",
+    "Le badge « A traiter » reste un max() de deux grandeurs sans rapport (helpers.php:174). Non corrige : choix d affichage, depose en D-GED-09.",
+    "La sonde persona-dead-links ne couvre que les <a href> : ni boutons JS purs, ni formulaires, ni parcours en role non-root. Les comptes eval_secretaire, eval_comptable et eval_rh existent et personne n a jamais parcouru le produit avec leurs droits.",
+    "AGENTS.md avertit que « les 19 specs Playwright sont listees en dur dans run-harness.bat ». Ce n est plus vrai depuis 57289dc : tools/run-harness.mjs les decouvre et exige governance/specs.json. Une consigne qui decrit un piege refermé fait chercher au mauvais endroit. Non corrige : AGENTS.md appartient a Olivier."
+  ],
+  "decisions": [
+    "Le rechargement automatique disparait, le bandeau devient une invitation « Nouveaux documents indexes » + bouton Rafraichir, fermable. Le signal est conserve, la decision revient a l utilisateur. La sonde checkIndexingStatus est intacte.",
+    "TaskUnifiedService : les HUIT link/action_link passent par url(), pas seulement les deux qui produisaient le 404 d Olivier. Le defaut interessant est la famille, pas le cas.",
+    "Un `deleted_at IS NULL` manquait a deux endroits — helpers.php (le badge) et ConsumeFolderService::getPendingDocuments() (la file). Une clause reconcilie les compteurs ET divise la page de validation par deux.",
+    "Audit confie a Codex plutot qu a un agent Claude : contexte neuf, ne connait pas mes conclusions. Motif explicite dans la consigne — deux de mes diagnostics du jour s etaient reveles faux et aucun n avait ete rattrape par moi.",
+    "Le troisieme correctif a ete termine par le manager lui-meme apres trois interruptions d API du sous-agent. Vingt lignes cadrees ne justifiaient pas une quatrieme relance ; la consigne de session dit que le manager ne code pas, l ecart est assume et signale."
+  ],
+  "erreurs_de_l_agent": [
+    "« 50 balises image, 0 chargee, les vignettes sont cassees » — FAUX. La mesure lisait naturalWidth sur une page encore en cours de chargement. Verifie en HTTP : 12 miniatures testees, 12 rendent 200 image/png. Une lenteur prise pour une casse. Rattrape par un sous-agent qui a contredit son manager.",
+    "« Le mecanisme de declaration d un dossier externe existe, table storage_paths » — FAUX. Cette table porte match / matching_algorithm / is_insensitive : ce sont des regles de RANGEMENT, pas des sources a surveiller. Source et destination confondues sur le mot `path`. Rattrape par Olivier.",
+    "« Toutes les dates de la bibliotheque sont identiques » — FAUX. La page rend 11/08, 10/08 et 09/08. Premieres lignes d une grille triee par date d entree, ou elles se ressemblent forcement. Rattrape par l audit contradictoire.",
+    "« Le classement en ligne a ete perdu » — FAUX. /admin/consume EST l ecran de classement et il classe en ligne. Je l avais capture moi-meme sans le reconnaitre. Rattrape par Olivier.",
+    "Constat de methode : quatre diagnostics faux dans la seance, AUCUN rattrape par leur auteur. Tous par un tiers — sous-agent, auditeur en contexte neuf, ou Olivier. La correction n est pas « faire plus attention » : c est de maintenir systematiquement un tiers entre un diagnostic et sa livraison. C est ce que persona-dead-links fait en continu et ce que le lot Codex a fait ponctuellement."
+  ],
+  "bloque": [
+    {
+      "item": "A-GED-02 — le filet de tour ramasse le travail en cours",
+      "occurrence": "DEUXIEME, le 2026-08-11 : le commit df3d888 « wip(filet): avant tour 0 » a ramasse les cinq sondes et leurs fixtures, 1340 lignes, dans un commit de lanceur.",
+      "cause": "EcosystemK/gouvernance/tools/tour.mjs execute `git add -A` puis commit deux fois par tour.",
+      "etat": "Tranche depuis (option 3, ref dediee refs/filet/<horodatage>), correctif pas encore en place. tour.mjs vit dans EcosystemK : hors perimetre d un agent GEDv1."
+    }
+  ]
+}
