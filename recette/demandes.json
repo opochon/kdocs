@@ -82,6 +82,28 @@
       "points": [],
       "demande": "La GED detecte une facture fournisseur depuis l OCR, ne refait pas le travail, et affiche l interface de rapprochement servie par K-Time",
       "note": "TROU. Contrepartie de D-KT-13. Le point doit rougir si une analyse de facture fournisseur ou un ecran de rapprochement apparait cote GED : ce serait une seconde implementation, donc deux verites qui divergeront."
+    },
+    {
+      "id": "D-GED-07",
+      "demande": "Classer depuis la LISTE, sans ouvrir les documents un par un : apercu immediat au clic, classement en ligne, et un bouton IA par ligne pour le classement automatique. Cette fonction a existe, Olivier en est l'auteur — son absence est une REGRESSION.",
+      "origine": "verbatim",
+      "posee_le": "2026-08-11",
+      "redemandes": 1,
+      "points": [],
+      "adoptee_le": null,
+      "transcrit_par": "Claude, sur instruction d'Olivier en session le 2026-08-11 (« note et demarre la suite »)",
+      "note": "TROU. Transcription, pas deduction : un agent ne fabrique pas un verbatim. Ma recherche dans l'historique de CE depot n'a rien trouve — ni selection multiple, ni action en lot, ni bouton IA par ligne — et la structure « un formulaire complet par document » est ANTERIEURE a la refonte UI ebedb87, donc cette refonte ne l'a pas introduite. L'absence de trace git ne vaut pas absence de la fonction : Olivier en est l'auteur et l'atteste. Chercher cote ClearMyDocs avant toute reecriture (regle 1, verdict R19). Etat mesure le 2026-08-11 : la file impose 195 documents ouverts un par un dans une page de 6682 Ko portant 385 formulaires, 1540 selects, 36824 noeuds."
+    },
+    {
+      "id": "D-GED-08",
+      "demande": "Un dossier surveille, scanne regulierement et tout seul, situe HORS de la racine ou arrivent les scans.",
+      "origine": "verbatim",
+      "posee_le": "2026-08-11",
+      "redemandes": 1,
+      "points": [],
+      "adoptee_le": null,
+      "transcrit_par": "Claude, sur instruction d'Olivier en session le 2026-08-11",
+      "note": "TROU. Trois exigences distinctes, a mesurer separement sinon elles seront confondues : (1) le dossier surveille peut vivre AILLEURS que sous la racine du produit ; (2) il peut y en avoir PLUSIEURS ; (3) le scan est PERIODIQUE et automatique, pas un bouton. Etat mesure le 2026-08-11 : il existe exactement UNE source, `storage.consume`, en dur sous la racine (F:\\DATA\\DEVELOPPEMENT\\GEDv1\\storage\\consume), et un bouton Scanner. La tache `index_filesystem` est declaree toutes les 6 h et active, mais `last_run_at` est NULL et aucun ordonnanceur ne tourne. CORRECTION D'UNE ERREUR D'AGENT : j'avais d'abord ecrit que « le mecanisme pour declarer un dossier externe existe, table storage_paths ». C'est FAUX. storage_paths porte name/path/match/matching_algorithm/is_insensitive : c'est une table de regles de RANGEMENT — ou deposer un document selon son contenu — pas une liste de sources a surveiller. J'ai confondu destination et source parce que les deux portent une colonne `path`. Olivier a releve l'erreur. Rien dans le produit ne permet aujourd'hui de declarer un dossier surveille externe."
     }
   ]
 }
