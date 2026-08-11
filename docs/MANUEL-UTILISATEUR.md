@@ -164,9 +164,20 @@ boutons : **Voir** et un bouton de commentaire.
 **385**, la page annonce **195 élément(s)**, et l'onglet « À valider » n'affiche
 aucun compteur alors que « À classer » en affiche 195.
 
-**Ce n'est pas la file de validation.** Le bandeau « À traiter » mène ici, mais la
-véritable file de validation documentaire est ailleurs — Administration → Fichiers à
-valider. Deux écrans différents, deux contenus différents, un seul libellé.
+**Cet écran est un doublon, et il vous éloigne du bon.** Le classement se fait en
+§6, sur `/admin/consume` : la liste des documents à classer, chacun visible avec son
+aperçu et classable sur place. `mes-taches` refait le même travail dans une autre
+liste, en moins bien — il faut y cliquer « Voir » document par document. Et ce
+bouton tombe en 404 : le lien est construit sans le préfixe `/kdocs`
+(`TaskUnifiedService.php`, lignes 182-183).
+
+Le bandeau « À traiter » de la barre latérale, badge 385, mène ici. Il devrait mener
+à l'écran de classement.
+
+> **Correction.** La première version de ce manuel présentait `mes-taches` et
+> `/admin/consume` comme deux écrans légitimes aux rôles distincts. C'est faux :
+> c'est un doublon, et l'écran de classement est `/admin/consume`. L'erreur venait
+> de moi, pas du produit.
 
 ---
 
@@ -301,6 +312,15 @@ dire.
 
 Écrit ici pour éviter de le chercher.
 
+- **Le dossier surveillé n'est pas réglable.** Les Paramètres exposent le type de
+  stockage, le chemin de base et les extensions autorisées — mais **pas** le dossier
+  d'arrivée des scans. Il est en dur : `storage/consume`, sous la racine du produit.
+  Il ne peut être ni déplacé ailleurs, ni dédoublé.
+- **La fréquence de passage n'est pas réglable.** L'écran des tâches planifiées
+  **affiche** la périodicité en texte, sans champ pour la modifier. Le seul bouton
+  est « Exécuter », à la main.
+- **Cet écran n'est atteignable par aucun menu.** La route `/admin/scheduled-tasks`
+  existe, mais ni la barre latérale ni le hub n'y renvoient. Il faut connaître l'URL.
 - **Aucune tâche planifiée ne s'exécute.** Les quatre tâches déclarées (indexation
   du disque toutes les 6 h, nettoyage de corbeille, vérification des e-mails,
   génération des vignettes) ont toutes `dernier lancement = jamais`. Tout se

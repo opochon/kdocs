@@ -85,25 +85,25 @@
     },
     {
       "id": "D-GED-07",
-      "demande": "Classer depuis la LISTE, sans ouvrir les documents un par un : apercu immediat au clic, classement en ligne, et un bouton IA par ligne pour le classement automatique. Cette fonction a existe, Olivier en est l'auteur — son absence est une REGRESSION.",
+      "demande": "Le classement de base, c'est /admin/consume : la liste des documents a classer, chacun directement visible et classable sur place. « A traiter » (/kdocs/mes-taches) refait exactement le meme travail dans une autre liste. Deux ecrans pour un seul metier.",
       "origine": "verbatim",
       "posee_le": "2026-08-11",
       "redemandes": 1,
       "points": [],
       "adoptee_le": null,
       "transcrit_par": "Claude, sur instruction d'Olivier en session le 2026-08-11 (« note et demarre la suite »)",
-      "note": "TROU. Transcription, pas deduction : un agent ne fabrique pas un verbatim. Ma recherche dans l'historique de CE depot n'a rien trouve — ni selection multiple, ni action en lot, ni bouton IA par ligne — et la structure « un formulaire complet par document » est ANTERIEURE a la refonte UI ebedb87, donc cette refonte ne l'a pas introduite. L'absence de trace git ne vaut pas absence de la fonction : Olivier en est l'auteur et l'atteste. Chercher cote ClearMyDocs avant toute reecriture (regle 1, verdict R19). Etat mesure le 2026-08-11 : la file impose 195 documents ouverts un par un dans une page de 6682 Ko portant 385 formulaires, 1540 selects, 36824 noeuds."
+      "note": "CORRIGE le 2026-08-11 apres mise au point d'Olivier. Ma premiere redaction disait que le classement en ligne avait ete PERDU : c'est FAUX, il est a /admin/consume et il fonctionne — apercu a gauche, formulaire a droite, « Valider et classer ». Je l'avais moi-meme capture (docs/captures/04-validation-documents.jpg) sans reconnaitre que c'etait l'ecran de classement d'Olivier, et j'ai documente mes-taches et consume comme deux ecrans legitimes au lieu de nommer le doublon. Le vrai defaut est en trois morceaux : (1) DOUBLON — /kdocs/mes-taches refait le travail de /admin/consume ; (2) POINT D'ENTREE DEPLACE — le bandeau « A traiter » de la barre laterale, badge 385, mene a mes-taches et non a l'ecran de classement, et son bouton « Voir » tombe en 404 (TaskUnifiedService lignes 182-183, chemin sans prefixe) ; (3) VOLUME — /admin/consume construit tous les formulaires d'un coup : mesure du 2026-08-11, 385 formulaires, 1540 selects, 8462 options, 36824 noeuds, 6682 Ko de HTML, ni pagination ni recherche. C'est ce qui rend l'ecran intenable, pas son principe. Le point de partition devra mesurer : un seul chemin pour classer, et un temps d'affichage tenable a volume."
     },
     {
       "id": "D-GED-08",
-      "demande": "Un dossier surveille, scanne regulierement et tout seul, situe HORS de la racine ou arrivent les scans.",
+      "demande": "L'import se fait dans un dossier. Dans les Parametres, on choisit CE dossier et tous les combien de temps il est passe en revue.",
       "origine": "verbatim",
       "posee_le": "2026-08-11",
       "redemandes": 1,
       "points": [],
       "adoptee_le": null,
       "transcrit_par": "Claude, sur instruction d'Olivier en session le 2026-08-11",
-      "note": "TROU. Trois exigences distinctes, a mesurer separement sinon elles seront confondues : (1) le dossier surveille peut vivre AILLEURS que sous la racine du produit ; (2) il peut y en avoir PLUSIEURS ; (3) le scan est PERIODIQUE et automatique, pas un bouton. Etat mesure le 2026-08-11 : il existe exactement UNE source, `storage.consume`, en dur sous la racine (F:\\DATA\\DEVELOPPEMENT\\GEDv1\\storage\\consume), et un bouton Scanner. La tache `index_filesystem` est declaree toutes les 6 h et active, mais `last_run_at` est NULL et aucun ordonnanceur ne tourne. CORRECTION D'UNE ERREUR D'AGENT : j'avais d'abord ecrit que « le mecanisme pour declarer un dossier externe existe, table storage_paths ». C'est FAUX. storage_paths porte name/path/match/matching_algorithm/is_insensitive : c'est une table de regles de RANGEMENT — ou deposer un document selon son contenu — pas une liste de sources a surveiller. J'ai confondu destination et source parce que les deux portent une colonne `path`. Olivier a releve l'erreur. Rien dans le produit ne permet aujourd'hui de declarer un dossier surveille externe."
+      "note": "TROU. Verifie le 2026-08-11, les trois moities manquent : (1) LE DOSSIER n'est pas reglable — templates/admin/settings.php expose storage[type], storage[base_path], storage[allowed_extensions], mais AUCUN storage[consume]. La source est en dur : F:\\DATA\\DEVELOPPEMENT\\GEDv1\\storage\\consume, sous la racine du produit. (2) LA FREQUENCE n'est pas reglable — templates/admin/scheduled_tasks.php AFFICHE schedule_cron en texte (htmlspecialchars), sans aucun champ de saisie. Le seul bouton est « Executer » a la main. On peut lancer, pas planifier. (3) L'ECRAN EST ORPHELIN — la route /admin/scheduled-tasks existe mais aucun lien n'y mene : ni sidebar_admin.php, ni carte du hub AdminController. Et rien ne tourne : index_filesystem est declaree toutes les 6 h, active, last_run_at NULL, aucun ordonnanceur sur le poste. ERREUR D'AGENT CORRIGEE : j'avais ecrit que le mecanisme de declaration d'un dossier externe existait via storage_paths. Faux — cette table porte match / matching_algorithm / is_insensitive, ce sont des regles de RANGEMENT (ou deposer un document selon son contenu), pas des sources a surveiller. Confondu destination et source sur le mot `path`."
     }
   ]
 }
