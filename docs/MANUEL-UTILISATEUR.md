@@ -107,9 +107,16 @@ grille/liste, et le bouton **Uploader**.
 
 ### ⚠ Ce que vous verrez
 
-**Aucune vignette ne s'affiche.** Sur la page ouverte : 50 balises image, **0
-chargée**. Les cartes sont des rectangles blancs. Vous ne pouvez identifier un
-document que par son nom de fichier.
+**Les vignettes mettent longtemps à apparaître.** Elles finissent par s'afficher :
+vérifié le 2026-08-11 sur le réseau, 12 miniatures testées une par une rendent
+`HTTP 200`, `image/png`, contenu non vide. Mais tant que la page n'a pas fini de
+charger, les cartes restent des rectangles blancs et vous n'identifiez un document
+que par son nom de fichier.
+
+> **Correction.** La première version de ce manuel affirmait « 50 balises image, 0
+> chargée » et concluait que les vignettes étaient cassées. C'était faux : la mesure
+> avait été prise sur une page encore en cours de chargement. La lenteur est réelle,
+> la casse ne l'était pas.
 
 **Toutes les dates affichées sont identiques** — 11/08/2026 sur la première page —
 alors que les documents ont des dates propres. C'est la date d'entrée en base, pas
@@ -341,7 +348,7 @@ dire.
 | 1 | Partout | six valeurs pour « combien de documents » : 36, 159, 200, 217, 446 |
 | 2 | Partout | trois valeurs pour « ce qui attend » : 123, 195, 385 |
 | 3 | Tableau de bord | le badge « À traiter » change seul (367 → 385) |
-| 4 | Bibliothèque | 50 vignettes, 0 affichée |
+| 4 | ~~Bibliothèque~~ | ~~50 vignettes, 0 affichée~~ — **retiré** : mesure prise sur une page en cours de chargement, les vignettes rendent bien `200 image/png`. Reste la lenteur, ligne 6. |
 | 5 | Bibliothèque | toutes les dates identiques (date d'entrée, pas date du document) |
 | 6 | Bibliothèque | la page fige le navigateur ; un onglet a dû être abandonné |
 | 7 | Bibliothèque | « Tous les documents » n'en montre que 36 |

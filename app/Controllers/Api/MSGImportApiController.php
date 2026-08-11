@@ -165,8 +165,8 @@ class MSGImportApiController extends ApiController
             'correspondent_name' => $doc['correspondent_name'] ?? null,
             'parent_id' => isset($doc['parent_id']) && $doc['parent_id'] ? (int) $doc['parent_id'] : null,
             'created_at' => $doc['created_at'],
-            'thumbnail_url' => $doc['thumbnail_path'] 
-                ? '/kdocs/storage/thumbnails/' . $doc['thumbnail_path'] 
+            'thumbnail_url' => $doc['thumbnail_path']
+                ? url('/documents/' . $doc['id'] . '/thumbnail')
                 : null,
             // Métadonnées email
             'is_email' => ($metadata['type'] ?? '') === 'email',
