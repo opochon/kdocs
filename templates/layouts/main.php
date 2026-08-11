@@ -81,22 +81,41 @@
             .catch(() => {});
         }
 
+        // Le bandeau INVITE a rafraichir, il ne rafraichit jamais tout seul.
+        //
+        // Avant le 2026-08-11 cette fonction appelait window.location.reload() apres
+        // 1.5 s, sur TOUTES les pages puisqu'elle vit dans le gabarit global. Aucune
+        // garde : ni apercu ouvert, ni formulaire en cours de saisie, ni position de
+        // defilement. Constat d'Olivier a l'usage : on ouvre un document, l'apercu
+        // s'ouvre, et la page se recharge sous soi — impossible de travailler.
+        // Le signal est conserve, la decision revient a l'utilisateur.
+        let notifOuverte = false;
+
         function showIndexingNotification() {
-            // Creer une notification discrete
+            if (notifOuverte) return;          // un seul bandeau a la fois
+            notifOuverte = true;
+
             const notif = document.createElement('div');
             notif.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3';
+            notif.setAttribute('role', 'status');
             notif.innerHTML = `
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                <span>Indexation terminee - Rafraichissement...</span>
+                <span>Nouveaux documents indexes</span>
+                <button type="button" data-role="rafraichir"
+                        class="ml-2 px-2 py-1 rounded bg-white/20 hover:bg-white/30 text-sm font-medium">Rafraichir</button>
+                <button type="button" data-role="fermer" aria-label="Fermer"
+                        class="ml-1 px-1.5 rounded hover:bg-white/20 text-lg leading-none">&times;</button>
             `;
-            document.body.appendChild(notif);
-
-            // Recharger la page apres 1.5 secondes
-            setTimeout(() => {
+            notif.querySelector('[data-role="rafraichir"]').addEventListener('click', () => {
                 window.location.reload();
-            }, 1500);
+            });
+            notif.querySelector('[data-role="fermer"]').addEventListener('click', () => {
+                notif.remove();
+                notifOuverte = false;
+            });
+            document.body.appendChild(notif);
         }
 
         // Verifier toutes les 15 secondes (pas trop frequent)

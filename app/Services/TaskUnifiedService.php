@@ -131,8 +131,8 @@ class TaskUnifiedService
                 'priority' => $priority,
                 'deadline' => $doc['approval_deadline'] ?? null,
                 'created_at' => $doc['created_at'],
-                'link' => '/documents/' . $doc['id'],
-                'action_link' => '/mes-taches',
+                'link' => url('/documents/' . $doc['id']),
+                'action_link' => url('/mes-taches'),
                 'metadata' => [
                     'document_type' => $doc['document_type_label'] ?? null,
                     'correspondent' => $doc['correspondent_name'] ?? null,
@@ -179,8 +179,8 @@ class TaskUnifiedService
                 'priority' => $doc['status'] === 'needs_review' ? 'high' : 'normal',
                 'deadline' => null,
                 'created_at' => $doc['created_at'],
-                'link' => '/admin/consume',
-                'action_link' => '/admin/consume',
+                'link' => url('/admin/consume'),
+                'action_link' => url('/admin/consume'),
                 'metadata' => [
                     'document_status' => $doc['status']
                 ]
@@ -238,8 +238,8 @@ class TaskUnifiedService
                 'priority' => $priority,
                 'deadline' => $task['deadline'],
                 'created_at' => $task['created_at'],
-                'link' => '/workflow/approve/' . $task['token'],
-                'action_link' => '/workflow/approve/' . $task['token'],
+                'link' => url('/workflow/approve/' . $task['token']),
+                'action_link' => url('/workflow/approve/' . $task['token']),
                 'metadata' => [
                     'workflow_name' => $task['workflow_name'],
                     'token' => $task['token']
@@ -267,8 +267,8 @@ class TaskUnifiedService
                 'priority' => 'normal',
                 'deadline' => null,
                 'created_at' => $note['created_at'],
-                'link' => $note['document_id'] ? '/documents/' . $note['document_id'] : '/mes-taches',
-                'action_link' => '/mes-taches',
+                'link' => url($note['document_id'] ? '/documents/' . $note['document_id'] : '/mes-taches'),
+                'action_link' => url('/mes-taches'),
                 'metadata' => [
                     'from_user' => $note['from_fullname'] ?: $note['from_username'],
                     'action_type' => $note['action_type'],
