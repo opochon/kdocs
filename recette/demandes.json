@@ -104,6 +104,46 @@
       "adoptee_le": null,
       "transcrit_par": "Claude, sur instruction d'Olivier en session le 2026-08-11",
       "note": "TROU. Verifie le 2026-08-11, les trois moities manquent : (1) LE DOSSIER n'est pas reglable — templates/admin/settings.php expose storage[type], storage[base_path], storage[allowed_extensions], mais AUCUN storage[consume]. La source est en dur : F:\\DATA\\DEVELOPPEMENT\\GEDv1\\storage\\consume, sous la racine du produit. (2) LA FREQUENCE n'est pas reglable — templates/admin/scheduled_tasks.php AFFICHE schedule_cron en texte (htmlspecialchars), sans aucun champ de saisie. Le seul bouton est « Executer » a la main. On peut lancer, pas planifier. (3) L'ECRAN EST ORPHELIN — la route /admin/scheduled-tasks existe mais aucun lien n'y mene : ni sidebar_admin.php, ni carte du hub AdminController. Et rien ne tourne : index_filesystem est declaree toutes les 6 h, active, last_run_at NULL, aucun ordonnanceur sur le poste. ERREUR D'AGENT CORRIGEE : j'avais ecrit que le mecanisme de declaration d'un dossier externe existait via storage_paths. Faux — cette table porte match / matching_algorithm / is_insensitive, ce sont des regles de RANGEMENT (ou deposer un document selon son contenu), pas des sources a surveiller. Confondu destination et source sur le mot `path`."
+    },
+    {
+      "origine": "derive",
+      "posee_le": "2026-08-11",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "id": "D-GED-09",
+      "demande": "Le badge « A traiter » affiche max(documents en attente, taches de l'utilisateur) — deux grandeurs sans rapport. Choisir ce qu'il compte.",
+      "note": "DERIVE — proposition d'agent, NON VALIDEE. helpers.php:174 : `max($stats['pending_validation'], $stats['tasks'])`. Le badge vaut juste tant que les deux coincident et ment des qu'elles divergent. Le 2026-08-11 il affichait 385 quand la page annoncait 195, parce que pending_validation additionnait la corbeille (corrige depuis, commit 9925fb5). Le max() lui-meme n'est pas corrige : c'est un choix d'affichage, il appartient a Olivier. Question fermee : le badge compte-t-il les documents a classer, les taches, ou leur somme ?"
+    },
+    {
+      "origine": "derive",
+      "posee_le": "2026-08-11",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "id": "D-GED-10",
+      "demande": "Trois ecrans se disputent le meme travail : /admin/consume, /kdocs/mes-taches, et un troisieme atteint depuis le tableau de bord. Un seul chemin pour classer.",
+      "note": "DERIVE — proposition d'agent, NON VALIDEE. Prolonge D-GED-07 : Olivier avait nomme le doublon consume/mes-taches, l'audit contradictoire du 2026-08-11 a trouve un TROISIEME ecran de taches atteignable depuis le tableau de bord (docs/AUDIT-MANUEL.md, section « ce que le manuel ne voit pas »). Constat annexe : /kdocs/mes-taches n'inclut meme pas le gabarit layouts/main.php — pas de sonde d'indexation, pas de bandeau — ce qui explique qu'il derive au lieu de completer."
+    },
+    {
+      "origine": "derive",
+      "posee_le": "2026-08-11",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "id": "D-GED-11",
+      "demande": "Une page inexistante rend la trace de pile complete : chemins du serveur, arborescence vendor/. A couper avant toute mise a disposition.",
+      "note": "DERIVE — proposition d'agent, NON VALIDEE. Reproduit le 2026-08-11 sur une URL absente (capture docs/captures/07-404-trace-de-pile.jpg) : type d'exception Slim, fichier, ligne, et dix niveaux de pile avec les chemins absolus du poste. Confirme par l'audit contradictoire (constat 16, CONFIRME). Sans consequence sur un poste de developpement, inacceptable des que le produit est joignable par quelqu'un d'autre."
+    },
+    {
+      "origine": "derive",
+      "posee_le": "2026-08-11",
+      "redemandes": 0,
+      "points": [],
+      "adoptee_le": null,
+      "id": "D-GED-12",
+      "demande": "La file de validation n'a jamais ete videe : le plus ancien document attend depuis le 25 janvier 2026 et UN SEUL document a ete valide dans toute la vie du produit.",
+      "note": "DERIVE — proposition d'agent, NON VALIDEE. Ce n'est pas un defaut de code, c'est un constat d'usage qui rend les autres mesurables : tant que la file n'est jamais videe, elle grossit, la page s'alourdit, et le badge reste rouge en permanence — donc il cesse d'etre un signal. Question ouverte : reprend-on la file existante, ou repart-on d'une base de travail nettoyee par un outil externe precede d'un dump (ce que la regle 5 autorise, hors application) ?"
     }
   ]
 }
