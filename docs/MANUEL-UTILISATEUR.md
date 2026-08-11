@@ -118,9 +118,14 @@ que par son nom de fichier.
 > avait été prise sur une page encore en cours de chargement. La lenteur est réelle,
 > la casse ne l'était pas.
 
-**Toutes les dates affichées sont identiques** — 11/08/2026 sur la première page —
-alors que les documents ont des dates propres. C'est la date d'entrée en base, pas
-la date du document.
+**La date affichée est la date d'entrée en base, pas la date du document.** Une
+facture de mars entrée hier s'affiche à hier. Le tri « Date » trie donc sur
+l'arrivée, pas sur la pièce.
+
+> **Correction.** La première version affirmait « toutes les dates affichées sont
+> identiques ». Faux : la page rend au moins trois dates distinctes (11/08, 10/08,
+> 09/08). J'avais regardé les premières lignes d'une grille triée par date d'entrée,
+> où elles se ressemblent forcément. Relevé par l'audit contradictoire.
 
 **La page fige le navigateur.** Le serveur répond en 287 ms, mais la page reste
 occupée plusieurs secondes et les clics n'aboutissent plus. Sur cette copie, un
@@ -349,7 +354,7 @@ dire.
 | 2 | Partout | trois valeurs pour « ce qui attend » : 123, 195, 385 |
 | 3 | Tableau de bord | le badge « À traiter » change seul (367 → 385) |
 | 4 | ~~Bibliothèque~~ | ~~50 vignettes, 0 affichée~~ — **retiré** : mesure prise sur une page en cours de chargement, les vignettes rendent bien `200 image/png`. Reste la lenteur, ligne 6. |
-| 5 | Bibliothèque | toutes les dates identiques (date d'entrée, pas date du document) |
+| 5 | ~~Bibliothèque~~ | ~~toutes les dates identiques~~ — **retiré** : la page rend 11/08, 10/08 et 09/08. Reste que la date affichée est celle d'entrée, pas celle du document. |
 | 6 | Bibliothèque | la page fige le navigateur ; un onglet a dû être abandonné |
 | 7 | Bibliothèque | « Tous les documents » n'en montre que 36 |
 | 8 | À traiter | le lien du bandeau ne mène pas à la file de validation |
