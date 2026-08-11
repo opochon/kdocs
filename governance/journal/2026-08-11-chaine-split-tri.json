@@ -1,0 +1,31 @@
+{
+  "lot": "chaine-split-tri",
+  "date": "2026-08-11",
+  "demande": "D-GED-01 (introduire, lire, classer) — formulation d'Olivier du 2026-08-10 : « demain je peux ingerer 1 pdf de 100 pages et j'ai pas ma decoupe par document et un tri auto pour les certitudes et un tri semi auto ? je l'avais et la je ne sais plus ou on en est. »",
+  "resume": "La chaine n'etait pas cassee, elle etait debranchee en trois points. (1) PDFSplitterService instanciait ClaudeService en dur et sortait par un `return null` silencieux a chaque PDF, car aucune cle Claude n'existe — pendant qu'Infomaniak Apertus-70B repondait a cote (live 7/7, confidence 0.95, 4.6 s). Il passe desormais par AIProviderService et se replie sur les regles en dur quand l'IA est indisponible, au lieu de s'eteindre. (2) classification.auto_apply valait false : le tri n'appliquait jamais rien. (3) QueueService::queueClassification() levait une \\Error non attrapee (n0nag0n\\Job_Queue absent), donc le repli synchrone n'etait JAMAIS atteint et rien ne se classait meme sans ordonnanceur. Les cinq chemins du coeur de la demande n'avaient aucun oracle : c'est pour cela que personne n'a vu la decoupe s'eteindre.",
+  "test": "Cinq sondes ecrites et cablees (SV-15 a SV-19), executees le 2026-08-11 : SV-15 ingestion reelle 12/12 VERT · SV-16 decoupe multi-doc 5/5 VERT · SV-17 tri auto au-dessus du seuil 7/7 VERT · SV-18 tri semi-auto sous le seuil 4/4 VERT · SV-19 chaine bout en bout 9/10 ROUGE. SV-01 et G-04 cessent d'etre NON CABLE. Partition socle : 26 points, 16 cables (etait 21 points, 9 cables). Preuves en base : decoupe IA 900341 -> 900342/43/44 split_method=ai ; decoupe par regles 900345 -> 900346/47 split_method=rules ; chaine sans worker 900319 status=split ; tri auto doc 27 type=1 confidence=0.95 by=ai + ligne d'audit ; tri semi-auto doc 37 type inchange + suggestion 0.55 pending. classification_suggestions 0 -> 5 lignes, classification_audit_log 0 -> 13 lignes : les deux tables etaient mortes depuis toujours. documents 361 -> 404, croissance seule, un seul document reel mute (27), tracé et reversible.",
+  "reste": [
+    "SV-19 ROUGE, 9/10 : les documents issus de la decoupe restent status=pending et ne sont PAS retrouvables dans le listing standard tant que personne ne valide (visibles 1/4). La chaine produit les documents et les classe ; le dernier metre — les retrouver — n'est pas tenu. C'est l'ecart reel de la demande d'Olivier, et il est desormais mesure.",
+    "Le lignage des trois premiers enfants (900316, 900317, 900318) reste NULL : ecrase avant le correctif, non reinvente.",
+    "Aucun ordonnanceur ne tourne. La garantie actuelle vient de ce que l'enqueue echoue toujours ici et retombe en synchrone ; si n0nag0n\\Job_Queue est un jour installe, le comportement redeviendra asynchrone seul et plus rien ne classera sans worker. Point ouvert, pas resolu.",
+    "SV-02 (OCR), SV-04 (versionner), SV-05 (interface claire) restent NON CABLE — D-GED-01 reste donc NON CABLE.",
+    "docs/ n'a pas ete mis a jour sur le nouveau chemin de decoupe."
+  ],
+  "decisions": [
+    "Le seuil reste 0.8, valeur deja presente dans le depot. auto_apply passe de false a true — Olivier l'a demande explicitement (« le tri auto etait fonctionnel jusqu'a un certain niveau de certitude, on implemente »). Aucun chiffre n'a ete fabrique par un agent (regle 9).",
+    "Les regles en dur de decoupe ont ete RETROUVEES dans l'historique (commit cb83476, « Merge POC - PDF split heuristics (page indicators, dates) »), pas reecrites. La consigne exigeait de ne jamais pretendre avoir retrouve ce qui aurait ete invente.",
+    "La filiation des documents decoupes recoit trois colonnes additives et nullables (parent_document_id, split_pages, split_method). Elle transitait d'abord par documents.classification_suggestions, colonne que le classificateur ECRASE : les enfants sortent en pending et auto_apply est actif, donc la filiation disparaissait sur le chemin nominal — une perte de donnee silencieuse sur un depot dont l'invariant est zero perte. Defaut trouve par verification en base, pas par le rapport de l'agent qui donnait le run IA pour reussi.",
+    "config.example.php recoit le bloc classification : config/config.php est gitignore (ligne 15), sans quoi le correctif ne quittait jamais ce poste et une installation neuve repartait avec le tri eteint.",
+    "SV-16 distingue TROIS etats la ou le code n'en rendait qu'un : decoupe CORRECTE, decoupe ABSENTE, decoupe en ECHEC. La confusion des trois dans un `return null` est la raison pour laquelle l'extinction n'a jamais ete visible.",
+    "Le lot a ete conduit par deux agents sur des perimetres de fichiers disjoints — app/config/tools d'un cote, tests/recette de l'autre — pour qu'ils ne se marchent pas dessus. Celui qui a ecrit les sondes n'est pas celui qui a ecrit le code (regle 3)."
+  ],
+  "bloque": [
+    {
+      "item": "A-GED-02 — le filet de tour ramasse le travail en cours",
+      "occurrence": "DEUXIEME. Le commit df3d888 « wip(filet): avant tour 0 » a ramasse les cinq sondes et leurs fixtures, 1340 lignes, dans un commit de lanceur. La premiere occurrence (4d7eea0, 2026-08-10 12:07:31) portait sur une seule ligne de recette/demandes.json.",
+      "cause": "EcosystemK/gouvernance/tools/tour.mjs execute `git add -A` puis commit deux fois par tour. `git add -A` est interdit nommement par l'AGENTS.md de ce depot.",
+      "etat": "Rien n'a ete perdu : le commit f45b83c du lot traitement est intact dans l'historique. Mais le travail de recette est desormais attribue a un commit de lanceur.",
+      "pourquoi_non_traite": "tour.mjs vit dans EcosystemK. Un agent de GEDv1 n'y ecrit pas. Depose en A-GED-02, tranche depuis (option 3 : ref dediee refs/filet/<horodatage>, jamais sur HEAD) mais le correctif n'est pas encore en place."
+    }
+  ]
+}

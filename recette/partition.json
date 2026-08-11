@@ -28,8 +28,8 @@
       "id": "G-04",
       "point": "cycle documentaire vital : deposer -> lire -> classer -> versionner -> retrouver, execute de bout en bout",
       "cmd": "php tests/integration/test_chaine_bout_en_bout.php",
-      "timeout_ms": 300000,
-      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit. CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_chaine_bout_en_bout.php : deposer/decouper/classer/retrouver executes contre le chemin reel (IngestClassificationService, aucun mock IA), PAS 'lire' (OCR complet, secteur ingestion-ocr ROUGE) ni 'versionner' (secteur ORPHELIN, aucun service — voir SV-04). ROUGE le 2026-08-10 (8/9) : deposer/decouper/classer passent, 'retrouver' echoue — les documents separes restent status=pending et sont exclus de la vue standard (documents non-pending) tant que personne ne valide manuellement. Le vert de ce point ne doit jamais etre lu comme preuve du cycle complet tant que lire/versionner ne sont pas eux-memes cables.",
+      "timeout_ms": 600000,
+      "_note": "ATTENDUS-PRODUIT §C ; l'oracle EXECUTE le chemin (regle 2 : pas un hasMethod), etat FANTOME interdit. CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_chaine_bout_en_bout.php : deposer/decouper/classer/retrouver executes contre le chemin reel (IngestClassificationService, aucun mock IA), PAS 'lire' (OCR complet, secteur ingestion-ocr ROUGE) ni 'versionner' (secteur ORPHELIN, aucun service — voir SV-04). ROUGE le 2026-08-10 (8/9) : deposer/decouper/classer passent, 'retrouver' echoue — les documents separes restent status=pending et sont exclus de la vue standard (documents non-pending) tant que personne ne valide manuellement. Le vert de ce point ne doit jamais etre lu comme preuve du cycle complet tant que lire/versionner ne sont pas eux-memes cables. CABLE le 2026-08-11 sur tests/integration/test_chaine_bout_en_bout.php (voir SV-19). ROUGE : le volet « retrouver » n'est pas tenu.",
       "donnees": "fixture (tests/fixtures/probe_multidoc.pdf, trace et nettoye par la sonde, jamais de DELETE)"
     },
     {
@@ -58,7 +58,7 @@
       "point": "D-GED-01 verbe 1/8 — introduire : ingestion (ATTENDUS-PRODUIT C1) et capture (B1 — scan, mail, upload, depot surveille)",
       "cmd": "php tests/integration/test_ingestion_reelle.php",
       "timeout_ms": 120000,
-      "_note": "CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_ingestion_reelle.php, qui contourne le piege HTTP de DocumentUploadTest.php (SKIP silencieux sur echec auth admin/admin, 0 assertion — cas toujours reel, non corrige) en reflechissant directement dans la methode privee ConsumeFolderService::importFile() : chemin filesystem reel (storage/consume/ -> DB -> disque -> OCR), aucune authentification a contourner donc aucun skip possible. VERT le 2026-08-10 (12/12, ~15s), execute sous un timeout dur de 90s en sous-processus car le chemin complet ConsumeFolderService::importFile()->DocumentProcessor::process() a mis jusqu'a ~10 min a terminer une fois pendant l'investigation de ce lot (cause non identifiee, non reproduite ensuite — a surveiller, 11 fichiers reels attendaient dans storage/consume/ au moment de la mesure). G-04 (cycle complet) reste couvert separement par SV-19.",
+      "_note": "CABLE le 2026-08-10 (lot mesurabilite/sondes) sur tests/integration/test_ingestion_reelle.php, qui contourne le piege HTTP de DocumentUploadTest.php (SKIP silencieux sur echec auth admin/admin, 0 assertion — cas toujours reel, non corrige) en reflechissant directement dans la methode privee ConsumeFolderService::importFile() : chemin filesystem reel (storage/consume/ -> DB -> disque -> OCR), aucune authentification a contourner donc aucun skip possible. VERT le 2026-08-10 (12/12, ~15s), execute sous un timeout dur de 90s en sous-processus car le chemin complet ConsumeFolderService::importFile()->DocumentProcessor::process() a mis jusqu'a ~10 min a terminer une fois pendant l'investigation de ce lot (cause non identifiee, non reproduite ensuite — a surveiller, 11 fichiers reels attendaient dans storage/consume/ au moment de la mesure). G-04 (cycle complet) reste couvert separement par SV-19. CABLE le 2026-08-11 sur tests/integration/test_ingestion_reelle.php (voir SV-15), qui rougit au lieu de SKIPer.",
       "donnees": "fixture (tests/fixtures/probe_ingestion.pdf, trace et nettoye par la sonde, jamais de DELETE)"
     },
     {
@@ -156,6 +156,42 @@
       "cmd": null,
       "_note": "Mesure que la decision est TRANCHEE ET TRACEE, pas qu'elle est codee. Aucun artefact de decision n'existe aujourd'hui : pas de governance/decisions/, pas de champ dans truth.k.toml documentant un choix explicite. Contexte transmis par la demande : truth.k.toml declare ged->ktime en 'interroge+action', et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml — divergence non arbitree. Une fois la decision prise, la sonde a ecrire verifiera l'existence d'un enregistrement date portant la marque d'Olivier (jamais posee par un agent — regle 9).",
       "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+    },
+    {
+      "id": "SV-15",
+      "point": "D-GED-01 verbe 1/8 execute — introduire : un fichier depose passe par le chemin applicatif reel et arrive (ligne en base, fichier sur disque, checksum concordant, contenu indexe)",
+      "cmd": "php tests/integration/test_ingestion_reelle.php",
+      "timeout_ms": 120000,
+      "_note": "Remplace la mesure absente denoncee par SV-01 : tests/Feature/DocumentUploadTest.php SKIPait en silence et sortait VERT sur 0 assertion. Cette sonde ROUGIT si elle ne peut pas s'authentifier. Verite prise en base ET sur disque, pas dans le retour de la fonction (regle 7). VERT le 2026-08-11, 12/12."
+    },
+    {
+      "id": "SV-16",
+      "point": "Decoupe d'un PDF multi-documents : N documents distincts entrent, N documents sortent en base, chacun avec son fichier sur disque",
+      "cmd": "php tests/integration/test_split_multidoc.php",
+      "timeout_ms": 300000,
+      "_note": "Distingue TROIS etats que le code confondait en un `return null` silencieux : decoupe CORRECTE, decoupe ABSENTE (mono-page, aucun appel IA), decoupe en ECHEC (candidat, analyse tentee, aucun document separe). C'est cette confusion qui a laisse la decoupe eteinte sans que personne le voie. Aller-retour Infomaniak reel, pas de mock (regle 4). VERT le 2026-08-11, 5/5."
+    },
+    {
+      "id": "SV-17",
+      "point": "Tri automatique au-dessus du seuil de certitude : le classement est APPLIQUE sans intervention et trace",
+      "cmd": "php tests/integration/test_tri_auto_certitude.php",
+      "timeout_ms": 300000,
+      "_note": "Le seuil est LU dans la config (classification.auto_apply_threshold), jamais ecrit en dur dans la sonde : un seuil chiffre appartient a Olivier (regle 9). Verifie document_type_id, classification_confidence, last_classified_at, last_classified_by et la ligne dans classification_audit_log. Contre-epreuve integree : sous le seuil, rien n'est applique. VERT le 2026-08-11, 7/7.",
+      "seuil_pose_par": "Olivier — valeur 0.8 preexistante au depot, non fabriquee par un agent"
+    },
+    {
+      "id": "SV-18",
+      "point": "Tri semi-automatique sous le seuil : rien n'est impose, une suggestion reprenable par un humain est tracee",
+      "cmd": "php tests/integration/test_tri_semi_auto.php",
+      "timeout_ms": 300000,
+      "_note": "Rougit dans les deux sens : si le systeme applique quand meme, et s'il ne propose rien. Contre-epreuve integree et verifiee — meme code, confiance portee au-dessus du seuil, le classement s'applique cette fois. VERT le 2026-08-11, 4/4."
+    },
+    {
+      "id": "SV-19",
+      "point": "La phrase d'Olivier executee : un PDF multi-documents entre, il ressort en N documents, ceux qui depassent le seuil sont classes, les autres portent une suggestion",
+      "cmd": "php tests/integration/test_chaine_bout_en_bout.php",
+      "timeout_ms": 600000,
+      "_note": "ROUGE le 2026-08-11, 9/10 : les documents issus de la decoupe restent status=pending et ne sont PAS retrouvables dans le listing standard tant que personne ne valide (visibles 1/4). La chaine produit les documents et les classe ; le dernier metre — les retrouver — n'est pas tenu. Rouge a dessein, c'est l'ecart reel."
     }
   ],
   "etendue": [
