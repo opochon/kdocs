@@ -68,7 +68,10 @@ if ($user && !empty($_COOKIE['kdocs_weak_password'])) {
                 </button>
                 <div id="user-menu" class="ds-menu hidden absolute right-0 mt-1 w-40 z-50">
                     <a href="<?= url('/admin/settings') ?>">Paramètres</a>
-                    <a href="<?= url('/auth/logout') ?>">Déconnexion</a>
+                    <?php /* Route reelle : index.php:164 declare /logout, pas /auth/logout.
+                             Le menu pointait vers /auth/logout -> 404 sur tous les ecrans en
+                             session. Trouve le 2026-08-11 par la spec persona-dead-links. */ ?>
+                    <a href="<?= url('/logout') ?>">Déconnexion</a>
                 </div>
             </div>
             <?php endif; ?>

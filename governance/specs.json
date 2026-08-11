@@ -16,6 +16,7 @@
     "legal-seal":                  { "status": "active" },
     "lib-operations":              { "status": "active" },
     "persona":                     { "status": "active" },
+    "persona-dead-links":          { "status": "active", "note": "parcours reel + verification live des hrefs (GET hors clic) : detecte 404/500, hrefs de route interne sans prefixe /kdocs (chemin brut au lieu de url()), liens # sans gestionnaire, miniatures naturalWidth=0. Liste noire codee (delete/purge/trash/validate) : jamais de clic/GET sur une action destructrice." },
     "persona-parcours-ecm":        { "status": "active" },
     "persona-preview":             { "status": "active" },
     "persona-redx-expert":         { "status": "active" },
