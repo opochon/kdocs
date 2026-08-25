@@ -4,26 +4,26 @@
 > Croise `governance/sectors.json` avec `tests/reports/harness-latest.json`.
 > Regles contraignantes : `AGENTS.md` · Attendus : `governance/ATTENDUS-PRODUIT.md`.
 
-> Dernier harness : **ROUGE** · 43 suites · 2026-08-10T10:40:31.552Z
+> Dernier harness : **ROUGE** · 46 suites · 2026-08-25T15:32:29.775Z
 
-**15 secteurs** — 9 🟢 verts · 5 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 0 🕓 non mesures
+**15 secteurs** — 7 🟢 verts · 7 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 0 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
+| 🔴 | `classification-ia` | ROUGE | 2✓ 1✗ | ingestion-ocr |
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
-| 🔴 | `ingestion-ocr` | ROUGE | 0✓ 2✗ | stockage |
+| 🔴 | `ingestion-ocr` | ROUGE | 2✓ 2✗ | stockage |
+| 🔴 | `interface` | ROUGE | 7✓ 4✗ | — |
 | 🔴 | `plugins` | ROUGE | 2✓ 1✗ | interface |
+| 🔴 | `recherche` | ROUGE | 1✓ 1✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
-| 🔴 | `tracabilite-audit` | ROUGE | 0✓ 1✗ | — |
 | ⚪ | `versioning` | ORPHELIN | — | stockage |
-| 🟢 | `classification-ia` | VERT | 3✓ | ingestion-ocr |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
-| 🟢 | `interface` | VERT | 11✓ | — |
-| 🟢 | `recherche` | VERT | 2✓ | stockage |
 | 🟢 | `recherche-transverse` | VERT | 1✓ | recherche, classification-ia |
 | 🟢 | `securite-acl` | VERT | 2✓ | — |
 | 🟢 | `socle-mesure` | VERT | 4✓ | — |
+| 🟢 | `tracabilite-audit` | VERT | 1✓ | — |
 | 🟢 | `workflow-validation` | VERT | 1✓ | securite-acl |
 
 ## Lecture des etats
@@ -35,6 +35,24 @@
 - 👻 **FANTOME** — oracles verts, **cablage non prouve**. Le plus dangereux : il a l apparence du vert. Cas fondateur : `folder-permissions` etait vert sur 10 tests unitaires alors que `FolderPermissionService` n est appele par aucune ligne applicative.
 
 ## Detail par secteur
+
+### 🔴 classification-ia — ROUGE
+
+**Classement automatise — cascade IA, taxonomie ECM, suggestions**
+
+> *Invariant* — Une suggestion n est jamais appliquee seule. Toute modification de classification est tracable.
+
+**Etat connu.** VERT (15 cas). Cascade training -> claude -> ollama -> rules. classification_audit_log porte 0 ligne : l audit de classification n est pas alimente.
+
+**Oracles rouges** : `ai-confidence-badge`
+
+**Agent** : `.claude/agents/classification-ia.md` · **Oracles** : `classifier-taxonomie`, `ai-confidence-badge`, `ai-assistant`
+
+**Fichiers** : `app/Services/AIClassifierService.php` · `app/Services/AIProviderService.php` · `app/Adapters/HtmleditorTaxonomyAdapter.php`
+
+**Tables** : `classification_suggestions`, `classification_training_data`, `classification_audit_log`, `document_types`
+
+---
 
 ### 🔴 erpconnect — ROUGE
 
@@ -60,15 +78,31 @@
 
 > *Invariant* — L OCR et la classification sortent de la requete HTTP. Une ingestion ne bloque pas l utilisateur.
 
-**Etat connu.** ROUGE sur les deux oracles. persona-parcours-ecm depasse 180 s en attente de reponse ; pipeline-ui ne trouve jamais #preview-type-select. Aucun ordonnanceur ne tourne : les taches planifiees affichent dernier_run=JAMAIS.
+**Etat connu.** persona-parcours-ecm et pipeline-ui mesurés rouges au gate du 2026-08-25 (latence IA réelle + #preview-type-select). Lot ingestion-x2-dossier-invisible (2026-08-25) : compteurs-coherence (7/7) et dossier-surveille-invisible (4/4) verts — le x2 de la file à classer (badge sidebar additionnant la corbeille, 167 lignes doublées par checksum, suggestions empilées, pending rendus en bibliothèque) est corrigé et prouvé par effet ; le tri auto réussi sort la file (pending->validated, SV-19 vert 9/9). Aucun ordonnanceur ne tourne : les taches planifiees affichent dernier_run=JAMAIS.
 
 **Oracles rouges** : `persona-parcours-ecm`, `pipeline-ui`
 
-**Agent** : `.claude/agents/ingestion-ocr.md` · **Oracles** : `persona-parcours-ecm`, `pipeline-ui`
+**Agent** : `.claude/agents/ingestion-ocr.md` · **Oracles** : `persona-parcours-ecm`, `pipeline-ui`, `compteurs-coherence`, `dossier-surveille-invisible`
 
 **Fichiers** : `app/Services/DocumentProcessor.php` · `app/Services/TaskService.php` · `app/workers/task_worker.php`
 
 **Tables** : `documents`, `tasks`, `scheduled_tasks`
+
+---
+
+### 🔴 interface — ROUGE
+
+**Interface, chrome, navigation, accessibilite**
+
+> *Invariant* — Une fonction sans entree de menu est une fonction perdue. Un module desactive ne doit pas rester visible et produire des 404.
+
+**Etat connu.** Majoritairement VERT. Audit UI-UX a 3,5/10 : sidebar melangee, emojis, compteurs incoherents. Reference : docs/AUDIT-UI-UX.md, docs/DETTE-UI-ORPHELINS.md.
+
+**Oracles rouges** : `shell`, `a11y`, `bugs-misc`, `persona-preview`
+
+**Agent** : `.claude/agents/interface.md` · **Oracles** : `ui-chrome`, `chrome-coherence`, `shell`, `a11y`, `fiche-document`, `bugs`, `bugs-click`, `bugs-misc`, `persona`, `persona-preview`, `persona-redx-expert`
+
+**Fichiers** : `templates/` · `public/assets/`
 
 ---
 
@@ -80,13 +114,31 @@
 
 **Etat connu.** Corrige le 2026-08-09 : l etiquette FANTOME etait trop severe. Le gating tient. 3 applications sur 8 sont actives — timetrack (sans drapeau, historique), erpconnect et smq (drapeaux presents dans le .env). Les 5 eteintes — contracts, rh, mail, portal, invoices — sont ecrites et couvertes par des tests, drapeaux absents du .env, tables a 0 ligne, et AUCUN template ne pointe vers elles : pas de 404. Registre governance/apps-status.json, oracle apps-routes qui confronte le registre, le .env et les liens des templates. RESTE : decider app par app entre activer et retirer. invoices est candidate au retrait, le flux facture passant desormais par erpconnect et K-Time.
 
-**Oracles rouges** : `apps-routes`
+**Oracles rouges** : `smq-versions`
 
 **Agent** : `.claude/agents/plugins.md` · **Oracles** : `smq-versions`, `admin-hub`, `apps-routes`
 
 **Fichiers** : `app/Core/PluginRegistry.php` · `apps/`
 
 **Tables** : `contracts`, `hr_employees`, `mail_accounts`, `mail_sync_log`
+
+---
+
+### 🔴 recherche — ROUGE
+
+**Recherche plein texte — FULLTEXT MySQL, repli LIKE, semantique optionnelle**
+
+> *Invariant* — Une recherche qui echoue doit se voir. Aujourd hui advancedSearch avale les erreurs SQL et rend zero resultat : indiscernable d une recherche sans reponse.
+
+**Etat connu.** VERT depuis le 2026-08-07 (17/17). Deux bugs corriges : sonde testant AGAINST('*'), et operateurs laisses comme termes produisant +""* -> 1064. Dette ouverte : les erreurs SQL restent avalees.
+
+**Oracles rouges** : `search-tasks`
+
+**Agent** : `.claude/agents/recherche.md` · **Oracles** : `search-fulltext`, `search-tasks`
+
+**Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
+
+**Tables** : `documents`, `saved_searches`
 
 ---
 
@@ -108,24 +160,6 @@
 
 ---
 
-### 🔴 tracabilite-audit — ROUGE
-
-**Piste de revision — journal de toutes les actions**
-
-> *Invariant* — Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.
-
-**Etat connu.** N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises.
-
-**Oracles rouges** : `audit-trail-api`
-
-**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : `audit-trail-api`
-
-**Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
-
-**Tables** : `audit_logs`, `audit_log`, `classification_audit_log`
-
----
-
 ### ⚪ versioning — ORPHELIN
 
 **Versions de documents — stockage en sous-dossier cache aupres du fichier**
@@ -139,22 +173,6 @@
 **Fichiers** : `app/Services/SnapshotService.php`
 
 **Tables** : `document_versions`, `snapshots`
-
----
-
-### 🟢 classification-ia — VERT
-
-**Classement automatise — cascade IA, taxonomie ECM, suggestions**
-
-> *Invariant* — Une suggestion n est jamais appliquee seule. Toute modification de classification est tracable.
-
-**Etat connu.** VERT (15 cas). Cascade training -> claude -> ollama -> rules. classification_audit_log porte 0 ligne : l audit de classification n est pas alimente.
-
-**Agent** : `.claude/agents/classification-ia.md` · **Oracles** : `classifier-taxonomie`, `ai-confidence-badge`, `ai-assistant`
-
-**Fichiers** : `app/Services/AIClassifierService.php` · `app/Services/AIProviderService.php` · `app/Adapters/HtmleditorTaxonomyAdapter.php`
-
-**Tables** : `classification_suggestions`, `classification_training_data`, `classification_audit_log`, `document_types`
 
 ---
 
@@ -187,36 +205,6 @@
 **Fichiers** : `app/Services/TrashService.php` · `app/Services/BackupService.php` · `app/Exceptions/HardDeleteForbiddenException.php`
 
 **Tables** : `documents`
-
----
-
-### 🟢 interface — VERT
-
-**Interface, chrome, navigation, accessibilite**
-
-> *Invariant* — Une fonction sans entree de menu est une fonction perdue. Un module desactive ne doit pas rester visible et produire des 404.
-
-**Etat connu.** Majoritairement VERT. Audit UI-UX a 3,5/10 : sidebar melangee, emojis, compteurs incoherents. Reference : docs/AUDIT-UI-UX.md, docs/DETTE-UI-ORPHELINS.md.
-
-**Agent** : `.claude/agents/interface.md` · **Oracles** : `ui-chrome`, `chrome-coherence`, `shell`, `a11y`, `fiche-document`, `bugs`, `bugs-click`, `bugs-misc`, `persona`, `persona-preview`, `persona-redx-expert`
-
-**Fichiers** : `templates/` · `public/assets/`
-
----
-
-### 🟢 recherche — VERT
-
-**Recherche plein texte — FULLTEXT MySQL, repli LIKE, semantique optionnelle**
-
-> *Invariant* — Une recherche qui echoue doit se voir. Aujourd hui advancedSearch avale les erreurs SQL et rend zero resultat : indiscernable d une recherche sans reponse.
-
-**Etat connu.** VERT depuis le 2026-08-07 (17/17). Deux bugs corriges : sonde testant AGAINST('*'), et operateurs laisses comme termes produisant +""* -> 1064. Dette ouverte : les erreurs SQL restent avalees.
-
-**Agent** : `.claude/agents/recherche.md` · **Oracles** : `search-fulltext`, `search-tasks`
-
-**Fichiers** : `app/Services/SearchService.php` · `app/Search/SearchQuery.php` · `app/Search/SearchResult.php`
-
-**Tables** : `documents`, `saved_searches`
 
 ---
 
@@ -263,6 +251,22 @@
 **Agent** : `.claude/agents/socle-mesure.md` · **Oracles** : `specs-registre`, `migration-smoke`, `phpunit-all`, `eval-full`
 
 **Fichiers** : `tools/run-harness.mjs` · `tools/checklist.mjs` · `tools/claim.mjs` · `tools/preflight.php` · `tools/status-secteurs.mjs` · `governance/`
+
+---
+
+### 🟢 tracabilite-audit — VERT
+
+**Piste de revision — journal de toutes les actions**
+
+> *Invariant* — Aucune action ne doit pouvoir se produire sans laisser de trace. Un journal effacable n est pas un journal.
+
+**Etat connu.** N est plus orphelin depuis le 2026-08-09. audit_logs porte 1261 lignes et s alimente, mais la couverture etait trompeuse : les ecritures venaient de auth.login (1022) et des controleurs web historiques, tandis qu AUCUN controleur de app/Controllers/Api/ n auditait — or les templates appellent /api/documents/ 28 fois. Les mutations passees par l interface moderne ne laissaient aucune trace. Sept mutations de l API sont desormais journalisees via journaliser() : update, delete, updateType, updateCorrespondent, updateFields, addTags, removeTag. Oracle audit-trail-api, prouve descendant. RESTE : derive de schema non traitee, la table audit_log (singulier) existe vide en doublon d audit_logs ; classification_audit_log a toujours 0 ligne ; les changements de droits ne sont pas journalises.
+
+**Agent** : `.claude/agents/tracabilite-audit.md` · **Oracles** : `audit-trail-api`
+
+**Fichiers** : `app/Services/AuditService.php` · `app/Models/AuditLog.php`
+
+**Tables** : `audit_logs`, `audit_log`, `classification_audit_log`
 
 ---
 

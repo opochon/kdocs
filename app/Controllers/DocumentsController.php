@@ -142,15 +142,19 @@ class DocumentsController
                 // Le relative_path en DB : "2024/factures/doc.pdf" (sans slash initial)
                 
                 if ($normalizedPath === '') {
-                    // RACINE : fichiers sans slash dans relative_path
-                    // NOTE: On affiche TOUS les documents du dossier, y compris 'pending'
-                    // La distinction se fait visuellement (icône/badge différent)
+                    // RACINE : fichiers sans slash dans relative_path.
+                    // Les pièces en file de classification (status pending /
+                    // needs_review — imports consume, pièces splittées) vivent
+                    // dans la file /admin/consume, PAS dans la bibliothèque :
+                    // la vue standard les exclut (même définition que la sonde
+                    // SV-19 et test_compteurs_coherence.php, 2026-08-25).
                     $sql = "
                         SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
                         FROM documents d
                         LEFT JOIN document_types dt ON d.document_type_id = dt.id
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
                         WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status NOT IN ('pending', 'needs_review'))
                         AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
                         ORDER BY d.created_at DESC
                         LIMIT ? OFFSET ?
@@ -160,10 +164,11 @@ class DocumentsController
                     $stmt->bindValue(2, $offset, PDO::PARAM_INT);
                     $stmt->execute();
                     $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    
+
                     $countSql = "
                         SELECT COUNT(*) FROM documents d
                         WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status NOT IN ('pending', 'needs_review'))
                         AND (d.relative_path IS NULL OR d.relative_path = '' OR d.relative_path NOT LIKE '%/%')
                     ";
                     $total = (int)$db->query($countSql)->fetchColumn();
@@ -180,14 +185,15 @@ class DocumentsController
                     $directPattern = $pathPrefix . '%';
                     $excludeSubfolders = $pathPrefix . '%/%';
                     
-                    // NOTE: On affiche TOUS les documents du dossier, y compris 'pending'
-                    // La distinction se fait visuellement (icône/badge différent)
+                    // NOTE: même exclusion des statuts pipeline qu'à la racine —
+                    // cohérence des deux vues (S1, 2026-08-25).
                     $sql = "
                         SELECT d.*, dt.label as document_type_label, c.name as correspondent_name
                         FROM documents d
                         LEFT JOIN document_types dt ON d.document_type_id = dt.id
                         LEFT JOIN correspondents c ON d.correspondent_id = c.id
                         WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status NOT IN ('pending', 'needs_review'))
                         AND d.relative_path IS NOT NULL
                         AND d.relative_path != ''
                         AND d.relative_path LIKE ?
@@ -206,6 +212,7 @@ class DocumentsController
                     $countSql = "
                         SELECT COUNT(*) FROM documents d
                         WHERE d.deleted_at IS NULL
+                        AND (d.status IS NULL OR d.status NOT IN ('pending', 'needs_review'))
                         AND d.relative_path IS NOT NULL
                         AND d.relative_path != ''
                         AND d.relative_path LIKE ?

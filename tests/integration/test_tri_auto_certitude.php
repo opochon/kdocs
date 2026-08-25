@@ -212,6 +212,62 @@ test(
 $db->prepare('UPDATE documents SET deleted_at = NOW() WHERE id = ?')->execute([$videId]);
 
 // ---------------------------------------------------------------------------
+// 3. INVARIANT : un classement HUMAIN n'est jamais ecrase par le tri auto.
+//    Meme code reel (applyCategoryToDocumentType, par reflexion), confiance
+//    construite AU-DESSUS du seuil, sur un document DEJA type par un humain
+//    (document_type_id pose, last_classified_by NULL — comme le formulaire
+//    d'edition et la validation manuelle). Re-mesure 2026-08-25 : sans cette
+//    garde, le moindre passage IA >= seuil re-typait silencieusement le
+//    document (la facture synthetique d'eval-full disparaissait au premier
+//    classify-ai suivant).
+// ---------------------------------------------------------------------------
+echo "\n--- 3. INVARIANT : un classement humain n'est jamais ecrase ---\n\n";
+
+$typeIdDispo = (int) $db->query('SELECT id FROM document_types ORDER BY id LIMIT 1')->fetchColumn();
+$typeIdAutre = (int) $db->query('SELECT id FROM document_types ORDER BY id DESC LIMIT 1')->fetchColumn();
+
+if ($typeIdDispo <= 0 || $autoApply === false) {
+    echo "    (volet non joue : auto_apply=" . var_export($autoApply, true) . " ou aucun document_types)\n";
+} else {
+    $checksumH = 'certitude_humain_' . uniqid();
+    $probeDirH = __DIR__ . '/../../storage/consume/_test_probe_certitude_humain';
+    if (!is_dir($probeDirH)) {
+        @mkdir($probeDirH, 0755, true);
+    }
+    $pathH = $probeDirH . '/' . $checksumH . '.pdf';
+    file_put_contents($pathH, '%PDF-1.4 probe-humain');
+
+    $insH = $db->prepare(
+        "INSERT INTO documents (title, filename, original_filename, file_path, file_size, mime_type, checksum, status, document_type_id, uploaded_at, created_at, updated_at)
+         VALUES ('.', ?, ?, ?, ?, 'application/pdf', ?, NULL, ?, NOW(), NOW(), NOW())"
+    );
+    $insH->execute([basename($pathH), basename($pathH), $pathH, filesize($pathH), $checksumH, $typeIdDispo]);
+    $humainId = (int) $db->lastInsertId();
+
+    $svcH = new IngestClassificationService();
+    $refH = new ReflectionMethod(IngestClassificationService::class, 'applyCategoryToDocumentType');
+    $refH->setAccessible(true);
+    $refH->invoke($svcH, $humainId, new \KDocs\DTO\ClassificationResult(
+        category: null, tags: [], confidence: min(0.99, $threshold + 0.1), externalIds: [],
+        source: 'certitude-probe', raw: [], suggestions: ['document_type_id' => $typeIdAutre]
+    ));
+
+    $stmtH = $db->prepare('SELECT document_type_id, last_classified_by, status FROM documents WHERE id = ?');
+    $stmtH->execute([$humainId]);
+    $rowH = $stmtH->fetch(\PDO::FETCH_ASSOC) ?: [];
+
+    test(
+        "Confiance au-dessus du seuil sur un document type par un HUMAIN : le type ({$typeIdDispo}) est conserve, l'IA n'ecrit pas",
+        (int) ($rowH['document_type_id'] ?? 0) === $typeIdDispo && empty($rowH['last_classified_by']),
+        'document_type_id=' . var_export($rowH['document_type_id'] ?? null, true)
+            . ' last_classified_by=' . var_export($rowH['last_classified_by'] ?? null, true)
+            . ' — attendu: type intact, aucune trace IA'
+    );
+
+    $db->prepare('UPDATE documents SET deleted_at = NOW() WHERE id = ?')->execute([$humainId]);
+}
+
+// ---------------------------------------------------------------------------
 echo "\n" . str_repeat('=', 64) . "\n";
 echo "RESUME: $passed reussis, $failed echoues\n";
 echo str_repeat('=', 64) . "\n";

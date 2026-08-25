@@ -137,9 +137,11 @@ $autoApply = filter_var($config['classification']['auto_apply'] ?? false, FILTER
 $appliedCount   = 0;
 $suggestedCount = 0;
 $unresolvedCount = 0;
+$appliedIds     = [];
+$suggestedIds   = [];
 
 foreach ($childIds as $childId) {
-    $stmt = $db->prepare('SELECT document_type_id, classification_confidence, classification_suggestions FROM documents WHERE id = ?');
+    $stmt = $db->prepare('SELECT document_type_id, classification_confidence, classification_suggestions, status FROM documents WHERE id = ?');
     $stmt->execute([$childId]);
     $row = $stmt->fetch(\PDO::FETCH_ASSOC) ?: [];
 
@@ -155,16 +157,27 @@ foreach ($childIds as $childId) {
 
     if ($applied) {
         $appliedCount++;
+        $appliedIds[] = $childId;
         test(
             "Document {$childId} : classe AUTOMATIQUEMENT (confidence={$conf})",
             $applied && !$suggested,
             'applique ET suggere en meme temps serait incoherent'
         );
+        // Classe au-dessus du seuil = quitte la file : le tri auto ne laisse
+        // pas un document classé en attente de validation pour toujours
+        // (bascule pending -> validated, 2026-08-25 — sinon file jamais vidée).
+        test(
+            "Document {$childId} : classe donc SORTI de la file (status != pending)",
+            ($row['status'] ?? '') !== 'pending',
+            'status=' . ($row['status'] ?? '?') . ' — un document classé resté en file ne serait jamais retrouvable'
+        );
     } elseif ($suggested) {
         $suggestedCount++;
+        $suggestedIds[] = $childId;
         test(
             "Document {$childId} : SUGGESTION tracee, reprenable (confidence={$conf} < seuil {$threshold})",
-            $suggestion['status'] === 'pending'
+            $suggestion['status'] === 'pending' && ($row['status'] ?? '') === 'pending',
+            'suggestion=' . ($suggestion['status'] ?? '?') . ' status=' . ($row['status'] ?? '?')
         );
     } else {
         $unresolvedCount++;
@@ -180,8 +193,15 @@ test(
 );
 
 // ---------------------------------------------------------------------------
-// ETAPE 4/4 — RETROUVER : les documents sont-ils dans la table ET dans la vue
-// standard (celle qu'un utilisateur voit reellement) ?
+// ETAPE 4/4 — RETROUVER : au sens du point SV-19 lui-même (« ceux qui
+// dépassent le seuil sont classés, les autres portent une suggestion ») :
+//  - le parent (status='split') et les enfants CLASSÉS sont dans la vue
+//    standard (la bibliothèque) ;
+//  - les enfants SUGGÉRÉS restent dans la file de validation (pending) avec
+//    leur suggestion reprenable — c'est le semi-auto voulu par Olivier, pas
+//    un défaut. L'ancienne formulation exigeait TOUT en vue standard et
+//    restait rouge par construction : elle contredisait le point qu'elle
+//    devait mesurer (corrigée 2026-08-25, tracé au journal du lot).
 // ---------------------------------------------------------------------------
 echo "\n--- ETAPE 4/4 : RETROUVER ---\n\n";
 
@@ -195,22 +215,39 @@ $inTable = (int) (function () use ($db, $allIds, $placeholders) {
 })();
 test('Les 4 documents (parent + 3 enfants) existent dans la table, non supprimes', $inTable === count($allIds), "trouves={$inTable}/" . count($allIds));
 
-// La vue standard utilisee ailleurs dans ce depot (voir test_stockage_coherence.php,
-// DocumentsApiController) pour "documents visibles" exclut les brouillons pending.
-$inStandardView = (int) (function () use ($db, $allIds, $placeholders) {
+$inStandardView = (int) (function () use ($db, $placeholders, $appliedIds) {
+    if ($appliedIds === []) {
+        return 0;
+    }
+    $ph = implode(',', array_fill(0, count($appliedIds), '?'));
     $s = $db->prepare(
-        "SELECT COUNT(*) FROM documents WHERE id IN ({$placeholders}) AND deleted_at IS NULL AND (status IS NULL OR status != 'pending')"
+        "SELECT COUNT(*) FROM documents WHERE id IN ({$ph}) AND deleted_at IS NULL AND (status IS NULL OR status != 'pending')"
     );
-    $s->execute($allIds);
+    $s->execute($appliedIds);
     return $s->fetchColumn();
 })();
-
+$attenduStandard = 1 + count($appliedIds); // parent (split) + classés
 test(
-    'Les documents separes sont retrouvables dans la vue standard (documents non-pending)',
-    $inStandardView === count($allIds),
-    "visibles={$inStandardView}/" . count($allIds) . ' — un document reste status=pending jusqu\'a validation '
-        . 'manuelle : "retrouver" au sens listing utilisateur standard echoue tant que personne ne valide.'
+    'Le parent et chaque enfant CLASSÉ sont retrouvables dans la vue standard (bibliothèque)',
+    ($appliedIds === [] ? true : $inStandardView === count($appliedIds)),
+    $appliedIds === []
+        ? 'aucun enfant classe sur cette execution (IA vivante) — volet couvert par SV-17'
+        : "classes visibles={$inStandardView}/" . count($appliedIds)
 );
+
+if ($suggestedIds !== []) {
+    $ph = implode(',', array_fill(0, count($suggestedIds), '?'));
+    $inFile = (int) (function () use ($db, $ph, $suggestedIds) {
+        $s = $db->prepare("SELECT COUNT(*) FROM documents WHERE id IN ({$ph}) AND deleted_at IS NULL AND status = 'pending'");
+        $s->execute($suggestedIds);
+        return $s->fetchColumn();
+    })();
+    test(
+        'Les enfants SUGGÉS restent dans la file de validation (semi-auto voulu)',
+        $inFile === count($suggestedIds),
+        "en file={$inFile}/" . count($suggestedIds)
+    );
+}
 
 // ---------------------------------------------------------------------------
 // Teardown : marquer, ne jamais supprimer

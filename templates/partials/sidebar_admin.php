@@ -12,8 +12,12 @@ try {
     $stats['tags'] = (int) $db->query('SELECT COUNT(*) FROM tags')->fetchColumn();
     $stats['correspondents'] = (int) $db->query('SELECT COUNT(*) FROM correspondents')->fetchColumn();
     $stats['saved_searches'] = (int) $db->query('SELECT COUNT(*) FROM saved_searches')->fetchColumn();
+    // deleted_at IS NULL : le fix 9925fb5 a corrige helpers.php et
+    // ConsumeFolderService mais cette copie etait restee sans la clause — le
+    // badge additionnait la corbeille (506 affiches pour 297 vivants,
+    // mesure 2026-08-25, sonde test_compteurs_coherence.php).
     $stats['pending_validation'] = (int) $db->query(
-        "SELECT COUNT(*) FROM documents WHERE status IN ('pending', 'needs_review')"
+        "SELECT COUNT(*) FROM documents WHERE deleted_at IS NULL AND status IN ('pending', 'needs_review')"
     )->fetchColumn();
 } catch (\Exception $e) {
     // Tables absentes

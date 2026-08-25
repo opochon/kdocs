@@ -109,11 +109,50 @@ $errorMsg = $_GET['error'] ?? null;
                         <p class="mt-1 text-sm" style="color:var(--dim)">
                             Chemin racine où sont stockés les documents. Laissez vide pour utiliser la valeur par défaut.
                         </p>
-                        <?php if ($basePath && is_dir($basePath)): ?>
-                        <p class="mt-1 text-sm" style="color:var(--green)">✅ Le dossier existe</p>
+                        <?php if ($basePath && is_dir($basePath)): ?>                        <p class="mt-1 text-sm" style="color:var(--green)">✅ Le dossier existe</p>
                         <?php elseif ($basePath): ?>
                         <p class="mt-1 text-sm" style="color:var(--red)">❌ Le dossier n'existe pas</p>
                         <?php endif; ?>
+                    </div>
+
+                    <?php
+                    // DF-05 / D-GED-08 : le dossier surveillé doit être réglable
+                    // depuis l'interface (il était en dur dans config.php, aucun
+                    // champ ne permettait de le changer — écran orphelin dénoncé
+                    // le 2026-08-11). Lu par ConsumeFolderService via
+                    // Config::get('storage.consume') — les settings DB ont priorité.
+                    $consumePath = Config::get('storage.consume', $defaultConfig['storage']['consume'] ?? '');
+                    try {
+                        $consumeLastRun = \KDocs\Core\Database::getInstance()
+                            ->query("SELECT last_run_at FROM scheduled_tasks WHERE name = 'scan_consume_folder'")
+                            ->fetchColumn();
+                    } catch (\Exception $e) {
+                        $consumeLastRun = false;
+                    }
+                    ?>
+                    <div>
+                        <label for="storage_consume" class="block text-sm font-medium mb-2" style="color:var(--ink-soft)">
+                            Dossier surveillé (consommation automatique)
+                        </label>
+                        <input type="text"
+                               id="storage_consume"
+                               name="storage[consume]"
+                               value="<?= htmlspecialchars((string) $consumePath) ?>"
+                               class="form-input"
+                               placeholder="C:\wamp64\www\kdocs\storage\consume">
+                        <p class="mt-1 text-sm" style="color:var(--dim)">
+                            Tout fichier déposé dans ce dossier est ingéré, découpé et proposé au classement.
+                            Le dossier reste invisible de la bibliothèque. Laissez vide pour la valeur par défaut.
+                        </p>
+                        <?php if ($consumePath && is_dir($consumePath)): ?>
+                        <p class="mt-1 text-sm" style="color:var(--green)">✅ Le dossier existe</p>
+                        <?php elseif ($consumePath): ?>
+                        <p class="mt-1 text-sm" style="color:var(--red)">❌ Le dossier n'existe pas</p>
+                        <?php endif; ?>
+                        <p class="mt-1 text-sm" style="color:var(--dim)">
+                            Dernier scan planifié : <?= $consumeLastRun ? htmlspecialchars((string) $consumeLastRun) : 'jamais' ?>
+                            — le scan se déclenche aussi à l'ouverture de la page « Fichiers à valider ».
+                        </p>
                     </div>
                 </div>
                 

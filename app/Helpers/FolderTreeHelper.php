@@ -52,6 +52,10 @@ class FolderTreeHelper
             // Note: Pour "a/b/c/file.pdf", on veut "a/b/c" comme folder_path
             // Pour "dossier/file.pdf", on veut "dossier"
             // FIX: Inclure les documents avec relative_path NULL ou vide dans la racine ('')
+            // FIX 2026-08-25 : exclure les statuts pipeline (pending/needs_review) —
+            // ces documents vivent dans la file de validation, pas dans la
+            // bibliothèque : les compter ici gonflait la racine et déclenchait
+            // le marqueur "synchronisation nécessaire" à tort (S1).
             $stmt = $db->query("
                 SELECT
                     CASE
@@ -65,6 +69,7 @@ class FolderTreeHelper
                     COUNT(*) as doc_count
                 FROM documents
                 WHERE deleted_at IS NULL
+                  AND (status IS NULL OR status NOT IN ('pending', 'needs_review'))
                 GROUP BY folder_path
             ");
             

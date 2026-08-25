@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-11 16:50 depuis les instruments.
+> Genere le 2026-08-25 14:35 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -74,8 +74,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 4 fichiers modifies
-- dernier commit : e511087 2026-08-11 smoke : 35 controles par EFFET — deux defauts reels trouves, aucun code HTTP
+- branche `main` · 1 fichiers modifies
+- dernier commit : 4442020 2026-08-25 etat : libere claims chaine-split-tri, brief regenere, six skills d equipe verses
 
 ## Definition de « fait » pour ce tour
 

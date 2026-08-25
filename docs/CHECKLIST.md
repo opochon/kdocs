@@ -2,18 +2,18 @@
 
 > Genere par `npm run checklist`. **Ne pas editer a la main.**
 > `[x]` teste (oracle vert) · `[~]` fait mais non garanti · `[ ]` a faire
-> Genere le 2026-08-11 05:06
+> Genere le 2026-08-25 15:38
 
-**Global : 68 % fait · 27 % teste** (22 items)
+**Global : 68 % fait · 32 % teste** (22 items)
 
 ## Produit — les 5 gaps critiques de l audit
 
-40 % fait · 0 % teste — 5 items
+40 % fait · 20 % teste — 5 items
 
 - [ ] **UI professionnelle (audit 3,5/10 : sidebar melangee, emojis, compteurs incoherents)**
 - [~] **Ingestion asynchrone : OCR/classification hors requete HTTP**
 - [ ] **IA alignee sur la taxonomie HTMLEDITOR (variables, sections, tags)**
-- [~] **Apps stub invoices/mail : livrees ou retirees de l UI (plus de 404)**
+- [x] **Apps stub invoices/mail : livrees ou retirees de l UI (plus de 404)**
 - [ ] **Conformite archivage CH : WORM, retention, horodatage**
 
 ## Coeur documentaire — ce que la GED doit garantir

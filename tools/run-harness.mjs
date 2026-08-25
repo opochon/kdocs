@@ -285,8 +285,8 @@ async function main() {
     push(suiteFromCases('api-key-redaction', 'tests/Feature/ApiKeyRedactionTest.php', byExactClass('Tests\\Feature\\ApiKeyRedactionTest')));
     push(suiteFromCases('no-hard-delete', 'tests/Feature/NoHardDeleteTest.php (cliquet governance/budgets.json)', byExactClass('Tests\\Feature\\NoHardDeleteTest')));
     push(suiteFromCases('folder-permissions-serverside', 'tests/Feature/FolderPermissionServerSideTest.php (cablage ACL dans DocumentsApiController)', byExactClass('Tests\\Feature\\FolderPermissionServerSideTest')));
-    push(suiteFromCases('apps-routes', 'tests/Feature/AppsRoutesTest.php (registre governance/apps-status.json vs .env vs templates)', byExactClass('Tests\Feature\AppsRoutesTest')));
-    push(suiteFromCases('audit-trail-api', 'tests/Feature/ApiAuditTrailTest.php (cablage de la piste de revision sur les mutations API)', byExactClass('Tests\Feature\ApiAuditTrailTest')));
+    push(suiteFromCases('apps-routes', 'tests/Feature/AppsRoutesTest.php (registre governance/apps-status.json vs .env vs templates)', byExactClass('Tests\\Feature\\AppsRoutesTest')));
+    push(suiteFromCases('audit-trail-api', 'tests/Feature/ApiAuditTrailTest.php (cablage de la piste de revision sur les mutations API)', byExactClass('Tests\\Feature\\ApiAuditTrailTest')));
 
     // -- search-fulltext (script autonome, pas PHPUnit) ----------------------
     console.log('\n[2b] search-fulltext (tests/integration/test_fulltext_search.php)...');
@@ -305,6 +305,18 @@ async function main() {
     const sc = runCapture('php', ['tests/integration/test_stockage_coherence.php']);
     console.log(strip(sc.stdout));
     push(suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', sc));
+
+    // -- coherence des compteurs de la file (secteur ingestion-ocr, DF-06) --
+    console.log('\n[2e] compteurs-coherence (tests/integration/test_compteurs_coherence.php)...');
+    const cc = runCapture('php', ['tests/integration/test_compteurs_coherence.php']);
+    console.log(strip(cc.stdout));
+    push(suiteFromCapture('compteurs-coherence', 'tests/integration/test_compteurs_coherence.php', cc));
+
+    // -- dossier surveille invisible (secteur ingestion-ocr) ----------------
+    console.log('\n[2f] dossier-surveille-invisible (tests/integration/test_dossier_surveille_invisible.php)...');
+    const di = runCapture('php', ['tests/integration/test_dossier_surveille_invisible.php']);
+    console.log(strip(di.stdout));
+    push(suiteFromCapture('dossier-surveille-invisible', 'tests/integration/test_dossier_surveille_invisible.php', di));
 
     // -- 3. eval-full ---------------------------------------------------------
     console.log('\n[3] eval-full (personas + types ECM + lot eval)...');

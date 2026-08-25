@@ -6,6 +6,7 @@
 namespace KDocs\Services;
 
 use KDocs\Core\Database;
+use KDocs\Services\Storage\InternalFolderRegistry;
 use PDO;
 
 class FilesystemScanner
@@ -19,7 +20,17 @@ class FilesystemScanner
     {
         $this->basePath = rtrim($config['storage']['base_path'], '/\\');
         $this->allowedExtensions = $config['storage']['allowed_extensions'] ?? ['pdf'];
-        $this->ignoreFolders = $config['storage']['ignore_folders'] ?? [];
+        $ignoreFolders = $config['storage']['ignore_folders'] ?? [];
+        // Même source de vérité que l'arbre et l'indexeur : les dossiers
+        // pipeline (consume, pending, ...) ne sont jamais des documents.
+        // NOTE 2026-08-25 : ce service n'est construit par aucune ligne du
+        // produit (état fantôme) — le garde est posé pour le jour où il le sera.
+        foreach (InternalFolderRegistry::hiddenNames() as $internal) {
+            if (!in_array($internal, $ignoreFolders, true)) {
+                $ignoreFolders[] = $internal;
+            }
+        }
+        $this->ignoreFolders = $ignoreFolders;
         $this->db = $database;
     }
     

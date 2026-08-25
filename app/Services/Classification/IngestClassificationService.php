@@ -342,13 +342,41 @@ class IngestClassificationService
         $threshold = (float) Config::get('classification.auto_apply_threshold', 0.8);
 
         if ($autoApply && $classification->confidence >= $threshold) {
-            $stmt = $db->prepare('SELECT document_type_id FROM documents WHERE id = ?');
+            $stmt = $db->prepare('SELECT document_type_id, last_classified_by FROM documents WHERE id = ?');
             $stmt->execute([$documentId]);
-            $previousTypeId = $stmt->fetchColumn();
+            $current = $stmt->fetch(\PDO::FETCH_ASSOC) ?: [];
+            $previousTypeId = $current['document_type_id'] ?? null;
 
+            // Un classement HUMAIN n'est jamais écrasé par le tri auto :
+            // l'IA remplace au plus un classement IA antérieur. Sans cette
+            // garde, un type posé par un humain (formulaire d'édition,
+            // validation) ou par un semis délibéré était silencieusement
+            // re-typé par le moindre passage IA ≥ seuil — re-mesuré le
+            // 2026-08-25 : la facture synthétique d'eval-full disparaissait
+            // au premier classify-ai suivant.
+            if (!empty($previousTypeId) && ($current['last_classified_by'] ?? null) !== 'ai') {
+                return;
+            }
+
+            // Un document classé au-dessus du seuil QUITTE la file de validation
+            // (status pending -> validated) : sans cette bascule il restait en
+            // file pour toujours bien qu'étant classé — file jamais vidée
+            // (D-GED-12) et documents non retrouvables dans la vue standard
+            // (SV-19 rouge, 2026-08-11). needs_review n'est jamais franchi :
+            // un humain a demandé une relecture, le tri auto ne la lève pas.
             $db->prepare(
-                'UPDATE documents SET document_type_id = ?, classification_confidence = ?, last_classified_at = NOW(), last_classified_by = ?, updated_at = NOW() WHERE id = ?'
+                'UPDATE documents SET document_type_id = ?, classification_confidence = ?, last_classified_at = NOW(), last_classified_by = ?,
+                    status = IF(status = \'pending\', \'validated\', status), updated_at = NOW()
+                 WHERE id = ?'
             )->execute([$typeId, $classification->confidence, 'ai', $documentId]);
+
+            // La suggestion éventuelle d'un passage précédent est soldée :
+            // le type est maintenant appliqué, une ligne pending restante
+            // ferait compter le document deux fois (à classer + classé).
+            $db->prepare(
+                "UPDATE classification_suggestions SET status = 'applied', applied_at = NOW()
+                 WHERE document_id = ? AND field_code = 'document_type_id' AND status = 'pending'"
+            )->execute([$documentId]);
 
             (new ClassificationAuditService())->log(
                 $documentId,
@@ -363,12 +391,34 @@ class IngestClassificationService
         }
 
         // Sous le seuil : suggestion tracée, aucun type imposé au document.
+        // Idempotente : le pipeline passe deux fois sur un même document
+        // (fallback synchrone de queue() + worker vidant job_queue_jobs /
+        // classification_jobs) — chaque passage réécrit LA MÊME ligne pending
+        // au lieu d'en empiler une par passage (mesure 2026-08-25 : 2 lignes
+        // après double passage, sonde test_compteurs_coherence.php).
         try {
-            $db->prepare(
-                'INSERT INTO classification_suggestions
-                    (document_id, field_code, suggested_value, confidence, source, status, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, NOW())'
-            )->execute([$documentId, 'document_type_id', (string) $typeId, $classification->confidence, 'ai', 'pending']);
+            // Existence d'abord, jamais rowCount() : un UPDATE MySQL qui ne
+            // change AUCUNE valeur retourne 0 lignes affectées — confondu avec
+            // « aucune ligne trouvée », il déclenchait l'INSERT en double.
+            $exists = $db->prepare(
+                "SELECT id FROM classification_suggestions
+                 WHERE document_id = ? AND field_code = 'document_type_id' AND status = 'pending'"
+            );
+            $exists->execute([$documentId]);
+
+            if ($exists->fetchColumn() !== false) {
+                $db->prepare(
+                    "UPDATE classification_suggestions
+                     SET suggested_value = ?, confidence = ?, source = 'ai'
+                     WHERE document_id = ? AND field_code = 'document_type_id' AND status = 'pending'"
+                )->execute([(string) $typeId, $classification->confidence, $documentId]);
+            } else {
+                $db->prepare(
+                    'INSERT INTO classification_suggestions
+                        (document_id, field_code, suggested_value, confidence, source, status, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())'
+                )->execute([$documentId, 'document_type_id', (string) $typeId, $classification->confidence, 'ai', 'pending']);
+            }
         } catch (\Throwable $e) {
             error_log('IngestClassificationService::applyCategoryToDocumentType suggestion: ' . $e->getMessage());
         }

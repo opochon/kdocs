@@ -273,11 +273,16 @@ foreach ($docs as $doc) {
     try {
         $res = $ingest->classify($id);
         $classified++;
-        // Oracle identification auto (Lot B) : heuristique OCR/nom de fichier → document_type_id
+        // Oracle identification auto (Lot B) : heuristique OCR/nom de fichier → document_type_id.
+        // GARDE (2026-08-25) : seulement sur les documents SANS type — l'écriture
+        // inconditionnelle écrasait la confiance d'un classement IA APPLIQUÉ
+        // (≥ seuil) par la confiance heuristique (0.20), fabriquant exactement
+        // les violations « ai classé sous le seuil » que le smoke contrôle 5
+        // détecte ensuite (5 documents fabriqués par l'outil de mesure lui-même).
         $rules = $autoClassifier->classifyRules($id);
         if (!empty($rules['document_type_id'])) {
             $db->prepare(
-                'UPDATE documents SET document_type_id = ?, classification_confidence = COALESCE(?, classification_confidence), updated_at = NOW() WHERE id = ?'
+                'UPDATE documents SET document_type_id = ?, classification_confidence = COALESCE(?, classification_confidence), updated_at = NOW() WHERE id = ? AND document_type_id IS NULL'
             )->execute([(int)$rules['document_type_id'], $rules['confidence'] ?? null, $id]);
         }
         // Recharger le type effectif

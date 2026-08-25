@@ -2,6 +2,7 @@
 namespace KDocs\Services;
 use KDocs\Core\Database;
 use KDocs\Core\Config;
+use KDocs\Services\Storage\InternalFolderRegistry;
 
 class FilesystemIndexer
 {
@@ -30,6 +31,18 @@ class FilesystemIndexer
         // versionner les archives. La croissance serait sans fin.
         if (!in_array('.versions', $ignoreFolders, true)) {
             $ignoreFolders[] = '.versions';
+        }
+
+        // InternalFolderRegistry = source de vérité unique des dossiers
+        // pipeline (consume, pending, toclassify, ...). L'arbre utilisateur
+        // l'applique déjà par NOM ; sans elle ici, une indexation complète
+        // re-importait les pièces splittées (storage/documents/pending/) en
+        // lignes « documents » de plus : doublons par fichier physique,
+        // compteurs gonflés, dossier surveillé qui apparaît (S2, 2026-08-25).
+        foreach (InternalFolderRegistry::hiddenNames() as $internal) {
+            if (!in_array($internal, $ignoreFolders, true)) {
+                $ignoreFolders[] = $internal;
+            }
         }
 
         $this->ignoreFolders = $ignoreFolders;
@@ -429,6 +442,13 @@ class FilesystemIndexer
 
     private function upsertDocument(string $relativePath, int $folderId, string $fullPath): bool
     {
+        // Garde d'entrée : un chemin interne (pending/, consume/, .versions/…)
+        // n'est jamais un document de bibliothèque, même si un appelant
+        // oubliait le filtre amont (sonde test_dossier_surveille_invisible.php).
+        if (InternalFolderRegistry::isHiddenPath($relativePath)) {
+            return false;
+        }
+
         $filename = basename($relativePath);
         $filesize = @filesize($fullPath);
         if ($filesize === false) throw new \Exception("Impossible de lire la taille");

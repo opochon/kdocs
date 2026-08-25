@@ -342,10 +342,29 @@ class TaskUnifiedService
 
     private function getTotalCount(int $userId): int
     {
-        return $this->getValidationCount($userId)
+        $total = $this->getValidationCount($userId)
             + $this->getConsumeCount($userId)
             + $this->getWorkflowCount($userId)
             + $this->getNoteCount($userId);
+
+        // Un document à la fois en file de classification (consume) ET en file
+        // de validation (requires_approval + validation_status) est UN seul
+        // travail pour l'utilisateur : sans déduction, le total le comptait
+        // deux fois (mesure 2026-08-25 : 11 documents en chevauchement,
+        // sonde test_compteurs_coherence.php). Les compteurs par onglet
+        // restent intacts — seule la somme agrégée déduit.
+        try {
+            $stmt = $this->db->query(
+                "SELECT COUNT(*) FROM documents
+                 WHERE deleted_at IS NULL
+                   AND status IN ('pending', 'needs_review')
+                   AND requires_approval = 1
+                   AND validation_status = 'pending'"
+            );
+            return $total - (int) $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            return $total;
+        }
     }
 
     private function getUrgentCount(int $userId): int
