@@ -74,7 +74,7 @@ Points ROUGES :
 ## Depot
 
 - branche `main` · 1 fichiers modifies
-- dernier commit : 5e66e45 2026-08-26 brief : regenere a la fermeture de la tournee
+- dernier commit : 9d6eef0 2026-08-26 brief : point final de tournee
 
 ## Definition de « fait » pour ce tour
 
