@@ -6,7 +6,7 @@
 
 > Dernier harness : **ROUGE** · 46 suites · 2026-08-25T15:32:29.775Z
 
-**15 secteurs** — 7 🟢 verts · 7 🔴 rouges · 1 ⚪ orphelins · 0 👻 fantomes · 0 🕓 non mesures
+**15 secteurs** — 7 🟢 verts · 7 🔴 rouges · 0 ⚪ orphelins · 0 👻 fantomes · 1 🕓 non mesures
 
 | | Secteur | Etat | Oracles | Depend de |
 |---|---|---|---|---|
@@ -17,7 +17,7 @@
 | 🔴 | `plugins` | ROUGE | 2✓ 1✗ | interface |
 | 🔴 | `recherche` | ROUGE | 1✓ 1✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
-| ⚪ | `versioning` | ORPHELIN | — | stockage |
+| 🕓 | `versioning` | NON-MESURE | 0✓ 1? | stockage |
 | 🟢 | `conformite-archivage` | VERT | 1✓ | corbeille-retention, tracabilite-audit |
 | 🟢 | `corbeille-retention` | VERT | 3✓ | — |
 | 🟢 | `recherche-transverse` | VERT | 1✓ | recherche, classification-ia |
@@ -160,15 +160,17 @@
 
 ---
 
-### ⚪ versioning — ORPHELIN
+### 🕓 versioning — NON-MESURE
 
 **Versions de documents — stockage en sous-dossier cache aupres du fichier**
 
 > *Invariant* — La version courante reste le fichier nu, ouvrable directement. Les anterieures vivent dans un sous-dossier cache voisin (modele .versions/, inspire de la convention .DS_Store), jamais en base.
 
-**Etat connu.** ORPHELIN. document_versions porte 0 ligne pour 279 documents : la table est deployee, la fonction n est pas en service. Design a poser avec le dirigeant avant code.
+**Etat connu.** Lot versioning-etat-des-lieux (2026-08-25) : le secteur n'est plus orphelin. Instantane initial execute (73 documents parcours, 73 archives, 0 erreur — la garde git ne saute plus sur les documents de production accidentellement tracks par le repo de deploiement C:/wamp64/www/kdocs). Oracle versioning-fileserver VERT 10/10 : depot -> v1 a cote du fichier, modification hors GED -> v2 archivee par divergence de hash, is_current bascule (le trigger 027 etait casse par conception, migration 028 + DocumentVersion::create). .versions/ porte l'attribut cache Windows. Etat des lieux regulier aux DEUX declencheurs (page admin + tools/etat-des-lieux.php pour le Planificateur Windows) ; SnapshotService repare (3 erreurs de schema jamais vues : is_deleted, logical_folders.deleted_at, table workflows, settings entity_id) et a produit son premier snapshot complete (212 documents, 254 items). RESTE : l'ordonnanceur Windows n'est pas encore pose sur ce poste (schtasks a creer — voir doc de tools/etat-des-lieux.php), et stockage-coherence signale toujours 13 dossiers .versions/ non indexes (SV-07, hors perimetre).
 
-**Agent** : `.claude/agents/versioning.md` · **Oracles** : _aucun_
+**Oracles declares jamais executes** : `versioning-fileserver`
+
+**Agent** : `.claude/agents/versioning.md` · **Oracles** : `versioning-fileserver`
 
 **Fichiers** : `app/Services/SnapshotService.php`
 
