@@ -202,10 +202,11 @@
         "bugs-misc",
         "persona",
         "persona-preview",
-        "persona-redx-expert"
+        "persona-redx-expert",
+        "ui-modulaire"
       ],
       "dependsOn": [],
-      "etatConnu": "Majoritairement VERT. Audit UI-UX a 3,5/10 : sidebar melangee, emojis, compteurs incoherents. Reference : docs/AUDIT-UI-UX.md, docs/DETTE-UI-ORPHELINS.md."
+      "etatConnu": "Lot interface-modulaire-slots (2026-08-25) : fondation posee et prouvee par effet — KDocs\\Core\\View (moteur de rendu central, pilote ConsumeController), composants ui/nav_item + ui/empty_state (5 composants au total), SEGMENTATION PAR PLUGIN (zone admin.sidebar.navigation rendue par View::pluginSlot, alimentée par timetrack/K-Time, portal posé d'avance et invisible tant que PORTAL_APP_ENABLED est absent — oracle ui-modulaire 10/10, câblé harness). Convention documentée dans docs/PLUGIN-SYSTEM.md (section Slots). RESTE : migration des ~95 autres gabarits au moteur central (progressive), L3 du design system (table/modal/tabs), la queue Playwright flaky (shell/smq-versions passent isolés — voir journal etat-commit-gate : serveur php -S monothread + classifications longues), et la spec ai-confidence-badge dont la fixture Facture dépend de l'ordre des specs. Audit UI-UX 3,5/10 toujours la référence."
     },
     "plugins": {
       "ownerAgent": ".claude/agents/plugins.md",

@@ -324,6 +324,12 @@ async function main() {
     console.log(strip(vf.stdout));
     push(suiteFromCapture('versioning-fileserver', 'tests/integration/test_versioning_fileserver.php', vf));
 
+    // -- structure graphique modulaire (secteur interface) -------------------
+    console.log('\n[2h] ui-modulaire (tests/integration/test_ui_modulaire.php)...');
+    const um = runCapture('php', ['tests/integration/test_ui_modulaire.php']);
+    console.log(strip(um.stdout));
+    push(suiteFromCapture('ui-modulaire', 'tests/integration/test_ui_modulaire.php', um));
+
     // -- 3. eval-full ---------------------------------------------------------
     console.log('\n[3] eval-full (personas + types ECM + lot eval)...');
     const ev = runCapture('php', ['tools/eval-full.php', '--no-ocr']);

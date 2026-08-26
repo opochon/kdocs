@@ -18,4 +18,13 @@ return [
         'per_page'     => 50,
         'show_content' => false, // Lecture seule — jamais le contenu OCR
     ],
+
+    // Segmentation visuelle (2026-08-25) : ce slot NE S'AFFICHE PAS tant que
+    // PORTAL_APP_ENABLED est absent du .env — View::pluginSlot() ne rend que
+    // les apps activées (PluginRegistry::isEnabled). La déclaration reste :
+    // le jour où le portail s'allume, son entrée de navigation apparaît sans
+    // toucher au shell. Voir docs/PLUGIN-SYSTEM.md (section Slots).
+    'ui_slots' => [
+        'admin.sidebar.navigation' => __DIR__ . '/templates/slots/admin_sidebar.php',
+    ],
 ];

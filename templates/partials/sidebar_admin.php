@@ -80,16 +80,17 @@ try {
                     </span>
                 </a>
             </li>
-            <li>
-                <a href="<?= url('/time') ?>" class="ds-nav-item <?= sidebarIsActive('/time', $currentRoute, $basePath) ? 'is-active' : '' ?>">
-                    <span class="ds-nav-item__main">
-                        <svg class="ds-nav-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="ds-nav-item__label">K-Time</span>
-                    </span>
-                </a>
-            </li>
+            <?php
+            // Segmentation par plugin : les entrées de navigation apportées par
+            // les apps activées (K-Time aujourd'hui, K-Portail le jour où il
+            // s'allume) vivent dans leurs propres templates/slots/ — le shell
+            // rend la zone, jamais les modules individuels (2026-08-25).
+            echo \KDocs\Core\View::pluginSlot('admin.sidebar.navigation', [
+                'user'         => $user ?? null,
+                'currentRoute' => $currentRoute ?? null,
+                'basePath'     => $basePath ?? null,
+            ]);
+            ?>
 
             <li><div class="ds-section-title">Référentiels</div></li>
             <li>

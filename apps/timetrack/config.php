@@ -65,4 +65,11 @@ return [
         'show_timer_widget' => true,
         'week_start' => 1,          // 1 = Lundi
     ],
+
+    // Segmentation visuelle (2026-08-25) : zones du shell K-Docs alimentées par
+    // cette app. Rendues par KDocs\Core\View::pluginSlot() seulement si
+    // app.enabled — voir docs/PLUGIN-SYSTEM.md (section Slots).
+    'ui_slots' => [
+        'admin.sidebar.navigation' => __DIR__ . '/templates/slots/admin_sidebar.php',
+    ],
 ];

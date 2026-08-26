@@ -142,3 +142,53 @@ Hooks **optionnels** (jamais bloquants ingest) :
 ---
 
 *Dernière mise à jour : 2026-06-29 — aligné CONNECTEURS-PLUGINS.md*
+
+## Slots visuels — segmentation de l'interface par module (2026-08-25)
+
+Un **slot** est une zone nommée du shell K-Docs qu'une app satellite peut
+alimenter. Le shell rend la zone ; jamais les modules individuels.
+
+### Déclaration (côté app)
+
+Dans `apps/{name}/config.php` :
+
+```php
+'ui_slots' => [
+    'admin.sidebar.navigation' => __DIR__ . '/templates/slots/admin_sidebar.php',
+],
+```
+
+Le fragment reçoit en contexte `$slot`, `$app_name`, et ce que l'appelant
+passe à `View::pluginSlot()`. Convention : un fragment de zone *navigation*
+fournit des `<li>` complets, construits avec le composant `ui/nav_item`.
+
+### Rendu (côté shell)
+
+```php
+echo \KDocs\Core\View::pluginSlot('admin.sidebar.navigation', [
+    'user' => $user, 'currentRoute' => $currentRoute, 'basePath' => $basePath,
+]);
+```
+
+### La règle qui compte
+
+`View::pluginSlot()` ne rend **que les apps activées** — même source de vérité
+que les routes (`PluginRegistry::isEnabled` → `app.enabled` ← `*_APP_ENABLED`).
+Un module éteint disparaît de l'interface tout seul : aucun `if()` éparpillé
+dans les gabarits. Preuve par effet : `tests/integration/test_ui_modulaire.php`
+(K-Time rendu, K-Portail déclaré mais invisible tant que `PORTAL_APP_ENABLED`
+est absent).
+
+### Zones ouvertes
+
+| Zone | Consommateur | Premier alimenté |
+|---|---|---|
+| `admin.sidebar.navigation` | `templates/partials/sidebar_admin.php` | timetrack (K-Time) ; portal (posé d'avance, éteint) |
+
+Zones candidates à venir : `documents.fiche.tabs`, `documents.toolbar.actions`.
+
+### Moteur de rendu central
+
+`KDocs\Core\View` : `render($template, $data, $layout)` (fin des paires
+ob_start/include dupliquées par contrôleur — pilote : `ConsumeController`),
+`component($name, $props)` (briques `templates/components/ui/`), `pluginSlot()`.

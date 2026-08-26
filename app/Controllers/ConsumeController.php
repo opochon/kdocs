@@ -122,15 +122,14 @@ class ConsumeController
         
         $user = $request->getAttribute('user');
         $pageTitle = 'Validation des Documents';
-        
-        ob_start();
-        include __DIR__ . '/../../templates/admin/consume.php';
-        $content = ob_get_clean();
-        
-        ob_start();
-        include __DIR__ . '/../../templates/layouts/main.php';
-        $html = ob_get_clean();
-        
+
+        // Moteur de rendu central (lot interface-modulaire-slots) : un seul
+        // chemin pour tous les contrôleurs, au lieu des paires ob_start/include
+        // dupliquées. get_defined_vars() reproduit exactement la sémantique de
+        // l'include dans la portée du contrôleur (le gabarit voit les mêmes
+        // variables qu'avant) — le HTML produit ne change pas.
+        $html = \KDocs\Core\View::render('admin/consume.php', get_defined_vars(), 'layouts/main.php');
+
         $response->getBody()->write($html);
         return $response;
     }
