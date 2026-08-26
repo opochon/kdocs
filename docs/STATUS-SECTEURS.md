@@ -13,7 +13,7 @@
 | 🔴 | `classification-ia` | ROUGE | 2✓ 1✗ | ingestion-ocr |
 | 🔴 | `erpconnect` | ROUGE | 2✓ 1✗ | securite-acl |
 | 🔴 | `ingestion-ocr` | ROUGE | 2✓ 2✗ | stockage |
-| 🔴 | `interface` | ROUGE | 7✓ 4✗ | — |
+| 🔴 | `interface` | ROUGE | 7✓ 4✗ 1? | — |
 | 🔴 | `plugins` | ROUGE | 2✓ 1✗ | interface |
 | 🔴 | `recherche` | ROUGE | 1✓ 1✗ | stockage |
 | 🔴 | `stockage` | ROUGE | 1✓ 1✗ | — |
@@ -96,11 +96,13 @@
 
 > *Invariant* — Une fonction sans entree de menu est une fonction perdue. Un module desactive ne doit pas rester visible et produire des 404.
 
-**Etat connu.** Majoritairement VERT. Audit UI-UX a 3,5/10 : sidebar melangee, emojis, compteurs incoherents. Reference : docs/AUDIT-UI-UX.md, docs/DETTE-UI-ORPHELINS.md.
+**Etat connu.** Lot interface-modulaire-slots (2026-08-25) : fondation posee et prouvee par effet — KDocs\Core\View (moteur de rendu central, pilote ConsumeController), composants ui/nav_item + ui/empty_state (5 composants au total), SEGMENTATION PAR PLUGIN (zone admin.sidebar.navigation rendue par View::pluginSlot, alimentée par timetrack/K-Time, portal posé d'avance et invisible tant que PORTAL_APP_ENABLED est absent — oracle ui-modulaire 10/10, câblé harness). Convention documentée dans docs/PLUGIN-SYSTEM.md (section Slots). RESTE : migration des ~95 autres gabarits au moteur central (progressive), L3 du design system (table/modal/tabs), la queue Playwright flaky (shell/smq-versions passent isolés — voir journal etat-commit-gate : serveur php -S monothread + classifications longues), et la spec ai-confidence-badge dont la fixture Facture dépend de l'ordre des specs. Audit UI-UX 3,5/10 toujours la référence.
 
 **Oracles rouges** : `shell`, `a11y`, `bugs-misc`, `persona-preview`
 
-**Agent** : `.claude/agents/interface.md` · **Oracles** : `ui-chrome`, `chrome-coherence`, `shell`, `a11y`, `fiche-document`, `bugs`, `bugs-click`, `bugs-misc`, `persona`, `persona-preview`, `persona-redx-expert`
+**Oracles declares jamais executes** : `ui-modulaire`
+
+**Agent** : `.claude/agents/interface.md` · **Oracles** : `ui-chrome`, `chrome-coherence`, `shell`, `a11y`, `fiche-document`, `bugs`, `bugs-click`, `bugs-misc`, `persona`, `persona-preview`, `persona-redx-expert`, `ui-modulaire`
 
 **Fichiers** : `templates/` · `public/assets/`
 

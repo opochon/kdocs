@@ -2,7 +2,7 @@
 
 > Genere par `npm run checklist`. **Ne pas editer a la main.**
 > `[x]` teste (oracle vert) · `[~]` fait mais non garanti · `[ ]` a faire
-> Genere le 2026-08-26 05:42
+> Genere le 2026-08-26 05:52
 
 **Global : 68 % fait · 32 % teste** (22 items)
 
