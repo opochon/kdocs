@@ -92,14 +92,22 @@ class DocumentVersion
 
     /**
      * Crée une nouvelle version d'un document
-     * Le numéro de version est auto-incrémenté par le trigger
+     * Le numéro de version est auto-incrémenté par le trigger before_document_version_insert.
+     *
+     * La bascule is_current vit ICI et non dans un trigger AFTER INSERT :
+     * MySQL/MariaDB interdit à une table de se modifier dans son propre
+     * trigger AFTER (erreur 1442). Le trigger after_document_version_insert
+     * posé par la migration 027 ne pouvait donc JAMAIS s'exécuter : chaque
+     * insert multi-versions levait une 1442 avalée par l'appelant, la ligne
+     * était commitée sans bascule, et documents.current_version/version_count
+     * n'étaient jamais tenus. Défaut trouvé par la sonde SV-04 le 2026-08-25
+     * (migration 028 : le trigger cassé est retiré).
      */
     public static function create(array $data): int
     {
         $db = Database::getInstance();
 
-        $stmt = $db->prepare("
-            INSERT INTO document_versions (
+        $stmt = $db->prepare("INSERT INTO document_versions (
                 document_id, filename, file_path, file_size, mime_type, checksum,
                 title, content_text, changes_summary, delta_size, created_by, comment, is_current
             ) VALUES (
@@ -122,8 +130,28 @@ class DocumentVersion
             'created_by' => $data['created_by'] ?? null,
             'comment' => $data['comment'] ?? null,
         ]);
+        $versionId = (int)$db->lastInsertId();
 
-        return (int)$db->lastInsertId();
+        // Bascule is_current + tenue des compteurs du document (l'ancien
+        // trigger AFTER ne pouvait pas faire ce travail — voir docblock).
+        try {
+            $db->prepare('UPDATE document_versions SET is_current = FALSE WHERE document_id = ? AND id != ?')
+                ->execute([(int)$data['document_id'], $versionId]);
+            $db->prepare(
+                'UPDATE documents d
+                 SET d.current_version = (SELECT MAX(v.version_number) FROM document_versions v WHERE v.document_id = d.id),
+                     d.version_count = (SELECT COUNT(*) FROM document_versions v WHERE v.document_id = d.id),
+                     d.last_version_at = NOW(),
+                     d.updated_at = NOW()
+                 WHERE d.id = ?'
+            )->execute([(int)$data['document_id']]);
+        } catch (\Throwable $e) {
+            // La version est écrite : la bascule ne doit pas la perdre. La
+            // sonde SV-04 verrouille l'invariant — un échec ici la rougira.
+            error_log('DocumentVersion::create bascule is_current #' . $data['document_id'] . ' : ' . $e->getMessage());
+        }
+
+        return $versionId;
     }
 
     /**

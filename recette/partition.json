@@ -79,9 +79,10 @@
     {
       "id": "SV-04",
       "point": "D-GED-01 verbe 4/8 — versionner : versions rangees a cote du fichier (ATTENDUS-PRODUIT A3), controle de version (B8)",
-      "cmd": null,
-      "_note": "Secteur versioning est ORPHELIN (governance/sectors.json) : document_versions porte 0 ligne pour 279+ documents, aucun oracle declare. Design a poser avec le dirigeant avant code — rien a cabler tant que le service n'est pas en service.",
-      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+      "cmd": "php tests/integration/test_versioning_fileserver.php",
+      "timeout_ms": 180000,
+      "_note": "CABLE le 2026-08-25 (lot versioning-etat-des-lieux). ROUGE a la pose (9/10) : la bascule is_current ne se faisait JAMAIS — le trigger after_document_version_insert pose par la migration 027 ne pouvait pas s'executer (MySQL interdit a une table de se modifier dans son propre trigger AFTER, erreur 1442 avalée par l'appelant ; 185/185 lignes is_current=1 a la mesure). Corrige : migration 028 retire le trigger casse, la bascule vit dans DocumentVersion::create (is_current + documents.current_version/version_count/last_version_at), reconciliation portee par la meme migration. VERT 10/10 : depot -> archive v1 a cote du fichier dans .versions/, modification HORS GED (mode file server pur), reindexation -> divergence de hash -> v2 archivee AVANT mise a jour, l'archive v1 contient exactement les octets d'origine, une seule is_current. Instantane initial execute le meme jour (66+7 archives, 0 erreur) et .versions/ porte l'attribut cache Windows (+H) — invisible « facon mac ». Etat des lieux regulier : AdminController appelle scheduleAutoSnapshot() au passage (garde par intervalle) ET tools/etat-des-lieux.php pour le Planificateur de taches Windows (indexation complete + instantane initial idempotent + snapshot metadonnees) — Olivier a tranche « les deux » le 2026-08-25.",
+      "donnees": "reelles (fonds C:/wamp64/www/kdocs) + fixture marquee et nettoyee"
     },
     {
       "id": "SV-05",

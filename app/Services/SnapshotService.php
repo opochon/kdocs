@@ -105,7 +105,7 @@ class SnapshotService
             SELECT d.*, GROUP_CONCAT(dt.tag_id) as tag_ids
             FROM documents d
             LEFT JOIN document_tags dt ON d.id = dt.document_id
-            WHERE d.is_deleted = 0
+            WHERE d.deleted_at IS NULL
             GROUP BY d.id
         ");
 
@@ -157,7 +157,9 @@ class SnapshotService
     {
         $db = Database::getInstance();
 
-        $stmt = $db->query("SELECT * FROM logical_folders WHERE deleted_at IS NULL");
+        // logical_folders ne porte pas de deleted_at (suppression logique
+        // absente par conception) : la table entière est l'état courant.
+        $stmt = $db->query("SELECT * FROM logical_folders");
 
         while ($folder = $stmt->fetch()) {
             $stats['total_folders']++;
@@ -245,7 +247,10 @@ class SnapshotService
     private function snapshotWorkflows(int $snapshotId, array $lastItems): void
     {
         $db = Database::getInstance();
-        $stmt = $db->query("SELECT * FROM workflows");
+        // La table s'appelle workflow_definitions (le nom « workflows »
+        // n'existe pas dans ce schema — le service n'avait jamais execute,
+        // l'erreur n'avait donc jamais ete vue, 2026-08-25).
+        $stmt = $db->query('SELECT * FROM workflow_definitions');
 
         while ($wf = $stmt->fetch()) {
             $key = 'workflow_' . $wf['id'];
@@ -265,17 +270,21 @@ class SnapshotService
     private function snapshotSettings(int $snapshotId, array $lastItems): void
     {
         $db = Database::getInstance();
+        // La clé primaire des settings est la colonne `key` (chaîne) :
+        // Snapshot::addItem exige un id entier — un crc32 de la clé est
+        // déterministe et stable d'un snapshot à l'autre (2026-08-25).
         $stmt = $db->query("SELECT * FROM settings");
 
         while ($setting = $stmt->fetch()) {
-            $key = 'setting_' . $setting['id'];
+            $entityId = crc32((string) $setting['key']) & 0x7FFFFFFF;
+            $key = 'setting_' . $entityId;
             $hash = md5(json_encode($setting));
 
             $action = isset($lastItems[$key]) ?
                 (md5(json_encode($lastItems[$key]['data_snapshot'] ?? [])) === $hash ? 'unchanged' : 'modified')
                 : 'created';
 
-            Snapshot::addItem($snapshotId, 'setting', $setting['id'], $setting, $action, $hash);
+            Snapshot::addItem($snapshotId, 'setting', $entityId, $setting, $action, $hash);
         }
     }
 

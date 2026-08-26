@@ -128,9 +128,21 @@ class AdminController
      */
     public function index(Request $request, Response $response): Response
     {
-        
+
         $user = $request->getAttribute('user');
-        
+
+        // État des lieux régulier (choix d'Olivier 2026-08-25 : « les deux ») :
+        // au passage sur un écran admin, comme le scan consume. Gardé par
+        // l'intervalle snapshot_auto_interval (24 h par défaut) — le travail
+        // lourd côté FICHIERS (réindexation -> archives .versions/) reste à
+        // l'ordonnanceur externe (tools/etat-des-lieux.php), jamais dans la
+        // requête d'affichage.
+        try {
+            (new \KDocs\Services\SnapshotService())->scheduleAutoSnapshot();
+        } catch (\Exception $e) {
+            error_log('AdminController snapshot auto : ' . $e->getMessage());
+        }
+
         $db = Database::getInstance();
         
         // Statistiques générales

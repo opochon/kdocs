@@ -109,7 +109,7 @@ foreach ($violations as $v) {
     $conf = (float) $v['classification_confidence'];
     if (!$dryRun) {
         $db->prepare(
-            'UPDATE documents SET document_type_id = NULL, classification_confidence = NULL, updated_at = NOW() WHERE id = ?'
+            'UPDATE documents SET document_type_id = NULL, classification_confidence = NULL, last_classified_by = NULL, updated_at = NOW() WHERE id = ?'
         )->execute([$v['id']]);
 
         // Suggestion reprenable par un humain, avec la confiance réellement mesurée.

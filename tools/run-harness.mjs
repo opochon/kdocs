@@ -318,6 +318,12 @@ async function main() {
     console.log(strip(di.stdout));
     push(suiteFromCapture('dossier-surveille-invisible', 'tests/integration/test_dossier_surveille_invisible.php', di));
 
+    // -- versioning mode file server (secteur versioning, SV-04) ------------
+    console.log('\n[2g] versioning-fileserver (tests/integration/test_versioning_fileserver.php)...');
+    const vf = runCapture('php', ['tests/integration/test_versioning_fileserver.php']);
+    console.log(strip(vf.stdout));
+    push(suiteFromCapture('versioning-fileserver', 'tests/integration/test_versioning_fileserver.php', vf));
+
     // -- 3. eval-full ---------------------------------------------------------
     console.log('\n[3] eval-full (personas + types ECM + lot eval)...');
     const ev = runCapture('php', ['tools/eval-full.php', '--no-ocr']);

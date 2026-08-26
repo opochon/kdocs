@@ -304,6 +304,36 @@ class FilesystemIndexer
      * Utile le jour ou la GED se pose sur un stockage reellement gere par git :
      * inutile de doubler une histoire qui existe deja.
      */
+    /** Le fichier vit-il dans un arbre de stockage de la GED (documents, consume, processed, trash) ? */
+    private function estDansUnArbreStockage(string $fullPath): bool
+    {
+        $racines = [
+            Config::get('storage.base_path', ''),
+            Config::get('storage.documents', ''),
+            Config::get('storage.consume', ''),
+            Config::get('storage.processed', ''),
+            Config::get('storage.trash', ''),
+        ];
+
+        $cible = str_replace('\\', '/', strtolower((string) realpath($fullPath)));
+        if ($cible === '') {
+            $cible = str_replace('\\', '/', strtolower($fullPath));
+        }
+
+        foreach ($racines as $racine) {
+            $racineResolved = str_replace('\\', '/', strtolower((string) realpath((string) $racine)));
+            if ($racineResolved !== '' && str_starts_with($cible, rtrim($racineResolved, '/') . '/')) {
+                return true;
+            }
+        }
+
+        // Un deploiement peut vivre sous sa propre arborescence (ex.
+        // C:\wamp64\www\kdocs\storage\consume) alors que la config courante
+        // pointe ailleurs : les segments storage/<nom interne> suffisent a
+        // reconnaitre un arbre de stockage GED, quelle que soit sa racine.
+        return (bool) preg_match('#/storage/(documents|consume|processed|trash|temp|thumbnails|pending)(/|$)#', $cible);
+    }
+
     private function estSuiviParGit(string $fullPath): bool
     {
         $dossier = dirname($fullPath);
@@ -334,7 +364,15 @@ class FilesystemIndexer
             // vit dans le depot GEDv1 et n'a pourtant aucun fichier suivi
             // (.gitignore ligne 37 : /storage/documents/**). Seul git peut
             // repondre, on le lui demande.
-            if ($this->estSuiviParGit($fullPath)) {
+            // LIMITE (2026-08-25) : la garde ne s'applique qu'HORS des arbres
+            // de stockage de la GED. Le deploiement C:\wamp64\www\kdocs est
+            // lui-meme un depot git dont l'index contient des documents de
+            // production (consume/ et un contrat de storage/documents) —
+            // accident de deploiement, pas une decision de versioning. Pour
+            // un DOCUMENT de la GED, l'attendu A3 prime : la version se range
+            // a cote du fichier, quelle que soit la hygiene du repo sous
+            // lequel il vit par hasard.
+            if (!$this->estDansUnArbreStockage($fullPath) && $this->estSuiviParGit($fullPath)) {
                 return;
             }
 
@@ -346,6 +384,14 @@ class FilesystemIndexer
             if (!is_dir($dossier) && !@mkdir($dossier, 0775, true) && !is_dir($dossier)) {
                 error_log("Versioning: impossible de creer {$dossier}");
                 return;
+            }
+
+            // Invisible « façon mac » sous Windows : l'attribut caché posé sur
+            // chaque .versions/ le fait disparaître de l'Explorateur (comme un
+            // dotfile sous Unix) sans jamais gêner l'application, qui accède
+            // au chemin directement. Sans effet ailleurs que Windows.
+            if (PHP_OS_FAMILY === 'Windows') {
+                @exec('attrib +H ' . escapeshellarg(dirname($dossier)) . ' 2>NUL');
             }
 
             // L'archive est une copie, jamais un deplacement : le fichier courant

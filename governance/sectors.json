@@ -52,11 +52,13 @@
         "/documents/{id}/versions",
         "/documents/{id}/versions/*"
       ],
-      "oracles": [],
+      "oracles": [
+        "versioning-fileserver"
+      ],
       "dependsOn": [
         "stockage"
       ],
-      "etatConnu": "ORPHELIN. document_versions porte 0 ligne pour 279 documents : la table est deployee, la fonction n est pas en service. Design a poser avec le dirigeant avant code."
+      "etatConnu": "Lot versioning-etat-des-lieux (2026-08-25) : le secteur n'est plus orphelin. Instantane initial execute (73 documents parcours, 73 archives, 0 erreur — la garde git ne saute plus sur les documents de production accidentellement tracks par le repo de deploiement C:/wamp64/www/kdocs). Oracle versioning-fileserver VERT 10/10 : depot -> v1 a cote du fichier, modification hors GED -> v2 archivee par divergence de hash, is_current bascule (le trigger 027 etait casse par conception, migration 028 + DocumentVersion::create). .versions/ porte l'attribut cache Windows. Etat des lieux regulier aux DEUX declencheurs (page admin + tools/etat-des-lieux.php pour le Planificateur Windows) ; SnapshotService repare (3 erreurs de schema jamais vues : is_deleted, logical_folders.deleted_at, table workflows, settings entity_id) et a produit son premier snapshot complete (212 documents, 254 items). RESTE : l'ordonnanceur Windows n'est pas encore pose sur ce poste (schtasks a creer — voir doc de tools/etat-des-lieux.php), et stockage-coherence signale toujours 13 dossiers .versions/ non indexes (SV-07, hors perimetre)."
     },
     "recherche": {
       "ownerAgent": ".claude/agents/recherche.md",
