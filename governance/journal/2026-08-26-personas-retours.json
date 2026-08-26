@@ -1,0 +1,18 @@
+{
+  "lot": "personas-retours",
+  "date": "2026-08-26",
+  "demande": "Olivier : « persona, retours de personas on fixe ». Les personas (Sandra secretaire, Claude comptable, Hélène RH, Olivier employeur, Renaud expert REDX) outillés par tools/eval-full.php et cinq specs Playwright.",
+  "resume": "Les retours de la journée, joués trois fois (deux harness complets + rejeux isolés), sont consignés dans recette/defauts.md : deux nouveaux défauts ouverts avec cause mesurée. DF-07 — la queue de specs UI/persona tombe en fin de run long (redirections login, modales volées) alors que tout passe isolé (shell + smq-versions : 8/8 en 13 s) : cause structurelle, le serveur php -S monothread bloque derrière les classifications IA réelles déclenchées à l'affichage de pages ; c'est LE retour bloquant de la journée, il contamine la mesure de tous les écrans. DF-08 — la fixture Facture de ai-confidence-badge dépend de l'ordre de classification entre specs : la seule Facture du corpus était un classement bâtard retiré par la réconciliation, le semis est rejoué mais reste fragile. Les retours FIXÉS le même jour (lots ingestion et versioning, causés par ces mêmes parcours) : le x2 de la file à classer (badge additionnant la corbeille, 167 doublons de fichier physique, suggestions empilées), le dossier surveillé qui apparaissait, la file jamais vidée (un document classé y restait enfermé — SV-19), le classement bâtard sous le seuil fabriqué par l'outil de mesure lui-même, l'IA qui écrasait les classements humains, et le versioning jamais en service. eval-full : toutes gates PASS deux fois (G6-persona-* au vert — plafonds et scopes des cinq personas vérifiés).",
+  "test": "Specs persona rejouées : persona OK, persona-dead-links OK, persona-redx-expert OK (run à blanc du 2026-08-25), persona-parcours-ecm ROUGE sur #preview-type-select (rouge installé depuis le 2026-08-10, recense au secteur ingestion-ocr), persona-preview 3/4. eval-full --no-ocr : G1 a G7 toutes PASS (dont les six gates persona). Rejeux isolés : a11y:69 seul 4/4, shell+smq-versions 8/8, bugs-misc OK — la preuve que les chutes du run long ne sont pas des régressions d'écran.",
+  "reste": [
+    "DF-07 est le chantier suivant : sortir scan consume et classification de la requête d'affichage (worker, queue réelle, ou déclenchement batch) — tant qu'il tient, chaque lot UI mesurera du bruit.",
+    "DF-08 : stabiliser la fixture Facture de ai-confidence-badge.",
+    "DF-01 (point manquant — le rechargement automatique ne doit pas revenir) : la sonde exige un navigateur ; à écrire quand DF-07 sera corrigé, sinon elle mesurera la contention et pas le défaut.",
+    "DF-04 (classement en masse) : D-GED-07/D-GED-10 en TROU — la file à classer est passée de 297 à 133 vivants, le geste en masse reste à faire.",
+    "Aucun mécanisme de retour qualitatif persona au-delà des specs (journal humain) : la demande d'Olivier est couverte par recette/defauts.md comme registre unique."
+  ],
+  "decisions": [
+    "Les retours de personas vivent dans recette/defauts.md, pas dans un nouveau mécanisme : le tableau existant est le registre unique des défauts constatés, avec cause obligatoire — un deuxième registre diluerait.",
+    "DF-01 reste NON CABLÉ volontairement plutôt que câblé sur un environnement contaminé : un point qui mesurerait la contention au lieu du défaut fabriquerait du vert/rouge sans valeur (règle 2 étendue à l'environnement de mesure)."
+  ]
+}
