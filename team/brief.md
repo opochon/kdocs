@@ -73,8 +73,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 4 fichiers modifies
-- dernier commit : 58daf5e 2026-08-26 personas : retours de la journee consignes — DF-07 (contention monothread, cause mesuree) et DF-08 (fixture ordre-dependante) ouverts avec cause
+- branche `main` · 3 fichiers modifies
+- dernier commit : 2e74794 2026-08-26 etat : status secteurs, checklist et brief regeneres en fin de tournee
 
 ## Definition de « fait » pour ce tour
 
