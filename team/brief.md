@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-26 05:52 depuis les instruments.
+> Genere le 2026-08-26 06:08 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -73,8 +73,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 3 fichiers modifies
-- dernier commit : 2e74794 2026-08-26 etat : status secteurs, checklist et brief regeneres en fin de tournee
+- branche `main` · 1 fichiers modifies
+- dernier commit : 5e66e45 2026-08-26 brief : regenere a la fermeture de la tournee
 
 ## Definition de « fait » pour ce tour
 
