@@ -48,6 +48,19 @@ tailwindcss-windows-x64.exe
 /storage/training.json
 !/storage/.htaccess
 
+# Racine storage alternative (config/config.php storage.base_path — meme categorie
+# donnees utilisateur que /storage/documents ci-dessus, jamais versionner). Constat
+# 2026-08-28 : `git add -n` la proposait reellement au staging — dossiers/fichiers
+# reels de tiers (factures, courriers, dossier judiciaire) a un `git add -A` de la sortie.
+/storage/courrier-matin/**
+
+# Reservations inter-sessions (tools/claim.mjs) — etat ephemere machine/session,
+# jamais versionne.
+/governance/claims/*.json
+
+# Plans de session locaux (.zcode, outil tiers, meme categorie que .cursor/)
+/.zcode/
+
 # Cache PHPUnit
 .phpunit.cache/
 
