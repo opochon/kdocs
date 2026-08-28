@@ -1,0 +1,14 @@
+{
+  "lot": "facture-qr-sv12",
+  "date": "2026-08-28",
+  "demande": "T2 de .claude/commands/goal.md — SV-12 (D-GED-02), moitie QR sur decision d'Olivier (« sonde sur la moitie QR disponible ») apres blocage des deux autres clauses (journal facture-qr-t2).",
+  "resume": "tests/integration/test_facture_qr_lecture.php ecrit et cable. Mesure uniquement la clause lisible : issuer/iban/amount/reference/debtor deja extraits par cmd4_ingest et persistes (lot ingestion-parc-courriers). Deux preuves : (1) un document reel de la base porte deja ces 5 champs non vides — choisi par filtre PHP sur les valeurs reelles, pas seulement la presence de la cle JSON (piege trouve en ecrivant la sonde : `classification_suggestions LIKE '%iban%'` matche des qu'une facture a une cle `invoice.iban`, meme a valeur vide, quand le document n'a pas de veritable QR-bill) ; (2) appel reel Cmd4IngestClient::ingest() sur un fichier reel pour prouver que le code actuel produit encore ces champs, pas seulement un resultat historique.",
+  "test": "test_facture_qr_lecture.php : 5/5. --only facture-qr-lecture verifie.",
+  "reste": [
+    "D-GED-02 reste partiellement mesure : SV-12 ne couvre que 1 des 4 clauses de la demande (2 bloquees confirmees, 1 couverte par SV-13 separement). La demande elle-meme ne peut pas etre fermee (adoptee_le) tant que les clauses bloquees n'ont pas de decision produit.",
+    "Meme piege que celui trouve dans cette sonde (LIKE sur une cle JSON toujours presente, valeur potentiellement vide) pourrait exister ailleurs dans le depot ou des requetes similaires filtrent sur classification_suggestions — pas audite au-dela de ce lot."
+  ],
+  "decisions": [
+    "Portee explicitement partielle, ecrite dans le nom de la sonde et sa documentation — pas de laisser-croire qu'un SV-12 vert ferme toute la demande D-GED-02."
+  ]
+}
