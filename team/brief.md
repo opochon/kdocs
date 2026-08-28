@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-28 16:20 depuis les instruments.
+> Genere le 2026-08-28 16:22 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -45,7 +45,7 @@
 
 ## Socle
 
-> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-10 10:10 sur `?`, HEAD est `c4fb355`.
+> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-10 10:10 sur `?`, HEAD est `eabcfc9`.
 > commit de la mesure inconnu · 1 fichier(s) hors commit maintenant.
 > Les chiffres ci-dessous ne jugent PAS le code d aujourd hui. Rejouer AVANT de conclure :
 > 
@@ -80,7 +80,7 @@ Points ROUGES :
 ## Depot
 
 - branche `main` · 1 fichiers modifies
-- dernier commit : c4fb355 2026-08-28 chore(brief) : regenere apres le lot ingestion-parc-courriers
+- dernier commit : eabcfc9 2026-08-28 chore(rapports) : brief et contrat K-Time regeneres — serveur K-Time local non demarre
 
 ## Definition de « fait » pour ce tour
 

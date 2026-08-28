@@ -162,7 +162,7 @@
       "name": "eval-full",
       "ok": true,
       "source": "tools/eval-full.php --no-ocr",
-      "durationMs": 230833,
+      "durationMs": 1317850,
       "testCount": 60,
       "failures": 0,
       "exitCode": 0
@@ -418,5 +418,7 @@
       "failures": 0,
       "durationMs": 22293
     }
-  ]
+  ],
+  "patchedAt": "2026-08-28T16:20:30.932Z",
+  "patchedSuite": "eval-full"
 }
