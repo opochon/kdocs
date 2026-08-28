@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-25T14:36:15.843Z",
+  "timestamp": "2026-08-28T16:17:51.753Z",
   "contract_version": "1.0.0",
   "ktime_repo": "F:/DATA/DEVELOPPEMENT/K-TIME",
   "checks": [
@@ -10,8 +10,8 @@
     },
     {
       "name": "ktime-live-health",
-      "status": "ok",
-      "detail": "GET http://127.0.0.1:8090/api/ged/health -> 200 (cle API presente dans .env)"
+      "status": "fail",
+      "detail": "GET http://127.0.0.1:8090/api/ged/health -> 0 (fetch failed) — attendu 200"
     },
     {
       "name": "client-interne",
@@ -19,6 +19,8 @@
       "detail": "8 appel(s) trouve(s) dans KTimeClient.php, conformes au contrat"
     }
   ],
-  "divergences": [],
-  "verdict": "OK"
+  "divergences": [
+    "serveur K-Time vivant : health check en echec (statut 0)"
+  ],
+  "verdict": "DIVERGENT"
 }
