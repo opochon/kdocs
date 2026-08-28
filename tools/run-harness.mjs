@@ -73,6 +73,7 @@ const ONLY_STANDALONE = {
   'logical-folders': () => suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', runCapture('php', ['tests/integration/test_logical_folders.php'])),
   'stockage-coherence': () => suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', runCapture('php', ['tests/integration/test_stockage_coherence.php'])),
   'liaison-erp-tranchee': () => suiteFromCapture('liaison-erp-tranchee', 'tests/integration/test_liaison_erp_tranchee.php', runCapture('php', ['tests/integration/test_liaison_erp_tranchee.php'])),
+  'facture-lignes-tva': () => suiteFromCapture('facture-lignes-tva', 'tests/integration/test_facture_lignes_tva.php', runCapture('php', ['tests/integration/test_facture_lignes_tva.php'])),
   'eval-full': () => suiteFromCapture('eval-full', 'tools/eval-full.php --no-ocr', runCapture('php', ['tools/eval-full.php', '--no-ocr'])),
 };
 
@@ -312,6 +313,12 @@ async function main() {
     const et = runCapture('php', ['tests/integration/test_liaison_erp_tranchee.php']);
     console.log(strip(et.stdout));
     push(suiteFromCapture('liaison-erp-tranchee', 'tests/integration/test_liaison_erp_tranchee.php', et));
+
+    // -- lignes + TVA = total facture (SV-13, D-GED-02) ----------------------
+    console.log('\n[2d3] facture-lignes-tva (tests/integration/test_facture_lignes_tva.php)...');
+    const flt = runCapture('php', ['tests/integration/test_facture_lignes_tva.php']);
+    console.log(strip(flt.stdout));
+    push(suiteFromCapture('facture-lignes-tva', 'tests/integration/test_facture_lignes_tva.php', flt));
 
     // -- coherence des compteurs de la file (secteur ingestion-ocr, DF-06) --
     console.log('\n[2e] compteurs-coherence (tests/integration/test_compteurs_coherence.php)...');
