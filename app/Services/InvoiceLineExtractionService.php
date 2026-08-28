@@ -5,86 +5,46 @@ declare(strict_types=1);
 namespace KDocs\Services;
 
 /**
- * Extraction des lignes produits d'une facture depuis son texte OCR.
+ * Verdict de reconciliation « lignes + TVA = total » (D-GED-02, SV-13).
  *
- * D-GED-02 : « lire tous les produits avec leur montant, et que le total des
- * produits + TVA corresponde au total de la facture ». Le QR-facture suisse
- * (cmd4_ingest) ne porte QUE la partie paiement (IBAN, montant, reference) —
- * jamais le detail des lignes, par construction du standard. Ce service
- * comble ce trou cote GED (arbitrage Olivier, 2026-08-28 : « utile pour tout
- * classement », implementation GED plutot que d'attendre une extension de
- * cmd4_ingest/CMD v4, hors depot).
+ * L'extraction elle-meme (lecture des lignes depuis le texte OCR par l'IA
+ * active, persistance) vit dans
+ * KDocs\Services\Extraction\InvoiceLineItemExtractor + le modele
+ * KDocs\Models\InvoiceLineItem (invoice_line_items) — deja routee,
+ * app/Controllers/Api/InvoiceLineItemsApiController.php. Ce service
+ * N'EXTRAIT RIEN : il RECALCULE le verdict a partir de lignes deja
+ * obtenues, quelle qu'en soit la source.
+ *
+ * Constat du 2026-08-28 (lot facture-lignes-ged-t2) : une premiere version
+ * de ce fichier reimplementait l'extraction en ignorant
+ * InvoiceLineItemExtractor (regle 1 EcosystemK, « ne rien reproduire qui
+ * existe »). Corrige : InvoiceLineItemExtractor pointait sur ClaudeService
+ * (Anthropic) sans repli — donc mort des qu'aucune cle Claude n'est
+ * configuree — repointe sur AIProviderService (cascade multi-fournisseurs)
+ * dans le meme lot, avec la meme cause qui rendait aussi son chargement du
+ * texte OCR toujours vide (colonne `ocr_content` inexistante).
  *
  * L'IA peut halluciner un montant : l'egalite lignes + TVA = total n'est
- * JAMAIS affirmee par le modele lui-meme, elle est RECALCULEE ici en PHP a
- * partir des montants extraits. Le modele ne fait que lire, jamais calculer
- * le verdict.
+ * JAMAIS affirmee par le modele lui-meme. reconcile() est une fonction pure,
+ * sans reseau — c'est ELLE qui rend le verdict.
  */
 class InvoiceLineExtractionService
 {
-    private AIProviderService $ai;
-
     /** Tolerance d'arrondi (centimes) sur l'egalite lignes+TVA=total. */
     private const TOLERANCE = 0.05;
 
-    public function __construct(?AIProviderService $ai = null)
-    {
-        $this->ai = $ai ?? new AIProviderService();
-    }
-
-    public function isAvailable(): bool
-    {
-        return $this->ai->isAIAvailable();
-    }
-
     /**
-     * @return array{
-     *   lines: list<array{description: string, qty: float|null, unit_price: float|null, tva_rate: float|null, line_total: float|null}>,
-     *   total_ht: float|null, total_tva: float|null, total_ttc: float|null,
-     *   lines_sum: float, tva_computed: float, reconciled_total: float,
-     *   matches_total: bool, delta: float, source: string
-     * }|null Null si aucun fournisseur IA disponible ou reponse inexploitable.
-     */
-    public function extract(string $text): ?array
-    {
-        if (!$this->isAvailable() || trim($text) === '') {
-            return null;
-        }
-
-        $fields = [
-            'lines' => 'array of {description: string, qty: number|null, unit_price: number|null, tva_rate: number|null, line_total: number|null} — UNE entree par ligne produit/prestation visible sur la facture, jamais de ligne inventee si aucun tableau n\'est present',
-            'total_ht' => 'number|null — total hors taxes affiche sur la facture, tel qu imprime',
-            'total_tva' => 'number|null — montant de TVA affiche sur la facture, tel qu imprime',
-            'total_ttc' => 'number|null — total toutes taxes comprises affiche sur la facture, tel qu imprime',
-        ];
-
-        $result = $this->ai->extractData($text, $fields);
-        if (!is_array($result)) {
-            return null;
-        }
-
-        return self::reconcile(
-            is_array($result['lines'] ?? null) ? $result['lines'] : [],
-            $result['total_ht'] ?? null,
-            $result['total_tva'] ?? null,
-            $result['total_ttc'] ?? null
-        );
-    }
-
-    /**
-     * Recalcule l'egalite lignes + TVA = total a partir de valeurs deja
-     * extraites (par l'IA ou toute autre source). Fonction pure, sans appel
-     * reseau : c'est ELLE qui rend le verdict, jamais le modele — testable
-     * en isolation sur des cas construits (tests/Unit), a la difference de
-     * extract() qui exige un fournisseur IA reel et un texte de facture
-     * (tests/integration).
+     * Recalcule l'egalite lignes + TVA = total a partir de lignes deja
+     * extraites (format KDocs\Models\InvoiceLineItem::create() : quantity,
+     * unit_price, tax_rate, line_total, description) et des totaux imprimes
+     * sur la facture.
      *
      * @param array<int, array<string, mixed>> $rawLines
      * @return array{
-     *   lines: list<array{description: string, qty: float|null, unit_price: float|null, tva_rate: float|null, line_total: float|null}>,
+     *   lines: list<array{description: string, quantity: float|null, unit_price: float|null, tax_rate: float|null, line_total: float|null}>,
      *   total_ht: float|null, total_tva: float|null, total_ttc: float|null,
      *   lines_sum: float, tva_computed: float, reconciled_total: float,
-     *   matches_total: bool, delta: float|null, source: string
+     *   matches_total: bool, delta: float|null
      * }
      */
     public static function reconcile(array $rawLines, mixed $rawTotalHt, mixed $rawTotalTva, mixed $rawTotalTtc): array
@@ -98,20 +58,20 @@ class InvoiceLineExtractionService
                 continue;
             }
             $lineTotal = is_numeric($line['line_total'] ?? null) ? (float) $line['line_total'] : null;
-            $tvaRate = is_numeric($line['tva_rate'] ?? null) ? (float) $line['tva_rate'] : null;
+            $taxRate = is_numeric($line['tax_rate'] ?? null) ? (float) $line['tax_rate'] : null;
 
             $normalizedLines[] = [
                 'description' => trim((string) ($line['description'] ?? '')),
-                'qty' => is_numeric($line['qty'] ?? null) ? (float) $line['qty'] : null,
+                'quantity' => is_numeric($line['quantity'] ?? null) ? (float) $line['quantity'] : null,
                 'unit_price' => is_numeric($line['unit_price'] ?? null) ? (float) $line['unit_price'] : null,
-                'tva_rate' => $tvaRate,
+                'tax_rate' => $taxRate,
                 'line_total' => $lineTotal,
             ];
 
             if ($lineTotal !== null) {
                 $linesSum += $lineTotal;
-                if ($tvaRate !== null) {
-                    $tvaComputed += $lineTotal * ($tvaRate / 100);
+                if ($taxRate !== null) {
+                    $tvaComputed += $lineTotal * ($taxRate / 100);
                 }
             }
         }
@@ -136,7 +96,6 @@ class InvoiceLineExtractionService
             'reconciled_total' => round($reconciledTotal, 2),
             'matches_total' => $matchesTotal,
             'delta' => $delta,
-            'source' => 'ai',
         ];
     }
 }

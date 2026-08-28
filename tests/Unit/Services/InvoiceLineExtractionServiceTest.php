@@ -16,8 +16,8 @@ class InvoiceLineExtractionServiceTest extends TestCase
     {
         $r = InvoiceLineExtractionService::reconcile(
             [
-                ['description' => 'Prestation A', 'line_total' => 1450.0, 'tva_rate' => 8.1],
-                ['description' => 'Prestation B', 'line_total' => 380.0, 'tva_rate' => 8.1],
+                ['description' => 'Prestation A', 'line_total' => 1450.0, 'tax_rate' => 8.1],
+                ['description' => 'Prestation B', 'line_total' => 380.0, 'tax_rate' => 8.1],
             ],
             1830.0,
             148.23,
@@ -35,8 +35,8 @@ class InvoiceLineExtractionServiceTest extends TestCase
         // le verdict doit rougir, pas se caler discretement sur le total.
         $r = InvoiceLineExtractionService::reconcile(
             [
-                ['description' => 'Prestation A', 'line_total' => 1450.0, 'tva_rate' => 8.1],
-                ['description' => 'Prestation B', 'line_total' => 380.0, 'tva_rate' => 8.1],
+                ['description' => 'Prestation A', 'line_total' => 1450.0, 'tax_rate' => 8.1],
+                ['description' => 'Prestation B', 'line_total' => 380.0, 'tax_rate' => 8.1],
             ],
             1830.0,
             148.23,
@@ -62,7 +62,7 @@ class InvoiceLineExtractionServiceTest extends TestCase
     public function testTotalTtcAbsentNeProduitJamaisUnFauxVert(): void
     {
         $r = InvoiceLineExtractionService::reconcile(
-            [['description' => 'Prestation A', 'line_total' => 100.0, 'tva_rate' => 8.1]],
+            [['description' => 'Prestation A', 'line_total' => 100.0, 'tax_rate' => 8.1]],
             100.0,
             8.1,
             null
@@ -77,7 +77,7 @@ class InvoiceLineExtractionServiceTest extends TestCase
         // total_tva n'est pas toujours imprime separement : le repli somme
         // la TVA ligne par ligne plutot que d'abandonner la reconciliation.
         $r = InvoiceLineExtractionService::reconcile(
-            [['description' => 'Prestation A', 'line_total' => 100.0, 'tva_rate' => 8.1]],
+            [['description' => 'Prestation A', 'line_total' => 100.0, 'tax_rate' => 8.1]],
             100.0,
             null,
             108.1
@@ -90,7 +90,7 @@ class InvoiceLineExtractionServiceTest extends TestCase
     public function testToleranceDArrondiSurQuelquesCentimes(): void
     {
         $r = InvoiceLineExtractionService::reconcile(
-            [['description' => 'Prestation A', 'line_total' => 33.33, 'tva_rate' => 7.7]],
+            [['description' => 'Prestation A', 'line_total' => 33.33, 'tax_rate' => 7.7]],
             33.33,
             2.57,
             35.91 // 33.33 + 2.57 = 35.90, ecart d'arrondi de 0.01

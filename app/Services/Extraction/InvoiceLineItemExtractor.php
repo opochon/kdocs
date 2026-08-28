@@ -1,18 +1,29 @@
 <?php
 /**
  * K-Docs - Invoice Line Item Extractor
- * Utilise Claude AI pour extraire les lignes de facture
+ * Utilise le fournisseur IA actif pour extraire les lignes de facture
  */
 
 namespace KDocs\Services\Extraction;
 
 use KDocs\Core\Database;
-use KDocs\Services\ClaudeService;
+use KDocs\Services\AIProviderService;
 use KDocs\Models\InvoiceLineItem;
 
+/**
+ * Pointait exclusivement sur ClaudeService (Anthropic) : fonctionnalite
+ * routee (index.php, 9 endpoints /api/documents/{id}/line-items/*) mais
+ * MORTE des qu'aucune cle Claude n'est configuree — constat du 2026-08-28,
+ * a l'ouverture du lot facture-lignes-ged-t2 : une deuxieme extraction avait
+ * ete ecrite en ignorant celle-ci (InvoiceLineExtractionService), doublon
+ * corrige en repointant ICI sur AIProviderService (cascade Infomaniak ->
+ * Claude -> Ollama, deja utilisee par la classification) plutot que de
+ * maintenir deux implementations. Le prompt et le format de reponse restent
+ * identiques : seul le transport change.
+ */
 class InvoiceLineItemExtractor
 {
-    private ClaudeService $claude;
+    private AIProviderService $ai;
 
     /**
      * Prompt système pour l'extraction de lignes de facture
@@ -56,9 +67,9 @@ Format de réponse attendu:
 }
 PROMPT;
 
-    public function __construct()
+    public function __construct(?AIProviderService $ai = null)
     {
-        $this->claude = new ClaudeService();
+        $this->ai = $ai ?? new AIProviderService();
     }
 
     /**
@@ -66,7 +77,7 @@ PROMPT;
      */
     public function isAvailable(): bool
     {
-        return $this->claude->isConfigured();
+        return $this->ai->isAIAvailable();
     }
 
     /**
@@ -83,7 +94,7 @@ PROMPT;
         if (!$this->isAvailable()) {
             return [
                 'success' => false,
-                'error' => 'Claude API not configured'
+                'error' => 'Aucun fournisseur IA configure'
             ];
         }
 
@@ -101,8 +112,12 @@ PROMPT;
             ];
         }
 
-        // Essayer d'abord avec le contenu OCR
-        $content = $document['ocr_content'] ?? '';
+        // `ocr_content` n'est pas une colonne de `documents` (colonnes reelles :
+        // content, ocr_text) — cette lecture rendait toujours '' et la sonde
+        // repartait systematiquement sur extractFromFile(). Corrige au meme
+        // diff que le changement de fournisseur (les deux etaient dans le
+        // chemin qui rendait cette fonctionnalite muette).
+        $content = (string) ($document['content'] ?? $document['ocr_text'] ?? '');
 
         $result = null;
 
@@ -149,7 +164,9 @@ PROMPT;
      */
     private function extractFromText(string $content): ?array
     {
-        $prompt = <<<PROMPT
+        $prompt = self::SYSTEM_PROMPT . <<<PROMPT
+
+
 Analyse cette facture et extrais toutes les lignes de détail.
 
 Contenu de la facture:
@@ -160,7 +177,7 @@ $content
 Retourne les données au format JSON.
 PROMPT;
 
-        $response = $this->claude->sendMessage($prompt, self::SYSTEM_PROMPT);
+        $response = $this->ai->complete($prompt, ['max_tokens' => 2000]);
 
         if (!$response) {
             return null;
@@ -170,32 +187,32 @@ PROMPT;
     }
 
     /**
-     * Extrait les données depuis le fichier
+     * Extrait les données depuis le fichier.
+     *
+     * AIProviderService n'a pas d'equivalent multimodal (envoi de fichier) :
+     * ClaudeService::sendMessageWithFile() n'a pas de repli. Degrade
+     * proprement plutot que d'echouer en silence — extract() retombe alors
+     * sur « aucun resultat », jamais sur une extraction inventee. Le chemin
+     * texte (extractFromText) couvre le cas reel : un document deja indexe
+     * porte son OCR dans `content`/`ocr_content` avant meme d'atteindre ce
+     * repli.
      */
     private function extractFromFile(string $filePath): ?array
     {
-        $prompt = "Analyse cette facture et extrais toutes les lignes de détail. Retourne les données au format JSON.";
-
-        $response = $this->claude->sendMessageWithFile($prompt, $filePath, self::SYSTEM_PROMPT);
-
-        if (!$response) {
-            return null;
-        }
-
-        return $this->parseResponse($response);
+        return null;
     }
 
     /**
-     * Parse la réponse de Claude
+     * Parse la réponse du fournisseur IA actif
      */
     private function parseResponse(array $response): array
     {
-        $text = $this->claude->extractText($response);
+        $text = (string) ($response['text'] ?? '');
 
         if (empty($text)) {
             return [
                 'success' => false,
-                'error' => 'Empty response from Claude'
+                'error' => 'Empty response from AI provider'
             ];
         }
 

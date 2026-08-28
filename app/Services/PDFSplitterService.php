@@ -975,7 +975,7 @@ PYTHON;
                 continue;
             }
 
-            $this->persistInvoiceFacts((int) $newId, $invoice, (string) ($doc['text'] ?? ''));
+            $this->persistInvoiceFacts((int) $newId, $invoice);
             $this->flagUncertainCut((int) $newId, $pages0, $result['boundaries'] ?? []);
             $created[] = ['id' => $newId, 'pages' => $pages0, 'analysis' => $analysis];
         }
@@ -1067,7 +1067,7 @@ PYTHON;
      * Reporte la qualification facture sur le document : montant et flag facture en
      * colonnes, le detail (IBAN, reference, statut paye, manuscrit) en suggestions.
      */
-    private function persistInvoiceFacts(int $documentId, array $invoice, string $text = ''): void
+    private function persistInvoiceFacts(int $documentId, array $invoice): void
     {
         if (!$invoice) {
             return;
@@ -1105,15 +1105,24 @@ PYTHON;
 
         // D-GED-02 : le QR-facture (invoice, ci-dessus) ne porte que la partie
         // paiement (IBAN, montant, reference) — jamais le detail des lignes,
-        // par construction du standard suisse. Reste cote GED (arbitrage
-        // Olivier, 2026-08-28) : lire les lignes depuis le texte OCR deja
-        // extrait, et RECALCULER l'egalite lignes+TVA=total en PHP — jamais
-        // l'affirmer depuis la sortie du modele (SV-13).
-        if (!empty($invoice['is_invoice']) && trim($text) !== '') {
+        // par construction du standard suisse. InvoiceLineItemExtractor lit
+        // le texte deja stocke sur ce document (createDocumentFromSplit vient
+        // de poser `content`) et persiste dans invoice_line_items — la table
+        // deja routee (InvoiceLineItemsApiController), pas un second stockage.
+        // InvoiceLineExtractionService::reconcile() RECALCULE l'egalite
+        // lignes+TVA=total en PHP a partir du resultat — jamais affirmee par
+        // le modele (SV-13).
+        if (!empty($invoice['is_invoice'])) {
             try {
-                $lignes = (new InvoiceLineExtractionService())->extract($text);
-                if ($lignes !== null) {
-                    $existing['invoice_lines'] = $lignes;
+                $extraction = (new \KDocs\Services\Extraction\InvoiceLineItemExtractor())->extract($documentId, true);
+                if (!empty($extraction['success'])) {
+                    $info = is_array($extraction['invoice_info'] ?? null) ? $extraction['invoice_info'] : [];
+                    $existing['invoice_lines'] = InvoiceLineExtractionService::reconcile(
+                        $extraction['line_items'] ?? [],
+                        $info['total_ht'] ?? null,
+                        $info['total_tva'] ?? null,
+                        $info['total_ttc'] ?? null
+                    );
                 }
             } catch (\Throwable $e) {
                 error_log('PDFSplitterService: extraction lignes facture #' . $documentId . ' : ' . $e->getMessage());
