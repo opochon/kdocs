@@ -45,8 +45,8 @@
 
 ## Socle
 
-> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-10 10:10 sur `?`, HEAD est `eabcfc9`.
-> commit de la mesure inconnu · 1 fichier(s) hors commit maintenant.
+> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-10 10:10 sur `?`, HEAD est `dd9cd17`.
+> commit de la mesure inconnu.
 > Les chiffres ci-dessous ne jugent PAS le code d aujourd hui. Rejouer AVANT de conclure :
 > 
 >     node F:/DATA/DEVELOPPEMENT/EcosystemK/gouvernance/tools/recette.mjs socle
@@ -79,8 +79,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 1 fichiers modifies
-- dernier commit : eabcfc9 2026-08-28 chore(rapports) : brief et contrat K-Time regeneres — serveur K-Time local non demarre
+- branche `main` · 0 fichiers modifies
+- dernier commit : dd9cd17 2026-08-28 chore(rapports) : eval-full rejoue seul (--no-ocr) — OK, merge dans harness-latest.json
 
 ## Definition de « fait » pour ce tour
 
