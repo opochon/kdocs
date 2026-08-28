@@ -417,8 +417,15 @@
       "testCount": 8,
       "failures": 0,
       "durationMs": 22293
+    },
+    {
+      "name": "liaison-erp-tranchee",
+      "ok": true,
+      "source": "tests/integration/test_liaison_erp_tranchee.php",
+      "durationMs": 98,
+      "exitCode": 0
     }
   ],
-  "patchedAt": "2026-08-28T16:20:30.932Z",
-  "patchedSuite": "eval-full"
+  "patchedAt": "2026-08-28T17:24:04.537Z",
+  "patchedSuite": "liaison-erp-tranchee"
 }

@@ -154,9 +154,10 @@
     {
       "id": "SV-14",
       "point": "D-GED-05 — la liaison ERP a une decision tranchee et tracee (pas codee) sur son traitement",
-      "cmd": null,
-      "_note": "Mesure que la decision est TRANCHEE ET TRACEE, pas qu'elle est codee. Aucun artefact de decision n'existe aujourd'hui : pas de governance/decisions/, pas de champ dans truth.k.toml documentant un choix explicite. Contexte transmis par la demande : truth.k.toml declare ged->ktime en 'interroge+action', et l'arete ktime->ged (archivage) est declaree mais absente d'ecosystem.k.toml — divergence non arbitree. Une fois la decision prise, la sonde a ecrire verifiera l'existence d'un enregistrement date portant la marque d'Olivier (jamais posee par un agent — regle 9).",
-      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+      "cmd": "php tests/integration/test_liaison_erp_tranchee.php",
+      "timeout_ms": 15000,
+      "_note": "CABLE le 2026-08-28 (lot liaison-erp-tranchee-sv14). La decision existait deja (recette/arbitrages.json, A-GED-01, tranche_le=2026-08-10 : la GED consomme K-Time, ne reimplemente pas) mais A-GED-01 ne portait pas `tranche_par`, contrairement a A-GED-02 — impossible de distinguer une decision d'Olivier d'un agent qui se serait attribue la fermeture (regle 9 EcosystemK). Confirme directement par Olivier le 2026-08-28, champ `tranche_par` ajoute a l'entree. La sonde lit recette/arbitrages.json (source de verite pour ce type de decision, pas de code a executer) et exige les trois champs ensemble : tranche_le, tranche_par (jamais 'claude'/'codex'), choix. VERT 6/6.",
+      "donnees": "reelles (recette/arbitrages.json, pas une fixture)"
     },
     {
       "id": "SV-15",

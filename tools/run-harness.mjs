@@ -72,6 +72,7 @@ const ONLY_STANDALONE = {
   'search-fulltext': () => suiteFromCapture('search-fulltext', 'tests/integration/test_fulltext_search.php', runCapture('php', ['tests/integration/test_fulltext_search.php'])),
   'logical-folders': () => suiteFromCapture('logical-folders', 'tests/integration/test_logical_folders.php', runCapture('php', ['tests/integration/test_logical_folders.php'])),
   'stockage-coherence': () => suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', runCapture('php', ['tests/integration/test_stockage_coherence.php'])),
+  'liaison-erp-tranchee': () => suiteFromCapture('liaison-erp-tranchee', 'tests/integration/test_liaison_erp_tranchee.php', runCapture('php', ['tests/integration/test_liaison_erp_tranchee.php'])),
   'eval-full': () => suiteFromCapture('eval-full', 'tools/eval-full.php --no-ocr', runCapture('php', ['tools/eval-full.php', '--no-ocr'])),
 };
 
@@ -305,6 +306,12 @@ async function main() {
     const sc = runCapture('php', ['tests/integration/test_stockage_coherence.php']);
     console.log(strip(sc.stdout));
     push(suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', sc));
+
+    // -- liaison ERP tranchee et tracee (SV-14, D-GED-05) --------------------
+    console.log('\n[2d2] liaison-erp-tranchee (tests/integration/test_liaison_erp_tranchee.php)...');
+    const et = runCapture('php', ['tests/integration/test_liaison_erp_tranchee.php']);
+    console.log(strip(et.stdout));
+    push(suiteFromCapture('liaison-erp-tranchee', 'tests/integration/test_liaison_erp_tranchee.php', et));
 
     // -- coherence des compteurs de la file (secteur ingestion-ocr, DF-06) --
     console.log('\n[2e] compteurs-coherence (tests/integration/test_compteurs_coherence.php)...');
