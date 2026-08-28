@@ -431,8 +431,15 @@
       "source": "tests/integration/test_facture_lignes_tva.php",
       "durationMs": 4079,
       "exitCode": 0
+    },
+    {
+      "name": "facture-qr-lecture",
+      "ok": true,
+      "source": "tests/integration/test_facture_qr_lecture.php",
+      "durationMs": 1864,
+      "exitCode": 0
     }
   ],
-  "patchedAt": "2026-08-28T17:55:50.946Z",
-  "patchedSuite": "facture-lignes-tva"
+  "patchedAt": "2026-08-28T18:24:50.815Z",
+  "patchedSuite": "facture-qr-lecture"
 }

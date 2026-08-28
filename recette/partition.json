@@ -140,9 +140,10 @@
     {
       "id": "SV-12",
       "point": "D-GED-02 — lire le QR d'une facture, verifier que l'adressage est le mien, lire les coordonnees du vendeur, lire les lignes produits avec montants",
-      "cmd": null,
-      "_note": "Aucun code de lecture de QR-facture (QR-bill suisse) dans le depot : recherche 'SwissQR', 'QrBill', 'QRCode', 'Zxing', 'BarcodeReader' sans resultat dans app/. L'extraction de lignes existe (app/Services/Extraction/InvoiceLineItemExtractor.php, app/Services/Ingest/CmdV4ResultMapper.php) mais part de CMD v4 / IA, pas d'un QR scanne, et ne verifie ni l'adressage ni les coordonnees vendeur en tant que telles. Rien a cabler : le premier lot serait d'ecrire la brique de lecture QR elle-meme — hors perimetre de ce lot (maillon 2 seulement).",
-      "donnees": "NON DECLARE — fixture, semees ou reelles ?"
+      "cmd": "php tests/integration/test_facture_qr_lecture.php",
+      "timeout_ms": 30000,
+      "_note": "PARTIEL, cable le 2026-08-28 (lot facture-qr-sv12) — la sonde ne couvre QUE la lecture QR (issuer/iban/amount/reference/debtor), sur decision d'Olivier de mesurer la moitie disponible plutot que d'attendre la couverture complete. Les deux autres clauses restent explicitement NON MESUREES ici : (1) « adressage est le mien » — aucune notion de « mon entreprise » (nom/IBAN/adresse du proprietaire du GED) dans le schema ou la config, rien a quoi comparer `debtor` ; (2) « coordonnees du vendeur » — le QR-facture suisse ne porte que le NOM de l'emetteur (`issuer`, chaine courte, verifie 21 caracteres), jamais son adresse postale complete, par construction du standard. Preuve en deux temps : effet deja produit sur un document reel de la base (id choisi par filtre sur les 5 valeurs REELLEMENT non vides, pas seulement la presence de la cle JSON — piege trouve en ecrivant la sonde, `LIKE '%iban%'` matche meme une valeur vide) + appel reel Cmd4IngestClient::ingest() sur un fichier reel pour prouver que le code actuel produit encore ces champs, pas seulement un resultat historique.",
+      "donnees": "reelles (document choisi dynamiquement en base ; fixture Kuhn_Stefan_et_Marcel_facture pour l'appel direct)"
     },
     {
       "id": "SV-13",

@@ -74,6 +74,7 @@ const ONLY_STANDALONE = {
   'stockage-coherence': () => suiteFromCapture('stockage-coherence', 'tests/integration/test_stockage_coherence.php', runCapture('php', ['tests/integration/test_stockage_coherence.php'])),
   'liaison-erp-tranchee': () => suiteFromCapture('liaison-erp-tranchee', 'tests/integration/test_liaison_erp_tranchee.php', runCapture('php', ['tests/integration/test_liaison_erp_tranchee.php'])),
   'facture-lignes-tva': () => suiteFromCapture('facture-lignes-tva', 'tests/integration/test_facture_lignes_tva.php', runCapture('php', ['tests/integration/test_facture_lignes_tva.php'])),
+  'facture-qr-lecture': () => suiteFromCapture('facture-qr-lecture', 'tests/integration/test_facture_qr_lecture.php', runCapture('php', ['tests/integration/test_facture_qr_lecture.php'])),
   'eval-full': () => suiteFromCapture('eval-full', 'tools/eval-full.php --no-ocr', runCapture('php', ['tools/eval-full.php', '--no-ocr'])),
 };
 
@@ -319,6 +320,12 @@ async function main() {
     const flt = runCapture('php', ['tests/integration/test_facture_lignes_tva.php']);
     console.log(strip(flt.stdout));
     push(suiteFromCapture('facture-lignes-tva', 'tests/integration/test_facture_lignes_tva.php', flt));
+
+    // -- lecture QR facture, moitie disponible (SV-12, D-GED-02) -------------
+    console.log('\n[2d4] facture-qr-lecture (tests/integration/test_facture_qr_lecture.php)...');
+    const fql = runCapture('php', ['tests/integration/test_facture_qr_lecture.php']);
+    console.log(strip(fql.stdout));
+    push(suiteFromCapture('facture-qr-lecture', 'tests/integration/test_facture_qr_lecture.php', fql));
 
     // -- coherence des compteurs de la file (secteur ingestion-ocr, DF-06) --
     console.log('\n[2e] compteurs-coherence (tests/integration/test_compteurs_coherence.php)...');
