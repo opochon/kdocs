@@ -19,9 +19,12 @@
  * Usage: php tests/integration/test_stockage_coherence.php
  */
 
+require_once __DIR__ . '/../../app/helpers.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use KDocs\Core\Config;
 use KDocs\Core\Database;
+use KDocs\Services\Storage\InternalFolderRegistry;
 
 echo "\n";
 echo "+==============================================================+\n";
@@ -114,10 +117,15 @@ test(
 // ---------------------------------------------------------------------------
 echo "\n--- 4. DISQUE VS BASE ---\n\n";
 
-$racine = realpath(__DIR__ . '/../../storage/documents');
+// FilesystemIndexer lit storage.base_path (Config) plutot qu'un chemin en dur :
+// le racine par defaut ne correspond pas forcement a la racine reellement
+// configuree (ex. config/config.php pointe storage/courrier-matin/documents
+// sur ce poste). Un chemin en dur ici auditerait un arbre qui n'est plus celui
+// que l'application lit ni ecrit.
+$racine = realpath(Config::get('storage.base_path', __DIR__ . '/../../storage/documents'));
 
 if ($racine === false || !is_dir($racine)) {
-    test('La racine de stockage existe', false, 'storage/documents introuvable');
+    test('La racine de stockage existe', false, 'racine configuree introuvable');
 } else {
     test('La racine de stockage existe', true, $racine);
 
@@ -130,7 +138,16 @@ if ($racine === false || !is_dir($racine)) {
     foreach ($it as $f) {
         if (!$f->isDir()) continue;
         $rel = str_replace('\\', '/', substr($f->getPathname(), strlen($racine) + 1));
-        if ($rel === '' || str_contains($rel, '/.')) continue;
+        // Segment cache (.versions, .git...) : le motif '/.' rate un segment
+        // cache EN RACINE (aucun '/' devant), d'ou 17 ".versions/xxx.pdf"
+        // signales a tort — ce sont les dossiers de version, exclus par
+        // conception (attribut Windows +H, cf. lot versioning-etat-des-lieux).
+        // InternalFolderRegistry (meme registre que FilesystemIndexer et le
+        // secteur dossier-surveille-invisible) : pending/consume/toclassify...
+        // sont des dossiers pipeline, jamais indexes comme document_folders —
+        // les signaler ici fabriquerait un rouge sur un comportement voulu.
+        if ($rel === '' || $rel[0] === '.' || str_contains($rel, '/.')
+            || InternalFolderRegistry::isHiddenPath($rel)) continue;
         $aDesFichiers = false;
         foreach (glob($f->getPathname() . '/*') ?: [] as $e) {
             if (is_file($e)) { $aDesFichiers = true; break; }
