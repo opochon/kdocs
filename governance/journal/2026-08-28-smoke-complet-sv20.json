@@ -1,0 +1,13 @@
+{
+  "lot": "smoke-complet-sv20",
+  "date": "2026-08-28",
+  "demande": "T0.5 de .claude/commands/goal.md — reverifier SV-20 (smoke complet, dix controles EFFET) apres la reconciliation des doublons de session qui l'avait rendu rouge a tort dans la mesure socle du 2026-08-28.",
+  "resume": "Rejoue en isolation : 34/35. Les 9 premiers controles (deposer, extraire+rechercher, decouper multi-documents, classer au-dessus/en-dessous du seuil, supprimer en douceur, droits ACL serveur, audit, coherence des compteurs) sont tous verts — la contamination de session (doublons de checksum) qui avait fait tomber ce controle dans la mesure socle est bien resorbee par la reconciliation du tour precedent. Le seul echec restant est le controle 9 (KTimeClient::health, aller-retour reseau reel contre http://127.0.0.1:8090/api/ged/health) : le serveur local K-TIME n'est pas demarre sur ce poste, meme cause racine que G-01 et G-05 deja constates. Rien a coder ici : K-TIME est hors perimetre (lecture seule, dev-start.bat interactif lance son propre gate) et le controle est correctement concu (il verifie un aller-retour reel, pas un mock — regle 4 AGENTS.md).",
+  "test": "test_smoke_fonctions.php : 34/35, seul KO = controle 9 (contrat K-Time reel).",
+  "reste": [
+    "SV-20 restera rouge tant que le serveur local K-TIME (127.0.0.1:8090) n'est pas demarre — action operationnelle sur le poste, pas un lot de code GEDv1."
+  ],
+  "decisions": [
+    "Pas de mock ni de contournement du controle 9 : le mock n'est pas une preuve (regle 4 AGENTS.md) et K-TIME reste lecture seule (regle 3). Le constat suffit."
+  ]
+}
