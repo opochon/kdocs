@@ -1,0 +1,16 @@
+{
+  "lot": "liaison-erp-tranchee-sv14",
+  "date": "2026-08-28",
+  "demande": "T1 de .claude/commands/goal.md — depot de l'arbitrage D-GED-05 (SV-14). En l'ouvrant, decouverte que recette/arbitrages.json portait deja A-GED-01 (2026-08-10) couvrant exactement cette question, mais sans tranche_par — a la difference de A-GED-02 juste apres dans le meme fichier. Question posee directement a Olivier plutot que suppose ou redemande : confirme que c'est bien sa decision.",
+  "resume": "Pas de nouvel arbitrage depose (aurait viole la regle 1 EcosystemK — ne rien reproduire qui existe). recette/arbitrages.json corrige : tranche_par='Olivier' et confirme_le ajoutes a A-GED-01, avec une note expliquant l'ecart trouve. tests/integration/test_liaison_erp_tranchee.php ecrit : lit le registre d'arbitrages (source de verite pour ce type de decision — aucun code applicatif a executer pour ce point), cherche l'entree qui cite D-GED-05 dans son champ `bloque`, exige tranche_le + tranche_par (jamais un nom d'agent : garde explicite contre 'claude'/'codex') + choix ENSEMBLE. Cable dans run-harness.mjs (suite standalone et --only) et recette/partition.json.",
+  "test": "test_liaison_erp_tranchee.php : 6/6. --only liaison-erp-tranchee verifie fonctionnel depuis run-harness.mjs.",
+  "reste": [
+    "D-GED-05 n'est pas fermee (adoptee_le n'appartient qu'a Olivier, jamais pose par un agent) — seul le point SV-14 est cable et vert.",
+    "G-07 (contre-jeu suppression document rattache a une ecriture) explicitement ecarte de ce tour sur decision d'Olivier : aucune notion d'ecriture n'existe dans le schema actuel (aucune colonne/table de liaison document<->ecriture comptable), la definir est un choix produit qui n'appartient pas a un agent. Reste TROU jusqu'a definition."
+  ],
+  "decisions": [
+    "Correction du registre (tranche_par ajoute a une entree existante) plutot que nouvel arbitrage : l'entree portait deja tranche_le et choix, le seul champ manquant etait l'attribution — completer est plus honnete que dupliquer.",
+    "L'oracle lit recette/arbitrages.json directement, pas un artefact intermediaire (governance/decisions/, truth.k.toml) mentionne dans l'ancienne note de SV-14 : le registre d'arbitrages existe deja et sert cette fonction pour A-GED-02, pas de raison d'en creer un second.",
+    "G-07 laisse explicitement TROU sur instruction d'Olivier — pas invente, pas code contre une hypothese."
+  ]
+}
