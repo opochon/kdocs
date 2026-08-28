@@ -376,11 +376,11 @@ class DocumentProcessor
     
     private function updateDocument(int $documentId, ?string $text, array $metadata): void
     {
-        // Tronquer le texte si nécessaire avant insertion
-        if ($text && mb_strlen($text) > 65000) {
-            $originalLength = mb_strlen($text);
-            $text = mb_substr($text, 0, 65000);
-            error_log("DocumentProcessor::updateDocument: Contenu tronqué de {$originalLength} à 65000 caractères pour document {$documentId}");
+        // Tronquer en OCTETS : TEXT = 65 535 octets, pas 65 535 caracteres.
+        if ($text !== null && strlen($text) > 65000) {
+            $originalLength = strlen($text);
+            $text = OCRService::truncateForTextColumn($text);
+            error_log("DocumentProcessor::updateDocument: Contenu tronqué de {$originalLength} à 65000 octets pour document {$documentId}");
         }
         
         $stmt = $this->db->prepare("UPDATE documents SET title = COALESCE(?, title), content = ?, document_date = ?, amount = ?, is_indexed = TRUE, indexed_at = NOW() WHERE id = ?");

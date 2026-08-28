@@ -4,7 +4,11 @@
  * À exécuter périodiquement (cron) pour traiter les fichiers du dossier consume
  */
 
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../autoload.php';
+// helpers.php charge .env et definit env() : sans lui, CmdV4Client::isEnabled() fatal
+// (Call to undefined function KDocs\Services\Ingest\env()) des qu'un PDF entre dans l'ingest.
+require_once __DIR__ . '/../helpers.php';
 
 use KDocs\Services\ConsumeFolderService;
 

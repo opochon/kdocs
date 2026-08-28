@@ -50,7 +50,13 @@ class EmbeddingService
      * Generate embedding for text
      * @return array|null Vector array or null on failure
      */
-    public function embed(string $text): ?array
+    /**
+     * @param string $task 'document' pour un contenu indexe, 'query' pour une recherche.
+     *                     nomic-embed-text est entraine AVEC ces prefixes : sans eux les
+     *                     scores se tassent (0.51-0.64 sur un corpus de 43 pieces) et la
+     *                     recherche cesse de discriminer.
+     */
+    public function embed(string $text, string $task = 'document'): ?array
     {
         if (!$this->isAvailable()) {
             return null;
@@ -62,6 +68,8 @@ class EmbeddingService
         if (empty(trim($text))) {
             return null;
         }
+
+        $text = $this->applyTaskPrefix($text, $task);
 
         $startTime = microtime(true);
 
@@ -83,6 +91,31 @@ class EmbeddingService
             $this->logEmbedding(null, 'error', null, null, $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Prefixe de tache exige par la famille nomic-embed. Sans effet sur les autres
+     * modeles, qui n'ont pas cette convention.
+     */
+    private function applyTaskPrefix(string $text, string $task): string
+    {
+        // Le modele effectif depend du fournisseur : `model` sert a OpenAI, mais le
+        // chemin Ollama lit `ollama_model`. Interroger le mauvais laissait le prefixe
+        // inactif alors meme que nomic-embed-text tournait.
+        $model = in_array($this->provider, ['local', 'ollama'], true)
+            ? (string) ($this->config['ollama_model'] ?? '')
+            : (string) ($this->model ?? '');
+
+        if (stripos($model, 'nomic') === false) {
+            return $text;
+        }
+
+        $prefix = $task === 'query' ? 'search_query: ' : 'search_document: ';
+        if (str_starts_with($text, 'search_query: ') || str_starts_with($text, 'search_document: ')) {
+            return $text;
+        }
+
+        return $prefix . $text;
     }
 
     /**

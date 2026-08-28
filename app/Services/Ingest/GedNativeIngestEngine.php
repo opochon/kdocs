@@ -68,9 +68,9 @@ class GedNativeIngestEngine
 
             $content = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
             $content = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $content) ?? $content;
-            if (mb_strlen($content) > 65000) {
-                $content = mb_substr($content, 0, 65000);
-            }
+            // Troncature en OCTETS : la colonne TEXT vaut 65 535 octets, et 65 000
+            // caracteres accentues en font davantage (SQLSTATE[22001] sur un gros scan).
+            $content = OCRService::truncateForTextColumn($content);
 
             $db = \KDocs\Core\Database::getInstance();
             $db->prepare('UPDATE documents SET content = ?, ocr_text = ? WHERE id = ?')

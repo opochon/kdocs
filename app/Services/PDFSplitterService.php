@@ -21,6 +21,10 @@ class PDFSplitterService
     private AIProviderService $aiProvider;
     /** Méthode utilisée par la dernière analyse de pages : 'ai' | 'rules' | 'none'. Sert à annoter le résultat du split. */
     private string $lastSplitMethod = 'none';
+    /** Pages rasterisées du document en cours (index 0-based -> PNG), rendues une seule fois. */
+    private ?array $pageRenderCache = null;
+    /** Répertoire temporaire des pages rasterisées, purgé en fin d'analyse. */
+    private ?string $pageRenderDir = null;
 
     public function __construct(?AIProviderService $aiProvider = null)
     {
@@ -114,6 +118,13 @@ class PDFSplitterService
                 throw new \Exception("Fichier PDF introuvable pour document {$documentId}");
             }
         }
+
+        // Moteur partage cmd4_ingest : meme code que CMD v4 (codes de pli, QR-facture,
+        // folio, escalade vision). Le pipeline PHP historique reste en repli.
+        $shared = $this->splitViaSharedEngine($documentId, $document, $filePath);
+        if ($shared !== null) {
+            return $shared;
+        }
         
         // Compter les pages du PDF
         $numPages = $this->countPDFPages($filePath);
@@ -177,13 +188,22 @@ class PDFSplitterService
             $firstPageNum = $pageGroup[0];
             $analysis = $pageAnalyses[$firstPageNum] ?? null;
             
+            // Texte OCR des pages du groupe : deja extrait pendant l'analyse, on le
+            // reporte sur l'enfant au lieu de le jeter (evite un second OCR et un
+            // classement sur document vide).
+            $groupText = '';
+            foreach ($pageGroup as $p) {
+                $groupText .= (string) ($pageAnalyses[$p]['_text'] ?? '') . "\n\n";
+            }
+
             $newDocId = $this->createDocumentFromSplit(
                 $splitFile,
                 $document,
                 $pageGroup,
                 $analysis,
                 $documentId, // parent_id
-                $this->lastSplitMethod
+                $this->lastSplitMethod,
+                trim($groupText)
             );
 
             if ($newDocId) {
@@ -275,9 +295,15 @@ PYTHON;
         $analyses = [];
         $ocrService = new OCRService();
         
-        // Limiter à 20 pages max pour performance
-        $maxPages = min($numPages, 20);
-        
+        // Plafond d'analyse : 0 = toutes les pages. Le plafond de 20 pages code en dur
+        // laissait 83 pages sur 103 hors du découpage pour un scan de courrier du matin.
+        $configuredMax = (int) Config::get('classification.split_max_pages', 0);
+        $maxPages = $configuredMax > 0 ? min($numPages, $configuredMax) : $numPages;
+
+        // Une seule rasterisation pour tout le document : les pages sans couche texte
+        // sont OCRisées à la demande depuis ce cache (voir extractPageText()).
+        $this->pageRenderCache = null;
+
         $successCount = 0;
         $errorCount = 0;
         
@@ -287,25 +313,36 @@ PYTHON;
                 $pageText = $this->extractPageText($filePath, $pageNum);
                 
                 if (empty($pageText) || strlen(trim($pageText)) < 50) {
-                    // Page vide ou peu de texte, ignorer
+                    // Page sans texte exploitable (verso vierge, photo pleine page).
+                    // Elle est rattachee au document courant plutot qu'ignoree : une page
+                    // absente de tout groupe n'est ecrite dans AUCUN PDF de sortie, donc
+                    // perdue silencieusement du lot.
+                    $analyses[$pageNum] = $this->continuationAnalysis($pageNum, (string) $pageText, 'blank');
                     continue;
                 }
-                
+
                 // Analyser avec le fournisseur IA actif (retombe sur les heuristiques si indisponible)
                 $analysis = $this->analyzePageWithAI($pageText, $pageNum + 1);
-                
+
                 if ($analysis) {
                     $analysis['page_num'] = $pageNum;
+                    // Texte conserve : il devient le contenu indexable du document decoupe,
+                    // sinon les enfants naissent sans `content` et sont classes a l'aveugle.
+                    $analysis['_text'] = $pageText;
                     $analyses[$pageNum] = $analysis;
                     $successCount++;
                     error_log("PDFSplitterService: Page " . ($pageNum + 1) . " analysée: " . ($analysis['correspondent'] ?? 'N/A'));
                 } else {
-                    // Analyse échouée (API non disponible, timeout, etc.)
+                    // Analyse échouée (API non disponible, timeout, etc.) : la page est
+                    // rattachee au document courant, jamais abandonnee — une page absente
+                    // de tout groupe n'est ecrite dans aucun PDF de sortie.
                     $errorCount++;
+                    $analyses[$pageNum] = $this->continuationAnalysis($pageNum, $pageText);
                 }
             } catch (\Exception $e) {
                 $errorCount++;
                 error_log("PDFSplitterService: Erreur analyse page " . ($pageNum + 1) . ": " . $e->getMessage());
+                $analyses[$pageNum] = $this->continuationAnalysis($pageNum, $pageText ?? '');
                 continue; // Continuer avec les autres pages
             }
         }
@@ -327,7 +364,39 @@ PYTHON;
         }
         $this->lastSplitMethod = $aiPages > 0 ? 'ai' : ($rulesPages > 0 ? 'rules' : 'none');
 
+        $this->purgeRenderedPages();
+
         return $analyses;
+    }
+
+    /**
+     * Analyse minimale marquant une page comme suite du document courant.
+     * Filet de securite : toute page non exploitable reste rattachee a un groupe,
+     * donc presente dans un PDF de sortie. Zero page perdue sur un lot scanne.
+     *
+     * @return array<string, mixed>
+     */
+    private function continuationAnalysis(int $pageNum, string $pageText, string $source = 'unanalyzed'): array
+    {
+        return [
+            'page_num' => $pageNum,
+            'is_first_page' => false,
+            'doc_page' => 2, // > 1 : areSameDocument() y voit une continuation
+            '_source' => $source,
+            '_text' => $pageText,
+        ];
+    }
+
+    private function purgeRenderedPages(): void
+    {
+        if ($this->pageRenderDir !== null && is_dir($this->pageRenderDir)) {
+            foreach (glob($this->pageRenderDir . '/*') ?: [] as $f) {
+                @unlink($f);
+            }
+            @rmdir($this->pageRenderDir);
+        }
+        $this->pageRenderDir = null;
+        $this->pageRenderCache = null;
     }
     
     /**
@@ -335,14 +404,106 @@ PYTHON;
      */
     private function extractPageText(string $filePath, int $pageNum): ?string
     {
+        $text = $this->extractPageTextLayer($filePath, $pageNum);
+
+        // Couche texte absente ou vide (scan) : OCR de cette page uniquement.
+        if (!OCRService::hasReadableText($text, 20)) {
+            $ocrText = $this->ocrPage($filePath, $pageNum);
+            if (OCRService::hasReadableText($ocrText, 20)) {
+                return $ocrText;
+            }
+        }
+
+        return $text;
+    }
+
+    /**
+     * Rasterise le PDF une seule fois puis OCRise la page demandée.
+     * Sans ce repli, un PDF 100% image ne rend aucun texte de page et le découpage
+     * est abandonné en silence (0 analyse -> analyzeAndSplit() retourne null).
+     */
+    private function ocrPage(string $filePath, int $pageNum): ?string
+    {
+        $pages = $this->renderPages($filePath);
+        $pageFile = $pages[$pageNum] ?? null;
+        if ($pageFile === null || !file_exists($pageFile)) {
+            return null;
+        }
+
+        try {
+            return (new OCRService())->extractText($pageFile);
+        } catch (\Throwable $e) {
+            error_log('PDFSplitterService: OCR page ' . ($pageNum + 1) . ' : ' . $e->getMessage());
+
+            return null;
+        }
+    }
+
+    /**
+     * @return array<int, string> index 0-based de page -> fichier PNG
+     */
+    private function renderPages(string $filePath): array
+    {
+        if ($this->pageRenderCache !== null) {
+            return $this->pageRenderCache;
+        }
+
+        $this->pageRenderCache = [];
+
+        $config = Config::load();
+        $pdftoppmPath = SystemHelper::findExecutable(
+            'pdftoppm',
+            array_filter([$config['tools']['pdftoppm'] ?? null, ...SystemHelper::getDefaultPaths('pdftoppm')])
+        );
+        if (!$pdftoppmPath) {
+            error_log('PDFSplitterService: pdftoppm introuvable, OCR page par page impossible');
+
+            return $this->pageRenderCache;
+        }
+
+        $dir = $this->tempDir . '/' . uniqid('split_pages_');
+        @mkdir($dir, 0755, true);
+        $this->pageRenderDir = $dir;
+
+        $dpi = (int) Config::get('ocr.split_dpi', 200);
+        exec(
+            escapeshellarg($pdftoppmPath) . " -png -r {$dpi} " . escapeshellarg($filePath) . ' ' . escapeshellarg($dir . '/page') . ' 2>&1',
+            $out,
+            $code
+        );
+        if ($code !== 0) {
+            error_log('PDFSplitterService: pdftoppm code ' . $code . ' : ' . implode("\n", $out));
+
+            return $this->pageRenderCache;
+        }
+
+        $files = glob($dir . '/page*.png') ?: [];
+        sort($files, SORT_NATURAL);
+        $this->pageRenderCache = array_values($files);
+
+        return $this->pageRenderCache;
+    }
+
+    /**
+     * Texte de la couche PDF pour une page (sans OCR).
+     */
+    private function extractPageTextLayer(string $filePath, int $pageNum): ?string
+    {
         $pdfCmd = escapeshellarg($filePath);
         $outputFile = $this->tempDir . '/' . uniqid('page_text_') . '.txt';
         $outputCmd = escapeshellarg($outputFile);
-        
+
+        $config = Config::load();
+        $pdftotextPath = SystemHelper::findExecutable(
+            'pdftotext',
+            array_filter([$config['tools']['pdftotext'] ?? null, ...SystemHelper::getDefaultPaths('pdftotext')])
+        );
+
         // Utiliser pdftotext avec option -f et -l pour une page spécifique
-        if (SystemHelper::commandExists('pdftotext')) {
+        if ($pdftotextPath) {
             $pageOneIndexed = $pageNum + 1; // pdftotext utilise 1-indexed
-            exec("pdftotext -f {$pageOneIndexed} -l {$pageOneIndexed} -layout {$pdfCmd} {$outputCmd} 2>&1", $output, $returnCode);
+            $binCmd = escapeshellarg($pdftotextPath);
+            exec("{$binCmd} -f {$pageOneIndexed} -l {$pageOneIndexed} -layout {$pdfCmd} {$outputCmd} 2>&1", $output, $returnCode);
             
             if ($returnCode === 0 && file_exists($outputFile)) {
                 $text = file_get_contents($outputFile);
@@ -746,14 +907,455 @@ PYTHON;
     }
     
     /**
+     * Decoupage par le moteur partage `cmd4_ingest`.
+     *
+     * Rend null si le moteur n'est pas installe (repli sur le pipeline PHP) ou s'il
+     * ne voit qu'un seul document. Chaque enfant recoit son texte OCR, ses pages, et
+     * sa qualification facture (emetteur, montant, IBAN, reference, statut paye) —
+     * exactement ce que CMD v4 obtient, puisque c'est le meme code.
+     */
+    private function splitViaSharedEngine(int $documentId, array $document, string $filePath): ?array
+    {
+        $client = new \KDocs\Services\Ingest\Cmd4IngestClient();
+        if (!$client->isAvailable()) {
+            return null;
+        }
+
+        $outDir = rtrim($this->tempDir, "/\\") . DIRECTORY_SEPARATOR . 'cmd4split_' . $documentId;
+
+        // La taxonomie GED est passee au moteur : il choisit DANS cette liste au lieu
+        // d'inventer un libelle libre qui ne correspondrait a aucun type existant.
+        $labels = $this->db->query('SELECT label FROM document_types ORDER BY label')
+            ->fetchAll(\PDO::FETCH_COLUMN);
+        $options = $labels ? ['types' => implode(',', $labels)] : [];
+
+        $result = $client->ingest($filePath, $outDir, $options);
+        if (!is_array($result) || empty($result['documents'])) {
+            return null;
+        }
+
+        $docs = $result['documents'];
+        if (count($docs) <= 1) {
+            return null;   // un seul document : rien a decouper
+        }
+
+        $this->lastSplitMethod = 'cmd4_ingest';
+        $created = [];
+
+        foreach ($docs as $doc) {
+            $file = $doc['file'] ?? null;
+            if (!$file || !file_exists($file)) {
+                continue;
+            }
+
+            $pages0 = array_map(static fn ($p) => ((int) $p) - 1, $doc['pages'] ?? []);
+            $invoice = $doc['invoice'] ?? [];
+
+            // Pour une facture, le QR fait foi ; sinon on prend la description du
+            // moteur (type contraint a la taxonomie GED, emetteur, date).
+            $seen = is_array($doc['classify'] ?? null) ? $doc['classify'] : [];
+
+            $analysis = [
+                'correspondent' => ($invoice['issuer'] ?? '') ?: ($seen['issuer'] ?? null),
+                'document_type' => !empty($invoice['is_invoice'])
+                    ? 'facture'
+                    : ($seen['document_type'] ?? null),
+                'date' => ($invoice['invoice_date'] ?? '')
+                    ?: ($invoice['due_date'] ?? '')
+                    ?: ($seen['date'] ?? null),
+                'amount' => $invoice['amount'] ?? null,
+                '_source' => 'cmd4_ingest',
+            ];
+
+            $newId = $this->createDocumentFromSplit(
+                $file, $document, $pages0, $analysis, $documentId,
+                'cmd4_ingest', (string) ($doc['text'] ?? '')
+            );
+            if (!$newId) {
+                continue;
+            }
+
+            $this->persistInvoiceFacts((int) $newId, $invoice);
+            $this->flagUncertainCut((int) $newId, $pages0, $result['boundaries'] ?? []);
+            $created[] = ['id' => $newId, 'pages' => $pages0, 'analysis' => $analysis];
+        }
+
+        if (!$created) {
+            return null;
+        }
+
+        $this->db->prepare("UPDATE documents SET status = 'split' WHERE id = ?")->execute([$documentId]);
+
+        return [
+            'parent_id' => $documentId,
+            'split_count' => count($created),
+            'method_used' => 'cmd4_ingest',
+            'engine' => [
+                'vision_calls' => $result['vision_calls'] ?? 0,
+                'page_total' => $result['page_total'] ?? null,
+                'boundaries' => $result['boundaries'] ?? [],
+            ],
+            'documents' => $created,
+            'created_documents' => array_column($created, 'id'),
+        ];
+    }
+
+    /**
+     * Marque un document dont la coupe n'est pas sure, pour relecture humaine.
+     *
+     * Une frontiere tranchee par un code de pli ou une pagination imprimee est un fait.
+     * Une frontiere tranchee par un modele, ou pas tranchee du tout, est une opinion :
+     * le document porte alors `needs_review = 1` et la raison, au lieu de se fondre
+     * silencieusement dans le lot. C'est la seule facon de savoir OU regarder.
+     */
+    private function flagUncertainCut(int $documentId, array $pages0, array $boundaries): void
+    {
+        if (!$pages0) {
+            return;
+        }
+
+        // Une coupe est sure quand elle vient de l'emetteur ou de l'imprimeur.
+        $trusted = ['code_pli', 'pagination', 'folio', 'qr_facture', 'reference'];
+        $doubts = [];
+
+        $first = (int) $pages0[0];
+        $afterLast = ((int) $pages0[count($pages0) - 1]) + 1;
+
+        foreach ($boundaries as $b) {
+            $page = (int) ($b['page'] ?? -1);
+            // La frontiere qui OUVRE ce document, et celle qui le FERME.
+            if ($page !== $first && $page !== $afterLast) {
+                continue;
+            }
+            $rule = (string) ($b['rule'] ?? '');
+            $confidence = (float) ($b['confidence'] ?? 0);
+            if (in_array($rule, $trusted, true) && $confidence >= 0.8) {
+                continue;
+            }
+
+            $doubts[] = [
+                'page' => $page + 1,           // 1-based, comme dans le PDF d'origine
+                'position' => $page === $first ? 'debut' : 'fin',
+                'rule' => $rule,
+                'confidence' => $confidence,
+                'detail' => (string) ($b['detail'] ?? ''),
+            ];
+        }
+
+        if (!$doubts) {
+            return;
+        }
+
+        $stmt = $this->db->prepare('SELECT classification_suggestions FROM documents WHERE id = ?');
+        $stmt->execute([$documentId]);
+        $sugg = json_decode((string) $stmt->fetchColumn(), true);
+        if (!is_array($sugg)) {
+            $sugg = [];
+        }
+        $sugg['cut_review'] = [
+            'certain' => false,
+            'reason' => 'coupe non confirmee par un signal imprime',
+            'boundaries' => $doubts,
+        ];
+
+        $this->db->prepare(
+            'UPDATE documents SET needs_review = 1, classification_suggestions = ? WHERE id = ?'
+        )->execute([json_encode($sugg, JSON_UNESCAPED_UNICODE), $documentId]);
+    }
+
+    /**
+     * Reporte la qualification facture sur le document : montant et flag facture en
+     * colonnes, le detail (IBAN, reference, statut paye, manuscrit) en suggestions.
+     */
+    private function persistInvoiceFacts(int $documentId, array $invoice): void
+    {
+        if (!$invoice) {
+            return;
+        }
+
+        $sets = [];
+        $params = [];
+
+        if (!empty($invoice['is_invoice'])) {
+            $stmt = $this->db->prepare("SELECT id FROM document_types WHERE code = 'FACTURE' OR label LIKE 'Facture%' LIMIT 1");
+            $stmt->execute();
+            if ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $sets[] = 'document_type_id = ?';
+                $params[] = (int) $row['id'];
+            }
+        }
+
+        if (isset($invoice['amount']) && is_numeric($invoice['amount'])) {
+            $sets[] = 'amount = ?';
+            $params[] = (float) $invoice['amount'];
+        }
+        if (!empty($invoice['currency'])) {
+            $sets[] = 'currency = ?';
+            $params[] = substr((string) $invoice['currency'], 0, 3);
+        }
+
+        $stmt = $this->db->prepare('SELECT classification_suggestions FROM documents WHERE id = ?');
+        $stmt->execute([$documentId]);
+        $existing = json_decode((string) $stmt->fetchColumn(), true);
+        if (!is_array($existing)) {
+            $existing = [];
+        }
+        $existing['invoice'] = $invoice;
+        $existing['method_used'] = 'cmd4_ingest';
+        $sets[] = 'classification_suggestions = ?';
+        $params[] = json_encode($existing, JSON_UNESCAPED_UNICODE);
+
+        $params[] = $documentId;
+        $this->db->prepare('UPDATE documents SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($params);
+    }
+
+    /**
+     * Reporte l'analyse de page en colonnes exploitables par le rangement.
+     * Correspondant cree s'il n'existe pas (meme convention que DocumentProcessor).
+     *
+     * @param array<string, mixed>|null $analysis
+     */
+    private function applySplitMetadata(int $documentId, ?array $analysis): void
+    {
+        if ($analysis === null) {
+            return;
+        }
+
+        $sets = [];
+        $params = [];
+
+        if (!empty($analysis['date'])) {
+            $ts = strtotime((string) $analysis['date']);
+            if ($ts !== false) {
+                $sets[] = 'doc_date = ?';
+                $params[] = date('Y-m-d', $ts);
+                $sets[] = 'document_date = ?';
+                $params[] = date('Y-m-d', $ts);
+            }
+        }
+
+        if (isset($analysis['amount']) && is_numeric($analysis['amount'])) {
+            $sets[] = 'amount = ?';
+            $params[] = (float) $analysis['amount'];
+        }
+
+        $correspondent = trim((string) ($analysis['correspondent'] ?? ''));
+        if ($correspondent !== '' && mb_strlen($correspondent) <= 190) {
+            $sets[] = 'correspondent_id = ?';
+            $params[] = $this->resolveCorrespondent($correspondent);
+        }
+
+        $type = trim((string) ($analysis['document_type'] ?? ''));
+        if ($type !== '') {
+            // Rapprochement souple : le libelle IA ("decompte des prestations") ne correspond
+            // pas toujours a un type existant ; on ne cree jamais de type, on laisse null.
+            $stmt = $this->db->prepare('SELECT id FROM document_types WHERE label = ? OR code = ? OR label LIKE ? LIMIT 1');
+            $stmt->execute([$type, strtoupper($type), '%' . $type . '%']);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($row) {
+                $sets[] = 'document_type_id = ?';
+                $params[] = (int) $row['id'];
+            }
+        }
+
+        if ($sets === []) {
+            return;
+        }
+
+        $params[] = $documentId;
+        $this->db->prepare('UPDATE documents SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($params);
+    }
+
+    /**
+     * Retrouve un correspondant existant avant d'en creer un.
+     *
+     * Sans ce rapprochement, un meme emetteur se dedouble a chaque variante lue par
+     * l'OCR : "Generali Assurances" et "Generali Assurances Generales SA" creaient
+     * deux fiches, "Freddy Rumo" quatre. La cle de rapprochement retire accents,
+     * ponctuation et forme juridique.
+     */
+    private function resolveCorrespondent(string $name): int
+    {
+        $key = self::correspondentKey($name);
+
+        // Correspondance exacte d'abord (cas majoritaire, une seule requete).
+        $stmt = $this->db->prepare('SELECT id FROM correspondents WHERE name = ? LIMIT 1');
+        $stmt->execute([$name]);
+        if ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            return (int) $row['id'];
+        }
+
+        if ($key !== '') {
+            foreach ($this->db->query('SELECT id, name FROM correspondents')->fetchAll(\PDO::FETCH_ASSOC) as $c) {
+                $other = self::correspondentKey((string) $c['name']);
+                if ($other === '' || !self::sameEntity($key, $other)) {
+                    continue;
+                }
+                return (int) $c['id'];
+            }
+        }
+
+        $this->db->prepare('INSERT INTO correspondents (name) VALUES (?)')->execute([$name]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Deux cles designent-elles le meme emetteur ?
+     *
+     * L'egalite stricte ne suffit pas : le meme expediteur signe "Generali Assurances"
+     * puis "Generali Assurances Generales SA", "Freddy Rumo" puis "Etude d'avocats
+     * Freddy Rumo". L'inclusion les rapproche. Seuil a 8 caracteres pour ne pas
+     * fusionner deux entites sur un radical trop court.
+     */
+    public static function sameEntity(string $a, string $b): bool
+    {
+        if ($a === '' || $b === '') {
+            return false;
+        }
+        if ($a === $b) {
+            return true;
+        }
+
+        $short = mb_strlen($a) <= mb_strlen($b) ? $a : $b;
+        $long = $short === $a ? $b : $a;
+
+        return mb_strlen($short) >= 8 && str_contains($long, $short);
+    }
+
+    /** Cle de rapprochement : minuscules, sans accent, sans forme juridique. */
+    public static function correspondentKey(string $name): string
+    {
+        $value = mb_strtolower(trim($name));
+        $value = strtr($value, [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'ç' => 'c', 'é' => 'e', 'è' => 'e',
+            'ê' => 'e', 'ë' => 'e', 'î' => 'i', 'ï' => 'i', 'ô' => 'o', 'ö' => 'o',
+            'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ÿ' => 'y', 'œ' => 'oe', 'æ' => 'ae',
+        ]);
+        // Formes juridiques et civilites : elles varient d'un courrier a l'autre.
+        $value = preg_replace(
+            '/\b(sa|ag|sarl|sarl\.|s\.?a\.?r\.?l\.?|gmbh|sas|sasu|ltd|inc|societe|'
+            . 'societe cooperative|cooperative|holding|group|groupe|me|maitre|dr|docteur|'
+            . 'monsieur|madame|etude|cabinet|assurances?|versicherungen?)\b/u',
+            ' ',
+            $value
+        ) ?? $value;
+        $value = preg_replace('/[^a-z0-9]+/', '', $value) ?? $value;
+
+        // Trop court apres nettoyage : on refuse de rapprocher, au risque de fusionner
+        // deux emetteurs distincts.
+        return mb_strlen($value) >= 6 ? $value : '';
+    }
+
+    /**
+     * Nom de fichier et titre d'un document issu du découpage.
+     *
+     * Le fichier porte le nom qu'il gardera après validation : createAndMoveToPath()
+     * reutilise `filename` tel quel pour le rangement final. Sans cela les PDF decoupes
+     * arrivent en `20260827_081514_6a8ff212c2d53.pdf`, ranges mais illisibles.
+     *
+     * @param array<int, int>          $pageGroup pages 0-based du groupe
+     * @param array<string, mixed>|null $analysis analyse de la premiere page du groupe
+     * @param array<string, mixed>      $parentDoc
+     *
+     * @return array{filename: string, title: string}
+     */
+    private function buildSplitName(array $pageGroup, ?array $analysis, array $parentDoc): array
+    {
+        $first = ((int) $pageGroup[0]) + 1;
+        $last = ((int) $pageGroup[count($pageGroup) - 1]) + 1;
+        $pageLabel = $first === $last
+            ? sprintf('p%03d', $first)
+            : sprintf('p%03d-%03d', $first, $last);
+
+        $date = null;
+        if (!empty($analysis['date'])) {
+            $ts = strtotime((string) $analysis['date']);
+            if ($ts !== false) {
+                $date = date('Y-m-d', $ts);
+            }
+        }
+
+        $correspondent = $this->cleanNameSegment((string) ($analysis['correspondent'] ?? ''));
+        $type = $this->cleanNameSegment((string) ($analysis['document_type'] ?? ''));
+
+        $parts = array_values(array_filter([$date, $correspondent, $type]));
+        if ($parts === []) {
+            // Rien d'exploitable : on retombe sur le nom du lot d'origine.
+            $parts[] = $this->cleanNameSegment(pathinfo((string) ($parentDoc['original_filename'] ?? 'document'), PATHINFO_FILENAME));
+        }
+        $parts[] = $pageLabel;
+
+        $stem = implode('_', $parts);
+        $filename = $stem . '.pdf';
+
+        // Collision possible entre deux groupes du meme lot (meme date/correspondant/type).
+        $target = $this->documentsPath . '/pending/' . $filename;
+        if (file_exists($target)) {
+            $filename = $stem . '_' . substr(uniqid(), -5) . '.pdf';
+        }
+
+        $titleParts = array_values(array_filter([
+            $correspondent !== '' ? str_replace('_', ' ', $correspondent) : null,
+            $type !== '' ? str_replace('_', ' ', $type) : null,
+            $date !== null ? date('d.m.Y', strtotime($date)) : null,
+        ]));
+        $title = $titleParts === []
+            ? pathinfo((string) ($parentDoc['original_filename'] ?? 'Document'), PATHINFO_FILENAME)
+            : implode(' — ', $titleParts);
+
+        $title .= $first === $last ? " (p. {$first})" : " (p. {$first}-{$last})";
+
+        return ['filename' => $filename, 'title' => $title];
+    }
+
+    /**
+     * Segment de nom de fichier sûr : accents aplatis, ponctuation en underscore.
+     */
+    private function cleanNameSegment(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        // Table explicite : iconv('ASCII//TRANSLIT') depend de la libc et rend "d'ecompte"
+        // sous Windows la ou glibc rend "decompte" — d'ou des noms type "d_ecompte".
+        $value = strtr($value, [
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a',
+            'ç' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ñ' => 'n',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+            'æ' => 'ae', 'œ' => 'oe', 'ß' => 'ss',
+            'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A',
+            'Ç' => 'C',
+            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I',
+            'Ñ' => 'N',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O',
+            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
+            'Æ' => 'AE', 'Œ' => 'OE',
+        ]);
+        $value = preg_replace('/[^A-Za-z0-9]+/', '_', $value) ?? $value;
+        $value = trim($value, '_');
+
+        return mb_substr($value, 0, 40);
+    }
+
+    /**
      * Crée un nouveau document à partir d'un PDF séparé
      */
-    private function createDocumentFromSplit(string $splitFile, array $parentDoc, array $pageGroup, ?array $analysis, int $parentId, string $splitMethod = 'none'): ?int
+    private function createDocumentFromSplit(string $splitFile, array $parentDoc, array $pageGroup, ?array $analysis, int $parentId, string $splitMethod = 'none', ?string $content = null): ?int
     {
         try {
             // Copier le fichier vers un dossier pending/ pour les fichiers séparés en attente de validation
             // Ces fichiers n'ont pas d'original dans consume/, ils sont créés à partir d'un PDF parent
-            $unique = date('Ymd_His') . '_' . uniqid() . '.pdf';
+            $naming = $this->buildSplitName($pageGroup, $analysis, $parentDoc);
+            $unique = $naming['filename'];
             $pendingPath = $this->documentsPath . '/pending';
             if (!is_dir($pendingPath)) {
                 @mkdir($pendingPath, 0755, true);
@@ -765,7 +1367,7 @@ PYTHON;
             }
             
             // Créer le document
-            $title = pathinfo($parentDoc['original_filename'], PATHINFO_FILENAME) . ' (pages ' . ($pageGroup[0] + 1) . '-' . ($pageGroup[count($pageGroup) - 1] + 1) . ')';
+            $title = $naming['title'];
             
             // Filiation (parent_document_id, split_pages, split_method) : colonnes dédiées, pas
             // classification_suggestions — cette colonne JSON est écrasée à chaque classement
@@ -803,7 +1405,19 @@ PYTHON;
 
             $this->db->prepare("UPDATE documents SET classification_suggestions = ? WHERE id = ?")
                 ->execute([json_encode($suggestions), $newDocId]);
-            
+
+            // Contenu indexable herite des pages du groupe (OCR deja fait a l'analyse).
+            if ($content !== null && $content !== '') {
+                $stored = OCRService::truncateForTextColumn($content);
+                $this->db->prepare('UPDATE documents SET content = ?, ocr_text = ?, ocr_status = ? WHERE id = ?')
+                    ->execute([$stored, $stored, 'done', $newDocId]);
+            }
+
+            // Materialiser date / correspondant / type en colonnes : StoragePathGenerator
+            // range sur `doc_date` et `correspondent_id`. Sans cela tout retombe dans
+            // l'annee d'upload et aucun dossier de correspondant n'est cree.
+            $this->applySplitMetadata((int) $newDocId, $analysis);
+
             // Supprimer le fichier temporaire
             @unlink($splitFile);
             

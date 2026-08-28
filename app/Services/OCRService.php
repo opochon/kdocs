@@ -26,6 +26,50 @@ class OCRService implements OCRServiceInterface
         if (!is_dir($this->tempDir)) @mkdir($this->tempDir, 0755, true);
     }
     
+    /**
+     * Le texte contient-il quelque chose de lisible ?
+     *
+     * Un PDF scanne sans couche texte rend, via pdftotext, un flux de sauts de page (\f)
+     * et d'espaces : non vide au sens de empty(), mais sans aucun caractere exploitable.
+     * Seuil sur le nombre de lettres/chiffres, pas sur la longueur brute.
+     */
+    public static function hasReadableText(?string $text, int $minChars = 1): bool
+    {
+        if ($text === null || $text === '') {
+            return false;
+        }
+
+        return preg_match_all('/[\p{L}\p{N}]/u', $text) >= $minChars;
+    }
+
+    /**
+     * Detecte un texte UTF-8 qui a deja ete decode une fois de trop (mojibake).
+     * Signature : Ã / Â suivis d'un octet de continuation, motifs "Ã©", "Ã¨", "Â°"...
+     */
+    private static function looksDoubleEncoded(string $text): bool
+    {
+        return (bool) preg_match('/(Ã[\x{0080}-\x{00BF}]|Â[\x{00A0}-\x{00BF}])/u', $text);
+    }
+
+    /**
+     * Tronque pour la colonne MySQL TEXT de `documents.content`.
+     *
+     * TEXT vaut 65 535 **octets**, pas 65 535 caracteres. Un `mb_substr($t, 0, 65000)`
+     * sur du francais accentue produit jusqu'a ~2 octets par caractere et depasse la
+     * colonne : SQLSTATE[22001] "Data too long", l'ingestion casse sur un gros lot scanne.
+     */
+    public static function truncateForTextColumn(?string $text, int $maxBytes = 65000): ?string
+    {
+        if ($text === null || strlen($text) <= $maxBytes) {
+            return $text;
+        }
+
+        $cut = substr($text, 0, $maxBytes);
+
+        // Ne pas couper au milieu d'une sequence UTF-8.
+        return mb_strcut($cut, 0, $maxBytes, 'UTF-8');
+    }
+
     public function extractText(string $filePath): ?string
     {
         if (!file_exists($filePath)) return null;
@@ -99,11 +143,14 @@ class OCRService implements OCRServiceInterface
                 @unlink($outputFile);
                 // Conversion forcée vers UTF-8
                 $text = $this->forceUtf8(trim($text));
-                if (!empty($text)) {
+                // Un PDF 100% image rend une page de saut de page par page (\f). trim() ne
+                // retire pas \f : sans ce test, !empty() passe, la fonction retourne du vide
+                // et le repli OCR ci-dessous n'est JAMAIS atteint sur un scan.
+                if (self::hasReadableText($text)) {
                     error_log("OCR réussi avec pdftotext: " . strlen($text) . " caractères extraits");
                     return $text;
                 } else {
-                    error_log("pdftotext a réussi mais texte vide");
+                    error_log("pdftotext a réussi mais texte non exploitable (PDF image) — repli OCR");
                 }
             } else {
                 error_log("Erreur pdftotext (code $returnCode): " . implode("\n", $output));
@@ -142,14 +189,17 @@ class OCRService implements OCRServiceInterface
         }
         
         $textParts = [];
-        $pageFiles = array_merge(
-            glob($tempDir . '/page*.png'),
-            glob($tempDir . '/page-*.png')
-        );
-        
-        // Limiter à 5 pages pour la performance
-        $pageFiles = array_slice($pageFiles, 0, 5);
-        
+        // 'page*.png' couvre deja 'page-001.png' : le second glob doublonnait chaque page.
+        $pageFiles = glob($tempDir . '/page*.png') ?: [];
+        sort($pageFiles, SORT_NATURAL);
+
+        // Plafond de pages OCR : 0 = toutes. Le plafond de 5 pages code en dur amputait
+        // tout lot scanne (courrier du matin : 103 pages -> 5 lues).
+        $maxPages = (int) Config::get('ocr.max_pdf_pages', 0);
+        if ($maxPages > 0) {
+            $pageFiles = array_slice($pageFiles, 0, $maxPages);
+        }
+
         if (empty($pageFiles)) {
             error_log("Aucune page convertie depuis le PDF");
             $this->deleteDirectory($tempDir);
@@ -507,12 +557,23 @@ class OCRService implements OCRServiceInterface
             return $text;
         }
 
-        // Si déjà UTF-8 valide, retourner tel quel
+        // Si déjà UTF-8 valide, retourner tel quel.
+        // \xC2 n'est PAS un signe de mauvais encodage : c'est l'octet de tete UTF-8 de °,
+        // «, » et de l'espace insecable — omnipresents en OCR francais ("Police n° 2152332").
+        // L'ancien test renvoyait ces textes vers iconv Windows-1252 -> UTF-8, qui les
+        // ré-encodait une seconde fois ("assurée" -> "assurÃ©e").
         if (mb_check_encoding($text, 'UTF-8')) {
-            // Vérifier quand même les caractères mal encodés courants
-            if (strpos($text, "\xC3\x83") === false && strpos($text, "\xC2") === false) {
+            if (!self::looksDoubleEncoded($text)) {
                 return $text;
             }
+
+            // Mojibake avere : le texte UTF-8 a ete lu une fois de trop comme du Latin-1.
+            $repaired = @iconv('UTF-8', 'Windows-1252//IGNORE', $text);
+            if ($repaired !== false && mb_check_encoding($repaired, 'UTF-8')) {
+                return $repaired;
+            }
+
+            return $text;
         }
 
         // Essayer de détecter l'encodage source

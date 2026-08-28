@@ -181,7 +181,14 @@ class IngestClassificationService
 
         }
 
+        // Un document deja issu d'un decoupage ne se redecoupe pas : les enfants sont
+        // reclasses apres split, et sans ce garde-fou un enfant multi-pages repart dans
+        // analyzeAndSplit() (OCR + appels IA refaits, decoupage d'une lettre en pages).
+        if (!empty($document['parent_document_id'])) {
 
+            return false;
+
+        }
 
         return ($document['mime_type'] ?? '') === 'application/pdf';
 

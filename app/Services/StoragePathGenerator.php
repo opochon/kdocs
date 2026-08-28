@@ -180,15 +180,27 @@ class StoragePathGenerator
      */
     private function sanitizePathSegment(string $segment): string
     {
-        // Remplacer les caractères interdits
-        $segment = preg_replace('/[<>:"|?*\x00-\x1F]/', '_', $segment);
+        // Remplacer les caractères interdits. / et \ inclus : un correspondant
+        // "ISELI ENERGIE AG / ISELI ENERGIE SA" creait sinon deux niveaux de dossiers.
+        $segment = preg_replace('#[<>:"|?*/\\\\\x00-\x1F]#', '_', $segment);
         // Remplacer les espaces multiples par un seul
         $segment = preg_replace('/\s+/', ' ', $segment);
         // Trim et remplacer espaces par underscores
         $segment = trim($segment);
         $segment = str_replace(' ', '_', $segment);
         // Limiter la longueur
-        return mb_substr($segment, 0, 100) ?: 'Divers';
+        $segment = mb_substr($segment, 0, 100);
+
+        // Windows refuse tout nom de dossier finissant par un point ou une espace :
+        // mkdir() echoue en silence pour "Photo_2000_S.A." et le document reste en pending.
+        $segment = rtrim($segment, ". \t");
+
+        // Noms de peripheriques reserves (CON, PRN, COM1...) : creation impossible.
+        if (preg_match('/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i', $segment)) {
+            $segment .= '_';
+        }
+
+        return $segment !== '' ? $segment : 'Divers';
     }
     
     /**
