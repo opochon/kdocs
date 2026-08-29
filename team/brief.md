@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-29 08:36 depuis les instruments.
+> Genere le 2026-08-29 08:37 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -45,8 +45,8 @@
 
 ## Socle
 
-> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-28 16:34 sur `dd9cd17`, HEAD est `892bdc6`.
-> 17 commit(s) posee(s) depuis · 1 fichier(s) hors commit AU MOMENT de la mesure · 2 fichier(s) hors commit maintenant.
+> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-28 16:34 sur `dd9cd17`, HEAD est `d6fc448`.
+> 18 commit(s) posee(s) depuis · 1 fichier(s) hors commit AU MOMENT de la mesure.
 > Les chiffres ci-dessous ne jugent PAS le code d aujourd hui. Rejouer AVANT de conclure :
 > 
 >     node F:/DATA/DEVELOPPEMENT/EcosystemK/gouvernance/tools/recette.mjs socle
@@ -80,8 +80,8 @@ Points ROUGES :
 
 ## Depot
 
-- branche `main` · 2 fichiers modifies
-- dernier commit : 892bdc6 2026-08-29 fix(ingestion) : client cmd4 tolerant au bruit stdout + prefixe search_query câble
+- branche `main` · 0 fichiers modifies
+- dernier commit : d6fc448 2026-08-29 chore(rapports) : harness du 29 (41/51, rouges attribues au journal) + brief regenere
 
 ## Definition de « fait » pour ce tour
 
