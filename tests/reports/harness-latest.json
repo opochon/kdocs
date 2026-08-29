@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-08-25T15:32:29.775Z",
+  "generatedAt": "2026-08-29T08:29:59.775Z",
   "verdict": "ROUGE",
   "exitCode": 1,
-  "durationMs": 1043088,
+  "durationMs": 2329262,
   "suites": [
     {
       "name": "migration-smoke",
       "ok": true,
       "source": "tests/migration_smoke_test.php",
-      "durationMs": 576,
+      "durationMs": 323,
       "testCount": 215,
       "failures": 0,
       "exitCode": 0
@@ -17,17 +17,17 @@
       "name": "documents-innodb",
       "ok": true,
       "source": "tools/fix-documents-innodb.php",
-      "durationMs": 164,
+      "durationMs": 119,
       "exitCode": 0
     },
     {
       "name": "phpunit-all",
       "ok": true,
       "source": "vendor/bin/phpunit (toutes suites tests/Unit + tests/Feature)",
-      "testCount": 517,
+      "testCount": 523,
       "failures": 0,
       "skipped": 3,
-      "durationMs": 57077
+      "durationMs": 7119
     },
     {
       "name": "folder-permissions",
@@ -35,7 +35,7 @@
       "source": "tests/Unit/FolderPermissionTest.php",
       "testCount": 10,
       "failures": 0,
-      "durationMs": 12
+      "durationMs": 7
     },
     {
       "name": "thumbnails",
@@ -43,7 +43,7 @@
       "source": "tests/Unit/Services/ThumbnailGeneratorTest.php",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 287
+      "durationMs": 135
     },
     {
       "name": "classifier-taxonomie",
@@ -51,7 +51,7 @@
       "source": "tests/Unit/Adapters/HtmleditorTaxonomyAdapterTest.php + tests/Unit/Services/DocumentTypeIdentificationTest.php",
       "testCount": 15,
       "failures": 0,
-      "durationMs": 11
+      "durationMs": 5
     },
     {
       "name": "soft-delete",
@@ -75,7 +75,7 @@
       "source": "tests/Feature/KTimeContractTest.php",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 29
+      "durationMs": 10
     },
     {
       "name": "api-key-redaction",
@@ -83,7 +83,7 @@
       "source": "tests/Feature/ApiKeyRedactionTest.php",
       "testCount": 5,
       "failures": 0,
-      "durationMs": 85
+      "durationMs": 9
     },
     {
       "name": "no-hard-delete",
@@ -91,7 +91,7 @@
       "source": "tests/Feature/NoHardDeleteTest.php (cliquet governance/budgets.json)",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 2587
+      "durationMs": 203
     },
     {
       "name": "folder-permissions-serverside",
@@ -99,7 +99,7 @@
       "source": "tests/Feature/FolderPermissionServerSideTest.php (cablage ACL dans DocumentsApiController)",
       "testCount": 7,
       "failures": 0,
-      "durationMs": 9
+      "durationMs": 6
     },
     {
       "name": "apps-routes",
@@ -107,7 +107,7 @@
       "source": "tests/Feature/AppsRoutesTest.php (registre governance/apps-status.json vs .env vs templates)",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 2659
+      "durationMs": 47
     },
     {
       "name": "audit-trail-api",
@@ -115,13 +115,13 @@
       "source": "tests/Feature/ApiAuditTrailTest.php (cablage de la piste de revision sur les mutations API)",
       "testCount": 9,
       "failures": 0,
-      "durationMs": 18
+      "durationMs": 9
     },
     {
       "name": "search-fulltext",
       "ok": true,
       "source": "tests/integration/test_fulltext_search.php",
-      "durationMs": 4862,
+      "durationMs": 895,
       "testCount": 18,
       "failures": 0,
       "exitCode": 0
@@ -130,31 +130,73 @@
       "name": "logical-folders",
       "ok": true,
       "source": "tests/integration/test_logical_folders.php",
-      "durationMs": 219,
+      "durationMs": 133,
       "exitCode": 0
     },
     {
       "name": "stockage-coherence",
       "ok": false,
       "source": "tests/integration/test_stockage_coherence.php",
-      "durationMs": 291,
+      "durationMs": 486,
       "exitCode": 1
     },
     {
-      "name": "compteurs-coherence",
+      "name": "liaison-erp-tranchee",
       "ok": true,
-      "source": "tests/integration/test_compteurs_coherence.php",
-      "durationMs": 516,
-      "testCount": 7,
-      "failures": 0,
+      "source": "tests/integration/test_liaison_erp_tranchee.php",
+      "durationMs": 103,
       "exitCode": 0
+    },
+    {
+      "name": "facture-lignes-tva",
+      "ok": true,
+      "source": "tests/integration/test_facture_lignes_tva.php",
+      "durationMs": 390989,
+      "exitCode": 0
+    },
+    {
+      "name": "facture-qr-lecture",
+      "ok": true,
+      "source": "tests/integration/test_facture_qr_lecture.php",
+      "durationMs": 3146,
+      "exitCode": 0
+    },
+    {
+      "name": "compteurs-coherence",
+      "ok": false,
+      "source": "tests/integration/test_compteurs_coherence.php",
+      "durationMs": 354,
+      "testCount": 7,
+      "failures": 1,
+      "failedCases": [
+        "INVARIANT BASE : aucun document vivant « a classer » ne duplique un autre vivant (meme checksum) - 29 groupe(s) de checksum duplique — ex: [{\"id\":900948,\"id_double\":901163,\"title\":\"Visana Services SA — facture — 03.07.2025 (p. 1)\"},{\"id\":900949,\"id_double\":901155,\"title\":\"Banque Raiffeisen des Montagnes Neuchate — Courrier — 30.06.2025 (p. 2)\"},{\"id\":900950,\"id_double\":901162,\"title\":\"Visana Services SA — facture — 14.06.2025 (p. 3)\"}]"
+      ],
+      "exitCode": 1
     },
     {
       "name": "dossier-surveille-invisible",
       "ok": true,
       "source": "tests/integration/test_dossier_surveille_invisible.php",
-      "durationMs": 203,
+      "durationMs": 151,
       "testCount": 4,
+      "failures": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "versioning-fileserver",
+      "ok": true,
+      "source": "tests/integration/test_versioning_fileserver.php",
+      "durationMs": 337,
+      "testCount": 10,
+      "failures": 0,
+      "exitCode": 0
+    },
+    {
+      "name": "ui-modulaire",
+      "ok": true,
+      "source": "tests/integration/test_ui_modulaire.php",
+      "durationMs": 195,
+      "testCount": 10,
       "failures": 0,
       "exitCode": 0
     },
@@ -162,7 +204,7 @@
       "name": "eval-full",
       "ok": true,
       "source": "tools/eval-full.php --no-ocr",
-      "durationMs": 1317850,
+      "durationMs": 1599014,
       "testCount": 60,
       "failures": 0,
       "exitCode": 0
@@ -175,16 +217,11 @@
     },
     {
       "name": "a11y",
-      "ok": false,
+      "ok": true,
       "source": "tests/visual/specs/a11y.spec.ts",
       "testCount": 8,
-      "failures": 3,
-      "failedCases": [
-        "a11y eval_comptable: /documents sans violations de contraste/nom",
-        "a11y eval_rh: /documents sans violations de contraste/nom",
-        "a11y eval_employeur: /documents sans violations de contraste/nom"
-      ],
-      "durationMs": 37884
+      "failures": 0,
+      "durationMs": 38887
     },
     {
       "name": "admin-hub",
@@ -192,26 +229,26 @@
       "source": "tests/visual/specs/admin-hub.spec.ts",
       "testCount": 6,
       "failures": 0,
-      "durationMs": 19655
+      "durationMs": 9131
     },
     {
       "name": "ai-assistant",
-      "ok": true,
-      "source": "tests/visual/specs/ai-assistant.spec.ts",
-      "testCount": 1,
-      "failures": 0,
-      "durationMs": 506
-    },
-    {
-      "name": "ai-confidence-badge",
       "ok": false,
-      "source": "tests/visual/specs/ai-confidence-badge.spec.ts",
+      "source": "tests/visual/specs/ai-assistant.spec.ts",
       "testCount": 1,
       "failures": 1,
       "failedCases": [
-        "le badge #ai-confidence-badge est présent et caché initialement"
+        "le champ #chat-input est rendu (gating cascade, pas Claude-only)"
       ],
-      "durationMs": 15606
+      "durationMs": 527
+    },
+    {
+      "name": "ai-confidence-badge",
+      "ok": true,
+      "source": "tests/visual/specs/ai-confidence-badge.spec.ts",
+      "testCount": 1,
+      "failures": 0,
+      "durationMs": 6151
     },
     {
       "name": "audit-coherence",
@@ -219,7 +256,7 @@
       "source": "tests/visual/specs/audit-coherence.spec.ts",
       "testCount": 14,
       "failures": 0,
-      "durationMs": 56979
+      "durationMs": 39788
     },
     {
       "name": "bugs",
@@ -227,7 +264,7 @@
       "source": "tests/visual/specs/bugs.spec.ts",
       "testCount": 5,
       "failures": 0,
-      "durationMs": 34030
+      "durationMs": 9581
     },
     {
       "name": "bugs-click",
@@ -235,18 +272,15 @@
       "source": "tests/visual/specs/bugs-click.spec.ts",
       "testCount": 3,
       "failures": 0,
-      "durationMs": 12897
+      "durationMs": 5532
     },
     {
       "name": "bugs-misc",
-      "ok": false,
+      "ok": true,
       "source": "tests/visual/specs/bugs-misc.spec.ts",
       "testCount": 1,
-      "failures": 1,
-      "failedCases": [
-        "sauvegarder un type puis recharger affiche toujours ce type"
-      ],
-      "durationMs": 5353
+      "failures": 0,
+      "durationMs": 1605
     },
     {
       "name": "chrome-coherence",
@@ -254,30 +288,26 @@
       "source": "tests/visual/specs/chrome-coherence.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 22293
+      "durationMs": 31059
     },
     {
       "name": "cmdv4-freshness-badge",
-      "ok": false,
+      "ok": true,
       "source": "tests/visual/specs/cmdv4-freshness-badge.spec.ts",
       "testCount": 1,
-      "failures": 1,
-      "failedCases": [
-        "CmdV4: badge fraîcheur présent et caché sans analyse"
-      ],
-      "durationMs": 13481
+      "failures": 0,
+      "durationMs": 3963
     },
     {
       "name": "erp-connect",
       "ok": false,
       "source": "tests/visual/specs/erp-connect.spec.ts",
       "testCount": 2,
-      "failures": 2,
+      "failures": 1,
       "failedCases": [
-        "proposition → introduction → validation K-Time → bon pour accord",
         "lien d'évidence persisté côté GED (erp_links)"
       ],
-      "durationMs": 17242
+      "durationMs": 354
     },
     {
       "name": "fiche-document",
@@ -285,7 +315,7 @@
       "source": "tests/visual/specs/fiche-document.spec.ts",
       "testCount": 6,
       "failures": 0,
-      "durationMs": 13777
+      "durationMs": 24597
     },
     {
       "name": "legal-seal",
@@ -293,7 +323,7 @@
       "source": "tests/visual/specs/legal-seal.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 660
+      "durationMs": 724
     },
     {
       "name": "lib-operations",
@@ -304,7 +334,7 @@
       "failedCases": [
         "F-LIB-04: indexer ce dossier"
       ],
-      "durationMs": 5009
+      "durationMs": 20278
     },
     {
       "name": "persona",
@@ -312,7 +342,7 @@
       "source": "tests/visual/specs/persona.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 21517
+      "durationMs": 28522
     },
     {
       "name": "persona-dead-links",
@@ -320,7 +350,7 @@
       "source": "tests/visual/specs/persona-dead-links.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 24633
+      "durationMs": 16971
     },
     {
       "name": "persona-parcours-ecm",
@@ -331,18 +361,15 @@
       "failedCases": [
         "Lot A — ingérer → classer → analyser (eval_redx_expert)"
       ],
-      "durationMs": 311269
+      "durationMs": 22028
     },
     {
       "name": "persona-preview",
-      "ok": false,
+      "ok": true,
       "source": "tests/visual/specs/persona-preview.spec.ts",
       "testCount": 4,
-      "failures": 1,
-      "failedCases": [
-        "fiche preview + contrôle validation + can_validate cohérent"
-      ],
-      "durationMs": 25803
+      "failures": 0,
+      "durationMs": 15957
     },
     {
       "name": "persona-redx-expert",
@@ -350,7 +377,7 @@
       "source": "tests/visual/specs/persona-redx-expert.spec.ts",
       "testCount": 4,
       "failures": 0,
-      "durationMs": 12681
+      "durationMs": 6795
     },
     {
       "name": "pipeline-ui",
@@ -361,7 +388,7 @@
       "failedCases": [
         "UI pipeline : upload → suggestion IA → sauvegarde → recherche"
       ],
-      "durationMs": 710
+      "durationMs": 603
     },
     {
       "name": "search-tasks",
@@ -372,7 +399,7 @@
       "failedCases": [
         "F-SEARCH-02: recherche avancée avec filtres"
       ],
-      "durationMs": 7418
+      "durationMs": 7332
     },
     {
       "name": "shell",
@@ -388,7 +415,7 @@
         "shell: upload (/documents/upload)",
         "shell: admin (/admin)"
       ],
-      "durationMs": 2640
+      "durationMs": 2065
     },
     {
       "name": "smq-versions",
@@ -400,7 +427,7 @@
         "SMQ: onglet Versions dans la modale fiche",
         "SMQ: quittance de lecture — record idempotent + read-status"
       ],
-      "durationMs": 1531
+      "durationMs": 475
     },
     {
       "name": "workflow-doc-identification",
@@ -408,7 +435,7 @@
       "source": "tests/visual/specs/workflow-doc-identification.spec.ts",
       "testCount": 1,
       "failures": 0,
-      "durationMs": 5549
+      "durationMs": 3506
     },
     {
       "name": "ui-chrome",
@@ -416,30 +443,7 @@
       "source": "alias de chrome-coherence — tests/visual/specs/chrome-coherence.spec.ts",
       "testCount": 8,
       "failures": 0,
-      "durationMs": 22293
-    },
-    {
-      "name": "liaison-erp-tranchee",
-      "ok": true,
-      "source": "tests/integration/test_liaison_erp_tranchee.php",
-      "durationMs": 98,
-      "exitCode": 0
-    },
-    {
-      "name": "facture-lignes-tva",
-      "ok": true,
-      "source": "tests/integration/test_facture_lignes_tva.php",
-      "durationMs": 4079,
-      "exitCode": 0
-    },
-    {
-      "name": "facture-qr-lecture",
-      "ok": true,
-      "source": "tests/integration/test_facture_qr_lecture.php",
-      "durationMs": 1864,
-      "exitCode": 0
+      "durationMs": 31059
     }
-  ],
-  "patchedAt": "2026-08-28T18:24:50.815Z",
-  "patchedSuite": "facture-qr-lecture"
+  ]
 }

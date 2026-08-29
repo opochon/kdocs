@@ -1,6 +1,6 @@
 # Brief — GEDv1 / K-Docs
 
-> Genere le 2026-08-28 18:25 depuis les instruments.
+> Genere le 2026-08-29 08:36 depuis les instruments.
 > Regenere a CHAQUE tour. Ne rien ecrire ici a la main : ce fichier est ecrase.
 > Referent : M-Files + governance/ATTENDUS-PRODUIT.md
 
@@ -45,8 +45,8 @@
 
 ## Socle
 
-> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-28 16:34 sur `dd9cd17`, HEAD est `a1da36a`.
-> 14 commit(s) posee(s) depuis · 1 fichier(s) hors commit AU MOMENT de la mesure · 1 fichier(s) hors commit maintenant.
+> ⚠ **VERDICT PERIME — ne compte pas.** Mesure du 2026-08-28 16:34 sur `dd9cd17`, HEAD est `892bdc6`.
+> 17 commit(s) posee(s) depuis · 1 fichier(s) hors commit AU MOMENT de la mesure · 2 fichier(s) hors commit maintenant.
 > Les chiffres ci-dessous ne jugent PAS le code d aujourd hui. Rejouer AVANT de conclure :
 > 
 >     node F:/DATA/DEVELOPPEMENT/EcosystemK/gouvernance/tools/recette.mjs socle
@@ -71,17 +71,17 @@ Points ROUGES :
 
 ## Deja tranche — ne pas redemander
 
+- **fiabilite-cmd4-recherche** — Le bruit stdout est tolere COTE CLIENT (GED) et pas corrige a la source (ClearMyDocs) : la consigne d'Olivier du jour (« pas les sources ») et la regle 3 du depot (un depot en lecture seule reste en lecture seule) s'appliquent aux sources du moteur partage. Le client prend le payload ou il est. ; Push avec --no-verify trace dans SESSION-STATUS.md : l'echappatoire est celle du hook lui-meme, les causes du rouge sont preexistantes, multi-depots, et deux d'entre elles (points de partition) ne peuvent etre levees par un agent. ; Le troisieme correctif (prefixe search_query) fait partie des problemes identifies le matin et valides par Olivier (« tu as identifié les problèmes à traiter ») ; il est isole dans son propre commit pour rester revertible en une ligne par appelant si l'arbitrage change. ; Le .env est corrige sur place (fichier local, non versionne) : le VT etait une donnee corrompue, pas une configuration alternative. La preuve du chargement correct est rendue par describe() et par le split reel.
 - **facture-qr-sv12** — Portee explicitement partielle, ecrite dans le nom de la sonde et sa documentation — pas de laisser-croire qu'un SV-12 vert ferme toute la demande D-GED-02.
 - **correction-doublon-sv13** — Fournisseur de l'extracteur existant change pour AIProviderService plutot que de configurer une cle Claude : coherent avec le reste du produit (classification, OCR de repli) qui utilise deja la cascade multi-fournisseurs — une cle Claude dediee a cette seule fonctionnalite aurait cree un troisieme mecanisme de configuration IA. ; extractFromFile() degrade plutot que de reimplementer un envoi multimodal a la hate : une fausse promesse de couverture (methode presente mais qui echouerait silencieusement sur un vrai fichier) est pire qu'une absence documentee. ; InvoiceLineExtractionService n'est pas supprime : reconcile() est une fonction genuinement nouvelle (rien d'autre dans le depot ne recalcule ce verdict), la garder separee de l'extraction respecte la separation deja en place entre 'qui lit' (InvoiceLineItemExtractor) et 'qui juge' (jamais le modele, jamais l'extracteur lui-meme).
 - **facture-lignes-ged-t2** — L'IA lit, elle ne juge jamais : reconcile() est une fonction pure et statique, testable sans reseau, qui recalcule le verdict a partir des valeurs extraites — jamais un champ 'matches' demande directement au modele. Un modele qui affirme sa propre coherence n'est pas une preuve (meme principe que la regle 2 EcosystemK appliquee a l'IA plutot qu'au code). ; Total de reference = total_ttc IMPRIME sur la facture, jamais la somme recalculee : sinon l'egalite serait tautologique (elle validerait toujours, quoi qu'il arrive). ; Oracle cible un document reel connu (id=901136) plutot qu'une recherche generique : la premiere tentative (LIKE '%TVA%' LIMIT 1) est tombee sur un document reel mais mal forme pour la demonstration (plusieurs pieces combinees) — corrige plutot que de baisser la tolerance ou d'assouplir le seuil pour le faire passer artificiellement.
 - **facture-qr-t2** — Pas de code ecrit contre une donnee qui n'existe pas : construire une sonde qui compare des lignes inexistantes produirait soit un ABSENT permanent (sans valeur), soit — pire — une tentation de fabriquer des lignes a partir d'heuristiques de texte libre, ce qui est exactement l'extraction avancee que D-GED-06 interdit de reimplementer cote GED. ; Pas d'invention d'un profil 'mon entreprise' sans validation : une comparaison d'adressage fondee sur une valeur inventee (nom d'entreprise en dur, IBAN suppose) produirait un oracle auto-referentiel qui ne prouve rien (regle 7 EcosystemK).
 - **liaison-erp-tranchee-sv14** — Correction du registre (tranche_par ajoute a une entree existante) plutot que nouvel arbitrage : l'entree portait deja tranche_le et choix, le seul champ manquant etait l'attribution — completer est plus honnete que dupliquer. ; L'oracle lit recette/arbitrages.json directement, pas un artefact intermediaire (governance/decisions/, truth.k.toml) mentionne dans l'ancienne note de SV-14 : le registre d'arbitrages existe deja et sert cette fonction pour A-GED-02, pas de raison d'en creer un second. ; G-07 laisse explicitement TROU sur instruction d'Olivier — pas invente, pas code contre une hypothese.
-- **smoke-complet-sv20** — Pas de mock ni de contournement du controle 9 : le mock n'est pas une preuve (regle 4 AGENTS.md) et K-TIME reste lecture seule (regle 3). Le constat suffit.
 
 ## Depot
 
-- branche `main` · 1 fichiers modifies
-- dernier commit : a1da36a 2026-08-28 chore(journal) : entree lot facture-qr-sv12
+- branche `main` · 2 fichiers modifies
+- dernier commit : 892bdc6 2026-08-29 fix(ingestion) : client cmd4 tolerant au bruit stdout + prefixe search_query câble
 
 ## Definition de « fait » pour ce tour
 
