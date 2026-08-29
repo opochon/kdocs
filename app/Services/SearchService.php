@@ -190,7 +190,9 @@ class SearchService implements SearchServiceInterface
         if (!$this->embeddings) return [];
 
         // Get query embedding from Ollama
-        $queryVector = $this->embeddings->embed($query);
+        // 'query' et non le defaut 'document' : nomic-embed exige le prefixe
+        // search_query: cote requete, search_document: cote corpus (EmbeddingService).
+        $queryVector = $this->embeddings->embed($query, 'query');
         if (!$queryVector) return [];
 
         // Load all embeddings and compute similarity

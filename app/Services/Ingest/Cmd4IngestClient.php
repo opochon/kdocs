@@ -139,9 +139,8 @@ class Cmd4IngestClient
             return null;
         }
 
-        $decoded = json_decode($stdout, true);
+        $decoded = $this->decodePayload($stdout, $command);
         if (!is_array($decoded)) {
-            error_log("Cmd4IngestClient {$command}: JSON illisible - " . substr($stdout, 0, 200));
             return null;
         }
 
@@ -149,6 +148,57 @@ class Cmd4IngestClient
             $decoded['stderr'] = substr($stderr, 0, 1000);
         }
         return $decoded;
+    }
+
+    /**
+     * Extrait le payload JSON d'une sortie qui n'est pas du JSON pur.
+     *
+     * Une dependance du moteur (pymupdf4llm) imprime ses bannieres de diagnostic
+     * (« === Document parser messages === / Using Tesseract... ») sur STDOUT, avant
+     * le JSON. Un json_decode() direct rend alors null : le moteur parait absent,
+     * la decoupe retombe en silence sur le pipeline PHP et la qualification facture
+     * (QR, montants, IBAN) est perdue pour la GED — mesure le 2026-08-29, bannieres
+     * apparues avec la mise a jour du venv ClearMyDocs du meme matin.
+     *
+     * Trois tentatives : decode direct, puis tranche du premier '{' au dernier '}'
+     * (couvre le bruit avant ET apres le payload), puis scan de chaque '{' en
+     * gardant le premier objet complet — une banniere contenant un petit JSON ne
+     * doit pas masquer le vrai payload.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function decodePayload(string $stdout, string $command): ?array
+    {
+        $direct = json_decode($stdout, true);
+        if (is_array($direct)) {
+            return $direct;
+        }
+
+        $start = strpos($stdout, '{');
+        $end = strrpos($stdout, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $slice = json_decode(substr($stdout, $start, $end - $start + 1), true);
+            if (is_array($slice)) {
+                return $slice;
+            }
+        }
+
+        $offset = $start;
+        while ($offset !== false && $offset < strlen($stdout)) {
+            $offset = strpos($stdout, '{', $offset);
+            if ($offset === false) {
+                break;
+            }
+            $candidate = json_decode(substr($stdout, $offset), true);
+            if (is_array($candidate)) {
+                return $candidate;
+            }
+            $offset++;
+        }
+
+        error_log("Cmd4IngestClient {$command}: JSON introuvable dans la sortie - " . substr($stdout, 0, 200));
+
+        return null;
     }
 
     /** Le moteur lit sa configuration IA dans l'environnement du processus. */

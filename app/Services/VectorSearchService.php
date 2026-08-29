@@ -151,7 +151,8 @@ class VectorSearchService
     public function search(string $query, int $limit = 10, array $filters = []): array
     {
         // Generate embedding for query
-        $queryVector = $this->embeddingService->embed($query);
+        // 'query' : prefixe search_query: requis par nomic-embed cote requete.
+        $queryVector = $this->embeddingService->embed($query, 'query');
 
         if (!$queryVector) {
             return [];

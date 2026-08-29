@@ -614,7 +614,8 @@ PROMPT;
         }
 
         // Générer embedding de la requête
-        $queryVector = $this->embeddings->embed($query);
+        // 'query' : prefixe search_query: requis par nomic-embed cote requete.
+        $queryVector = $this->embeddings->embed($query, 'query');
         if (!$queryVector) {
             return [];
         }
