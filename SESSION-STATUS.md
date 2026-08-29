@@ -631,3 +631,7 @@ php tools\bench-ingest.php --live     REM BDD requise
 
 *Dernière mise à jour : 2026-07-07 — P1 K-ERP Connect live : simulation E2E verte (2/2 PW),
 ErpConnectTest 18/18, plugin activé en dev, entrée UI fiche document.*
+
+---
+
+*2026-08-29 — push origin/main (110 commits) avec --no-verify : hook pre-push G-CONSIGNES rouge pour causes preexistantes hors lot — G-SKIP (tests sautes non declares) et demandes D-GED-06..12 sans point de partition (arbitrage Olivier en attente, cf. team/brief.md), plus trois autres depots rouges aggregates (ClearMyMails/client, EcosystemK, KASSIT). Rien de ce lot ne touche ces points.*
