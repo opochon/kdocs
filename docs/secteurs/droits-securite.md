@@ -148,3 +148,7 @@ ETAT: à reprendre (voir Jugement V2-07c)
   les résultats attendus par `recherche.spec.ts`. Aucun fichier Socle, Recherche ou Interface n'a été modifié.
 
 ETAT: bloqué: le harness global ne peut pas afficher 1 et 4 VERTES tant que les travaux Socle corrigent ces échecs et isolent la remise à neuf de gedv2_test
+
+## Jugement V2-07c bis (Claude Code, 29-09) — porte franchie
+Rejoué sur le code commité : unitaire 205/205 (zéro suppression tenu), bancs verts, couche 7 VERTE, écrans 25/26 — le seul rouge est le seuil « première page PDF < 1 s » (1,23 s) sur une machine chargée par trois agents et les bancs : mesure de charge, pas défaut de sécurité ; à reprendre en V2-10 sur machine au repos. CSP à nonce par requête, `style-src 'unsafe-inline'` provisoire (demande Interface).
+ETAT: fini (jugé)
