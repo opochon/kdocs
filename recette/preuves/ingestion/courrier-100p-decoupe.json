@@ -1,0 +1,607 @@
+{
+    "lot": "courrier-100p",
+    "mode": "sans-vision",
+    "date": "2026-09-29T15:11:45+00:00",
+    "duree_s": 82.4,
+    "chemin": "Ged\\Ingestion\\Cmd4Decoupeur",
+    "pages": 100,
+    "documents_attendus": 53,
+    "documents_produits": 53,
+    "decoupe_exacte": 53,
+    "frontieres": {
+        "vraies": 53,
+        "trouvees": 53,
+        "manquees": [],
+        "fausses_coupes": []
+    },
+    "pages_perdues": [],
+    "pages_en_double": [],
+    "blanches": [
+        {
+            "page": 4,
+            "devenir": "rattachée"
+        },
+        {
+            "page": 34,
+            "devenir": "rattachée"
+        }
+    ],
+    "porte": "FRANCHIE",
+    "documents": [
+        {
+            "n": 1,
+            "pages": [
+                1
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 2,
+            "pages": [
+                2,
+                3
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 3,
+            "pages": [
+                5,
+                6,
+                7
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": "releve 3 pages numerotees",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 4,
+            "pages": [
+                8,
+                9
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": "facture 2 pages SANS numerotation, scan",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 5,
+            "pages": [
+                10,
+                11,
+                12,
+                13,
+                14
+            ],
+            "type": "Contrat",
+            "scan": false,
+            "cas": "contrat 5 pages numerotees",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 6,
+            "pages": [
+                15
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 7,
+            "pages": [
+                16,
+                17,
+                18,
+                19
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": "decision 4 pages scannees SANS numerotation ni rappel d'objet (le plus dur)",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 8,
+            "pages": [
+                20
+            ],
+            "type": "Note de crédit",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 9,
+            "pages": [
+                21
+            ],
+            "type": "Document RH",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 10,
+            "pages": [
+                22
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 11,
+            "pages": [
+                23
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": "meme fournisseur que la precedente et la suivante : frontiere au numero",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 12,
+            "pages": [
+                24
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": "meme fournisseur, facture suivante immediate",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 13,
+            "pages": [
+                25,
+                26,
+                27,
+                28,
+                30
+            ],
+            "type": "Contrat",
+            "scan": false,
+            "cas": "INTERCALE : la page 5/5 (annexe) arrive APRES le recu suivant — regroupement attendu",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 14,
+            "pages": [
+                29
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 15,
+            "pages": [
+                31,
+                32,
+                33
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": "facture energie 3 pages numerotees, 30 lignes",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 16,
+            "pages": [
+                35
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 17,
+            "pages": [
+                36
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": "page scannee a l'envers",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 18,
+            "pages": [
+                37,
+                38,
+                39,
+                40,
+                41,
+                42
+            ],
+            "type": "Contrat",
+            "scan": false,
+            "cas": "contrat 6 pages",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 19,
+            "pages": [
+                43,
+                44
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 20,
+            "pages": [
+                45
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 21,
+            "pages": [
+                46
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 22,
+            "pages": [
+                47
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 23,
+            "pages": [
+                48
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 24,
+            "pages": [
+                49,
+                50
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": "facture 2 pages numerotees",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 25,
+            "pages": [
+                51,
+                52,
+                53,
+                54
+            ],
+            "type": "Contrat",
+            "scan": true,
+            "cas": "contrat 4 pages scanne",
+            "decoupe": "exacte"
+        },
+        {
+            "n": 26,
+            "pages": [
+                55
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 27,
+            "pages": [
+                56,
+                57
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 28,
+            "pages": [
+                58,
+                59
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 29,
+            "pages": [
+                60
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 30,
+            "pages": [
+                61,
+                62
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 31,
+            "pages": [
+                63,
+                64
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 32,
+            "pages": [
+                65
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 33,
+            "pages": [
+                66,
+                67
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 34,
+            "pages": [
+                68,
+                69
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 35,
+            "pages": [
+                70
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 36,
+            "pages": [
+                71,
+                72
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 37,
+            "pages": [
+                73,
+                74
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 38,
+            "pages": [
+                75
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 39,
+            "pages": [
+                76,
+                77
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 40,
+            "pages": [
+                78,
+                79
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 41,
+            "pages": [
+                80
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 42,
+            "pages": [
+                81,
+                82
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 43,
+            "pages": [
+                83,
+                84
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 44,
+            "pages": [
+                85
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 45,
+            "pages": [
+                86,
+                87
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 46,
+            "pages": [
+                88,
+                89
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 47,
+            "pages": [
+                90
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 48,
+            "pages": [
+                91,
+                92
+            ],
+            "type": "Facture",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 49,
+            "pages": [
+                93,
+                94
+            ],
+            "type": "Courrier",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 50,
+            "pages": [
+                95
+            ],
+            "type": "Reçu",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 51,
+            "pages": [
+                96,
+                97
+            ],
+            "type": "Facture",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 52,
+            "pages": [
+                98,
+                99
+            ],
+            "type": "Courrier",
+            "scan": true,
+            "cas": null,
+            "decoupe": "exacte"
+        },
+        {
+            "n": 53,
+            "pages": [
+                100
+            ],
+            "type": "Reçu",
+            "scan": false,
+            "cas": null,
+            "decoupe": "exacte"
+        }
+    ]
+}

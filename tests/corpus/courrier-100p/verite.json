@@ -1,0 +1,809 @@
+{
+ "_role": "ORACLE du moteur d'ingestion : chaque document du lot, ses pages (numerotees a partir de 1), son type, son correspondant. Genere, ne pas editer.",
+ "_genere_par": "tools/banc/generer-courrier.py",
+ "fichier": "courrier-du-matin-100p.pdf",
+ "pages": 100,
+ "documents": 53,
+ "pages_scannees": 42,
+ "elements": [
+  {
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "05.01.2026",
+   "montant_ttc": 700.38,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 1,
+   "pages": [
+    1
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "08.01.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 2,
+   "pages": [
+    2,
+    3
+   ]
+  },
+  {
+   "blanche": true,
+   "pages": [
+    4
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Banque Fictive du Jura",
+   "date": "10.01.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": "releve 3 pages numerotees",
+   "dossier": null,
+   "n": 3,
+   "pages": [
+    5,
+    6,
+    7
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "12.01.2026",
+   "montant_ttc": 4244.74,
+   "scan": true,
+   "numerote": false,
+   "cas": "facture 2 pages SANS numerotation, scan",
+   "dossier": null,
+   "n": 4,
+   "pages": [
+    8,
+    9
+   ]
+  },
+  {
+   "type": "Contrat",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "15.01.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": "contrat 5 pages numerotees",
+   "dossier": null,
+   "n": 5,
+   "pages": [
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  {
+   "type": "Reçu",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "16.01.2026",
+   "montant_ttc": 74.55,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 6,
+   "pages": [
+    15
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Office cantonal fictif des prestations",
+   "date": "18.01.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": false,
+   "cas": "decision 4 pages scannees SANS numerotation ni rappel d'objet (le plus dur)",
+   "dossier": null,
+   "n": 7,
+   "pages": [
+    16,
+    17,
+    18,
+    19
+   ]
+  },
+  {
+   "type": "Note de crédit",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "20.01.2026",
+   "montant_ttc": -437.81,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 8,
+   "pages": [
+    20
+   ]
+  },
+  {
+   "type": "Document RH",
+   "correspondant": "Commune de Modeleville",
+   "date": "22.01.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": "RH",
+   "n": 9,
+   "pages": [
+    21
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "25.01.2026",
+   "montant_ttc": 231.33,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 10,
+   "pages": [
+    22
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "02.02.2026",
+   "montant_ttc": 1692.85,
+   "scan": false,
+   "numerote": true,
+   "cas": "meme fournisseur que la precedente et la suivante : frontiere au numero",
+   "dossier": null,
+   "n": 11,
+   "pages": [
+    23
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "03.02.2026",
+   "montant_ttc": 545.9,
+   "scan": false,
+   "numerote": true,
+   "cas": "meme fournisseur, facture suivante immediate",
+   "dossier": null,
+   "n": 12,
+   "pages": [
+    24
+   ]
+  },
+  {
+   "type": "Contrat",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "05.02.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": "INTERCALE : la page 5/5 (annexe) arrive APRES le recu suivant — regroupement attendu",
+   "dossier": null,
+   "n": 13,
+   "pages": [
+    25,
+    26,
+    27,
+    28,
+    30
+   ]
+  },
+  {
+   "type": "Reçu",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "06.02.2026",
+   "montant_ttc": 118.9,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 14,
+   "pages": [
+    29
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Energies Exemple SA",
+   "date": "12.02.2026",
+   "montant_ttc": 7568.77,
+   "scan": false,
+   "numerote": true,
+   "cas": "facture energie 3 pages numerotees, 30 lignes",
+   "dossier": null,
+   "n": 15,
+   "pages": [
+    31,
+    32,
+    33
+   ]
+  },
+  {
+   "blanche": true,
+   "pages": [
+    34
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "18.02.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 16,
+   "pages": [
+    35
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "20.02.2026",
+   "montant_ttc": 1810.72,
+   "scan": true,
+   "numerote": true,
+   "cas": "page scannee a l'envers",
+   "dossier": null,
+   "n": 17,
+   "pages": [
+    36
+   ]
+  },
+  {
+   "type": "Contrat",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "01.03.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": "contrat 6 pages",
+   "dossier": null,
+   "n": 18,
+   "pages": [
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Banque Fictive du Jura",
+   "date": "10.03.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 19,
+   "pages": [
+    43,
+    44
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "12.03.2026",
+   "montant_ttc": 727.08,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 20,
+   "pages": [
+    45
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Commune de Modeleville",
+   "date": "15.03.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 21,
+   "pages": [
+    46
+   ]
+  },
+  {
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "16.03.2026",
+   "montant_ttc": 51.2,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 22,
+   "pages": [
+    47
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Office cantonal fictif des prestations",
+   "date": "20.03.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "n": 23,
+   "pages": [
+    48
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "25.03.2026",
+   "montant_ttc": 3501.95,
+   "scan": false,
+   "numerote": true,
+   "cas": "facture 2 pages numerotees",
+   "dossier": null,
+   "n": 24,
+   "pages": [
+    49,
+    50
+   ]
+  },
+  {
+   "type": "Contrat",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "01.04.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": "contrat 4 pages scanne",
+   "dossier": null,
+   "n": 25,
+   "pages": [
+    51,
+    52,
+    53,
+    54
+   ]
+  },
+  {
+   "type": "Facture",
+   "correspondant": "Energies Exemple SA",
+   "date": "12.04.2026",
+   "montant_ttc": 1314.71,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 26,
+   "pages": [
+    55
+   ]
+  },
+  {
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "20.04.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "n": 27,
+   "pages": [
+    56,
+    57
+   ]
+  },
+  {
+   "n": 28,
+   "type": "Courrier",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "02.05.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    58,
+    59
+   ]
+  },
+  {
+   "n": 29,
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "03.05.2026",
+   "montant_ttc": 46.7,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    60
+   ]
+  },
+  {
+   "n": 30,
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "04.05.2026",
+   "montant_ttc": 4244.74,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    61,
+    62
+   ]
+  },
+  {
+   "n": 31,
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "05.05.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    63,
+    64
+   ]
+  },
+  {
+   "n": 32,
+   "type": "Reçu",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "06.05.2026",
+   "montant_ttc": 86.75,
+   "scan": true,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    65
+   ]
+  },
+  {
+   "n": 33,
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "07.05.2026",
+   "montant_ttc": 3954.9,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    66,
+    67
+   ]
+  },
+  {
+   "n": 34,
+   "type": "Courrier",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "08.05.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    68,
+    69
+   ]
+  },
+  {
+   "n": 35,
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "09.05.2026",
+   "montant_ttc": 126.8,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    70
+   ]
+  },
+  {
+   "n": 36,
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "10.05.2026",
+   "montant_ttc": 3483.47,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    71,
+    72
+   ]
+  },
+  {
+   "n": 37,
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "11.05.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    73,
+    74
+   ]
+  },
+  {
+   "n": 38,
+   "type": "Reçu",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "12.05.2026",
+   "montant_ttc": 166.85,
+   "scan": true,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    75
+   ]
+  },
+  {
+   "n": 39,
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "13.05.2026",
+   "montant_ttc": 4016.12,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    76,
+    77
+   ]
+  },
+  {
+   "n": 40,
+   "type": "Courrier",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "14.05.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    78,
+    79
+   ]
+  },
+  {
+   "n": 41,
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "15.05.2026",
+   "montant_ttc": 206.9,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    80
+   ]
+  },
+  {
+   "n": 42,
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "16.05.2026",
+   "montant_ttc": 4469.66,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    81,
+    82
+   ]
+  },
+  {
+   "n": 43,
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "17.05.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    83,
+    84
+   ]
+  },
+  {
+   "n": 44,
+   "type": "Reçu",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "18.05.2026",
+   "montant_ttc": 246.95,
+   "scan": true,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    85
+   ]
+  },
+  {
+   "n": 45,
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "19.05.2026",
+   "montant_ttc": 2674.69,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    86,
+    87
+   ]
+  },
+  {
+   "n": 46,
+   "type": "Courrier",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "20.05.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    88,
+    89
+   ]
+  },
+  {
+   "n": 47,
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "21.05.2026",
+   "montant_ttc": 287.0,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    90
+   ]
+  },
+  {
+   "n": 48,
+   "type": "Facture",
+   "correspondant": "Atelier Numerique Exemple Sarl",
+   "date": "22.05.2026",
+   "montant_ttc": 4629.24,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    91,
+    92
+   ]
+  },
+  {
+   "n": 49,
+   "type": "Courrier",
+   "correspondant": "Gerance Immobiliere Modele SA",
+   "date": "23.05.2026",
+   "montant_ttc": null,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    93,
+    94
+   ]
+  },
+  {
+   "n": 50,
+   "type": "Reçu",
+   "correspondant": "Assurances Demonstration SA",
+   "date": "24.05.2026",
+   "montant_ttc": 327.05,
+   "scan": true,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    95
+   ]
+  },
+  {
+   "n": 51,
+   "type": "Facture",
+   "correspondant": "Papeterie des Sapins Fictive SA",
+   "date": "25.05.2026",
+   "montant_ttc": 4082.47,
+   "scan": false,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    96,
+    97
+   ]
+  },
+  {
+   "n": 52,
+   "type": "Courrier",
+   "correspondant": "Garage du Banc d'Essai Sarl",
+   "date": "26.05.2026",
+   "montant_ttc": null,
+   "scan": true,
+   "numerote": true,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    98,
+    99
+   ]
+  },
+  {
+   "n": 53,
+   "type": "Reçu",
+   "correspondant": "Energies Exemple SA",
+   "date": "27.05.2026",
+   "montant_ttc": 367.1,
+   "scan": false,
+   "numerote": false,
+   "cas": null,
+   "dossier": null,
+   "pages": [
+    100
+   ]
+  }
+ ]
+}

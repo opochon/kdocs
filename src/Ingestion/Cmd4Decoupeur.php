@@ -55,7 +55,7 @@ final class Cmd4Decoupeur implements Decoupeur
         $stderr = (string) @file_get_contents($erreurs);
         @unlink($erreurs);
 
-        $json = json_decode($sortie, true);
+        $json = self::dernierObjet($sortie);
         if (!is_array($json) || !isset($json['documents']) || !is_array($json['documents'])) {
             throw new \RuntimeException('Réponse du moteur illisible (code ' . $code . ') : ' . mb_substr(trim($stderr ?: $sortie), -400));
         }
@@ -71,5 +71,32 @@ final class Cmd4Decoupeur implements Decoupeur
         }
 
         return $pieces;
+    }
+
+    /**
+     * Le moteur écrit son JSON sur stdout, mais certains extracteurs (Tesseract) y ajoutent du bruit :
+     * on garde le dernier objet JSON complet qui commence en début de ligne.
+     *
+     * @return array<string, mixed>|null
+     */
+    private static function dernierObjet(string $sortie): ?array
+    {
+        $direct = json_decode($sortie, true);
+        if (is_array($direct)) {
+            return $direct;
+        }
+        preg_match_all('/^\{/m', $sortie, $m, PREG_OFFSET_CAPTURE);
+        foreach (array_reverse($m[0]) as [, $pos]) {
+            $fin = strrpos($sortie, '}');
+            while ($fin !== false && $fin > $pos) {
+                $obj = json_decode(substr($sortie, $pos, $fin - $pos + 1), true);
+                if (is_array($obj)) {
+                    return $obj;
+                }
+                $fin = strrpos(substr($sortie, 0, $fin), '}');
+            }
+        }
+
+        return null;
     }
 }
