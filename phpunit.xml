@@ -9,5 +9,7 @@
         <!-- Les tests n'écrivent JAMAIS ailleurs que dans gedv2_test (leçon GEDv1 du 28-09). -->
         <env name="DB_NAME" value="gedv2_test" force="true"/>
         <env name="APP_ENV" value="test" force="true"/>
+        <!-- Fonds documentaire de TEST : le .env local (vrai fonds) n'est jamais lu par les tests. -->
+        <env name="STORAGE_ROOT" value="tests/corpus/apercu/documents" force="true"/>
     </php>
 </phpunit>
