@@ -91,3 +91,19 @@ ETAT: fini
 ## Jugement V2-01 (Claude Code, 29-09) — porte franchie
 Oracle `tests/oracles/socle/porte-v2-01.php` rejoué : 6 clauses OK ; banc F1 de bout en bout (53/53 dans le fonds). Réserve : la trace des déplacements est perdue à la reconstruction — à écrire aussi dans le dossier (journal NDJSON) quand le journal d'audit V2-07b sera là.
 ETAT: fini (jugé)
+
+## Demande reçue de WORKFLOWS (V2-06, DeepCode, 29-09) — point d'accroche « document déposé / mis à jour »
+Le secteur Workflows expose l'écouteur ci-dessous, à appeler **après** le rangement et l'indexation,
+depuis `DepotFichiers::deposer()` (événement `document_depose`) et `mettreAJour()` (`document_modifie`) :
+```php
+if (class_exists(\Ged\Workflows\Ecouteur::class)) {
+    \Ged\Workflows\Ecouteur::prevenir($config, 'document_depose', $id, $meta);
+}
+```
+`Ecouteur::prevenir(Config, string $evenement, int $idDocument, array $meta, string $auteur = 'systeme')`
+ne lève **jamais** : une règle en erreur est signalée et journalisée, le document continue — l'ingestion
+ne doit donc pas être enveloppée dans un `try/catch` de ce côté.
+Second point, constaté en V2-06 : le `.meta.json` écrit au dépôt ne contient pas `id` (la ligne d'index
+n'existe qu'après l'`INSERT`). `Apercu\Source` et `Workflows\Fonds` le résolvent par `chemin_relatif`
+(lecture seule) en attendant ; réécrire l'`id` dans le `.meta.json` après l'indexation rendrait le
+dossier auto-descriptible. Détail complet dans `docs/secteurs/workflows.md`, rubrique « Demandes ».

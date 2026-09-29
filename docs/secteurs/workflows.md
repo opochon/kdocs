@@ -33,5 +33,83 @@ Selon l'audit `GEDv1/var/audit-v2/glm-workflows-interface.md` (29-09) : s'inspir
 n'a jamais existé : il est à écrire.
 
 ## Demandes
-- Au Socle : événement « document déposé / mis à jour » (point d'accroche unique, pas d'appel direct depuis l'ingestion).
-- Aux Droits : permissions `workflow.gerer`, `workflow.transition.<etat>`.
+- **Au Socle** (point d'accroche, V2-06) : après avoir rangé et indexé un document, appeler le secteur
+  Workflows — jamais depuis l'Ingestion directement :
+  ```php
+  if (class_exists(\Ged\Workflows\Ecouteur::class)) {
+      \Ged\Workflows\Ecouteur::prevenir($config, 'document_depose', $id, $meta);   // ou 'document_modifie'
+  }
+  ```
+  `Ecouteur::prevenir(Config, string $evenement, int $idDocument, array $meta, string $auteur = 'systeme')`
+  ne lève **jamais** : une règle en erreur est signalée, le document continue. `$meta` = le `.meta.json`
+  canonique. Appel à la fin de `DepotFichiers::deposer()` (événement `document_depose`) et de
+  `mettreAJour()` (événement `document_modifie`).
+- **Au Socle** (constat V2-06) : le `.meta.json` écrit au dépôt ne porte pas `id`. `Apercu\Source` et
+  `Workflows\Fonds` le résolvent donc par `chemin_relatif` (lecture seule) en attendant ; l'id devrait
+  être réécrit dans le `.meta.json` après l'`INSERT` (le dossier resterait auto-descriptible).
+- **Aux Droits** : permissions `workflow.gerer` (règles, gabarits, essai), `workflow.executer`
+  (événement de dépôt/mise à jour), `workflow.transition` (route de transition ; le droit fin
+  `workflow.transition.<etat>` est vérifié par le moteur contre les permissions de la session).
+  Ces trois routes sont déclarées dans `Ged\Securite\DroitsRoutes` ; le compte de test e2e a reçu
+  `workflow.gerer`, `workflow.executer`, `workflow.transition`, `workflow.transition.valider`
+  (modification minimale de `Securite\Authentification`, signalée ici).
+- **À l'Interface** : branchement minimal de `Ui\Ecrans::workflows()` (comme `/recherche`) — le gabarit
+  `templates/ecrans/workflows.twig` est réécrit par ce secteur, mêmes classes et mêmes `data-testid`
+  (`ecran-workflows`, barre d'actions à gauche).
+- **Au Harness** (constat V2-06) : `tests/e2e/apercu.spec.ts:18` (« première page en moins d'une seconde »)
+  est fragile dès qu'un 5ᵉ fichier de specs tourne en parallèle (serveur PHP `-S` mono-requête). Mesuré :
+  4/4 vert sans le fichier `workflows.spec.ts`, ~1/3 vert avec, y compris `--workers=4`. Le seuil de 1 s
+  de ce test devrait être desserré (ou les parcours chronométrés sérialisés) ; ce n'est pas un défaut de
+  Workflows (le parcours `workflows.spec.ts` est 2/2 vert seul).
+
+## Journal V2-06 — 29-09-2026
+
+**Oracle d'abord**
+- `tests/php/Workflows/` écrits avant le code (21 cas) : rouge « Class Ged\Workflows\Schema not found » (21 erreurs),
+  puis verts après implémentation. `tests/e2e/workflows.spec.ts` écrit avant le branchement de l'écran.
+
+**Fait, clause par clause**
+1. **Règles + circuits, un seul moteur.** `Moteur` interprète les deux niveaux : `planifier()` lit les règles du
+   déclencheur, évalue `Conditions` (type, émetteur, titre, montant, date, étiquettes, texte, délai d'échéance) et
+   produit un plan d'actions (poser, étiqueter, démarrer/assigner un circuit, notifier, appeler une jonction).
+   `Gabarits` livre *facture à seuil* (seuil 10 000 : ≥ part chez `direction`, < chez `comptabilité`, circuit
+   reçu → à valider → validé/refusé) et *contrat à échéance* (rappel à J-90 + circuit de renouvellement), installables
+   d'un geste et idempotents.
+2. **Essai à blanc, zéro écriture.** `essayer()` rend le plan sans écrire ; `executer()` applique **le même plan**.
+   Preuve : deux documents identiques déposés dans un fonds éphémère ; l'essai à blanc laisse **empreinte du fonds ET
+   empreinte de toute la base inchangées**, l'exécution réelle écrit, et `regles`/`etapes`/`erreurs` sont identiques.
+3. **Transitions tracées et soumises aux droits.** `workflow_journal` (ajout seul) écrit qui, quand, depuis quel état ;
+   `Moteur::transitionner()` vérifie le droit de la transition contre les permissions de la session, journalise un
+   refus et laisse l'état en place. Test : `valider` passe, `refuser` (droit absent) est refusé et nommé.
+4. **Une règle en erreur ne bloque jamais.** `Ecouteur::recevoir()` ne lève jamais (ni au planning — action/circuit
+   inconnus —, ni à l'application — dépôt indisponible), journalise l'erreur et laisse les autres règles agir ;
+   il résiste même à l'absence des tables.
+5. **Écran + Playwright.** `/workflows` branché sur les vrais workflows (branche minimale dans `Ui\Ecrans`, comme
+   `/recherche`) : gabarits, règles activables, circuits, essai à blanc, événement de dépôt, transition, journal.
+   Parcours Playwright (connexion `tests/e2e/connexion.ts`, clavier) : créer une règle → l'essayer à blanc →
+   l'activer → la voir agir sur un dépôt → installer le gabarit et lire son circuit.
+6. **Horloge injectable.** `Horloge` (système / figée) traverse le moteur ; les tests figent l'instant, le délai
+   J-90 se compte en jours de calendrier et l'horodatage du journal vient de l'horloge injectée.
+
+**Preuves**
+- `phpunit tests/php/Workflows` : **21 tests, 106 assertions, vert** (GabaritsTest, MoteurTest, TransitionsTest,
+  ModuleTest, SupportWorkflows).
+- Empreintes : fonds (chemins + sha256) et base entière (toutes tables, sha256) identiques après l'essai à blanc ;
+  différentes après l'exécution réelle.
+- `npx playwright test tests/e2e/workflows.spec.ts` : **2/2 vert**, idempotent (nom de règle unique).
+- Installateur : table count passe de 16 à 19 (≤ 20), `Ged\Workflows\Schema::installer` appelé par `tools/installer.php`.
+- `harness.ps1 -SansBanc` : couche 0 VERT ; 1-unitaire ROUGE (29 erreurs `Ged\Socle\Nomenclature` : travaux V2-04 en
+  cours d'un autre agent, hors secteur) ; 4-écrans ROUGE intermittent sur `apercu.spec.ts:18` (seuil 1 s sous charge
+  parallèle, voir Demande au Harness) ; 3-banc sautée, 2/5/6/7 non écrites.
+
+**Commits**
+- `f1703fe` — moteur, schéma, gabarits, écouteur, écran, routes (DroitsRoutes + compte de test e2e).
+- `524617a` — parcours Playwright au clavier.
+
+**Dettes / à suivre**
+- Brancher l'appel `Ecouteur::prevenir` dans `DepotFichiers` (demande déposée au Socle) : aujourd'hui le point
+  d'accroche est exposé, testé et appelable, mais pas encore câblé dans le rangement.
+- Écrire l'`id` dans le `.meta.json` (Socle) pour supprimer le repli SQL de `Workflows\Fonds`.
+- Éditeur graphique (designer SVG) et approbation par courriel à jeton : non repris de GEDv1 dans ce lot.
+
+ETAT: fini
