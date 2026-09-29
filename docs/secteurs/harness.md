@@ -26,3 +26,10 @@ Agent : Claude Code · Juge : chaque secteur le rejoue · Commande : `powershell
 2. Couche 2 : suite de contrat `Depot` (dépôt → `.meta.json` → version 1 → index reconstructible) jouée contre
    `Ged\Socle\DepotFichiers` dès qu'il existe.
 3. Couche 0 : refuser tout test qui touche une base autre que `gedv2_test`.
+
+## Jugement sur le code commité (29-09)
+Le vestiaire est partagé par plusieurs agents : un travail non commité peut casser le harness des autres. Le juge rejoue
+donc depuis une copie de travail séparée, sur HEAD :
+`git worktree add --detach ..\GEDv2-juge HEAD` (`vendor` COPIÉ puis `php tools/composer.phar dump-autoload` — une jonction ferait charger le `src/` du vestiaire, vu le 29-09 —, jonction vers `node_modules`, `.env` copié), puis
+`$env:GED_PORT_TESTS='8872'; powershell -File ..\GEDv2-juge\tools\harness.ps1`. Le verrou de `gedv2_test` vit dans le
+dossier temporaire du système : juge et agents s'attendent au lieu de s'effacer les tables.

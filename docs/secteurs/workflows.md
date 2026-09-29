@@ -118,3 +118,7 @@ n'a jamais existé : il est à écrire.
 - Éditeur graphique (designer SVG) et approbation par courriel à jeton : non repris de GEDv1 dans ce lot.
 
 ETAT: fini
+
+## Jugement V2-06 (Claude Code, 29-09) — porte franchie
+Rejoué sur le code commité (copie de travail du juge) : unitaire 176/176, bancs verts, écrans 26/26 dont le parcours workflows au clavier. Essai à blanc prouvé par empreintes du fonds et de la base. Les rouges du journal venaient du vestiaire partagé (en-tête CSP non commité du secteur Droits), pas de ce lot. Reste : brancher `Ecouteur::prevenir` dans `DepotFichiers` (Socle), designer SVG et approbation par courriel (lot suivant).
+ETAT: fini (jugé)
