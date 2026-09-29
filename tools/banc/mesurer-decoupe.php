@@ -34,6 +34,8 @@ $t0 = microtime(true);
 $pieces = $decoupeur->decouper($dossierLot . '/' . $verite['fichier'], $sortie);
 $duree = round(microtime(true) - $t0, 1);
 $groupes = array_map(fn ($p) => $p['pages'], $pieces);
+// Pièces gardées pour les bancs suivants (classement) : pas besoin de redécouper pour mesurer le classement.
+file_put_contents($racine . '/var/banc/' . $lot . '-pieces.json', json_encode($pieces, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 // Vérité : page → élément ; blanches à part.
 $proprio = [];

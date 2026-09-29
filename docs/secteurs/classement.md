@@ -1,6 +1,6 @@
 # Secteur CLASSEMENT — type, émetteur, champs, tri automatique, apprentissage
 
-Agent : Claude Code · Juge : DeepCode · Lot en cours : V2-03 (avec l'écran « À traiter »)
+Agent : DeepCode · Juge : Claude Code · Lot en cours : V2-03 (avec l'écran « À traiter »)
 
 ## Mission
 Proposer type, émetteur, titre, date, montant, étiquettes ; valider seul **seulement** avec confiance ≥ seuil ET une preuve
