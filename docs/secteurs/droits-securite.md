@@ -109,3 +109,19 @@ ETAT: fini (jugé)
   (`droits-securite: branche la sonde dans le harness`).
 
 ETAT: fini
+
+## Jugement V2-07c (Claude Code, 29-09) — porte NON franchie
+Rejoué sur le code commité (copie du juge) : couche 7 VERTE (la sonde ne passe nulle part) — mais le lot casse deux
+couches qui étaient vertes :
+1. **Écrans : 10 parcours rouges.** L'en-tête `Content-Security-Policy: default-src 'self'` (GardeCentrale l. 95) bloque
+   les scripts en ligne et les attributs `style` des gabarits existants (maquettes, recherche, aperçu). Une politique
+   qui casse l'application n'est pas livrable. Attendu : `script-src 'self' 'nonce-<aléatoire par requête>'` avec le
+   nonce exposé à Twig (variable globale) et posé sur chaque `<script>` en ligne des gabarits (modification minimale
+   des gabarits, signalée) ; `style-src 'self' 'unsafe-inline'` tant que l'Interface n'a pas sorti les attributs
+   `style` (demande écrite dans la fiche Interface). Les 26 parcours Playwright redeviennent verts, 0 erreur console.
+2. **Zéro suppression : 1 test rouge.** `CorbeilleTest::testAucuneSuppressionSqlSurLesDonneesUtilisateur` trouve un
+   `TRUNCATE` dans `RegistreSessions.php`. Les sessions expirées se marquent (ou s'ignorent par date), elles ne se
+   vident pas en masse ; si une purge technique est indispensable, elle se justifie dans la fiche et passe par la liste
+   blanche de ce test, pas en contournement.
+Porte : harness complet vert sur le code commité (couches 0, 1, 3, 4, 7).
+ETAT: à reprendre (voir Jugement V2-07c)
