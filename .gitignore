@@ -7,3 +7,4 @@
 /.env
 /tools/composer.phar
 *.log
+/.phpunit.result.cache
