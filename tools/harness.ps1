@@ -1,5 +1,6 @@
 ﻿# Harness GEDv2 : une commande, tout rejoué, un verdict. Une couche absente est ROUGE, jamais verte.
-#   powershell -File tools\harness.ps1
+#   powershell -File tools\harness.ps1 [-SansBanc]   (-SansBanc : saute la couche 3, qui compte alors ROUGE)
+param([switch]$SansBanc)
 $ErrorActionPreference = 'Continue'
 $racine = Split-Path $PSScriptRoot -Parent
 Set-Location $racine
@@ -17,12 +18,27 @@ $couches['0-garde-fous'] = @{ ok = (Test-Path "$racine\vendor\autoload.php") -an
 $sortie = & php vendor\bin\phpunit --log-junit var\phpunit.xml 2>&1
 $couches['1-unitaire'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Select-Object -Last 1) -join '' }
 
+# 3. Banc : corpus + vérité, à travers le code de la GED. Chaque banc attendu doit exister ET franchir sa porte.
+if ($SansBanc) {
+  $couches['3-banc'] = @{ ok = $false; detail = 'sautée (-SansBanc)' }
+} else {
+  $bancs = [ordered]@{ 'decoupe' = 'tools\banc\mesurer-decoupe.php'; 'classement' = 'tools\banc\mesurer-classement.php' }
+  $ok = $true; $details = @()
+  foreach ($b in $bancs.Keys) {
+    if (-not (Test-Path $bancs[$b])) { $ok = $false; $details += "$b : à écrire"; continue }
+    $sortie = & php $bancs[$b] courrier-100p 2>&1   # le banc lit le .env (moteur, clés) et n'écrit dans aucune base
+    if ($LASTEXITCODE -ne 0) { $ok = $false }
+    $details += "$b : " + (($sortie | Select-Object -Last 1) -join '')
+  }
+  $couches['3-banc'] = @{ ok = $ok; detail = ($details -join ' | ') }
+}
+
 # 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright
 $sortie = & npx.cmd playwright test --reporter=line 2>&1
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }
 
 # Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
-foreach ($c in '2-contrat', '3-banc', '5-personas', '6-charge', '7-securite') {
+foreach ($c in '2-contrat', '5-personas', '6-charge', '7-securite') {
   $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }
 }
 
