@@ -1,0 +1,55 @@
+{# Visionneuse du secteur Recherche & aperçu. Le macro `moteur` remplace `papier.page()` quand un vrai
+   fichier existe : les écrans maîtres l'importent (Interface) sans changer leur structure. La page
+   autonome (route /documents/{id}/apercu) reste servie par ce seul gabarit tant que l'intégration
+   dans Bibliothèque / Fiche n'est pas faite. #}
+{% import 'partiels/icones.twig' as ic %}
+
+{% macro moteur(rendu, testid) %}
+<div class="visionneuse doc" data-visionneuse data-testid="{{ testid }}"
+     data-src="{{ rendu.url }}" data-categorie="{{ rendu.categorie }}" data-pages="{{ rendu.pages }}"
+     data-titre="{{ rendu.titre }}" data-message="{{ rendu.message }}" data-rotation="0">
+  <div class="visionneuse-barre" role="toolbar" aria-label="Outils d’aperçu">
+    <button class="btn icone discret" type="button" data-action="zoom-arriere" data-testid="visionneuse-zoom-arriere" title="Réduire">−</button>
+    <span class="visionneuse-zoom mono" data-testid="visionneuse-zoom" aria-live="polite">100 %</span>
+    <button class="btn icone discret" type="button" data-action="zoom-avant" data-testid="visionneuse-zoom-avant" title="Agrandir">+</button>
+    <button class="btn discret" type="button" data-action="rotation" data-testid="visionneuse-rotation" title="Tourner la page d’affichage">{{ ic.i('rotation') }}Rotation</button>
+    <span class="visionneuse-page mono" data-testid="visionneuse-page" aria-live="polite">page 1 / {{ rendu.pages }}</span>
+    <span class="visionneuse-clavier muted">Page suivante / précédente au clavier</span>
+  </div>
+  <div class="visionneuse-pages" data-testid="visionneuse-pages" tabindex="0"
+       aria-label="Aperçu du document — flèches ou Page suivante pour changer de page">
+    {% if rendu.message %}
+      <p class="visionneuse-message" data-testid="visionneuse-message">{{ rendu.message }}</p>
+    {% else %}
+      <p class="visionneuse-chargement muted" data-testid="visionneuse-chargement">{{ ic.i('horloge') }} Chargement de l’aperçu…</p>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% if autonome|default(false) %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ piece.titre }} · Aperçu · GED</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/ged.css">
+  <script>try { const t = localStorage.getItem('ged-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+</head>
+<body>
+  <div class="visionneuse-ecran" data-testid="ecran-apercu">
+    <header class="visionneuse-tete">
+      <a class="btn discret" href="/documents/{{ piece.id }}" data-testid="apercu-retour">{{ ic.i('fleche') }}Fiche</a>
+      <h1>{{ piece.titre }}</h1>
+      <span class="chip">{{ piece.categorie }}</span>
+      <button class="btn icone discret" type="button" data-action="theme" data-testid="apercu-theme" title="Thème clair / sombre">{{ ic.i('lune') }}</button>
+    </header>
+    {{ _self.moteur(rendu, 'visionneuse') }}
+  </div>
+  <script src="/assets/js/ged.js" type="module"></script>
+  <script src="/assets/js/visionneuse.js" type="module"></script>
+</body>
+</html>
+{% endif %}
