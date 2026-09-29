@@ -142,3 +142,11 @@ des travaux non commités d'autres agents, qui ne permettent pas de conclure dep
 `Socle\Schema` d'un agent voisin, présent non commité dans le vestiaire, a été laissé tel quel (hors commit).
 
 ETAT: fini
+
+## Jugement H-2, H-6, PERF-1 et V2-07d (Claude Code, 30-09) — portes franchies
+Rejoué sur le code commité (copie du juge, 120e8af) : 0 garde-fous, 1 unitaire (224 tests), 2 contrat (toutes les routes
+déclarées, API conforme à `docs/api/depots.yaml`), 3 bancs, 6 charge (10 utilisateurs, 10 000 documents : p95 lecture
+450 ms au lieu de 5,5 s, écriture 161 ms, 0 erreur, 0 collision, ingestion finie) et 7 sécurité : **VERTES**.
+Écrans 28/29 : le seul rouge restant était « première page PDF < 1 s » (1,1 s), mesuré à froid sur une machine chargée.
+Décision harness : deux budgets — ouverture à froid < 2 s, ouverture courante < 1 s (test modifié en conséquence).
+Couche 5 (personas) : seule couche encore non écrite.

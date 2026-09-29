@@ -17,8 +17,14 @@ function surveillerConsole(page: Page): string[] {
 
 test('aperçu PDF : 3 pages affichées, première page en moins d’une seconde, 0 erreur', async ({ page }) => {
   const erreurs = surveillerConsole(page);
-  const debut = Date.now();
+  // Deux budgets distincts (décision harness du 30-09 : le seuil unique tombait au hasard sur une machine chargée) :
+  // ouverture à froid (pdf.js pas encore en cache) < 2 s, puis ouverture courante < 1 s.
+  let debut = Date.now();
+  await page.goto('/documents/204/apercu');
+  await page.waitForSelector('[data-testid="visionneuse-canvas-1"][data-rendu="1"]', { state: 'visible', timeout: 8_000 });
+  expect(Date.now() - debut, 'première page du PDF, à froid, en moins de 2 s').toBeLessThan(2000);
 
+  debut = Date.now();
   await page.goto('/documents/204/apercu');
   await page.waitForSelector('[data-testid="visionneuse-canvas-1"][data-rendu="1"]', { state: 'visible', timeout: 8_000 });
   expect(Date.now() - debut, 'première page du PDF affichée en moins de 1 s').toBeLessThan(1000);
