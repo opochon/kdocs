@@ -1,10 +1,10 @@
-# F1 de bout en bout — lot `courrier-100p` — sans IA — 2026-09-29 15:52
+# F1 de bout en bout — lot `courrier-100p` — sans IA — 2026-09-29 17:23
 
 Porte : **FRANCHIE** — dossier d'ingestion → tâche → découpe → classement → dépôt Socle
 
 | Mesure | Attendu | Obtenu |
 |---|---|---|
-| Durée | < 10 min | 123.8 s |
+| Durée | < 10 min | 89.6 s |
 | `.meta.json` dans le fonds | 53 | 53 |
 | Documents indexés | 53 | 53 |
 | Pages perdues | 0 | 0 |

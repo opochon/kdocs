@@ -1,8 +1,8 @@
 {
     "lot": "courrier-100p",
     "mode": "sans-ia",
-    "date": "2026-09-29T16:16:39+00:00",
-    "duree_s": 0.03,
+    "date": "2026-09-29T17:22:05+00:00",
+    "duree_s": 0.02,
     "chemin": "Ged\\Classement\\ClasseurGed",
     "seuil": 0.8,
     "documents": 53,

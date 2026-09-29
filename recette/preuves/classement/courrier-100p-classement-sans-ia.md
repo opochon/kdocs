@@ -1,4 +1,4 @@
-# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 16:16
+# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 17:22
 
 Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 
@@ -14,7 +14,7 @@ Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 | « Autre » validé seul | 0 | 0 |
 | Dates fausses (en-tête) | 0 | 0 |
 | Titres invalides (vide ou nom du lot) | 0 | 0 |
-| Durée | — | 0.03 s |
+| Durée | — | 0.02 s |
 
 ## Laissés à contrôler
 - pages 1 : `Facture` proposé — IA indisponible

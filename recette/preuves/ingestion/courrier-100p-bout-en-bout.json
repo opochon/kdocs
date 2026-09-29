@@ -1,8 +1,8 @@
 {
     "lot": "courrier-100p",
-    "date": "2026-09-29T15:52:03+00:00",
+    "date": "2026-09-29T17:23:35+00:00",
     "ia": false,
-    "duree_s": 123.8,
+    "duree_s": 89.6,
     "documents_attendus": 53,
     "meta_json_dans_le_fonds": 53,
     "documents_indexes": 53,
@@ -52,5 +52,5 @@
         }
     ],
     "porte": "FRANCHIE",
-    "fonds": "C:\\Users\\opochon\\AppData\\Local\\Temp/gedv2-f1-20260929-154959/fonds"
+    "fonds": "C:\\Users\\opochon\\AppData\\Local\\Temp/gedv2-f1-20260929-172205/fonds"
 }

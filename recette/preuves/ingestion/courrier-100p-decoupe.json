@@ -1,8 +1,8 @@
 {
     "lot": "courrier-100p",
     "mode": "sans-vision",
-    "date": "2026-09-29T15:11:45+00:00",
-    "duree_s": 82.4,
+    "date": "2026-09-29T17:22:05+00:00",
+    "duree_s": 93,
     "chemin": "Ged\\Ingestion\\Cmd4Decoupeur",
     "pages": 100,
     "documents_attendus": 53,

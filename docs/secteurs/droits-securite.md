@@ -80,3 +80,7 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
   PHPUnit (155/679) et Playwright (25 parcours) verts ; le banc est volontairement sauté et les couches non écrites restent rouges.
 
 ETAT: fini
+
+## Jugement V2-07b (Claude Code, 29-09) — porte franchie
+Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
+ETAT: fini (jugé)

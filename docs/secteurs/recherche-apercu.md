@@ -123,3 +123,7 @@ semblables »), qui viendront dans les lots V2-05 suivants.
 
 ETAT: fini
 
+
+## Jugement V2-05b (Claude Code, 29-09) — porte franchie
+Harness complet rejoué après les commits des trois agents : unitaire 155/155, bancs verts (découpe, classement, F1 de bout en bout), écrans 25/25. Oracle `recherche.json` : 11 requêtes, attendus en tête, < 1 s. Réserve : l'index est en MyISAM (cache dérivé, reconstructible : acceptable) ; l'explication « le FULLTEXT InnoDB ne tokenise rien » est à vérifier sur le serveur de production avant d'en faire une règle.
+ETAT: fini (jugé)
