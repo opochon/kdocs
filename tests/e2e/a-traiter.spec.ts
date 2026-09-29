@@ -151,3 +151,20 @@ test('valider trois pièces au clavier enseigne l’habitude à la quatrième', 
     await fermer();
   }
 });
+
+test('« Passer » (→) va au suivant sans rien écrire', async ({ browser }) => {
+  const { page, fermer } = await pageConnectee(browser);
+  try {
+    await page.goto(`/a-traiter?doc=${prep.ids[0]}`);
+    await expect(page.getByTestId(`file-item-${prep.ids[0]}`)).toHaveAttribute('aria-current', 'true');
+
+    await page.keyboard.press('ArrowRight');
+
+    await expect(page).toHaveURL(new RegExp(`doc=${prep.ids[1]}$`));
+    // Passer ne valide pas : la première pièce est toujours dans la file, le bilan inchangé.
+    await expect(page.getByTestId(`file-item-${prep.ids[0]}`)).toBeVisible();
+    await expect(page.getByTestId('bilan-a-controler').locator('.valeur')).toHaveText(String(prep.ids.length));
+  } finally {
+    await fermer();
+  }
+});

@@ -53,7 +53,8 @@ Deux branchements à prévoir quand le Kernel appellera `Archivage\Module` (voir
   `var/oracles/interface/` (**jamais dans `tests/corpus`**) ; parcours connecté (`tests/e2e/connexion.ts`)
   sur un serveur isolé, **trois validations à Entrée sans souris**, puis
   `tests/oracles/interface/classer-piece-4.php` rejoue le vrai classeur (IA inerte) : la 4ᵉ pièce du même
-  émetteur arrive en source **« habitude »**, `valide`. 2 parcours verts.
+  émetteur arrive en source **« habitude »**, `valide`. 3 parcours verts (dont « Passer » (→) qui va au
+  suivant sans rien écrire).
 - `vendor/bin/phpunit` : **241 tests, 1073 assertions** verts (dont `SecuriteTest` qui vérifie que la
   nouvelle route déclare sa permission).
 - `php tools/banc/sonde-securite.php` : **VERT** (CSRF absent/rejoué refusé sur la nouvelle mutation).
