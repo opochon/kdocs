@@ -7,7 +7,7 @@
   <title>{% block titre %}GED{% endblock %} · GED</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/css/ged.css">
-  <script>try { const t = localStorage.getItem('ged-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <script nonce="{{ csp_nonce }}">try { const t = localStorage.getItem('ged-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 </head>
 <body>
 <div class="app">

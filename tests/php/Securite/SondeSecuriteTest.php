@@ -68,6 +68,8 @@ final class SondeSecuriteTest extends TestCase
         $reponse = $garde->process($requete, $gestionnaire);
         self::assertSame('nosniff', $reponse->getHeaderLine('X-Content-Type-Options'));
         self::assertSame('DENY', $reponse->getHeaderLine('X-Frame-Options'));
+        self::assertMatchesRegularExpression("#script-src 'self' 'nonce-[A-Za-z0-9+/]+'#", $reponse->getHeaderLine('Content-Security-Policy'));
+        self::assertStringContainsString("style-src 'self' 'unsafe-inline'", $reponse->getHeaderLine('Content-Security-Policy'));
         self::assertStringContainsString("frame-ancestors 'none'", $reponse->getHeaderLine('Content-Security-Policy'));
         self::assertSame('strict-origin-when-cross-origin', $reponse->getHeaderLine('Referrer-Policy'));
     }

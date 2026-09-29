@@ -46,9 +46,6 @@ final class RegistreSessions
         $maintenant ??= time();
         $session = $this->charger($id);
         if ($session === null || $session['expire_le'] < $maintenant) {
-            if ($session !== null) {
-                $this->fermer($id);
-            }
             return null;
         }
 
@@ -94,8 +91,9 @@ final class RegistreSessions
             }
             $nouveau = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
             $session['csrf'] = $nouveau;
+            // Le jeton a une longueur fixe : réécrire le JSON ne laisse aucun reliquat.
+            // Une session expirée est ignorée par lire(), jamais purgée en masse.
             rewind($verrou);
-            ftruncate($verrou, 0);
             fwrite($verrou, json_encode($session, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
             fflush($verrou);
 

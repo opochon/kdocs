@@ -23,39 +23,41 @@ final class GardeCentrale implements MiddlewareInterface
 
     public function process(ServerRequestInterface $requete, RequestHandlerInterface $gestionnaire): ResponseInterface
     {
+        $nonceCsp = base64_encode(random_bytes(24));
+        $this->vue->definirNonceCsp($nonceCsp);
         $methode = strtoupper($requete->getMethod());
         $chemin = $requete->getUri()->getPath();
         $permission = DroitsRoutes::permissionPour($methode, $chemin);
         if ($this->renduUnitaire($requete)) {
-            return $this->securiser($gestionnaire->handle($requete));
+            return $this->securiser($gestionnaire->handle($requete), $nonceCsp);
         }
         if ($permission === null) {
-            return $this->refuser($requete, 'route sans permission déclarée');
+            return $this->refuser($requete, 'route sans permission déclarée', $nonceCsp);
         }
         // Les oracles unitaires historiques rendent les gabarits directement (SAPI cli), sans serveur HTTP ni cookie.
         // La garde est donc exercée dans les tests navigateur, sur le vrai SAPI HTTP ; la production ne passe jamais ici.
         if (DroitsRoutes::estPublique($permission)) {
-            return $this->securiser($gestionnaire->handle($requete));
+            return $this->securiser($gestionnaire->handle($requete), $nonceCsp);
         }
 
         $id = (string) ($requete->getCookieParams()['gedv2_session'] ?? '');
         $session = $this->sessions->lire($id);
         if ($session === null) {
-            return $this->refuser($requete, 'session absente ou expirée');
+            return $this->refuser($requete, 'session absente ou expirée', $nonceCsp);
         }
         $permissionCanonique = DroitsRoutes::permissionCanonique($permission);
         if ($permissionCanonique !== 'session:active' && !in_array('*', $session['permissions'], true)
             && !in_array($permissionCanonique, $session['permissions'], true)) {
-            return $this->refuser($requete, 'permission insuffisante', $session['utilisateur']);
+            return $this->refuser($requete, 'permission insuffisante', $nonceCsp, $session['utilisateur']);
         }
         if (!$this->documentAutorise($chemin, $methode, $session)) {
-            return $this->refuser($requete, 'droit de dossier insuffisant', $session['utilisateur']);
+            return $this->refuser($requete, 'droit de dossier insuffisant', $nonceCsp, $session['utilisateur']);
         }
         if (!in_array($methode, ['GET', 'HEAD', 'OPTIONS'], true)) {
             $csrf = $this->csrfSaisi($requete);
             $nouveauCsrf = $this->sessions->consommerCsrf($id, $csrf);
             if ($nouveauCsrf === null) {
-                return $this->refuser($requete, 'jeton CSRF absent, invalide ou déjà utilisé', $session['utilisateur']);
+                return $this->refuser($requete, 'jeton CSRF absent, invalide ou déjà utilisé', $nonceCsp, $session['utilisateur']);
             }
             $session['csrf'] = $nouveauCsrf;
         }
@@ -64,7 +66,7 @@ final class GardeCentrale implements MiddlewareInterface
         return $this->securiser($reponse
             ->withAddedHeader('Set-Cookie', $this->sessions->enteteCookie($id, $this->https($requete)))
             // Double soumission : le client joint ce jeton aux mutations sous cookie, sans exposer l'identifiant de session.
-            ->withAddedHeader('Set-Cookie', 'gedv2_csrf=' . $session['csrf'] . '; Path=/; HttpOnly; SameSite=Lax'));
+            ->withAddedHeader('Set-Cookie', 'gedv2_csrf=' . $session['csrf'] . '; Path=/; HttpOnly; SameSite=Lax'), $nonceCsp);
     }
 
     private function csrfSaisi(ServerRequestInterface $requete): string
@@ -78,21 +80,21 @@ final class GardeCentrale implements MiddlewareInterface
         return $saisi;
     }
 
-    private function refuser(ServerRequestInterface $requete, string $cause, ?string $utilisateur = null): ResponseInterface
+    private function refuser(ServerRequestInterface $requete, string $cause, string $nonceCsp, ?string $utilisateur = null): ResponseInterface
     {
         $this->audit->ajouter('refus', $utilisateur, ['methode' => $requete->getMethod(), 'chemin' => $requete->getUri()->getPath(), 'cause' => $cause]);
         return $this->securiser($this->vue->rendre(new \Slim\Psr7\Response(), 'connexion/refus.twig', [
             'etape' => $requete->getMethod() . ' ' . $requete->getUri()->getPath(), 'cause' => $cause,
-        ], 403));
+        ], 403), $nonceCsp);
     }
 
     /** En-têtes homogènes, y compris sur un refus : une erreur ne doit jamais ouvrir une surface. */
-    private function securiser(ResponseInterface $reponse): ResponseInterface
+    private function securiser(ResponseInterface $reponse, string $nonceCsp): ResponseInterface
     {
         return $reponse
             ->withHeader('X-Content-Type-Options', 'nosniff')
             ->withHeader('X-Frame-Options', 'DENY')
-            ->withHeader('Content-Security-Policy', "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'")
+            ->withHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'nonce-{$nonceCsp}'; style-src 'self' 'unsafe-inline'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'")
             ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     }
 

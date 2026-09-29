@@ -62,6 +62,9 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 - Interface : lorsque les écrans ne seront plus alimentés par `Ui\\Maquette`, appeler le résolveur des droits de dossier
   avant de rendre chaque ligne de liste et chaque résultat de recherche. La garde refuse déjà fiche, aperçu, fichier et
   miniature ; l'écran de liste doit à son tour omettre les documents hors ACL plutôt que de les rendre non actionnables.
+- Interface : sortir les attributs `style` des gabarits vers `public/assets/css/ged.css`. En attendant cette migration,
+  la CSP conserve exceptionnellement `style-src 'self' 'unsafe-inline'`; les scripts en ligne sont eux limités au nonce
+  aléatoire de chaque réponse.
 
 ## Journal V2-07b
 
@@ -125,3 +128,17 @@ couches qui étaient vertes :
    blanche de ce test, pas en contournement.
 Porte : harness complet vert sur le code commité (couches 0, 1, 3, 4, 7).
 ETAT: à reprendre (voir Jugement V2-07c)
+
+## Journal V2-07c bis
+
+- Oracle rejoué rouge avant correction : `CorbeilleTest` signalait `ftruncate` dans `RegistreSessions`; les parcours
+  Playwright maquettes, recherche et aperçu signalaient les violations CSP des scripts en ligne et des styles existants.
+- Fait : chaque réponse de la garde génère un nonce CSP aléatoire, exposé globalement à Twig et porté par les deux scripts
+  en ligne (`layout.twig` et la visionneuse autonome). La CSP déclare `script-src 'self' 'nonce-…'` et maintient
+  provisoirement `style-src 'self' 'unsafe-inline'` jusqu'à la demande Interface ci-dessus. L'oracle de sonde vérifie
+  désormais ces deux directives.
+- Fait : `consommerCsrf()` réécrit sous verrou sans troncature et les sessions expirées sont ignorées par leur date, sans
+  purge. La déconnexion conserve sa fermeture explicite de la seule session visée.
+- Preuves : à compléter après le rejeu du harness complet.
+
+ETAT: fini

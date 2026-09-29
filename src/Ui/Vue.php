@@ -22,6 +22,14 @@ final class Vue
             'strict_variables' => true,   // une variable absente est une erreur, pas un trou silencieux
             'cache' => $cache ?? false,
         ]);
+        // La garde remplace cette valeur avant chaque rendu HTTP protégé.
+        $this->twig->addGlobal('csp_nonce', '');
+    }
+
+    /** Expose le nonce CSP courant à tous les gabarits, y compris ceux qui étendent layout.twig. */
+    public function definirNonceCsp(string $nonce): void
+    {
+        $this->twig->addGlobal('csp_nonce', $nonce);
     }
 
     /** @param array<string, mixed> $donnees */
