@@ -139,6 +139,12 @@ ETAT: à reprendre (voir Jugement V2-07c)
   désormais ces deux directives.
 - Fait : `consommerCsrf()` réécrit sous verrou sans troncature et les sessions expirées sont ignorées par leur date, sans
   purge. La déconnexion conserve sa fermeture explicite de la seule session visée.
-- Preuves : à compléter après le rejeu du harness complet.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite tests\\php\\Socle\\CorbeilleTest.php` vert (16 tests,
+  99 assertions) ; `npx.cmd playwright test tests/e2e/maquettes.spec.ts tests/e2e/recherche.spec.ts
+  tests/e2e/apercu.spec.ts --reporter=line` vert (23 parcours, sans erreur console). Rejeu complet demandé :
+  `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` : couches 0 et 7 vertes, mais 1 est bloquée
+  par les 3 échecs `Socle\\InstallateurTest` (schéma à 22 tables au lieu des 20 attendues et base remplacée), et 4 par
+  5 parcours hors secteur : `bibliotheque.spec.ts` réinitialise concurremment la base partagée `gedv2_test`, ce qui vide
+  les résultats attendus par `recherche.spec.ts`. Aucun fichier Socle, Recherche ou Interface n'a été modifié.
 
-ETAT: fini
+ETAT: bloqué: le harness global ne peut pas afficher 1 et 4 VERTES tant que les travaux Socle corrigent ces échecs et isolent la remise à neuf de gedv2_test
