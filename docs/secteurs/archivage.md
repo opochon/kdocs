@@ -90,6 +90,7 @@ Un document scellé devient intouchable pendant sa durée légale (10 ans par d�
 **Commits**
 - `d1736a9` — scellement horodaté (TSA), rétention, service de scellement, tests et `tools/sceller.php`.
 - `2eccee4` — garde du service, vérificateur, outil, porte V2-09, branchements Socle et demandes.
+- `ac96261` — durcissement du vérificateur (fichier ou meta disparus = écart nommé, jamais une exception).
 
 **Décisions retenues**
 - **Aucune table** : le scellement, le jeton et la table des durées vivent dans le dossier ; rien à
