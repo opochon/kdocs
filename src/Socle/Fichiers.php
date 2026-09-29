@@ -99,6 +99,31 @@ final class Fichiers
     }
 
     /**
+     * Colonnes de l'index dérivées des métadonnées : [entêtes, valeurs] prêtes au INSERT/UPDATE.
+     * La date qui ne dit pas Y-m-d n'entre pas dans la colonne DATE (elle reste dans le .meta.json).
+     */
+    public static function colonnesIndex(array $meta): array
+    {
+        $etiquettes = array_values(array_filter(array_map('strval', (array) ($meta['etiquettes'] ?? [])),
+            static fn (string $e) => $e !== ''));
+
+        return [
+            ['titre', 'type', 'emetteur', 'date_document', 'montant', 'etiquettes', 'statut', 'source'],
+            [mb_substr((string) $meta['titre'], 0, 200), $meta['type'] ?? null, $meta['emetteur'] ?? null,
+                (isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])) ? $meta['date'] : null,
+                isset($meta['montant']) && is_numeric($meta['montant']) ? (float) $meta['montant'] : null,
+                $etiquettes === [] ? null : self::json($etiquettes), $meta['statut'] ?? 'a_controler',
+                $meta['source'] ?? null],
+        ];
+    }
+
+    /** Métadonnées minimales d'un fichier posé à la main, sans `.meta.json` : son nom lui sert de titre. */
+    public static function metaMinimale(string $nomFichier): array
+    {
+        return ['titre' => pathinfo($nomFichier, PATHINFO_FILENAME)];
+    }
+
+    /**
      * Un nom encore libre dans un dossier : « nom », « nom-2 », « nom-3 »… Le premier essai ne
      * regarde ni `.meta.json` ni `.versions/` : ils suivent leur fichier, ils n'occupent pas un nom.
      */

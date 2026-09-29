@@ -53,7 +53,6 @@ final class DepotFichiers implements Depot
         if (!is_file($cheminFichier)) {
             throw new \RuntimeException("dépôt : fichier source introuvable ($cheminFichier)");
         }
-        $empreinte = Fichiers::empreinte($cheminFichier);
         $meta = $this->metaDeDepot($metadonnees, $cheminFichier);
         $nom = Fichiers::nomRangé((string) $meta['titre'], pathinfo($cheminFichier, PATHINFO_EXTENSION));
         $relatif = $this->cheminRangement($meta) . '/' . $nom;
@@ -61,17 +60,28 @@ final class DepotFichiers implements Depot
         $cible = Fichiers::copierAvecMeta($cheminFichier, $this->cheminAbsolu($relatif), Fichiers::json($meta, true));
         $relatif = substr($cible, strlen($this->racine) + 1);
 
-        [$entetes, $valeurs] = $this->colonnes($meta);
-        $this->pdo->prepare('INSERT INTO documents (chemin_relatif, nom, empreinte, taille, mime, meta, '
-            . implode(', ', $entetes) . ') VALUES (?, ?, ?, ?, ?, ?, ' . rtrim(str_repeat('?, ', count($valeurs)), ', ') . ')')
-            ->execute([$relatif, basename($relatif), $empreinte, filesize($cheminFichier), Fichiers::mime($cheminFichier),
-                Fichiers::json($meta), ...$valeurs]);
-        $id = (int) $this->pdo->lastInsertId();
+        $id = $this->enregistrer($relatif, $meta);
 
         // La version 1 est posée dès le dépôt : toute modification future aura une base de comparaison.
-        $this->archiverVersion($id, $cible, $empreinte, filesize($cheminFichier));
+        $this->archiverVersion($id, $cible, Fichiers::empreinte($cible), (int) filesize($cible));
 
         return $id;
+    }
+
+    /**
+     * Insère la ligne d'index d'un document DÉJÀ rangé dans le fonds (dépôt, indexeur d'un fichier posé à la
+     * main, reconstruction). L'empreinte, la taille et le MIME sont lus du fichier : le dossier fait foi.
+     */
+    public function enregistrer(string $cheminRelatif, array $meta): int
+    {
+        $absolu = $this->cheminAbsolu($cheminRelatif);
+        [$entetes, $valeurs] = Fichiers::colonnesIndex($meta);
+        $this->pdo->prepare('INSERT INTO documents (chemin_relatif, nom, empreinte, taille, mime, meta, '
+            . implode(', ', $entetes) . ') VALUES (?, ?, ?, ?, ?, ?, ' . rtrim(str_repeat('?, ', count($valeurs)), ', ') . ')')
+            ->execute([$cheminRelatif, basename($cheminRelatif), Fichiers::empreinte($absolu), (int) filesize($absolu),
+                Fichiers::mime($absolu), Fichiers::json($meta), ...$valeurs]);
+
+        return (int) $this->pdo->lastInsertId();
     }
 
     public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void
@@ -96,7 +106,7 @@ final class DepotFichiers implements Depot
         }
         file_put_contents($this->cheminAbsolu($nouveauRel) . '.meta.json', Fichiers::json($meta, true));
 
-        [$entetes, $valeurs] = $this->colonnes($meta);
+        [$entetes, $valeurs] = Fichiers::colonnesIndex($meta);
         $this->pdo->prepare('UPDATE documents SET chemin_relatif = ?, nom = ?, meta = ?, '
             . implode(' = ?, ', $entetes) . ' = ? WHERE id = ?')
             ->execute([$nouveauRel, basename($nouveauRel), Fichiers::json($meta), ...$valeurs, $idDocument]);
@@ -183,22 +193,6 @@ final class DepotFichiers implements Depot
         }
 
         return $meta;
-    }
-
-    /** Colonnes de l'index dérivées des métadonnées (la date invalide n'entre pas dans la colonne DATE). */
-    private function colonnes(array $meta): array
-    {
-        $etiquettes = array_values(array_filter(array_map('strval', (array) ($meta['etiquettes'] ?? [])),
-            static fn (string $e) => $e !== ''));
-
-        return [
-            ['titre', 'type', 'emetteur', 'date_document', 'montant', 'etiquettes', 'statut', 'source'],
-            [mb_substr((string) $meta['titre'], 0, 200), $meta['type'] ?? null, $meta['emetteur'] ?? null,
-                (isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])) ? $meta['date'] : null,
-                isset($meta['montant']) && is_numeric($meta['montant']) ? (float) $meta['montant'] : null,
-                $etiquettes === [] ? null : Fichiers::json($etiquettes), $meta['statut'] ?? 'a_controler',
-                $meta['source'] ?? null],
-        ];
     }
 
     private function tracer(int $idDocument, string $avant, string $apres, string $cause, string $auteur): void
