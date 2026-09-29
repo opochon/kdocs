@@ -7,7 +7,9 @@ Le dossier fait foi. Chaque document = un fichier + `<fichier>.meta.json` à cô
 fichier ; la base MariaDB est un index que l'on peut **supprimer puis reconstruire à l'identique** depuis le dossier.
 
 ## Chemins (seuls modifiables par ce secteur)
-`src/Socle/`, `database/`, `tools/installer.php`, `tests/php/Socle/`, `tests/oracles/socle/`
+`src/Socle/` (dont `src/Socle/Module.php` si le secteur expose des routes ; `src/Kernel.php` l'appelle, ne le modifie jamais),
+`database/`, `tools/installer.php`, `tools/reconstruire-index.php`, `tests/php/Socle/`, `tests/oracles/socle/`.
+Tu IMPLÉMENTES le contrat `src/Contrats/Depot.php` (classe `Ged\Socle\DepotFichiers`) ; tu ne modifies pas l'interface.
 
 ## Lot V2-01 — porte (rejouée par le juge)
 1. Installateur : `php tools/installer.php gedv2_test --admin=admin` pose un schéma neuf (≤ 20 tables au départ), refuse
