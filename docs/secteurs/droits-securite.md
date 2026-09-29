@@ -84,3 +84,28 @@ ETAT: fini
 ## Jugement V2-07b (Claude Code, 29-09) — porte franchie
 Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
 ETAT: fini (jugé)
+
+## Journal V2-07c
+
+- Oracle d'abord : `SondeSecuriteTest` a été écrit rouge (jeton de connexion à usage unique et en-têtes de défense
+  absents), puis vert : 3 tests, 8 assertions. La garde renouvelle désormais atomiquement le CSRF après chaque
+  mutation ; le CSRF anonyme de connexion est à usage unique.
+- Fait : `tools/banc/sonde-securite.php` démarre un serveur isolé sur `gedv2_test`, prend le verrou partagé et lit
+  `DroitsRoutes::declarees()` pour attaquer toutes les routes déclarées sans session, sans permission et depuis un
+  autre dossier. Elle couvre SQL/XSS (recherche, filtres, formulaire), sorties de racine (`..`, absolu, URI fichier)
+  sur aperçu/fichier/miniature, CSRF absent et rejoué sur chaque mutation, fixation de session et cookies/en-têtes.
+  La sonde retourne 0 seulement si aucune attaque ne passe. `DroitsRoutes::declarees()` est la seule modification du
+  registre : elle expose les déclarations existantes à la sonde, sans ajouter de permission.
+- Fait : la garde porte désormais `X-Content-Type-Options`, CSP avec `frame-ancestors 'none'`, `X-Frame-Options` et
+  `Referrer-Policy` sur les réponses normales comme sur les refus ; les cookies CSRF et de session sont `HttpOnly` et
+  `SameSite=Lax` (`Secure` derrière HTTPS).
+- Preuves : `php tools/banc/sonde-securite.php` vert ; `vendor/bin/phpunit tests/php/Securite` vert (11 tests,
+  70 assertions) ; `npx.cmd playwright test tests/e2e/securite.spec.ts --reporter=line` vert (2 parcours).
+  Rejeu demandé : `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc`. Le registre de ce rejeu
+  confirme `7-securite` VERT (`OK: sonde sécurité — aucun contournement accepté`). Les couches globales 1 et 4 sont
+  actuellement rouges (29 erreurs PHPUnit / 4 échecs, 11 échecs Playwright) dans des travaux concurrents hors secteur ;
+  la sonde et les parcours Sécurité restent verts.
+- Commits : `d26fabd` (`droits-securite: sonde offensive et CSRF non rejouable`) ; `42e096d`
+  (`droits-securite: branche la sonde dans le harness`).
+
+ETAT: fini
