@@ -1,0 +1,11 @@
+# Corpus d'aperçu : ce sont des binaires, jamais du texte. Le PDF notamment encode ses offsets xref en
+# octets ; une conversion LF→CRLF (core.autocrlf) le rendrait illisible. On fige la non-conversion ici
+# plutôt que de dépendre d'un réglage global du poste.
+documents/*.pdf -text
+documents/*.png -text
+documents/*.jpg -text
+documents/*.tiff -text
+documents/*.docx -text
+documents/*.odt -text
+documents/*.xlsx -text
+documents/.apercu/* -text
