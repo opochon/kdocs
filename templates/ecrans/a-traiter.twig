@@ -1,0 +1,73 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% import 'partiels/papier.twig' as papier %}
+{% block titre %}À traiter{% endblock %}
+{% block contenu %}
+<div class="page pleine" data-testid="ecran-a-traiter">
+  <div class="page-tete">
+    <div class="titre"><h1>À traiter</h1><span class="muted">{{ file|length }} documents attendent votre contrôle</span></div>
+    <div class="actions">
+      <a class="btn primaire" href="#" data-testid="action-deposer">{{ ic.i('plus') }}Déposer des documents</a>
+      <a class="btn" href="#" data-testid="action-tout-valider">{{ ic.i('check') }}Valider les suggestions sûres</a>
+    </div>
+  </div>
+
+  {# Bilan d'ingestion : jamais le dossier, seulement ce qui s'est passé. #}
+  <section class="bilan" data-testid="bilan-ingestion" aria-label="Bilan d’ingestion">
+    <div class="carte kpi ok" data-testid="bilan-auto"><span class="pastille">{{ ic.i('check') }}</span>
+      <div><div class="valeur">{{ bilan.auto }}</div><div class="libelle">Classés automatiquement</div><div class="detail">fiabilité ≥ {{ bilan.seuil }} %, rangés sans intervention</div></div></div>
+    <div class="carte kpi warn" data-testid="bilan-a-controler"><span class="pastille">{{ ic.i('alerte') }}</span>
+      <div><div class="valeur">{{ bilan.a_controler }}</div><div class="libelle">À contrôler</div><div class="detail">proposition sous le seuil ou sans preuve</div></div></div>
+    <div class="carte kpi info" data-testid="bilan-en-cours"><span class="pastille">{{ ic.i('horloge') }}</span>
+      <div><div class="valeur">{{ bilan.en_cours }}</div><div class="libelle">En cours de lecture</div><div class="detail">découpe et classement en arrière-plan · {{ bilan.lots }} lot scanné</div></div></div>
+  </section>
+
+  <div class="volets traiter">
+    <section class="carte volet" aria-label="File">
+      <div class="volet-tete">File <span class="muted">· du plus ancien au plus récent</span></div>
+      <ul class="liste volet-corps" data-testid="file-a-traiter">
+        {% for p in file %}
+        <li><a href="/a-traiter?doc={{ p.id }}" data-testid="file-item-{{ p.id }}" {% if p.id == courant.id %}aria-current="true"{% endif %}>
+          <span class="l1"><span>{{ p.titre }}</span></span>
+          <span class="l2"><span>{{ p.emetteur }}</span></span>
+          <span class="l2"><span class="source {{ p.source }}">{{ p.source }}</span>{{ p.type }}
+            <span class="jauge {{ p.confiance >= bilan.seuil ? 'haute' }}"><b style="width: {{ p.confiance }}%"></b></span>{{ p.confiance }} %</span>
+        </a></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="carte volet" aria-label="Aperçu">
+      <div class="volet-tete">
+        <span>{{ courant.pages }} pages</span>
+        <div class="outils-page" style="margin-left:auto">
+          <button class="btn icone discret" type="button" title="Tourner la page" data-testid="page-tourner">{{ ic.i('rotation') }}</button>
+          <button class="btn icone discret" type="button" title="Couper ici : deux documents" data-testid="page-couper">{{ ic.i('ciseaux') }}</button>
+          <button class="btn icone discret" type="button" title="Fusionner avec le document suivant" data-testid="page-fusionner">{{ ic.i('fusion') }}</button>
+        </div>
+      </div>
+      <div class="visionneuse" data-testid="apercu">{{ papier.page(courant.texte, 'apercu-page') }}</div>
+    </section>
+
+    <section class="carte volet" aria-label="Classement proposé">
+      <form class="volet-corps" data-testid="formulaire-validation" onsubmit="return false">
+        <div class="volet-tete">Classement proposé</div>
+        <div class="raison" data-testid="raison-controle">{{ ic.i('alerte') }}<span>À contrôler : {{ courant.raison }}.</span></div>
+        <div class="champ"><label for="f-type">Type <span class="source {{ courant.source }}">{{ courant.source }} · {{ courant.confiance }} %</span></label>
+          <select id="f-type" data-testid="champ-type">{% for t in types %}<option {% if t == courant.type %}selected{% endif %}>{{ t }}</option>{% endfor %}</select></div>
+        <div class="champ"><label for="f-emetteur">Émetteur <span class="source IA">lu dans l’en-tête</span></label>
+          <input id="f-emetteur" value="{{ courant.emetteur }}" data-testid="champ-emetteur"></div>
+        <div class="champ"><label for="f-titre">Titre</label><input id="f-titre" value="{{ courant.titre }}" data-testid="champ-titre"></div>
+        <div class="champ"><label for="f-date">Date du document</label><input id="f-date" type="date" value="{{ courant.date }}" data-testid="champ-date"></div>
+        <div class="champ"><label for="f-montant">Montant (CHF)</label><input id="f-montant" inputmode="decimal" value="{{ courant.montant is null ? '' : courant.montant|number_format(2, '.', '\'') }}" data-testid="champ-montant"></div>
+        <div class="champ"><label>Étiquettes</label><div class="filtres">{% for e in courant.etiquettes %}<span class="chip">{{ e }}</span>{% endfor %}<button class="chip" type="button" data-testid="ajouter-etiquette">+ ajouter</button></div></div>
+        <div class="champ"><label>Rangé dans</label><span class="mono" data-testid="chemin-rangement">{{ courant.date|slice(0, 4) }}/{{ courant.type|replace({' ': '_'}) }}/{{ courant.emetteur|replace({' ': '_'}) }}/</span></div>
+      </form>
+      <div class="pied-validation">
+        <button class="btn primaire" type="button" data-action="valider" data-testid="action-valider">{{ ic.i('check') }}Valider<span class="kbd">Entrée</span></button>
+        <button class="btn" type="button" data-action="suivant" data-testid="action-passer">Passer<span class="kbd">→</span></button>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

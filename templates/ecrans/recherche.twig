@@ -1,0 +1,27 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Recherche{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-recherche">
+  <div class="page-tete">
+    <div class="titre"><h1>Recherche</h1><span class="muted">{{ resultats|length }} résultats{% if q %} pour « {{ q }} »{% endif %} · 0,08 s</span></div>
+    <div class="actions">
+      <div class="filtres" data-testid="filtres">
+        <button class="chip" type="button">Type : tous</button><button class="chip" type="button">Émetteur</button>
+        <button class="chip" type="button">Date</button><button class="chip" type="button">Montant</button>
+      </div>
+      <button class="btn discret" type="button" data-testid="action-enregistrer-vue">Enregistrer comme vue</button>
+    </div>
+  </div>
+  <section class="carte" data-testid="resultats">
+    {% for r in resultats %}
+      <article class="resultat" data-testid="resultat-{{ r.id }}">
+        <div style="display:flex;gap:8px;align-items:center"><a href="/documents/{{ r.id }}"><strong>{{ r.titre }}</strong></a>
+          <span class="chip">{{ r.type }}</span><span class="muted">{{ r.date|date('d.m.Y') }}</span>
+          <a class="btn discret" style="margin-left:auto" href="/bibliotheque?doc={{ r.id }}">Documents semblables</a></div>
+        <div class="muted">{% for s in r.segments %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</div>
+      </article>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

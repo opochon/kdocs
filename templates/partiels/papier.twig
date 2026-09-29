@@ -1,0 +1,8 @@
+{# Aperçu d'une page. Maquette : le texte lu ; branchement réel : le rendu PDF (secteur Recherche & aperçu). #}
+{% macro page(lignes, testid) %}
+<div class="papier" data-testid="{{ testid }}">
+  {% for l in lignes %}<div class="l">{{ l }}</div>{% endfor %}
+  <div class="ligne-grise" style="width:92%"></div><div class="ligne-grise" style="width:86%"></div>
+  <div class="ligne-grise" style="width:90%"></div><div class="ligne-grise" style="width:64%"></div>
+</div>
+{% endmacro %}

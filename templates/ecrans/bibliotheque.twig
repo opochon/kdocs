@@ -1,0 +1,72 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% import 'partiels/papier.twig' as papier %}
+{% block titre %}Bibliothèque{% endblock %}
+{% block contenu %}
+<div class="page pleine" data-testid="ecran-bibliotheque">
+  <div class="page-tete">
+    <div class="titre"><h1>Bibliothèque</h1><span class="muted">1 284 documents · 2026</span></div>
+    <div class="actions">
+      <a class="btn primaire" href="/a-traiter" data-testid="action-deposer">{{ ic.i('plus') }}Déposer</a>
+      <div class="filtres" data-testid="filtres">
+        <button class="chip" type="button" data-testid="filtre-type">Type : tous</button>
+        <button class="chip" type="button" data-testid="filtre-emetteur">Émetteur : tous</button>
+        <button class="chip" type="button" data-testid="filtre-periode">Période : 2026</button>
+        <button class="chip" type="button" data-testid="filtre-etiquette">Étiquette</button>
+      </div>
+      <button class="btn discret" type="button" data-testid="action-enregistrer-vue">Enregistrer cette vue</button>
+    </div>
+  </div>
+
+  <div class="volets biblio">
+    <aside class="carte volet" aria-label="Vues et dossiers">
+      <div class="volet-corps">
+        <div class="titre-section">Vues</div>
+        <ul class="arbre" data-testid="vues">
+          {% for v in vues %}<li><a href="#" data-testid="vue-{{ loop.index }}">{{ ic.i('vue') }}{{ v.nom }}<span class="compte">{{ v.compte }}</span></a></li>{% endfor %}
+        </ul>
+        <div class="titre-section">Dossiers</div>
+        <ul class="arbre" data-testid="arbre-dossiers">
+          {% for a in arbre %}<li><a href="#">{{ ic.i('dossier') }}{{ a.nom }}</a>
+            <ul>{% for e in a.enfants %}<li><a href="#">{{ ic.i('dossier') }}{{ e }}</a></li>{% endfor %}</ul></li>{% endfor %}
+        </ul>
+      </div>
+    </aside>
+
+    <section class="carte volet" aria-label="Documents">
+      <div class="volet-corps">
+        <table class="table" data-testid="liste-documents">
+          <colgroup><col><col style="width:118px"><col style="width:30%"><col style="width:92px"><col style="width:96px"></colgroup>
+          <thead><tr><th>Titre</th><th>Type</th><th>Émetteur</th><th>Date</th><th class="num">Montant</th></tr></thead>
+          <tbody>
+          {% for d in docs %}
+            <tr {% if d.id == apercu.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
+              <td><a href="/bibliotheque?doc={{ d.id }}">{{ d.titre }}</a></td>
+              <td><span class="chip">{{ d.type }}</span></td>
+              <td>{{ d.emetteur }}</td>
+              <td>{{ d.date|date('d.m.Y') }}</td>
+              <td class="num">{{ d.montant is null ? '—' : d.montant|number_format(2, '.', '\'') }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <p class="muted" style="padding:10px 12px" data-testid="pagination">100 premiers documents affichés · la suite se charge en défilant</p>
+      </div>
+    </section>
+
+    <section class="carte volet" aria-label="Aperçu">
+      <div class="volet-tete"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ apercu.titre }}</span>
+        <a class="btn discret" style="margin-left:auto" href="/documents/{{ apercu.id }}" data-testid="ouvrir-fiche">Ouvrir{{ ic.i('fleche') }}</a></div>
+      <div class="visionneuse" style="flex:none;max-height:52%">{{ papier.page(apercu.texte, 'apercu-page') }}</div>
+      <div class="panneau">
+        <dl class="meta" data-testid="apercu-meta">
+          <dt>Type</dt><dd>{{ apercu.type }}</dd>
+          <dt>Émetteur</dt><dd>{{ apercu.emetteur }}</dd>
+          <dt>Date</dt><dd>{{ apercu.date|date('d.m.Y') }}</dd>
+          <dt>Fichier</dt><dd class="mono">{{ apercu.dossier }}/{{ apercu.fichier }}</dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

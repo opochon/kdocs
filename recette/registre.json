@@ -1,0 +1,41 @@
+﻿{
+    "date":  "2026-09-29T16:53:38",
+    "duree_s":  5,
+    "commit":  {
+
+               },
+    "couches":  {
+                    "0-garde-fous":  {
+                                         "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
+                                         "ok":  true
+                                     },
+                    "1-unitaire":  {
+                                       "detail":  "OK (10 tests, 27 assertions)",
+                                       "ok":  true
+                                   },
+                    "4-ecrans":  {
+                                     "detail":  "  12 passed (4.2s)",
+                                     "ok":  true
+                                 },
+                    "2-contrat":  {
+                                      "detail":  "pas encore Ã©crite",
+                                      "ok":  false
+                                  },
+                    "3-banc":  {
+                                   "detail":  "pas encore Ã©crite",
+                                   "ok":  false
+                               },
+                    "5-personas":  {
+                                       "detail":  "pas encore Ã©crite",
+                                       "ok":  false
+                                   },
+                    "6-charge":  {
+                                     "detail":  "pas encore Ã©crite",
+                                     "ok":  false
+                                 },
+                    "7-securite":  {
+                                       "detail":  "pas encore Ã©crite",
+                                       "ok":  false
+                                   }
+                }
+}

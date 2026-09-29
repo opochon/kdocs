@@ -1,0 +1,55 @@
+{% import 'partiels/icones.twig' as ic %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}GED{% endblock %} · GED</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/ged.css">
+  <script>try { const t = localStorage.getItem('ged-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+</head>
+<body>
+<div class="app">
+  {# Une seule source d'entrées de menu. #}
+  {% set menu = [
+    {id: 'a-traiter', libelle: 'À traiter', icone: 'inbox', url: '/a-traiter', compte: bilan.a_controler},
+    {id: 'bibliotheque', libelle: 'Bibliothèque', icone: 'biblio', url: '/bibliotheque', compte: null},
+    {id: 'recherche', libelle: 'Recherche', icone: 'loupe', url: '/recherche', compte: null},
+    {id: 'workflows', libelle: 'Workflows', icone: 'flux', url: '/workflows', compte: null},
+  ] %}
+  <nav class="rail" aria-label="Navigation principale" data-testid="menu">
+    <div class="marque"><i>G</i>GED</div>
+    {% for m in menu %}
+      <a href="{{ m.url }}" data-testid="menu-{{ m.id }}" {% if ecran == m.id %}aria-current="page"{% endif %}>
+        {{ ic.i(m.icone) }}{{ m.libelle }}{% if m.compte %}<span class="compte">{{ m.compte }}</span>{% endif %}
+      </a>
+    {% endfor %}
+    <div class="sep"></div>
+    <div class="titre-section">Vues</div>
+    <a href="/bibliotheque?vue=factures" data-testid="menu-vue-factures">{{ ic.i('vue') }}Factures à payer</a>
+    <a href="/bibliotheque?vue=contrats" data-testid="menu-vue-contrats">{{ ic.i('vue') }}Contrats à échéance</a>
+    <div class="bas">
+      <a href="/application" data-testid="menu-application" {% if ecran == 'application' %}aria-current="page"{% endif %}>{{ ic.i('reglages') }}Application</a>
+    </div>
+  </nav>
+
+  <header class="top">
+    <form class="recherche-globale" action="/recherche" role="search" data-testid="recherche-globale">
+      {{ ic.i('loupe') }}
+      <input name="q" placeholder="Rechercher dans tous les documents" aria-label="Rechercher" data-testid="recherche-globale-champ" autocomplete="off">
+      <span class="kbd">Ctrl K</span>
+    </form>
+    <div class="droite">
+      <button class="btn icone discret" type="button" data-action="theme" data-testid="bouton-theme" title="Thème clair / sombre">{{ ic.i('lune') }}</button>
+      <span class="avatar" title="Olivier" data-testid="utilisateur">OP</span>
+    </div>
+  </header>
+
+  <main class="contenu" id="contenu">
+    {% block contenu %}{% endblock %}
+  </main>
+</div>
+<script src="/assets/js/ged.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Workflows{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-workflows">
+  <div class="page-tete">
+    <div class="titre"><h1>Workflows</h1><span class="muted">{{ workflows|length }} workflows</span></div>
+    <div class="actions">
+      <a class="btn primaire" href="#" data-testid="action-nouveau-workflow">{{ ic.i('plus') }}Nouveau depuis un gabarit</a>
+      <a class="btn" href="#" data-testid="action-essai-blanc">Essai à blanc sur un document</a>
+    </div>
+  </div>
+  {% for w in workflows %}
+  <section class="carte" data-testid="workflow-{{ w.id }}">
+    <div class="volet-tete">{{ w.nom }}
+      <span class="muted">· {{ w.declencheur }}</span>
+      <span style="margin-left:auto" class="muted">{{ w.executions }} exécutions</span>
+      <span class="interrupteur {{ w.actif ? '' : 'off' }}" role="switch" aria-checked="{{ w.actif ? 'true' : 'false' }}" data-testid="workflow-{{ w.id }}-actif"></span>
+    </div>
+    <div class="flux">
+      {% for e in w.etapes %}
+        <div class="noeud {{ '?' in e ? 'condition' }}">{{ e }}</div>{% if not loop.last %}<span class="fleche"></span>{% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php" colors="true" failOnWarning="true" failOnRisky="true">
+    <testsuites>
+        <testsuite name="gedv2"><directory>tests/php</directory></testsuite>
+    </testsuites>
+    <php>
+        <!-- Les tests n'écrivent JAMAIS ailleurs que dans gedv2_test (leçon GEDv1 du 28-09). -->
+        <env name="DB_NAME" value="gedv2_test" force="true"/>
+        <env name="APP_ENV" value="test" force="true"/>
+    </php>
+</phpunit>

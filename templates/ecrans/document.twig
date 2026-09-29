@@ -1,0 +1,52 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% import 'partiels/papier.twig' as papier %}
+{% block titre %}{{ doc.titre }}{% endblock %}
+{% block contenu %}
+<div class="page pleine" data-testid="ecran-document">
+  <div class="page-tete">
+    <div class="titre"><h1>{{ doc.titre }}</h1><span class="chip">{{ doc.type }}</span><span class="chip ok">Validé</span></div>
+    <div class="actions">
+      <a class="btn" href="#" data-testid="action-telecharger">{{ ic.i('telecharger') }}Télécharger</a>
+      <a class="btn" href="#" data-testid="action-nouvelle-version">{{ ic.i('versions') }}Nouvelle version</a>
+      <a class="btn" href="#" data-testid="action-partager">{{ ic.i('partage') }}Partager</a>
+      <a class="btn discret" href="/bibliotheque?doc={{ doc.id }}" data-testid="action-retour">Retour à la bibliothèque</a>
+    </div>
+  </div>
+  <div class="volets fiche">
+    <section class="carte volet" aria-label="Aperçu"><div class="visionneuse" data-testid="apercu">{{ papier.page(doc.texte, 'apercu-page') }}</div></section>
+    <section class="carte volet" aria-label="Fiche" data-onglets>
+      <div class="onglets" role="tablist">
+        {% for o in ['Métadonnées', 'Versions', 'Historique', 'Notes', 'Liens'] %}
+          <button type="button" role="tab" aria-selected="{{ loop.first ? 'true' : 'false' }}" aria-controls="p-{{ loop.index }}" data-testid="onglet-{{ o|lower }}">{{ o }}</button>
+        {% endfor %}
+      </div>
+      <div class="volet-corps">
+        <div class="panneau" id="p-1" role="tabpanel">
+          <dl class="meta" data-testid="panneau-metadonnees">
+            <dt>Type</dt><dd>{{ doc.type }}</dd><dt>Émetteur</dt><dd>{{ doc.emetteur }}</dd>
+            <dt>Date</dt><dd>{{ doc.date|date('d.m.Y') }}</dd>
+            <dt>Montant</dt><dd class="num" style="text-align:left">{{ doc.montant is null ? '—' : 'CHF ' ~ doc.montant|number_format(2, '.', '\'') }}</dd>
+            <dt>Dossier</dt><dd class="mono">{{ doc.dossier }}/</dd><dt>Fichier</dt><dd class="mono">{{ doc.fichier }}</dd>
+            <dt>Métadonnées</dt><dd class="mono">{{ doc.fichier }}.meta.json</dd>
+          </dl>
+        </div>
+        <div class="panneau" id="p-2" role="tabpanel" hidden>
+          <ul class="chrono" data-testid="panneau-versions">
+            {% for v in doc.versions %}<li><span class="mono">v{{ v.n }} · {{ v.quand }}</span><span>{{ v.quoi }} <span class="muted">— {{ v.qui }}, {{ v.taille }}</span>{% if not loop.first %} · <a href="#">restaurer</a>{% endif %}</span></li>{% endfor %}
+          </ul>
+        </div>
+        <div class="panneau" id="p-3" role="tabpanel" hidden>
+          <ul class="chrono" data-testid="panneau-historique">{% for h in doc.historique %}<li><span class="mono">{{ h.quand }}</span><span>{{ h.quoi }}</span></li>{% endfor %}</ul>
+        </div>
+        <div class="panneau" id="p-4" role="tabpanel" hidden>
+          <div data-testid="panneau-notes">{% for n in doc.notes %}<p><strong>{{ n.qui }}</strong> <span class="muted">{{ n.quand }}</span><br>{{ n.texte }}</p>{% endfor %}</div>
+        </div>
+        <div class="panneau" id="p-5" role="tabpanel" hidden>
+          <ul class="chrono" data-testid="panneau-liens">{% for l in doc.liens %}<li><span class="muted">{{ l.relation }}</span><a href="/documents/{{ l.id }}">{{ l.titre }}</a></li>{% endfor %}</ul>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

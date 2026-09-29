@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erreur {{ code }} · GED</title><link rel="stylesheet" href="/assets/css/ged.css"></head>
+<body>
+<div class="carte erreur-page" data-testid="erreur">
+  <h1>{{ code == 404 ? 'Page introuvable' : 'Une erreur est survenue' }}</h1>
+  <dl class="meta">
+    <dt>Étape</dt><dd class="mono" data-testid="erreur-etape">{{ etape }}</dd>
+    <dt>Cause</dt><dd data-testid="erreur-cause">{{ cause }}</dd>
+    <dt>Référence</dt><dd class="mono" data-testid="erreur-reference">{{ reference }}</dd>
+  </dl>
+  <p class="muted">Cette référence permet de retrouver l’erreur dans le journal du serveur.</p>
+  <div class="actions"><a class="btn primaire" href="/a-traiter">Retour à l’accueil</a></div>
+</div>
+</body>
+</html>

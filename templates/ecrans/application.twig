@@ -1,0 +1,39 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Application{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-application">
+  <div class="page-tete">
+    <div class="titre"><h1>Application</h1><span class="muted">réglages de l’installation — les référentiels métier sont dans Administration</span></div>
+  </div>
+  <div class="reglages">
+    <nav class="carte" aria-label="Sections"><ul class="arbre">
+      {% for s in ['Ingestion', 'Stockage', 'Intelligence artificielle', 'Connecteurs', 'Utilisateurs et droits', 'Administration'] %}
+        <li><a href="#s-{{ loop.index }}" data-testid="section-{{ loop.index }}">{{ s }}</a></li>
+      {% endfor %}
+    </ul></nav>
+    <div style="display:grid;gap:12px">
+      <section class="carte section-reglage" id="s-1" data-testid="reglage-ingestion"><h2>Ingestion</h2>
+        <div class="ligne-reglage"><span>Dossier d’ingestion</span><span class="mono">configuré ici, jamais montré aux utilisateurs</span></div>
+        <div class="ligne-reglage"><span>Adresse d’ingestion</span><span><span class="mono">documents@exemple.ch</span> <span class="muted">· boîte IMAP relevée chaque minute, pièces jointes → ingestion</span></span></div>
+        <div class="ligne-reglage"><span>Agent d’ingestion</span><span><span class="chip ok">connecté</span> <span class="muted">poste « scanner-accueil », dernier contact il y a 12 s</span></span></div>
+        <div class="ligne-reglage"><span>Seuil de classement automatique</span><span><strong>85 %</strong> <span class="muted">et un indice du type dans le texte, ou une habitude</span></span></div>
+        <div class="ligne-reglage"><span>Habitude formée après</span><span><strong>3</strong> choix identiques pour un même émetteur</span></div>
+      </section>
+      <section class="carte section-reglage" id="s-2" data-testid="reglage-stockage"><h2>Stockage</h2>
+        <div class="ligne-reglage"><span>Racine documentaire</span><span class="mono">storage/documents — le dossier fait foi</span></div>
+        <div class="ligne-reglage"><span>Rangement</span><span class="mono">année / type / émetteur</span></div>
+        <div class="ligne-reglage"><span>Reconstruire l’index depuis le dossier</span><span><button class="btn" type="button" data-testid="action-reconstruire">Lancer</button></span></div>
+      </section>
+      <section class="carte section-reglage" id="s-3" data-testid="reglage-ia"><h2>Intelligence artificielle</h2>
+        <div class="ligne-reglage"><span>Fournisseur</span><span>Infomaniak AI (hébergé en Suisse)</span></div>
+        <div class="ligne-reglage"><span>Modèle de classement</span><span class="mono">google/gemma-4-31B-it · délai 20 s + 1 reprise</span></div>
+      </section>
+      <section class="carte section-reglage" id="s-4" data-testid="reglage-connecteurs"><h2>Connecteurs</h2>
+        <div class="ligne-reglage"><span>K-Time</span><span><span class="chip">non relié</span> <button class="btn discret" type="button">Relier</button></span></div>
+        <div class="ligne-reglage"><span>ClearMyMails</span><span><span class="chip">non relié</span> <button class="btn discret" type="button">Relier</button> <span class="muted">· classer depuis Gmail, Microsoft 365…</span></span></div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

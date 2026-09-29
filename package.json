@@ -1,0 +1,11 @@
+{
+  "name": "gedv2-tests",
+  "private": true,
+  "description": "Tests d'écran de GEDv2 (Playwright)",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

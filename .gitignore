@@ -1,0 +1,9 @@
+/vendor/
+/node_modules/
+/var/
+/storage/
+/test-results/
+/playwright-report/
+/.env
+/tools/composer.phar
+*.log
