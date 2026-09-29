@@ -55,18 +55,30 @@ final class Verificateur
             return ['document' => '', 'scellement' => $nom, 'ok' => false, 'ecarts' => ['document introuvable pour ce scellement']];
         }
 
-        $empreinteFichier = Empreintes::fichier($absolu);
-        if ($empreinteFichier !== ($scellement['empreinte_fichier'] ?? '')) {
+        $empreinteFichier = null;
+        $empreinteMeta = null;
+        try {
+            $empreinteFichier = Empreintes::fichier($absolu);
+        } catch (ErreurScellement) {
+            $ecarts[] = 'fichier illisible ou introuvable';
+        }
+        if ($empreinteFichier !== null && $empreinteFichier !== ($scellement['empreinte_fichier'] ?? '')) {
             $ecarts[] = 'empreinte du fichier différente (fichier modifié hors application)';
         }
-        $empreinteMeta = Empreintes::meta($absolu);
-        if ($empreinteMeta !== ($scellement['empreinte_meta'] ?? '')) {
+        try {
+            $empreinteMeta = Empreintes::meta($absolu);
+        } catch (ErreurScellement) {
+            $ecarts[] = 'métadonnées (meta) illisibles ou introuvables';
+        }
+        if ($empreinteMeta !== null && $empreinteMeta !== ($scellement['empreinte_meta'] ?? '')) {
             $ecarts[] = 'empreinte des métadonnées (meta) différente (métadonnées modifiées hors application)';
         }
 
-        $scellee = Empreintes::scellee($empreinteFichier, $empreinteMeta);
-        if ($scellee !== ($scellement['empreinte_scellee'] ?? '')) {
-            $ecarts[] = 'empreinte scellée incohérente';
+        if ($empreinteFichier !== null && $empreinteMeta !== null) {
+            $scellee = Empreintes::scellee($empreinteFichier, $empreinteMeta);
+            if ($scellee !== ($scellement['empreinte_scellee'] ?? '')) {
+                $ecarts[] = 'empreinte scellée incohérente';
+            }
         }
 
         $jeton = dirname($cheminJson) . '/' . (string) ($scellement['tsa_jeton'] ?? (basename($absolu) . '.tsr'));
