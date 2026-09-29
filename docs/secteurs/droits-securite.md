@@ -105,11 +105,10 @@ ETAT: fini (jugé)
 - Fait : chaque refus de connexion rend désormais l'étape `connexion` et une cause nommée, avec les testids
   `refus-etape` et `refus-cause`. Le contrôle CSRF anonyme à usage unique, son audit et le renouvellement du
   jeton de formulaire sont inchangés.
-- Preuve : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
-  (1 test, 3 assertions). Le banc H-2 reste à rejouer lorsque le serveur démarre à nouveau : l'état concurrent
-  Socle actuel déclare deux fois `GET /bibliotheque`, ce qui fait échouer `/sante` avant les contrats HTTP.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
+  (1 test, 3 assertions) ; `php tools\\banc\\contrat.php` vert (sortie 0 : toutes les routes déclarées sont couvertes).
 
-ETAT: bloqué: `php tools/banc/contrat.php` ne peut pas démarrer tant que le doublon concurrent `GET /bibliotheque` du secteur Socle subsiste
+ETAT: fini
 
 ## Journal V2-07c
 
