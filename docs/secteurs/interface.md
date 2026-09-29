@@ -28,3 +28,65 @@ Deux branchements à prévoir quand le Kernel appellera `Archivage\Module` (voir
   geste humain « Lever le scellement » (`Retention::lever()`) et son échéance affichée — jamais
   d'effacement automatique, le refus d'écriture se nomme (« scellé jusqu'au … »).
 
+## Journal V2-03-écran — 29-09-2026
+
+**Fait**
+- `Ged\Ui\ATraiter` : l'écran « À traiter » lit le FONDS réel (via `Ged\Socle\DepotFichiers`, le dossier fait
+  foi : une ligne d'index dont le fichier a disparu est ignorée). Bilan = classés automatiquement / à
+  contrôler (statut des documents vivants) + en cours de lecture (travaux `recu|decoupe|pret`) ; file des
+  `a_controler` du plus ancien au plus récent ; proposition du Classeur telle qu'écrite à l'ingestion
+  (`source` IA/habitude/règle, `raison`, `preuve`) ; aperçu réel par la macro `visionneuse.moteur` du
+  secteur Aperçu ; types lus dans la nomenclature (`Nomenclature`), repli maquette.
+- `Ui\Ecrans::aTraiter` branché sur l'adaptateur ; **le gabarit garde ses classes, ses data-testid et sa
+  disposition** : seuls sont ajoutés les `name` des champs, le champ caché `csrf` et l'action POST.
+- `Ui\Module` : `POST /a-traiter/{id:[0-9]+}/valider` (permission `documents:traiter`). Valider (Entrée)
+  écrit par `Ged\Contrats\Depot::mettreAJour` (statut `valide`, rangement recalculé, trace) puis enseigne
+  l'habitude par `Ged\Classement\Habitudes::retenirChoix` — **choix humain seulement** ; Passer (→) va au
+  suivant. Tout au clavier (`public/assets/js/ged.js`).
+- `templates/partiels/visionneuse.twig` : l'`import` d'icônes est porté DANS la macro `moteur` (une macro
+  importée n'exécute pas le corps du gabarit, `ic` manquait à l'import). Correctif d'une ligne, chemin du
+  secteur Interface (`templates/`) ; signalé à Recherche & aperçu.
+
+**Preuves**
+- Oracle d'abord : `tests/e2e/a-traiter.spec.ts` écrit rouge (l'écran rendait encore les données fixes),
+  puis vert. Fonds déposé par `tests/oracles/interface/preparer-a-traiter.php` via `DepotFichiers` dans
+  `var/oracles/interface/` (**jamais dans `tests/corpus`**) ; parcours connecté (`tests/e2e/connexion.ts`)
+  sur un serveur isolé, **trois validations à Entrée sans souris**, puis
+  `tests/oracles/interface/classer-piece-4.php` rejoue le vrai classeur (IA inerte) : la 4ᵉ pièce du même
+  émetteur arrive en source **« habitude »**, `valide`. 2 parcours verts.
+- `vendor/bin/phpunit` : **241 tests, 1073 assertions** verts (dont `SecuriteTest` qui vérifie que la
+  nouvelle route déclare sa permission).
+- `php tools/banc/sonde-securite.php` : **VERT** (CSRF absent/rejoué refusé sur la nouvelle mutation).
+- `tests/e2e/maquettes.spec.ts` : l'ancien parcours clavier (faux documents 101→103, sémantique changée par
+  la validation réelle) devient un contrôle du contrat visuel ; le comportement vit dans l'oracle.
+
+**Modifications minimales signalées (hors secteur, assumées)**
+- `src/Kernel.php` : « Ui » ajouté à la liste des modules de secteur — l'écran porte désormais une route.
+  Signalé ici et dans les demandes ci-dessous.
+- `src/Securite/DroitsRoutes.php` : permission `POST /a-traiter/{id:[0-9]+}/valider` + reconnaissance de la
+  route paramétrée (signalé dans `docs/secteurs/droits-securite.md`).
+- `tools/banc/sonde-securite.php` : charge CSRF défensive de la nouvelle mutation (signalé dans
+  `docs/secteurs/harness.md` et `droits-securite.md`).
+
+**Demandes aux autres secteurs**
+- **Socle** : `DepotFichiers` n'écrit toujours pas l'`id` dans le `.meta.json` ; l'aperçu réel de
+  `/a-traiter` résout la pièce par `id`, l'oracle le pose donc après dépôt. Poser l'`id` au dépôt rendrait le
+  dossier auto-descriptible (déjà demandé par Workflows/Recherche).
+- **Vue d'ensemble** : la ligne « Ui » ajoutée à `src/Kernel.php` est une modification minimale signalée ;
+  à confirmer/reporter dans le contrat si le Kernel doit rester figé.
+- **Recherche & aperçu** : la macro `visionneuse.moteur` était inutilisable à l'import (import d'icônes hors
+  macro) ; corrigé (voir ci-dessus), à réutiliser dans `bibliotheque.twig` / `document.twig`.
+- **Droits & sécurité** : le refus de validation (permission manquante, CSRF) est porté par la garde
+  centrale ; l'écran n'a pas de garde propre.
+
+**Reste hors de ce lot**
+- Brancher les autres écrans (bibliothèque, fiche) sur le fonds : suivis par leurs secteurs (Socle/Lot V2-04).
+- `harness.ps1 -SansBanc` : 0-garde-fous VERT, 1-unitaire VERT (241 tests), 7-securite VERT ; 4-écrans ROUGE
+  avec 6 échecs **hors lot** — `bibliotheque.spec` (routes Socle V2-04 absentes : `/metadonnees`, vues
+  réelles), `recherche.spec` (l'index de la base partagée porte les ids de PHPUnit, attend les ids 201/204
+  du corpus), `apercu.spec:18` (flaky sous charge parallèle, vert en isolé). Les 2 parcours `a-traiter` et
+  les maquettes sont verts.
+
+ETAT: fini
+
+

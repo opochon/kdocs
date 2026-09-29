@@ -68,6 +68,10 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 - À Droits (V2-08a, modification minimale signalée) : `src/Securite/DroitsRoutes.php` déclare `POST /api/v1/depots` et
   `GET /api/v1/depots/{id:[0-9]+}` en `publique:api-depot` / `publique:api-depot-suivi`, car l'API d'entrée s'authentifie
   par jeton d'application hors session ; la garde les laisse passer et le secteur Jonctions vérifie le jeton.
+- À Droits (V2-03-écran, modifications minimales signalées) : Interface a déclaré `POST /a-traiter/{id:[0-9]+}/valider`
+  en `documents:traiter` (avec la reconnaissance de la route paramétrée) dans `src/Securite/DroitsRoutes.php`, et ajouté
+  la charge CSRF défensive correspondante à `tools/banc/sonde-securite.php` — sans quoi la sonde signalait une mutation
+  déclarée sans charge. Aucune autre permission touchée.
 
 ## Journal V2-07b
 

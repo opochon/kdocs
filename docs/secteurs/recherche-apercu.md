@@ -40,6 +40,11 @@ Chemins ajoutés au lot V2-05b : `tests/php/Recherche/`, `tests/oracles/recherch
   `/documents/{id}/fichier`, `/documents/{id}/miniature`. Aucune de ces routes n'est publique.
 - **Socle** : dès que le vrai dossier documentaire existe, positionner `STORAGE_ROOT` ; `Ged\Apercu\Source`
   le parcourt déjà (id lu dans `.meta.json`, aucune base). Sans cela, le défaut pointe sur le corpus synthétique.
+- **Interface, fait au lot V2-03-écran (notification)** : `/a-traiter` importe `partiels/visionneuse.twig` et
+  appelle `moteur(rendu, 'apercu')`. Pour que l'import fonctionne, l'`import` d'icônes a été déplacé DANS la
+  macro (`templates/partiels/visionneuse.twig`, chemin du secteur Interface) : une macro importée n'exécute pas
+  le corps du gabarit, donc `ic` manquait. À reprendre de la même façon quand `bibliotheque.twig` et
+  `document.twig` brancheront l'aperçu réel.
 
 ## Journal V2-05a
 Fait :

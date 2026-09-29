@@ -33,3 +33,9 @@ donc depuis une copie de travail séparée, sur HEAD :
 `git worktree add --detach ..\GEDv2-juge HEAD` (`vendor` COPIÉ puis `php tools/composer.phar dump-autoload` — une jonction ferait charger le `src/` du vestiaire, vu le 29-09 —, jonction vers `node_modules`, `.env` copié), puis
 `$env:GED_PORT_TESTS='8872'; powershell -File ..\GEDv2-juge\tools\harness.ps1`. Le verrou de `gedv2_test` vit dans le
 dossier temporaire du système : juge et agents s'attendent au lieu de s'effacer les tables.
+
+## Modifications minimales signalées
+- V2-03-écran (Interface) : la sonde itère `DroitsRoutes::declarees()` et exige une charge CSRF défensive par mutation.
+  L'écran « À traiter » ajoutant `POST /a-traiter/{id:[0-9]+}/valider`, la charge correspondante a été posée dans
+  `tools/banc/sonde-securite.php` (chemin de la couche 7). Une seule entrée ajoutée, aucune règle modifiée.
+
