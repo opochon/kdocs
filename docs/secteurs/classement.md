@@ -26,6 +26,7 @@ avec la source de chaque suggestion (IA, habitude, règle). Les choix humains r�
 - **Ingestion** : `tools/tache.php` doit passer `new Ged\Classement\ClasseurGed($config, $pdo)` à `Fabrique::pilote(...)` ; sans classeur, `Pilote` range tout en `a_controler`.
 - **Interface** : l'écran « À traiter » enregistre chaque choix humain par `Ged\Classement\Habitudes::retenirChoix($emetteur, Habitudes::CHAMP_TYPE, $type, $refPiece)` (jamais pour un tri auto) ; il affiche `source` (IA, habitude, règle) et `preuve` de la suggestion.
 - **Vue d'ensemble** : documenter dans `.env.example` les clés `INFOMANIAK_AI_MODEL_CLASSIFY` et `INFOMANIAK_AI_TIMEOUT_CLASSIFY` (déjà posées dans le `.env` local).
+- **Sécurité** : le `GardeCentrale` en cours renvoie 403 sur `/documents/{id}/apercu` sans session ; les 7 specs e2e de `tests/e2e/apercu.spec.ts` échouent (attendu 404). Soit l'aperçu reste accessible sans session, soit les specs se connectent — hors périmètre Classement (constaté pendant `harness.ps1 -SansBanc` du 29-09, `src/Securite/` non commité).
 
 ## Journal V2-03 — 29-09-2026
 
@@ -76,3 +77,22 @@ Le rejeu complet (`tools/banc/rejouer-ingestion.php`) range 53/53 pièces, mais 
 Le banc de classement doit mesurer date exacte et titre non vide/non « lot » contre `verite.json` (qui porte la date).
 
 ETAT: à reprendre (voir Jugement V2-03 et complément)
+
+## Journal V2-03 bis — 29-09-2026
+
+**Défaut de règle corrigé (jugement V2-03)**
+- `ClasseurGed::proposer` : valider seul = habitude de l'émetteur, OU (IA ≥ seuil ET indice du MÊME type dans le texte). Un mot-clé seul ne range plus ; l'IA ne force jamais un type sans indice.
+- Raisons nommées : « IA indisponible », « IA et texte divergent : IA=Contrat, texte=Facture », « confiance IA insuffisante (…) », « IA sans type ».
+- `Regles` : `dateEnTete` (première date JJ.MM.AAAA de l'en-tête — un numéro IDE `CHE-100.000.002` ne piège pas) et `titrePiece` (ligne « Concerne », sinon numéro, sinon type + émetteur + date — jamais le nom du fichier ni du lot).
+- Banc mode-aware : sans IA la porte exige 0 validé seul (hors habitudes) ; avec IA le taux minimum (`attendu.valides_seuls_avec_ia_min`). Mémoire d'apprentissage vidée avant mesure ; preuves suffixées `-sans-ia` / `-avec-ia`.
+
+**Preuves**
+- Oracle d'abord : 6 échecs sur le code d'avant (IA en désaccord, IA absente, IA peu sûre, panne IA, indices contradictoires, 0 validé seul sans IA) puis 1 échec sur la date d'en-tête → tout vert.
+- `phpunit tests/php/Classement` : 55 tests verts (44 → 55) ; suite complète verte.
+- Banc `courrier-100p` **sans IA** : 53 documents, **0 validé seul**, 0 type faux, 0 émetteur faux, **0 date fausse**, **0 titre invalide**, 0,03 s — `recette/preuves/classement/courrier-100p-classement-sans-ia.{json,md}`.
+- Banc `courrier-100p` **avec l'IA réelle** (Infomaniak `google/gemma-4-31B-it`, clés du `.env`, réseau) : **51/53 validés seuls (96,2 %)**, **0 type faux validé seul**, 53/53 émetteurs lus, **0 émetteur faux**, **0 date fausse**, **0 titre invalide**, 0 « Autre » validé, 276 s ; 2 à contrôler : page 21 Document RH (le propriétaire ne figure pas dans la pièce) et page 23 Facture (appel IA en échec → repli « IA indisponible »). Porte **FRANCHIE** — `courrier-100p-classement-avec-ia.{json,md}`.
+- `harness.ps1 -SansBanc` : 0-garde-fous VERT, 1-unitaire VERT (132 tests, 550 assertions), 3-banc ROUGE « sautée » (voulu), 4-écrans ROUGE (7 échecs `apercu.spec.ts` en 403 : le `GardeCentrale` du secteur Sécurité, WIP non commité présent avant ce lot, exige une session — hors périmètre Classement, demande déposée ci-dessus).
+- Commits : `ce6603f` (règle typeCorrobore + tests), `408b582` (banc mode-aware + preuves), `a253c70` (date/titre, complément du jugement).
+
+ETAT: fini
+
