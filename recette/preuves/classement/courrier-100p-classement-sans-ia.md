@@ -1,4 +1,4 @@
-# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 16:09
+# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 16:16
 
 Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 

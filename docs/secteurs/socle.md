@@ -87,3 +87,7 @@ Tu IMPLÉMENTES le contrat `src/Contrats/Depot.php` (classe `Ged\Socle\DepotFich
 - Les tests Selenium/E2E dynamiques (ids de documents instables) relèvent du secteur Interface.
 
 ETAT: fini
+
+## Jugement V2-01 (Claude Code, 29-09) — porte franchie
+Oracle `tests/oracles/socle/porte-v2-01.php` rejoué : 6 clauses OK ; banc F1 de bout en bout (53/53 dans le fonds). Réserve : la trace des déplacements est perdue à la reconstruction — à écrire aussi dans le dossier (journal NDJSON) quand le journal d'audit V2-07b sera là.
+ETAT: fini (jugé)

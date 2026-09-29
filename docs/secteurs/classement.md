@@ -96,3 +96,9 @@ ETAT: à reprendre (voir Jugement V2-03 et complément)
 
 ETAT: fini
 
+
+## Jugement V2-03 bis (Claude Code, 29-09) — porte franchie
+Avec l'IA réelle : 51/53 validés seuls, 0 type faux, 0 émetteur faux, 0 date fausse, 0 titre invalide ; sans IA :
+0 validé seul hors habitude (la règle typeCorrobore tient). Reste : 276 s pour 53 pièces (≈ 5 s par appel IA) et une
+pièce laissée « IA indisponible » — à surveiller au banc de charge (V2-10), pas bloquant.
+ETAT: fini (jugé)
