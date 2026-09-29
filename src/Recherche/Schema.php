@@ -35,6 +35,7 @@ final class Schema
               montant DECIMAL(14,2) NULL,
               contenu LONGTEXT NOT NULL COMMENT 'texte lu du document (.meta.json texte, OCR ou fichier texte)',
               signature CHAR(64) NOT NULL COMMENT 'sha256 taille|mtime du .meta.json : détecte une modification',
+              absent_le DATETIME NULL COMMENT 'fichier disparu du fonds : la ligne reste (zéro suppression)',
               maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               PRIMARY KEY (cle),
               KEY k_document (document_id),
@@ -43,7 +44,19 @@ final class Schema
             SQL);
 
         self::assurerMoteur($pdo);
+        self::assurerColonneAbsence($pdo);
         self::assurerIndexPleinTexte($pdo);
+    }
+
+    /** Ajoute le drapeau d'absence sur une table créée par une version antérieure (zéro suppression). */
+    public static function assurerColonneAbsence(PDO $pdo): void
+    {
+        $presente = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+            . " AND TABLE_NAME = 'recherche_textes' AND COLUMN_NAME = 'absent_le'")->fetchColumn();
+        if ($presente === 0) {
+            $pdo->exec("ALTER TABLE recherche_textes ADD COLUMN absent_le DATETIME NULL"
+                . " COMMENT 'fichier disparu du fonds : la ligne reste (zéro suppression)'");
+        }
     }
 
     /** Bascule une table créée en InnoDB par une version antérieure : sans cela, son FULLTEXT ne répond pas. */

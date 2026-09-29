@@ -42,7 +42,11 @@ final class IndexPleinTexte
         foreach ($documents as $document) {
             $cle = hash('sha256', $document->chemin);
             $vus[$cle] = true;
-            if (($signatures[$cle] ?? null) === $document->signature) {
+            $existante = $signatures[$cle] ?? null;
+            if ($existante !== null && $existante['signature'] === $document->signature) {
+                if ($existante['absent']) {
+                    $this->reactiver($cle);   // le fichier est revenu : la ligne ressort de l'absence
+                }
                 continue;
             }
             if ($limite !== null && $faits >= $limite) {
@@ -54,22 +58,36 @@ final class IndexPleinTexte
         }
 
         if ($complet && $signatures !== []) {
-            $this->supprimer(array_values(array_diff(array_keys($signatures), array_keys($vus))));
+            // Zéro suppression : une ligne dont le fichier a disparu est marquée absente, jamais retirée.
+            $obsoletes = array_values(array_filter(
+                array_diff(array_keys($signatures), array_keys($vus)),
+                static fn (string $cle): bool => !$signatures[$cle]['absent'],
+            ));
+            $this->marquerAbsents($obsoletes);
         }
 
         return $faits;
     }
 
-    /** Vide MA table (commande de reconstruction hors requête). */
+    /** Marque tout l'index absent : la prochaine synchronisation le reconstruit depuis le dossier. */
     public function vider(): void
     {
-        $this->pdo->exec('DELETE FROM recherche_textes');
+        $this->pdo->exec('UPDATE recherche_textes SET absent_le = NOW() WHERE absent_le IS NULL');
     }
 
-    /** @return array<string, string> cle => signature */
+    /** @return array<string, array{signature:string, absent:bool}> cle => état de la ligne */
     private function signatures(): array
     {
-        return $this->pdo->query('SELECT cle, signature FROM recherche_textes')->fetchAll(PDO::FETCH_KEY_PAIR);
+        $lignes = $this->pdo->query('SELECT cle, signature, absent_le FROM recherche_textes')->fetchAll();
+        $etats = [];
+        foreach ($lignes as $ligne) {
+            $etats[(string) $ligne['cle']] = [
+                'signature' => (string) $ligne['signature'],
+                'absent' => $ligne['absent_le'] !== null,
+            ];
+        }
+
+        return $etats;
     }
 
     /** @return array<string, int> chemin_relatif => id (vide si la table du Socle n'existe pas) */
@@ -84,11 +102,11 @@ final class IndexPleinTexte
 
     private function poser(string $cle, DocumentFonds $document, ?int $documentId): void
     {
-        $sql = 'INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature)'
-            . ' VALUES (:cle, :chemin, :document_id, :titre, :type, :emetteur, :date_document, :montant, :contenu, :signature)'
+        $sql = 'INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature, absent_le)'
+            . ' VALUES (:cle, :chemin, :document_id, :titre, :type, :emetteur, :date_document, :montant, :contenu, :signature, NULL)'
             . ' ON DUPLICATE KEY UPDATE chemin = VALUES(chemin), document_id = VALUES(document_id), titre = VALUES(titre),'
             . ' type = VALUES(type), emetteur = VALUES(emetteur), date_document = VALUES(date_document),'
-            . ' montant = VALUES(montant), contenu = VALUES(contenu), signature = VALUES(signature)';
+            . ' montant = VALUES(montant), contenu = VALUES(contenu), signature = VALUES(signature), absent_le = NULL';
         $this->pdo->prepare($sql)->execute([
             'cle' => $cle,
             'chemin' => $document->chemin,
@@ -104,11 +122,16 @@ final class IndexPleinTexte
     }
 
     /** @param list<string> $cles */
-    private function supprimer(array $cles): void
+    private function marquerAbsents(array $cles): void
     {
         foreach (array_chunk($cles, 500) as $lot) {
             $marques = implode(', ', array_fill(0, count($lot), '?'));
-            $this->pdo->prepare("DELETE FROM recherche_textes WHERE cle IN ($marques)")->execute($lot);
+            $this->pdo->prepare("UPDATE recherche_textes SET absent_le = NOW() WHERE cle IN ($marques)")->execute($lot);
         }
+    }
+
+    private function reactiver(string $cle): void
+    {
+        $this->pdo->prepare('UPDATE recherche_textes SET absent_le = NULL WHERE cle = ?')->execute([$cle]);
     }
 }

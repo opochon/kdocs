@@ -120,7 +120,8 @@ final class Service implements Moteur
      */
     private function conditions(Requete $requete, Termes $termes, string $mode): array
     {
-        $morceaux = [];
+        // Une ligne dont le fichier a disparu du fonds reste en base mais sort du périmètre cherché.
+        $morceaux = ['t.absent_le IS NULL'];
         $parametres = [];
 
         if ($mode === 'fulltext' && $termes->expressionFulltext() !== '') {
