@@ -76,6 +76,7 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
   tout compte réel, la garde recoupe ensuite le chemin indexé du document avec son dossier ACL. Une fiche, un aperçu, un
   fichier ou une miniature sans dossier autorisé reçoit 403 sans atteindre le gestionnaire.
 - Preuves : `vendor\\bin\\phpunit tests\\php\\Securite` vert (8 tests, 56 assertions), puis `vendor\\bin\\phpunit` vert
-  (155 tests, 679 assertions). Harness `-SansBanc` et parcours Playwright à rejouer après le commit.
+  (155 tests, 679 assertions). `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` : garde-fous,
+  PHPUnit (155/679) et Playwright (25 parcours) verts ; le banc est volontairement sauté et les couches non écrites restent rouges.
 
 ETAT: fini
