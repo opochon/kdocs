@@ -1,0 +1,11 @@
+# Corpus et fichiers binaires : jamais de conversion de fins de ligne
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tif binary
+*.tiff binary
+*.docx binary
+*.xlsx binary
+*.odt binary
+*.eml -text
