@@ -28,6 +28,9 @@ final class Authentification
             if (hash_equals($attendu, $identifiant) && hash_equals($secret, $motDePasse)) {
                 return ['id' => null, 'identifiant' => $attendu, 'permissions' => [
                     'documents:lire', 'documents:traiter', 'recherche:lire', 'workflows:lire', 'application:administrer',
+                    // Branchement Workflows (V2-06, signalé dans docs/secteurs/workflows.md) : le compte de test
+                    // doit pouvoir gérer une règle et valider une transition, mais pas la refuser (porte 3).
+                    'workflow.gerer', 'workflow.executer', 'workflow.transition', 'workflow.transition.valider',
                 ]];
             }
             return null;

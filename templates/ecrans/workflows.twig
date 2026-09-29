@@ -2,27 +2,227 @@
 {% import 'partiels/icones.twig' as ic %}
 {% block titre %}Workflows{% endblock %}
 {% block contenu %}
+{# Écran Workflows : règles (déclencheur + conditions + actions) et circuits à états, au même endroit.
+   Essai à blanc sur un vrai document du fonds (aucune écriture) et journal des transitions. #}
 <div class="page" data-testid="ecran-workflows">
   <div class="page-tete">
-    <div class="titre"><h1>Workflows</h1><span class="muted">{{ workflows|length }} workflows</span></div>
+    <div class="titre">
+      <h1>Workflows</h1>
+      <span class="muted">{{ regles|length }} règles · {{ circuits|length }} circuits · {{ documents|length }} documents au fonds</span>
+    </div>
     <div class="actions">
-      <a class="btn primaire" href="#" data-testid="action-nouveau-workflow">{{ ic.i('plus') }}Nouveau depuis un gabarit</a>
-      <a class="btn" href="#" data-testid="action-essai-blanc">Essai à blanc sur un document</a>
+      {% for g in gabarits %}
+      <form method="post" action="/workflows/gabarits/{{ g.nom }}">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn {{ g.installe ? '' : 'primaire' }}" type="submit" data-testid="action-installer-{{ g.nom }}">
+          {{ ic.i('plus') }}{{ g.installe ? 'Réinstaller' : 'Installer' }} « {{ g.libelle }} »
+        </button>
+      </form>
+      {% endfor %}
     </div>
   </div>
-  {% for w in workflows %}
-  <section class="carte" data-testid="workflow-{{ w.id }}">
-    <div class="volet-tete">{{ w.nom }}
-      <span class="muted">· {{ w.declencheur }}</span>
-      <span style="margin-left:auto" class="muted">{{ w.executions }} exécutions</span>
-      <span class="interrupteur {{ w.actif ? '' : 'off' }}" role="switch" aria-checked="{{ w.actif ? 'true' : 'false' }}" data-testid="workflow-{{ w.id }}-actif"></span>
+
+  {% if not installe %}
+  <section class="carte" data-testid="workflows-non-installes">
+    <div class="volet-tete">Workflows non installés</div>
+    <div class="panneau">
+      <p class="muted">Le schéma du secteur n’est pas posé : lancez <span class="mono">php tools/installer.php</span> pour créer les tables <span class="mono">workflow_*</span>.</p>
     </div>
-    <div class="flux">
-      {% for e in w.etapes %}
-        <div class="noeud {{ '?' in e ? 'condition' }}">{{ e }}</div>{% if not loop.last %}<span class="fleche"></span>{% endif %}
-      {% endfor %}
+  </section>
+  {% else %}
+
+  <details class="carte" data-testid="formulaire-regle">
+    <summary class="volet-tete" data-testid="action-nouvelle-regle" style="cursor:pointer; list-style:none">Nouvelle règle</summary>
+    <form method="post" action="/workflows/regles" class="panneau">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ" style="padding:0">
+        <label for="regle-nom">Nom</label>
+        <input id="regle-nom" name="nom" data-testid="regle-nom" required maxlength="180" placeholder="Ex. Facture fournisseur à valider">
+      </div>
+      <div class="champ" style="padding:0">
+        <label for="regle-declencheur">Déclencheur</label>
+        <select id="regle-declencheur" name="declencheur" data-testid="regle-declencheur">
+          {% for code, libelle in declencheurs %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select>
+      </div>
+      <p class="muted">Condition (laisser le champ vide pour « toujours ») :</p>
+      <div class="actions">
+        <select name="condition_champ" data-testid="regle-condition-champ" aria-label="Champ de la condition">
+          <option value="">—</option>
+          {% for c in champs_condition %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+        <select name="condition_operateur" data-testid="regle-condition-operateur" aria-label="Opérateur">
+          {% for o in operateurs %}<option value="{{ o }}">{{ o }}</option>{% endfor %}
+        </select>
+        <input name="condition_valeur" data-testid="regle-condition-valeur" aria-label="Valeur" placeholder="Valeur">
+      </div>
+      <p class="muted">Action :</p>
+      <div class="actions">
+        <select name="action_type" data-testid="regle-action-type" aria-label="Type d’action">
+          <option value="notifier">notifier</option>
+          <option value="poser">poser un champ</option>
+          <option value="etiqueter">étiqueter</option>
+          <option value="demander_validation">demander une validation</option>
+          <option value="assigner">assigner</option>
+          <option value="appeler_jonction">appeler une jonction</option>
+        </select>
+        <input name="action_destinataire" data-testid="regle-action-destinataire" aria-label="Destinataire" placeholder="responsable">
+        <input name="action_message" data-testid="regle-action-message" aria-label="Message" placeholder="Message ({titre}, {jours}…)">
+        <input name="action_champ" data-testid="regle-action-champ" aria-label="Champ à poser" placeholder="champ">
+        <input name="action_valeur" data-testid="regle-action-valeur" aria-label="Valeur / étiquette" placeholder="valeur">
+        <input name="action_circuit" data-testid="regle-action-circuit" aria-label="Circuit" placeholder="circuit (gabarit)">
+        <input name="action_role" data-testid="regle-action-role" aria-label="Rôle" placeholder="rôle (direction…)">
+        <input name="action_vers" data-testid="regle-action-vers" aria-label="État cible" placeholder="état (a_valider)">
+        <input name="action_cible" data-testid="regle-action-cible" aria-label="Jonction" placeholder="jonction (k-time)">
+      </div>
+      <div class="actions">
+        <label class="chip"><input type="checkbox" name="actif" value="1"> activer tout de suite</label>
+        <button class="btn primaire" type="submit" data-testid="action-creer-regle">Créer la règle</button>
+      </div>
+    </form>
+  </details>
+
+  {% for r in regles %}
+  <section class="carte" data-testid="regle-{{ r.id }}">
+    <div class="volet-tete">
+      {{ r.nom }}
+      <span class="chip">{{ declencheurs[r.declencheur]|default(r.declencheur) }}</span>
+      {% if r.actif %}<span class="chip ok">actif</span>{% else %}<span class="chip warn">en veille</span>{% endif %}
+      <form method="post" action="/workflows/regles/{{ r.id }}/basculer" style="margin-left:auto">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="actif" value="{{ r.actif ? '0' : '1' }}">
+        <button class="btn" type="submit" data-testid="regle-{{ r.id }}-basculer">{{ r.actif ? 'Mettre en veille' : 'Activer' }}</button>
+      </form>
+    </div>
+    <div class="panneau">
+      <p class="muted">Conditions :
+        {% if r.conditions is empty %}toujours
+        {% else %}{% for c in r.conditions %}{{ c.champ }} {{ c.operateur }} {{ c.valeur }}{% if not loop.last %} et {% endif %}{% endfor %}{% endif %}
+        · Actions :
+        {% for a in r.actions %}{{ a.type }}{% if a.circuit is defined %} « {{ a.circuit }} »{% endif %}{% if a.assigne is defined and a.assigne %} → {{ a.assigne }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+      </p>
     </div>
   </section>
   {% endfor %}
+
+  {% for c in circuits %}
+  <section class="carte" data-testid="circuit-{{ c.id }}">
+    <div class="volet-tete">{{ c.nom }} <span class="muted">· {{ c.gabarit ?: 'circuit' }}{{ c.actif ? '' : ' · en veille' }}</span></div>
+    <div class="flux">
+      {% for e in c.etats %}
+      <div class="noeud{{ e.initial ? ' condition' : '' }}">{{ e.libelle }}</div>{% if not loop.last %}<span class="fleche"></span>{% endif %}
+      {% endfor %}
+    </div>
+    <div class="panneau">
+      <ul class="liste">
+        {% for t in c.transitions %}
+        <li class="l2">{{ t.de }} → {{ t.vers }} — {{ t.libelle }} <span class="mono">droit {{ t.permission }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+  {% endfor %}
+
+  <section class="carte">
+    <div class="volet-tete">Essai à blanc sur un document du fonds <span class="muted">— aucune écriture</span></div>
+    <div class="panneau">
+      <form method="post" action="/workflows/essai" class="actions">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="muted" for="essai-document">Document</label>
+        <select id="essai-document" name="document_id" data-testid="essai-document">
+          {% for d in documents %}<option value="{{ d.id }}">{{ d.titre }} — {{ d.type ?: 'sans type' }}</option>{% endfor %}
+        </select>
+        <label class="muted" for="essai-declencheur">Déclencheur</label>
+        <select id="essai-declencheur" name="declencheur" data-testid="essai-declencheur">
+          {% for code, libelle in declencheurs %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select>
+        <button class="btn" type="submit" data-testid="action-essai">Tester à blanc</button>
+      </form>
+
+      {% if essai %}
+      <div class="carte" data-testid="essai-resultat" style="padding:12px 14px; display:grid; gap:8px">
+        <p><strong>{{ essai.document.titre }}</strong> · {{ declencheurs[essai.declencheur]|default(essai.declencheur) }}
+          <span class="chip ok" data-testid="essai-zero-ecriture">zéro écriture</span></p>
+        <p class="muted">Règles évaluées :</p>
+        <ul class="liste">
+          {% for r in essai.regles %}
+          <li class="l2">{{ r.retenue ? '✓' : '·' }} {{ r.nom }}{% if not r.actif %} <span class="chip warn">en veille</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+        {% if essai.etapes %}
+        <p class="muted">Ce qui se passerait :</p>
+        <ul class="liste">
+          {% for e in essai.etapes %}
+          <li class="l2">{{ e.texte }} <span class="muted">(règle « {{ e.regle }} »)</span></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Aucune règle ne réagit à ce déclencheur pour ce document.</p>
+        {% endif %}
+        {% for err in essai.erreurs %}
+        <div class="raison">{{ ic.i('alerte') }}Règle « {{ err.regle }} » — {{ err.cause }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">Déclencher un événement <span class="muted">— ce que le Socle appellera au dépôt ou à la mise à jour</span></div>
+    <div class="panneau">
+      <form method="post" action="/workflows/evenements" class="actions">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="muted" for="evenement-document">Document</label>
+        <select id="evenement-document" name="document_id" data-testid="evenement-document">
+          {% for d in documents %}<option value="{{ d.id }}">{{ d.titre }} — {{ d.type ?: 'sans type' }}</option>{% endfor %}
+        </select>
+        <select name="declencheur" data-testid="evenement-declencheur" aria-label="Déclencheur">
+          {% for code, libelle in declencheurs %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select>
+        <button class="btn primaire" type="submit" data-testid="action-evenement">Simuler le dépôt</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">Faire avancer un document dans son circuit <span class="muted">— chaque droit est vérifié</span></div>
+    <div class="panneau">
+      <form method="post" action="/workflows/transitions" class="actions">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="muted" for="transition-document">Document</label>
+        <select id="transition-document" name="document_id" data-testid="transition-document">
+          {% for d in documents %}<option value="{{ d.id }}">{{ d.titre }}</option>{% endfor %}
+        </select>
+        <label class="muted" for="transition-vers">Nouvel état</label>
+        <select id="transition-vers" name="vers" data-testid="transition-vers">
+          {% for e in etats_cibles %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+        </select>
+        <button class="btn" type="submit" data-testid="action-transition">Appliquer la transition</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="carte" data-testid="journal">
+    <div class="volet-tete">Journal <span class="muted">— ajout seul, {{ journal|length }} dernières entrées</span></div>
+    {% if journal %}
+    <table class="table">
+      <thead><tr><th style="width:150px">Quand</th><th style="width:130px">Qui</th><th style="width:110px">Genre</th><th>Détail</th></tr></thead>
+      <tbody>
+        {% for j in journal %}
+        <tr data-testid="journal-{{ j.id }}">
+          <td class="mono">{{ j.quand }}</td>
+          <td>{{ j.qui }}</td>
+          <td><span class="chip">{{ j.genre }}</span></td>
+          <td>{% if j.document_id %}<a href="/documents/{{ j.document_id }}">#{{ j.document_id }}</a> {% endif %}{{ j.resume }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="panneau"><p class="muted">Aucune entrée pour l’instant.</p></div>
+    {% endif %}
+  </section>
+
+  {% endif %}
 </div>
 {% endblock %}

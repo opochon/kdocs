@@ -83,7 +83,20 @@ final class Ecrans
 
     public function workflows(Requete $req, Reponse $rep): Reponse
     {
-        return $this->vue->rendre($rep, 'ecrans/workflows.twig', $this->commun('workflows') + ['workflows' => Maquette::workflows()]);
+        // Le secteur Workflows branche ses vraies règles et ses circuits ; le gabarit reste le contrat visuel.
+        // Branchement minimal, comme pour /recherche : aucune donnée réelle, repli de maquette conservé.
+        if (class_exists(\Ged\Workflows\Ecran::class)) {
+            $donnees = \Ged\Workflows\Ecran::depuisRacine()->donnees($req->getQueryParams());
+            $donnees['csrf'] = (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
+
+            return $this->vue->rendre($rep, 'ecrans/workflows.twig', $this->commun('workflows') + $donnees);
+        }
+
+        return $this->vue->rendre($rep, 'ecrans/workflows.twig', $this->commun('workflows') + [
+            'workflows' => Maquette::workflows(), 'installe' => false, 'regles' => [], 'circuits' => [], 'gabarits' => [],
+            'documents' => [], 'journal' => [], 'essai' => null, 'declencheurs' => [], 'champs_condition' => [],
+            'operateurs' => [], 'etats_cibles' => [], 'csrf' => '',
+        ]);
     }
 
     public function application(Requete $req, Reponse $rep): Reponse

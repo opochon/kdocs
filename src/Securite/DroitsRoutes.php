@@ -22,6 +22,12 @@ final class DroitsRoutes
         'GET /documents/{id:[0-9]+}/fichier' => 'document.voir',
         'GET /documents/{id:[0-9]+}/miniature' => 'document.voir',
         'GET /workflows' => 'workflows:lire',
+        'POST /workflows/regles' => 'workflow.gerer',
+        'POST /workflows/regles/{id:[0-9]+}/basculer' => 'workflow.gerer',
+        'POST /workflows/gabarits/{nom}' => 'workflow.gerer',
+        'POST /workflows/essai' => 'workflow.gerer',
+        'POST /workflows/evenements' => 'workflow.executer',
+        'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
         'GET /sante' => 'publique:sante',
         'GET /connexion' => 'publique:connexion',
@@ -45,6 +51,16 @@ final class DroitsRoutes
                 if (preg_match('#^/documents/[0-9]+' . preg_quote($suffixe, '#') . '$#', $chemin) === 1) {
                     return self::PERMISSIONS['GET /documents/{id:[0-9]+}' . $suffixe];
                 }
+            }
+        }
+
+        // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
+        if (strtoupper($methode) === 'POST') {
+            if (preg_match('#^/workflows/regles/[0-9]+/basculer$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /workflows/regles/{id:[0-9]+}/basculer'];
+            }
+            if (preg_match('#^/workflows/gabarits/[A-Za-z0-9_]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /workflows/gabarits/{nom}'];
             }
         }
 
