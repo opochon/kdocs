@@ -60,6 +60,19 @@ trait SupportRecherche
         return $this->racine . '/fonds';
     }
 
+    /**
+     * Le corpus de l'oracle de porte, seule vérité partagée : les tests unitaires ne le dupliquent pas.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function corpusOracle(): array
+    {
+        $oracle = json_decode((string) file_get_contents(dirname(__DIR__, 3) . '/tests/oracles/recherche/recherche.json'),
+            true, 512, JSON_THROW_ON_ERROR);
+
+        return $oracle['corpus'];
+    }
+
     /** Un moteur branché sur le fonds du test ; l'installation automatique du schéma peut être coupée. */
     private function moteur(bool $autoInstaller = true): Service
     {
