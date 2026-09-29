@@ -46,3 +46,65 @@ Un document scellé devient intouchable pendant sa durée légale (10 ans par d�
 ## Reprendre de GEDv1 (lecture seule, audit `GEDv1/var/audit-v2/deepcode-stockage.md`)
 `app/Services/Compliance/TsaService.php` (client RFC 3161 réel et testé, jamais câblé : le câbler),
 `RetentionPolicyService` (table de durées), l'idée de `LegalArchiveService` — mais la garde au niveau du service.
+
+## Journal V2-09 — 29-09-2026
+
+**Oracle d'abord**
+- `tests/php/Archivage/` (SupportArchivage + TsaTest, ScellementTest, GardeTest, VerificateurTest, RetentionTest),
+  écrits AVANT le code : vu rouge « Class Ged\Archivage\… not found » (26 erreurs), puis vert après implémentation.
+- `tests/oracles/archivage/porte-v2-09.php` rejoue les quatre clauses, sans PHPUnit.
+
+**Fait, clause par clause**
+1. **Scellement horodaté, dans le dossier.** `Ged\Archivage\Scelleur` calcule le sha256 du fichier ET de son
+   `.meta.json`, scelle l'empreinte composite et demande un jeton RFC 3161 à un `Horodateur` injectable
+   (`TsaReelle`, client DER réel avec transport curl injectable ; `TsaSimulee` en test, aucun réseau).
+   Justificatif + jeton écrits à côté du document : `.scellement/<fichier>.json` + `.tsr`. Idempotent ; un
+   scellement levé puis re-scellé archivera l'ancien justificatif en copie (jamais de suppression).
+2. **Intouchable au niveau du service.** `Ged\Archivage\Garde` est branchée par appels d'une ligne **signalés**
+   dans `DepotFichiers::mettreAJour()` (erreur 403 nommée : opération, document, échéance), `miseALaCorbeille()`
+   (corbeille refusée) et `Indexeur::passer()`. Comme les actions de workflow passent par
+   `Depot::mettreAJour()`, elles couvrent aussi « écran, API, workflow ». L'indexeur, lui, constate un fichier
+   changé sur disque sans archiver de version : `Garde::constaterAlteration()` écrit une alerte
+   « scellé altéré » dans `.scellement/alertes.ndjson` et le passage rend `scelles_alteres`.
+3. **Vérificateur.** `tools/verifier-scellements.php` rejoue, dossier seul et sans réseau, empreinte du
+   fichier, empreinte de la meta, empreinte composite et jeton (structure DER, statut granted, empreinte
+   couverte, sha256 du jeton) : 0 écart sur un fonds sain (code 0), l'octet changé est trouvé et nommé (code 1).
+4. **Rétention.** Durées par type (CO art. 958f, 10 ans par défaut) modifiables dans
+   `<fonds>/.archivage/durees.json` ; échéance = date du document (sinon instant du scellement) + durée.
+   `Retention::aEcheance()` liste à échéance, `::lever()` marque le justificatif (`leve_le`/`leve_par`) et
+   journalise l'acte : **aucun effacement automatique**, un humain décide.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Archivage` : **26 tests, 113 assertions, vert**.
+- `php tests/oracles/archivage/porte-v2-09.php` : **7 étapes OK, 0 échec, code 0** (TSA simulée en test).
+- Outil sur fonds sain : `VERDICT : 0 écart sur 1 scellement(s)` (code 0) ; après un octet changé :
+  `VERDICT : N écart(s) …` (code 1), écart nommé « empreinte du fichier différente ».
+
+**Harness `-SansBanc` (ce dépôt, après mes commits)**
+- 0-garde-fous VERT ; 1-unitaire ROUGE : 234 tests, **33 échecs tous du secteur Socle V2-04 en cours d'un
+  autre agent** (`ChampsTest`/`NomenclatureTest`/`VuesTest` : classes à venir ; `CorbeilleTest` : TRUNCATE
+  non commité de `Securite\RegistreSessions` ; `InstallateurTest` : 22 tables > 20) — **0 échec Archivage** ;
+  4-écrans ROUGE (11/16, CSP inline-script non commité d'un autre secteur + seuil d'aperçu sous charge) ;
+  7-sécurité VERT ; 3/2/5/6 ROUGE (banc sauté, couches non écrites).
+
+**Commits**
+- `d1736a9` — scellement horodaté (TSA), rétention, service de scellement, tests et `tools/sceller.php`.
+- `2eccee4` — garde du service, vérificateur, outil, porte V2-09, branchements Socle et demandes.
+
+**Décisions retenues**
+- **Aucune table** : le scellement, le jeton et la table des durées vivent dans le dossier ; rien à
+  reconstruire en base (`Archivage\Schema::installer()` est volontairement vide).
+- La garde lit le dossier par le nom du document, avec un repli par `document_id` du justificatif : un
+  renommage hors application ne fait pas disparaître le scellement.
+- La TSA réelle est câblée (`TSA_URL`) mais jamais appelée en test : transport injecté, `TsaSimulee`.
+
+**Dettes / à suivre (signalées, non bloquantes)**
+- Routes et UI : `Kernel` liste les secteurs en dur, `Archivage` doit y être ajouté (demande déposée) ;
+  ensuite `Archivage\Module` + bouton « Sceller » + écran rétention (demande à l'Interface, aux Droits).
+- `TSA_URL` à documenter dans `.env.example` (demande au Harness).
+- La signature PKI de la TSA n'est pas vérifiée cryptographiquement (`openssl ts`) : contrôle structurel seulement.
+- Un renommage hors application d'un document scellé est constaté par l'indexeur (déplacement tracé) ; le
+  rapatriement automatique du dossier `.scellement/` reste à faire côté Socle.
+
+ETAT: fini
+
