@@ -42,7 +42,8 @@ final class OracleCourrier100pTest extends TestCase
 
         $classeur = $this->classeur();
         $mes = ['documents' => 0, 'valides' => 0, 'valides_type_faux' => 0, 'types_faux' => 0,
-            'emetteurs_lus' => 0, 'emetteurs_faux' => 0, 'autre_valides_seuls' => 0];
+            'emetteurs_lus' => 0, 'emetteurs_faux' => 0, 'autre_valides_seuls' => 0,
+            'dates_fausses' => 0, 'titres_invalides' => 0];
         foreach ($pieces as $piece) {
             $el = $parPage[$piece['pages'][0]] ?? null;
             if ($el === null || !empty($el['blanche'])) {
@@ -59,6 +60,9 @@ final class OracleCourrier100pTest extends TestCase
                 $mes['emetteurs_lus']++;
                 $mes['emetteurs_faux'] += (int) (Regles::normaliser((string) $r['emetteur']) !== Regles::normaliser((string) ($el['correspondant'] ?? '')));
             }
+            $dateAttendue = self::dateIso((string) ($el['date'] ?? ''));
+            $mes['dates_fausses'] += (int) ($dateAttendue !== null && ($r['date'] ?? null) !== $dateAttendue);
+            $mes['titres_invalides'] += (int) !self::titreValide((string) ($r['titre'] ?? ''), (string) $piece['fichier']);
         }
 
         self::assertSame((int) $oracle['attendu']['documents'], $mes['documents'], 'toutes les pièces du lot sont classées');
@@ -67,6 +71,8 @@ final class OracleCourrier100pTest extends TestCase
         self::assertSame(0, $mes['emetteurs_faux'], 'aucun émetteur faux (non lu = vide)');
         self::assertSame(0, $mes['autre_valides_seuls'], '« Autre » jamais validé seul');
         self::assertSame($mes['documents'], $mes['emetteurs_lus'], 'tous les émetteurs sont lus sur ce lot');
+        self::assertLessThanOrEqual((int) $oracle['seuils']['dates_fausses'], $mes['dates_fausses'], 'date de l’en-tête, jamais la date du corps');
+        self::assertLessThanOrEqual((int) $oracle['seuils']['titres_invalides'], $mes['titres_invalides'], 'titre issu de la pièce, jamais le nom du lot');
         // Règle `typeCorrobore` : sans IA corroborante (et sans habitude enregistrée), un mot-clé
         // seul ne valide RIEN. Le document RH resterait de toute façon à contrôler.
         self::assertSame(
@@ -74,5 +80,25 @@ final class OracleCourrier100pTest extends TestCase
             $mes['valides'],
             'sans IA, aucun document n’est rangé tout seul (hors habitudes)',
         );
+    }
+
+    /** La vérité porte les dates au format suisse JJ.MM.AAAA. */
+    private static function dateIso(string $date): ?string
+    {
+        $d = \DateTimeImmutable::createFromFormat('!d.m.Y', $date);
+
+        return $d !== false ? $d->format('Y-m-d') : null;
+    }
+
+    /** Un titre valide vient de la pièce, jamais du nom du lot (fichier source de la découpe). */
+    private static function titreValide(string $titre, string $fichier): bool
+    {
+        $n = Regles::normaliser($titre);
+        if ($n === '') {
+            return false;
+        }
+        $stem = (string) preg_replace('/[_\-]?part\d+$/i', '', pathinfo($fichier, PATHINFO_FILENAME));
+
+        return $stem === '' || !str_contains($n, Regles::normaliser($stem));
     }
 }

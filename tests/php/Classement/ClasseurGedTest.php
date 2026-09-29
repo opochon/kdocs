@@ -49,6 +49,23 @@ final class ClasseurGedTest extends TestCase
         self::assertSame(self::CLES_CONTRAT, array_keys($r));
     }
 
+    public function testLaDateEtLeTitreViennentDeLaPiecePasDuCorpsNiDuLot(): void
+    {
+        $texte = "Hotel de Ville 2999 Modeleville\n\n# **Commune de Modeleville**\n\n"
+            . "Karbonic Banc de test Chemin de l'Essai 1 2300 La Chaux-de-Fonds\n\n"
+            . "Modeleville, le 22.01.2026\n\n"
+            . "## **Concerne : Attestation de travail - collaborateur fictif Jean Exemple**\n\n"
+            . "Nous attestons que M. Jean Exemple est employe depuis le 1er janvier 2024.\n";
+        $analyse = ['origine' => ['cles' => ['dates' => ['2024-01-01', '2026-01-22']]]];
+
+        $r = $this->classeur()->proposer($texte, $analyse, 'courrier-du-matin-100p (p. 21).pdf');
+
+        self::assertSame('Document RH', $r['type']);
+        self::assertSame('2026-01-22', $r['date'], 'la date de l’en-tête prime sur la date citée dans le corps');
+        self::assertSame('Attestation de travail - collaborateur fictif Jean Exemple', $r['titre']);
+        self::assertStringNotContainsString('courrier-du-matin', (string) $r['titre'], 'jamais le nom du lot');
+    }
+
     public function testUneIaQuiCorroboreLeTexteValideSeul(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";

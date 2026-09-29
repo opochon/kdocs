@@ -1,4 +1,4 @@
-# Classement — lot `courrier-100p` — avec-ia — 2026-09-29 15:53
+# Classement — lot `courrier-100p` — avec-ia — 2026-09-29 16:08
 
 Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 
@@ -12,9 +12,11 @@ Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 | Émetteurs lus | — | 53 |
 | Émetteurs faux | 0 | 0 |
 | « Autre » validé seul | 0 | 0 |
-| Durée | — | 180.32 s |
+| Dates fausses (en-tête) | 0 | 0 |
+| Titres invalides (vide ou nom du lot) | 0 | 0 |
+| Durée | — | 276 s |
 
 ## Laissés à contrôler
 - pages 21 : `Document RH` proposé — document RH mais le propriétaire (GED_ORGANISATION) ne figure pas dans la pièce
-- pages 68,69 : `Courrier` proposé — IA indisponible
+- pages 23 : `Facture` proposé — IA indisponible
 

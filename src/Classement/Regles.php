@@ -168,6 +168,53 @@ final class Regles
         return trim($proprietaire) !== '' && self::nomSeLit($texte, $proprietaire);
     }
 
+    /**
+     * La date de l'en-tête : première date suisse JJ.MM.AAAA du haut de la pièce (« <lieu>, le 22.01.2026 »,
+     * « Date : 05.01.2026 »). Une date citée dans le corps (« depuis le 1er janvier 2024 ») n'a pas ce
+     * format et ne piège pas ; un numéro IDE (CHE-100.000.002) non plus.
+     */
+    public static function dateEnTete(string $texte): ?string
+    {
+        $entete = mb_substr($texte, 0, 1000);
+        if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $entete, $m) !== 1) {
+            return null;
+        }
+        [$jour, $mois, $annee] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+        if (!checkdate($mois, $jour, $annee)) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $annee, $mois, $jour);
+    }
+
+    /**
+     * Le titre de la pièce : ligne « Concerne », sinon le numéro (facture, note de crédit, reçu…),
+     * sinon type + émetteur + date. Jamais le nom du fichier ni du lot d'ingestion.
+     */
+    public static function titrePiece(string $texte, ?string $type, ?string $emetteur, ?string $date): ?string
+    {
+        if (preg_match('/^\s*[#>*_\s]*Concerne\s*:\s*(.+?)\s*$/mi', $texte, $m) === 1) {
+            $t = self::nettoyer($m[1]);
+            if ($t !== '') {
+                return mb_substr($t, 0, 200);
+            }
+        }
+        if (preg_match('/\bN[°o]\s*([A-Z0-9][A-Z0-9\-\/\.]{2,})/u', $texte, $m) === 1) {
+            $numero = trim($m[1], " \t\n\r\0\x0B.,-/");
+            if ($numero !== '') {
+                return mb_substr($numero, 0, 200);
+            }
+        }
+        $morceaux = [];
+        foreach ([$type, $emetteur, $date] as $valeur) {
+            if ($valeur !== null && trim($valeur) !== '') {
+                $morceaux[] = trim($valeur);
+            }
+        }
+
+        return $morceaux !== [] ? mb_substr(implode(' ', $morceaux), 0, 200) : null;
+    }
+
     private static function contientMot(string $texteNormalise, string $indice): bool
     {
         return $texteNormalise !== '' && str_contains(' ' . $texteNormalise . ' ', ' ' . $indice . ' ');

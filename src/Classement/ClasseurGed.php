@@ -130,11 +130,16 @@ final class ClasseurGed implements Classeur
             $raison = 'à contrôler';
         }
 
+        // La date vient de l'en-tête de la pièce, puis de la facture, puis de l'IA, et seulement en
+        // dernier recours d'une date citée dans le corps. Le titre vient de la pièce, jamais du lot.
+        $dateDocument = Regles::dateEnTete($texte) ?? $this->dateFacture($analyse) ?? $reponseIa?->date
+            ?? $this->dateCorps($analyse);
+
         return [
-            'titre' => $reponseIa?->titre,
+            'titre' => $reponseIa?->titre ?? Regles::titrePiece($texte, $type, $emetteur, $dateDocument),
             'type' => $type,
             'emetteur' => $emetteur,
-            'date' => $reponseIa?->date ?? $this->dateAnalyse($analyse),
+            'date' => $dateDocument,
             'montant' => $reponseIa?->montant ?? $this->montantAnalyse($analyse),
             'etiquettes' => $reponseIa?->etiquettes ?? ($emetteur !== null ? $this->etiquettesHabitude($emetteur) : []),
             'confiance' => round($confiance, 2),
@@ -145,25 +150,31 @@ final class ClasseurGed implements Classeur
         ];
     }
 
-    /** @param array<string, mixed> $analyse */
-    private function dateAnalyse(array $analyse): ?string
+    /** Date de facture lue par le moteur d'ingestion (invoice_date, due_date). @param array<string, mixed> $analyse */
+    private function dateFacture(array $analyse): ?string
     {
-        $candidats = [];
         $facture = $analyse['facture'] ?? [];
-        if (is_array($facture)) {
-            foreach (['invoice_date', 'due_date'] as $cle) {
-                if (!empty($facture[$cle])) {
-                    $candidats[] = $facture[$cle];
-                }
+        if (!is_array($facture)) {
+            return null;
+        }
+        foreach (['invoice_date', 'due_date'] as $cle) {
+            if (is_string($facture[$cle] ?? null) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $facture[$cle], $m) === 1
+                && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+                return $facture[$cle];
             }
         }
+
+        return null;
+    }
+
+    /** Date citée dans le corps de la pièce — dernier recours. @param array<string, mixed> $analyse */
+    private function dateCorps(array $analyse): ?string
+    {
         $dates = $analyse['origine']['cles']['dates'] ?? [];
-        if (is_array($dates)) {
-            foreach ($dates as $d) {
-                $candidats[] = $d;
-            }
+        if (!is_array($dates)) {
+            return null;
         }
-        foreach ($candidats as $d) {
+        foreach ($dates as $d) {
             if (is_string($d) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $d, $m) === 1
                 && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
                 return $d;

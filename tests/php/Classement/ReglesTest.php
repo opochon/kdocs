@@ -93,6 +93,44 @@ final class ReglesTest extends TestCase
         self::assertSame('Document RH', $r['type'], 'la règle RH passe avant la règle Contrat');
     }
 
+    /** @return array<string, array{string, ?string}> */
+    public static function datesEnTete(): array
+    {
+        return [
+            'lieu, le JJ.MM.AAAA' => ["Hotel de Ville\n\nModeleville, le 22.01.2026\n\nConcerne : Attestation\n", '2026-01-22'],
+            'date de facture' => ["FACTURE N° PS-2026-101\nDate : 05.01.2026 Echeance : 30 jours\n", '2026-01-05'],
+            'une date du corps seulement' => ["Nous attestons un emploi depuis le 1er janvier 2024.\n", null],
+            'aucune date' => ["Du texte sans date.\n", null],
+        ];
+    }
+
+    #[DataProvider('datesEnTete')]
+    public function testDateEnTete(string $texte, ?string $attendue): void
+    {
+        self::assertSame($attendue, Regles::dateEnTete($texte));
+    }
+
+    public function testDateEnTeteNeConfondPasUnNumeroIde(): void
+    {
+        self::assertNull(Regles::dateEnTete("**Atelier Numerique Exemple Sarl**\nCHE-100.000.002 TVA\n"));
+    }
+
+    public function testTitreVientDeLaPieceJamaisDuLot(): void
+    {
+        self::assertSame(
+            'Attestation de travail - collaborateur fictif Jean Exemple',
+            Regles::titrePiece("Concerne : Attestation de travail - collaborateur fictif Jean Exemple\n", 'Document RH', 'Commune de Modeleville', null),
+        );
+        self::assertSame(
+            'PS-2026-101',
+            Regles::titrePiece("FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n", 'Facture', 'Papeterie des Sapins Fictive SA', null),
+        );
+        self::assertSame(
+            'Reçu Garage du Banc d’Essai Sarl 2026-02-20',
+            Regles::titrePiece("RECU\nRecu la somme de CHF 74.55 en especes.\n", 'Reçu', 'Garage du Banc d’Essai Sarl', '2026-02-20'),
+        );
+    }
+
     public function testLeProprietaireDoitFigurerDansLaPiecePourUnDocumentRh(): void
     {
         $texte = "**Commune de Modeleville**\nConcerne : Attestation de travail - Jean Exemple\n";

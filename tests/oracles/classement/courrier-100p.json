@@ -7,6 +7,8 @@
     "valides_type_faux": 0,
     "emetteurs_faux": 0,
     "autre_valides_seuls": 0,
+    "dates_fausses": 0,
+    "titres_invalides": 0,
     "taux_valide_seul_min": 0.85
   },
   "attendu": {

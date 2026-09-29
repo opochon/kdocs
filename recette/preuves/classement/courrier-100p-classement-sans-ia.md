@@ -1,4 +1,4 @@
-# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 15:54
+# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 16:09
 
 Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 
@@ -12,6 +12,8 @@ Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 | Émetteurs lus | — | 53 |
 | Émetteurs faux | 0 | 0 |
 | « Autre » validé seul | 0 | 0 |
+| Dates fausses (en-tête) | 0 | 0 |
+| Titres invalides (vide ou nom du lot) | 0 | 0 |
 | Durée | — | 0.03 s |
 
 ## Laissés à contrôler
