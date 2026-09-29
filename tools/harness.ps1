@@ -46,6 +46,10 @@ if (-not (Test-Path $sonde)) {
   $couches['7-securite'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Select-Object -Last 1) -join '' }
 }
 
+# 2. Contrat : mêmes propriétés pour chaque implémentation et toutes les routes déclarées, sur serveur HTTP réel.
+$sortie = & php tools\banc\contrat.php 2>&1
+$couches['2-contrat'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Select-Object -Last 1) -join '' }
+
 # 6. Charge : 3 puis 10 utilisateurs simultanés, une tâche d'ingestion en fond, base gedv2_test sous verrou.
 #    Fonds de 10 000 documents préparé dans var/ (jamais dans tests/corpus) ; mesuré par tools\banc\charge.php.
 $charge = 'tools\banc\charge.php'
@@ -57,7 +61,7 @@ if (-not (Test-Path $charge)) {
 }
 
 # Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
-foreach ($c in '2-contrat', '5-personas') {
+foreach ($c in '5-personas') {
   $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }
 }
 

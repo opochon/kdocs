@@ -3,7 +3,10 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="tests/bootstrap.php" colors="true" failOnWarning="true" failOnRisky="true">
     <testsuites>
-        <testsuite name="gedv2"><directory>tests/php</directory></testsuite>
+        <testsuite name="gedv2">
+            <directory>tests/php</directory>
+            <directory>tests/contrats</directory>
+        </testsuite>
     </testsuites>
     <php>
         <!-- Les tests n'écrivent JAMAIS ailleurs que dans gedv2_test (leçon GEDv1 du 28-09). -->

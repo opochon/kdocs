@@ -59,6 +59,9 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 
 ## Demandes
 
+- H-2 contrat (29-09) : `POST /connexion` sans CSRF répond correctement 403, mais le gabarit de refus ne publie pas
+  les deux champs nommés `etape` et `cause` exigés par le contrat HTTP (contrairement à `GardeCentrale::refuser`).
+  À corriger dans le secteur Droits/Sécurité ; le harness le laisse ROUGE, sans masquer l'écart.
 - Interface : lorsque les écrans ne seront plus alimentés par `Ui\\Maquette`, appeler le résolveur des droits de dossier
   avant de rendre chaque ligne de liste et chaque résultat de recherche. La garde refuse déjà fiche, aperçu, fichier et
   miniature ; l'écran de liste doit à son tour omettre les documents hors ACL plutôt que de les rendre non actionnables.

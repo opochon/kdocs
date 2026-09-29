@@ -78,3 +78,19 @@ parcourent tout le fonds à chaque requête. Défauts nommés et consignés en D
 
 ETAT: bloqué: p95 lecture mesuré à 5,5 s à 10 000 documents (seuil 1,5 s) — trois défauts sectoriels nommés et inscrits en Demandes (Interface, Recherche & aperçu, Ingestion) ; écritures, collisions et ingestion tiennent.
 
+## Journal H-2 — 29-09-2026
+
+- Oracles abstraits ajoutés sous `tests/contrats/`, inclus dans PHPUnit : `Depot` (`DepotFichiers`), `Classeur`
+  (`ClasseurGed`) et `Ingestion\Source` (`SourceDossier`, `SourceAdresse`, `SourceApi`). Ils vérifient respectivement
+  fonds auto-descriptif + `.meta.json` + v1 + index, preuve obligatoire et refus de « Autre », et rejeu sans doublon.
+- `tools/banc/contrat.php` rejoue ces oracles puis démarre le serveur PHP de test, appelle chaque route de
+  `DroitsRoutes` avec un compte synthétique lorsque la session est requise, et contrôle les refus nommés. Les réponses
+  202/200 et les erreurs JSON de l'API d'entrée sont confrontées aux schémas de `docs/api/depots.yaml`.
+- Preuves : `php vendor/bin/phpunit tests/contrats` vert (8 tests, 49 assertions) ; banc HTTP rejoué sur serveur réel :
+  toutes les routes et l'API tiennent, sauf `POST /connexion` sans CSRF (403 mais refus sans `etape`/`cause`). Défaut
+  consigné dans `docs/secteurs/droits-securite.md`, rubrique Demandes ; non masqué, donc couche 2 ROUGE tant qu'il vit.
+- Le banc impose `DB_NAME=gedv2_test`, utilise le verrou de `tests/bootstrap.php`, et ne supprime aucune table ; ses
+  fichiers, sessions et serveur restent temporaires.
+
+ETAT: fini
+
