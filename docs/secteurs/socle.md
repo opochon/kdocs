@@ -35,3 +35,55 @@ Tu IMPLÉMENTES le contrat `src/Contrats/Depot.php` (classe `Ged\Socle\DepotFich
 - (vue d'ensemble, 29-09) L'installateur appelle `Ged\<Secteur>\Schema::installer(\PDO)` pour chaque secteur dont la classe
   existe (Securite, Socle, Ingestion, Classement, Apercu, Recherche, Workflows, Jonctions), après ton propre schéma.
   Connexion : `Ged\Base::pdo($config)` et `Ged\Base::assurerBase($config)` (déjà écrits).
+- (socle, 29-09) La reconstruction vide puis refait les tables `documents`, `document_versions`,
+  `document_deplacements`. Toute table qui référence `documents.id` (ex. `ingestion_travaux.document_id`) casse au
+  passage : le secteur Demandes/Jonctions devra re-liar par `chemin_relatif` ou `empreinte`, jamais par l'id.
+- (socle, 29-09) Pour lire le fonds : passer par `Ged\Contrats\Depot` (`Ged\Socle\DepotFichiers`), jamais par SQL direct —
+  l'index peut être reconstruit à tout moment, seul le dossier fait foi.
+
+## Journal V2-01 (29-09)
+
+**Fait, clause par clause**
+1. `tools/installer.php` : pose le schéma du socle puis celui de chaque secteur présent (ordre du Kernel), refuse une base
+   peuplée sans `--remplacer`, fait alors un dump SQL complet en PHP pur sous `var/sauvegardes/` AVANT de remplacer,
+   refuse toute base autre que `gedv2`/`gedv2_test`, pose le compte admin (mot de passe haché, affiché une fois).
+   Garde ≤ 20 tables au départ (8 aujourd'hui).
+2. `DepotFichiers::deposer()` : copie la pièce, la range en `année/type[/émetteur]/Nom.pdf` (assainissement Windows repris
+   de GEDv1, accents conservés, noms réservés suffixés), écrit `<fichier>.meta.json` (JSON canonique), archive la v1 dans
+   `.versions/<fichier>/v001_<hash8>.<ext>`, indexe la ligne. Le nom de fichier est FIXÉ au dépôt ; `mettreAJour()` ne
+   déplace que le rangement et trace le déplacement (cause `mise_a_jour`).
+3. `Indexeur::passer()` : deux relevés de stabilité `taille:mtime` dans `.index/etat.json` (un fichier en cours d'écriture
+   n'est jamais lu à moitié) ; contenu changé → l'ancienne version part en `.versions/` avant mise à jour de l'index,
+   v1 intacte. Passe bornée par budget (`passer(int $budgetS = 20)`), marquage `absent_depuis` seulement sur passe complète.
+4. Renommage/déplacement hors application : même `empreinte` à un nouveau chemin + ancien chemin disparu → la ligne suit
+   (même id), `.versions/` et `.meta.json` suivent, le déplacement est tracé dans `document_deplacements`
+   (cause `indexeur`). La base suit le dossier, jamais l'inverse.
+5. `tools/reconstruire-index.php` + `Socle\Reconstructeur` : TRUNCATE des trois tables puis reconstruction depuis le dossier
+   (fonds + `.corbeille/`). Preuve d'égalité par le hash sha256 d'un export canonique (`Socle\Export`) — sans ids ni
+   horodatages, sinon l'égalité serait fausse par construction. Refuse de partir si un document vivant manque au dossier.
+6. Zéro suppression : aucun `DELETE FROM` dans `src/` (garde statique dans `CorbeilleTest`), `TRUNCATE` uniquement chez
+   le Reconstructeur. Corbeille = déplacement sous `.corbeille/<chemin>` (arborescence conservée) + drapeaux
+   `supprime_le`/`supprime_par` ; `restaurer()` remet le fichier octet pour octet et lève le drapeau.
+
+**Preuves**
+- PHPUnit : 28 tests / 159 assertions verts (`tests/php/Socle/` : RangementTest 8, IndexeurTest 7, CorbeilleTest 5,
+  ReconstructionTest 4, InstallateurTest 4).
+- Porte rejouable sans PHPUnit : `php tests/oracles/socle/porte-v2-01.php` → les six clauses OK, code de sortie 0,
+  base de test remise en installation fraîche à la fin.
+- Commits : b1c3d86 (rangement + .meta.json + v1), fa68d97 (indexeur : versions et suivi du dossier), d690470 (corbeille,
+  zéro suppression), f9063c6 (reconstruction, porte F12), 96d73e4 (les tests restituent STORAGE_ROOT), 26582be
+  (installateur), 92507cb (oracle de porte).
+
+**Décisions retenues (divergences assumées d'avec GEDv1)**
+- Pas de dédoublonnage de contenu dans l'indexeur : le dossier fait foi, deux fichiers identiques à deux endroits sont
+  deux documents. L'Ingestion dédoublonne déjà en amont (`uq_empreinte_parent`).
+- Journal des déplacements non reconstruisable : `document_deplacements` est une trace d'histoire, pas une donnée du
+  fonds ; une reconstruction le vide. Si le secteur Demandes veut une trace durable, elle devra vivre dans le dossier.
+- MIME : carte d'extensions AVANT `finfo` (déterministe, et corrige les xls/xlsx/odt/rtf manquants de GEDv1).
+
+**Reste hors du lot (signalé, non bloquant)**
+- Le verrou des passages concurrents de l'indexeur (deux processus en même temps sur le même fonds) : le harness est
+  séquentiel, le sujet est pour le lot exploitation.
+- Les tests Selenium/E2E dynamiques (ids de documents instables) relèvent du secteur Interface.
+
+ETAT: fini
