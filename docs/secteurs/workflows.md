@@ -1,6 +1,6 @@
 # Secteur WORKFLOWS — déclencheurs, actions, états, designer
 
-Agent : GLM · Juge : DeepCode · Lot : V2-06 (après V2-03 et V2-07a)
+Agent : DeepCode · Juge : Claude Code (GLM est pris par V2-04) · Lot : V2-06 (après V2-03 et V2-07a)
 
 ## Mission
 Deux niveaux, un seul moteur :
