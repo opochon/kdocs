@@ -67,10 +67,12 @@ final class OracleCourrier100pTest extends TestCase
         self::assertSame(0, $mes['autre_valides_seuls'], '« Autre » jamais validé seul');
         self::assertSame($mes['documents'], $mes['emetteurs_lus'], 'tous les émetteurs sont lus sur ce lot');
         self::assertGreaterThanOrEqual((float) $oracle['seuils']['taux_valide_seul_min'], $mes['valides'] / $mes['documents'], 'taux validé seul');
-        self::assertSame(
+        // Au moins le socle validé seul sans propriétaire configuré ; si GED_ORGANISATION est renseigné,
+        // le Document RH s'ajoute (53/53), jamais moins.
+        self::assertGreaterThanOrEqual(
             (int) $oracle['attendu']['valides_seuls'],
             $mes['valides'],
-            'attendu : 52 pièces validées seules, le Document RH restant à contrôler sans GED_ORGANISATION',
+            'le Document RH ne se valide qu’avec GED_ORGANISATION dans la pièce ; le reste suit les règles',
         );
     }
 }
