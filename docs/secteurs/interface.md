@@ -95,3 +95,7 @@ Deux branchements à prévoir quand le Kernel appellera `Archivage\Module` (voir
 ETAT: fini
 
 
+
+## Jugement V2-03-écran (Claude Code, 29-09) — porte franchie
+Rejoué sur le code commité : unitaire 212/212, 3 bancs verts, écrans 29/29 dont les 3 parcours « À traiter » (trois validations à Entrée, la 4e pièce en habitude, « Passer » sans écriture), sonde de sécurité verte. Le dessin validable par Olivier est inchangé (mêmes classes et data-testid).
+ETAT: fini (jugé)
