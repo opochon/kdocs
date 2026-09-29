@@ -55,6 +55,10 @@ final class SourceDossier implements Source
                 $entrees[] = new Entree($cible, 'dossier', $f->getFilename());
             }
         }
+        // Sans cette mémoire, aucun fichier ne serait jamais « stable » : son dossier doit exister (trouvé par le banc F1).
+        if (!is_dir(dirname($this->fichierEtat))) {
+            mkdir(dirname($this->fichierEtat), 0775, true);
+        }
         file_put_contents($this->fichierEtat, json_encode($maintenant, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
         return $entrees;

@@ -42,6 +42,15 @@ final class PiloteTest extends TestCase
         return new Pilote(new Travaux($this->pdo), [$source], $decoupeur, $this->depot, null, $this->tmp . '/travail');
     }
 
+    public function testMemoireDEtatDansUnDossierQuiNExistePasEncore(): void
+    {
+        // Régression trouvée par le banc F1 : zone de travail neuve → la mémoire n'était jamais écrite → rien n'entrait.
+        file_put_contents($this->tmp . '/entree/lot.pdf', '%PDF-1.4 a');
+        $source = new SourceDossier($this->tmp . '/entree', $this->tmp . '/neuf/recus', $this->tmp . '/neuf/etat.json');
+        self::assertSame([], $source->relever());
+        self::assertCount(1, $source->relever(), 'stable au second relevé, donc pris');
+    }
+
     public function testUnFichierEnCoursDEcritureNEstPasPris(): void
     {
         file_put_contents($this->tmp . '/entree/lot.pdf', '%PDF-1.4 a');

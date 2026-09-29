@@ -1,0 +1,56 @@
+{
+    "lot": "courrier-100p",
+    "date": "2026-09-29T15:52:03+00:00",
+    "ia": false,
+    "duree_s": 123.8,
+    "documents_attendus": 53,
+    "meta_json_dans_le_fonds": 53,
+    "documents_indexes": 53,
+    "valides_seuls": 0,
+    "pages_perdues": [],
+    "travaux_en_erreur": [],
+    "redepot": {
+        "recus": 0,
+        "doublons": 1,
+        "decoupes": 0,
+        "ranges": 0,
+        "erreurs": 0,
+        "alertes": []
+    },
+    "tours": [
+        {
+            "recus": 0,
+            "doublons": 0,
+            "decoupes": 0,
+            "ranges": 0,
+            "erreurs": 0,
+            "alertes": []
+        },
+        {
+            "recus": 1,
+            "doublons": 0,
+            "decoupes": 1,
+            "ranges": 0,
+            "erreurs": 0,
+            "alertes": []
+        },
+        {
+            "recus": 0,
+            "doublons": 0,
+            "decoupes": 0,
+            "ranges": 53,
+            "erreurs": 0,
+            "alertes": []
+        },
+        {
+            "recus": 0,
+            "doublons": 0,
+            "decoupes": 0,
+            "ranges": 0,
+            "erreurs": 0,
+            "alertes": []
+        }
+    ],
+    "porte": "FRANCHIE",
+    "fonds": "C:\\Users\\opochon\\AppData\\Local\\Temp/gedv2-f1-20260929-154959/fonds"
+}

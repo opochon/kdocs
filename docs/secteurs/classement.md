@@ -65,3 +65,14 @@ dans le texte)**. IA absente, en panne ou en désaccord avec l'indice → « à 
    hors habitudes.
 
 ETAT: à reprendre (voir Jugement V2-03)
+
+## Jugement V2-03, complément (banc F1 de bout en bout, 29-09)
+Le rejeu complet (`tools/banc/rejouer-ingestion.php`) range 53/53 pièces, mais le fonds montre deux défauts de classement :
+- **date** : l'attestation p. 21 (« Modeleville, le 22.01.2026 ») est datée `2024-01-01` — la date citée dans le corps
+  (« depuis le 1er janvier 2024 ») a gagné — et la pièce est donc rangée sous `2024/`. La date du document = celle de
+  l'en-tête (« <lieu>, le JJ.MM.AAAA »), puis la date de facture ; une date du corps seulement en dernier recours.
+- **titre** : `courrier-du-matin-100p (p. 21)` (le nom du lot). Le titre vient de la pièce : ligne « Concerne », numéro
+  de facture, sinon type + émetteur + date. Jamais le nom du lot.
+Le banc de classement doit mesurer date exacte et titre non vide/non « lot » contre `verite.json` (qui porte la date).
+
+ETAT: à reprendre (voir Jugement V2-03 et complément)
