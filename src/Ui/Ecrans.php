@@ -49,10 +49,31 @@ final class Ecrans
 
     public function recherche(Requete $req, Reponse $rep): Reponse
     {
-        $q = trim((string) ($req->getQueryParams()['q'] ?? ''));
-        $resultats = array_map(fn (array $r) => $r + ['segments' => self::surligner($r['extrait'], $q !== '' ? $q : 'maintenance')], Maquette::resultats($q));
+        // Le secteur Recherche branche ses vrais résultats (source : le fonds) ; le gabarit et son
+        // système visuel restent le contrat. Point de branchement minimal, sans toucher au Kernel.
+        if (class_exists(\Ged\Recherche\Ecran::class)) {
+            return $this->vue->rendre($rep, 'ecrans/recherche.twig',
+                $this->commun('recherche') + \Ged\Recherche\Ecran::depuisRacine()->donnees($req->getQueryParams()));
+        }
 
-        return $this->vue->rendre($rep, 'ecrans/recherche.twig', $this->commun('recherche') + ['q' => $q, 'resultats' => $resultats]);
+        // Repli de démonstration (aucune donnée réelle) : même forme de données pour le même gabarit.
+        $q = trim((string) ($req->getQueryParams()['q'] ?? ''));
+        $terme = $q !== '' ? $q : 'maintenance';
+        $resultats = array_map(static fn (array $r): array => [
+            'id' => $r['id'], 'titre' => $r['titre'], 'type' => $r['type'], 'emetteur' => null,
+            'date' => $r['date'], 'montant' => null,
+            'segments' => self::surligner($r['extrait'], $terme),
+            'titre_segments' => [['t' => $r['titre'], 'hit' => false]],
+            'extraits' => [self::surligner($r['extrait'], $terme)],
+            'pertinence' => 0.0,
+        ], Maquette::resultats($q));
+
+        return $this->vue->rendre($rep, 'ecrans/recherche.twig', $this->commun('recherche') + [
+            'q' => $q, 'resultats' => $resultats, 'total' => count($resultats), 'duree' => '0,08', 'mode' => 'demo',
+            'erreur' => null, 'filtres_actifs' => false, 'types_filtre' => [],
+            'filtres' => ['type' => null, 'emetteur' => null, 'date_debut' => null, 'date_fin' => null,
+                'montant_min' => null, 'montant_max' => null],
+        ]);
     }
 
     public function document(Requete $req, Reponse $rep, array $args): Reponse

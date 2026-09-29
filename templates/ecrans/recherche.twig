@@ -4,23 +4,74 @@
 {% block contenu %}
 <div class="page" data-testid="ecran-recherche">
   <div class="page-tete">
-    <div class="titre"><h1>Recherche</h1><span class="muted">{{ resultats|length }} résultats{% if q %} pour « {{ q }} »{% endif %} · 0,08 s</span></div>
+    <div class="titre">
+      <h1>Recherche</h1>
+      <span class="muted" data-testid="recherche-compte">{{ total }} résultat{{ total > 1 ? 's' : '' }}{% if q %} pour « {{ q }} »{% endif %} · {{ duree }} s{% if mode == 'like' %} · repli mot à mot{% endif %}</span>
+    </div>
     <div class="actions">
-      <div class="filtres" data-testid="filtres">
-        <button class="chip" type="button">Type : tous</button><button class="chip" type="button">Émetteur</button>
-        <button class="chip" type="button">Date</button><button class="chip" type="button">Montant</button>
-      </div>
+      <form class="filtres" data-testid="filtres" action="/recherche" method="get" role="search">
+        <input type="hidden" name="q" value="{{ q }}">
+        <label class="chip" for="filtre-type">Type
+          <select id="filtre-type" name="type" data-testid="filtre-type">
+            <option value="">tous</option>
+            {% for t in types_filtre %}<option value="{{ t }}"{% if filtres.type == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="chip" for="filtre-emetteur">Émetteur
+          <input id="filtre-emetteur" name="emetteur" value="{{ filtres.emetteur }}" data-testid="filtre-emetteur" size="10">
+        </label>
+        <label class="chip" for="filtre-date-debut">Du
+          <input id="filtre-date-debut" type="date" name="date_debut" value="{{ filtres.date_debut }}" data-testid="filtre-date-debut">
+        </label>
+        <label class="chip" for="filtre-date-fin">Au
+          <input id="filtre-date-fin" type="date" name="date_fin" value="{{ filtres.date_fin }}" data-testid="filtre-date-fin">
+        </label>
+        <label class="chip" for="filtre-montant-min">Montant min
+          <input id="filtre-montant-min" name="montant_min" value="{{ filtres.montant_min }}" data-testid="filtre-montant-min" size="6">
+        </label>
+        <label class="chip" for="filtre-montant-max">max
+          <input id="filtre-montant-max" name="montant_max" value="{{ filtres.montant_max }}" data-testid="filtre-montant-max" size="6">
+        </label>
+        <button class="btn discret" type="submit" data-testid="action-filtrer">Filtrer</button>
+        {% if filtres_actifs %}<a class="btn discret" href="/recherche?q={{ q|url_encode }}" data-testid="action-effacer-filtres">Effacer les filtres</a>{% endif %}
+      </form>
       <button class="btn discret" type="button" data-testid="action-enregistrer-vue">Enregistrer comme vue</button>
     </div>
   </div>
-  <section class="carte" data-testid="resultats">
+
+  {% if erreur %}
+  <div class="carte" data-testid="recherche-erreur" style="border-color:var(--danger);padding:12px 16px;margin-bottom:12px">
+    <strong>Recherche impossible</strong> — étape « {{ erreur.etape }} », cause : {{ erreur.cause }}
+    <span class="mono">(réf. {{ erreur.reference }})</span>
+  </div>
+  {% endif %}
+
+  <section class="carte" data-testid="resultats" data-mode="{{ mode }}">
     {% for r in resultats %}
       <article class="resultat" data-testid="resultat-{{ r.id }}">
-        <div style="display:flex;gap:8px;align-items:center"><a href="/documents/{{ r.id }}"><strong>{{ r.titre }}</strong></a>
-          <span class="chip">{{ r.type }}</span><span class="muted">{{ r.date|date('d.m.Y') }}</span>
-          <a class="btn discret" style="margin-left:auto" href="/bibliotheque?doc={{ r.id }}">Documents semblables</a></div>
-        <div class="muted">{% for s in r.segments %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          {% if r.id > 0 %}
+            <a href="/documents/{{ r.id }}"><strong>{% for s in r.titre_segments %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</strong></a>
+          {% else %}
+            <strong>{% for s in r.titre_segments %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</strong>
+          {% endif %}
+          {% if r.type %}<span class="chip">{{ r.type }}</span>{% endif %}
+          {% if r.emetteur %}<span class="muted">{{ r.emetteur }}</span>{% endif %}
+          {% if r.date %}<span class="muted">{{ r.date|date('d.m.Y') }}</span>{% endif %}
+          {% if r.montant is not null %}<span class="muted">{{ r.montant|number_format(2, '.', ' ') }} CHF</span>{% endif %}
+          <a class="btn discret" style="margin-left:auto" href="/bibliotheque?doc={{ r.id }}">Documents semblables</a>
+        </div>
+        {% for extrait in r.extraits %}
+          <div class="muted">{% for s in extrait %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</div>
+        {% endfor %}
       </article>
+    {% else %}
+      {% if not erreur %}
+      <article class="resultat" data-testid="recherche-vide">
+        <strong>Aucun document ne correspond</strong>
+        <div class="muted">Élargissez la requête ou retirez un filtre : rien n’est masqué en silence.</div>
+      </article>
+      {% endif %}
     {% endfor %}
   </section>
 </div>
