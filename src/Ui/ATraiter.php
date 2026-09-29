@@ -24,6 +24,9 @@ use Throwable;
  *   raison, preuve) ;
  * - `valider()` est le SEUL geste qui écrit : la mise à jour du fonds passe par `Ged\Contrats\Depot`, et
  *   le choix humain enseigne l'habitude (`Ged\Classement\Habitudes`) — jamais un tri automatique.
+ *
+ * L'aperçu réel se construit depuis le chemin indexé (O(1) par pièce) : pas de parcours du fonds entier à
+ * chaque rendu, le dossier « fait foi » étant déjà vérifié par la présence du fichier.
  */
 final class ATraiter
 {
@@ -32,6 +35,9 @@ final class ATraiter
 
     private readonly ?Depot $depot;
     private readonly ?Habitudes $habitudes;
+
+    /** @var list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>|null */
+    private ?array $memoireDocuments = null;
 
     public function __construct(
         private readonly Config $config,
@@ -60,16 +66,13 @@ final class ATraiter
      */
     public function donnees(array $parametres, string $csrf): array
     {
-        $file = [];
         $auto = 0;
         foreach ($this->documents() as $doc) {
             if ($this->statut($doc) === 'valide') {
                 $auto++;
-            } elseif ($this->statut($doc) === 'a_controler') {
-                $file[] = $this->ligne($doc);
             }
         }
-        usort($file, self::comparer());
+        $file = $this->file();
 
         $choisi = (int) ($parametres['doc'] ?? 0);
         $courant = null;
@@ -79,7 +82,7 @@ final class ATraiter
                 break;
             }
         }
-        $courant = $this->enrichir($courant ?? $file[0] ?? $this->courantVide());
+        $courant ??= $file[0] ?? $this->courantVide();
         $enCours = $this->enCours();
 
         return [
@@ -150,27 +153,40 @@ final class ATraiter
     /** @return list<array<string, mixed>> */
     private function file(): array
     {
-        $file = [];
+        return array_map(fn (array $doc): array => $this->ligne($doc), $this->docsAControler());
+    }
+
+    /**
+     * @return list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>
+     */
+    private function docsAControler(): array
+    {
+        $docs = [];
         foreach ($this->documents() as $doc) {
             if ($this->statut($doc) === 'a_controler') {
-                $file[] = $this->ligne($doc);
+                $docs[] = $doc;
             }
         }
-        usort($file, self::comparer());
+        usort($docs, static function (array $a, array $b): int {
+            return [self::cleDate($a), $a['id']] <=> [self::cleDate($b), $b['id']];
+        });
 
-        return $file;
+        return $docs;
     }
 
     /**
      * Documents vivants du fonds, lus par le dépôt : une ligne d'index dont le fichier a disparu est
-     * ignorée (le dossier fait foi, jamais un index périmé).
+     * ignorée (le dossier fait foi, jamais un index périmé). Mémoïsé pour un rendu en une lecture.
      *
-     * @return list<array{id:int, ligne:array<string, mixed>, meta:array<string, mixed>}>
+     * @return list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>
      */
     private function documents(): array
     {
+        if ($this->memoireDocuments !== null) {
+            return $this->memoireDocuments;
+        }
         if ($this->depot === null) {
-            return [];
+            return $this->memoireDocuments = [];
         }
         try {
             $documents = [];
@@ -188,17 +204,17 @@ final class ATraiter
                     continue;
                 }
                 $meta = is_string($ligne['meta'] ?? null) ? (json_decode((string) $ligne['meta'], true) ?: []) : (array) ($ligne['meta'] ?? []);
-                $documents[] = ['id' => (int) $ligne['id'], 'ligne' => $ligne, 'meta' => $meta];
+                $documents[] = ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
             }
 
-            return $documents;
+            return $this->memoireDocuments = $documents;
         } catch (Throwable) {
             // Base muette (table absente, liaison perdue) : l'écran reste lisible, jamais un 500 muet.
-            return [];
+            return $this->memoireDocuments = [];
         }
     }
 
-    /** @param array{id:int, ligne:array<string, mixed>, meta:array<string, mixed>} $doc */
+    /** @param array{meta:array<string, mixed>, ligne:array<string, mixed>} $doc */
     private function statut(array $doc): string
     {
         $statut = $doc['meta']['statut'] ?? $doc['ligne']['statut'] ?? 'a_controler';
@@ -207,7 +223,7 @@ final class ATraiter
     }
 
     /**
-     * @param array{id:int, ligne:array<string, mixed>, meta:array<string, mixed>} $doc
+     * @param array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>} $doc
      *
      * @return array<string, mixed>
      */
@@ -217,6 +233,8 @@ final class ATraiter
         $classement = is_array($meta['classement'] ?? null) ? $meta['classement'] : [];
         $source = (string) ($classement['source'] ?? 'regle');
         $confiance = (float) ($classement['confiance'] ?? 0.0);
+        $rendu = $this->rendu($doc);
+        $pages = $this->pages($meta, $rendu);
 
         return [
             'id' => $doc['id'],
@@ -231,61 +249,73 @@ final class ATraiter
             'date' => $this->dateIso($meta['date'] ?? null) ?? '',
             'montant' => isset($meta['montant']) && is_numeric($meta['montant']) ? (float) $meta['montant'] : null,
             'etiquettes' => $this->etiquettes($meta['etiquettes'] ?? null),
-            'pages' => max(1, (int) ($meta['pages'] ?? 1)),
+            'pages' => $pages,
             'texte' => $this->lignesTexte($meta['texte'] ?? null),
-            'rendu' => null,
+            'rendu' => $rendu,
         ];
     }
 
-    /** @param array<string, mixed> $courant @return array<string, mixed> */
-    private function enrichir(array $courant): array
+    /**
+     * Ce que la visionneuse du secteur Aperçu doit charger (macro `visionneuse.moteur`), construit depuis
+     * le chemin indexé. Le fichier est présent (vérifié plus haut) ; un format non rendable donne un
+     * message nommé, jamais un cadre vide.
+     *
+     * @param array{id:int, absolu:string, meta:array<string, mixed>, ligne:array<string, mixed>} $doc
+     *
+     * @return array{url:string, categorie:string, pages:int, titre:string, message:string}
+     */
+    private function rendu(array $doc): array
     {
-        if (($courant['id'] ?? 0) < 1) {
-            return $courant;
+        $extension = strtolower(pathinfo($doc['absolu'], PATHINFO_EXTENSION));
+        $categorie = \Ged\Apercu\Source::categorie($extension);
+        $pages = $this->pages($doc['meta'], null);
+        $titre = (string) ($doc['meta']['titre'] ?? $doc['ligne']['titre'] ?? '');
+        $url = '/documents/' . $doc['id'] . '/apercu/fichier';
+
+        if ($categorie === 'pdf') {
+            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $pages, 'titre' => $titre, 'message' => ''];
         }
-        $rendu = $this->rendu((int) $courant['id']);
-        if ($rendu !== null) {
-            $courant['rendu'] = $rendu;
-            if (($rendu['pages'] ?? 0) > 0) {
-                $courant['pages'] = (int) $rendu['pages'];
+        if ($categorie === 'image') {
+            return ['url' => $url, 'categorie' => 'image', 'pages' => 1, 'titre' => $titre, 'message' => ''];
+        }
+        if ($categorie === 'bureautique') {
+            if (\Ged\Apercu\Outils::libreOffice() === null) {
+                return ['url' => '', 'categorie' => 'bureautique', 'pages' => $pages, 'titre' => $titre, 'message' => \Ged\Apercu\Outils::MSG_LIBREOFFICE];
             }
+
+            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $pages, 'titre' => $titre, 'message' => ''];
         }
 
-        return $courant;
+        return ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $titre, 'message' => \Ged\Apercu\Outils::MSG_FORMAT];
     }
 
-    /**
-     * Ce que la visionneuse du secteur Aperçu doit charger, pour la pièce réelle (macro `visionneuse.moteur`).
-     * Un format non rendable donne un message nommé, jamais un cadre vide.
-     *
-     * @return array{url:string, categorie:string, pages:int, titre:string, message:string}|null
-     */
-    private function rendu(int $id): ?array
+    /** @param array<string, mixed> $meta @param array<string, mixed>|null $rendu */
+    private function pages(array $meta, ?array $rendu): int
     {
-        try {
-            $piece = \Ged\Apercu\Source::depuis($this->config)->parId($id);
-        } catch (Throwable) {
-            return null;
+        if ($rendu !== null && ($rendu['pages'] ?? 0) > 0) {
+            return (int) $rendu['pages'];
         }
-        if ($piece === null || !$piece->existe()) {
-            return null;
+        if (isset($meta['pages']) && is_numeric($meta['pages'])) {
+            return max(1, (int) $meta['pages']);
         }
-        $url = '/documents/' . $piece->id . '/apercu/fichier';
-        if ($piece->estPdf()) {
-            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $piece->pages, 'titre' => $piece->titre, 'message' => ''];
-        }
-        if ($piece->estImage()) {
-            return ['url' => $url, 'categorie' => 'image', 'pages' => 1, 'titre' => $piece->titre, 'message' => ''];
-        }
-        if ($piece->estBureautique()) {
-            if (\Ged\Apercu\Outils::libreOffice() === null) {
-                return ['url' => '', 'categorie' => 'bureautique', 'pages' => $piece->pages, 'titre' => $piece->titre, 'message' => \Ged\Apercu\Outils::MSG_LIBREOFFICE];
-            }
-
-            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $piece->pages, 'titre' => $piece->titre, 'message' => ''];
+        $origine = is_array($meta['origine'] ?? null) ? $meta['origine'] : [];
+        if (isset($origine['pages']) && is_numeric($origine['pages'])) {
+            return max(1, (int) $origine['pages']);
         }
 
-        return ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $piece->titre, 'message' => \Ged\Apercu\Outils::MSG_FORMAT];
+        return 1;
+    }
+
+    /** @param array{meta:array<string, mixed>, ligne:array<string, mixed>} $doc */
+    private static function cleDate(array $doc): string
+    {
+        $date = $doc['meta']['date'] ?? null;
+        if (is_string($date) && preg_match('#^\d{4}-\d{2}-\d{2}$#', $date) === 1) {
+            return $date;
+        }
+        $cree = (string) ($doc['ligne']['cree_le'] ?? '');
+
+        return strlen($cree) >= 10 ? substr($cree, 0, 10) : '9999-12-31';
     }
 
     /** @return array{en_cours:int, lots:int} */
@@ -338,17 +368,6 @@ final class ATraiter
     private function seuilPourcent(): int
     {
         return (int) round(max(0.0, min(1.0, (float) $this->config->get('CLASSEMENT_SEUIL', '0.8'))) * 100);
-    }
-
-    /** @return callable(array<string, mixed>, array<string, mixed>): int */
-    private static function comparer(): callable
-    {
-        return static function (array $a, array $b): int {
-            $dateA = ($a['date'] ?? '') !== '' ? $a['date'] : '9999-12-31';
-            $dateB = ($b['date'] ?? '') !== '' ? $b['date'] : '9999-12-31';
-
-            return [$dateA, $a['id']] <=> [$dateB, $b['id']];
-        };
     }
 
     private function champ(mixed $valeur): ?string
