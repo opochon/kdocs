@@ -32,6 +32,12 @@ Doit tourner en hébergement mutualisé Infomaniak : aucun démon obligatoire, a
    jamais de push. Fin de lot : dernière ligne du rapport `ETAT: <fini|bloqué: raison>`.
 7. Le juge d'un lot n'est jamais son auteur : la porte est rejouée par l'agent désigné dans le secteur.
 
+## Contrats entre secteurs
+`src/Contrats/` : interfaces partagées (ex. `Depot`, implémenté par Socle, appelé par Ingestion et Classement).
+Seul l'agent de vue d'ensemble les modifie ; un secteur qui a besoin d'un changement l'écrit dans ses Demandes.
+Chaque secteur expose ses routes par `src/<Secteur>/Module.php` (`enregistrer(App, Config, Vue)`), appelé par
+`src/Kernel.php` : personne ne modifie Kernel.
+
 ## Commandes
 - `powershell -File tools\serve.ps1` : serveur de dev sur http://127.0.0.1:8870
 - `powershell -File tools\harness.ps1` : garde-fous + PHPUnit + Playwright + registre (`recette/registre.json`)
