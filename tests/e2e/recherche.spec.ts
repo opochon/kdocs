@@ -1,11 +1,22 @@
 import { test, expect, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import { connecter } from './connexion';
 
 /**
  * Porte F5 du lot V2-05b — l'écran /recherche est branché sur les VRAIS documents du fonds (corpus
  * synthétique d'aperçu, STORAGE_ROOT des tests) : le terme est surligné, les filtres restreignent la
  * liste, une absence se dit, jamais une liste vide muette. Aucune donnée réelle.
+ *
+ * PERF-1 : l'index plein texte est bâti HORS requête par le job `tools/indexer-recherche.php` (comme le
+ * planificateur en production) ; l'écran ne le synchronise plus jamais lui-même.
  */
+test.beforeAll(() => {
+  execFileSync('php', ['tools/indexer-recherche.php', '--tout'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
+  });
+});
+
 test.beforeEach(async ({ page }) => { await connecter(page); });
 
 function surveillerConsole(page: Page): string[] {
