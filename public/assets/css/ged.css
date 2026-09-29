@@ -115,7 +115,7 @@ h1 { font-size: var(--fs-xl); } h2 { font-size: var(--fs-lg); } h3 { font-size: 
 /* Volets */
 .volets { display: grid; gap: 12px; flex: 1; min-height: 0; }
 .volets.traiter { grid-template-columns: 290px minmax(0, 1fr) 340px; }
-.volets.biblio { grid-template-columns: 220px minmax(0, 1fr) 380px; }
+.volets.biblio { grid-template-columns: 200px minmax(0, 1fr) 320px; }
 .volets.fiche { grid-template-columns: minmax(0, 1fr) 380px; }
 .volet { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .volet-tete { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
@@ -169,6 +169,7 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
 .arbre { list-style: none; margin: 0; padding: 6px; }
 .arbre a { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--r-sm); color: var(--text-2); }
 .arbre a:hover { background: var(--hover); text-decoration: none; }
+.arbre .libelle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arbre .compte { margin-left: auto; color: var(--muted); font-size: var(--fs-sm); }
 .arbre ul { list-style: none; padding-left: 18px; margin: 0; }
 .titre-section { padding: 10px 14px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }

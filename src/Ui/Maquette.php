@@ -82,7 +82,7 @@ final class Maquette
         return [
             ['nom' => 'Tous les documents', 'compte' => 1284, 'icone' => 'tout'],
             ['nom' => 'Factures à payer', 'compte' => 14, 'icone' => 'facture'],
-            ['nom' => 'Contrats à échéance (90 j)', 'compte' => 3, 'icone' => 'contrat'],
+            ['nom' => 'Contrats à échéance', 'compte' => 3, 'icone' => 'contrat'],
             ['nom' => 'Ajoutés cette semaine', 'compte' => 52, 'icone' => 'recent'],
             ['nom' => 'Documents RH', 'compte' => 27, 'icone' => 'rh'],
         ];

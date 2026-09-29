@@ -23,7 +23,7 @@
       <div class="volet-corps">
         <div class="titre-section">Vues</div>
         <ul class="arbre" data-testid="vues">
-          {% for v in vues %}<li><a href="#" data-testid="vue-{{ loop.index }}">{{ ic.i('vue') }}{{ v.nom }}<span class="compte">{{ v.compte }}</span></a></li>{% endfor %}
+          {% for v in vues %}<li><a href="#" data-testid="vue-{{ loop.index }}">{{ ic.i('vue') }}<span class="libelle">{{ v.nom }}</span><span class="compte">{{ v.compte }}</span></a></li>{% endfor %}
         </ul>
         <div class="titre-section">Dossiers</div>
         <ul class="arbre" data-testid="arbre-dossiers">
@@ -36,7 +36,7 @@
     <section class="carte volet" aria-label="Documents">
       <div class="volet-corps">
         <table class="table" data-testid="liste-documents">
-          <colgroup><col><col style="width:118px"><col style="width:30%"><col style="width:92px"><col style="width:96px"></colgroup>
+          <colgroup><col><col style="width:104px"><col style="width:24%"><col style="width:86px"><col style="width:84px"></colgroup>
           <thead><tr><th>Titre</th><th>Type</th><th>Émetteur</th><th>Date</th><th class="num">Montant</th></tr></thead>
           <tbody>
           {% for d in docs %}
