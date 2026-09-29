@@ -1,9 +1,9 @@
 {
-    "date": "2026-09-29T21:24:54+00:00",
-    "commit": "8fe7c3f",
-    "duree_s": 169.7,
+    "date": "2026-09-29T22:41:46+00:00",
+    "commit": "e7ee3c7",
+    "duree_s": 132.3,
     "documents": 10000,
-    "fonds": "F:\\DATA\\DEVELOPPEMENT\\GEDv2/var/charge/fonds/documents",
+    "fonds": "F:\\DATA\\DEVELOPPEMENT\\GEDv2-perf/var/charge/fonds/documents",
     "seuils": {
         "lecture_p95_ms": 1500,
         "ecriture_p95_ms": 3000
@@ -14,82 +14,82 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 9,
-                    "p50_ms": 156,
-                    "p95_ms": 662,
-                    "max_ms": 662
+                    "p50_ms": 151,
+                    "p95_ms": 325,
+                    "max_ms": 325
                 },
                 "recherche": {
                     "n": 9,
-                    "p50_ms": 1552,
-                    "p95_ms": 4371,
-                    "max_ms": 4371
+                    "p50_ms": 314,
+                    "p95_ms": 470,
+                    "max_ms": 470
                 },
                 "a-traiter": {
                     "n": 9,
-                    "p50_ms": 2923,
-                    "p95_ms": 3408,
-                    "max_ms": 3408
+                    "p50_ms": 170,
+                    "p95_ms": 338,
+                    "max_ms": 338
                 },
                 "apercu": {
                     "n": 9,
-                    "p50_ms": 1445,
-                    "p95_ms": 1777,
-                    "max_ms": 1777
+                    "p50_ms": 114,
+                    "p95_ms": 243,
+                    "max_ms": 243
                 },
                 "validation": {
                     "n": 40,
-                    "p50_ms": 2473,
-                    "p95_ms": 2863,
-                    "max_ms": 3116
+                    "p50_ms": 109,
+                    "p95_ms": 139,
+                    "max_ms": 164
                 }
             },
-            "lecture_p95_ms": 4371,
-            "ecriture_p95_ms": 2863,
+            "lecture_p95_ms": 470,
+            "ecriture_p95_ms": 139,
             "ecriture_n": 40,
             "requetes": 76,
             "erreurs": 0,
-            "ok": false
+            "ok": true
         },
         "10-utilisateurs": {
             "nom": "10-utilisateurs",
             "par_ecran": {
                 "bibliotheque": {
                     "n": 30,
-                    "p50_ms": 172,
-                    "p95_ms": 627,
-                    "max_ms": 627
+                    "p50_ms": 266,
+                    "p95_ms": 490,
+                    "max_ms": 490
                 },
                 "recherche": {
                     "n": 30,
-                    "p50_ms": 1936,
-                    "p95_ms": 2940,
-                    "max_ms": 3129
+                    "p50_ms": 376,
+                    "p95_ms": 762,
+                    "max_ms": 797
                 },
                 "a-traiter": {
                     "n": 30,
-                    "p50_ms": 5195,
-                    "p95_ms": 5518,
-                    "max_ms": 5585
+                    "p50_ms": 228,
+                    "p95_ms": 370,
+                    "max_ms": 462
                 },
                 "apercu": {
                     "n": 30,
-                    "p50_ms": 1833,
-                    "p95_ms": 2058,
-                    "max_ms": 2078
+                    "p50_ms": 151,
+                    "p95_ms": 310,
+                    "max_ms": 315
                 },
                 "validation": {
                     "n": 60,
-                    "p50_ms": 988,
-                    "p95_ms": 2592,
-                    "max_ms": 3457
+                    "p50_ms": 74,
+                    "p95_ms": 113,
+                    "max_ms": 192
                 }
             },
-            "lecture_p95_ms": 5518,
-            "ecriture_p95_ms": 2592,
+            "lecture_p95_ms": 762,
+            "ecriture_p95_ms": 113,
             "ecriture_n": 60,
             "requetes": 180,
             "erreurs": 0,
-            "ok": false
+            "ok": true
         }
     },
     "collisions": {
@@ -104,15 +104,12 @@
     "ingestion": {
         "finie": true,
         "detail": "53 pièces rangées, 0 travail restant",
-        "duree_s": 137.1,
+        "duree_s": 99.4,
         "documents_ajoutes": 53,
         "travaux_restants": 0,
         "erreurs": 0,
         "code": 0
     },
-    "defauts": [
-        "3-utilisateurs : p95 lecture 4371 ms ≥ 1500 ms",
-        "10-utilisateurs : p95 lecture 5518 ms ≥ 1500 ms"
-    ],
-    "porte": "NON FRANCHIE"
+    "defauts": [],
+    "porte": "FRANCHIE"
 }

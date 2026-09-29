@@ -94,3 +94,51 @@ ETAT: bloqué: p95 lecture mesuré à 5,5 s à 10 000 documents (seuil 1,5 s) �
 
 ETAT: fini
 
+## Journal PERF-1 — 29-09-2026
+
+**Fait** (les trois défauts nommés par le Journal H-6, corrigés sans changer le comportement)
+- **Interface** : `Ged\Ui\ATraiter` ne parcourt plus le fonds. La file des `a_controler` est lue par
+  `Ged\Socle\DepotFichiers::listerParStatut()` — requête appuyée sur l'index `k_statut (statut, supprime_le)`,
+  bornée par `LIMIT` — et le bilan « classés automatiquement » par `compterParStatut()` (COUNT couvert par le
+  même index). `Socle\Schema::assurerIndexStatut()` pose l'index sur les fonds créés avant lui (idempotent).
+- **Recherche** : `Ged\Recherche\Service::rechercher()` n'appelle plus `IndexPleinTexte::synchroniser()`. L'index
+  se construit HORS requête par `tools/indexer-recherche.php` (déjà présent) et par la tâche de fond nouvelle
+  `php tools/tache.php indexation [--limite=200]` (lot court, reprenable).
+- **Aperçu** : `Ged\Apercu\Source::parId()` résout l'id par l'index documentaire (`documents.id` →
+  `chemin_relatif`, `LIMIT 1`) ; le parcours du dossier n'est plus qu'un REPLI quand l'index ne connaît pas la
+  pièce (base absente, fonds reconstruit à la main). Le fichier doit toujours exister : le dossier fait foi.
+
+**Oracle d'abord (rouge → vert)**
+- `tests/php/Perf/` : fonds synthétique de 2 000 documents (`SupportFondsPerf`), preuve par le compteur d'accès
+  `Handler_read_rnd_next` (~6 lignes pour une requête indexée, ~2 000 pour un parcours) et par le temps comparé au
+  parcours complet. Rouge mesuré avant correctif : « À traiter » 2 003 lignes ; aperçu au niveau du parcours ;
+  recherche vidée par une synchronisation en requête (fonds éloigné = index marqué absent).
+- Tests existants inchangés et verts : `tests/php/Recherche` 19/19 ; `SourceTest` et `MiniatureTest` verts.
+
+**Mesures (10 000 documents, ingestion en fond, 0 erreur, 0 collision, porte FRANCHIE)**
+| Phase | p95 lecture | p95 écriture |
+|---|---|---|
+| 3 utilisateurs | 470 ms (avant 4 371 ms) | 139 ms |
+| 10 utilisateurs | 762 ms (avant 5 518 ms) | 113 ms |
+
+Par écran à 10 utilisateurs (p50 / p95) : Bibliothèque 266 / 490 ms ; Recherche 376 / 762 ms (avant 2 940) ;
+À traiter 228 / 370 ms (avant 5 518) ; Aperçu 151 / 310 ms (avant 2 058) ; Validation 74 / 113 ms.
+Ingestion : 53/53 pièces rangées, 0 travail restant. Preuves : `recette/preuves/charge/charge.{json,md}`.
+
+**Harness complet** (rejoué sur la copie propre du HEAD commité `e7ee3c7` — le vestiaire partagé porte en plus
+des travaux non commités d'autres agents, qui ne permettent pas de conclure depuis la racine)
+- VERT : `0-garde-fous` ; `1-unitaire` (223 tests, 1 036 assertions) ; `3-banc` (découpe 53/53, classement,
+  bout-en-bout) ; `4-ecrans` (29 parcours) ; `7-securite` ; `6-charge` (porte **FRANCHIE**, p95 lecture 762 ms).
+- ROUGE **hors PERF-1** : `5-personas` — « pas encore écrite » (couche à venir).
+- `2-contrat` était ROUGE pendant le run PERF-1 (`POST /connexion` refus non nommé, défaut Droits & sécurité
+  consigné au Journal H-2) ; le correctif Droits `97a9c4d`, arrivé après, le rend VERT : le banc
+  `tools/banc/contrat.php` rejoué sur le HEAD final `a73fe86` conclut « toutes les routes déclarées sont couvertes ».
+- L'oracle Playwright « recherche » joue désormais le job d'indexation hors requête (comme le planificateur) :
+  sans cela, la suppression de la synchronisation en requête vidait l'index des trois parcours de recherche.
+
+**Fichiers touchés** : `src/Socle/DepotFichiers.php`, `src/Socle/Schema.php`, `src/Ui/ATraiter.php`,
+`src/Recherche/Service.php`, `src/Apercu/Source.php`, `tools/tache.php`, `tests/php/Perf/`,
+`tests/php/Recherche/SupportRecherche.php`, `tests/e2e/recherche.spec.ts`. Rien hors de ces chemins ; le bloc
+`Socle\Schema` d'un agent voisin, présent non commité dans le vestiaire, a été laissé tel quel (hors commit).
+
+ETAT: fini
