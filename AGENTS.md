@@ -37,6 +37,9 @@ Doit tourner en hébergement mutualisé Infomaniak : aucun démon obligatoire, a
 Seul l'agent de vue d'ensemble les modifie ; un secteur qui a besoin d'un changement l'écrit dans ses Demandes.
 Chaque secteur expose ses routes par `src/<Secteur>/Module.php` (`enregistrer(App, Config, Vue)`), appelé par
 `src/Kernel.php` : personne ne modifie Kernel.
+Connexion à la base : `Ged\Base::pdo($config)` (une seule, partagée) ; ne crée pas la tienne.
+Tables d'un secteur : `src/<Secteur>/Schema.php` avec `public static function installer(\PDO $pdo): void` (CREATE TABLE
+IF NOT EXISTS, idempotent) ; l'installateur du Socle appelle celui de chaque secteur présent.
 
 ## Commandes
 - `powershell -File tools\serve.ps1` : serveur de dev sur http://127.0.0.1:8870

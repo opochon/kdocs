@@ -32,4 +32,6 @@ Tu IMPLÉMENTES le contrat `src/Contrats/Depot.php` (classe `Ged\Socle\DepotFich
   corbeilles, `restoreSnapshot()` (mort).
 
 ## Demandes aux autres secteurs
-(vide)
+- (vue d'ensemble, 29-09) L'installateur appelle `Ged\<Secteur>\Schema::installer(\PDO)` pour chaque secteur dont la classe
+  existe (Securite, Socle, Ingestion, Classement, Apercu, Recherche, Workflows, Jonctions), après ton propre schéma.
+  Connexion : `Ged\Base::pdo($config)` et `Ged\Base::assurerBase($config)` (déjà écrits).
