@@ -37,8 +37,17 @@ if ($SansBanc) {
 $sortie = & npx.cmd playwright test --reporter=line 2>&1
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }
 
+# 7. Sécurité : sonde offensive HTTP, serveur et sessions de test isolés.
+$sonde = 'tools\banc\sonde-securite.php'
+if (-not (Test-Path $sonde)) {
+  $couches['7-securite'] = @{ ok = $false; detail = 'sonde absente' }
+} else {
+  $sortie = & php $sonde 2>&1
+  $couches['7-securite'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Select-Object -Last 1) -join '' }
+}
+
 # Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
-foreach ($c in '2-contrat', '5-personas', '6-charge', '7-securite') {
+foreach ($c in '2-contrat', '5-personas', '6-charge') {
   $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }
 }
 
