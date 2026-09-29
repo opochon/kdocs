@@ -19,6 +19,7 @@ trait SupportCorpus
     private PDO $pdo;
     private string $racine;      // racine documentaire du test (STORAGE_ROOT)
     private Config $config;
+    private string|false $storageRootAvant;   // la suite peut imposer STORAGE_ROOT (phpunit.xml) : on la rend
 
     protected function setUpCorpus(): void
     {
@@ -30,6 +31,7 @@ trait SupportCorpus
         $this->pdo->exec('DROP TABLE IF EXISTS documents, document_versions, document_deplacements');
         Schema::installer($this->pdo);
 
+        $this->storageRootAvant = getenv('STORAGE_ROOT');
         $this->racine = sys_get_temp_dir() . '/gedv2-socle-' . bin2hex(random_bytes(4));
         mkdir($this->racine . '/depots', 0775, true);
         putenv('STORAGE_ROOT=' . $this->racine . '/fonds');   // Config lit l'environnement d'abord
@@ -37,7 +39,9 @@ trait SupportCorpus
 
     protected function tearDownCorpus(): void
     {
-        putenv('STORAGE_ROOT');   // rendre la main aux autres suites
+        // Restituer la valeur d'avant (la suite phpunit peut l'imposer pour d'autres secteurs).
+        $this->storageRootAvant === false ? putenv('STORAGE_ROOT')
+            : putenv('STORAGE_ROOT=' . $this->storageRootAvant);
         $this->supprimer($this->racine);
     }
 
