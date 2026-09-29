@@ -1,0 +1,143 @@
+{
+    "lot": "V2-05b",
+    "description": "Porte F5 — plein texte : requêtes → documents attendus et leur rang, sur un fonds synthétique déposé via Ged\\Socle\\DepotFichiers. Aucune donnée réelle.",
+    "corpus": [
+        {
+            "ref": "contrat-maintenance",
+            "titre": "Contrat de maintenance CM-2026-04",
+            "type": "Contrat",
+            "emetteur": "Atelier Horizon SA",
+            "date": "2026-02-05",
+            "montant": 4800.00,
+            "texte": "Article 1. La maintenance préventive est assurée par l'Atelier Horizon. La maintenance annuelle couvre les postes de travail. Une intervention corrective est en supplément. La maintenance inclut les mises à jour de sécurité."
+        },
+        {
+            "ref": "facture-an-5001",
+            "titre": "Facture AN-5001",
+            "type": "Facture",
+            "emetteur": "Atelier Horizon SA",
+            "date": "2026-01-12",
+            "montant": 1284.60,
+            "texte": "Facture AN-5001. Intervention hors contrat de maintenance. Rappel : la maintenance annuelle se règle en janvier. Total TTC CHF 1 284.60."
+        },
+        {
+            "ref": "facture-energie",
+            "titre": "Facture énergie",
+            "type": "Facture",
+            "emetteur": "Régies Énergie Léman",
+            "date": "2026-03-02",
+            "montant": 342.10,
+            "texte": "Consommation électrique du mois. Énergie verte certifiée. Aucune intervention sur site."
+        },
+        {
+            "ref": "attestation-travail",
+            "titre": "Attestation de travail",
+            "type": "Document RH",
+            "emetteur": "Fabrique Modeleville",
+            "date": "2026-01-20",
+            "montant": null,
+            "texte": "Attestation de travail établie pour un collaborateur fictif. Document RH interne à conserver."
+        },
+        {
+            "ref": "police-rc",
+            "titre": "Police RC avenant",
+            "type": "Assurance",
+            "emetteur": "Assurances Alpines",
+            "date": "2025-11-30",
+            "montant": 890.00,
+            "texte": "Avenant de responsabilité civile. Prime annuelle 890.00. Protection juridique incluse."
+        },
+        {
+            "ref": "tableau-charges",
+            "titre": "Tableau des charges",
+            "type": "Autre",
+            "emetteur": "Régie Comptable",
+            "date": "2026-02-28",
+            "montant": 1230.00,
+            "texte": "Charges annuelles : maintenance 4800.00, énergie 342.10, assurances 890.00."
+        }
+    ],
+    "requetes": [
+        {
+            "q": "maintenance",
+            "mode": "fulltext",
+            "attendu": [
+                {"ref": "contrat-maintenance", "rang": 1},
+                {"ref": "facture-an-5001", "rang": 2},
+                {"ref": "tableau-charges", "rang": 3}
+            ]
+        },
+        {
+            "q": "facture",
+            "attendu": [
+                {"ref": "facture-an-5001", "rang": 1},
+                {"ref": "facture-energie", "rang": 2}
+            ]
+        },
+        {
+            "q": "énergie",
+            "attendu": [
+                {"ref": "facture-energie", "rang": 1},
+                {"ref": "tableau-charges", "rang": 2}
+            ]
+        },
+        {
+            "q": "AN-5001",
+            "attendu": [
+                {"ref": "facture-an-5001", "rang": 1}
+            ]
+        },
+        {
+            "q": "ntrat",
+            "mode": "like",
+            "commentaire": "Fragment interne : FULLTEXT ne peut pas répondre, le repli LIKE doit trouver les deux contrats.",
+            "attendu": [
+                {"ref": "contrat-maintenance", "rang": 1},
+                {"ref": "facture-an-5001", "rang": 2}
+            ]
+        },
+        {
+            "q": "",
+            "filtres": {"type": "Assurance"},
+            "attendu": [
+                {"ref": "police-rc", "rang": 1}
+            ]
+        },
+        {
+            "q": "facture",
+            "filtres": {"emetteur": "Régies Énergie Léman"},
+            "attendu": [
+                {"ref": "facture-energie", "rang": 1}
+            ]
+        },
+        {
+            "q": "maintenance",
+            "filtres": {"date_fin": "2026-01-31"},
+            "attendu": [
+                {"ref": "facture-an-5001", "rang": 1}
+            ]
+        },
+        {
+            "q": "facture",
+            "filtres": {"montant_min": 1000},
+            "attendu": [
+                {"ref": "facture-an-5001", "rang": 1}
+            ]
+        },
+        {
+            "q": "maintenance",
+            "filtres": {"type": "Contrat"},
+            "attendu": [
+                {"ref": "contrat-maintenance", "rang": 1}
+            ]
+        },
+        {
+            "q": "zzzintrouvable",
+            "attendu": []
+        }
+    ],
+    "porte": {
+        "tous_en_tete": true,
+        "max_ms_par_requete": 1000
+    }
+}
