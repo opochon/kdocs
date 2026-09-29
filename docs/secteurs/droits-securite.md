@@ -56,3 +56,26 @@ Réserve, à traiter en V2-07b : l'authentification lit un compte unique du `.en
 pas la table `comptes` que l'installateur du Socle pose avec mot de passe haché. V2-07b : comptes et rôles en base,
 permissions par groupe, héritage par dossier (algorithme `FolderPermissionService` de GEDv1), garde des routes d'aperçu
 unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
+
+## Demandes
+
+- Interface : lorsque les écrans ne seront plus alimentés par `Ui\\Maquette`, appeler le résolveur des droits de dossier
+  avant de rendre chaque ligne de liste et chaque résultat de recherche. La garde refuse déjà fiche, aperçu, fichier et
+  miniature ; l'écran de liste doit à son tour omettre les documents hors ACL plutôt que de les rendre non actionnables.
+
+## Journal V2-07b
+
+- Oracle d'abord : ajout de `tests/oracles/droits/droits.json`, rejoué par `DroitsBaseTest` rouge (classes `Schema` et
+  `DroitsDossiers` absentes), puis vert. Il couvre lecture, modification et archivage sur liste, fiche, aperçu et API,
+  l'héritage parent, le refus local et le refus par défaut.
+- Fait : `securite_roles`, permissions, rôles-permissions, groupes, appartenances, dossiers et ACL sont installés de façon
+  idempotente. Un refus de groupe l'emporte sur un accord concurrent et l'absence de règle, de dossier ou de groupe refuse.
+  L'authentification vérifie maintenant `comptes.empreinte` avec `password_verify`, puis résout les rôles et groupes en base.
+  Le compte synthétique reste strictement disponible en `APP_ENV=test`.
+- Fait : les quatre routes d'aperçu déclarent `document.voir`, canoniquement résolu par la garde en `documents:lire` ; pour
+  tout compte réel, la garde recoupe ensuite le chemin indexé du document avec son dossier ACL. Une fiche, un aperçu, un
+  fichier ou une miniature sans dossier autorisé reçoit 403 sans atteindre le gestionnaire.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite` vert (8 tests, 56 assertions), puis `vendor\\bin\\phpunit` vert
+  (155 tests, 679 assertions). Harness `-SansBanc` et parcours Playwright à rejouer après le commit.
+
+ETAT: fini

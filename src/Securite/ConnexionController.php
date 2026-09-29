@@ -49,7 +49,7 @@ final class ConnexionController
 
         $this->protection->succes($identifiant);
         // Un nouvel identifiant cryptographiquement aléatoire neutralise toute fixation de session.
-        $session = $this->sessions->ouvrir($utilisateur['identifiant'], $utilisateur['permissions']);
+        $session = $this->sessions->ouvrir($utilisateur['identifiant'], $utilisateur['permissions'], null, $utilisateur['id']);
         $this->audit->ajouter('connexion', $utilisateur['identifiant']);
 
         return $reponse->withHeader('Location', '/a-traiter')->withStatus(303)

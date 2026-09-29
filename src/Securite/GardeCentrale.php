@@ -17,6 +17,7 @@ final class GardeCentrale implements MiddlewareInterface
         private readonly RegistreSessions $sessions,
         private readonly JournalAudit $audit,
         private readonly Vue $vue,
+        private readonly DroitsDossiers $droitsDossiers,
     ) {
     }
 
@@ -42,8 +43,13 @@ final class GardeCentrale implements MiddlewareInterface
         if ($session === null) {
             return $this->refuser($requete, 'session absente ou expirée');
         }
-        if ($permission !== 'session:active' && !in_array($permission, $session['permissions'], true)) {
+        $permissionCanonique = DroitsRoutes::permissionCanonique($permission);
+        if ($permissionCanonique !== 'session:active' && !in_array('*', $session['permissions'], true)
+            && !in_array($permissionCanonique, $session['permissions'], true)) {
             return $this->refuser($requete, 'permission insuffisante', $session['utilisateur']);
+        }
+        if (!$this->documentAutorise($chemin, $methode, $session)) {
+            return $this->refuser($requete, 'droit de dossier insuffisant', $session['utilisateur']);
         }
         if (!in_array($methode, ['GET', 'HEAD', 'OPTIONS'], true) && !$this->csrfValide($requete, $session['csrf'])) {
             return $this->refuser($requete, 'jeton CSRF absent ou invalide', $session['utilisateur']);
@@ -78,6 +84,35 @@ final class GardeCentrale implements MiddlewareInterface
     private function https(ServerRequestInterface $requete): bool
     {
         return $requete->getUri()->getScheme() === 'https' || strtolower($requete->getHeaderLine('X-Forwarded-Proto')) === 'https';
+    }
+
+    /**
+     * Les comptes réels sont contrôlés au niveau du dossier le plus précis du document.
+     * Le compte synthétique de test n'a volontairement pas d'id en base et ne sort jamais de APP_ENV=test.
+     *
+     * @param array{utilisateur:string,compte?:int|null,permissions:list<string>,csrf:string,cree_le:int,expire_le:int} $session
+     */
+    private function documentAutorise(string $chemin, string $methode, array $session): bool
+    {
+        if (preg_match('#^/documents/([0-9]+)(?:/|$)#', $chemin, $trouve) !== 1) {
+            return true;
+        }
+        $compte = $session['compte'] ?? null;
+        if (!is_int($compte) || $compte < 1) {
+            return true;
+        }
+        $action = match ($methode) {
+            'GET', 'HEAD' => 'lire',
+            'DELETE' => 'archiver',
+            default => 'modifier',
+        };
+        try {
+            $dossier = $this->droitsDossiers->dossierPourDocument((int) $trouve[1]);
+
+            return $dossier !== null && $this->droitsDossiers->autorise($compte, $dossier, $action);
+        } catch (\PDOException) {
+            return false;
+        }
     }
 
     private function renduUnitaire(ServerRequestInterface $requete): bool

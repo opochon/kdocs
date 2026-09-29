@@ -17,10 +17,10 @@ final class DroitsRoutes
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
-        'GET /documents/{id:[0-9]+}/apercu' => 'documents:lire',
-        'GET /documents/{id:[0-9]+}/apercu/fichier' => 'documents:lire',
-        'GET /documents/{id:[0-9]+}/fichier' => 'documents:lire',
-        'GET /documents/{id:[0-9]+}/miniature' => 'documents:lire',
+        'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
+        'GET /documents/{id:[0-9]+}/apercu/fichier' => 'document.voir',
+        'GET /documents/{id:[0-9]+}/fichier' => 'document.voir',
+        'GET /documents/{id:[0-9]+}/miniature' => 'document.voir',
         'GET /workflows' => 'workflows:lire',
         'GET /application' => 'application:administrer',
         'GET /sante' => 'publique:sante',
@@ -54,5 +54,11 @@ final class DroitsRoutes
     public static function estPublique(string $permission): bool
     {
         return str_starts_with($permission, 'publique:');
+    }
+
+    /** L'aperçu a son vocabulaire de route, mais ne crée pas une permission supplémentaire. */
+    public static function permissionCanonique(string $permission): string
+    {
+        return $permission === 'document.voir' ? 'documents:lire' : $permission;
     }
 }

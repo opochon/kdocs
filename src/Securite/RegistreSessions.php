@@ -23,13 +23,14 @@ final class RegistreSessions
     }
 
     /** @param list<string> $permissions @return array{id:string,csrf:string} */
-    public function ouvrir(string $utilisateur, array $permissions, ?int $maintenant = null): array
+    public function ouvrir(string $utilisateur, array $permissions, ?int $maintenant = null, ?int $compte = null): array
     {
         $maintenant ??= time();
         $id = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
         $csrf = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
         $this->ecrire($id, [
             'utilisateur' => $utilisateur,
+            'compte' => $compte,
             'permissions' => array_values($permissions),
             'csrf' => $csrf,
             'cree_le' => $maintenant,
@@ -39,7 +40,7 @@ final class RegistreSessions
         return ['id' => $id, 'csrf' => $csrf];
     }
 
-    /** @return array{utilisateur:string,permissions:list<string>,csrf:string,cree_le:int,expire_le:int}|null */
+    /** @return array{utilisateur:string,compte:int|null,permissions:list<string>,csrf:string,cree_le:int,expire_le:int}|null */
     public function lire(string $id, ?int $maintenant = null): ?array
     {
         $maintenant ??= time();
@@ -71,7 +72,7 @@ final class RegistreSessions
         return sprintf('gedv2_session=%s; Path=/; HttpOnly; SameSite=Lax%s', $id, $securise ? '; Secure' : '');
     }
 
-    /** @return array{utilisateur:string,permissions:list<string>,csrf:string,cree_le:int,expire_le:int}|null */
+    /** @return array{utilisateur:string,compte:int|null,permissions:list<string>,csrf:string,cree_le:int,expire_le:int}|null */
     private function charger(string $id): ?array
     {
         if (!preg_match('/^[A-Za-z0-9_-]{40,}$/', $id)) {
@@ -86,7 +87,7 @@ final class RegistreSessions
             return null;
         }
         try {
-            /** @var array{utilisateur:string,permissions:list<string>,csrf:string,cree_le:int,expire_le:int} $session */
+            /** @var array{utilisateur:string,compte:int|null,permissions:list<string>,csrf:string,cree_le:int,expire_le:int} $session */
             $session = json_decode($contenu, true, 512, JSON_THROW_ON_ERROR);
             return $session;
         } catch (\JsonException) {
@@ -94,7 +95,7 @@ final class RegistreSessions
         }
     }
 
-    /** @param array{utilisateur:string,permissions:list<string>,csrf:string,cree_le:int,expire_le:int} $session */
+    /** @param array{utilisateur:string,compte:int|null,permissions:list<string>,csrf:string,cree_le:int,expire_le:int} $session */
     private function ecrire(string $id, array $session): void
     {
         $json = json_encode($session, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);

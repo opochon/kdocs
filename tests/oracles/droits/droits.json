@@ -1,0 +1,21 @@
+{
+  "comptes": {
+    "lecteur": "lecteur@gedv2.test",
+    "contributeur": "contributeur@gedv2.test",
+    "archiveur": "archiveur@gedv2.test",
+    "sans_droit": "sans-droit@gedv2.test"
+  },
+  "dossiers": {
+    "racine": 7101,
+    "confidentiel": 7102,
+    "public": 7103
+  },
+  "cas": [
+    {"compte": "lecteur", "dossier": "confidentiel", "action": "lire", "attendu": true, "surfaces": ["liste", "fiche", "apercu", "api"]},
+    {"compte": "lecteur", "dossier": "confidentiel", "action": "modifier", "attendu": false, "surfaces": ["fiche", "api"]},
+    {"compte": "lecteur", "dossier": "confidentiel", "action": "archiver", "attendu": false, "surfaces": ["fiche", "api"]},
+    {"compte": "contributeur", "dossier": "confidentiel", "action": "modifier", "attendu": true, "surfaces": ["fiche", "api"]},
+    {"compte": "archiveur", "dossier": "public", "action": "archiver", "attendu": true, "surfaces": ["liste", "fiche", "api"]},
+    {"compte": "sans_droit", "dossier": "public", "action": "lire", "attendu": false, "surfaces": ["liste", "fiche", "apercu", "api"]}
+  ]
+}
