@@ -47,3 +47,21 @@ avec la source de chaque suggestion (IA, habitude, règle). Les choix humains r�
 - Écran « À traiter » et sa navigation clavier (Interface) ; taxonomie réelle des types (V2-04) ; branchement du classeur dans `tools/tache.php` (Ingestion) ; rapprochement des correspondants par id (Socle/V2-04) ; apprentissage sur tout le fonds et reprise sur un vrai fonds anonymisé.
 
 ETAT: fini
+
+## Jugement V2-03 (Claude Code, 29-09) — porte NON franchie, un défaut de règle
+Banc rejoué : 52/53 validés seuls, 0 type faux, 0 émetteur faux — **mais en mode sans IA**, et c'est là le défaut.
+`ClasseurGed::proposer` valide seul dès qu'UN mot-clé du texte donne un type (`Regles::typeEtPreuve`, confiance 0,92
+codée en dur), et **ignore l'IA quand elle contredit** ce mot-clé. Sur un vrai courrier, « Concerne : votre facture du… »
+ou une lettre d'assureur qui cite sa « police » serait validée et rangée sans contrôle. Le corpus synthétique ne le montre
+pas parce que ses pièces ne mélangent pas les indices.
+Règle attendue (celle de GEDv1, `typeCorrobore`) : **valider seul = habitude, OU (IA ≥ seuil ET indice du même type
+dans le texte)**. IA absente, en panne ou en désaccord avec l'indice → « à contrôler », avec la raison
+(« IA indisponible », « IA et texte divergent : IA=Contrat, texte=Facture »). Le mot-clé seul reste une suggestion.
+À prouver :
+1. tests unitaires : IA en désaccord → non validé ; IA absente → non validé ; IA d'accord → validé ; habitude → validé ;
+   deux indices contradictoires dans le texte (« facture » + « contrat ») → non validé sans IA d'accord.
+2. banc `courrier-100p` rejoué **avec** l'IA réelle (Infomaniak, clés du .env ; la couche 3 a le droit au réseau) :
+   0 type faux validé seul, 0 émetteur faux, taux validé seul publié tel quel ; le mode sans IA doit donner 0 validé seul
+   hors habitudes.
+
+ETAT: à reprendre (voir Jugement V2-03)
