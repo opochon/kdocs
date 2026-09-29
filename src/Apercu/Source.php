@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Ged\Apercu;
 
+use Ged\Base;
 use Ged\Config;
+use PDO;
+use Throwable;
 
 /**
  * Source des pièces : un dossier documentaire parcouru à la demande, chaque pièce retrouvée par le `id`
- * de son `.meta.json`. Aucun index parallèle : supprimer la base ne change rien à ce que l'on peut voir.
+ * de son `.meta.json`. L'index documentaire du Socle est interrogé d'abord (O(1)) ; le parcours du dossier
+ * n'est qu'un REPLI quand l'index ne connaît pas la pièce (base absente, fonds reconstruit à la main).
  *
  * La racine vient de `STORAGE_ROOT` ; tant que le secteur Socle n'a pas posé le vrai dossier, la valeur
  * par défaut pointe sur le corpus synthétique versionné, ce qui rend l'aperçu démontrable et testable.
@@ -18,13 +22,20 @@ final class Source
     private const IMAGES = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'avif', 'tif', 'tiff'];
     private const BUREAUTIQUE = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'csv'];
 
-    public function __construct(private readonly string $racine)
+    public function __construct(private readonly string $racine, private readonly ?PDO $pdo = null)
     {
     }
 
     public static function depuis(Config $config): self
     {
-        return new self($config->chemin('STORAGE_ROOT', 'tests/corpus/apercu/documents'));
+        $pdo = null;
+        try {
+            $pdo = Base::pdo($config);
+        } catch (Throwable) {
+            // Base absente ou muette : le dossier fait foi, la résolution retombe sur le parcours.
+        }
+
+        return new self($config->chemin('STORAGE_ROOT', 'tests/corpus/apercu/documents'), $pdo);
     }
 
     public function racine(): string
@@ -50,6 +61,12 @@ final class Source
 
     public function parId(int $id): ?Piece
     {
+        // L'index résout l'id en O(1) ; le parcours du dossier n'est qu'un REPLI quand l'index ne
+        // connaît pas la pièce (base absente, fonds reconstruit à la main). Le dossier fait toujours foi.
+        $piece = $this->parIdParIndex($id);
+        if ($piece !== null) {
+            return $piece;
+        }
         foreach ($this->toutes() as $piece) {
             if ($piece->id === $id) {
                 return $piece;
@@ -57,6 +74,34 @@ final class Source
         }
 
         return null;
+    }
+
+    /** Résolution par l'index documentaire (`documents.id` → `chemin_relatif`), sans balayer le fonds. */
+    private function parIdParIndex(int $id): ?Piece
+    {
+        if ($this->pdo === null) {
+            return null;
+        }
+        try {
+            $requete = $this->pdo->prepare('SELECT chemin_relatif FROM documents'
+                . ' WHERE id = ? AND supprime_le IS NULL LIMIT 1');
+            $requete->execute([$id]);
+            $relatif = $requete->fetchColumn();
+        } catch (Throwable) {
+            return null;
+        }
+        if (!is_string($relatif) || $relatif === '' || str_starts_with($relatif, '/') || str_contains($relatif, '..')) {
+            return null;
+        }
+        $racine = rtrim(str_replace('\\', '/', $this->racine), '/');
+        $absolu = $racine . '/' . str_replace('\\', '/', $relatif);
+        $metaFichier = $absolu . '.meta.json';
+        if (!is_file($absolu) || !is_file($metaFichier)) {
+            return null;
+        }
+        $piece = $this->lireMeta($metaFichier);
+
+        return $piece !== null && $piece->id === $id ? $piece : null;
     }
 
     /** @return list<Piece> */
