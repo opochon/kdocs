@@ -113,6 +113,53 @@ final class DepotFichiers implements Depot
     }
 
     /**
+     * Corbeille : le document (fichier, `.meta.json`, `.versions/`) part sous `.corbeille/` en gardant son
+     * arborescence, la ligne est simplement drapeautée. Rien n'est jamais effacé. La ligne garde son
+     * `chemin_relatif` dans le fonds : c'est SA place, où la restauration la remettra.
+     */
+    public function miseALaCorbeille(int $idDocument, string $auteur): void
+    {
+        $ligne = $this->fiche($idDocument);
+        if ($ligne === null) {
+            throw new \RuntimeException("corbeille : document $idDocument inconnu");
+        }
+        if ($ligne['supprime_le'] !== null) {
+            return;   // déjà à la corbeille : l'opération est idempotente
+        }
+        $relatif = (string) $ligne['chemin_relatif'];
+        Fichiers::deplacerAvecAnnexes($this->cheminAbsolu($relatif), $this->cheminCorbeille($relatif));
+        Fichiers::cacher($this->racine . '/.corbeille');
+        $this->pdo->prepare('UPDATE documents SET supprime_le = NOW(), supprime_par = ? WHERE id = ?')
+            ->execute([$auteur, $idDocument]);
+    }
+
+    /** Sort le document de la corbeille : retour à sa place dans le fonds, drapeau levé, contenu intact. */
+    public function restaurer(int $idDocument): void
+    {
+        $ligne = $this->fiche($idDocument);
+        if ($ligne === null) {
+            throw new \RuntimeException("restauration : document $idDocument inconnu");
+        }
+        if ($ligne['supprime_le'] === null) {
+            throw new \RuntimeException("restauration : le document $idDocument n’est pas à la corbeille");
+        }
+        $relatif = (string) $ligne['chemin_relatif'];
+        $absoluCorbeille = $this->cheminCorbeille($relatif);
+        if (!is_file($absoluCorbeille)) {
+            throw new \RuntimeException("restauration : fichier introuvable dans la corbeille ($relatif)");
+        }
+        $absolu = Fichiers::deplacerAvecAnnexes($absoluCorbeille, $this->cheminAbsolu($relatif));
+        $this->pdo->prepare('UPDATE documents SET chemin_relatif = ?, nom = ?, supprime_le = NULL, supprime_par = NULL'
+            . ' WHERE id = ?')->execute([substr($absolu, strlen($this->racine) + 1), basename($absolu), $idDocument]);
+    }
+
+    /** Emplacement d'un chemin du fonds une fois à la corbeille (même arborescence, sous `.corbeille/`). */
+    private function cheminCorbeille(string $cheminRelatif): string
+    {
+        return $this->racine . '/.corbeille/' . $cheminRelatif;
+    }
+
+    /**
      * Archive le contenu actuel d'un document comme version N (copie, jamais un déplacement : le fichier
      * courant reste à sa place). Rend le numéro posé. Utilisé au dépôt (v1) et par l'indexeur (modifications
      * hors application).
