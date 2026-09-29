@@ -65,14 +65,15 @@ test('à traiter : le bilan est visible, le dossier d’ingestion jamais', async
   await expect(page.locator('body')).not.toContainText(/consume|storage\//i);
 });
 
-test('à traiter : Entrée et → passent au document suivant', async ({ page }) => {
-  await page.goto('/a-traiter?doc=101');
-  await page.locator('body').click({ position: { x: 5, y: 5 } });
-  await page.keyboard.press('ArrowRight');
-  await expect(page).toHaveURL(/doc=102/);
-  await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/doc=103/);
-  await expect(page.getByTestId('action-valider')).toBeInViewport();
+// Le comportement clavier (Entrée = valider la pièce, → = passer au suivant) est prouvé par l'oracle
+// `tests/e2e/a-traiter.spec.ts`, sur un fonds d'essai déposé via le Socle. Ici, le contrat visuel : les
+// gestes sont offerts sous le titre, sans écrire.
+test('à traiter : les gestes de contrôle sont offerts (Entrée / →)', async ({ page }) => {
+  await page.goto('/a-traiter');
+  await expect(page.getByTestId('action-valider')).toBeVisible();
+  await expect(page.getByTestId('action-valider')).toContainText('Entrée');
+  await expect(page.getByTestId('action-passer')).toBeVisible();
+  await expect(page.getByTestId('action-passer')).toContainText('→');
 });
 
 test('recherche : Ctrl+K depuis n’importe quel écran, terme surligné', async ({ page }) => {
