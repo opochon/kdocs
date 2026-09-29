@@ -35,6 +35,12 @@ final class DroitsRoutes
         'POST /deconnexion' => 'session:active',
     ];
 
+    /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */
+    public static function declarees(): array
+    {
+        return self::PERMISSIONS;
+    }
+
     public static function permissionPour(string $methode, string $chemin): ?string
     {
         $cle = strtoupper($methode) . ' ' . $chemin;

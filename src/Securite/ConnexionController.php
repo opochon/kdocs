@@ -21,7 +21,7 @@ final class ConnexionController
 
     public function formulaire(Requete $requete, Reponse $reponse): Reponse
     {
-        $csrf = $this->jetonAnonyme();
+        $csrf = $this->sessions->ouvrirJetonConnexion();
         return $this->vue->rendre($reponse, 'connexion/connexion.twig', ['erreur' => null, 'csrf' => $csrf])
             ->withAddedHeader('Set-Cookie', $this->cookieCsrf($csrf, $this->https($requete)));
     }
@@ -32,7 +32,7 @@ final class ConnexionController
         $identifiant = trim((string) ($corps['identifiant'] ?? ''));
         $csrf = (string) ($corps['csrf'] ?? '');
         $attendu = (string) ($requete->getCookieParams()['gedv2_csrf'] ?? '');
-        if ($csrf === '' || $attendu === '' || !hash_equals($attendu, $csrf)) {
+        if ($csrf === '' || $attendu === '' || !hash_equals($attendu, $csrf) || !$this->sessions->consommerJetonConnexion($csrf)) {
             $this->audit->ajouter('refus', null, ['methode' => 'POST', 'chemin' => '/connexion', 'cause' => 'jeton CSRF absent ou invalide']);
             return $this->formulaireErreur($requete, $reponse, 'La connexion a été refusée : le jeton de sécurité est invalide.');
         }
@@ -69,14 +69,9 @@ final class ConnexionController
 
     private function formulaireErreur(Requete $requete, Reponse $reponse, string $erreur): Reponse
     {
-        $csrf = $this->jetonAnonyme();
+        $csrf = $this->sessions->ouvrirJetonConnexion();
         return $this->vue->rendre($reponse, 'connexion/connexion.twig', ['erreur' => $erreur, 'csrf' => $csrf], 403)
             ->withAddedHeader('Set-Cookie', $this->cookieCsrf($csrf, $this->https($requete)));
-    }
-
-    private function jetonAnonyme(): string
-    {
-        return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
     }
 
     private function cookieCsrf(string $jeton, bool $securise): string
