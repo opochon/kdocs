@@ -96,11 +96,16 @@ n'a jamais existé : il est à écrire.
   ModuleTest, SupportWorkflows).
 - Empreintes : fonds (chemins + sha256) et base entière (toutes tables, sha256) identiques après l'essai à blanc ;
   différentes après l'exécution réelle.
-- `npx playwright test tests/e2e/workflows.spec.ts` : **2/2 vert**, idempotent (nom de règle unique).
+- `npx playwright test tests/e2e/workflows.spec.ts` : **1/1 vert**, idempotent (nom de règle unique).
 - Installateur : table count passe de 16 à 19 (≤ 20), `Ged\Workflows\Schema::installer` appelé par `tools/installer.php`.
-- `harness.ps1 -SansBanc` : couche 0 VERT ; 1-unitaire ROUGE (29 erreurs `Ged\Socle\Nomenclature` : travaux V2-04 en
-  cours d'un autre agent, hors secteur) ; 4-écrans ROUGE intermittent sur `apercu.spec.ts:18` (seuil 1 s sous charge
-  parallèle, voir Demande au Harness) ; 3-banc sautée, 2/5/6/7 non écrites.
+- `harness.ps1 -SansBanc`, premier rejeu : couche 0 VERT ; 1-unitaire ROUGE (erreurs `Ged\Socle\Nomenclature` :
+  travaux V2-04 d'un autre agent, hors secteur) ; 4-écrans ROUGE intermittent sur `apercu.spec.ts:18` (seuil 1 s
+  sous charge parallèle, voir Demande au Harness) ; 3-banc sautée, 2/5/6/7 non écrites.
+- `harness.ps1 -SansBanc`, dernier rejeu : le vestiaire contenait des modifications **non commitées d'un autre
+  secteur** (`src/Securite/GardeCentrale|ConnexionController|RegistreSessions`, en-tête CSP) qui cassent 10 tests
+  d'écrans (`maquettes`, `apercu`, `recherche`) sur des violations d'inline-script/inline-style — sans rapport avec
+  Workflows ; le parcours `workflows.spec.ts` reste vert. Couche 1 : 207 tests, 29 erreurs, 3 avertissements, tous
+  issus des travaux Socle en cours.
 
 **Commits**
 - `f1703fe` — moteur, schéma, gabarits, écouteur, écran, routes (DroitsRoutes + compte de test e2e).
