@@ -110,6 +110,9 @@ trait SupportRecherche
             $deposes[(string) $document['ref']] = ['id' => $id, 'titre' => (string) $meta['titre']];
         }
 
+        // L'index plein texte est bâti HORS requête (job) : le banc joue ce job une fois, comme le planificateur.
+        IndexPleinTexte::depuis($this->config, $this->pdo)->synchroniser(null);
+
         return $deposes;
     }
 

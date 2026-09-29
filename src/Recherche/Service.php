@@ -12,13 +12,14 @@ use PDO;
  * des débuts de mot). Les filtres type/émetteur/date/montant s'appliquent DANS LA MÊME requête que le
  * texte : liste et total partagent donc exactement le même périmètre.
  *
+ * L'index est bâti HORS requête par les jobs (`tools/indexer-recherche.php`, `tools/tache.php indexation`) :
+ * une recherche ne relit jamais le fonds. `IndexPleinTexte` reste injecté pour ne pas changer le branchement.
+ *
  * Le classement final se fait en PHP sur un nombre borné de candidats, pour départager titre et corps de
  * façon lisible (pertinence = 3 × occurrence dans le titre + occurrences du corps, plafonnées).
  */
 final class Service implements Moteur
 {
-    /** Documents traités par synchronisation d'index, pour rester court dans une requête HTTP. */
-    private const LOT_SYNCHRO = 200;
     /** Candidats ramenés de la base avant reclassement ; borne mémoire et temps. */
     private const CANDIDATS_MAX = 500;
     /** Le comptage de pertinence ne lit que le début d'un texte très long. */
@@ -38,7 +39,6 @@ final class Service implements Moteur
             if ($this->autoInstaller) {
                 Schema::installer($this->pdo);   // idempotent : l'écran ne tombe jamais pour une table absente
             }
-            $this->index->synchroniser(self::LOT_SYNCHRO);
             $termes = Termes::depuis($requete->texte);
             $pleinTexte = Schema::pleinTexteUtilisable($this->pdo) && $termes->expressionFulltext() !== '';
             $mode = $pleinTexte ? 'fulltext' : ($termes->positifs() === [] ? 'liste' : 'like');
