@@ -1,6 +1,6 @@
 # Secteur RECHERCHE & APERÇU — visionneuse, miniatures, plein texte, API
 
-Agent : DeepCode · Juge : Codex · Lot en cours : V2-05a
+Agent : DeepCode · Juge : Codex · Lot en cours : V2-05b
 
 ## Mission
 Voir un document sans le télécharger (PDF, images, bureautique), vite ; le retrouver par son texte et ses métadonnées.
@@ -8,6 +8,11 @@ Voir un document sans le télécharger (PDF, images, bureautique), vite ; le ret
 ## Chemins
 `src/Apercu/` (dont `src/Apercu/Module.php` : routes du secteur, appelé par `src/Kernel.php` — ne jamais modifier Kernel), `src/Recherche/`, `public/assets/js/visionneuse.js`, `public/assets/vendor/pdfjs/`,
 `templates/partiels/visionneuse.twig`, `tools/miniatures.php` (commande hors requête nommée par le lot), `tests/php/Apercu/`, `tests/e2e/apercu.spec.ts`, `tests/corpus/apercu/`
+
+Chemins ajoutés au lot V2-05b : `tests/php/Recherche/`, `tests/oracles/recherche/`, `tests/e2e/recherche.spec.ts`,
+`tools/indexer-recherche.php` (indexation hors requête). Branchement minimal demandé à Interface (3 lignes, repli maquette conservé) :
+`src/Ui/Ecrans.php::recherche()` et `templates/ecrans/recherche.twig` (mêmes classes et mêmes `data-testid`).
+
 
 ## Lot V2-05a — porte
 1. Visionneuse PDF intégrée (pdf.js en local dans `public/assets/vendor/pdfjs/`, aucun CDN) qui remplace le macro
@@ -65,3 +70,56 @@ Reste (hors porte de ce lot) :
 - V2-05b : plein texte (FULLTEXT + repli LIKE + extraits), qui reprendra `SearchService.php` de GEDv1.
 
 ETAT: fini
+
+## Journal V2-05b (29-09)
+
+**Fait, clause par clause**
+- **Index FULLTEXT** : `src/Recherche/Schema.php` pose `recherche_textes` (titre + contenu, index `ft_recherche`),
+  sans jamais modifier la table `documents` du Socle. L'index est un cache DÉRIVÉ, reconstructible depuis le dossier ;
+  il est en MyISAM parce que le FULLTEXT InnoDB de ce serveur ne tokenise rien (`innodb_ft_min_token_size = 0`) et
+  que MyISAM, seul, répond. `assurerMoteur` / `assurerColonneAbsence` / `assurerIndexPleinTexte` rendent
+  l'installation idempotente et rattrapent une table ancienne.
+- **Alimentation** : `SourceRecherche` lit le fonds (`.meta.json` : `texte`/`ocr`, ou le contenu d'un fichier texte) ;
+  `IndexPleinTexte` synchronise par lots bornés (reprise au prochain appel) ; `tools/indexer-recherche.php` fait le
+  gros du travail hors requête (`--tout`, `--vider`, `--limite=`). Une ligne dont le fichier a disparu est marquée
+  absente, jamais supprimée (règle « zéro suppression »).
+- **Repli LIKE** : déclenché quand l'index est absent, quand la requête n'a aucun terme exploitable, quand le terme
+  fait moins de quatre lettres (non indexé par MyISAM) ou quand un fragment interne ne peut pas être trouvé par
+  FULLTEXT (`ntrat` trouve les deux contrats). Le moteur retombe aussi sur LIKE si FULLTEXT ne rend rien.
+- **Extraits surlignés** : `Extraits` découpe titre et corps en segments marqués/non marqués ; le gabarit n'affiche
+  que `<mark>`, jamais du HTML produit (aucune injection).
+- **Filtres au même périmètre** : type, émetteur, date, montant sont posés dans la MÊME clause que le texte ; le total
+  et la liste partagent donc exactement le même WHERE.
+- **Erreurs SQL nommées** : `ErreurSql` (étape, cause lisible, référence) ; l'écran affiche
+  `data-testid="recherche-erreur"`, jamais une liste vide muette.
+- **Écran `/recherche`** : branché sur les vrais résultats du fonds, gabarit et système visuel conservés (mêmes
+  classes, mêmes `data-testid`) ; compte réel, durée, filtres réels, état vide nommé.
+
+**Preuves**
+- Oracle de porte : `tests/oracles/recherche/recherche.json` rejoué par `OracleRechercheTest` — 11 requêtes,
+  36 assertions, 100 % des attendus EN TÊTE dans l'ordre annoncé, mode fulltext/like vérifié, chaque requête < 1 s.
+  Vu ROUGE d'abord (classe absente), puis vert.
+- PHPUnit Recherche : 19 tests, 102 assertions (`SchemaTest`, `ServiceTest`, `ExtraitsTest`, `EcranTest`).
+- Playwright : 25 tests verts (dont 4 `recherche.spec.ts`) — documents réels, terme surligné, filtre type,
+  absence dite, écran < 1 s, 0 erreur console ; le Ctrl+K des maquettes surligne « maintenance » sur les vrais
+  résultats.
+- Harness `-SansBanc` du 29-09 : `0-garde-fous` VERT, `4-ecrans` VERT (25) ; `3-banc` sautée comme demandé ;
+  `1-unitaire` ROUGE (153 tests, 2 erreurs) **à cause d'un test Droits non commité d'un agent concurrent**
+  (`tests/php/Securite/DroitsBaseTest.php` réclame `Ged\Securite\Schema`, pas encore écrit — hors secteur).
+  En excluant ce fichier : 151 tests verts. Sur HEAD commité, ce fichier n'existe pas et la couche repasse verte.
+- Commits : `9461072` (moteur + oracle), `f6a52d8` (index sans suppression), `a516d7e` (écran),
+  `f358dd2` (tests, outil, e2e).
+
+**Demandes**
+- **Interface** : `Ged\Ui\Ecrans::recherche()` contient le branchement minimal (3 lignes, repli maquette conservé) ;
+  à reprendre comme point de contrat si d'autres écrans sont branchés. Aucune autre attente.
+- **Droits & sécurité** : aucune modification de `DroitsRoutes` — `GET /recherche` y déclare déjà `recherche:lire`.
+  Le secteur n'ajoute aucune route (l'écran est servi par le Kernel, comme les autres).
+- **Socle** : `DepotFichiers` n'écrit pas l'`id` dans le `.meta.json` ; l'index le retrouve par `chemin_relatif`.
+  Si l'id doit un jour survivre à une reconstruction, le poser au dépôt serait plus direct.
+
+**Reste hors porte** : recherche sémantique/vectorielle, vues enregistrées, API de recherche (« documents
+semblables »), qui viendront dans les lots V2-05 suivants.
+
+ETAT: fini
+
