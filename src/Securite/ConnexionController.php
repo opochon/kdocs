@@ -34,17 +34,32 @@ final class ConnexionController
         $attendu = (string) ($requete->getCookieParams()['gedv2_csrf'] ?? '');
         if ($csrf === '' || $attendu === '' || !hash_equals($attendu, $csrf) || !$this->sessions->consommerJetonConnexion($csrf)) {
             $this->audit->ajouter('refus', null, ['methode' => 'POST', 'chemin' => '/connexion', 'cause' => 'jeton CSRF absent ou invalide']);
-            return $this->formulaireErreur($requete, $reponse, 'La connexion a été refusée : le jeton de sécurité est invalide.');
+            return $this->formulaireErreur(
+                $requete,
+                $reponse,
+                'La connexion a été refusée : le jeton de sécurité est invalide.',
+                'jeton CSRF absent ou invalide',
+            );
         }
         if ($this->protection->attenteRestante($identifiant) > 0) {
             $this->audit->ajouter('refus', $identifiant !== '' ? $identifiant : null, ['methode' => 'POST', 'chemin' => '/connexion', 'cause' => 'attente anti-force brute']);
-            return $this->formulaireErreur($requete, $reponse, 'La connexion est temporairement bloquée après plusieurs essais.');
+            return $this->formulaireErreur(
+                $requete,
+                $reponse,
+                'La connexion est temporairement bloquée après plusieurs essais.',
+                'attente anti-force brute',
+            );
         }
         $utilisateur = $this->authentification->verifier($identifiant, (string) ($corps['mot_de_passe'] ?? ''));
         if ($utilisateur === null) {
             $attente = $this->protection->echec($identifiant);
             $this->audit->ajouter('echec_connexion', $identifiant !== '' ? $identifiant : null, ['attente_secondes' => $attente]);
-            return $this->formulaireErreur($requete, $reponse, 'Identifiant ou mot de passe incorrect.');
+            return $this->formulaireErreur(
+                $requete,
+                $reponse,
+                'Identifiant ou mot de passe incorrect.',
+                'identifiant ou mot de passe incorrect',
+            );
         }
 
         $this->protection->succes($identifiant);
@@ -67,10 +82,15 @@ final class ConnexionController
             ->withAddedHeader('Set-Cookie', 'gedv2_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
     }
 
-    private function formulaireErreur(Requete $requete, Reponse $reponse, string $erreur): Reponse
+    private function formulaireErreur(Requete $requete, Reponse $reponse, string $erreur, string $cause): Reponse
     {
         $csrf = $this->sessions->ouvrirJetonConnexion();
-        return $this->vue->rendre($reponse, 'connexion/connexion.twig', ['erreur' => $erreur, 'csrf' => $csrf], 403)
+        return $this->vue->rendre($reponse, 'connexion/connexion.twig', [
+            'erreur' => $erreur,
+            'etape' => 'connexion',
+            'cause' => $cause,
+            'csrf' => $csrf,
+        ], 403)
             ->withAddedHeader('Set-Cookie', $this->cookieCsrf($csrf, $this->https($requete)));
     }
 

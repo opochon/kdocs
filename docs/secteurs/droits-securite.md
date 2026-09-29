@@ -98,6 +98,19 @@ ETAT: fini
 Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
 ETAT: fini (jugé)
 
+## Journal V2-07d
+
+- Oracle d'abord : `testConnexionSansCsrfPublieUnRefusNomme` a été ajouté rouge ; `POST /connexion` sans jeton
+  conservait le statut 403 mais le formulaire ne rendait aucun champ `etape` ni `cause`.
+- Fait : chaque refus de connexion rend désormais l'étape `connexion` et une cause nommée, avec les testids
+  `refus-etape` et `refus-cause`. Le contrôle CSRF anonyme à usage unique, son audit et le renouvellement du
+  jeton de formulaire sont inchangés.
+- Preuve : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
+  (1 test, 3 assertions). Le banc H-2 reste à rejouer lorsque le serveur démarre à nouveau : l'état concurrent
+  Socle actuel déclare deux fois `GET /bibliotheque`, ce qui fait échouer `/sante` avant les contrats HTTP.
+
+ETAT: bloqué: `php tools/banc/contrat.php` ne peut pas démarrer tant que le doublon concurrent `GET /bibliotheque` du secteur Socle subsiste
+
 ## Journal V2-07c
 
 - Oracle d'abord : `SondeSecuriteTest` a été écrit rouge (jeton de connexion à usage unique et en-têtes de défense

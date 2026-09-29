@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Ged\Tests\Securite;
 
 use Ged\Kernel;
+use Ged\Config;
+use Ged\Securite\Authentification;
+use Ged\Securite\ConnexionController;
 use Ged\Securite\JournalAudit;
 use Ged\Securite\ProtectionBruteForce;
 use Ged\Securite\RegistreSessions;
+use Ged\Ui\Vue;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\Psr7\Response;
 
 /** L'oracle V2-07a : une route non déclarée, une mutation sans CSRF ou une session expirée sont refusées. */
 final class SecuriteTest extends TestCase
@@ -24,10 +29,7 @@ final class SecuriteTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->dossier . '/*') ?: [] as $fichier) {
-            unlink($fichier);
-        }
-        rmdir($this->dossier);
+        $this->supprimerDossier($this->dossier);
     }
 
     public function testToutesLesRoutesOntUnePermissionDeclareeEtUneInconnueEstRefusee(): void
@@ -42,6 +44,41 @@ final class SecuriteTest extends TestCase
         $reponse = $app->handle((new ServerRequestFactory())->createServerRequest('GET', '/route-sans-declaration')->withHeader('X-GED-Teste-Garde', '1'));
         self::assertSame(403, $reponse->getStatusCode());
         self::assertStringContainsString('data-testid="refus-acces"', (string) $reponse->getBody());
+    }
+
+    /** Oracle H-2 : même le refus CSRF anonyme doit nommer son étape et sa cause. */
+    public function testConnexionSansCsrfPublieUnRefusNomme(): void
+    {
+        $racine = dirname(__DIR__, 3);
+        $controleur = new ConnexionController(
+            new Authentification(new Config($racine)),
+            new RegistreSessions($this->dossier . '/sessions'),
+            new ProtectionBruteForce($this->dossier . '/brute-force.json'),
+            new JournalAudit($this->dossier . '/audit.ndjson'),
+            new Vue($racine . '/templates'),
+        );
+        $requete = (new ServerRequestFactory())
+            ->createServerRequest('POST', '/connexion')
+            ->withParsedBody(['identifiant' => 'testeur@gedv2.test', 'mot_de_passe' => 'invalide']);
+
+        $reponse = $controleur->connecter($requete, new Response());
+        $corps = (string) $reponse->getBody();
+
+        self::assertSame(403, $reponse->getStatusCode());
+        self::assertStringContainsString('<dd data-testid="refus-etape">connexion</dd>', $corps);
+        self::assertStringContainsString('<dd data-testid="refus-cause">jeton CSRF absent ou invalide</dd>', $corps);
+    }
+
+    private function supprimerDossier(string $dossier): void
+    {
+        foreach (glob($dossier . '/*') ?: [] as $element) {
+            if (is_dir($element)) {
+                $this->supprimerDossier($element);
+            } else {
+                unlink($element);
+            }
+        }
+        rmdir($dossier);
     }
 
     public function testSessionRegeneréeGlissanteEtCookieDurci(): void

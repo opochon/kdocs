@@ -9,7 +9,13 @@
   <section class="carte erreur-page" aria-labelledby="titre-connexion">
     <div class="marque"><i>G</i>GED</div>
     <div><h1 id="titre-connexion">Connexion</h1><p class="muted">Accédez à votre espace documentaire sécurisé.</p></div>
-    {% if erreur %}<p class="raison" role="alert" data-testid="erreur-connexion">{{ erreur }}</p>{% endif %}
+    {% if erreur %}
+    <p class="raison" role="alert" data-testid="erreur-connexion">{{ erreur }}</p>
+    <dl class="meta" data-testid="refus-nomme">
+      <dt>Étape</dt><dd data-testid="refus-etape">{{ etape }}</dd>
+      <dt>Cause</dt><dd data-testid="refus-cause">{{ cause }}</dd>
+    </dl>
+    {% endif %}
     <form action="/connexion" method="post" data-testid="formulaire-connexion">
       <input type="hidden" name="csrf" value="{{ csrf }}" data-testid="csrf-connexion">
       <div class="champ"><label for="identifiant">Identifiant</label><input id="identifiant" name="identifiant" type="email" autocomplete="username" required data-testid="identifiant-connexion"></div>
