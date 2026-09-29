@@ -14,7 +14,7 @@ declare(strict_types=1);
  * Mesure : validés seuls avec un type faux (0), émetteurs faux (0 ; non lu = vide), « Autre » validé seul (0),
  * taux validé seul. Règle V2-03 : valider seul = habitude OU (IA ≥ seuil ET indice du même type dans le texte).
  * Sans IA (défaut), la porte exige donc 0 validé seul (hors habitudes) ; avec --ia, elle exige le taux minimum.
- * Sortie : recette/preuves/classement/<lot>-classement.{json,md} ; code 0 si la porte est franchie.
+ * Sortie : recette/preuves/classement/<lot>-classement-<mode>.{json,md} ; code 0 si la porte est franchie.
  */
 
 use Ged\Base;
@@ -116,7 +116,7 @@ $res = [
 
 $preuves = $racine . '/recette/preuves/classement';
 is_dir($preuves) || mkdir($preuves, 0775, true);
-file_put_contents("$preuves/$lot-classement.json", json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+file_put_contents("$preuves/$lot-classement-$mode.json", json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 $md = [
     "# Classement — lot `$lot` — $mode — " . date('Y-m-d H:i'),
@@ -153,7 +153,7 @@ if ($aControler !== []) {
     }
     $md[] = '';
 }
-file_put_contents("$preuves/$lot-classement.md", implode("\n", $md) . "\n");
+file_put_contents("$preuves/$lot-classement-$mode.md", implode("\n", $md) . "\n");
 
 printf("%s : %s — %d documents, %d validés seuls (%.1f %%), types faux %d, émetteurs faux %d, « Autre » validé %d ; porte %s\n",
     $mode, $duree . ' s', $mes['documents'], $mes['valides'], $taux * 100, $mes['types_faux'], $mes['emetteurs_faux'],
