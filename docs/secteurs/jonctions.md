@@ -1,6 +1,6 @@
 # Secteur JONCTIONS — K-Time, ClearMyMails, API d'entrée
 
-Agent : Claude Code · Juge : GLM · Lot : V2-08
+Agent : DeepCode (V2-08a, API d'entrée) · Juge : Claude Code · Lot : V2-08
 
 ## Mission
 La GED ne refait pas ce que les produits voisins font déjà ; elle se branche proprement, par API, jamais par la base
