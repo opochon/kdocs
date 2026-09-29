@@ -42,7 +42,9 @@ final class Kernel
 
         // Modules de secteur : chacun enregistre SES routes et middlewares dans sa propre classe
         // `Ged\<Secteur>\Module::enregistrer()`. Aucun agent n'a besoin de modifier ce fichier.
-        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions'] as $secteur) {
+        // « Ui » (Interface) ajouté par le lot V2-03-écran : modification minimale signalée dans
+        // docs/secteurs/interface.md (l'écran « À traiter » porte sa route de validation).
+        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Ui'] as $secteur) {
             $module = 'Ged\\' . $secteur . '\\Module';
             if (class_exists($module)) {
                 $module::enregistrer($app, $config, $vue);

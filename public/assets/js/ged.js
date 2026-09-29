@@ -29,20 +29,27 @@ document.querySelectorAll('[data-onglets]').forEach((bloc) => {
   }));
 });
 
-// À traiter : validation au clavier. Entrée = valider, → = passer au suivant.
-const file = document.querySelector('[data-testid="file-a-traiter"]');
-if (file) {
+// À traiter : contrôle au clavier. Entrée = valider la pièce courante (POST), → = passer au suivant.
+const fileATraiter = document.querySelector('[data-testid="file-a-traiter"]');
+const formulaireValidation = document.querySelector('[data-testid="formulaire-validation"]');
+if (fileATraiter || formulaireValidation) {
   const suivant = () => {
-    const liens = [...file.querySelectorAll('a')];
+    const liens = [...document.querySelectorAll('[data-testid="file-a-traiter"] a')];
     const i = liens.findIndex((a) => a.getAttribute('aria-current') === 'true');
     const cible = liens[i + 1] ?? liens[0];
     if (cible) window.location.href = cible.href;
   };
+  const valider = () => {
+    if (!formulaireValidation || formulaireValidation.dataset.doc === '0') return;
+    if (typeof formulaireValidation.requestSubmit === 'function') formulaireValidation.requestSubmit();
+    else formulaireValidation.submit();
+  };
   document.querySelector('[data-action="suivant"]')?.addEventListener('click', suivant);
-  document.querySelector('[data-action="valider"]')?.addEventListener('click', suivant);
+  document.querySelector('[data-action="valider"]')?.addEventListener('click', valider);
   document.addEventListener('keydown', (e) => {
     const saisie = e.target instanceof HTMLElement && e.target.matches('input, select, textarea');
-    if (e.key === 'ArrowRight' && !saisie) { e.preventDefault(); suivant(); }
-    if (e.key === 'Enter' && !saisie) { e.preventDefault(); suivant(); }
+    if (saisie) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); suivant(); }
+    if (e.key === 'Enter') { e.preventDefault(); valider(); }
   });
 }

@@ -5,6 +5,7 @@
 {% import 'partiels/icones.twig' as ic %}
 
 {% macro moteur(rendu, testid) %}
+{% import 'partiels/icones.twig' as ic %}
 <div class="visionneuse doc" data-visionneuse data-testid="{{ testid }}"
      data-src="{{ rendu.url }}" data-categorie="{{ rendu.categorie }}" data-pages="{{ rendu.pages }}"
      data-titre="{{ rendu.titre }}" data-message="{{ rendu.message }}" data-rotation="0">

@@ -271,6 +271,9 @@ try {
     // Toute mutation métier déclarée reçoit une charge volontairement invalide : le premier POST est
     // traité par le métier sans écrire, le second doit être bloqué par le jeton déjà consommé.
     $chargesMutations = [
+        // Charge défensive de l'écran « À traiter » (lot V2-03-écran, Interface) : l'identifiant n'existe
+        // pas, le métier refuse proprement ; la sonde ne vérifie que le CSRF absent / rejoué.
+        'POST /a-traiter/{id:[0-9]+}/valider' => 'titre=Charge+sonde&type=Facture',
         'POST /workflows/regles' => 'nom=&action_type=',
         'POST /workflows/regles/{id:[0-9]+}/basculer' => 'actif=0',
         'POST /workflows/gabarits/{nom}' => 'sonde=1',

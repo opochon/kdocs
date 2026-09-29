@@ -14,6 +14,7 @@ final class DroitsRoutes
     private const PERMISSIONS = [
         'GET /' => 'documents:lire',
         'GET /a-traiter' => 'documents:traiter',
+        'POST /a-traiter/{id:[0-9]+}/valider' => 'documents:traiter',
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
@@ -71,6 +72,9 @@ final class DroitsRoutes
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
+            if (preg_match('#^/a-traiter/[0-9]+/valider$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/valider'];
+            }
             if (preg_match('#^/workflows/regles/[0-9]+/basculer$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/regles/{id:[0-9]+}/basculer'];
             }

@@ -25,6 +25,16 @@ final class Ecrans
 
     public function aTraiter(Requete $req, Reponse $rep): Reponse
     {
+        // Branchement réel : bilan du fonds + file des documents `a_controler` + proposition du Classeur.
+        // Le gabarit reste le contrat visuel (mêmes classes, mêmes data-testid, même disposition) ; le
+        // jeton CSRF du formulaire vient du cookie de session courant.
+        if (class_exists(ATraiter::class)) {
+            $csrf = (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
+            $donnees = ATraiter::depuisRacine(dirname(__DIR__, 2))->donnees($req->getQueryParams(), $csrf);
+
+            return $this->vue->rendre($rep, 'ecrans/a-traiter.twig', $donnees + $this->commun('a-traiter'));
+        }
+
         $file = Maquette::aTraiter();
         $choisi = (int) ($req->getQueryParams()['doc'] ?? $file[0]['id']);
         $courant = $file[0];
