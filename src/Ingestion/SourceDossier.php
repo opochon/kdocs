@@ -10,7 +10,7 @@ namespace Ged\Ingestion;
  * travail (renommage atomique) : il ne peut pas être pris deux fois.
  * Les dossiers et fichiers cachés (point initial) sont ignorés.
  */
-final class SourceDossier
+final class SourceDossier implements Source
 {
     private const EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'docx', 'doc', 'xlsx', 'xls', 'odt', 'ods', 'rtf', 'txt', 'eml', 'msg'];
 

@@ -22,3 +22,18 @@ secteur Socle (rangement). Le dossier d'ingestion n'est jamais montré aux utili
 `app/Services/Ingest/Cmd4IngestClient.php` (stderr en fichier : l'interblocage du 27-09), `PDFSplitterService::compterPagesNatif`,
 `tools/banc/rejouer-ingestion.php` et `mesurer-decoupe.py` (mesure contre vérité, pages blanches neutres),
 `tests/corpus-banc/courrier-100p/`, la reprise des jobs abandonnés (`TaskService::processClassificationQueue`).
+
+## Journal V2-02
+- Fait : dossier surveillé (fichier stable sur deux relevés, déplacement atomique), travaux en base avec verrous courts
+  reprenables et 3 essais, découpe par `cmd4_ingest`, rangement via `Contrats\Depot` + `Contrats\Classeur`.
+- Fait : adresse d'ingestion. Client IMAP PHP pur (`Imap\ImapBoite` : l'extension imap n'existe plus en PHP 8.4),
+  connexion différée, pièces utiles seulement (ni logos de signature, ni vCard), un message traité une fois
+  (`ingestion_messages`), expéditeurs autorisés optionnels, message lu puis rangé dans `GED-traites` / `GED-refuses`
+  (MOVE, ou COPY si le serveur n'a pas MOVE) — jamais EXPUNGE ni `\Deleted`.
+- Fait : `php tools/tache.php ingestion [--budget=20] [--tours=N]` (verrou fichier, une ligne JSON par tour).
+  Une porte en panne devient une alerte, les autres continuent ; sans dépôt (Socle), les pièces prêtes attendent.
+- Preuves : `tests/php/Ingestion` 13 tests (dont client IMAP réel contre `tests/outils/faux-imap.php`).
+- Reste : porte 1-2 (corpus `courrier-100p` + vérité, mesure 53/53 via `Cmd4Decoupeur`), branchement du dépôt Socle.
+
+## Demandes
+- Au Socle : `new Ged\Socle\DepotFichiers(Config $config)` — c'est ainsi que `tools/tache.php` le construit.

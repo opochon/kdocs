@@ -14,25 +14,32 @@ use Ged\Contrats\Depot;
  */
 final class Pilote
 {
-    /** @param list<object> $sources objets exposant relever(): list<Entree> */
+    /** @param list<Source> $sources ; $depot null = socle absent : les pièces prêtes attendent, rien ne se perd */
     public function __construct(
         private readonly Travaux $travaux,
         private readonly array $sources,
         private readonly Decoupeur $decoupeur,
-        private readonly Depot $depot,
+        private readonly ?Depot $depot,
         private readonly ?Classeur $classeur,
         private readonly string $zoneTravail,
     ) {
     }
 
-    /** @return array{recus:int, doublons:int, decoupes:int, ranges:int, erreurs:int} */
+    /** @return array{recus:int, doublons:int, decoupes:int, ranges:int, erreurs:int, alertes:list<string>} */
     public function tic(int $budgetS = 20): array
     {
         $fin = microtime(true) + $budgetS;
-        $compte = ['recus' => 0, 'doublons' => 0, 'decoupes' => 0, 'ranges' => 0, 'erreurs' => 0];
+        $compte = ['recus' => 0, 'doublons' => 0, 'decoupes' => 0, 'ranges' => 0, 'erreurs' => 0, 'alertes' => []];
 
         foreach ($this->sources as $source) {
-            foreach ($source->relever() as $entree) {
+            try {
+                $entrees = $source->relever();
+            } catch (\Throwable $e) {
+                // Une boîte injoignable n'arrête ni le dossier ni les découpes en cours.
+                $compte['alertes'][] = (new \ReflectionClass($source))->getShortName() . ' : ' . $e->getMessage();
+                continue;
+            }
+            foreach ($entrees as $entree) {
                 if ($this->travaux->recevoir($entree) !== null) {
                     $compte['recus']++;
                 } else {
@@ -44,7 +51,7 @@ final class Pilote
         }
 
         // Ranger d'abord ce qui est prêt (rapide), puis découper un lot (long).
-        while (microtime(true) < $fin && ($t = $this->travaux->reserver('pret')) !== null) {
+        while ($this->depot !== null && microtime(true) < $fin && ($t = $this->travaux->reserver('pret')) !== null) {
             try {
                 $this->ranger($t);
                 $compte['ranges']++;
@@ -103,7 +110,7 @@ final class Pilote
             }
             $meta['classement'] = ['source' => $proposition['source'], 'confiance' => $proposition['confiance'], 'preuve' => $proposition['preuve']];
         }
-        $id = $this->depot->deposer((string) $piece['chemin'], $meta);
+        $id = $this->depot?->deposer((string) $piece['chemin'], $meta);
         $this->travaux->passer((int) $piece['id'], 'range', $id);
     }
 
