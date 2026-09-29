@@ -12,7 +12,9 @@ declare(strict_types=1);
  * --ia branche Infomaniak (réseau) et confirme/porte la source des types corroborés.
  *
  * Mesure : validés seuls avec un type faux (0), émetteurs faux (0 ; non lu = vide), « Autre » validé seul (0),
- * taux validé seul. Sortie : recette/preuves/classement/<lot>-classement.{json,md} ; code 0 si la porte est franchie.
+ * taux validé seul. Règle V2-03 : valider seul = habitude OU (IA ≥ seuil ET indice du même type dans le texte).
+ * Sans IA (défaut), la porte exige donc 0 validé seul (hors habitudes) ; avec --ia, elle exige le taux minimum.
+ * Sortie : recette/preuves/classement/<lot>-classement.{json,md} ; code 0 si la porte est franchie.
  */
 
 use Ged\Base;
@@ -55,6 +57,8 @@ foreach ($verite['elements'] as $el) {
 
 $config = new Config($racine);
 $pdo = Base::pdo($config);
+// Base de TEST : on repart d'une mémoire d'apprentissage vide pour que la mesure soit reproductible.
+$pdo->exec('DROP TABLE IF EXISTS classement_choix');
 Schema::installer($pdo);
 $classeur = new ClasseurGed($config, $pdo, $avecIa ? new InfomaniakClient($config) : new ClientIaNul(), new Habitudes($pdo));
 $mode = $avecIa ? 'avec-ia' : 'sans-ia';
@@ -89,16 +93,21 @@ foreach ($pieces as $piece) {
 }
 $duree = round(microtime(true) - $t0, 2);
 $taux = $mes['documents'] > 0 ? round($mes['valides'] / $mes['documents'], 4) : 0.0;
-$franchie = $mes['documents'] === (int) $oracle['attendu']['documents']
+$attendu = $oracle['attendu'];
+$validesAttendus = $avecIa ? (int) $attendu['valides_seuls_avec_ia_min'] : (int) $attendu['valides_seuls_sans_ia'];
+$franchie = $mes['documents'] === (int) $attendu['documents']
     && $mes['valides_type_faux'] <= (int) $seuils['valides_type_faux']
     && $mes['emetteurs_faux'] <= (int) $seuils['emetteurs_faux']
     && $mes['autre_valides_seuls'] <= (int) $seuils['autre_valides_seuls']
-    && $taux >= (float) $seuils['taux_valide_seul_min'];
+    && ($avecIa
+        ? ($taux >= (float) $seuils['taux_valide_seul_min'] && $mes['valides'] >= $validesAttendus)
+        : ($mes['valides'] <= $validesAttendus));
 
 $res = [
     'lot' => $lot, 'mode' => $mode, 'date' => date('c'), 'duree_s' => $duree,
     'chemin' => 'Ged\\Classement\\ClasseurGed', 'seuil' => (float) $config->get('CLASSEMENT_SEUIL', '0.8'),
     'documents' => $mes['documents'], 'valides' => $mes['valides'], 'taux_valide_seul' => $taux,
+    'valides_attendus' => $validesAttendus,
     'valides_type_faux' => $mes['valides_type_faux'], 'types_faux' => $mes['types_faux'],
     'emetteurs_lus' => $mes['emetteurs_lus'], 'emetteurs_faux' => $mes['emetteurs_faux'],
     'autre_valides_seuls' => $mes['autre_valides_seuls'],
@@ -117,6 +126,7 @@ $md = [
     '| Mesure | Attendu | Obtenu |', '|---|---|---|',
     '| Documents | ' . $oracle['attendu']['documents'] . ' | ' . $mes['documents'] . ' |',
     '| Validés seuls | — | ' . $mes['valides'] . ' (' . round($taux * 100, 1) . ' %) |',
+    '| Validés seuls attendus (' . $mode . ') | ' . $validesAttendus . ' | ' . $mes['valides'] . ' |',
     '| Validés seuls, type faux | 0 | ' . $mes['valides_type_faux'] . ' |',
     '| Types faux (validés ou non) | 0 | ' . $mes['types_faux'] . ' |',
     '| Émetteurs lus | — | ' . $mes['emetteurs_lus'] . ' |',

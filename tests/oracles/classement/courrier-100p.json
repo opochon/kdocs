@@ -11,7 +11,9 @@
   },
   "attendu": {
     "documents": 53,
-    "valides_seuls": 52,
+    "valides_seuls_sans_ia": 0,
+    "valides_seuls_avec_ia_min": 46,
+    "motif_non_validation_sans_ia": "valider seul = habitude OU (IA ≥ seuil ET indice du même type) : sans IA, un mot-clé seul reste une suggestion.",
     "motif_non_validation": "1 Document RH : GED_ORGANISATION vide, le propriétaire ne figure pas dans la pièce (règle : jamais RH sans le propriétaire)."
   }
 }

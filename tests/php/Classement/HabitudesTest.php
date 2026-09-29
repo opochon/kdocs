@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Ged\Tests\Classement;
 
+use Ged\Classement\ClientIa;
 use Ged\Classement\Habitudes;
+use Ged\Classement\ReponseIa;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -89,12 +91,34 @@ final class HabitudesTest extends TestCase
     public function testLeTriAutomatiqueNEnseigneJamais(): void
     {
         $texte = "Garage du Banc d'Essai Sarl\nRue des Pistons 4\n2300 La Chaux-de-Fonds\nFACTURE N° GB-4410\nTotal TTC CHF 441.00\n";
-        $classeur = $this->classeur();
+        // Le tri automatique s'appuie sur l'IA ; même quand elle valide, elle n'enseigne rien.
+        $ia = new class implements ClientIa {
+            public function classer(string $texte, string $nomFichier, array $typesConnus): ?ReponseIa
+            {
+                return new ReponseIa('Facture', "Garage du Banc d'Essai Sarl", null, null, null, [], 0.95, 'simule');
+            }
+
+            public function aExpire(): bool
+            {
+                return false;
+            }
+
+            public function disponible(): bool
+            {
+                return true;
+            }
+
+            public function modele(): string
+            {
+                return 'simule';
+            }
+        };
+        $classeur = $this->classeur($ia);
 
         for ($i = 0; $i < 6; $i++) {
             $r = $classeur->proposer($texte, [], 'facture.pdf');
             self::assertTrue($r['valide']);
-            self::assertSame('regle', $r['source']);
+            self::assertSame('ia', $r['source']);
         }
 
         $h = new Habitudes($this->pdo);

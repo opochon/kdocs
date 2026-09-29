@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Ged\Tests\Classement;
 
 use Ged\Classement\ClientIa;
+use Ged\Classement\Habitudes;
 use Ged\Classement\ReponseIa;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Le classeur : confiance ≥ seuil ET preuve (indice du texte ou habitude) pour valider seul ;
- * l'IA propose, elle ne force jamais ; « Autre » n'est jamais validé seul ; l'émetteur non lu reste vide.
+ * Le classeur ne valide seul que sur une PREUVE corroborée (règle de GEDv1, `typeCorrobore`) :
+ * habitude de l'émetteur, OU (IA ≥ seuil ET indice du même type dans le texte). Un mot-clé seul
+ * reste une suggestion ; l'IA qui diverge, se tait ou tombe en panne laisse la pièce à contrôler.
+ * « Autre » n'est jamais validé seul ; l'émetteur non lu reste vide.
  */
 final class ClasseurGedTest extends TestCase
 {
@@ -26,25 +29,27 @@ final class ClasseurGedTest extends TestCase
     private const CLES_CONTRAT = ['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'confiance',
         'source', 'preuve', 'valide', 'raison'];
 
-    public function testUneFactureEstValideeParLaRegleSansIA(): void
+    // ---- Le mot-clé seul ne valide pas (jugement V2-03, règle typeCorrobore) -----------------
+
+    public function testUnMotCleSeulSansIANEstPasValideSeul(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nDate : 05.01.2026\nTotal TTC CHF 700.38\n";
         $analyse = ['origine' => ['cles' => ['dates' => ['2026-01-05']]], 'facture' => ['amount' => 700.38]];
 
         $r = $this->classeur()->proposer($texte, $analyse, 'courrier (p. 1).pdf');
 
-        self::assertSame('Facture', $r['type']);
+        self::assertSame('Facture', $r['type'], 'le mot-clé reste une suggestion');
         self::assertSame('Papeterie des Sapins Fictive SA', $r['emetteur']);
         self::assertSame('regle', $r['source']);
         self::assertSame('facture', $r['preuve']);
-        self::assertTrue($r['valide']);
-        self::assertNull($r['raison']);
+        self::assertFalse($r['valide'], 'sans IA corroborante, un mot-clé seul ne range pas tout seul');
+        self::assertStringContainsString('IA', (string) $r['raison']);
         self::assertSame('2026-01-05', $r['date']);
         self::assertSame(700.38, $r['montant']);
         self::assertSame(self::CLES_CONTRAT, array_keys($r));
     }
 
-    public function testUneIACorroboreePorteLaSource(): void
+    public function testUneIaQuiCorroboreLeTexteValideSeul(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
         $ia = new ClientIaSimule(new ReponseIa('Facture', 'Papeterie des Sapins Fictive SA', 'Facture PS-2026-101',
@@ -53,12 +58,54 @@ final class ClasseurGedTest extends TestCase
         $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
 
         self::assertSame('Facture', $r['type']);
-        self::assertSame('ia', $r['source']);
+        self::assertSame('ia', $r['source'], 'l’IA qui corrobore l’indice porte la source');
+        self::assertStringContainsString('facture', (string) $r['preuve']);
         self::assertTrue($r['valide']);
+        self::assertNull($r['raison']);
         self::assertGreaterThanOrEqual(0.95, $r['confiance']);
     }
 
-    public function testUneIASansIndiceDansLeTexteNEstPasValideeSeule(): void
+    public function testUneIaEnDesaccordAvecLeTexteNEstPasValideeSeule(): void
+    {
+        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
+        $ia = new ClientIaSimule(new ReponseIa('Contrat', 'Papeterie des Sapins Fictive SA', null,
+            null, null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
+
+        self::assertFalse($r['valide'], 'IA et texte ne disent pas le même type');
+        self::assertSame('Facture', $r['type'], 'le texte est montré à l’humain');
+        self::assertStringContainsString('divergent', (string) $r['raison']);
+        self::assertStringContainsString('Contrat', (string) $r['raison']);
+        self::assertStringContainsString('Facture', (string) $r['raison']);
+    }
+
+    public function testUneIaPeuSureNeValidePasSeule(): void
+    {
+        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
+        $ia = new ClientIaSimule(new ReponseIa('Facture', null, null, null, null, [], 0.4, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
+
+        self::assertFalse($r['valide'], 'une IA d’accord mais peu sûre ne suffit pas');
+        self::assertStringContainsString('confiance', (string) $r['raison']);
+    }
+
+    public function testDeuxIndicesContradictoiresSansIaNEstPasValideSeule(): void
+    {
+        // « facture » et « contrat » dans la même pièce : la règle penche pour Facture (priorité), mais
+        // sans IA qui tranche, la divergence interne interdit le rangement automatique.
+        $texte = self::ENTETE
+            . "FACTURE N° PS-2026-101\nConcerne : contrat de bail commercial\nTotal TTC CHF 700.38\n";
+
+        $r = $this->classeur()->proposer($texte, [], 'piece.pdf');
+
+        self::assertSame('Facture', $r['type']);
+        self::assertFalse($r['valide'], 'deux indices contradictoires : à contrôler sans IA d’accord');
+        self::assertNotNull($r['raison']);
+    }
+
+    public function testUneIaSansIndiceDansLeTexteNEstPasValideeSeule(): void
     {
         $texte = self::ENTETE . "Aucun mot qui trahisse le type.\n";
         $ia = new ClientIaSimule(new ReponseIa('Contrat', null, null, null, null, [], 0.95, 'simule'));
@@ -93,7 +140,10 @@ final class ClasseurGedTest extends TestCase
 
     public function testEmetteurNonLuResteVide(): void
     {
-        $r = $this->classeur()->proposer("FACTURE N° 12\nDate : 05.01.2026\nTotal TTC CHF 120.00\n", [], 'f.pdf');
+        $texte = "FACTURE N° 12\nDate : 05.01.2026\nTotal TTC CHF 120.00\n";
+        $ia = new ClientIaSimule(new ReponseIa('Facture', null, null, null, null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'f.pdf');
 
         self::assertSame('Facture', $r['type']);
         self::assertTrue($r['valide']);
@@ -103,41 +153,63 @@ final class ClasseurGedTest extends TestCase
     public function testDocumentRhSansProprietaireNEstPasValide(): void
     {
         $texte = self::ENTETE . "Concerne : Attestation de travail - collaborateur fictif Jean Exemple\n";
+        $ia = new ClientIaSimule(new ReponseIa('Document RH', null, null, null, null, [], 0.95, 'simule'));
 
-        $r = $this->classeur()->proposer($texte, [], 'rh.pdf');
+        $r = $this->classeur($ia)->proposer($texte, [], 'rh.pdf');
 
         self::assertSame('Document RH', $r['type']);
-        self::assertFalse($r['valide']);
+        self::assertFalse($r['valide'], 'IA d’accord ne suffit pas : le propriétaire doit figurer dans la pièce');
         self::assertStringContainsString('propriétaire', (string) $r['raison']);
     }
 
-    public function testDocumentRhAvecProprietaireValideSeul(): void
+    public function testDocumentRhAvecProprietaireValideAvecIa(): void
     {
         $texte = "Commune de Modeleville\nHotel de Ville\n2999 Modeleville\nKarbonic Banc de test\n"
             . "Concerne : Attestation de travail - collaborateur fictif Jean Exemple\n";
+        $ia = new ClientIaSimule(new ReponseIa('Document RH', 'Commune de Modeleville', null,
+            null, null, [], 0.95, 'simule'));
 
         putenv('GED_ORGANISATION=Karbonic Banc de test');
         try {
-            $r = $this->classeur()->proposer($texte, [], 'attestation.pdf');
+            $r = $this->classeur($ia)->proposer($texte, [], 'attestation.pdf');
         } finally {
             putenv('GED_ORGANISATION');
         }
 
         self::assertSame('Document RH', $r['type']);
         self::assertTrue($r['valide']);
-        self::assertSame('regle', $r['source']);
+        self::assertSame('ia', $r['source']);
     }
 
-    public function testUneIAQuiEchoueNeBloquePasLaRegle(): void
+    public function testUneIaEnPanneNEstPasValideeSeule(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
         $ia = new ClientIaSimule(null, true);
 
         $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
 
-        self::assertSame('Facture', $r['type']);
-        self::assertSame('regle', $r['source'], 'l’IA en panne se replie sur la règle');
-        self::assertTrue($r['valide']);
+        self::assertSame('Facture', $r['type'], 'l’IA en panne se replie sur la suggestion de la règle');
+        self::assertSame('regle', $r['source']);
+        self::assertFalse($r['valide'], 'une panne IA ne range jamais toute seule');
+        self::assertStringContainsString('IA', (string) $r['raison']);
+    }
+
+    // ---- L'habitude vaut preuve à elle seule (jugement V2-03) --------------------------------
+
+    public function testUneHabitudeValideSeuleSansIa(): void
+    {
+        $h = new Habitudes($this->pdo);
+        foreach (['doc-1', 'doc-2', 'doc-3'] as $ref) {
+            $h->retenirChoix('Papeterie des Sapins Fictive SA', Habitudes::CHAMP_TYPE, 'Contrat', $ref);
+        }
+
+        // 4e pièce du même émetteur : le mot-clé dit Facture, l'habitude dit Contrat — l'habitude prime.
+        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
+        $r = $this->classeur()->proposer($texte, [], 'facture.pdf');
+
+        self::assertSame('Contrat', $r['type']);
+        self::assertSame('habitude', $r['source']);
+        self::assertTrue($r['valide'], 'trois choix humains identiques valident la 4e pièce');
     }
 }
 

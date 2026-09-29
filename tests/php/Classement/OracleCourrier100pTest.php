@@ -9,7 +9,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Porte V2-03, rejouée par PHPUnit : le classement du lot courrier-100p est mesuré contre sa vérité.
- * Aucune IA : on mesure le socle déterministe (règles + habitudes). Les pièces viennent du banc de
+ * Aucune IA : le socle déterministe propose des types justes mais ne VALIDE RIEN seul (règle
+ * `typeCorrobore` : valider seul = habitude OU IA corroborante). Les pièces viennent du banc de
  * découpe (`php tools/banc/mesurer-decoupe.php courrier-100p`) ; sans elles, l'oracle est sauté.
  */
 final class OracleCourrier100pTest extends TestCase
@@ -66,13 +67,12 @@ final class OracleCourrier100pTest extends TestCase
         self::assertSame(0, $mes['emetteurs_faux'], 'aucun émetteur faux (non lu = vide)');
         self::assertSame(0, $mes['autre_valides_seuls'], '« Autre » jamais validé seul');
         self::assertSame($mes['documents'], $mes['emetteurs_lus'], 'tous les émetteurs sont lus sur ce lot');
-        self::assertGreaterThanOrEqual((float) $oracle['seuils']['taux_valide_seul_min'], $mes['valides'] / $mes['documents'], 'taux validé seul');
-        // Au moins le socle validé seul sans propriétaire configuré ; si GED_ORGANISATION est renseigné,
-        // le Document RH s'ajoute (53/53), jamais moins.
-        self::assertGreaterThanOrEqual(
-            (int) $oracle['attendu']['valides_seuls'],
+        // Règle `typeCorrobore` : sans IA corroborante (et sans habitude enregistrée), un mot-clé
+        // seul ne valide RIEN. Le document RH resterait de toute façon à contrôler.
+        self::assertSame(
+            (int) $oracle['attendu']['valides_seuls_sans_ia'],
             $mes['valides'],
-            'le Document RH ne se valide qu’avec GED_ORGANISATION dans la pièce ; le reste suit les règles',
+            'sans IA, aucun document n’est rangé tout seul (hors habitudes)',
         );
     }
 }
