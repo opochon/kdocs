@@ -74,6 +74,8 @@ final class PiloteTest extends TestCase
         self::assertSame('1-2', $this->depot->deposes[0]['meta']['origine']['pages']);
         self::assertSame('courrier (p. 3)', $this->depot->deposes[1]['meta']['titre']);
         self::assertSame('a_controler', $this->depot->deposes[0]['meta']['statut'], 'sans classeur, rien n’est validé seul');
+        // Toutes ses pièces rangées : le lot n'est plus « en cours de lecture » (défaut trouvé par le banc de charge H-6).
+        self::assertSame(0, (new Travaux($this->pdo))->bilan()['en_cours']);
     }
 
     public function testLeMemeFichierNEntreJamaisDeuxFois(): void

@@ -112,6 +112,9 @@ final class Pilote
         }
         $id = $this->depot?->deposer((string) $piece['chemin'], $meta);
         $this->travaux->passer((int) $piece['id'], 'range', $id);
+        if ((int) $piece['parent_id'] > 0) {
+            $this->travaux->clore((int) $piece['parent_id']);
+        }
     }
 
     private function mettreDeCote(string $chemin, string $sousDossier): void

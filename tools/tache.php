@@ -66,8 +66,14 @@ for ($i = 1; $i <= $tours; $i++) {
     $bilan = $pilote->tic($budget);
     $bilan['alertes'] = array_merge($alertes, $bilan['alertes']);
     echo json_encode(['tache' => 'ingestion', 'tour' => $i] + $bilan, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
-    if ($bilan['recus'] + $bilan['decoupes'] + $bilan['ranges'] === 0) {
-        break;   // plus rien à faire
+    // Deux tours à vide de suite avant de s'arrêter : le dossier surveillé ne prend un fichier qu'au second relevé
+    // (stabilité), un seul tour à vide arrêtait la tâche avant qu'il entre (défaut trouvé par le banc de charge H-6).
+    $vides = ($bilan['recus'] + $bilan['decoupes'] + $bilan['ranges'] === 0) ? ($vides ?? 0) + 1 : 0;
+    if ($vides >= 2) {
+        break;
+    }
+    if ($vides === 1) {
+        sleep(1);   // le relevé suivant doit voir une date de modification inchangée
     }
 }
 flock($verrou, LOCK_UN);

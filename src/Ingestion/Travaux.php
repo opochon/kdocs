@@ -67,6 +67,19 @@ final class Travaux
             ->execute([$etat, $documentId, $id]);
     }
 
+    /**
+     * Un lot découpé est terminé quand toutes ses pièces sont rangées : il passe alors en « range » et cesse
+     * d'être compté « en cours de lecture » (défaut trouvé par le banc de charge H-6).
+     */
+    public function clore(int $lotId): void
+    {
+        $q = $this->pdo->prepare("SELECT COUNT(*) FROM ingestion_travaux WHERE parent_id = ? AND etat <> 'range'");
+        $q->execute([$lotId]);
+        if ((int) $q->fetchColumn() === 0) {
+            $this->pdo->prepare("UPDATE ingestion_travaux SET etat = 'range' WHERE id = ? AND etat = 'decoupe'")->execute([$lotId]);
+        }
+    }
+
     /** Un échec est rejoué au tic suivant ; au bout de MAX_ESSAIS, le travail passe en « erreur », nommée. */
     public function echouer(int $id, string $message): void
     {

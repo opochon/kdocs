@@ -59,3 +59,4 @@ de 10 000 documents (`tools/banc/charge.php`). Preuves : `recette/preuves/charge
 
 Preuve positive du reste de la chaîne : avec l'amorçage, la tâche finit en 137 s, **53/53 pièces rangées**,
 0 travail restant, 0 erreur, 53 documents déposés par le Socle — soit exactement le lot attendu.
+- 29-09 : demandes du banc de charge H-6 faites — `tache.php` s'arrête après deux tours à vide (le dossier ne prend un fichier qu'au second relevé) ; un lot dont toutes les pièces sont rangées passe en « range » (`Travaux::clore`) et n'est plus compté « en cours de lecture ».
