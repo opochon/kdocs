@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion · GED</title><link rel="stylesheet" href="/assets/css/ged.css">
+</head>
+<body>
+<main class="page" data-testid="ecran-connexion">
+  <section class="carte erreur-page" aria-labelledby="titre-connexion">
+    <div class="marque"><i>G</i>GED</div>
+    <div><h1 id="titre-connexion">Connexion</h1><p class="muted">Accédez à votre espace documentaire sécurisé.</p></div>
+    {% if erreur %}<p class="raison" role="alert" data-testid="erreur-connexion">{{ erreur }}</p>{% endif %}
+    <form action="/connexion" method="post" data-testid="formulaire-connexion">
+      <input type="hidden" name="csrf" value="{{ csrf }}" data-testid="csrf-connexion">
+      <div class="champ"><label for="identifiant">Identifiant</label><input id="identifiant" name="identifiant" type="email" autocomplete="username" required data-testid="identifiant-connexion"></div>
+      <div class="champ"><label for="mot_de_passe">Mot de passe</label><input id="mot_de_passe" name="mot_de_passe" type="password" autocomplete="current-password" required data-testid="mot-de-passe-connexion"></div>
+      <div class="pied-validation"><button class="btn primaire" type="submit" data-testid="action-connexion">Se connecter</button></div>
+    </form>
+  </section>
+</main>
+</body>
+</html>

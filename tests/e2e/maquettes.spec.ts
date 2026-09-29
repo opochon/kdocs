@@ -14,6 +14,16 @@ const ecrans = [
   { nom: 'application', url: '/application', testid: 'ecran-application' },
 ];
 
+async function connecter(page: Page): Promise<void> {
+  await page.goto('/connexion');
+  await page.getByTestId('identifiant-connexion').fill('testeur@gedv2.test');
+  await page.getByTestId('mot-de-passe-connexion').fill('MotDePasse-Test-2026!');
+  await page.getByTestId('action-connexion').click();
+  await expect(page).toHaveURL(/\/a-traiter$/);
+}
+
+test.beforeEach(async ({ page }) => { await connecter(page); });
+
 function surveillerConsole(page: Page): string[] {
   const erreurs: string[] = [];
   page.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()); });
@@ -82,9 +92,9 @@ test('fiche : les onglets changent le panneau', async ({ page }) => {
   await expect(page.getByTestId('panneau-metadonnees')).toBeHidden();
 });
 
-test('erreur : une page inconnue est nommée, jamais muette', async ({ page }) => {
+test('garde : une page inconnue est refusée et la cause est nommée', async ({ page }) => {
   const rep = await page.goto('/nulle-part');
-  expect(rep?.status()).toBe(404);
-  await expect(page.getByTestId('erreur-etape')).toContainText('GET /nulle-part');
-  await expect(page.getByTestId('erreur-reference')).not.toBeEmpty();
+  expect(rep?.status()).toBe(403);
+  await expect(page.getByTestId('refus-etape')).toContainText('GET /nulle-part');
+  await expect(page.getByTestId('refus-cause')).toContainText('route sans permission déclarée');
 });
