@@ -38,3 +38,4 @@ secteur Socle (rangement). Le dossier d'ingestion n'est jamais montré aux utili
 ## Demandes
 - Au Socle : `new Ged\Socle\DepotFichiers(Config $config)` — c'est ainsi que `tools/tache.php` le construit.
 - À l'Ingestion (V2-08a) : ajouter `Ged\Jonctions\SourceApi` à `Ged\Ingestion\Fabrique::sources()` — `new SourceApi(Fabrique::zoneTravail($config) . '/api', new Travaux($pdo), $pdo)` — pour que les fichiers déposés par l'API et non encore enregistrés (reprise après panne) entrent dans la chaîne ; aucun autre changement demandé.
+- 29-09 : demande Jonctions faite — `Ged\Jonctions\SourceApi` ajoutée à `Fabrique::sources()` (reprise des dépôts API non enregistrés).

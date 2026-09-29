@@ -46,6 +46,11 @@ final class Fabrique
             $sources[] = new SourceAdresse($boite, $pdo, $travail, $expediteurs);
         }
 
+        // API d'entrée (secteur Jonctions) : reprise des fichiers déposés mais pas encore enregistrés après une panne.
+        if (class_exists(\Ged\Jonctions\SourceApi::class)) {
+            $sources[] = new \Ged\Jonctions\SourceApi(self::zoneTravail($config) . '/api', new Travaux($pdo), $pdo);
+        }
+
         return $sources;
     }
 

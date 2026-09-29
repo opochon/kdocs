@@ -63,3 +63,7 @@ l'API REST existante (`/api/documents`) comme liste de courses, pas comme code.
 
 ETAT: fini
 
+
+## Jugement V2-08a (Claude Code, 29-09) — porte franchie
+Rejoué sur le code commité : unitaire 212/212, 3 bancs verts, écrans 26/26, couche 7 verte (les deux routes publiques d'API tiennent par le jeton). Demande à l'Ingestion faite : `SourceApi` est dans `Fabrique::sources()`. Reste : V2-08b (ClearMyMails pousse vers l'API, source `cmm`), V2-08c (K-Time).
+ETAT: fini (jugé)
