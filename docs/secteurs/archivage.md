@@ -109,3 +109,7 @@ Un document scellé devient intouchable pendant sa durée légale (10 ans par d�
 
 ETAT: fini
 
+
+## Jugement V2-09 (Claude Code, 29-09) — porte franchie
+Rejoué sur le code commité : oracle `porte-v2-09.php` 7/7, 26 tests verts, bancs verts. La garde entre par des appels d'une ligne signalés dans `DepotFichiers` et `Indexeur` (Socle) : c'est le bon niveau. Les rouges du harness de ce passage viennent du lot V2-07c (Droits), pas de celui-ci. Reste : TSA réelle en recette (`TSA_URL`), écran de scellement et liste « à échéance » dans l'interface.
+ETAT: fini (jugé)
