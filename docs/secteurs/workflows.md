@@ -25,8 +25,12 @@ Deux niveaux, un seul moteur :
 5. Playwright : créer une règle, la tester à blanc, l'activer, la voir agir sur un dépôt — au clavier.
 
 ## Reprendre de GEDv1
-`WorkflowEngine`, `approval_rules`, designer `/admin/workflows/*/designer` — à trier selon l'audit
-`GEDv1/var/audit-v2/glm-workflows-interface.md` (en cours) : ne reprendre que ce qu'un test exécute.
+Selon l'audit `GEDv1/var/audit-v2/glm-workflows-interface.md` (29-09) : s'inspirer de `app/Workflow/ExecutionEngine.php`
+(machine à états start/step/resume/cancel, attentes, journal par nœud), du catalogue introspectif `NodeExecutorFactory`
+(24 nœuds), de la boucle d'approbation par courriel à jeton (`WorkflowApprovalController` + `ApprovalWait`), du modèle
+`approval_rules` (montant → rôle, délai) et de l'éditeur `workflow-designer.js`. Ne PAS reprendre : le double système
+(linéaire + designer), le pont d'événements à FQCN mort, `WorkflowWorker`/`WorkflowScheduler` (morts). L'essai à blanc
+n'a jamais existé : il est à écrire.
 
 ## Demandes
 - Au Socle : événement « document déposé / mis à jour » (point d'accroche unique, pas d'appel direct depuis l'ingestion).
