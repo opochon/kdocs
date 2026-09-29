@@ -103,6 +103,13 @@ final class DepotFichiers implements Depot
             throw new \RuntimeException("mise à jour : le document $idDocument est à la corbeille, le restaurer d’abord");
         }
 
+        // Archivage légal (V2-09) : la garde vit dans le service, pas route par route. Un document scellé
+        // refuse toute écriture, déplacement de rangement compris. Appel d'une ligne, signalé dans
+        // docs/secteurs/archivage.md et docs/secteurs/socle.md (Demandes).
+        if (class_exists(\Ged\Archivage\Garde::class)) {
+            \Ged\Archivage\Garde::interdireMutation($this->cheminAbsolu((string) $ligne['chemin_relatif']), 'mise à jour', $idDocument);
+        }
+
         $meta = $this->fusionner($ligne['meta'], $metadonnees);   // fiche() livre déjà le meta décodé
         $ancienRel = (string) $ligne['chemin_relatif'];
         // Le nom du fichier ne bouge pas (fixé au dépôt) : seul le rangement peut changer.
@@ -134,6 +141,10 @@ final class DepotFichiers implements Depot
         }
         if ($ligne['supprime_le'] !== null) {
             return;   // déjà à la corbeille : l'opération est idempotente
+        }
+        // Archivage légal (V2-09) : un document scellé ne part JAMAIS à la corbeille. Appel d'une ligne, signalé.
+        if (class_exists(\Ged\Archivage\Garde::class)) {
+            \Ged\Archivage\Garde::interdireMutation($this->cheminAbsolu((string) $ligne['chemin_relatif']), 'corbeille', $idDocument);
         }
         $relatif = (string) $ligne['chemin_relatif'];
         Fichiers::deplacerAvecAnnexes($this->cheminAbsolu($relatif), $this->cheminCorbeille($relatif));

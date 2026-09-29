@@ -38,12 +38,12 @@ final class Indexeur
     /**
      * @param int $budgetS borné : en mutualisé, jamais un appel PHP long ; ce qui n'est pas fini l'est au
      *                    passage suivant (`complet` dit si le fonds a été vu en entier).
-     * @return array{complet:bool, nouveaux:int, versions:int, deplaces:int, metas:int, intouches:int, absents:int}
+     * @return array{complet:bool, nouveaux:int, versions:int, deplaces:int, metas:int, intouches:int, absents:int, scelles_alteres:int}
      */
     public function passer(int $budgetS = 20): array
     {
         $fin = microtime(true) + $budgetS;
-        $stats = ['complet' => true, 'nouveaux' => 0, 'versions' => 0, 'deplaces' => 0, 'metas' => 0, 'intouches' => 0, 'absents' => 0];
+        $stats = ['complet' => true, 'nouveaux' => 0, 'versions' => 0, 'deplaces' => 0, 'metas' => 0, 'intouches' => 0, 'absents' => 0, 'scelles_alteres' => 0];
 
         [$vus, $stables] = $this->relever($fin);
         $stats['complet'] = microtime(true) <= $fin;
@@ -71,6 +71,14 @@ final class Indexeur
                 $revient = $existant['supprime_le'] !== null || $existant['absent_depuis'] !== null;
 
                 if ($contenuChange) {
+                    // Archivage légal (V2-09) : un document scellé n'a JAMAIS de nouvelle version silencieuse.
+                    // L'indexeur constate l'altération, écrit l'alerte dans le dossier et laisse l'index en place.
+                    // Appel d'une ligne, signalé (docs/secteurs/archivage.md, docs/secteurs/socle.md).
+                    if (class_exists(\Ged\Archivage\Garde::class)
+                        && \Ged\Archivage\Garde::constaterAlteration($absolu, $empreinte, $id) !== null) {
+                        $stats['scelles_alteres']++;
+                        continue;
+                    }
                     // Le hash a changé : c'est lui qui décide qu'une version existe (règle GEDv1 du 2026-08-09).
                     $this->depot->archiverVersion($id, $absolu, $empreinte, $taille);
                     $meta = $metaFichier ?? (json_decode((string) $existant['meta'], true) ?: []);

@@ -107,3 +107,19 @@ Second point, constaté en V2-06 : le `.meta.json` écrit au dépôt ne contient
 n'existe qu'après l'`INSERT`). `Apercu\Source` et `Workflows\Fonds` le résolvent par `chemin_relatif`
 (lecture seule) en attendant ; réécrire l'`id` dans le `.meta.json` après l'indexation rendrait le
 dossier auto-descriptible. Détail complet dans `docs/secteurs/workflows.md`, rubrique « Demandes ».
+
+## Demande reçue de ARCHIVAGE (V2-09, DeepCode, 29-09) — garde d'écriture branchée au niveau du service
+Le lot Archivage ajoute `Ged\Archivage\Garde` et l'a branchée par appels d'une ligne **clairement signalés** :
+```php
+if (class_exists(\Ged\Archivage\Garde::class)) {
+    \Ged\Archivage\Garde::interdireMutation($this->cheminAbsolu($relatif), 'mise à jour', $idDocument);   // ou 'corbeille'
+}
+```
+- `DepotFichiers::mettreAJour()` et `miseALaCorbeille()` : refus 403 nommé si le document est scellé (le
+  point d'entrée unique du service couvre donc écran, API et actions de workflow).
+- `Indexeur::passer()` : si le contenu d'un document scellé change sur disque, `Garde::constaterAlteration()`
+  est appelée et le passage renvoie `scelles_alteres` ; aucune version n'est archivée silencieusement.
+Le scellement vit dans le dossier (`.scellement/<fichier>.json` + `.tsr`), jamais en base : rien à changer
+au schéma ni à la reconstruction. Merci de confirmer ces appels au prochain lot Socle (garde `class_exists`,
+le Socle ne dépend pas du tout du secteur Archivage).
+

@@ -122,3 +122,10 @@ ETAT: fini
 ## Jugement V2-06 (Claude Code, 29-09) — porte franchie
 Rejoué sur le code commité (copie de travail du juge) : unitaire 176/176, bancs verts, écrans 26/26 dont le parcours workflows au clavier. Essai à blanc prouvé par empreintes du fonds et de la base. Les rouges du journal venaient du vestiaire partagé (en-tête CSP non commité du secteur Droits), pas de ce lot. Reste : brancher `Ecouteur::prevenir` dans `DepotFichiers` (Socle), designer SVG et approbation par courriel (lot suivant).
 ETAT: fini (jugé)
+
+## Note reçue de ARCHIVAGE (V2-09, DeepCode, 29-09) — les actions du moteur n'écrivent pas un document scellé
+Les actions `poser` / `etiqueter` du moteur passent déjà par `Ged\Contrats\Depot::mettreAJour()` : la garde
+du secteur Archivage est donc branchée dans `DepotFichiers::mettreAJour()` et une règle qui viserait un
+document scellé échoue **nommée** (le moteur la rattrape et la journalise, le document n'est pas touché).
+Aucune modification de ce secteur n'est requise ; test de non-régression côté Archivage (`GardeTest`).
+

@@ -19,3 +19,12 @@ couleurs uniquement par jetons ; le mobile a ses propres écrans.
 Lot MAQUETTES fait : six écrans sur données fixes (`src/Ui/Maquette.php`), 12 tests Playwright verts, captures claires et
 sombres dans `var/captures/`. En attente : la validation d'Olivier, écran par écran. Ensuite chaque secteur branche ses
 vraies données sans changer le gabarit.
+
+## Demande reçue de ARCHIVAGE (V2-09, DeepCode, 29-09)
+Deux branchements à prévoir quand le Kernel appellera `Archivage\Module` (voir demandes du secteur) :
+- sur la **fiche document**, un bouton « Sceller » (`data-testid="document-sceller"`), barre d'actions à
+  gauche sous le titre, qui appelle `POST /documents/{id}/sceller` (permission `archivage:sceller`) ;
+- une **liste de rétention** (« à échéance ») servie par `Ged\Archivage\Retention::aEcheance()`, avec le
+  geste humain « Lever le scellement » (`Retention::lever()`) et son échéance affichée — jamais
+  d'effacement automatique, le refus d'écriture se nomme (« scellé jusqu'au … »).
+
