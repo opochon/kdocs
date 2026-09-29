@@ -99,3 +99,18 @@ ETAT: fini
 ## Jugement V2-03-écran (Claude Code, 29-09) — porte franchie
 Rejoué sur le code commité : unitaire 212/212, 3 bancs verts, écrans 29/29 dont les 3 parcours « À traiter » (trois validations à Entrée, la 4e pièce en habitude, « Passer » sans écriture), sonde de sécurité verte. Le dessin validable par Olivier est inchangé (mêmes classes et data-testid).
 ETAT: fini (jugé)
+
+## Demandes du HARNESS (lot H-6 « 6-charge », 29-09-2026)
+
+Mesure : fonds synthétique de 10 000 documents (`var/charge/`, `tools/banc/charge.php`), 3 puis 10 utilisateurs
+simultanés, tâche d'ingestion `courrier-100p` en fond. Preuves : `recette/preuves/charge/charge.{json,md}`.
+
+- **`/a-traiter` ne tient pas le seuil (défaut nommé)** : p50 2,9 s / p95 3,4 s à 3 utilisateurs ;
+  p50 5,2 s / p95 5,5 s à 10. Cause : `Ged\Ui\ATraiter::documents()` appelle `DepotFichiers::lister()`
+  (toutes les lignes de l'index) puis fait un `is_file` **par document** à chaque rendu, et `donnees()`
+  reparcourt ces documents pour le bilan — le coût croît avec la taille du fonds, pas avec la file.
+  Attendu : borner le travail au statut `a_controler` (requête indexée) et ne plus `stat`/décoder tout le
+  fonds à chaque GET. La couche 6 (< 1,5 s en lecture) reste donc ROUGE tant que ce n'est pas corrigé.
+
+Aucune autre attente : les validations (écriture) tiennent le seuil (p95 2,6–2,9 s < 3 s), 0 collision,
+0 erreur, la tâche d'ingestion finit.

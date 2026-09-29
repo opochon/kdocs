@@ -39,3 +39,23 @@ secteur Socle (rangement). Le dossier d'ingestion n'est jamais montré aux utili
 - Au Socle : `new Ged\Socle\DepotFichiers(Config $config)` — c'est ainsi que `tools/tache.php` le construit.
 - À l'Ingestion (V2-08a) : ajouter `Ged\Jonctions\SourceApi` à `Ged\Ingestion\Fabrique::sources()` — `new SourceApi(Fabrique::zoneTravail($config) . '/api', new Travaux($pdo), $pdo)` — pour que les fichiers déposés par l'API et non encore enregistrés (reprise après panne) entrent dans la chaîne ; aucun autre changement demandé.
 - 29-09 : demande Jonctions faite — `Ged\Jonctions\SourceApi` ajoutée à `Fabrique::sources()` (reprise des dépôts API non enregistrés).
+
+## Demandes du HARNESS (lot H-6 « 6-charge », 29-09-2026)
+
+Mesure : `php tools/tache.php ingestion --budget=300 --tours=200` sur le lot `courrier-100p`, pendant une charge
+de 10 000 documents (`tools/banc/charge.php`). Preuves : `recette/preuves/charge/charge.{json,md}`.
+
+- **Une invocation unique n'ingère pas un fichier fraîchement déposé** : `SourceDossier::relever()` exige DEUX
+  relevés (fichier stable) avant de déplacer/prendre un fichier, alors que `tools/tache.php` s'arrête au premier
+  tour sans travail (`recus + decoupes + ranges === 0`). Résultat : lancée une fois juste après un dépôt, la
+  tâche sort sans rien faire (c'est ce qui s'est produit au premier rejeu de la couche 6) ; il faut un second
+  appel. Le banc amorce donc l'état du dossier (`etat-dossier.json`) pour qu'une seule invocation fasse le
+  travail. Attendu : un tour de « chauffe » interne, ou une stabilité constatée dans la même invocation.
+- **Le lot parent ne quitte jamais l'état `decoupe`** : une fois les pièces produites et rangées, la ligne du lot
+  (`ingestion_travaux.parent_id = 0`) reste à `decoupe` (le pilote n'avance que les pièces). Comme
+  `Travaux::bilan()` et `Ged\Ui\ATraiter::enCours()` comptent les états `recu|decoupe|pret`, un lot **fini**
+  reste compté « en cours de lecture » indéfiniment. Attendu : passer le lot à `range`/`fini` quand toutes ses
+  pièces sont rangées.
+
+Preuve positive du reste de la chaîne : avec l'amorçage, la tâche finit en 137 s, **53/53 pièces rangées**,
+0 travail restant, 0 erreur, 53 documents déposés par le Socle — soit exactement le lot attendu.

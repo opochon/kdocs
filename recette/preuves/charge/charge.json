@@ -1,0 +1,118 @@
+{
+    "date": "2026-09-29T21:24:54+00:00",
+    "commit": "8fe7c3f",
+    "duree_s": 169.7,
+    "documents": 10000,
+    "fonds": "F:\\DATA\\DEVELOPPEMENT\\GEDv2/var/charge/fonds/documents",
+    "seuils": {
+        "lecture_p95_ms": 1500,
+        "ecriture_p95_ms": 3000
+    },
+    "phases": {
+        "3-utilisateurs": {
+            "nom": "3-utilisateurs",
+            "par_ecran": {
+                "bibliotheque": {
+                    "n": 9,
+                    "p50_ms": 156,
+                    "p95_ms": 662,
+                    "max_ms": 662
+                },
+                "recherche": {
+                    "n": 9,
+                    "p50_ms": 1552,
+                    "p95_ms": 4371,
+                    "max_ms": 4371
+                },
+                "a-traiter": {
+                    "n": 9,
+                    "p50_ms": 2923,
+                    "p95_ms": 3408,
+                    "max_ms": 3408
+                },
+                "apercu": {
+                    "n": 9,
+                    "p50_ms": 1445,
+                    "p95_ms": 1777,
+                    "max_ms": 1777
+                },
+                "validation": {
+                    "n": 40,
+                    "p50_ms": 2473,
+                    "p95_ms": 2863,
+                    "max_ms": 3116
+                }
+            },
+            "lecture_p95_ms": 4371,
+            "ecriture_p95_ms": 2863,
+            "ecriture_n": 40,
+            "requetes": 76,
+            "erreurs": 0,
+            "ok": false
+        },
+        "10-utilisateurs": {
+            "nom": "10-utilisateurs",
+            "par_ecran": {
+                "bibliotheque": {
+                    "n": 30,
+                    "p50_ms": 172,
+                    "p95_ms": 627,
+                    "max_ms": 627
+                },
+                "recherche": {
+                    "n": 30,
+                    "p50_ms": 1936,
+                    "p95_ms": 2940,
+                    "max_ms": 3129
+                },
+                "a-traiter": {
+                    "n": 30,
+                    "p50_ms": 5195,
+                    "p95_ms": 5518,
+                    "max_ms": 5585
+                },
+                "apercu": {
+                    "n": 30,
+                    "p50_ms": 1833,
+                    "p95_ms": 2058,
+                    "max_ms": 2078
+                },
+                "validation": {
+                    "n": 60,
+                    "p50_ms": 988,
+                    "p95_ms": 2592,
+                    "max_ms": 3457
+                }
+            },
+            "lecture_p95_ms": 5518,
+            "ecriture_p95_ms": 2592,
+            "ecriture_n": 60,
+            "requetes": 180,
+            "erreurs": 0,
+            "ok": false
+        }
+    },
+    "collisions": {
+        "perdues": 0,
+        "doublons": 0,
+        "validees": 100,
+        "attendues": 100,
+        "verrous_morts": 0,
+        "ok": true,
+        "details": []
+    },
+    "ingestion": {
+        "finie": true,
+        "detail": "53 pièces rangées, 0 travail restant",
+        "duree_s": 137.1,
+        "documents_ajoutes": 53,
+        "travaux_restants": 0,
+        "erreurs": 0,
+        "code": 0
+    },
+    "defauts": [
+        "3-utilisateurs : p95 lecture 4371 ms ≥ 1500 ms",
+        "10-utilisateurs : p95 lecture 5518 ms ≥ 1500 ms"
+    ],
+    "porte": "NON FRANCHIE"
+}

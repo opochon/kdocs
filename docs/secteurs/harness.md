@@ -18,7 +18,7 @@ Agent : Claude Code · Juge : chaque secteur le rejoue · Commande : `powershell
 | 3 | banc | corpus + vérité : découpe (`mesurer-decoupe.php`, 53/53), classement, rejeu complet sur base vierge | à brancher (outil prêt) |
 | 4 | écrans | Playwright : parcours clavier, clair/sombre, 0 erreur console, captures | VERT |
 | 5 | personas | parcours métier bout à bout (comptable, secrétariat, direction) | à écrire |
-| 6 | charge | 10 000 documents, 5 utilisateurs, temps de réponse bornés, tâches courtes | à écrire |
+| 6 | charge | 10 000 documents, 3 puis 10 utilisateurs (2-3 écrivains), tâche d'ingestion en fond, p95 bornés | branchée — ROUGE mesurée (p95 lecture 5,5 s) |
 | 7 | sécurité | droits refusés par défaut, CSRF, en-têtes, jetons, pas de fuite de secret | à écrire |
 
 ## Lot suivant (Claude Code)
@@ -38,4 +38,43 @@ dossier temporaire du système : juge et agents s'attendent au lieu de s'effacer
 - V2-03-écran (Interface) : la sonde itère `DroitsRoutes::declarees()` et exige une charge CSRF défensive par mutation.
   L'écran « À traiter » ajoutant `POST /a-traiter/{id:[0-9]+}/valider`, la charge correspondante a été posée dans
   `tools/banc/sonde-securite.php` (chemin de la couche 7). Une seule entrée ajoutée, aucune règle modifiée.
+
+## Journal H-6 — couche « 6-charge » — 29-09-2026
+
+**Fait**
+- `tools/banc/charge.php` : fonds synthétique de 10 000 documents préparé dans `var/charge/` (jamais dans
+  `tests/corpus`), base `gedv2_test` sous le verrou partagé. Charge jouée en deux phases, 3 puis 10 utilisateurs
+  simultanés, dont 2 puis 3 écrivains qui valident dans « À traiter » ; tous ouvrent la bibliothèque, cherchent et
+  ouvrent un aperçu (`/bibliotheque`, `/recherche?q=…`, `/a-traiter`, `/documents/{id}/apercu`,
+  `POST /a-traiter/{id}/valider`).
+- Vraie concurrence sous Windows : 10 serveurs `php -S` isolés (un par utilisateur) pilotés par `curl_multi`,
+  autour de la même base MariaDB et du même fonds. Sessions et CSRF par utilisateur (jeton rotatif suivi).
+- Ingestion concurrente : `php tools/tache.php ingestion --budget=300 --tours=200` sur le lot `courrier-100p`,
+  lancée avant la charge et suivie jusqu'à sa fin. Preuves publiées :
+  `recette/preuves/charge/charge.json` + `charge.md`.
+- Branchement minimal de `tools/harness.ps1` : la couche 6 est mesurée (la ligne « pas encore écrite » est
+  remplacée), aucune autre règle modifiée.
+
+**Mesures (10 000 documents, ingestion en fond, 0 erreur, 0 collision)**
+
+| Phase | p95 lecture | p95 écriture | Erreurs |
+|---|---|---|---|
+| 3 utilisateurs (2 écrivains) | 4 371 ms | 2 863 ms | 0 |
+| 10 utilisateurs (3 écrivains) | 5 518 ms | 2 592 ms | 0 |
+
+Par écran à 10 utilisateurs (p50 / p95) : Bibliothèque 172 / 627 ms ; Recherche 1 936 / 2 940 ms ;
+À traiter 5 195 / 5 518 ms ; Aperçu 1 833 / 2 058 ms ; Validation 988 / 2 592 ms.
+
+Collisions : 100 validations attendues, 100 valides (fichier + index), 0 perdue, 0 doublée, 0 verrou mort.
+Ingestion : finie en 137 s, 53/53 pièces rangées, 0 travail restant, 0 erreur, 53 documents déposés par le Socle.
+
+**Porte : NON FRANCHIE.** Tiennent : écriture (p95 < 3 s), 0 erreur 500/CSRF, 0 collision, ingestion finie.
+Ne tiennent pas : p95 lecture (seuil 1,5 s) pour `/a-traiter`, `/recherche` et `/documents/{id}/apercu`, qui
+parcourent tout le fonds à chaque requête. Défauts nommés et consignés en Demandes :
+- Interface : `Ged\Ui\ATraiter::documents()` (`DepotFichiers::lister()` + `is_file` par document) ;
+- Recherche & aperçu : `IndexPleinTexte::synchroniser()` à chaque recherche, `Apercu\Source::parId()` → `toutes()` ;
+- Ingestion : `tache.php` s'arrête au premier tour à vide alors que `SourceDossier` exige deux relevés, et le lot
+  parent ne quitte jamais l'état `decoupe` (compté « en cours de lecture » à tort).
+
+ETAT: bloqué: p95 lecture mesuré à 5,5 s à 10 000 documents (seuil 1,5 s) — trois défauts sectoriels nommés et inscrits en Demandes (Interface, Recherche & aperçu, Ingestion) ; écritures, collisions et ingestion tiennent.
 

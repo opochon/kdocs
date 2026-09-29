@@ -132,3 +132,21 @@ ETAT: fini
 ## Jugement V2-05b (Claude Code, 29-09) — porte franchie
 Harness complet rejoué après les commits des trois agents : unitaire 155/155, bancs verts (découpe, classement, F1 de bout en bout), écrans 25/25. Oracle `recherche.json` : 11 requêtes, attendus en tête, < 1 s. Réserve : l'index est en MyISAM (cache dérivé, reconstructible : acceptable) ; l'explication « le FULLTEXT InnoDB ne tokenise rien » est à vérifier sur le serveur de production avant d'en faire une règle.
 ETAT: fini (jugé)
+
+## Demandes du HARNESS (lot H-6 « 6-charge », 29-09-2026)
+
+Mesure : fonds synthétique de 10 000 documents (`var/charge/`, `tools/banc/charge.php`), 3 puis 10 utilisateurs
+simultanés. Preuves : `recette/preuves/charge/charge.{json,md}`.
+
+- **`/recherche` ne tient pas le seuil (défaut nommé)** : p95 4,4 s à 3 utilisateurs, 2,9 s à 10 ; p50 1,5–1,9 s.
+  Cause : `Ged\Recherche\Service::rechercher()` appelle `IndexPleinTexte::synchroniser(200)` **à chaque requête**,
+  qui relit tous les `.meta.json` du fonds puis recoupe toutes les lignes de `recherche_textes` et `documents`
+  (`synchroniser()` → `SourceRecherche::documents()` + `signatures()` + `identifiantsDocuments()`), même quand rien
+  n'a bougé. Attendu : ne synchroniser que sur un signal de changement (ou garder l'indexation dans un job court
+  hors requête, comme `tools/indexer-recherche.php` le fait déjà), pas à chaque recherche.
+- **`/documents/{id}/apercu` ne tient pas le seuil (défaut nommé)** : p95 1,8 s à 3 utilisateurs, 2,1 s à 10.
+  Cause : `Ged\Apercu\Source::parId()` appelle `toutes()`, qui parcourt **tous** les `.meta.json` du fonds et les
+  décode avant de trouver l'`id`. Attendu : résoudre l'`id` par l'index (ou un adressage dédié), sans balayer le
+  fonds.
+
+La bibliothèque (maquette) est la seule lecture qui tient le seuil (p95 0,6 s).
