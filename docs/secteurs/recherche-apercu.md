@@ -56,7 +56,8 @@ Preuves :
 - Captures : `var/captures/apercu-pdf-clair.png`, `var/captures/apercu-pdf-sombre.png`.
 - Harness du 29-09 : `0-garde-fous`, `1-unitaire` (38 tests) et `4-ecrans` (19 tests) VERTES ; les couches
   `2-contrat`, `3-banc`, `5-personas`, `6-charge`, `7-securite` restent « pas encore écrite », inchangées.
-- Commits : `19052cc` (source et outils), `db1106d` (visionneuse, gabarit, corpus), `8abcee6` (tests).
+- Commits : `19052cc` (source et outils), `db1106d` (visionneuse, gabarit, corpus), `8abcee6` (tests),
+  `e0b903f` (journal), `3aa7b54` (binaires figés hors conversion CRLF).
 
 Reste (hors porte de ce lot) :
 - Branchement du macro dans les écrans Bibliothèque / Fiche (demande Interface), pour remplacer `papier.page()`
