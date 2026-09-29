@@ -1,10 +1,13 @@
 import { test, expect, type Page } from '@playwright/test';
+import { connecter } from './connexion';
 
 /**
  * Oracle du lot V2-05a — aperçu réel. Un PDF de 3 pages s'affiche vite (< 1 s pour la première page),
  * la page 2 est atteignable au clavier, 0 erreur console ; images (png/jpg/tiff) et bureautique
  * (message nommé quand LibreOffice manque) ; la miniature est servie en PNG.
  */
+test.beforeEach(async ({ page }) => { await connecter(page); });
+
 function surveillerConsole(page: Page): string[] {
   const erreurs: string[] = [];
   page.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()); });
