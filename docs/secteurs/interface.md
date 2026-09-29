@@ -82,11 +82,15 @@ Deux branchements à prévoir quand le Kernel appellera `Archivage\Module` (voir
 
 **Reste hors de ce lot**
 - Brancher les autres écrans (bibliothèque, fiche) sur le fonds : suivis par leurs secteurs (Socle/Lot V2-04).
-- `harness.ps1 -SansBanc` : 0-garde-fous VERT, 1-unitaire VERT (241 tests), 7-securite VERT ; 4-écrans ROUGE
-  avec 6 échecs **hors lot** — `bibliotheque.spec` (routes Socle V2-04 absentes : `/metadonnees`, vues
-  réelles), `recherche.spec` (l'index de la base partagée porte les ids de PHPUnit, attend les ids 201/204
-  du corpus), `apercu.spec:18` (flaky sous charge parallèle, vert en isolé). Les 2 parcours `a-traiter` et
-  les maquettes sont verts.
+- `harness.ps1 -SansBanc` (dernier rejeu, 29-09) : 0-garde-fous VERT, 7-securite VERT ; 4-écrans ROUGE avec
+  6 échecs **hors lot** — `bibliotheque.spec` (routes Socle V2-04 absentes : `/metadonnees`, vues réelles),
+  `recherche.spec` (l'index de la base partagée porte les ids de PHPUnit, attend les ids 201/204 du corpus),
+  `apercu.spec:18` (flaky sous charge parallèle, vert en isolé) ; les **3 parcours `a-traiter`** et les 12
+  parcours maquettes sont verts.
+- 1-unitaire : **241/241 tests, 1073 assertions passent** (rejeu direct du lot : OK, vert). Le dernier
+  harness l'a compté ROUGE sur 2 « PHPUnit warnings » introduits par un travail concurrent hors lot
+  (`phpunit.xml` + `tests/contrats/` non commités d'un autre agent : classes de contrat abstraites =
+  avertissements, `failOnWarning=true`). Aucun test en échec ; hors périmètre Interface.
 
 ETAT: fini
 
