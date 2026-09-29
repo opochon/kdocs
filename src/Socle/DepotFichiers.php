@@ -71,10 +71,11 @@ final class DepotFichiers implements Depot
     /**
      * Insère la ligne d'index d'un document DÉJÀ rangé dans le fonds (dépôt, indexeur d'un fichier posé à la
      * main, reconstruction). L'empreinte, la taille et le MIME sont lus du fichier : le dossier fait foi.
+     * Le fichier peut vivre ailleurs que sous son chemin du fonds (corbeille, reconstruction) : passer $absolu.
      */
-    public function enregistrer(string $cheminRelatif, array $meta): int
+    public function enregistrer(string $cheminRelatif, array $meta, ?string $absolu = null): int
     {
-        $absolu = $this->cheminAbsolu($cheminRelatif);
+        $absolu ??= $this->cheminAbsolu($cheminRelatif);
         [$entetes, $valeurs] = Fichiers::colonnesIndex($meta);
         $this->pdo->prepare('INSERT INTO documents (chemin_relatif, nom, empreinte, taille, mime, meta, '
             . implode(', ', $entetes) . ') VALUES (?, ?, ?, ?, ?, ?, ' . rtrim(str_repeat('?, ', count($valeurs)), ', ') . ')')
@@ -82,6 +83,14 @@ final class DepotFichiers implements Depot
                 Fichiers::mime($absolu), Fichiers::json($meta), ...$valeurs]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    /** Insère la ligne d'une archive de version DÉJÀ posée sur le disque (reconstruction). */
+    public function poserVersion(int $idDocument, int $numero, string $nomArchive, string $absoluArchive): void
+    {
+        $this->pdo->prepare('INSERT INTO document_versions (document_id, numero, nom_archive, empreinte, taille)'
+            . ' VALUES (?, ?, ?, ?, ?)')
+            ->execute([$idDocument, $numero, $nomArchive, Fichiers::empreinte($absoluArchive), (int) filesize($absoluArchive)]);
     }
 
     public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void
