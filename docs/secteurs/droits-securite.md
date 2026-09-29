@@ -98,18 +98,6 @@ ETAT: fini
 Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
 ETAT: fini (jugé)
 
-## Journal V2-07d
-
-- Oracle d'abord : `testConnexionSansCsrfPublieUnRefusNomme` a été ajouté rouge ; `POST /connexion` sans jeton
-  conservait le statut 403 mais le formulaire ne rendait aucun champ `etape` ni `cause`.
-- Fait : chaque refus de connexion rend désormais l'étape `connexion` et une cause nommée, avec les testids
-  `refus-etape` et `refus-cause`. Le contrôle CSRF anonyme à usage unique, son audit et le renouvellement du
-  jeton de formulaire sont inchangés.
-- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
-  (1 test, 3 assertions) ; `php tools\\banc\\contrat.php` vert (sortie 0 : toutes les routes déclarées sont couvertes).
-
-ETAT: fini
-
 ## Journal V2-07c
 
 - Oracle d'abord : `SondeSecuriteTest` a été écrit rouge (jeton de connexion à usage unique et en-têtes de défense
@@ -174,3 +162,15 @@ ETAT: bloqué: le harness global ne peut pas afficher 1 et 4 VERTES tant que les
 ## Jugement V2-07c bis (Claude Code, 29-09) — porte franchie
 Rejoué sur le code commité : unitaire 205/205 (zéro suppression tenu), bancs verts, couche 7 VERTE, écrans 25/26 — le seul rouge est le seuil « première page PDF < 1 s » (1,23 s) sur une machine chargée par trois agents et les bancs : mesure de charge, pas défaut de sécurité ; à reprendre en V2-10 sur machine au repos. CSP à nonce par requête, `style-src 'unsafe-inline'` provisoire (demande Interface).
 ETAT: fini (jugé)
+
+## Journal V2-07d
+
+- Oracle d'abord : `testConnexionSansCsrfPublieUnRefusNomme` a été ajouté rouge ; `POST /connexion` sans jeton
+  conservait le statut 403 mais le formulaire ne rendait aucun champ `etape` ni `cause`.
+- Fait : chaque refus de connexion rend désormais l'étape `connexion` et une cause nommée, avec les testids
+  `refus-etape` et `refus-cause`. Le contrôle CSRF anonyme à usage unique, son audit et le renouvellement du
+  jeton de formulaire sont inchangés.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
+  (1 test, 3 assertions) ; `php tools\\banc\\contrat.php` vert (sortie 0 : toutes les routes déclarées sont couvertes).
+
+ETAT: fini
