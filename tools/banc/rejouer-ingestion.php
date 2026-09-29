@@ -30,8 +30,7 @@ foreach (array_slice($argv, 1) as $a) {
 }
 
 // Même verrou que PHPUnit : un seul exécutant à la fois sur gedv2_test (tests/bootstrap.php).
-@mkdir("$racine/var", 0775, true);
-$verrou = fopen("$racine/var/gedv2_test.lock", 'c');
+$verrou = fopen(sys_get_temp_dir() . '/gedv2_test.lock', 'c');
 flock($verrou, LOCK_EX);
 
 // Environnement de TEST imposé : base gedv2_test, fonds et zones dans un dossier temporaire neuf.
