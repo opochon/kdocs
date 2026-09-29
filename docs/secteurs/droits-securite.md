@@ -65,6 +65,9 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 - Interface : sortir les attributs `style` des gabarits vers `public/assets/css/ged.css`. En attendant cette migration,
   la CSP conserve exceptionnellement `style-src 'self' 'unsafe-inline'`; les scripts en ligne sont eux limités au nonce
   aléatoire de chaque réponse.
+- À Droits (V2-08a, modification minimale signalée) : `src/Securite/DroitsRoutes.php` déclare `POST /api/v1/depots` et
+  `GET /api/v1/depots/{id:[0-9]+}` en `publique:api-depot` / `publique:api-depot-suivi`, car l'API d'entrée s'authentifie
+  par jeton d'application hors session ; la garde les laisse passer et le secteur Jonctions vérifie le jeton.
 
 ## Journal V2-07b
 

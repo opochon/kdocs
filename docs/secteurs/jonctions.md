@@ -29,5 +29,37 @@ d'un autre.
 l'API REST existante (`/api/documents`) comme liste de courses, pas comme code.
 
 ## Demandes
-- À l'Ingestion : une source `SourceApi` qui écrit dans la zone de travail et passe par `Travaux::recevoir`.
-- Aux Droits : jetons d'application (création, révocation, portée `depot`).
+- À l'Ingestion (livrée dans ce lot) : la source `Ged\Jonctions\SourceApi` écrit dans la zone de travail et passe par
+  `Travaux::recevoir` ; il reste à la brancher dans `Fabrique::sources()` (demande écrite dans `docs/secteurs/ingestion.md`).
+- Aux Droits (livrée dans ce lot) : jetons d'application (création, révocation, portée `depot`) et déclaration des deux
+  routes en `publique:api-depot(-suivi)` (signalé dans `docs/secteurs/droits-securite.md`).
+
+## Journal V2-08a — API d'entrée (porte 1)
+
+- Oracle d'abord : `tests/php/Jonctions/DepotApiTest.php` écrit rouge (classes `Ged\Jonctions\{Schema,Jetons,SourceApi,DepotApi}`
+  absentes : 7 erreurs), puis vert — 7 tests, 50 assertions.
+- Fait : `POST /api/v1/depots` (fichier `multipart/form-data` + métadonnées facultatives) et `GET /api/v1/depots/{id}`.
+  Jeton par application (`Jetons` : création, révocation, portée `depot`, empreinte sha256 en base, jamais le clair ;
+  portée `*` possible pour un jeton d'administration). L'authentification se fait dans le secteur, hors session :
+  `Authorization: Bearer …`.
+- Fait : idempotence par empreinte — `SourceApi` écrit la copie stable dans la zone de travail dédiée
+  (`<INGESTION_TRAVAIL>/api`) puis passe par `Travaux::recevoir` ; à empreinte connue, le nouveau fichier part dans
+  `doublons/` (jamais supprimé) et la réponse est identique (même code 202, même identifiant). Les métadonnées
+  accompagnent la copie dans `<fichier>.depot.json` (le dossier fait foi).
+- Fait : erreurs nommées (étape, cause, référence) — 401 jeton absent/inconnu/révoqué, 403 portée insuffisante,
+  413 fichier trop gros, 415 type refusé, 400 transfert incomplet, 404 travail introuvable. Types acceptés : les mêmes
+  que le dossier d'ingestion ; taille max `API_DEPOT_MAX_OCTETS` (25 Mio par défaut).
+- Fait : `SourceApi` implémente `Ged\Ingestion\Source` ; `relever()` rend les fichiers écrits mais pas encore
+  enregistrés (reprise après panne) et ignore ceux déjà connus.
+- Signalé : `src/Securite/DroitsRoutes.php` (secteur Droits) déclare les deux routes en `publique:api-depot(-suivi)`
+  pour qu'elles échappent à la session ; la porte réelle est le jeton. Demande écrite dans la fiche Droits ; sonde
+  offensive rejouée verte.
+- Preuves : `vendor\bin\phpunit tests\php\Jonctions` vert (7 tests, 50 assertions) ; `php tools\banc\sonde-securite.php`
+  vert. Harness `-SansBanc` : couches 0 et 7 vertes ; relance isolée de PHPUnit verte (241 tests, 1072 assertions) ;
+  la couche 4 reste rouge sur 5–6 parcours `recherche`/`bibliotheque` (résultats vides) parce qu'un agent concurrent
+  remet à neuf la base partagée `gedv2_test` — défaut hors secteur, déjà consigné dans la fiche Droits.
+- Documentation : `docs/api/depots.yaml` (OpenAPI court : dépôt et suivi, jeton Bearer, schémas d'erreur).
+- Commit : `1759a67` `jonctions: API d'entrée sous jeton, idempotente (V2-08a)`.
+
+ETAT: fini
+

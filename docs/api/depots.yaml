@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: GEDv2 — API d'entrée (jonctions)
+  version: 1.0.0
+  description: |
+    Porte 1 du lot V2-08 : dépôt d'un fichier par une application (ClearMyMails, mobile…) et suivi
+    du travail d'ingestion. L'authentification se fait par jeton d'application, **hors session** :
+    en-tête `Authorization: Bearer <jeton>`, portée `depot`.
+
+    Le dépôt passe par la même chaîne que le dossier d'ingestion : même dédoublonnage par empreinte
+    sha256. **Même fichier = même réponse** (idempotent) ; un doublon est mis de côté, jamais supprimé.
+    Les métadonnées sont facultatives et rattachées à la copie de travail dans la zone d'ingestion.
+servers:
+  - url: http://127.0.0.1:8870
+    description: Développement local
+security:
+  - jetonApplication: []
+tags:
+  - name: depots
+    description: Dépôt de fichiers et suivi des travaux d'ingestion
+paths:
+  /api/v1/depots:
+    post:
+      tags: [depots]
+      summary: Déposer un fichier (idempotent)
+      description: |
+        Reçoit un fichier (`multipart/form-data`, champ `fichier`) et des métadonnées facultatives.
+        Répond l'identifiant du travail d'ingestion. Rejouer le même contenu renvoie le même travail,
+        avec le même code 202 : aucun doublon n'est créé.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [fichier]
+              properties:
+                fichier:
+                  type: string
+                  format: binary
+                  description: |
+                    Le document. Types acceptés : pdf, png, jpg, jpeg, tif, tiff, docx, doc, xlsx,
+                    xls, odt, ods, rtf, txt, eml, msg. Taille maximale `API_DEPOT_MAX_OCTETS`
+                    (25 Mio par défaut).
+                metadonnees:
+                  type: string
+                  description: |
+                    Métadonnées facultatives, en JSON (objet). Exemple : `{"titre":"Facture 123","type":"facture"}`.
+                titre:
+                  type: string
+                type:
+                  type: string
+                emetteur:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                montant:
+                  type: string
+                etiquettes:
+                  type: string
+      responses:
+        '202':
+          description: Travail d'ingestion accepté (créé ou déjà connu)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TravailResume' }
+        '400':
+          description: Requête incomplète (fichier absent, transfert interrompu)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+        '403':
+          description: Portée insuffisante (jeton sans la portée `depot`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+        '413':
+          description: Fichier trop gros
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+        '415':
+          description: Type de fichier refusé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+  /api/v1/depots/{id}:
+    get:
+      tags: [depots]
+      summary: Suivre l'état d'un travail d'ingestion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+          description: Identifiant retourné par le dépôt
+      responses:
+        '200':
+          description: État du travail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TravailDetail' }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+        '404':
+          description: Travail introuvable
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+components:
+  securitySchemes:
+    jetonApplication:
+      type: http
+      scheme: bearer
+      description: |
+        Jeton d'application créé par la GED (une valeur par application, hachée en base, jamais en clair).
+        Portée `depot` requise pour cette API.
+  schemas:
+    TravailResume:
+      type: object
+      properties:
+        travail: { type: integer }
+        etat: { type: string, example: recu }
+        suivi: { type: string, example: /api/v1/depots/42 }
+    TravailDetail:
+      type: object
+      properties:
+        travail: { type: integer }
+        source: { type: string, example: api }
+        nom_origine: { type: string }
+        etat:
+          type: string
+          description: 'recu | decoupe | pret | range | erreur'
+        essais: { type: integer }
+        erreur: { type: string, nullable: true }
+        document_id: { type: integer, nullable: true }
+        cree_le: { type: string }
+        maj_le: { type: string }
+        application: { type: string, nullable: true }
+        metadonnees: { type: object, additionalProperties: true }
+        suivi: { type: string }
+    Erreur:
+      type: object
+      required: [erreur]
+      properties:
+        erreur:
+          type: object
+          required: [etape, cause, reference]
+          properties:
+            etape: { type: string, example: POST /api/v1/depots }
+            cause: { type: string, example: 'jeton absent (en-tête Authorization: Bearer attendu)' }
+            reference: { type: string, example: 6f2a1c9d0b }
