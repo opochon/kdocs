@@ -19,11 +19,10 @@ use PDO;
  */
 final class Ecouteur
 {
-    private readonly Journal $journal;
-
-    public function __construct(private readonly Moteur $moteur, ?Journal $journal = null)
-    {
-        $this->journal = $journal ?? new Journal(Base::pdo(new Config(dirname(__DIR__, 2))));
+    public function __construct(
+        private readonly Moteur $moteur,
+        private readonly Journal $journal,
+    ) {
     }
 
     public static function depuis(Config $config, ?PDO $pdo = null, ?Horloge $horloge = null): self
