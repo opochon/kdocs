@@ -1,0 +1,151 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Porte V2-03 : mesure le classement d'un lot du corpus contre sa vérité, À TRAVERS le classeur de la GED
+ * (Ged\Classement\ClasseurGed), c'est-à-dire exactement ce que la tâche d'ingestion exécute.
+ *
+ *   php tools/banc/mesurer-classement.php [courrier-100p] [--ia]
+ *
+ * Par défaut, aucune IA n'est appelée (client inerte) : on mesure le socle déterministe règles + habitudes.
+ * --ia branche Infomaniak (réseau) et confirme/porte la source des types corroborés.
+ *
+ * Mesure : validés seuls avec un type faux (0), émetteurs faux (0 ; non lu = vide), « Autre » validé seul (0),
+ * taux validé seul. Sortie : recette/preuves/classement/<lot>-classement.{json,md} ; code 0 si la porte est franchie.
+ */
+
+use Ged\Base;
+use Ged\Classement\ClasseurGed;
+use Ged\Classement\ClientIaNul;
+use Ged\Classement\Habitudes;
+use Ged\Classement\InfomaniakClient;
+use Ged\Classement\Regles;
+use Ged\Classement\Schema;
+use Ged\Config;
+
+$racine = dirname(__DIR__, 2);
+require $racine . '/vendor/autoload.php';
+
+// Le banc est un test : il ne touche jamais la base de dev.
+putenv('DB_NAME=gedv2_test');
+
+$lot = 'courrier-100p';
+$avecIa = false;
+foreach (array_slice($argv, 1) as $a) {
+    $a === '--ia' ? $avecIa = true : $lot = $a;
+}
+
+$oracle = json_decode((string) file_get_contents("$racine/tests/oracles/classement/$lot.json"), true, 512, JSON_THROW_ON_ERROR);
+$fPieces = $racine . '/' . $oracle['pieces'];
+if (!is_file($fPieces)) {
+    fwrite(STDERR, "Pièces absentes : lancez d'abord `php tools/banc/mesurer-decoupe.php $lot`\n");
+    exit(2);
+}
+$pieces = json_decode((string) file_get_contents($fPieces), true, 512, JSON_THROW_ON_ERROR);
+$verite = json_decode((string) file_get_contents($racine . '/' . $oracle['verite']), true, 512, JSON_THROW_ON_ERROR);
+$seuils = $oracle['seuils'];
+
+$parPage = [];
+foreach ($verite['elements'] as $el) {
+    foreach ($el['pages'] as $page) {
+        $parPage[$page] = $el;
+    }
+}
+
+$config = new Config($racine);
+$pdo = Base::pdo($config);
+Schema::installer($pdo);
+$classeur = new ClasseurGed($config, $pdo, $avecIa ? new InfomaniakClient($config) : new ClientIaNul(), new Habitudes($pdo));
+$mode = $avecIa ? 'avec-ia' : 'sans-ia';
+
+$t0 = microtime(true);
+$mes = ['documents' => 0, 'valides' => 0, 'valides_type_faux' => 0, 'types_faux' => 0,
+    'emetteurs_lus' => 0, 'emetteurs_faux' => 0, 'autre_valides_seuls' => 0];
+$detail = [];
+foreach ($pieces as $piece) {
+    $pages = $piece['pages'];
+    $el = $parPage[$pages[0]] ?? null;
+    if ($el === null || !empty($el['blanche'])) {
+        continue;
+    }
+    $mes['documents']++;
+    $r = $classeur->proposer((string) $piece['texte'], (array) ($piece['analyse'] ?? []), basename((string) $piece['fichier']));
+    $typeFaux = !Regles::memeType($r['type'], $el['type'] ?? null);
+    $emetteurLu = ($r['emetteur'] ?? null) !== null && $r['emetteur'] !== '';
+    $emetteurFaux = $emetteurLu && Regles::normaliser((string) $r['emetteur']) !== Regles::normaliser((string) ($el['correspondant'] ?? ''));
+    $mes['types_faux'] += (int) $typeFaux;
+    $mes['valides'] += (int) $r['valide'];
+    $mes['valides_type_faux'] += (int) ($r['valide'] && $typeFaux);
+    $mes['autre_valides_seuls'] += (int) ($r['valide'] && Regles::estAutre($r['type']));
+    $mes['emetteurs_lus'] += (int) $emetteurLu;
+    $mes['emetteurs_faux'] += (int) $emetteurFaux;
+    $detail[] = [
+        'pages' => $pages, 'type_attendu' => $el['type'] ?? null, 'type_propose' => $r['type'],
+        'emetteur_attendu' => $el['correspondant'] ?? null, 'emetteur_propose' => $r['emetteur'],
+        'source' => $r['source'], 'preuve' => $r['preuve'], 'confiance' => $r['confiance'],
+        'valide' => $r['valide'], 'raison' => $r['raison'],
+    ];
+}
+$duree = round(microtime(true) - $t0, 2);
+$taux = $mes['documents'] > 0 ? round($mes['valides'] / $mes['documents'], 4) : 0.0;
+$franchie = $mes['documents'] === (int) $oracle['attendu']['documents']
+    && $mes['valides_type_faux'] <= (int) $seuils['valides_type_faux']
+    && $mes['emetteurs_faux'] <= (int) $seuils['emetteurs_faux']
+    && $mes['autre_valides_seuls'] <= (int) $seuils['autre_valides_seuls']
+    && $taux >= (float) $seuils['taux_valide_seul_min'];
+
+$res = [
+    'lot' => $lot, 'mode' => $mode, 'date' => date('c'), 'duree_s' => $duree,
+    'chemin' => 'Ged\\Classement\\ClasseurGed', 'seuil' => (float) $config->get('CLASSEMENT_SEUIL', '0.8'),
+    'documents' => $mes['documents'], 'valides' => $mes['valides'], 'taux_valide_seul' => $taux,
+    'valides_type_faux' => $mes['valides_type_faux'], 'types_faux' => $mes['types_faux'],
+    'emetteurs_lus' => $mes['emetteurs_lus'], 'emetteurs_faux' => $mes['emetteurs_faux'],
+    'autre_valides_seuls' => $mes['autre_valides_seuls'],
+    'seuils' => $seuils, 'porte' => $franchie ? 'FRANCHIE' : 'NON FRANCHIE', 'detail' => $detail,
+];
+
+$preuves = $racine . '/recette/preuves/classement';
+is_dir($preuves) || mkdir($preuves, 0775, true);
+file_put_contents("$preuves/$lot-classement.json", json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+$md = [
+    "# Classement — lot `$lot` — $mode — " . date('Y-m-d H:i'),
+    '',
+    "Porte V2-03 : **{$res['porte']}** (via `Ged\\Classement\\ClasseurGed`, seuil {$res['seuil']})",
+    '',
+    '| Mesure | Attendu | Obtenu |', '|---|---|---|',
+    '| Documents | ' . $oracle['attendu']['documents'] . ' | ' . $mes['documents'] . ' |',
+    '| Validés seuls | — | ' . $mes['valides'] . ' (' . round($taux * 100, 1) . ' %) |',
+    '| Validés seuls, type faux | 0 | ' . $mes['valides_type_faux'] . ' |',
+    '| Types faux (validés ou non) | 0 | ' . $mes['types_faux'] . ' |',
+    '| Émetteurs lus | — | ' . $mes['emetteurs_lus'] . ' |',
+    '| Émetteurs faux | 0 | ' . $mes['emetteurs_faux'] . ' |',
+    '| « Autre » validé seul | 0 | ' . $mes['autre_valides_seuls'] . ' |',
+    '| Durée | — | ' . $duree . ' s |',
+    '',
+];
+$anomalies = array_values(array_filter($detail, static fn (array $d): bool => $d['type_propose'] !== $d['type_attendu']
+    || ($d['emetteur_propose'] !== null && $d['emetteur_propose'] !== $d['emetteur_attendu'])));
+if ($anomalies !== []) {
+    $md[] = '## Anomalies';
+    foreach ($anomalies as $a) {
+        $md[] = '- pages ' . implode(',', $a['pages']) . ' : type `' . ($a['type_propose'] ?? '∅') . '` (attendu `' . $a['type_attendu']
+            . '`), émetteur `' . ($a['emetteur_propose'] ?? '∅') . '` (attendu `' . $a['emetteur_attendu'] . '`)';
+    }
+    $md[] = '';
+}
+$aControler = array_values(array_filter($detail, static fn (array $d): bool => !$d['valide']));
+if ($aControler !== []) {
+    $md[] = '## Laissés à contrôler';
+    foreach ($aControler as $a) {
+        $md[] = '- pages ' . implode(',', $a['pages']) . ' : `' . ($a['type_propose'] ?? '∅') . '` proposé — ' . ($a['raison'] ?? '');
+    }
+    $md[] = '';
+}
+file_put_contents("$preuves/$lot-classement.md", implode("\n", $md) . "\n");
+
+printf("%s : %s — %d documents, %d validés seuls (%.1f %%), types faux %d, émetteurs faux %d, « Autre » validé %d ; porte %s\n",
+    $mode, $duree . ' s', $mes['documents'], $mes['valides'], $taux * 100, $mes['types_faux'], $mes['emetteurs_faux'],
+    $mes['autre_valides_seuls'], $res['porte']);
+exit($franchie ? 0 : 1);
