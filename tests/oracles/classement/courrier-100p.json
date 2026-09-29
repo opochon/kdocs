@@ -1,0 +1,17 @@
+{
+  "_role": "ORACLE de la porte V2-03 : seuils que le classement doit tenir sur le lot courrier-100p. Le banc tools/banc/mesurer-classement.php et l'oracle PHPUnit lisent ce fichier ; on ne saisit jamais un verdict à la main.",
+  "lot": "courrier-100p",
+  "verite": "tests/corpus/courrier-100p/verite.json",
+  "pieces": "var/banc/courrier-100p-pieces.json",
+  "seuils": {
+    "valides_type_faux": 0,
+    "emetteurs_faux": 0,
+    "autre_valides_seuls": 0,
+    "taux_valide_seul_min": 0.85
+  },
+  "attendu": {
+    "documents": 53,
+    "valides_seuls": 52,
+    "motif_non_validation": "1 Document RH : GED_ORGANISATION vide, le propriétaire ne figure pas dans la pièce (règle : jamais RH sans le propriétaire)."
+  }
+}
