@@ -37,9 +37,14 @@ final class Schema
               maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               UNIQUE KEY uq_chemin (chemin_relatif(700)),
               KEY k_empreinte (empreinte),
-              KEY k_corbeille (supprime_le)
+              KEY k_corbeille (supprime_le),
+              KEY k_statut (statut, supprime_le)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+
+        // Une table créée par une version antérieure n'a pas l'index du statut : l'écran « À traiter »
+        // l'exige pour borner sa lecture à la file, jamais au fonds entier.
+        self::assurerIndexStatut($pdo);
 
         // Les versions : une archive par contenu observé, dans `.versions/<fichier>/` à côté du document.
         $pdo->exec(<<<'SQL'
@@ -89,6 +94,26 @@ final class Schema
               valeur VARCHAR(255) NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+    }
+
+    /**
+     * Pose l'index du statut s'il manque (table créée avant lui) : sans cet index, une requête
+     * `WHERE statut = ?` parcourt tout le fonds. `(statut, supprime_le)` couvre aussi le comptage du
+     * bilan, sans lire une seule ligne de document. Idempotent, rejouable (y compris pour corriger un
+     * ancien index à une seule colonne).
+     */
+    public static function assurerIndexStatut(PDO $pdo): void
+    {
+        $colonnes = $pdo->query("SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX)"
+            . " FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
+            . " AND TABLE_NAME = 'documents' AND INDEX_NAME = 'k_statut'")->fetchColumn();
+        if (is_string($colonnes) && $colonnes !== '') {
+            if (strcasecmp($colonnes, 'statut,supprime_le') === 0) {
+                return;
+            }
+            $pdo->exec('ALTER TABLE documents DROP KEY k_statut');
+        }
+        $pdo->exec('ALTER TABLE documents ADD KEY k_statut (statut, supprime_le)');
     }
 
     /** Tables de l'index documentaire, dans l'ordre de destruction/reconstruction (jamais comptes ni installation). */

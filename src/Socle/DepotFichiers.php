@@ -214,6 +214,30 @@ final class DepotFichiers implements Depot
         return $this->pdo->query('SELECT * FROM documents WHERE supprime_le IS NULL ORDER BY chemin_relatif')->fetchAll();
     }
 
+    /**
+     * Lignes vivantes d'un statut, bornées : la requête s'appuie sur l'index `k_statut` et ne lit que la
+     * file demandée, jamais tout le fonds. Le tri reprend l'ordre de l'écran (plus ancien d'abord).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function listerParStatut(string $statut, int $limite = 1000): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM documents WHERE supprime_le IS NULL AND statut = ?'
+            . ' ORDER BY COALESCE(date_document, DATE(cree_le)) ASC, id ASC LIMIT ' . max(1, $limite));
+        $stmt->execute([$statut]);
+
+        return $stmt->fetchAll();
+    }
+
+    /** Nombre de lignes vivantes d'un statut (COUNT indexé, sans charger le fonds en mémoire). */
+    public function compterParStatut(string $statut): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM documents WHERE supprime_le IS NULL AND statut = ?');
+        $stmt->execute([$statut]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     /** Chemin de rangement `année/type[/émetteur]` ; sans type connu : `année/À classer`. */
     private function cheminRangement(array $meta): string
     {

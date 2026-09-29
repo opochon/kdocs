@@ -33,11 +33,11 @@ final class ATraiter
     /** Libellés et classes CSS des sources de proposition (voir `public/assets/css/ged.css`). */
     private const SOURCES = ['ia' => 'IA', 'habitude' => 'Habitude', 'regle' => 'Règle', 'humain' => 'Humain'];
 
+    /** Borne de la file affichée : la requête est paginée (LIMIT) et ne lit jamais plus que la file. */
+    private const FILE_MAX = 1000;
+
     private readonly ?Depot $depot;
     private readonly ?Habitudes $habitudes;
-
-    /** @var list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>|null */
-    private ?array $memoireDocuments = null;
 
     public function __construct(
         private readonly Config $config,
@@ -66,12 +66,8 @@ final class ATraiter
      */
     public function donnees(array $parametres, string $csrf): array
     {
-        $auto = 0;
-        foreach ($this->documents() as $doc) {
-            if ($this->statut($doc) === 'valide') {
-                $auto++;
-            }
-        }
+        // Le bilan se compte dans l'index (COUNT borné par statut), jamais en reparcourant le fonds.
+        $auto = $this->compterValides();
         $file = $this->file();
 
         $choisi = (int) ($parametres['doc'] ?? 0);
@@ -157,15 +153,43 @@ final class ATraiter
     }
 
     /**
+     * La file des documents `a_controler`, lue par une requête indexée et bornée : le travail est
+     * proportionnel à la FILE, jamais à la taille du fonds. Une ligne dont le fichier a disparu est
+     * ignorée (le dossier fait foi) ; l'ordre reste celui de l'écran (plus ancien d'abord).
+     *
      * @return list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>
      */
     private function docsAControler(): array
     {
+        if ($this->depot === null) {
+            return [];
+        }
+        try {
+            $lignes = $this->depot instanceof DepotFichiers
+                ? $this->depot->listerParStatut('a_controler', self::FILE_MAX)
+                : array_values(array_filter($this->depot->lister(),
+                    static fn (array $ligne): bool => ($ligne['statut'] ?? 'a_controler') === 'a_controler'));
+        } catch (Throwable) {
+            // Base muette (table absente, liaison perdue) : l'écran reste lisible, jamais un 500 muet.
+            return [];
+        }
+
         $docs = [];
-        foreach ($this->documents() as $doc) {
-            if ($this->statut($doc) === 'a_controler') {
-                $docs[] = $doc;
+        foreach ($lignes as $ligne) {
+            $relatif = str_replace('\\', '/', (string) ($ligne['chemin_relatif'] ?? ''));
+            if ($relatif === '' || str_contains($relatif, '..')) {
+                continue;
             }
+            try {
+                $absolu = $this->depot->cheminAbsolu($relatif);
+            } catch (Throwable) {
+                continue;
+            }
+            if (!is_file($absolu)) {
+                continue;
+            }
+            $meta = is_string($ligne['meta'] ?? null) ? (json_decode((string) $ligne['meta'], true) ?: []) : (array) ($ligne['meta'] ?? []);
+            $docs[] = ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
         }
         usort($docs, static function (array $a, array $b): int {
             return [self::cleDate($a), $a['id']] <=> [self::cleDate($b), $b['id']];
@@ -174,52 +198,28 @@ final class ATraiter
         return $docs;
     }
 
-    /**
-     * Documents vivants du fonds, lus par le dépôt : une ligne d'index dont le fichier a disparu est
-     * ignorée (le dossier fait foi, jamais un index périmé). Mémoïsé pour un rendu en une lecture.
-     *
-     * @return list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>
-     */
-    private function documents(): array
+    /** Nombre de documents vivants déjà classés (`valide`) : un COUNT indexé, pas un parcours du fonds. */
+    private function compterValides(): int
     {
-        if ($this->memoireDocuments !== null) {
-            return $this->memoireDocuments;
-        }
-        if ($this->depot === null) {
-            return $this->memoireDocuments = [];
+        if ($this->depot instanceof DepotFichiers) {
+            try {
+                return $this->depot->compterParStatut('valide');
+            } catch (Throwable) {
+                return 0;
+            }
         }
         try {
-            $documents = [];
-            foreach ($this->depot->lister() as $ligne) {
-                $relatif = str_replace('\\', '/', (string) ($ligne['chemin_relatif'] ?? ''));
-                if ($relatif === '' || str_contains($relatif, '..')) {
-                    continue;
+            $auto = 0;
+            foreach ($this->depot?->lister() ?? [] as $ligne) {
+                if (($ligne['statut'] ?? '') === 'valide') {
+                    $auto++;
                 }
-                try {
-                    $absolu = $this->depot->cheminAbsolu($relatif);
-                } catch (Throwable) {
-                    continue;
-                }
-                if (!is_file($absolu)) {
-                    continue;
-                }
-                $meta = is_string($ligne['meta'] ?? null) ? (json_decode((string) $ligne['meta'], true) ?: []) : (array) ($ligne['meta'] ?? []);
-                $documents[] = ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
             }
 
-            return $this->memoireDocuments = $documents;
+            return $auto;
         } catch (Throwable) {
-            // Base muette (table absente, liaison perdue) : l'écran reste lisible, jamais un 500 muet.
-            return $this->memoireDocuments = [];
+            return 0;
         }
-    }
-
-    /** @param array{meta:array<string, mixed>, ligne:array<string, mixed>} $doc */
-    private function statut(array $doc): string
-    {
-        $statut = $doc['meta']['statut'] ?? $doc['ligne']['statut'] ?? 'a_controler';
-
-        return is_string($statut) && $statut !== '' ? $statut : 'a_controler';
     }
 
     /**
