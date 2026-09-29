@@ -29,6 +29,10 @@ final class DroitsRoutes
         'POST /workflows/evenements' => 'workflow.executer',
         'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
+        // API d'entrée sous jeton d'application (secteur Jonctions) : pas de session, donc « publique »
+        // au sens de la garde ; la porte réelle est le jeton vérifié par le secteur (V2-08a, signalé).
+        'POST /api/v1/depots' => 'publique:api-depot',
+        'GET /api/v1/depots/{id:[0-9]+}' => 'publique:api-depot-suivi',
         'GET /sante' => 'publique:sante',
         'GET /connexion' => 'publique:connexion',
         'POST /connexion' => 'publique:connexion',
@@ -50,6 +54,11 @@ final class DroitsRoutes
 
         if (strtoupper($methode) === 'GET' && preg_match('#^/documents/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS['GET /documents/{id:[0-9]+}'];
+        }
+
+        // Suivi d'un travail de l'API d'entrée (identifiant numérique, route sous jeton).
+        if (strtoupper($methode) === 'GET' && preg_match('#^/api/v1/depots/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /api/v1/depots/{id:[0-9]+}'];
         }
 
         if (strtoupper($methode) === 'GET') {
