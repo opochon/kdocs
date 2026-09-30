@@ -191,3 +191,11 @@ ETAT: fini
 - Commit : `46ffc77` `jonctions: appairage parti de la GED (profil vérifié, auto-configuration SMTP/fichier) (V2-08c)`.
 
 ETAT: fini
+
+### Jugement V2-08b + V2-08c (juge, 30-09 09:25, copie propre sur 66ed97f)
+
+- Le juge a commité les lignes du secteur dans `src/Securite/DroitsRoutes.php` et `tools/banc/sonde-securite.php` (66ed97f), sans les lignes non commitées du Socle.
+- Harness : 0 vert ; 2 contrat vert ; 3 banc vert (53/53, F1 franchie) ; 7 sécurité verte (les charges défensives de Mon profil et de la révocation y sont).
+- **Couche 1 rouge, imputable au secteur** : `InstallateurTest` — 21 tables posées pour un plafond de 20 (oracle V2-01). Passage de 20 à 21 à d9d49fe (V2-08b). Le « plafond de 24 » cité au journal V2-08c vient d'un travail non commité et non jugé du Socle : il ne vaut pas. Le plafond reste 20.
+- Couche 4 (aperçu et recherche < 1 s) et couche 6 (p95 lecture 1,98 s) rouges sur des budgets de temps, avec un banc de découpe à 144 s au lieu de 87 s : machine chargée, hors secteur. À rejouer machine calme avant tout verdict sur ces couches.
+- Verdict : **non franchi**. Renvoyé en V2-08d : Jonctions tient en une table, contrat et comportement inchangés.
