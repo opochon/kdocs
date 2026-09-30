@@ -49,11 +49,37 @@ final class Ecrans
 
     public function bibliotheque(Requete $req, Reponse $rep): Reponse
     {
+        // Le secteur Socle branche la bibliothèque sur les VRAIES données (fonds, vues, champs
+        // personnalisés — V2-04) ; le gabarit reste le contrat visuel. Branchement minimal, comme
+        // pour /recherche et /workflows ; repli de maquette si la base n'est pas encore là.
+        if (class_exists(\Ged\Socle\EcranBibliotheque::class)) {
+            try {
+                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)));
+                $donnees = $ecran->donnees($req->getQueryParams(), (string) ($req->getCookieParams()['gedv2_csrf'] ?? ''));
+
+                return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $donnees);
+            } catch (\PDOException) {
+                // base absente : repli de démonstration ci-dessous, l'écran n'est jamais muet
+            }
+        }
+
         $docs = Maquette::bibliotheque();
         $choisi = (int) ($req->getQueryParams()['doc'] ?? $docs[0]['id']);
+        $doc = Maquette::document($choisi);
 
+        // Même forme de données que l'écran réel du Socle : le gabarit ne connaît qu'un contrat.
         return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $this->commun('bibliotheque') + [
-            'docs' => $docs, 'vues' => Maquette::vues(), 'arbre' => Maquette::arbre(), 'apercu' => Maquette::document($choisi),
+            'docs' => $docs, 'compte' => count($docs), 'total' => count($docs),
+            'vuesVolet' => [['id' => null, 'nom' => 'Tous les documents', 'compte' => count($docs)]],
+            'vueActive' => null, 'arbre' => Maquette::arbre(), 'tousChamps' => [], 'operateurs' => [],
+            'filtres' => ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null],
+            'erreur' => null, 'csrf' => '',
+            'apercu' => [
+                'id' => $doc['id'], 'titre' => $doc['titre'], 'type' => $doc['type'], 'emetteur' => $doc['emetteur'],
+                'date' => $doc['date'], 'chemin' => $doc['dossier'] . '/' . $doc['fichier'], 'champs' => [],
+                'rendu' => ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $doc['titre'],
+                    'message' => 'Aucun aperçu pour ce format.'],
+            ],
         ]);
     }
 

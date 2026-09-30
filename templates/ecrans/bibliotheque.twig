@@ -1,34 +1,98 @@
 {% extends 'layout.twig' %}
 {% import 'partiels/icones.twig' as ic %}
-{% import 'partiels/papier.twig' as papier %}
+{% import 'partiels/visionneuse.twig' as visionneuse %}
 {% block titre %}Bibliothèque{% endblock %}
 {% block contenu %}
 <div class="page pleine" data-testid="ecran-bibliotheque">
   <div class="page-tete">
-    <div class="titre"><h1>Bibliothèque</h1><span class="muted">1 284 documents · 2026</span></div>
+    <div class="titre">
+      <h1>Bibliothèque</h1>
+      <span class="muted" data-testid="compte-documents">{{ compte }} document{{ compte > 1 ? 's' }} affiché{{ compte > 1 ? 's' }} · {{ total }} dans le fonds</span>
+    </div>
     <div class="actions">
       <a class="btn primaire" href="/a-traiter" data-testid="action-deposer">{{ ic.i('plus') }}Déposer</a>
-      <div class="filtres" data-testid="filtres">
-        <button class="chip" type="button" data-testid="filtre-type">Type : tous</button>
-        <button class="chip" type="button" data-testid="filtre-emetteur">Émetteur : tous</button>
-        <button class="chip" type="button" data-testid="filtre-periode">Période : 2026</button>
-        <button class="chip" type="button" data-testid="filtre-etiquette">Étiquette</button>
-      </div>
-      <button class="btn discret" type="button" data-testid="action-enregistrer-vue">Enregistrer cette vue</button>
+      <details class="filtres" data-testid="bloc-filtres">
+        <summary class="filtres" style="list-style:none;cursor:pointer" data-testid="filtres">
+          <span class="chip" data-testid="filtre-type">Type : {{ filtres.type ?? 'tous' }}</span>
+          <span class="chip" data-testid="filtre-emetteur">Émetteur : {{ filtres.emetteur ?? 'tous' }}</span>
+          <span class="chip" data-testid="filtre-periode">Période : {{ filtres.de ?? '…' }} → {{ filtres.a ?? '…' }}</span>
+          <span class="chip" data-testid="filtre-etiquette">{% if filtres.etiquettes %}Étiquette : {{ filtres.etiquettes|join(', ') }}{% else %}Étiquette{% endif %}</span>
+          {% if vueActive %}<span class="chip" data-testid="filtre-vue">Vue : {{ vueActive.nom }}</span>{% endif %}
+        </summary>
+        <form class="panneau" method="get" action="/bibliotheque" data-testid="formulaire-filtres">
+          <div class="champ"><label for="f-type">Type</label>
+            <select id="f-type" name="type" data-testid="filtre-type-select">
+              <option value="">Tous les types</option>
+              {% for t in types %}<option value="{{ t }}" {% if filtres.type == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
+            </select></div>
+          <div class="champ"><label for="f-emetteur">Émetteur</label>
+            <input id="f-emetteur" name="emetteur" value="{{ filtres.emetteur ?? '' }}" placeholder="Nom exact"></div>
+          <div class="champ"><label for="f-de">Du</label>
+            <input id="f-de" type="date" name="de" value="{{ filtres.de ?? '' }}"></div>
+          <div class="champ"><label for="f-a">Au</label>
+            <input id="f-a" type="date" name="a" value="{{ filtres.a ?? '' }}"></div>
+          <div class="champ"><label for="f-etiquette">Étiquette</label>
+            <input id="f-etiquette" name="etiquette" value="{{ filtres.etiquettes|join(', ') }}"></div>
+          <div class="champ"><label for="f-champ">Champ personnalisé</label>
+            <select id="f-champ" name="champ_cle" data-testid="filtre-champ-cle">
+              <option value="">Aucun</option>
+              {% for c in tousChamps %}<option value="{{ c.cle }}" {% if filtres.champ and filtres.champ.cle == c.cle %}selected{% endif %}>{{ c.nom }}</option>{% endfor %}
+            </select></div>
+          <div class="champ"><label for="f-op">Opérateur</label>
+            <select id="f-op" name="champ_op" data-testid="filtre-champ-op">
+              {% for nature, ops in operateurs %}
+              <optgroup label="{{ nature }}">
+                {% for o in ops %}<option value="{{ o.v }}" {% if filtres.champ and filtres.champ.op == o.v %}selected{% endif %}>{{ o.l }}</option>{% endfor %}
+              </optgroup>
+              {% endfor %}
+            </select></div>
+          <div class="champ"><label for="f-valeur">Valeur</label>
+            <input id="f-valeur" name="champ_valeur" data-testid="filtre-champ-valeur" value="{{ filtres.champ ? filtres.champ.valeur : '' }}" placeholder="p. ex. 90"></div>
+          <button class="btn primaire" type="submit" data-testid="action-appliquer-filtres">Appliquer</button>
+          {% if filtres.type or filtres.emetteur or filtres.de or filtres.a or filtres.etiquettes or filtres.champ %}
+          <a class="btn discret" href="/bibliotheque" data-testid="action-retirer-filtres">Retirer les filtres</a>
+          {% endif %}
+        </form>
+      </details>
+      <details data-testid="bloc-nouvelle-vue">
+        <summary class="btn discret" style="list-style:none;cursor:pointer" data-testid="action-enregistrer-vue">Enregistrer cette vue</summary>
+        <form class="panneau" method="post" action="/bibliotheque/vue" data-testid="formulaire-nouvelle-vue">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="type" value="{{ filtres.type ?? '' }}">
+          <input type="hidden" name="emetteur" value="{{ filtres.emetteur ?? '' }}">
+          <input type="hidden" name="de" value="{{ filtres.de ?? '' }}">
+          <input type="hidden" name="a" value="{{ filtres.a ?? '' }}">
+          <input type="hidden" name="etiquette" value="{{ filtres.etiquettes|join(', ') }}">
+          <input type="hidden" name="champ_cle" value="{{ filtres.champ ? filtres.champ.cle : '' }}">
+          <input type="hidden" name="champ_op" value="{{ filtres.champ ? filtres.champ.op : '' }}">
+          <input type="hidden" name="champ_valeur" value="{{ filtres.champ ? filtres.champ.valeur : '' }}">
+          <div class="champ"><label for="nom-vue">Nom de la vue</label>
+            <input id="nom-vue" name="nom" data-testid="nom-nouvelle-vue" placeholder="p. ex. Contrats à échéance < 90 j"></div>
+          <button class="btn primaire" type="submit" data-testid="action-creer-vue">Créer la vue</button>
+          <p class="muted">Une vue est un filtre enregistré : aucun document n’est déplacé.</p>
+        </form>
+      </details>
     </div>
   </div>
+
+  {% if erreur %}<p class="raison" data-testid="erreur-bibliotheque">{{ erreur }}</p>{% endif %}
 
   <div class="volets biblio">
     <aside class="carte volet" aria-label="Vues et dossiers">
       <div class="volet-corps">
         <div class="titre-section">Vues</div>
         <ul class="arbre" data-testid="vues">
-          {% for v in vues %}<li><a href="#" data-testid="vue-{{ loop.index }}">{{ ic.i('vue') }}<span class="libelle">{{ v.nom }}</span><span class="compte">{{ v.compte }}</span></a></li>{% endfor %}
+          {% for v in vuesVolet %}
+          <li><a href="{{ v.id ? '/bibliotheque?vue=' ~ v.id : '/bibliotheque' }}"
+                 {% if vueActive and vueActive.id == v.id %}aria-current="true"{% endif %}
+                 data-testid="vue-{{ v.id ?? 'toutes' }}">{{ ic.i('vue') }}<span class="libelle">{{ v.nom }}</span><span class="compte">{{ v.compte }}</span></a></li>
+          {% endfor %}
         </ul>
         <div class="titre-section">Dossiers</div>
         <ul class="arbre" data-testid="arbre-dossiers">
           {% for a in arbre %}<li><a href="#">{{ ic.i('dossier') }}{{ a.nom }}</a>
-            <ul>{% for e in a.enfants %}<li><a href="#">{{ ic.i('dossier') }}{{ e }}</a></li>{% endfor %}</ul></li>{% endfor %}
+            <ul>{% for e in a.enfants %}<li><a href="#">{{ ic.i('dossier') }}{{ e }}</a></li>{% endfor %}</ul></li>
+          {% else %}<li class="muted">Le fonds est lu directement : aucun dossier à montrer.</li>{% endfor %}
         </ul>
       </div>
     </aside>
@@ -40,33 +104,70 @@
           <thead><tr><th>Titre</th><th>Type</th><th>Émetteur</th><th>Date</th><th class="num">Montant</th></tr></thead>
           <tbody>
           {% for d in docs %}
-            <tr {% if d.id == apercu.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
+            <tr {% if apercu and apercu.id == d.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
               <td><a href="/bibliotheque?doc={{ d.id }}">{{ d.titre }}</a></td>
-              <td><span class="chip">{{ d.type }}</span></td>
-              <td>{{ d.emetteur }}</td>
-              <td>{{ d.date|date('d.m.Y') }}</td>
+              <td>{% if d.type %}<span class="chip">{{ d.type }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td>{{ d.emetteur ?? '—' }}</td>
+              <td>{{ d.date ? d.date|date('d.m.Y') : '—' }}</td>
               <td class="num">{{ d.montant is null ? '—' : d.montant|number_format(2, '.', '\'') }}</td>
             </tr>
+          {% else %}
+            <tr><td colspan="5" class="muted">Aucun document ne satisfait ces filtres.</td></tr>
           {% endfor %}
           </tbody>
         </table>
-        <p class="muted" style="padding:10px 12px" data-testid="pagination">100 premiers documents affichés · la suite se charge en défilant</p>
+        <p class="muted" style="padding:10px 12px" data-testid="pagination">{{ docs|length }} sur {{ total }} documents · lus du fonds, sans quitter le dossier</p>
       </div>
     </section>
 
     <section class="carte volet" aria-label="Aperçu">
+      {% if apercu %}
       <div class="volet-tete"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ apercu.titre }}</span>
         <a class="btn discret" style="margin-left:auto" href="/documents/{{ apercu.id }}" data-testid="ouvrir-fiche">Ouvrir{{ ic.i('fleche') }}</a></div>
-      <div class="visionneuse" style="flex:none;max-height:52%">{{ papier.page(apercu.texte, 'apercu-page') }}</div>
-      <div class="panneau">
+      {{ visionneuse.moteur(apercu.rendu, 'apercu-visionneuse') }}
+      <div class="panneau" data-testid="panneau-champs">
         <dl class="meta" data-testid="apercu-meta">
-          <dt>Type</dt><dd>{{ apercu.type }}</dd>
-          <dt>Émetteur</dt><dd>{{ apercu.emetteur }}</dd>
-          <dt>Date</dt><dd>{{ apercu.date|date('d.m.Y') }}</dd>
-          <dt>Fichier</dt><dd class="mono">{{ apercu.dossier }}/{{ apercu.fichier }}</dd>
+          <dt>Type</dt><dd>{{ apercu.type ?? '—' }}</dd>
+          <dt>Émetteur</dt><dd>{{ apercu.emetteur ?? '—' }}</dd>
+          <dt>Date</dt><dd>{{ apercu.date ? apercu.date|date('d.m.Y') : '—' }}</dd>
+          <dt>Fichier</dt><dd class="mono" data-testid="apercu-chemin">{{ apercu.chemin }}</dd>
         </dl>
+        {% if apercu.champs %}
+        <form method="post" action="/documents/champ" data-testid="formulaire-champs">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="doc" value="{{ apercu.id }}">
+          <div class="titre-section">Champs personnalisés</div>
+          {% for c in apercu.champs %}
+          <div class="champ"><label for="champ-{{ c.cle }}">{{ c.nom }}{% if c.nature == 'montant' %} (CHF){% endif %}</label>
+            {% if c.nature == 'liste' %}
+            <select id="champ-{{ c.cle }}" name="champ[{{ c.cle }}]" data-testid="saisie-champ-{{ c.cle }}">
+              <option value="">—</option>
+              {% for o in c.options %}<option value="{{ o }}" {% if c.valeur == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+            </select>
+            {% elseif c.nature == 'booleen' %}
+            <select id="champ-{{ c.cle }}" name="champ[{{ c.cle }}]" data-testid="saisie-champ-{{ c.cle }}">
+              <option value="">—</option>
+              <option value="oui" {% if c.valeur is same as(true) %}selected{% endif %}>Oui</option>
+              <option value="non" {% if c.valeur is same as(false) %}selected{% endif %}>Non</option>
+            </select>
+            {% else %}
+            <input id="champ-{{ c.cle }}" name="champ[{{ c.cle }}]" data-testid="saisie-champ-{{ c.cle }}"
+                   {% if c.nature == 'date' %}type="date"{% elseif c.nature == 'nombre' %}type="number" step="any"
+                   {% elseif c.nature == 'montant' %}type="number" step="0.01"{% else %}type="text"{% endif %}
+                   value="{{ c.valeur ?? '' }}">
+            {% endif %}
+          </div>
+          {% endfor %}
+          <button class="btn primaire" type="submit" data-testid="action-enregistrer-champs">Enregistrer</button>
+          <p class="muted">Les valeurs vivent dans le `.meta.json` à côté du fichier.</p>
+        </form>
+        {% endif %}
       </div>
+      {% else %}
+      <div class="volet-corps"><p class="muted">Choisir un document pour voir son aperçu.</p></div>
+      {% endif %}
     </section>
   </div>
 </div>
+<script src="/assets/js/visionneuse.js" type="module"></script>
 {% endblock %}

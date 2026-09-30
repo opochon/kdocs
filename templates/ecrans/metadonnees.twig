@@ -1,0 +1,109 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Métadonnées{% endblock %}
+{% block contenu %}
+<div class="page pleine" data-testid="ecran-metadonnees">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Métadonnées</h1>
+      <span class="muted">La nomenclature des types et les champs personnalisés · un type ne se supprime jamais, il se désactive</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/application" data-testid="retour-application">{{ ic.i('reglages') }}Application</a>
+    </div>
+  </div>
+
+  <div class="volets fiche">
+    <section class="carte volet" aria-label="Nomenclature des types">
+      <div class="volet-tete">Nomenclature des types</div>
+      <div class="volet-corps">
+        <table class="table" data-testid="table-types">
+          <thead><tr><th>Type</th><th style="width:90px">État</th><th style="width:230px">Actions</th></tr></thead>
+          <tbody>
+          {% for t in types %}
+            <tr {% if typeChoisi and typeChoisi.id == t.id %}aria-selected="true"{% endif %} data-testid="type-{{ t.id }}">
+              <td><a href="/metadonnees?type={{ t.id }}">{{ t.nom }}</a></td>
+              <td>{% if t.actif %}<span class="chip">actif</span>{% else %}<span class="chip warn">désactivé</span>{% endif %}</td>
+              <td>
+                <form class="rangée" method="post" action="/metadonnees/type" style="display:flex;gap:6px;align-items:center">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <input type="hidden" name="id" value="{{ t.id }}">
+                  <input type="hidden" name="action" value="renommer">
+                  <input name="nom" value="{{ t.nom }}" aria-label="Nouveau nom de {{ t.nom }}" style="width:110px;height:26px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;padding:0 6px">
+                  <button class="btn discret" type="submit" data-testid="action-renommer-{{ t.id }}">Renommer</button>
+                </form>
+                <form method="post" action="/metadonnees/type">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <input type="hidden" name="id" value="{{ t.id }}">
+                  <input type="hidden" name="action" value="{{ t.actif ? 'desactiver' : 'activer' }}">
+                  <button class="btn discret" type="submit" data-testid="action-basculer-{{ t.id }}">{{ t.actif ? 'Désactiver' : 'Réactiver' }}</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% if graineAPoser %}
+        <form method="post" action="/metadonnees/type" data-testid="formule-graine" style="padding:10px 14px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="action" value="graine">
+          <button class="btn primaire" type="submit" data-testid="action-poser-graine">Poser les six types livrés</button>
+          <p class="muted" style="margin:8px 0 0">Facture, Note de crédit, Reçu, Contrat, Courrier, Document RH — la nomenclature du plan, écrite dans le fonds.</p>
+        </form>
+        {% endif %}
+        <form method="post" action="/metadonnees/type" data-testid="formulaire-nouveau-type">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="action" value="ajouter">
+          <div class="titre-section" style="padding:10px 14px 0">Ajouter un type</div>
+          <div class="champ"><label for="nom-type">Nom du type</label>
+            <input id="nom-type" name="nom" data-testid="nom-nouveau-type" placeholder="p. ex. Convention"></div>
+          <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-ajouter-type">Ajouter</button></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="carte volet" aria-label="Champs personnalisés">
+      {% if typeChoisi %}
+      <div class="volet-tete">Champs de « {{ typeChoisi.nom }} »</div>
+      <div class="volet-corps">
+        <ul class="liste" data-testid="champs-{{ typeChoisi.slug }}">
+          {% for c in champsDuType %}
+          <li class="champ" data-testid="champ-{{ c.cle }}">
+            <span class="l1">{{ c.nom }}</span>
+            <span class="l2">clé `{{ c.cle }}` · nature {{ c.nature }}{% if c.options %} · options : {{ c.options|join(', ') }}{% endif %}</span>
+          </li>
+          {% else %}
+          <li class="champ muted" data-testid="aucun-champ">Aucun champ sur ce type.</li>
+          {% endfor %}
+        </ul>
+        <form method="post" action="/metadonnees/champ" data-testid="formulaire-nouveau-champ">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <div class="titre-section" style="padding:10px 14px 0">Ajouter un champ sur un type</div>
+          <div class="champ"><label for="champ-type">Type de document</label>
+            <select id="champ-type" name="type" data-testid="champ-type-doc">
+              {% for t in types %}{% if t.actif %}<option value="{{ t.id }}" {% if typeChoisi.id == t.id %}selected{% endif %}>{{ t.nom }}</option>{% endif %}{% endfor %}
+            </select></div>
+          <div class="champ"><label for="champ-nom">Nom du champ</label>
+            <input id="champ-nom" name="nom" data-testid="champ-nom-champ" placeholder="p. ex. Échéance"></div>
+          <div class="champ"><label for="champ-nature">Nature</label>
+            <select id="champ-nature" name="nature" data-testid="champ-nature">
+              <option value="texte">texte</option>
+              <option value="nombre">nombre</option>
+              <option value="montant">montant CHF</option>
+              <option value="date">date</option>
+              <option value="liste">liste</option>
+              <option value="booleen">oui/non</option>
+            </select></div>
+          <div class="champ"><label for="champ-options">Options (nature liste — une par ligne)</label>
+            <textarea id="champ-options" name="options" data-testid="champ-options" style="width:100%;min-height:56px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;padding:6px 9px"></textarea></div>
+          <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-ajouter-champ">Ajouter le champ</button>
+            <p class="muted" style="margin:8px 0 0">La nature ne se change plus après création : des valeurs typées vivront dans le dossier.</p></div>
+        </form>
+      </div>
+      {% else %}
+      <div class="volet-corps"><p class="muted" style="padding:12px 14px">La nomenclature est vide : ajouter un premier type.</p></div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}
