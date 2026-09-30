@@ -226,3 +226,10 @@ La bibliothèque (maquette) est la seule lecture qui tient le seuil (p95 0,6 s).
   pas seul.
 
 ETAT: fini
+### Jugement PERF-2 (juge, 30-09 12:16, copie propre sur ff15356)
+
+- Cause établie : `php -S` sert une requête à la fois et la suite l'ouvrait à 10 workers ; la mesure d'aperçu attendait la file. L'application n'est pas en cause.
+- Correction au bon endroit : projet Playwright « budgets » sur son propre serveur, un seul worker ; seuils inchangés (2 s à froid, 1 s courante, 1 s recherche), aucun retry, aucun test exclu, et un oracle qui échoue si les budgets reviennent sur le serveur partagé.
+- Harness complet : 0, 1 (237 tests), 2, 3 (53/53, F1 franchie), 4 (32/32), 6 (p95 lecture 657 ms) et 7 verts, alors que la machine portait d'autres chantiers.
+- Verdict : **PERF-2 franchi.**
+- Incident signalé par l'agent : un `rm -rf` sur son worktree temporaire a suivi une jonction et vidé `node_modules` de l'arbre principal ; restauré par `npm ci`. Contrôle du juge : `vendor` intact (2 693 fichiers, autoload OK), aucun fichier suivi supprimé. Règle pour tous : jamais de jonction vers l'arbre principal dans un worktree, et jamais de `rm -rf` qui traverse une jonction.
