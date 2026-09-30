@@ -200,3 +200,13 @@ deux corrections avant tout jugement — appliquées d'abord, tout le reste suit
   `POST /documents/champ` (`doc=0`) — refusées par le métier sans écrire (+ 1 ligne de commentaire).
 
 ETAT: fini
+
+### Jugement V2-04 (juge, 30-09 16:55, copie propre sur 8416e6a)
+
+- Le juge a commité les lignes du secteur dans `DroitsRoutes.php` et `sonde-securite.php` (8416e6a), conformes à la liste « À commiter par le juge ».
+- Plafond tenu sans y toucher : 20 tables. Nomenclature, champs et vues sont des fichiers du fonds (`.ged/`) via `Registre` : verrou exclusif, écriture temporaire puis renommage, cache invalidé par signature. Les valeurs de champs vont dans les `.meta.json` et l'index. `InstallateurTest` et `tools/installer.php` sont inchangés.
+- Corpus : rien n'est écrit dans `tests/corpus` au commit jugé.
+- Harness : 0, 1 (276 tests), 2, 3 (53/53, F1 franchie), 4 (34/34, dont le parcours persona « Échéance » et la vue « Contrats à échéance < 90 j »), 6 (p95 lecture 922 ms) et 7 verts. Le test F12 (`ChampsTest::testLaReconstructionRendToujoursLeMêmeHashAvecDesChampsPosés`) est vert.
+- Demande au Classement déposée dans `classement.md` : lire la nomenclature, avec repli sur `TYPES_CONNUS`.
+- Note du juge : la session GLM arrêtée à 10:15 lisait encore (journal actif jusqu'à 10:09) ; ce n'était pas un blocage. Désormais, l'activité d'un agent se juge sur son journal de session.
+- Verdict : **V2-04 franchi.**
