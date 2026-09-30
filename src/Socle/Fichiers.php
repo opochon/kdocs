@@ -33,6 +33,11 @@ final class Fichiers
     /** Fichiers d'appoint des systèmes de fichiers : jamais des documents, quelle que soit la plateforme. */
     private const POUBELLE_OS = ['thumbs.db', 'desktop.ini', '.ds_store'];
 
+    /** Pliage des accents pour les slugs (table maison : l'iconv local translittère « É » en « E' »). */
+    private const PLIAGE = ['à' => 'a', 'á' => 'a', 'â' => 'a', 'ä' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e',
+        'ê' => 'e', 'ë' => 'e', 'î' => 'i', 'ï' => 'i', 'ô' => 'o', 'ö' => 'o', 'ù' => 'u', 'ú' => 'u',
+        'û' => 'u', 'ü' => 'u', 'ÿ' => 'y', 'ñ' => 'n', 'ß' => 'ss', 'æ' => 'ae', 'œ' => 'oe'];
+
     /** JSON identique à chaque encodage : c'est lui qui rend l'export reconstructible stable. */
     public const DRAPEAUX_JSON = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 
@@ -60,6 +65,19 @@ final class Fichiers
         $extension = strtolower(trim($extension, '.'));
 
         return $extension !== '' ? "$nom.$extension" : $nom;
+    }
+
+    /**
+     * Slug stable d'un nom affiché : minuscules pliées, séparateurs « - ». Adresse les clés de champs
+     * personnalisés (`champs.echeance` dans le `.meta.json`) et les liens de vues — ne change jamais
+     * une fois posé, contrairement au nom affiché qui peut être renommé.
+     */
+    public static function slug(string $nom): string
+    {
+        $s = strtr(mb_strtolower(trim($nom), 'UTF-8'), self::PLIAGE);
+        $s = (string) preg_replace('#[^a-z0-9]+#', '-', $s);
+
+        return trim($s, '-');
     }
 
     /** sha256 du contenu : c'est lui qui relie une ligne de l'index à son fichier, même déplacé. */
