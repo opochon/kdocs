@@ -155,3 +155,74 @@ La bibliothèque (maquette) est la seule lecture qui tient le seuil (p95 0,6 s).
 
 - `tests/e2e/apercu.spec.ts` « première page PDF < 1 s » échoue une fois sur deux dans la suite Playwright complète (1 548 ms à d5ce356, 1 s à chaud), et passe 7/7 quand on le lance seul. Troisième occurrence.
 - À traiter par le secteur : soit rendre la mesure indépendante des autres parcours (worker dédié, `test.describe.configure({ mode: 'serial' })` ou projet Playwright à part pour les budgets de temps), soit prouver que la lenteur vient de l'application sous concurrence et la corriger. Ne pas relever le budget.
+
+## Journal PERF-2 (30-09) — les budgets de temps ne partagent plus la file du serveur mono-processus
+
+**Cause, mesurée (le banc, pas l'application)**
+1. `playwright.config.ts` ne lançait qu'UN serveur `php -d opcache.enable=0 -S`, et la suite l'ouvrait à **10 workers**
+   (`workers` effectif relevé dans `var/e2e-latest.json` ; machine à 20 processeurs). Or `php -S` sert **une requête à
+   la fois** : `PHP_CLI_SERVER_WORKERS=4` répond « forking is not supported on this platform » (Windows) et 4 requêtes
+   parallèles de 200 ms prennent 0,86 s sur le même PID. Un worker qui tenait une requête lente passait donc devant la
+   mesure d'un autre.
+2. Latence client du même serveur de test, mêmes URL que la suite (corpus `STORAGE_ROOT` des tests), ~8 tours :
+
+   | route | au repos (p50) | sous 9 clients simultanés |
+   |---|---|---|
+   | `/documents/204/apercu` | 48 ms | 1 319 ms (p95 2 253 ms) |
+   | `/recherche?q=maintenance` | 181 ms | 185 ms |
+
+   Les valeurs se groupent autour de 1,06 s / 2,2 s : c'est la retransmission TCP quand la file de connexions
+   débordait — d'où l'échec « une fois sur deux » et le 1 548 ms du juge. La page d'aperçu, elle, coûte ~50 ms de
+   serveur et se mesure à 300-500 ms dans le navigateur.
+3. Contre-épreuves : `npx playwright test tests/e2e/apercu.spec.ts` seul = **7/7 vert (5,7 s)** ; en suite complète à
+   HEAD, la mesure « courante » tombe à **2 023 ms** pour un seuil de 1 000 ms
+   (`var/test-results/apercu-…/error-context.md`). Aucune ligne de l'application n'est touchée par ce lot.
+
+**Correction — isoler la mesure, jamais relever le seuil**
+- `playwright.config.ts` : deux serveurs (`8871` parcours, `8872` budgets), deux projets. Le projet `budgets` prend
+  `budget-*.spec.ts`, `workers: 1` et son `baseURL` sur le serveur dédié ; le pool des parcours garde ses 10 workers,
+  ses timeouts et ses seuils.
+- Budgets regroupés dans `tests/e2e/budget-apercu.spec.ts` (à froid < 2 000 ms, courante < 1 000 ms, 3 pages rendues,
+  0 erreur console) et `tests/e2e/budget-recherche.spec.ts` (< 1 000 ms, index bâti hors requête). Assertions et seuils
+  IDENTIQUES, aucun retry, aucun test exclu : les deux fichiers sont joués par `npx playwright test`. Chaque mesure est
+  publiée en annotation `budget` (lisible dans `var/e2e-latest.json`) — une mesure muette ne prouve rien.
+- Oracle d'abord : « banc : les budgets tournent sur un serveur dédié, hors du pool des parcours »
+  (`budget-apercu.spec.ts`) vu **ROUGE** (projet `budgets` inexistant, `project.name` vide), puis vert après la
+  configuration. Il redevient rouge si le banc reperd son isolement.
+
+**Preuves**
+- `npx playwright test` **5 fois de suite : 34 tests, 34 verts à chaque fois**, après la couche 1 (PHPUnit, la même
+  remise à zéro de la base de test que fait le harness) : mesures d'aperçu courantes 369 / 347 / 348 / 364 / 306 ms
+  (< 1 000) et recherche 169 / 181 / 136 / 173 / 187 ms (< 1 000) ; **aucun chevauchement entre les trois tests de
+  budget** (horodatages du rapport : `workers: 1` tient).
+- `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` : `0-garde-fous` VERT, `1-unitaire` VERT
+  (268 tests, 1 314 assertions), `4-ecrans` VERT (34 tests), `7-securite` VERT, `2-contrat` VERT, `6-charge` VERT
+  (p95 lecture 697 ms) ; `3-banc` ROUGE (sautée, demandé) et `5-personas` ROUGE (pas encore écrite) — **aucun rouge
+  nouveau**. Le harness réécrit `recette/registre.json` et `recette/preuves/charge/` : ces sorties ne sont pas
+  committées par ce lot.
+- Reproduire la cause : `PHP_CLI_SERVER_WORKERS=4 php -S …` (« forking is not supported »), puis mesurer
+  `/documents/204/apercu` au repos et sous 9 clients (`curl -w '%{time_total}'`) : 48 ms → 1 319 ms.
+- Ordre observé d'une suite (horodatages de `var/e2e-latest.json`) : les parcours démarrent tous ensemble (jusqu'à
+  10 en vol), les budgets s'intercalent et s'enchaînent — `banc` → `aperçu` → `recherche`, jamais deux à la fois :
+  c'est bien l'attente dans la file du serveur partagé qui faussait la mesure, pas l'ordre des parcours.
+
+**Ce qui n'est pas de ce lot (dit, pas contourné)**
+- `npx playwright test` **sans** la couche PHPUnit d'abord trouve 2 rouges constants : `tests/e2e/bibliotheque.spec.ts`
+  « … les vraies vues et les vrais documents du fonds » (404 sur `GET /documents/10001/apercu/fichier`) et
+  `maquettes.spec.ts` « écran bibliotheque » (mesuré **1 503 ms > 1 500 même seul, sans concurrence**). Cause :
+  `gedv2_test` garde **10 053 documents** laissés par le banc de charge (H-6) ; le travail non commité de l'agent Socle
+  branche `/bibliotheque` sur le fonds réel (`Ged\Socle\EcranBibliotheque`, là où HEAD servait `Maquette::bibliotheque()`)
+  et rend alors **3,4 Mo de HTML pour 10 136 lignes**, en embarquant l'aperçu d'un document absent du corpus. Après
+  PHPUnit, ces deux-là passent : problème d'hygiène de base partagée, pas le banc des budgets.
+- Un worktree propre sur HEAD ne peut pas rejouer la suite : le Kernel (commité) itère `Ged\Socle\Module`, fichier
+  **non commité**, et l'autoloader émet alors un avertissement PHP qui pollue les réponses binaires.
+
+**Demandes**
+- **Harness** : `tools/banc/charge.php` laisse ses 10 000 documents dans `gedv2_test`, et les parcours d'écrans
+  supposent la base propre ; soit le banc restaure son état, soit la couche 4 dit qu'elle suit PHPUnit.
+- **Vue d'ensemble** : convention à acter — *tout test qui affirme un budget de temps vit dans le projet `budgets`*
+  (aujourd'hui `maquettes.spec.ts` « écran bibliotheque » mesure encore dans le pool parallèle).
+- **Socle** : `Ged\Socle\Module` et les écrans V2-04 sont référencés par le Kernel commité ; sans eux, HEAD ne tourne
+  pas seul.
+
+ETAT: fini
