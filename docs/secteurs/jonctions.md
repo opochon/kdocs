@@ -245,3 +245,8 @@ ETAT: fini
 - Harness : 0, 1 (237 tests), 2, 3 (53/53, F1 franchie), 6 (p95 lecture 958 ms, écriture 116 ms) et 7 verts.
 - Couche 4 : 30/31 ; seul rouge = budget « première page PDF < 1 s » d'`apercu.spec.ts` (1 548 ms), hors secteur. Rejoué seul deux fois : 7/7 vert. Défaut du banc d'écrans sous exécution parallèle, consigné à la fiche recherche-apercu.
 - Verdict : **V2-08b/c/d franchis**. L'appairage part de Mon profil (adresse vérifiée, courriel d'auto-configuration avec code de vérification, révocation), conformément à `docs/api/cmm-ged.md` v2 §1.
+### Jugement côté CMM — plugin « Ged » (juge, 30-09 12:25)
+
+- 21b4419 (v1) : fichiers limités au plugin. **Régression** : les tables hm_ged_* faisaient planter l'ouverture de toutes les boîtes CMM ; corrigé par une autre session (4cd225b, tables déclarées partagées).
+- ebb731e (delta v2 §1) : invitation lue dans le RFC 822, bandeau avec code de vérification et SPF/DKIM, confirmation humaine seule, formulaire manuel retiré, état « révoqué » sur 401 avec la file conservée ; PHPUnit CMM 447 verts ; socle inchangé (rouges préexistants SV-05, 06, 07, 08, 18, 30). Le parcours Playwright isolé reste inconcluant (PostgreSQL temporaire jamais prêt).
+- **Non franchi** : chaque ouverture de message lance `export_message` (téléchargement complet du RFC 822) pour chercher une invitation, puis répond 422. Renvoyé à l'agent : ne sonder que les messages candidats, sans aucun appel pour un message ordinaire, et prouver qu'une boîte réelle s'ouvre.
