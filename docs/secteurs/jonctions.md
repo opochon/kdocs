@@ -1,6 +1,6 @@
 # Secteur JONCTIONS — K-Time, ClearMyMails, API d'entrée
 
-Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml, V2-08c appairage parti de la GED) · Juge : Claude Code · Lot en cours : V2-08c
+Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml, V2-08c appairage parti de la GED, V2-08d une seule table) · Juge : Claude Code · Lot en cours : V2-08d
 
 ## Mission
 La GED ne refait pas ce que les produits voisins font déjà ; elle se branche proprement, par API, jamais par la base
@@ -199,3 +199,43 @@ ETAT: fini
 - **Couche 1 rouge, imputable au secteur** : `InstallateurTest` — 21 tables posées pour un plafond de 20 (oracle V2-01). Passage de 20 à 21 à d9d49fe (V2-08b). Le « plafond de 24 » cité au journal V2-08c vient d'un travail non commité et non jugé du Socle : il ne vaut pas. Le plafond reste 20.
 - Couche 4 (aperçu et recherche < 1 s) et couche 6 (p95 lecture 1,98 s) rouges sur des budgets de temps, avec un banc de découpe à 144 s au lieu de 87 s : machine chargée, hors secteur. À rejouer machine calme avant tout verdict sur ces couches.
 - Verdict : **non franchi**. Renvoyé en V2-08d : Jonctions tient en une table, contrat et comportement inchangés.
+
+## Journal V2-08d — Jonctions tient en UNE table (plafond V2-01)
+
+- Jugement repris tel quel : sur `66ed97f`, le plafond est **20** (oracle V2-01) et le passage de 20 à 21
+  vient des DEUX tables Jonctions (`jonctions_jetons` + `jonctions_profils`). Le « plafond de 24 du lot
+  V2-04 » est un travail non commité et non jugé du Socle : il ne compte pas.
+- Oracle d'abord, **rouge** : sur la base COMMITÉE seule (`git archive HEAD` dans un dossier temporaire, pour
+  ne pas toucher le travail non commité du Socle), `InstallateurTest` échoue 3/4 — « 21 tables posées : le
+  départ doit tenir en 20 ». Compte vérifié sans `git stash` : `git show HEAD:<Schema.php>` somme à 21
+  `CREATE TABLE` (Jonctions = 2).
+- Fait : les deux tables fusionnent en **`jonctions_jetons`** (option « `jonctions_jetons` élargie »
+  proposée par le juge), avec une colonne `nature` : `application` (jeton d'application), `appareil` (jeton
+  appairé, lié compte + poste), `verification_adresse` (adresse saisie puis vérifiée du profil, lien à usage
+  unique) et `appairage_en_attente` (code d'échange 24 h + code court de comparaison). Chaque nature remplit
+  son sous-ensemble de colonnes ; trois empreintes distinctes et uniques (`empreinte`, `verif_empreinte`,
+  `appairage_code`) plus `identifiant` unique pour le profil. Toujours sha256, jamais un secret en clair.
+- Fait : `Profil`, `Appairage` et `Jetons` bornent leurs lectures sur la `nature` (un jeton d'appareil porte
+  un `compte_id` : sans ce filtre, une lecture de profil l'aurait pris pour un profil). Un nouvel appairage
+  marque le précédent `appairage_utilise_le` (trace, jamais une suppression) puis pose une ligne neuve :
+  « au plus un appairage en attente » tient toujours. L'`appairage_jeton_id` est posé en deux temps
+  (sélection puis `UPDATE`) car MySQL refuse une sous-requête sur la table en cours de mise à jour — la table
+  étant désormais unique. Aucun `DELETE FROM` ajouté dans `src/`.
+- Fait : `tests/php/Jonctions/SupportJonctions.php` nettoie la table unique (les `DROP` des noms historiques
+  restent, pour repartir d'un schéma neuf). Les oracles de comportement (`AppairageTest`, `ProfilTest`,
+  `ContratCmmTest`, `DepotApiTest`, `Courriel*Test`) ne changent pas d'une virgule et `depot.php` non plus.
+- Contrat inchangé : `docs/api/cmm-ged.md` v2 et `docs/api/appairage.yaml` ne bougent pas ; aucun changement
+  d'HTTP, de statuts ni de messages.
+- Vert (copie commitée propre + mes seules modifications Jonctions) : `InstallateurTest` 4/4, **20 tables**
+  (1+2+1+1+7+5+3) ; l'installateur annonce « 20 tables ».
+- Preuves (arbre intégré) : `tests\php\Jonctions` vert (20 tests, 192 assertions) ; suite PHPUnit complète
+  verte (268 tests, 1314 assertions, `CorbeilleTest` compris) ; `tests/e2e/jonctions.spec.ts` vert
+  (2 parcours) ; `tools/banc/contrat.php` vert ; `tools/banc/sonde-securite.php` vert.
+- Hors secteur noté : sur la base commitée seule, des avertissements PHP (comptés par `failOnWarning`) viennent
+  de fichiers COMMITÉS qui attendent des fichiers du Socle non commités : `src/Ui/ATraiter.php` →
+  `Ged\Socle\Nomenclature` ; `src/Kernel.php` → `Ged\Socle\Module` (les oracles Jonctions qui passent par
+  `Kernel::creer` en héritent). `class_exists` échoue alors proprement. Sans rapport avec Jonctions :
+  l'arbre intégré (fichiers du Socle présents) est vert.
+- Commit : `abcb8a8` `jonctions: une seule table (jetons, profils, appairages) tient le plafond V2-01 (V2-08d)`.
+
+ETAT: fini
