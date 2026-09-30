@@ -129,6 +129,17 @@ final class DepotFichiers implements Depot
     }
 
     /**
+     * Reporte dans l'index un `.meta.json` déjà écrit à côté du fichier (champs personnalisés, V2-04) :
+     * la colonne `meta` recopie le dossier — sans déplacer la pièce ni toucher au rangement. Ligne
+     * vivante seulement : un document à la corbeille ou disparu ne change pas.
+     */
+    public function rapporterMeta(string $cheminRelatif, array $meta): void
+    {
+        $this->pdo->prepare('UPDATE documents SET meta = ? WHERE chemin_relatif = ? AND supprime_le IS NULL')
+            ->execute([Fichiers::json($meta), $cheminRelatif]);
+    }
+
+    /**
      * Corbeille : le document (fichier, `.meta.json`, `.versions/`) part sous `.corbeille/` en gardant son
      * arborescence, la ligne est simplement drapeautée. Rien n'est jamais effacé. La ligne garde son
      * `chemin_relatif` dans le fonds : c'est SA place, où la restauration la remettra.
