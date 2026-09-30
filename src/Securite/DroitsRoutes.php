@@ -30,6 +30,12 @@ final class DroitsRoutes
         'POST /workflows/evenements' => 'workflow.executer',
         'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
+        // Socle V2-04 : bibliothèque réelle, vues enregistrées, écran métadonnées de l'administrateur.
+        'GET /metadonnees' => 'application:administrer',
+        'POST /metadonnees/type' => 'application:administrer',
+        'POST /metadonnees/champ' => 'application:administrer',
+        'POST /bibliotheque/vue' => 'documents:lire',
+        'POST /documents/champ' => 'documents:traiter',
         // API d'entrée sous jeton d'application (secteur Jonctions) : pas de session, donc « publique »
         // au sens de la garde ; la porte réelle est le jeton vérifié par le secteur (V2-08a, signalé).
         'POST /api/v1/depots' => 'publique:api-depot',
