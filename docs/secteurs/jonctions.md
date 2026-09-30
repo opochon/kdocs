@@ -250,3 +250,9 @@ ETAT: fini
 - 21b4419 (v1) : fichiers limités au plugin. **Régression** : les tables hm_ged_* faisaient planter l'ouverture de toutes les boîtes CMM ; corrigé par une autre session (4cd225b, tables déclarées partagées).
 - ebb731e (delta v2 §1) : invitation lue dans le RFC 822, bandeau avec code de vérification et SPF/DKIM, confirmation humaine seule, formulaire manuel retiré, état « révoqué » sur 401 avec la file conservée ; PHPUnit CMM 447 verts ; socle inchangé (rouges préexistants SV-05, 06, 07, 08, 18, 30). Le parcours Playwright isolé reste inconcluant (PostgreSQL temporaire jamais prêt).
 - **Non franchi** : chaque ouverture de message lance `export_message` (téléchargement complet du RFC 822) pour chercher une invitation, puis répond 422. Renvoyé à l'agent : ne sonder que les messages candidats, sans aucun appel pour un message ordinaire, et prouver qu'une boîte réelle s'ouvre.
+### Jugement côté CMM — correctif 1aa409c (juge, 30-09 14:10)
+
+- Défaut de performance corrigé, lu dans le code : le navigateur ne sonde que les messages dont la liste de pièces, déjà en cache local, contient `ged-appairage.json`. Côté serveur, `GedPairingCandidate` filtre sur les pièces en base avant tout `export_message`, et l'invitation lue est mise en cache de session. Une invitation ignorée n'est plus relue. PHPUnit GED : 7 tests verts.
+- Correctif 4cd225b conservé (tables GED partagées).
+- **Pas encore franchi, faute de preuve de bout en bout** : le parcours Playwright isolé, la recette socle et l'ouverture d'une boîte de développement n'ont pas pu tourner. Le runtime PostgreSQL temporaire des tests CMM ne démarre pas, et le PostgreSQL de développement (:5433) refuse l'authentification `cmm`. C'est l'infrastructure de test de CMM, pas le lot ; l'agent ne l'a pas contournée.
+- À reprendre dès que l'infrastructure PostgreSQL de test de CMM répond : Playwright GED, socle sans nouveau rouge, boîte fictive qui s'ouvre.
