@@ -142,3 +142,52 @@ ETAT: fini (jugé)
 - Commit : `d9d49fe` `jonctions: appairage, destinations et .eml (V2-08b)`.
 
 ETAT: fini
+
+## Journal V2-08c — l'appairage part de la GED (Mon profil, auto-configuration)
+
+- Contrat lu et suivi : section 1 v2 de `docs/api/cmm-ged.md` (décision d'Olivier du 30-09 : la liaison part
+  de la GED, CMM la valide, la GED révoque ; la GED ne lit jamais la boîte). `docs/api/appairage.yaml`
+  réécrit en v2.
+- Oracle d'abord, rouge : `AppairageTest`, `ProfilTest`, `CourrielAutoConfigTest` et `ContratCmmTest`
+  réécrits/écrits rouges (classes `Ged\Jonctions\{Profil,Mailer}` absentes : 13 erreurs), puis verts —
+  `tests/php/Jonctions` 20 tests, 192 assertions. Parcours Playwright connecté réécrit
+  (`tests/e2e/jonctions.spec.ts`, 2 parcours) : Mon profil → adresse vérifiée par le lien du `.eml` écrit en
+  `var/` → Relier → lecture du courriel d'auto-configuration → échange `{code, verification, poste}` comme
+  CMM → appareils reliés → Révoquer → 401 ; et refus 403 sans session.
+- Fait (Mon profil) : `GET /profil` (adresse et état, bouton « Relier ClearMyMails », appairages en attente,
+  appareils reliés avec Révoquer), `POST /profil/mail` (adresse + lien de vérification), `GET
+  /profil/mail/verifier` (lien à usage unique, valable 1 h). L'écran Application › Appareils reliés est
+  DÉPLACÉ : `/appairage` et `/application/appareils` redirigent vers `/profil` ; `appairage.twig` et
+  `appareils.twig` sont supprimés ; le lien de `application.twig` pointe vers `/profil`.
+- Fait (appairage en attente 24 h) : code d'échange 256 bits (empreinte sha256 seule en base) + code de
+  vérification court (6 caractères sans ambiguïté, ex. `K7M-4QX`) affiché à l'écran. La GED envoie à
+  l'adresse VÉRIFIÉE le courriel d'auto-configuration : objet « Relier votre GED à ClearMyMails », en-tête
+  `X-GED-Appairage: v1`, texte humain, pièce `ged-appairage.json` `{version, ged_url, ged_nom, compte, code,
+  verification, expire_le}`. `POST /api/v1/appairage/jeton` exige désormais `{code, verification, poste}` :
+  mauvais code de vérification → 400 nommé SANS consommer le code ; code inconnu/expiré/rejoué → 400 nommé ;
+  l'échange lie le jeton au compte et enregistre le poste annoncé par CMM.
+- Fait (transport) : `Ged\Jonctions\{Transport,TransportFichier,TransportSmtp,Mailer}` sur
+  `phpmailer/phpmailer` (ajouté proprement par `tools\composer.phar` : `composer.json` + `composer.lock`).
+  Transport SMTP configurable par `GED_SMTP_*` ; en test, transport « fichier » qui écrit le `.eml` dans
+  `var/mails` (jamais d'envoi réel). `.env.example` complété.
+- Remplacement de l'ancien parcours URL (V2-08b) : la compatibilité n'était pas gratuite (l'acceptation CMM
+  poussée par URL n'a plus de sens quand la liaison part de la GED) ; les deux routes historiques redirigent,
+  et le contrat le dit (`docs/api/appairage.yaml`, rubrique Chemins ci-dessus).
+- Schéma resserré : la table `jonctions_profils` porte l'adresse, sa vérification ET l'appairage en attente
+  (au plus un) ; `jonctions_jetons` reste seule à porter les jetons. Deux tables Jonctions, comme avant, pour
+  tenir le plafond de 24 tables du lot V2-04 ; `jonctions_codes_appairage` disparaît. Aucun `DELETE FROM`
+  dans `src/` (une remise à zéro est une trace : `appairage_utilise_le`), la garde `CorbeilleTest` reste verte.
+- Preuves : `vendor\bin\phpunit tests\php\Jonctions` vert (20 tests, 192 assertions) ; suite PHPUnit complète
+  verte (268 tests, 1314 assertions) ; `npx playwright test tests/e2e/jonctions.spec.ts` vert (2 parcours) ;
+  `php tools\banc\contrat.php` vert ; `php tools\banc\sonde-securite.php` vert.
+- Harness `-SansBanc` sur `46ffc77` : couches 0, 1, 2 et 7 VERTES ; couche 3 volontairement sautée ; couche 4
+  rouge sur 2 parcours HORS SECTEUR (relance isolée : 4) — `apercu` seuil de première page PDF sous charge,
+  `bibliotheque` 404/écran du Socle V2-04, `maquettes` seuils 1,5 s ; couche 6 (charge) rouge sur l'écran
+  **Bibliothèque** du Socle V2-04 en cours (p95 4973 ms à 3 utilisateurs ; la table par écran de
+  `recette/preuves/charge/charge.md` désigne la bibliothèque, jamais une route Jonctions). Les oracles
+  Jonctions sont verts isolément ; défauts hors secteur déjà consignés (V2-07c bis, V2-08a, fiche Droits).
+- Vestiaire partagé (À commiter par le juge) : lignes ajoutées à `src/Securite/DroitsRoutes.php` et charges
+  dans `tools/banc/sonde-securite.php` (détail dans la rubrique ci-dessus).
+- Commit : `46ffc77` `jonctions: appairage parti de la GED (profil vérifié, auto-configuration SMTP/fichier) (V2-08c)`.
+
+ETAT: fini
