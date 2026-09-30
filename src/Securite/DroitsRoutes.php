@@ -34,6 +34,16 @@ final class DroitsRoutes
         // au sens de la garde ; la porte réelle est le jeton vérifié par le secteur (V2-08a, signalé).
         'POST /api/v1/depots' => 'publique:api-depot',
         'GET /api/v1/depots/{id:[0-9]+}' => 'publique:api-depot-suivi',
+        // Jonctions V2-08b — appairage (sections 1, 2) : la porte des routes `publique:` est le jeton
+        // d'appairage vérifié dans le secteur ; les écrans passent, eux, par la session normale.
+        'GET /api/v1/appairage/moi' => 'publique:api-appairage-moi',
+        'DELETE /api/v1/appairage/moi' => 'publique:api-appairage-moi',
+        'POST /api/v1/appairage/jeton' => 'publique:api-appairage',
+        'GET /api/v1/dossiers' => 'publique:api-dossiers',
+        'GET /appairage' => 'documents:traiter',
+        'POST /appairage' => 'documents:traiter',
+        'GET /application/appareils' => 'documents:traiter',
+        'POST /application/appareils/{id:[0-9]+}/revoquer' => 'documents:traiter',
         'GET /sante' => 'publique:sante',
         'GET /connexion' => 'publique:connexion',
         'POST /connexion' => 'publique:connexion',
@@ -80,6 +90,10 @@ final class DroitsRoutes
             }
             if (preg_match('#^/workflows/gabarits/[A-Za-z0-9_]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/gabarits/{nom}'];
+            }
+            // Révocation d'un appareil relié (Jonctions V2-08b).
+            if (preg_match('#^/application/appareils/[0-9]+/revoquer$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /application/appareils/{id:[0-9]+}/revoquer'];
             }
         }
 
