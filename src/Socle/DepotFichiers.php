@@ -238,9 +238,18 @@ final class DepotFichiers implements Depot
         return (int) $stmt->fetchColumn();
     }
 
-    /** Chemin de rangement `année/type[/émetteur]` ; sans type connu : `année/À classer`. */
+    /**
+     * Chemin de rangement `année/type[/émetteur]` ; sans type connu : `année/À classer`.
+     * Un `dossier` explicite (dépôt direct par l'API dans un dossier autorisé) l'emporte, tel quel.
+     */
     private function cheminRangement(array $meta): string
     {
+        if (isset($meta['dossier']) && is_string($meta['dossier'])) {
+            $dossier = trim(str_replace('\\', '/', $meta['dossier']), '/');
+            if ($dossier !== '' && !str_contains($dossier, '..')) {
+                return $dossier;
+            }
+        }
         $annee = isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])
             ? substr((string) $meta['date'], 0, 4) : date('Y');
         $segments = [$annee, isset($meta['type']) && $meta['type'] !== null && $meta['type'] !== ''

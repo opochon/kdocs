@@ -19,7 +19,10 @@
   </div>
   <div class="visionneuse-pages" data-testid="visionneuse-pages" tabindex="0"
        aria-label="Aperçu du document — flèches ou Page suivante pour changer de page">
-    {% if rendu.message %}
+    {% if rendu.categorie == 'message' and rendu.html is defined %}
+      {# Message .eml : HTML nettoyé par le secteur Jonctions (aucun script, aucune ressource distante). #}
+      {{ rendu.html|raw }}
+    {% elseif rendu.message %}
       <p class="visionneuse-message" data-testid="visionneuse-message">{{ rendu.message }}</p>
     {% else %}
       <p class="visionneuse-chargement muted" data-testid="visionneuse-chargement">{{ ic.i('horloge') }} Chargement de l’aperçu…</p>

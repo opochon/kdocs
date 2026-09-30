@@ -10,6 +10,11 @@ info:
     Le dépôt passe par la même chaîne que le dossier d'ingestion : même dédoublonnage par empreinte
     sha256. **Même fichier = même réponse** (idempotent) ; un doublon est mis de côté, jamais supprimé.
     Les métadonnées sont facultatives et rattachées à la copie de travail dans la zone d'ingestion.
+
+    Extension V2-08b : `destination=ingestion` (défaut) passe par la chaîne d'ingestion ;
+    `destination=dossier&dossier=<chemin>` range directement dans un dossier du fonds autorisé
+    (403 nommé sinon), statut `a_controler`. `origine` (JSON) est écrit dans le `.meta.json` du
+    document. Les dossiers autorisés se lisent par `GET /api/v1/dossiers`.
 servers:
   - url: http://127.0.0.1:8870
     description: Développement local
@@ -59,6 +64,18 @@ paths:
                   type: string
                 etiquettes:
                   type: string
+                destination:
+                  type: string
+                  enum: [ingestion, dossier]
+                  description: 'ingestion (défaut) : chaîne d’ingestion ; dossier : rangement direct.'
+                dossier:
+                  type: string
+                  description: Chemin du dossier du fonds (requis si `destination=dossier`) ; doit être autorisé en écriture pour le compte du jeton.
+                origine:
+                  type: string
+                  description: |
+                    JSON facultatif décrivant la provenance, écrit dans le `.meta.json` :
+                    `{"application":"cmm","message_id":"…","compte_mail":"…","de":"…","a":"…","objet":"…","date":"…"}`.
       responses:
         '202':
           description: Travail d'ingestion accepté (créé ou déjà connu)

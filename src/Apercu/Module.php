@@ -84,6 +84,10 @@ final class Module
         if ($piece->estImage()) {
             return ['url' => $url, 'categorie' => 'image', 'pages' => 1, 'titre' => $piece->titre, 'message' => ''];
         }
+        if ($piece->estMessage()) {
+            // Le message n'est pas une ressource à charger : le HTML est nettoyé ici et rendu en ligne.
+            return ['url' => '', 'categorie' => 'message', 'pages' => 1, 'titre' => $piece->titre, 'message' => '', 'html' => self::messageHtml($piece)];
+        }
         if ($piece->estBureautique()) {
             if (Outils::libreOffice() === null) {
                 return ['url' => '', 'categorie' => 'bureautique', 'pages' => $piece->pages, 'titre' => $piece->titre, 'message' => Outils::MSG_LIBREOFFICE];
@@ -115,6 +119,12 @@ final class Module
             }
 
             return self::servir($rep, $piece->chemin, self::mime($piece));
+        }
+        if ($piece->estMessage()) {
+            $rep->getBody()->write(self::messageHtml($piece));
+
+            return $rep->withHeader('Content-Type', 'text/html; charset=utf-8')
+                ->withHeader('Cache-Control', 'private, max-age=0, must-revalidate');
         }
         if ($piece->estBureautique()) {
             if (Outils::libreOffice() === null) {
@@ -168,8 +178,27 @@ final class Module
             'bmp' => 'image/bmp',
             'avif' => 'image/avif',
             'tif', 'tiff' => 'image/tiff',
+            'eml' => 'message/rfc822',
             default => 'application/octet-stream',
         };
+    }
+
+    /**
+     * Rendu HTML NETTOYÉ d'un message `.eml` : le lecteur vit dans le secteur Jonctions (source de la
+     * jonction ClearMyMails) ; l'aperçu n'en affiche que le HTML assaini (aucun script, aucune ressource
+     * distante). Branchage minimal signalé dans la fiche Aperçu.
+     */
+    private static function messageHtml(Piece $piece): string
+    {
+        if (!class_exists(\Ged\Jonctions\Courriel::class)) {
+            return '<p class="visionneuse-message" data-testid="visionneuse-message">aperçu indisponible : lecture du message impossible</p>';
+        }
+        $courriel = \Ged\Jonctions\Courriel::lire($piece->chemin);
+        if ($courriel === null || (string) $courriel['html'] === '') {
+            return '<p class="visionneuse-message" data-testid="visionneuse-message">aperçu indisponible : message illisible</p>';
+        }
+
+        return (string) $courriel['html'];
     }
 
     /** @return array{id:int, titre:string, categorie:string, pages:int} */

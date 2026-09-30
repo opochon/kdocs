@@ -82,11 +82,31 @@ final class Pilote
             throw new \RuntimeException('le moteur n’a rendu aucune pièce');
         }
         $base = pathinfo((string) $lot['nom_origine'], PATHINFO_FILENAME);
+        // Origine CMM (jonctions) déposée à côté de la copie de travail : elle suit chaque pièce
+        // jusqu'au `.meta.json` du document (ajout minimal V2-08b, signalé dans la fiche Ingestion).
+        $origine = $this->origineCourriel($lot);
         foreach ($pieces as $p) {
             $nom = $base . (count($pieces) > 1 ? ' (p. ' . Travaux::plages($p['pages']) . ')' : '') . '.pdf';
-            $this->travaux->ajouterPiece((int) $lot['id'], $p['fichier'], $nom, (string) $lot['source'], $p['pages'], $p['texte'], $p['analyse']);
+            $analyse = $p['analyse'];
+            if ($origine !== null) {
+                $analyse['origine_courriel'] = $origine;
+            }
+            $this->travaux->ajouterPiece((int) $lot['id'], $p['fichier'], $nom, (string) $lot['source'], $p['pages'], $p['texte'], $analyse);
         }
         $this->travaux->passer((int) $lot['id'], 'decoupe');
+    }
+
+    /** Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null. @param array<string, mixed> $lot */
+    private function origineCourriel(array $lot): ?array
+    {
+        $fichier = (string) ($lot['chemin'] ?? '') . '.depot.json';
+        if (!is_file($fichier)) {
+            return null;
+        }
+        $donnees = json_decode((string) file_get_contents($fichier), true);
+        $origine = is_array($donnees) ? ($donnees['metadonnees']['origine'] ?? null) : null;
+
+        return is_array($origine) ? $origine : null;
     }
 
     /** @param array<string, mixed> $piece */
@@ -95,6 +115,9 @@ final class Pilote
         $analyse = json_decode((string) $piece['analyse'], true) ?: [];
         $texte = (string) ($analyse['texte'] ?? '');
         unset($analyse['texte']);
+        // Origine CMM posée à la découpe : elle repart dans le `.meta.json`, sous `origine.courriel`.
+        $origineCourriel = is_array($analyse['origine_courriel'] ?? null) ? $analyse['origine_courriel'] : null;
+        unset($analyse['origine_courriel']);
 
         $proposition = $this->classeur?->proposer($texte, $analyse, (string) $piece['nom_origine']);
         $meta = [
@@ -104,6 +127,9 @@ final class Pilote
             'texte' => $texte,
             'statut' => ($proposition['valide'] ?? false) ? 'valide' : 'a_controler',
         ];
+        if ($origineCourriel !== null) {
+            $meta['origine']['courriel'] = $origineCourriel;
+        }
         if ($proposition !== null) {
             foreach (['type', 'emetteur', 'date', 'montant', 'etiquettes', 'raison'] as $cle) {
                 $meta[$cle] = $proposition[$cle] ?? null;

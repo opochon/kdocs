@@ -10,12 +10,13 @@ use Psr\Http\Message\ServerRequestInterface as Requete;
 use Psr\Http\Message\UploadedFileInterface;
 
 /**
- * Porte HTTP de l'API d'entrée. Authentification par jeton d'application (`Authorization: Bearer …`, portée
- * `depot`) : elle ne dépend pas de la session et ne passe donc pas par la garde CSRF. Le jeton est vérifié
- * ici, dans le secteur. Les réponses sont du JSON : l'identifiant du travail à la réception, son état au suivi.
+ * Porte HTTP de l'API d'entrée. Authentification par jeton (`Authorization: Bearer …`, portée `depot`) :
+ * elle ne dépend pas de la session et ne passe donc pas par la garde CSRF. Le jeton est vérifié ici, dans
+ * le secteur. Les réponses sont du JSON : l'identifiant du travail à la réception, son état au suivi.
  *
- *   POST /api/v1/depots          fichier (champ « fichier ») + métadonnées facultatives → travail d'ingestion
+ *   POST /api/v1/depots          fichier (champ « fichier ») + métadonnées ; destination=ingestion|dossier
  *   GET  /api/v1/depots/{id}     état du travail (404 nommé si inconnu)
+ *   GET  /api/v1/dossiers        dossiers où CE compte peut écrire (destination=dossier)
  */
 final class DepotApi
 {
@@ -28,6 +29,8 @@ final class DepotApi
         private readonly Jetons $jetons,
         private readonly SourceApi $source,
         private readonly PDO $pdo,
+        private readonly Dossiers $dossiers,
+        private readonly DepotDossier $depotDossier,
         private readonly int $tailleMax = self::TAILLE_MAX_DEFAUT,
     ) {
     }
@@ -47,10 +50,28 @@ final class DepotApi
                 throw new ErreurApi(413, sprintf('fichier trop gros : %d octets (maximum %d)', $taille, $this->tailleMax), $etape);
             }
 
-            $id = $this->source->recevoir($fichier, $nom, $this->metadonnees($requete->getParsedBody()), $session['application']);
+            $corps = $this->champs($requete);
+            $metadonnees = $this->metadonnees($corps);
+            $origine = $this->origine($corps, $etape);
+            if ($origine !== null) {
+                $metadonnees['origine'] = $origine;
+            }
+            $destination = trim((string) ($corps['destination'] ?? ''));
+            $destination = $destination === '' ? 'ingestion' : $destination;
+
+            if ($destination === 'dossier') {
+                return $this->deposerDansDossier($reponse, $session, $fichier, $nom, $metadonnees, $corps, $etape);
+            }
+            if ($destination !== 'ingestion') {
+                throw new ErreurApi(400, sprintf('destination inconnue : « %s » (ingestion | dossier)', $destination), $etape);
+            }
+
+            $resultat = $this->source->recevoir($fichier, $nom, $metadonnees, $session['application']);
+            $id = $resultat['travail'];
 
             return $this->json($reponse, 202, [
                 'travail' => $id,
+                'empreinte' => $resultat['empreinte'],
                 'etat' => $this->travail($id)['etat'] ?? 'recu',
                 'suivi' => '/api/v1/depots/' . $id,
             ]);
@@ -63,7 +84,7 @@ final class DepotApi
         }
     }
 
-    /** @param array<string, string> $args */
+    /** @param array<string, mixed> $args */
     public function etat(Requete $requete, Reponse $reponse, array $args): Reponse
     {
         $id = (int) ($args['id'] ?? 0);
@@ -99,10 +120,58 @@ final class DepotApi
         }
     }
 
+    /** Dossiers où le compte du jeton peut déposer (refus par défaut : un dossier sans droit n'apparaît pas). */
+    public function dossiers(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/dossiers';
+        try {
+            $session = $this->authentifier($requete, $etape);
+            if ($session['compte_id'] === null) {
+                throw new ErreurApi(403, 'le jeton n’est lié à aucun compte', $etape);
+            }
+            $parent = (string) ($requete->getQueryParams()['parent'] ?? '');
+
+            return $this->json($reponse, 200, $this->dossiers->lister($session['compte_id'], $parent));
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (\Throwable $e) {
+            error_log(sprintf('[GEDv2 jonctions] GET /api/v1/dossiers : %s (%s:%d)', $e->getMessage(), $e->getFile(), $e->getLine()));
+
+            return $this->erreur($reponse, new ErreurApi(500, 'la liste des dossiers n’a pas pu être lue', $etape));
+        }
+    }
+
     /**
-     * Vérifie le jeton d'application et nomme précisément un refus. Le jeton n'est jamais journalisé.
+     * @param array{application:string, portee:string, compte_id:?int} $session
+     * @param array<string, mixed> $metadonnees
+     * @param array<string, mixed> $corps
+     */
+    private function deposerDansDossier(Reponse $reponse, array $session, UploadedFileInterface $fichier, string $nom, array $metadonnees, array $corps, string $etape): Reponse
+    {
+        $dossier = $this->normaliserDossier((string) ($corps['dossier'] ?? ''));
+        if ($dossier === '') {
+            throw new ErreurApi(400, 'le dossier est requis (destination=dossier)', $etape);
+        }
+        if ($session['compte_id'] === null) {
+            throw new ErreurApi(403, 'le jeton n’est lié à aucun compte', $etape);
+        }
+        if (!$this->dossiers->ecritureAutorisee($session['compte_id'], $dossier)) {
+            throw new ErreurApi(403, sprintf('droit d’écriture insuffisant sur le dossier « %s »', $dossier), $etape);
+        }
+
+        $resultat = $this->depotDossier->deposer($fichier, $nom, $metadonnees, $dossier, $etape);
+
+        return $this->json($reponse, 202, [
+            'document' => $resultat['document'],
+            'empreinte' => $resultat['empreinte'],
+            'etat' => 'a_controler',
+        ]);
+    }
+
+    /**
+     * Vérifie le jeton et nomme précisément un refus. Le jeton n'est jamais journalisé.
      *
-     * @return array{id:int, application:string, portee:string}
+     * @return array{id:int, application:string, portee:string, compte_id:?int, compte_identifiant:?string, appareil:?string}
      * @throws ErreurApi
      */
     private function authentifier(Requete $requete, string $etape): array
@@ -123,7 +192,10 @@ final class DepotApi
         }
         $this->jetons->marquerUtilisation($ligne['id']);
 
-        return ['id' => $ligne['id'], 'application' => $ligne['application'], 'portee' => $ligne['portee']];
+        return [
+            'id' => $ligne['id'], 'application' => $ligne['application'], 'portee' => $ligne['portee'],
+            'compte_id' => $ligne['compte_id'], 'compte_identifiant' => $ligne['compte_identifiant'], 'appareil' => $ligne['appareil'],
+        ];
     }
 
     private function jetonEntete(Requete $requete): string
@@ -151,12 +223,20 @@ final class DepotApi
         return $fichier;
     }
 
-    /** @param mixed $corps @return array<string, mixed> */
-    private function metadonnees(mixed $corps): array
+    /** @return array<string, mixed> corps de la requête (formulaire ou multipart) */
+    private function champs(Requete $requete): array
     {
-        if (!is_array($corps)) {
-            return [];
-        }
+        $corps = $requete->getParsedBody();
+
+        return is_array($corps) ? $corps : [];
+    }
+
+    /**
+     * @param array<string, mixed> $corps
+     * @return array<string, mixed>
+     */
+    private function metadonnees(array $corps): array
+    {
         if (isset($corps['metadonnees']) && is_string($corps['metadonnees']) && $corps['metadonnees'] !== '') {
             $decode = json_decode($corps['metadonnees'], true);
 
@@ -170,6 +250,26 @@ final class DepotApi
         }
 
         return $meta;
+    }
+
+    /** @param array<string, mixed> $corps @return array<string, mixed>|null @throws ErreurApi */
+    private function origine(array $corps, string $etape): ?array
+    {
+        $brut = trim((string) ($corps['origine'] ?? ''));
+        if ($brut === '') {
+            return null;
+        }
+        $decode = json_decode($brut, true);
+        if (!is_array($decode)) {
+            throw new ErreurApi(400, 'origine : JSON invalide (objet attendu)', $etape);
+        }
+
+        return $decode;
+    }
+
+    private function normaliserDossier(string $dossier): string
+    {
+        return trim(str_replace('\\', '/', trim($dossier)), '/');
     }
 
     /** @return array<string, mixed>|null travail d'ingestion créé par l'API uniquement */

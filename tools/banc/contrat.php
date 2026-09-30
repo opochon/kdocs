@@ -113,6 +113,10 @@ try {
                 'GET /sante', 'GET /connexion' => 200,
                 'POST /connexion' => 403,
                 'POST /api/v1/depots', 'GET /api/v1/depots/{id:[0-9]+}' => 401,
+                // Jonctions V2-08b : sans jeton, l'appairage et les destinations refusent (le code
+                // d'appairage manquant est un 400 nommé, un jeton absent un 401).
+                'POST /api/v1/appairage/jeton' => 400,
+                'GET /api/v1/appairage/moi', 'DELETE /api/v1/appairage/moi', 'GET /api/v1/dossiers' => 401,
                 default => 0,
             };
             if ($rep['code'] !== $attendu) $defauts[] = "$definition : statut attendu $attendu, reçu {$rep['code']}";

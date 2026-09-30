@@ -14,6 +14,13 @@ const CSS = `
 .visionneuse-image { display: block; max-width: 100%; box-shadow: var(--shadow); background: var(--paper); transform-origin: center top; }
 .visionneuse-message { margin: auto; padding: 18px 20px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); font-weight: 500; }
 .visionneuse-erreur { margin: auto; color: var(--danger); }
+.visionneuse-courriel, .courriel { max-width: 860px; width: 100%; background: var(--paper); color: var(--text); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px; line-height: 1.5; }
+.courriel-entetes { margin: 0 0 14px; display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; }
+.courriel-entetes dt { color: var(--text-2); font-weight: 600; }
+.courriel-entetes dd { margin: 0; }
+.courriel-corps { overflow-wrap: anywhere; }
+.courriel-pieces { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 10px; }
+.courriel-pieces h3 { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: 6px; }
 .visionneuse-chargement { margin: auto; display: flex; align-items: center; gap: 8px; }
 .visionneuse-ecran { height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
 .visionneuse-tete { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -78,6 +85,11 @@ class Visionneuse {
   demarrer() {
     this.ecouterOutils();
     this.ecouterClavier();
+    if (this.categorie === 'message') {
+      // Le message .eml est déjà rendu en HTML nettoyé côté serveur : rien à charger.
+      this.zone.querySelector('[data-testid="visionneuse-chargement"]')?.remove();
+      return;
+    }
     if (this.message) {
       this.zone.querySelector('[data-testid="visionneuse-chargement"]')?.remove();
       return;

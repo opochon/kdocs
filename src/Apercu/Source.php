@@ -21,6 +21,7 @@ final class Source
 {
     private const IMAGES = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'avif', 'tif', 'tiff'];
     private const BUREAUTIQUE = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'csv'];
+    private const MESSAGES = ['eml'];
 
     public function __construct(private readonly string $racine, private readonly ?PDO $pdo = null)
     {
@@ -54,6 +55,9 @@ final class Source
         }
         if (in_array($extension, self::BUREAUTIQUE, true)) {
             return 'bureautique';
+        }
+        if (in_array($extension, self::MESSAGES, true)) {
+            return 'message';
         }
 
         return 'inconnu';
@@ -99,7 +103,7 @@ final class Source
         if (!is_file($absolu) || !is_file($metaFichier)) {
             return null;
         }
-        $piece = $this->lireMeta($metaFichier);
+        $piece = $this->lireMeta($metaFichier, $id);
 
         return $piece !== null && $piece->id === $id ? $piece : null;
     }
@@ -143,10 +147,15 @@ final class Source
         return $fichiers;
     }
 
-    private function lireMeta(string $metaFichier): ?Piece
+    /**
+     * Lit une fiche. L'`id` vient du `.meta.json` ; à défaut (document déposé par l'application, dont
+     * l'identifiant vit dans l'index) il est fourni par l'appelant qui l'a résolu.
+     */
+    private function lireMeta(string $metaFichier, ?int $idIndex = null): ?Piece
     {
         $donnees = json_decode((string) file_get_contents($metaFichier), true);
-        if (!is_array($donnees) || !isset($donnees['id']) || !is_numeric($donnees['id'])) {
+        $id = $donnees['id'] ?? $idIndex;
+        if (!is_array($donnees) || !is_numeric($id)) {
             return null;
         }
         $fichier = (string) ($donnees['fichier'] ?? substr(basename($metaFichier), 0, -strlen('.meta.json')));
@@ -160,12 +169,12 @@ final class Source
         }
         $extension = strtolower(pathinfo($fichier, PATHINFO_EXTENSION));
         $categorie = (string) ($donnees['categorie'] ?? self::categorie($extension));
-        if (!in_array($categorie, ['pdf', 'image', 'bureautique', 'inconnu'], true)) {
+        if (!in_array($categorie, ['pdf', 'image', 'bureautique', 'message', 'inconnu'], true)) {
             $categorie = self::categorie($extension);
         }
 
         return new Piece(
-            (int) $donnees['id'],
+            (int) $id,
             realpath($chemin) ?: $chemin,
             (string) ($donnees['titre'] ?? $fichier),
             $categorie,

@@ -45,6 +45,12 @@ final class Piece
         return $this->categorie === 'bureautique';
     }
 
+    /** Un message `.eml` : l'aperçu est le rendu HTML nettoyé, jamais le fichier brut. */
+    public function estMessage(): bool
+    {
+        return $this->categorie === 'message';
+    }
+
     /** Un scan TIFF n'est pas affichable tel quel par un navigateur : il passe par une conversion PNG. */
     public function estTiff(): bool
     {

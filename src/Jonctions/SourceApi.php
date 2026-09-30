@@ -47,9 +47,9 @@ final class SourceApi implements Source
      * Réceptionne un fichier poussé : copie stable dans la zone de travail puis enregistrement idempotent.
      *
      * @param array<string, mixed> $metadonnees
-     * @return int identifiant du travail d'ingestion (le même si l'empreinte est déjà connue)
+     * @return array{travail:int, empreinte:string} travail d'ingestion (le même si l'empreinte est connue)
      */
-    public function recevoir(UploadedFileInterface $fichier, string $nomOrigine, array $metadonnees = [], ?string $application = null): int
+    public function recevoir(UploadedFileInterface $fichier, string $nomOrigine, array $metadonnees = [], ?string $application = null): array
     {
         $chemin = $this->ecrire($fichier, $nomOrigine);
         $entree = new Entree($chemin, self::SOURCE, $nomOrigine);
@@ -62,11 +62,11 @@ final class SourceApi implements Source
                 throw new \RuntimeException('doublon sans travail existant : ' . $entree->empreinte);
             }
 
-            return $existant;
+            return ['travail' => $existant, 'empreinte' => $entree->empreinte];
         }
         $this->ecrireAccompagnement($chemin, $application, $metadonnees);
 
-        return $id;
+        return ['travail' => $id, 'empreinte' => $entree->empreinte];
     }
 
     /**

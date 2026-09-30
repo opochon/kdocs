@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: GEDv2 — Appairage ClearMyMails et destinations
+  version: 1.0.0
+  description: |
+    Section 1 et 2 du contrat `docs/api/cmm-ged.md`, lot V2-08b.
+
+    - L'appairage lie UN COMPTE de la GED à une application et à un poste. La GED remet un code à
+      usage unique (5 minutes) par le retour de l'application ; le code s'échange une fois contre un
+      jeton haché en base, révocable, lié au compte.
+    - Les destinations sont décidées par la GED, dossier par dossier : `GET /api/v1/dossiers` ne
+      liste QUE les dossiers où ce compte peut écrire (refus par défaut). Le dépôt dans un dossier
+      non autorisé est refusé 403 nommé.
+    - L'authentification des routes `Bearer` est hors session ; le jeton est vérifié dans le secteur
+      Jonctions. Un jeton révoqué répond 401 nommé.
+servers:
+  - url: http://127.0.0.1:8870
+    description: Développement local
+tags:
+  - name: appairage
+    description: Liaison d'une application tierce à un compte
+  - name: destinations
+    description: Dossiers où le compte du jeton peut déposer
+paths:
+  /appairage:
+    get:
+      tags: [appairage]
+      summary: Écran d'acceptation (session normale)
+      description: |
+        Ouvre l'écran « <application> demande à déposer des documents en votre nom ». La connexion de
+        l'utilisateur est exigée. Après acceptation, la GED redirige vers `retour?etat=<aléa>&code=<code>`.
+      parameters:
+        - { name: application, in: query, required: true, schema: { type: string, example: cmm } }
+        - { name: nom, in: query, schema: { type: string, description: nom du poste } }
+        - { name: retour, in: query, required: true, schema: { type: string, format: uri, description: URL absolue http(s) } }
+        - { name: etat, in: query, schema: { type: string, description: aléa d'état CMM } }
+      responses:
+        '200': { description: Écran d'acceptation }
+        '403': { description: Session absente ou insuffisante }
+    post:
+      tags: [appairage]
+      summary: Accepter la liaison (session normale, CSRF)
+      responses:
+        '303': { description: Redirection vers le retour CMM avec `code` et `etat` }
+  /api/v1/appairage/jeton:
+    post:
+      tags: [appairage]
+      summary: Échanger un code à usage unique contre un jeton
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code], properties: { code: { type: string } } }
+          application/x-www-form-urlencoded:
+            schema: { type: object, required: [code], properties: { code: { type: string } } }
+      responses:
+        '200':
+          description: Jeton remis une seule fois
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jeton: { type: string }
+                  compte: { type: string }
+                  ged_nom: { type: string }
+                  expire_le: { type: string, nullable: true }
+        '400':
+          description: Code inconnu, déjà utilisé ou expiré
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+  /api/v1/appairage/moi:
+    get:
+      tags: [appairage]
+      summary: Statut de la liaison
+      responses:
+        '200':
+          description: Identité du compte du jeton et droits effectifs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  compte: { type: string }
+                  appareil: { type: string, nullable: true }
+                  ged_nom: { type: string }
+                  droits:
+                    type: object
+                    properties: { ingestion: { type: boolean } }
+                  dossiers_ecriture: { type: integer }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+    delete:
+      tags: [appairage]
+      summary: Révoquer la liaison côté CMM
+      responses:
+        '200':
+          description: Révocation enregistrée (trace)
+          content: { application/json: { schema: { type: object, properties: { revoque: { type: boolean } } } } }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+  /api/v1/dossiers:
+    get:
+      tags: [destinations]
+      summary: Dossiers où CE compte peut écrire
+      parameters:
+        - { name: parent, in: query, schema: { type: string, description: chemin du dossier parent ; vide = racine } }
+      responses:
+        '200':
+          description: Enfants directs autorisés (un dossier sans droit n'apparaît jamais)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    chemin: { type: string }
+                    nom: { type: string }
+                    enfants: { type: boolean }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '403':
+          description: Jeton non lié à un compte
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+components:
+  securitySchemes:
+    jetonAppairage:
+      type: http
+      scheme: bearer
+      description: Jeton lié au compte, remis une seule fois par `POST /api/v1/appairage/jeton`.
+  schemas:
+    Erreur:
+      type: object
+      required: [erreur]
+      properties:
+        erreur:
+          type: object
+          required: [etape, cause, reference]
+          properties:
+            etape: { type: string }
+            cause: { type: string }
+            reference: { type: string }
+security:
+  - jetonAppairage: []
