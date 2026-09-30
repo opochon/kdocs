@@ -274,6 +274,14 @@ try {
         // Charge défensive de l'écran « À traiter » (lot V2-03-écran, Interface) : l'identifiant n'existe
         // pas, le métier refuse proprement ; la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /a-traiter/{id:[0-9]+}/valider' => 'titre=Charge+sonde&type=Facture',
+        // Charges défensives de l'appairage (V2-08b, Jonctions) : le métier refuse ou ne révoque rien,
+        // la sonde ne vérifie que le CSRF absent / rejoué.
+        'POST /appairage' => 'application=cmm&nom=sonde&retour=http%3A%2F%2F127.0.0.1%2Fretour&etat=sonde',
+        // Charges défensives de Mon profil (V2-08c, Jonctions) : adresse vide / appairage sans adresse
+        // vérifiée sont refusés par le métier ; la sonde ne vérifie que le CSRF absent / rejoué.
+        'POST /profil/mail' => 'adresse=',
+        'POST /profil/appairage' => 'sonde=1',
+        'POST /application/appareils/{id:[0-9]+}/revoquer' => 'sonde=1',
         'POST /workflows/regles' => 'nom=&action_type=',
         'POST /workflows/regles/{id:[0-9]+}/basculer' => 'actif=0',
         'POST /workflows/gabarits/{nom}' => 'sonde=1',

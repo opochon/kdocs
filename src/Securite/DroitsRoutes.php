@@ -42,6 +42,12 @@ final class DroitsRoutes
         'GET /api/v1/dossiers' => 'publique:api-dossiers',
         'GET /appairage' => 'documents:traiter',
         'POST /appairage' => 'documents:traiter',
+        // Jonctions V2-08c — la liaison part de la GED : Mon profil (adresse vérifiée, « Relier »,
+        // appareils reliés avec révocation). L'ancienne route /appairage redirige vers /profil.
+        'GET /profil' => 'documents:traiter',
+        'POST /profil/mail' => 'documents:traiter',
+        'GET /profil/mail/verifier' => 'documents:traiter',
+        'POST /profil/appairage' => 'documents:traiter',
         'GET /application/appareils' => 'documents:traiter',
         'POST /application/appareils/{id:[0-9]+}/revoquer' => 'documents:traiter',
         'GET /sante' => 'publique:sante',
