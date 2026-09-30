@@ -15,8 +15,9 @@ use PDO;
  * d'auto-configuration. CMM valide en renvoyant {code, verification, poste} ; un code de vérification faux
  * est refusé 400 sans consommer le code, et un code inconnu, expiré ou rejoué est refusé 400, nommé.
  *
- * Le profil porte au plus UN appairage en attente (`jonctions_profils`) : un nouvel appairage remplace le
- * précédent. La table des jetons (`jonctions_jetons`) reste seule à porter les jetons réellement remis.
+ * Le profil porte au plus UN appairage en attente : un nouvel appairage marque le précédent utilisé
+ * (trace conservée, jamais supprimé) puis pose une ligne neuve. L'appairage et les jetons réellement remis
+ * vivent dans la table unique `jonctions_jetons`, discriminés par leur `nature` (voir `Schema`).
  */
 final class Appairage
 {
@@ -65,29 +66,30 @@ final class Appairage
         $verification = self::verificationAleatoire();
         $expire = $maintenant + self::DUREE_APPAIRAGE_S;
 
-        // L'appairage en attente vit sur le profil, qui porte déjà l'adresse vérifiée : un nouvel
-        // appairage remplace le précédent (une seule demande valable à la fois).
-        $pose = $this->pdo->prepare('UPDATE jonctions_profils SET appairage_application = ?, appairage_code = ?,'
-            . ' appairage_verification = ?, appairage_adresse = ?, appairage_poste = NULL, appairage_cree_le = ?,'
-            . ' appairage_expire_le = ?, appairage_utilise_le = NULL, appairage_jeton_id = NULL'
-            . ' WHERE ' . ($compteId !== null ? 'compte_id = ?' : 'compte_id IS NULL AND identifiant = ?') . ' AND verifie_le IS NOT NULL');
-        $pose->execute(['cmm', hash('sha256', $code), $verification, $adresse, date('Y-m-d H:i:s', $maintenant),
-            date('Y-m-d H:i:s', $expire), $compteId ?? $compteIdentifiant]);
-        if ($pose->rowCount() !== 1) {
-            throw new \InvalidArgumentException('adresse électronique du profil à vérifier avant de relier ClearMyMails');
-        }
+        // Au plus UN appairage en attente par compte : l'éventuel précédent est marqué utilisé (trace
+        // conservée, jamais supprimé) puis une ligne neuve le remplace.
+        $this->pdo->prepare('UPDATE jonctions_jetons SET appairage_utilise_le = ?'
+            . ' WHERE nature = ? AND appairage_utilise_le IS NULL'
+            . ' AND ' . ($compteId !== null ? 'compte_id = ?' : 'compte_id IS NULL AND compte_identifiant = ?'))
+            ->execute([date('Y-m-d H:i:s', $maintenant), Schema::NATURE_APPAIRAGE, $compteId ?? $compteIdentifiant]);
+
+        $this->pdo->prepare('INSERT INTO jonctions_jetons (nature, compte_id, compte_identifiant, appairage_application,'
+            . ' appairage_code, appairage_verification, appairage_adresse, appairage_cree_le, appairage_expire_le)'
+            . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([Schema::NATURE_APPAIRAGE, $compteId, $compteIdentifiant, 'cmm', hash('sha256', $code),
+                $verification, $adresse, date('Y-m-d H:i:s', $maintenant), date('Y-m-d H:i:s', $expire)]);
 
         try {
             $this->mailer->envoyerAppairage($adresse, $compteIdentifiant, $code, $verification, date(DATE_ATOM, $expire));
         } catch (\Throwable $e) {
             // Le courriel n'est jamais parti : l'appairage n'atteint pas l'utilisateur. On le retire de
             // l'écran SANS supprimer la ligne (règle « zéro suppression ») : il est marqué utilisé.
-            $this->pdo->prepare('UPDATE jonctions_profils SET appairage_utilise_le = NOW() WHERE appairage_code = ?')
+            $this->pdo->prepare('UPDATE jonctions_jetons SET appairage_utilise_le = NOW() WHERE appairage_code = ?')
                 ->execute([hash('sha256', $code)]);
             throw new ErreurApi(502, 'le courriel d’auto-configuration n’a pas pu être envoyé', 'POST /profil/appairage');
         }
 
-        $idRequete = $this->pdo->prepare('SELECT id FROM jonctions_profils WHERE appairage_code = ? LIMIT 1');
+        $idRequete = $this->pdo->prepare('SELECT id FROM jonctions_jetons WHERE appairage_code = ? LIMIT 1');
         $idRequete->execute([hash('sha256', $code)]);
 
         return ['id' => (int) $idRequete->fetchColumn(), 'verification' => $verification, 'expire_le' => date('Y-m-d H:i:s', $expire), 'adresse' => $adresse];
@@ -134,18 +136,22 @@ final class Appairage
         }
 
         // Revendication atomique : un seul échange peut passer, une course est refusée comme un rejeu.
-        $revendique = $this->pdo->prepare('UPDATE jonctions_profils SET appairage_utilise_le = ?, appairage_poste = ?'
-            . ' WHERE appairage_code = ? AND appairage_utilise_le IS NULL');
-        $revendique->execute([$date, $poste, $empreinte]);
+        $revendique = $this->pdo->prepare('UPDATE jonctions_jetons SET appairage_utilise_le = ?, appairage_poste = ?'
+            . ' WHERE appairage_code = ? AND nature = ? AND appairage_utilise_le IS NULL');
+        $revendique->execute([$date, $poste, $empreinte, Schema::NATURE_APPAIRAGE]);
         if ($revendique->rowCount() !== 1) {
             throw new ErreurApi(400, 'code d’appairage déjà utilisé', $etape);
         }
 
-        $identifiant = (string) $ligne['identifiant'];
+        $identifiant = (string) $ligne['compte_identifiant'];
         $compteId = $ligne['compte_id'] === null ? null : (int) $ligne['compte_id'];
         $jeton = $this->jetons->creerAppairage((string) $ligne['appairage_application'], $poste, $compteId, $identifiant);
-        $this->pdo->prepare('UPDATE jonctions_profils SET appairage_jeton_id = (SELECT id FROM jonctions_jetons WHERE empreinte = ?) WHERE appairage_code = ?')
-            ->execute([hash('sha256', $jeton), $empreinte]);
+        // L'appairage et le jeton vivent dans la même table : une sous-requête sur la table en cours de
+        // mise à jour est refusée par MySQL, on lit donc l'id du jeton AVANT de le poser en trace.
+        $idJeton = $this->pdo->prepare('SELECT id FROM jonctions_jetons WHERE empreinte = ? AND nature = ? LIMIT 1');
+        $idJeton->execute([hash('sha256', $jeton), Schema::NATURE_APPAREIL]);
+        $this->pdo->prepare('UPDATE jonctions_jetons SET appairage_jeton_id = ? WHERE appairage_code = ?')
+            ->execute([(int) $idJeton->fetchColumn(), $empreinte]);
 
         return ['jeton' => $jeton, 'compte' => $identifiant, 'ged_nom' => $this->gedNom, 'expire_le' => null];
     }
@@ -159,10 +165,10 @@ final class Appairage
     {
         $maintenant ??= time();
         $requete = $this->pdo->prepare('SELECT id, appairage_verification, appairage_adresse, appairage_expire_le'
-            . ' FROM jonctions_profils WHERE appairage_code IS NOT NULL AND appairage_utilise_le IS NULL AND appairage_expire_le >= ?'
-            . ' AND ' . ($compteId !== null ? 'compte_id = ?' : 'compte_id IS NULL AND identifiant = ?')
+            . ' FROM jonctions_jetons WHERE nature = ? AND appairage_utilise_le IS NULL AND appairage_expire_le >= ?'
+            . ' AND ' . ($compteId !== null ? 'compte_id = ?' : 'compte_id IS NULL AND compte_identifiant = ?')
             . ' ORDER BY id DESC');
-        $requete->execute([date('Y-m-d H:i:s', $maintenant), $compteId ?? trim($compteIdentifiant)]);
+        $requete->execute([Schema::NATURE_APPAIRAGE, date('Y-m-d H:i:s', $maintenant), $compteId ?? trim($compteIdentifiant)]);
 
         return array_map(static fn (array $l): array => [
             'id' => (int) $l['id'],
@@ -207,9 +213,10 @@ final class Appairage
     /** @return array<string, mixed>|null */
     private function ligneAppairage(string $empreinte): ?array
     {
-        $requete = $this->pdo->prepare('SELECT identifiant, compte_id, appairage_application, appairage_verification,'
-            . ' appairage_utilise_le, appairage_expire_le FROM jonctions_profils WHERE appairage_code = ? LIMIT 1');
-        $requete->execute([$empreinte]);
+        $requete = $this->pdo->prepare('SELECT compte_id, compte_identifiant, appairage_application, appairage_verification,'
+            . ' appairage_utilise_le, appairage_expire_le FROM jonctions_jetons'
+            . ' WHERE appairage_code = ? AND nature = ? LIMIT 1');
+        $requete->execute([$empreinte, Schema::NATURE_APPAIRAGE]);
         $ligne = $requete->fetch(PDO::FETCH_ASSOC);
 
         return $ligne === false ? null : $ligne;

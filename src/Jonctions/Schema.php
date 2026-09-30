@@ -7,49 +7,42 @@ namespace Ged\Jonctions;
 use PDO;
 
 /**
- * Tables du secteur Jonctions (API d'entrée, appairage). Idempotent : rejouable sur une base existante.
- * Aucune donnée utilisateur n'y est supprimée : un jeton révoqué reste comme trace.
+ * UNE seule table pour tout le secteur Jonctions (V2-08d) : les secrets à usage limité de l'API
+ * d'entrée et de l'appairage partagent `jonctions_jetons`, discriminés par leur `nature`.
+ *
+ *   - `application`          : jeton d'une application (portée `depot`), empreinte sha256 ;
+ *   - `appareil`             : jeton d'un appareil appairé, lié à un COMPTE et à un poste ;
+ *   - `verification_adresse` : adresse saisie du profil, vérifiée par un lien à usage unique ;
+ *   - `appairage_en_attente` : code d'échange 24 h remis à CMM (empreinte + code court de comparaison).
+ *
+ * Le plafond de l'oracle V2-01 tient en 20 tables : Jonctions en tient UNE. Toujours sha256, jamais un
+ * secret en clair ; aucune ligne n'est supprimée (révocation, usage et remplacement sont des traces).
+ * Idempotent : rejouable sur une base déjà à ce schéma.
  */
 final class Schema
 {
+    public const NATURE_APPLICATION = 'application';
+    public const NATURE_APPAREIL = 'appareil';
+    public const NATURE_PROFIL = 'verification_adresse';
+    public const NATURE_APPAIRAGE = 'appairage_en_attente';
+
     public static function installer(PDO $pdo): void
     {
-        // Un jeton par application ou par appareil appairé. Seule l'empreinte sha256 est stockée : le
-        // jeton en clair n'existe qu'à sa création, côté appelant. Un jeton d'appairage est lié au COMPTE
-        // (`compte_id` / `compte_identifiant`) : c'est l'identité sous laquelle la GED applique ses droits.
+        // Table unique. Chaque `nature` remplit le sous-ensemble de colonnes qui la concerne : les
+        // empreintes de jeton (`empreinte`), de lien de vérification (`verif_empreinte`) et de code
+        // d'échange (`appairage_code`) vivent dans des colonnes distinctes, chacune unique. Les natures
+        // autres que jeton laissent `empreinte` NULL (MySQL tolère plusieurs NULL dans un index unique).
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS jonctions_jetons (
               id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              application VARCHAR(100) NOT NULL,
-              empreinte CHAR(64) NOT NULL COMMENT 'sha256 du jeton ; jamais le jeton en clair',
+              nature VARCHAR(24) NOT NULL COMMENT 'application | appareil | verification_adresse | appairage_en_attente',
+              application VARCHAR(100) NULL COMMENT 'application ou appareil relié ; null pour un profil ou un appairage',
+              empreinte CHAR(64) NULL COMMENT 'sha256 du jeton ; jamais le jeton en clair',
               portee VARCHAR(20) NOT NULL DEFAULT 'depot' COMMENT 'depot | *',
               compte_id INT UNSIGNED NULL COMMENT 'compte du secteur Droits ; null pour un jeton d’application',
               compte_identifiant VARCHAR(255) NULL COMMENT 'identifiant du compte (compte synthétique de test inclus)',
               appareil VARCHAR(255) NULL COMMENT 'poste appairé ; null pour un jeton d’application',
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              derniere_utilisation DATETIME NULL,
-              revoque_le DATETIME NULL COMMENT 'révocation = trace, jamais une suppression',
-              UNIQUE KEY uq_jonctions_jeton_empreinte (empreinte),
-              KEY k_jonctions_jeton_application (application),
-              KEY k_jonctions_jeton_compte (compte_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
-
-        // Colonnes ajoutées par V2-08b : la table V2-08a n'avait pas de lien de compte.
-        self::assurerColonne($pdo, 'compte_id', 'INT UNSIGNED NULL COMMENT \'compte du secteur Droits ; null pour un jeton d’application\'');
-        self::assurerColonne($pdo, 'compte_identifiant', 'VARCHAR(255) NULL COMMENT \'identifiant du compte (compte synthétique de test inclus)\'');
-        self::assurerColonne($pdo, 'appareil', 'VARCHAR(255) NULL COMMENT \'poste appairé ; null pour un jeton d’application\'');
-        self::assurerIndex($pdo, 'k_jonctions_jeton_compte', 'compte_id');
-
-        // Profil d'un utilisateur : adresse mail (utilisable seulement une fois VÉRIFIÉE par un lien
-        // envoyé à cette adresse) et, au plus, UN appairage en attente de validation par CMM.
-        // Budget de tables serré (plafond V2-04) : ces deux objets partagent volontairement la table,
-        // leurs cycles de vie sont liés au même compte. Un nouvel appairage remplace le précédent.
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS jonctions_profils (
-              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              compte_id INT UNSIGNED NULL COMMENT 'compte du secteur Droits ; null pour le compte synthétique de test',
-              identifiant VARCHAR(255) NOT NULL COMMENT 'identifiant de connexion, clé du profil',
+              identifiant VARCHAR(255) NULL COMMENT 'identifiant de connexion du profil ; clé du profil',
               adresse VARCHAR(255) NULL COMMENT 'adresse mail saisie par l’utilisateur',
               verifie_le DATETIME NULL COMMENT 'null = adresse non vérifiée',
               verif_empreinte CHAR(64) NULL COMMENT 'sha256 du jeton du lien de vérification ; jamais en clair',
@@ -62,33 +55,20 @@ final class Schema
               appairage_poste VARCHAR(255) NULL COMMENT 'renseigné par CMM au moment de l’échange',
               appairage_cree_le DATETIME NULL,
               appairage_expire_le DATETIME NULL COMMENT 'création + 24 h',
-              appairage_utilise_le DATETIME NULL COMMENT 'usage unique : renseigné à l’échange',
+              appairage_utilise_le DATETIME NULL COMMENT 'usage unique ou remplacement : trace, jamais une suppression',
               appairage_jeton_id INT UNSIGNED NULL COMMENT 'jeton remis par l’échange (trace)',
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              derniere_utilisation DATETIME NULL,
+              revoque_le DATETIME NULL COMMENT 'révocation = trace, jamais une suppression',
               maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              UNIQUE KEY uq_jonctions_jeton_empreinte (empreinte),
               UNIQUE KEY uq_jonctions_profil_identifiant (identifiant),
               UNIQUE KEY uq_jonctions_profil_appairage_code (appairage_code),
-              KEY k_jonctions_profil_compte (compte_id)
+              UNIQUE KEY uq_jonctions_profil_verif (verif_empreinte),
+              KEY k_jonctions_jeton_application (application),
+              KEY k_jonctions_jeton_compte (compte_id),
+              KEY k_jonctions_jeton_nature (nature)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
-    }
-
-    /** Ajoute une colonne si elle manque (table créée par une version antérieure). Idempotent. */
-    private static function assurerColonne(PDO $pdo, string $colonne, string $definition): void
-    {
-        $presente = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
-            . " AND TABLE_NAME = 'jonctions_jetons' AND COLUMN_NAME = '" . $colonne . "'")->fetchColumn();
-        if ($presente === 0) {
-            $pdo->exec("ALTER TABLE jonctions_jetons ADD COLUMN $colonne $definition");
-        }
-    }
-
-    /** Ajoute un index s'il manque. Idempotent. */
-    private static function assurerIndex(PDO $pdo, string $index, string $colonne): void
-    {
-        $present = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
-            . " AND TABLE_NAME = 'jonctions_jetons' AND INDEX_NAME = '" . $index . "'")->fetchColumn();
-        if ($present === 0) {
-            $pdo->exec("ALTER TABLE jonctions_jetons ADD KEY $index ($colonne)");
-        }
     }
 }

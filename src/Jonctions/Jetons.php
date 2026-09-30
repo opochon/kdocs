@@ -11,6 +11,9 @@ use PDO;
  * appareil appairé : dans ce cas il est LIÉ À UN COMPTE (`compte_id` / `compte_identifiant`) et c'est
  * l'identité sous laquelle la GED applique ses droits. La révocation est une trace, jamais une
  * suppression. Seule l'empreinte sha256 est en base : le jeton en clair n'est rendu qu'une fois.
+ *
+ * Depuis V2-08d, la table unique `jonctions_jetons` porte aussi les profils et les appairages en attente
+ * (voir `Schema`) : toute lecture de jeton borne donc sur les natures `application` et `appareil`.
  */
 final class Jetons
 {
@@ -33,8 +36,8 @@ final class Jetons
         }
 
         $jeton = bin2hex(random_bytes(32));
-        $this->pdo->prepare('INSERT INTO jonctions_jetons (application, empreinte, portee) VALUES (?, ?, ?)')
-            ->execute([$application, hash('sha256', $jeton), $portee]);
+        $this->pdo->prepare('INSERT INTO jonctions_jetons (nature, application, empreinte, portee) VALUES (?, ?, ?, ?)')
+            ->execute([Schema::NATURE_APPLICATION, $application, hash('sha256', $jeton), $portee]);
 
         return $jeton;
     }
@@ -57,9 +60,9 @@ final class Jetons
         $appareil = mb_substr(trim($appareil), 0, 255);
 
         $jeton = bin2hex(random_bytes(32));
-        $this->pdo->prepare('INSERT INTO jonctions_jetons (application, empreinte, portee, compte_id, compte_identifiant, appareil)'
-            . ' VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$application, hash('sha256', $jeton), self::PORTEE_DEPOT, $compteId, $compteIdentifiant, $appareil]);
+        $this->pdo->prepare('INSERT INTO jonctions_jetons (nature, application, empreinte, portee, compte_id, compte_identifiant, appareil)'
+            . ' VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([Schema::NATURE_APPAREIL, $application, hash('sha256', $jeton), self::PORTEE_DEPOT, $compteId, $compteIdentifiant, $appareil]);
 
         return $jeton;
     }
@@ -86,8 +89,8 @@ final class Jetons
             return null;
         }
         $requete = $this->pdo->prepare('SELECT id, application, portee, revoque_le, compte_id, compte_identifiant, appareil'
-            . ' FROM jonctions_jetons WHERE empreinte = ? LIMIT 1');
-        $requete->execute([hash('sha256', $jeton)]);
+            . ' FROM jonctions_jetons WHERE empreinte = ? AND nature IN (?, ?) LIMIT 1');
+        $requete->execute([hash('sha256', $jeton), Schema::NATURE_APPLICATION, Schema::NATURE_APPAREIL]);
         $ligne = $requete->fetch(PDO::FETCH_ASSOC);
         if ($ligne === false) {
             return null;
@@ -129,8 +132,10 @@ final class Jetons
     /** @return list<array{id:int, application:string, portee:string, cree_le:string, revoque_le:?string}> */
     public function lister(): array
     {
-        $lignes = $this->pdo->query('SELECT id, application, portee, cree_le, revoque_le FROM jonctions_jetons ORDER BY id')
-            ->fetchAll(PDO::FETCH_ASSOC);
+        $requete = $this->pdo->prepare('SELECT id, application, portee, cree_le, revoque_le FROM jonctions_jetons'
+            . ' WHERE nature IN (?, ?) ORDER BY id');
+        $requete->execute([Schema::NATURE_APPLICATION, Schema::NATURE_APPAREIL]);
+        $lignes = $requete->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(static fn (array $l): array => [
             'id' => (int) $l['id'],
@@ -152,12 +157,12 @@ final class Jetons
     {
         if ($compteId !== null) {
             $requete = $this->pdo->prepare('SELECT id, application, appareil, compte_identifiant, cree_le, derniere_utilisation, revoque_le'
-                . ' FROM jonctions_jetons WHERE appareil IS NOT NULL AND compte_id = ? ORDER BY revoque_le IS NOT NULL, id DESC');
-            $requete->execute([$compteId]);
+                . ' FROM jonctions_jetons WHERE nature = ? AND compte_id = ? ORDER BY revoque_le IS NOT NULL, id DESC');
+            $requete->execute([Schema::NATURE_APPAREIL, $compteId]);
         } else {
             $requete = $this->pdo->prepare('SELECT id, application, appareil, compte_identifiant, cree_le, derniere_utilisation, revoque_le'
-                . ' FROM jonctions_jetons WHERE appareil IS NOT NULL AND compte_identifiant = ? ORDER BY revoque_le IS NOT NULL, id DESC');
-            $requete->execute([trim($compteIdentifiant)]);
+                . ' FROM jonctions_jetons WHERE nature = ? AND compte_identifiant = ? ORDER BY revoque_le IS NOT NULL, id DESC');
+            $requete->execute([Schema::NATURE_APPAREIL, trim($compteIdentifiant)]);
         }
 
         return array_map(static fn (array $l): array => [
@@ -175,8 +180,8 @@ final class Jetons
     /** Révoque un appareil seulement s'il appartient au compte donné. Idempotent. */
     public function revoquerAppareil(int $id, ?int $compteId, string $compteIdentifiant): bool
     {
-        $requete = $this->pdo->prepare('SELECT compte_id, compte_identifiant FROM jonctions_jetons WHERE id = ? AND appareil IS NOT NULL LIMIT 1');
-        $requete->execute([$id]);
+        $requete = $this->pdo->prepare('SELECT compte_id, compte_identifiant FROM jonctions_jetons WHERE id = ? AND nature = ? LIMIT 1');
+        $requete->execute([$id, Schema::NATURE_APPAREIL]);
         $ligne = $requete->fetch(PDO::FETCH_ASSOC);
         if ($ligne === false) {
             return false;

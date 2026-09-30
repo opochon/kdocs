@@ -49,7 +49,8 @@ trait SupportJonctions
         Base::assurerBase($config);
         $this->pdo = Base::pdo($config);
 
-        // Le secteur isole SES tables : elles sont reconstruites à chaque test.
+        // V2-08d : tout le secteur tient dans UNE table (`jonctions_jetons`) ; les noms de tables des
+        // schémas antérieurs sont quand même écartés pour repartir d'un schéma neuf.
         $this->pdo->exec('DROP TABLE IF EXISTS jonctions_appairages');
         $this->pdo->exec('DROP TABLE IF EXISTS jonctions_mails_verification');
         $this->pdo->exec('DROP TABLE IF EXISTS jonctions_profils');
@@ -89,7 +90,6 @@ trait SupportJonctions
         $this->mailsAvant === false ? putenv('GED_MAIL_DOSSIER') : putenv('GED_MAIL_DOSSIER=' . $this->mailsAvant);
         $this->transportAvant === false ? putenv('GED_MAIL_TRANSPORT') : putenv('GED_MAIL_TRANSPORT=' . $this->transportAvant);
 
-        $this->pdo->exec('DELETE FROM jonctions_profils');
         $this->pdo->exec('DELETE FROM jonctions_jetons');
         $this->pdo->prepare('DELETE FROM ingestion_travaux WHERE chemin LIKE ?')->execute([$this->racine . '%']);
 
