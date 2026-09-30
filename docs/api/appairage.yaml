@@ -1,59 +1,83 @@
 openapi: 3.0.3
 info:
   title: GEDv2 — Appairage ClearMyMails et destinations
-  version: 1.0.0
+  version: 2.0.0
   description: |
-    Section 1 et 2 du contrat `docs/api/cmm-ged.md`, lot V2-08b.
+    Sections 1 et 2 du contrat `docs/api/cmm-ged.md`. Depuis la décision d'Olivier du 30-09, **la liaison
+    part de la GED** ; CMM la valide.
 
-    - L'appairage lie UN COMPTE de la GED à une application et à un poste. La GED remet un code à
-      usage unique (5 minutes) par le retour de l'application ; le code s'échange une fois contre un
-      jeton haché en base, révocable, lié au compte.
-    - Les destinations sont décidées par la GED, dossier par dossier : `GET /api/v1/dossiers` ne
-      liste QUE les dossiers où ce compte peut écrire (refus par défaut). Le dépôt dans un dossier
-      non autorisé est refusé 403 nommé.
-    - L'authentification des routes `Bearer` est hors session ; le jeton est vérifié dans le secteur
-      Jonctions. Un jeton révoqué répond 401 nommé.
+    - Mon profil porte l'adresse mail de l'utilisateur, **vérifiée** par un lien envoyé à cette adresse.
+    - « Relier ClearMyMails » crée un appairage **en attente 24 h** : un code d'échange à usage unique
+      (aléa 256 bits, seule son empreinte est gardée) et un **code de vérification court** affiché à
+      l'écran. La GED envoie à l'adresse vérifiée un courriel d'auto-configuration : en-tête
+      `X-GED-Appairage: v1`, texte humain, pièce `ged-appairage.json`
+      `{version, ged_url, ged_nom, compte, code, verification, expire_le}` (aucun code exécutable).
+    - CMM affiche le code de vérification, l'utilisateur confirme, puis CMM échange `{code, verification,
+      poste}` contre un jeton haché en base, révocable, lié au compte.
+    - Les destinations sont décidées par la GED, dossier par dossier : `GET /api/v1/dossiers` ne liste
+      QUE les dossiers où ce compte peut écrire (refus par défaut) ; déposer ailleurs est refusé 403 nommé.
 servers:
   - url: http://127.0.0.1:8870
     description: Développement local
 tags:
+  - name: profil
+    description: Adresse de profil, vérifiée par un lien
   - name: appairage
     description: Liaison d'une application tierce à un compte
   - name: destinations
     description: Dossiers où le compte du jeton peut déposer
 paths:
-  /appairage:
+  /profil:
     get:
-      tags: [appairage]
-      summary: Écran d'acceptation (session normale)
-      description: |
-        Ouvre l'écran « <application> demande à déposer des documents en votre nom ». La connexion de
-        l'utilisateur est exigée. Après acceptation, la GED redirige vers `retour?etat=<aléa>&code=<code>`.
-      parameters:
-        - { name: application, in: query, required: true, schema: { type: string, example: cmm } }
-        - { name: nom, in: query, schema: { type: string, description: nom du poste } }
-        - { name: retour, in: query, required: true, schema: { type: string, format: uri, description: URL absolue http(s) } }
-        - { name: etat, in: query, schema: { type: string, description: aléa d'état CMM } }
+      tags: [profil]
+      summary: Mon profil (session normale)
+      description: Adresse mail et son état, bouton « Relier ClearMyMails », appairages en attente, appareils reliés.
       responses:
-        '200': { description: Écran d'acceptation }
-        '403': { description: Session absente ou insuffisante }
+        '200': { description: Écran Mon profil }
+        '403': { description: Session absente ou insuffisante (nommé) }
+  /profil/mail:
+    post:
+      tags: [profil]
+      summary: Enregistrer l'adresse et envoyer le lien de vérification (session, CSRF)
+      responses:
+        '303': { description: Retour à Mon profil, courriel envoyé }
+        '400': { description: Adresse invalide (nommé) }
+        '502': { description: Courriel de vérification non remis (nommé) }
+  /profil/mail/verifier:
+    get:
+      tags: [profil]
+      summary: Consommer le lien de vérification reçu par courriel
+      parameters:
+        - { name: jeton, in: query, required: true, schema: { type: string } }
+      responses:
+        '303': { description: Adresse vérifiée, retour à Mon profil }
+        '400': { description: Lien inconnu, déjà utilisé ou expiré (nommé) }
+  /profil/appairage:
     post:
       tags: [appairage]
-      summary: Accepter la liaison (session normale, CSRF)
+      summary: Relier ClearMyMails — crée l'appairage en attente et envoie l'auto-configuration (session, CSRF)
       responses:
-        '303': { description: Redirection vers le retour CMM avec `code` et `etat` }
+        '303': { description: Appairage en attente ; le code de vérification est affiché }
+        '400': { description: Adresse du profil non vérifiée (nommé) }
+        '502': { description: Courriel d'auto-configuration non remis (nommé) }
   /api/v1/appairage/jeton:
     post:
       tags: [appairage]
-      summary: Échanger un code à usage unique contre un jeton
+      summary: Échanger {code, verification, poste} contre un jeton lié au compte
       security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object, required: [code], properties: { code: { type: string } } }
+            schema:
+              type: object
+              required: [code, verification, poste]
+              properties:
+                code: { type: string, description: Code d'échange reçu dans `ged-appairage.json` (256 bits) }
+                verification: { type: string, example: K7M-4QX, description: Code court comparé par l'utilisateur }
+                poste: { type: string, description: Nom du poste CMM, enregistré comme appareil appairé }
           application/x-www-form-urlencoded:
-            schema: { type: object, required: [code], properties: { code: { type: string } } }
+            schema: { type: object, required: [code, verification, poste] }
       responses:
         '200':
           description: Jeton remis une seule fois
@@ -67,7 +91,7 @@ paths:
                   ged_nom: { type: string }
                   expire_le: { type: string, nullable: true }
         '400':
-          description: Code inconnu, déjà utilisé ou expiré
+          description: Code inconnu, expiré, déjà utilisé, code de vérification invalide ou poste absent
           content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
   /api/v1/appairage/moi:
     get:

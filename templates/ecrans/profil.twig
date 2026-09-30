@@ -1,0 +1,98 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Mon profil{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-profil">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Mon profil</h1>
+      <span class="muted">{{ compte }}</span>
+    </div>
+  </div>
+
+  {% if message %}
+    <section class="carte" data-testid="profil-message" style="margin-bottom:12px">
+      <p><span class="chip ok">ok</span> {{ message }}</p>
+    </section>
+  {% endif %}
+  {% if erreur %}
+    <section class="carte" data-testid="profil-erreur" style="margin-bottom:12px">
+      <h2>Action refusée</h2>
+      <p><strong data-testid="profil-erreur-etape">Mon profil</strong> · <span data-testid="profil-erreur-cause">{{ erreur }}</span></p>
+    </section>
+  {% endif %}
+
+  <div style="display:grid;gap:12px">
+    <section class="carte" data-testid="profil-mail">
+      <h2>Adresse mail</h2>
+      <div class="ligne-reglage">
+        <span>Adresse</span>
+        <span>
+          <span class="mono" data-testid="profil-adresse">{{ profil.adresse ?: 'non renseignée' }}</span>
+          {% if profil.verifiee %}
+            <span class="chip ok" data-testid="profil-adresse-etat">vérifiée</span>
+          {% else %}
+            <span class="chip" data-testid="profil-adresse-etat">non vérifiée</span>
+          {% endif %}
+        </span>
+      </div>
+      <p class="muted">Une adresse doit être vérifiée par un lien envoyé à cette adresse avant de relier une application.</p>
+      <form method="post" action="/profil/mail" class="champ">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label for="profil-mail-adresse">Adresse mail</label>
+        <input id="profil-mail-adresse" name="adresse" type="email" required data-testid="profil-mail-champ"
+               value="{{ profil.adresse ?: '' }}" autocomplete="email">
+        <div class="pied-validation">
+          <button class="btn primaire" type="submit" data-testid="action-profil-mail">Envoyer le lien de vérification</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="carte" data-testid="profil-cmm">
+      <h2>ClearMyMails</h2>
+      <p class="muted">La liaison part de la GED : ClearMyMails ne lit jamais votre boîte, il pousse ce que vous choisissez.</p>
+      <form method="post" action="/profil/appairage" class="actions">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn primaire" type="submit" data-testid="action-profil-relier" {% if not profil.verifiee %}disabled{% endif %}>Relier ClearMyMails</button>
+        {% if not profil.verifiee %}<span class="muted">vérifiez d’abord votre adresse</span>{% endif %}
+      </form>
+
+      {% if en_attente is not empty %}
+        {% for a in en_attente %}
+          <div class="carte" data-testid="appairage-en-attente" style="margin-top:12px">
+            <div class="ligne-reglage"><span>En attente de ClearMyMails</span><span class="chip">24 h</span></div>
+            <div class="ligne-reglage"><span>Code de vérification à comparer</span><span class="mono" data-testid="appairage-verification">{{ a.verification }}</span></div>
+            <div class="ligne-reglage"><span>Courriel envoyé à</span><span class="mono">{{ a.adresse }}</span></div>
+            <div class="ligne-reglage"><span>Expire le</span><span class="mono" data-testid="appairage-expire">{{ a.expire_le }}</span></div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </section>
+
+    <section class="carte" data-testid="profil-appareils">
+      <h2>Appareils reliés</h2>
+      {% if appareils is empty %}
+        <p class="muted" data-testid="appareils-vide">Aucune application reliée pour l’instant.</p>
+      {% else %}
+        {% for a in appareils %}
+          <div class="carte" data-testid="appareil" style="margin-top:12px">
+            <div class="ligne-reglage">
+              <span><strong>{{ a.application == 'cmm' ? 'ClearMyMails' : a.application }}</strong> · <span class="mono">{{ a.appareil }}</span></span>
+              <span>{% if a.actif %}<span class="chip ok">actif</span>{% else %}<span class="chip">révoqué</span>{% endif %}</span>
+            </div>
+            <div class="ligne-reglage"><span>Compte</span><span class="mono">{{ a.compte_identifiant }}</span></div>
+            <div class="ligne-reglage"><span>Relié le</span><span class="mono">{{ a.cree_le }}</span></div>
+            <div class="ligne-reglage"><span>Dernier usage</span><span class="mono">{{ a.derniere_utilisation ?: 'jamais' }}</span></div>
+            {% if a.actif %}
+              <form method="post" action="/application/appareils/{{ a.id }}/revoquer" class="actions">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <button class="btn" type="submit" data-testid="action-revoquer-appareil">Révoquer</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

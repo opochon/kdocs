@@ -8,6 +8,7 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
+        "phpmailer/phpmailer": "^6.9",
         "slim/psr7": "^1.7",
         "slim/slim": "^4.14",
         "twig/twig": "^3.14",

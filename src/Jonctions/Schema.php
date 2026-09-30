@@ -41,21 +41,33 @@ final class Schema
         self::assurerColonne($pdo, 'appareil', 'VARCHAR(255) NULL COMMENT \'poste appairé ; null pour un jeton d’application\'');
         self::assurerIndex($pdo, 'k_jonctions_jeton_compte', 'compte_id');
 
-        // Codes d'appairage : à usage unique, valables cinq minutes. Seule l'empreinte est stockée.
+        // Profil d'un utilisateur : adresse mail (utilisable seulement une fois VÉRIFIÉE par un lien
+        // envoyé à cette adresse) et, au plus, UN appairage en attente de validation par CMM.
+        // Budget de tables serré (plafond V2-04) : ces deux objets partagent volontairement la table,
+        // leurs cycles de vie sont liés au même compte. Un nouvel appairage remplace le précédent.
         $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS jonctions_codes_appairage (
+            CREATE TABLE IF NOT EXISTS jonctions_profils (
               id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              empreinte CHAR(64) NOT NULL COMMENT 'sha256 du code ; jamais le code en clair',
-              compte_id INT UNSIGNED NULL COMMENT 'compte qui a accepté la liaison',
-              compte_identifiant VARCHAR(255) NOT NULL COMMENT 'identifiant du compte au moment de la demande',
-              application VARCHAR(100) NOT NULL,
-              appareil VARCHAR(255) NOT NULL DEFAULT '',
-              portee VARCHAR(20) NOT NULL DEFAULT 'depot',
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              expire_le DATETIME NOT NULL,
-              utilise_le DATETIME NULL COMMENT 'usage unique : renseigné à l’échange',
-              UNIQUE KEY uq_jonctions_code_empreinte (empreinte),
-              KEY k_jonctions_code_expire (expire_le)
+              compte_id INT UNSIGNED NULL COMMENT 'compte du secteur Droits ; null pour le compte synthétique de test',
+              identifiant VARCHAR(255) NOT NULL COMMENT 'identifiant de connexion, clé du profil',
+              adresse VARCHAR(255) NULL COMMENT 'adresse mail saisie par l’utilisateur',
+              verifie_le DATETIME NULL COMMENT 'null = adresse non vérifiée',
+              verif_empreinte CHAR(64) NULL COMMENT 'sha256 du jeton du lien de vérification ; jamais en clair',
+              verif_expire_le DATETIME NULL,
+              verif_utilise_le DATETIME NULL COMMENT 'usage unique : renseigné à la vérification',
+              appairage_application VARCHAR(100) NULL,
+              appairage_code CHAR(64) NULL COMMENT 'sha256 du code d’échange 256 bits ; jamais en clair',
+              appairage_verification VARCHAR(8) NULL COMMENT 'code court affiché à l’écran et comparé à l’échange',
+              appairage_adresse VARCHAR(255) NULL COMMENT 'adresse VÉRIFIÉE, destinataire du courriel d’auto-configuration',
+              appairage_poste VARCHAR(255) NULL COMMENT 'renseigné par CMM au moment de l’échange',
+              appairage_cree_le DATETIME NULL,
+              appairage_expire_le DATETIME NULL COMMENT 'création + 24 h',
+              appairage_utilise_le DATETIME NULL COMMENT 'usage unique : renseigné à l’échange',
+              appairage_jeton_id INT UNSIGNED NULL COMMENT 'jeton remis par l’échange (trace)',
+              maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              UNIQUE KEY uq_jonctions_profil_identifiant (identifiant),
+              UNIQUE KEY uq_jonctions_profil_appairage_code (appairage_code),
+              KEY k_jonctions_profil_compte (compte_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
     }

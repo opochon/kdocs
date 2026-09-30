@@ -186,16 +186,29 @@ final class ContratCmmTest extends TestCase
         self::assertSame('<ingestion-' . $this->sel . '@exemple.test>', $donnees['origine']['courriel']['message_id'] ?? null);
     }
 
-    /** Joue CMM : échange le code d'appairage contre un jeton. */
+    /**
+     * Joue CMM : la GED a ouvert un appairage (Mon profil › Relier), CMM lit le courriel
+     * d'auto-configuration et échange {code, verification, poste} contre un jeton.
+     */
     private function relier(): string
     {
-        $appairage = new Appairage(
-            new Jetons($this->pdo), $this->pdo, new Dossiers($this->pdo, new DroitsDossiers($this->pdo)), 'GEDv2',
-        );
-        $url = $appairage->ouvrir('cmm', 'poste-cmm', 'https://cmm.exemple.test/retour', 'alea', $this->compte['compte'], $this->compte['identifiant']);
-        parse_str((string) parse_url($url, PHP_URL_QUERY), $parametres);
+        $this->profilVerifie($this->compte['compte'], $this->compte['identifiant'], 'cmm-' . $this->sel . '@exemple.test');
 
-        [$code, $corps] = $this->appel($this->app, 'POST', '/api/v1/appairage/jeton', null, ['code' => (string) $parametres['code']]);
+        $attente = $this->service()->ouvrir($this->compte['compte'], $this->compte['identifiant']);
+        $piece = $this->pieceJson($this->mailContenant('X-GED-Appairage'), 'ged-appairage.json');
+        self::assertSame($attente['verification'], $piece['verification'], 'le code affiché à l’écran est celui du courriel');
+
+        // Un code de vérification faux est refusé 400, nommé, et ne consomme pas le code d'échange.
+        [$fauxCode, $faux] = $this->appel($this->app, 'POST', '/api/v1/appairage/jeton', null, [
+            'code' => (string) $piece['code'], 'verification' => 'AAA-BBB', 'poste' => 'poste-cmm',
+        ]);
+        self::assertSame(400, $fauxCode, json_encode($faux));
+        self::assertSame('POST /api/v1/appairage/jeton', $faux['erreur']['etape'] ?? null);
+        self::assertStringContainsString('vérification', (string) ($faux['erreur']['cause'] ?? ''));
+
+        [$code, $corps] = $this->appel($this->app, 'POST', '/api/v1/appairage/jeton', null, [
+            'code' => (string) $piece['code'], 'verification' => (string) $piece['verification'], 'poste' => 'poste-cmm',
+        ]);
         self::assertSame(200, $code, json_encode($corps));
         self::assertSame($this->compte['identifiant'], $corps['compte']);
 

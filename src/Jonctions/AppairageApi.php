@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface as Requete;
  * Porte CMM de l'appairage (section 1 du contrat) : échange du code, statut de la liaison et révocation.
  * Authentification par le jeton remis à l'appairage (`Authorization: Bearer …`), hors session.
  *
- *   POST   /api/v1/appairage/jeton   {code} → {jeton, compte, ged_nom, expire_le}
+ *   POST   /api/v1/appairage/jeton   {code, verification, poste} → {jeton, compte, ged_nom, expire_le}
  *   GET    /api/v1/appairage/moi     statut de la liaison
  *   DELETE /api/v1/appairage/moi     révocation côté CMM
  */
@@ -27,11 +27,10 @@ final class AppairageApi
         try {
             $corps = $this->champs($requete);
             $code = trim((string) ($corps['code'] ?? ''));
-            if ($code === '') {
-                throw new ErreurApi(400, 'code d’appairage requis', $etape);
-            }
+            $verification = trim((string) ($corps['verification'] ?? ''));
+            $poste = trim((string) ($corps['poste'] ?? ''));
 
-            return $this->json($reponse, 200, $this->appairage->echanger($code));
+            return $this->json($reponse, 200, $this->appairage->echanger($code, $verification, $poste));
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (\Throwable $e) {

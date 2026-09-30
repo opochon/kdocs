@@ -12,10 +12,12 @@ use Ged\Securite\DroitsDossiers;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Oracle V2-08b — appairage (section 1 du contrat CMM).
+ * Oracle V2-08c — appairage (section 1 v2 du contrat CMM) : la liaison part de la GED.
  *
- * Un code à usage unique, valable 5 minutes, s'échange contre un jeton LIÉ au compte (haché, révocable).
- * Un code inconnu, déjà utilisé ou expiré est refusé 400 et nommé.
+ * La GED crée un appairage EN ATTENTE 24 h : un code d'échange à usage unique (aléa 256 bits, seule son
+ * empreinte est gardée) et un code de vérification court affiché à l'écran. Le courriel d'auto-configuration
+ * porte les deux. L'échange exige {code, verification, poste} ; un code inconnu, expiré, rejoué ou un code
+ * de vérification faux est refusé 400, nommé.
  */
 final class AppairageTest extends TestCase
 {
@@ -31,58 +33,96 @@ final class AppairageTest extends TestCase
         $this->tearDownJonctions();
     }
 
-    public function testUnCodeNeSertQuUneFoisEtDonneUnJetonLieAuCompte(): void
+    public function testUnAppairagePartDeLaGedEtNeSechangeQuUneFois(): void
     {
+        $identifiant = 'cmm-' . $this->sel . '@exemple.test';
+        $adresse = 'utilisateur-' . $this->sel . '@exemple.test';
+        $this->profilVerifie(null, $identifiant, $adresse);
+
         $app = $this->service();
-        $retour = 'https://cmm.exemple.test/retour';
-        $url = $app->ouvrir('cmm', 'poste-' . $this->sel, $retour, 'alea', 42, 'utilisateur@exemple.test');
+        $attente = $app->ouvrir(null, $identifiant);
 
-        self::assertStringStartsWith($retour, $url, 'le retour CMM est respecté');
-        $code = $this->codeDe($url);
-        self::assertNotSame('', $code);
+        self::assertSame($adresse, $attente['adresse'], 'le courriel part de l’adresse VÉRIFIÉE du profil');
+        self::assertMatchesRegularExpression('/^[2-9A-HJ-NP-Z]{3}-[2-9A-HJ-NP-Z]{3}$/', $attente['verification'],
+            'code de vérification court, sans caractère ambigu');
 
-        $resultat = $app->echanger($code);
-        self::assertSame('utilisateur@exemple.test', $resultat['compte']);
+        // Le courriel d'auto-configuration porte le code d'échange et le code de vérification.
+        $piece = $this->pieceJson($this->mailContenant('X-GED-Appairage'), 'ged-appairage.json');
+        self::assertSame(1, $piece['version']);
+        self::assertSame($identifiant, $piece['compte']);
+        self::assertSame($attente['verification'], $piece['verification'], 'le .eml porte le code affiché à l’écran');
+        self::assertSame(64, strlen((string) $piece['code']), 'code d’échange = 256 bits');
+
+        // Mauvais code de vérification : 400 nommé, et le code N'EST PAS consommé (une faute de frappe se rattrape).
+        try {
+            $app->echanger((string) $piece['code'], 'AAA-BBB', 'poste-' . $this->sel);
+            self::fail('un mauvais code de vérification devait être refusé');
+        } catch (ErreurApi $e) {
+            self::assertSame(400, $e->statut);
+            self::assertStringContainsString('vérification', $e->cause);
+        }
+
+        // Échange légitime : jeton LIÉ au compte et à l'appareil que CMM annonce.
+        $resultat = $app->echanger((string) $piece['code'], (string) $piece['verification'], 'poste-' . $this->sel);
+        self::assertSame($identifiant, $resultat['compte']);
         self::assertSame('GED de test', $resultat['ged_nom']);
         self::assertNull($resultat['expire_le'], 'un jeton d’appairage ne porte pas d’échéance');
         self::assertNotSame('', (string) $resultat['jeton']);
 
         $ligne = (new Jetons($this->pdo))->resoudre((string) $resultat['jeton']);
         self::assertNotNull($ligne);
-        self::assertSame(42, $ligne['compte_id'], 'le jeton est lié au compte');
-        self::assertSame('utilisateur@exemple.test', $ligne['compte_identifiant']);
-        self::assertSame('poste-' . $this->sel, $ligne['appareil']);
+        self::assertSame('poste-' . $this->sel, $ligne['appareil'], 'le poste vient de l’échange CMM');
 
-        // Le code est à usage unique : il est refusé au second échange, nommé.
+        // Usage unique : le même code est refusé au second échange, nommé.
         try {
-            $app->echanger($code);
+            $app->echanger((string) $piece['code'], (string) $piece['verification'], 'poste-' . $this->sel);
             self::fail('un code déjà utilisé devait être refusé');
         } catch (ErreurApi $e) {
             self::assertSame(400, $e->statut);
             self::assertStringContainsString('déjà utilisé', $e->cause);
         }
+
+        self::assertSame([], $app->enAttente(null, $identifiant), 'un appairage échangé n’est plus en attente');
     }
 
-    public function testUnCodeInconnuOuExpireEstRefuseEtNomme(): void
+    public function testUnAppairageExpireApres24h(): void
+    {
+        $identifiant = 'cmm-exp-' . $this->sel . '@exemple.test';
+        $this->profilVerifie(null, $identifiant, 'exp-' . $this->sel . '@exemple.test');
+
+        $app = $this->service();
+        $app->ouvrir(null, $identifiant, time() - Appairage::DUREE_APPAIRAGE_S - 60);
+        $piece = $this->pieceJson($this->mailContenant('X-GED-Appairage'), 'ged-appairage.json');
+
+        try {
+            $app->echanger((string) $piece['code'], (string) $piece['verification'], 'poste');
+            self::fail('un appairage de plus de 24 h devait être refusé');
+        } catch (ErreurApi $e) {
+            self::assertSame(400, $e->statut);
+            self::assertStringContainsString('expiré', $e->cause);
+        }
+    }
+
+    public function testUnCodeInconnuEstRefuseEtUnProfilNonVerifieNePeutPasRelier(): void
     {
         $app = $this->service();
 
         try {
-            $app->echanger('code-inexistant');
+            $app->echanger('code-inexistant', 'AAA-BBB', 'poste');
             self::fail('un code inconnu devait être refusé');
         } catch (ErreurApi $e) {
             self::assertSame(400, $e->statut);
             self::assertStringContainsString('inconnu', $e->cause);
         }
 
-        // Ouvert il y a plus de 5 minutes : expiré.
-        $url = $app->ouvrir('cmm', 'poste', 'https://cmm.exemple.test/retour', 'alea', 7, 'u@exemple.test', time() - 400);
+        // Une adresse simplement saisie mais non vérifiée n'autorise pas la liaison.
+        $identifiant = 'cmm-nv-' . $this->sel . '@exemple.test';
+        $this->profil()->definirAdresse(null, $identifiant, 'nv-' . $this->sel . '@exemple.test');
         try {
-            $app->echanger($this->codeDe($url));
-            self::fail('un code expiré devait être refusé');
-        } catch (ErreurApi $e) {
-            self::assertSame(400, $e->statut);
-            self::assertStringContainsString('expiré', $e->cause);
+            $app->ouvrir(null, $identifiant);
+            self::fail('un profil sans adresse vérifiée ne devait pas pouvoir relier');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('vérifi', $e->getMessage());
         }
     }
 
@@ -102,22 +142,5 @@ final class AppairageTest extends TestCase
         $dossiers = (new Dossiers($this->pdo, new DroitsDossiers($this->pdo)))->lister($d['compte'], '');
         self::assertSame([$d['ecriture']], array_column($dossiers, 'chemin'), 'le dossier refusé n’est pas listé');
         self::assertTrue($dossiers[0]['enfants']);
-    }
-
-    private function service(): Appairage
-    {
-        return new Appairage(
-            new Jetons($this->pdo),
-            $this->pdo,
-            new Dossiers($this->pdo, new DroitsDossiers($this->pdo)),
-            'GED de test',
-        );
-    }
-
-    private function codeDe(string $url): string
-    {
-        parse_str((string) parse_url($url, PHP_URL_QUERY), $parametres);
-
-        return (string) ($parametres['code'] ?? '');
     }
 }

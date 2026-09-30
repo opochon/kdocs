@@ -1,6 +1,6 @@
 # Secteur JONCTIONS — K-Time, ClearMyMails, API d'entrée
 
-Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml) · Juge : Claude Code · Lot en cours : V2-08b
+Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml, V2-08c appairage parti de la GED) · Juge : Claude Code · Lot en cours : V2-08c
 
 ## Mission
 La GED ne refait pas ce que les produits voisins font déjà ; elle se branche proprement, par API, jamais par la base
@@ -15,7 +15,9 @@ d'un autre.
 
 ## Chemins
 `src/Jonctions/`, `tests/php/Jonctions/`, `tests/e2e/jonctions.spec.ts`, `docs/api/`,
-`templates/ecrans/appairage.twig`, `templates/ecrans/appareils.twig`
+`templates/ecrans/profil.twig`. Depuis V2-08c, l'écran Application › Appareils reliés a rejoint Mon profil :
+`templates/ecrans/appairage.twig` et `templates/ecrans/appareils.twig` sont supprimés, `/appairage` et
+`/application/appareils` redirigent vers `/profil`.
 
 ## Lot V2-08 — porte
 1. API d'entrée : 3 fichiers poussés deux fois → 3 documents, 0 doublon ; jeton absent ou révoqué → 401 nommé.
@@ -46,6 +48,16 @@ l'API REST existante (`/api/documents`) comme liste de courses, pas comme code.
 - Au harnais (V2-08b) : statuts attendus des routes publiques dans `tools/banc/contrat.php` (fichier sans modification
   concurrente, commité par DeepCode) et charges CSRF défensives dans `tools/banc/sonde-securite.php` (modifié par GLM :
   à commiter par le juge).
+- À l'Interface (V2-08c, ajout minimal commité) : le lien de `templates/ecrans/application.twig` pointe vers
+  `/profil` (« Mon profil · appareils reliés ») ; l'écran Application › Appareils reliés n'existe plus.
+- Aux Droits (V2-08c, signalé) : les routes de Mon profil (`GET /profil`, `POST /profil/mail`,
+  `GET /profil/mail/verifier`, `POST /profil/appairage`) sont déclarées en `documents:traiter`, comme les
+  écrans d'appairage V2-08b.
+- Au Socle/Droits (V2-08c, demande) : une permission `profil:gerer` serait plus juste que `documents:traiter`
+  pour un écran personnel (aujourd'hui un `lecteur` sans `documents:traiter` ne voit pas son profil).
+- Au Socle (V2-08c, ajout minimal commité) : `composer.json`/`composer.lock` ajoutent `phpmailer/phpmailer`
+  (transport SMTP du courriel d'auto-configuration) ; en test, le transport « fichier » écrit le `.eml` dans
+  `var/mails` et n'envoie jamais rien. Réinstaller si `vendor/` est périmé : `php tools\composer.phar install`.
 
 ## Journal V2-08a — API d'entrée (porte 1)
 
@@ -91,6 +103,11 @@ ETAT: fini (jugé)
   - `permissionPour()` : reconnaissance de la route paramétrée `POST /application/appareils/[0-9]+/revoquer`.
 - `tools/banc/sonde-securite.php` (modifié par GLM, V2-04) — deux charges défensives ajoutées dans `$chargesMutations` :
   `POST /appairage` et `POST /application/appareils/{id:[0-9]+}/revoquer`.
+- `src/Securite/DroitsRoutes.php` — lignes ajoutées par V2-08c (section 1 v2, Mon profil) :
+  `GET /profil`, `POST /profil/mail`, `GET /profil/mail/verifier`, `POST /profil/appairage` →
+  `documents:traiter` ; les lignes `GET|POST /appairage` de V2-08b restent (elles redirigent vers `/profil`).
+- `tools/banc/sonde-securite.php` — charges défensives ajoutées par V2-08c dans `$chargesMutations` :
+  `POST /profil/mail` (`adresse=`) et `POST /profil/appairage` (`sonde=1`), à côté de `POST /appairage`.
 
 ## Journal V2-08b — appairage, destinations, `.eml`
 
