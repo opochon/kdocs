@@ -8,7 +8,7 @@ Décisions d'Olivier qui le cadrent :
 - 30-09 : un plugin « Ged » dans CMM pour lier et envoyer **soit à l'ingesteur, soit dans un dossier**, et **soit le
   message, soit une ou des pièces jointes**.
 
-## 1. Appairage — v2 (décision d'Olivier du 30-09 : « c'est la GED qui propose, CMM valide »)
+## 1. Appairage — v2 (décision d'Olivier du 30-09 : la liaison part de la GED, CMM la valide)
 
 Principe : la liaison part de la GED, vers l'adresse mail de l'utilisateur, et c'est CMM qui la valide. La GED ne lit
 jamais la boîte : CMM **pousse** ce que l'utilisateur choisit (« j'ai reçu une facture, je l'envoie »), rien d'autre.
