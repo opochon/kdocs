@@ -123,3 +123,80 @@ Le scellement vit dans le dossier (`.scellement/<fichier>.json` + `.tsr`), jamai
 au schéma ni à la reconstruction. Merci de confirmer ces appels au prochain lot Socle (garde `class_exists`,
 le Socle ne dépend pas du tout du secteur Archivage).
 
+
+## Journal V2-04 (30-09) — métadonnées, types, champs personnalisés, vues
+
+**Reprise après interruption.** La session du 29-09 (18:21) avait bâti le lot sur trois tables
+(`socle_types`, `socle_champs`, `socle_vues`) et relevé le plafond à 24. Le juge (30-09, 10:15) a imposé
+deux corrections avant tout jugement — appliquées d'abord, tout le reste suit :
+1. **Plafond de tables : il RESTE 20.** `tools/installer.php` et `tests/php/Socle/InstallateurTest.php`
+   remis TELS QUE COMMITÉS (git restore) ; les trois tables ont disparu du schéma. La nomenclature
+   (types et champs) et les vues vivent désormais dans le FONDS : dossier réservé `.ged/` à la racine
+   documentaire, JSON canonique écrit de façon atomique (`Ged\Socle\Registre`), lu avec un cache par
+   requête rafraîchi par la signature du fichier (mtime+ctime+taille — le preparer d'oracle et le serveur
+   peuvent se suivre d'un processus à l'autre). Cohérent avec « le dossier fait foi » : la configuration
+   survit à F12 et suit un déménagement du fonds. Zéro table nette de plus : la base de test tient à 20.
+2. **Corpus en lecture seule.** Les restes de tests (`tests/corpus/apercu/documents/essais/`, et le
+   `.ged/` que le contrat HTTP y avait fait écrire au premier regard de `/metadonnees`) sont déplacés
+   dans `var/restes/` (var/ est ignoré). L'écran Métadonnées est devenu une lecture PURE — un GET
+   n'écrit jamais dans le fonds ; la graine des six types se pose par l'action d'administration
+   « graine » (POST). Rejoué : le harness complet ne laisse plus rien dans `tests/corpus/`.
+
+**Fait, clause par clause**
+1. Nomenclature livrée (Facture, Note de crédit, Reçu, Contrat, Courrier, Document RH), modifiable par
+   l'administrateur : ajouter, renommer, activer/désactiver — jamais supprimer. Lecture exposée aux
+   autres secteurs : `Nomenclature::types()` / `lister()` (demande écrite dans la fiche Classement ;
+   `Regles::TYPES_CONNUS` n'est PAS touché, fichier d'un autre secteur).
+2. Champs personnalisés typés (texte, nombre, montant CHF, date, liste, oui/non) rattachés à un type ;
+   définition dans `.ged/nomenclature.json`, clé = slug stable du nom. Les VALEURS vivent dans le
+   `.meta.json` à côté du fichier (le dossier fait foi) et sont portées par la colonne `meta` de l'index
+   (`DepotFichiers::rapporterMeta()`, sans déplacer la pièce) — l'indexeur reprend aussi un `.meta.json`
+   édité hors application.
+3. Vues enregistrées = filtres typés COMPILÉS (type, émetteur, période, étiquette, champ) dans
+   `.ged/vues.json` ; la compilation valide tout à l'enregistrement (opérateur cohérent avec la nature,
+   dates réelles, valeurs typées) ; `filtrerDocs()` est pure : JAMAIS un déplacement de fichier.
+4. Reconstruction (F12) : hash d'export identique avec des champs posés (ChampsTest).
+5. Bibliothèque (`templates/ecrans/bibliotheque.twig`) : les vraies vues (volet, comptes) et les vrais
+   documents du fonds (liste par l'index, panneau d'aperçu relu du `.meta.json`, filtres typés dans le
+   bandeau, formulaire de champs du document retenu), au système visuel existant ; écran Métadonnées
+   neuf (`templates/ecrans/metadonnees.twig`).
+
+**Preuves**
+- PHPUnit : Socle 65 tests / 291 assertions verts (RegistreTest 5, NomenclatureTest 8, ChampsTest 9,
+  VuesTest 10, EcranMetadonneesTest 2, suites V2-01 intactes) ; suite entière du dépôt : 276 tests,
+  1340 assertions verts.
+- Oracle de porte rejouable : Playwright `tests/e2e/bibliotheque.spec.ts` (connexion par
+  `tests/e2e/connexion.ts`) — le persona crée SANS AIDE le champ « Échéance » (date) sur Contrat, pose
+  sa valeur, enregistre « Contrats à échéance < 90 j » ; la vue ne garde que les contrats à échéance
+  proche et AUCUN fichier ne bouge (chemin du panneau identique avant/après). 2 passed.
+- `harness.ps1 -SansBanc` : 1-unitaire, 4-ecrans (34 passed), 7-securite, 2-contrat, 6-charge VERTS
+  (3-banc sautée par -SansBanc, 5-personas pas encore écrite — hors de mon secteur) ;
+  `tests/corpus/` reste vierge après le passage.
+- Commits : 83b8d26 (registre .ged/), 0df9df0 (nomenclature en fichier), 2c4b53f (champs typés),
+  b9f7e81 (vues compilées), c527e47 (écrans + routes), f0fe4b7 (oracle du persona), puis la fiche.
+
+**Décisions retenues**
+- Configuration dans le fonds plutôt qu'en base (piste du juge) : `.ged/` est interne (nom en point :
+  indexeur, reconstructeur et Fonds l'ignorent, comme `.versions/`), ids attribués sous verrou
+  (l'équivalent déterministe de l'auto-incrément), écriture tmp+rename sous flock dédié.
+- Un GET n'écrit jamais : la graine des six types est une action d'administration (bouton « Poser les
+  six types livrés » sur un fonds vide) ; l'installateur des oracles la pose dans LEUR fonds.
+- `typesSansEchec`/`champsSansEchec` (bibliothèque) attrapent aussi RuntimeException : un `.ged/`
+  illisible ne rend jamais l'écran muet.
+- Couture signalée : `Ui\Ecrans::bibliotheque()` délègue à `Ged\Socle\EcranBibliotheque` par
+  `class_exists` (le pattern de /recherche et /workflows ; FastRoute refuse deux routes identiques),
+  avec repli maquette si la base manque — 28 lignes dans le fichier d'Interface, le gabarit garde son
+  contrat visuel.
+- `recette/registre.json` et `recette/preuves/charge/*` modifiés par le harness : non commités
+  (gérés par le juge, comme les livraisons précédentes).
+
+**À commiter par le juge (fichiers partagés — je n'y commite pas)**
+- `src/Securite/DroitsRoutes.php` — 6 lignes après `'GET /application'` :
+  `'GET /metadonnees'`, `'POST /metadonnees/type'`, `'POST /metadonnees/champ'` → `application:administrer` ;
+  `'POST /bibliotheque/vue'` → `documents:lire` ; `'POST /documents/champ'` → `documents:traiter`
+  (+ 1 ligne de commentaire « Socle V2-04 »).
+- `tools/banc/sonde-securite.php` — 5 lignes dans les charges défensives : `POST /metadonnees/type`
+  (`action=inconnue`), `POST /metadonnees/champ` (`type=0&nom=`), `POST /bibliotheque/vue` (`nom=`),
+  `POST /documents/champ` (`doc=0`) — refusées par le métier sans écrire (+ 1 ligne de commentaire).
+
+ETAT: fini

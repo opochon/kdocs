@@ -102,3 +102,15 @@ Avec l'IA réelle : 51/53 validés seuls, 0 type faux, 0 émetteur faux, 0 date 
 0 validé seul hors habitude (la règle typeCorrobore tient). Reste : 276 s pour 53 pièces (≈ 5 s par appel IA) et une
 pièce laissée « IA indisponible » — à surveiller au banc de charge (V2-10), pas bloquant.
 ETAT: fini (jugé)
+
+## Demande reçue de SOCLE (V2-04, 30-09) — lire les types depuis la nomenclature du fonds
+La nomenclature des types est livrée et modifiable par l'administrateur (V2-04) : elle vit dans le fonds,
+`.ged/nomenclature.json`, et se lit par le Socle — ta constante `Regles::TYPES_CONNUS` duplique cette source.
+Au prochain lot Classement :
+- lire les types ACTIFS par `(new \Ged\Socle\Nomenclature($config))->types()` (liste de noms, ordre du plan ;
+  `lister(false)` rend aussi les désactivés avec leur id et leur drapeau) ;
+- un type inconnu du classement mais PRÉSENT dans la nomenclature doit rester proposable ; un type désactivé
+  n'est plus proposé mais reste VALIDE pour les documents déjà rangés (jamais une erreur) ;
+- ne supprime pas `TYPES_CONNUS` d'un coup : garde-la comme repli si `.ged/nomenclature.json` est absent
+  (fonds d'avant V2-04), puis fais-la disparaître quand tu branches tes tests dessus.
+Coût : zéro table (plafond de 20 tenu), la lecture est mise en cache par requête (`Ged\Socle\Registre`).
