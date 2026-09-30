@@ -239,3 +239,9 @@ ETAT: fini
 - Commit : `abcb8a8` `jonctions: une seule table (jetons, profils, appairages) tient le plafond V2-01 (V2-08d)`.
 
 ETAT: fini
+### Jugement V2-08b + c + d (juge, 30-09 10:30, copie propre sur d5ce356)
+
+- Schéma : 20 tables, Jonctions en une seule table ; plafond V2-01 tenu sans modifier l'oracle.
+- Harness : 0, 1 (237 tests), 2, 3 (53/53, F1 franchie), 6 (p95 lecture 958 ms, écriture 116 ms) et 7 verts.
+- Couche 4 : 30/31 ; seul rouge = budget « première page PDF < 1 s » d'`apercu.spec.ts` (1 548 ms), hors secteur. Rejoué seul deux fois : 7/7 vert. Défaut du banc d'écrans sous exécution parallèle, consigné à la fiche recherche-apercu.
+- Verdict : **V2-08b/c/d franchis**. L'appairage part de Mon profil (adresse vérifiée, courriel d'auto-configuration avec code de vérification, révocation), conformément à `docs/api/cmm-ged.md` v2 §1.

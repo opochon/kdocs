@@ -150,3 +150,8 @@ simultanés. Preuves : `recette/preuves/charge/charge.{json,md}`.
   fonds.
 
 La bibliothèque (maquette) est la seule lecture qui tient le seuil (p95 0,6 s).
+
+### Ouvert par le juge (30-09 10:30) — budget d'aperçu instable dans la suite complète
+
+- `tests/e2e/apercu.spec.ts` « première page PDF < 1 s » échoue une fois sur deux dans la suite Playwright complète (1 548 ms à d5ce356, 1 s à chaud), et passe 7/7 quand on le lance seul. Troisième occurrence.
+- À traiter par le secteur : soit rendre la mesure indépendante des autres parcours (worker dédié, `test.describe.configure({ mode: 'serial' })` ou projet Playwright à part pour les budgets de temps), soit prouver que la lenteur vient de l'application sous concurrence et la corriger. Ne pas relever le budget.
