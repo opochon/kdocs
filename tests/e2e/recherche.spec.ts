@@ -51,10 +51,5 @@ test('recherche : une absence se nomme, jamais un écran muet', async ({ page })
   await expect(page.getByTestId('recherche-erreur')).toHaveCount(0);
 });
 
-test('recherche : l’écran répond en moins d’une seconde', async ({ page }) => {
-  const debut = Date.now();
-  await page.goto('/recherche?q=maintenance');
-  await expect(page.getByTestId('resultat-204')).toBeVisible();
-
-  expect(Date.now() - debut, 'écran de recherche sous 1 s').toBeLessThan(1000);
-});
+// Le budget « écran < 1 s » vit dans `budget-recherche.spec.ts` (projet « budgets », serveur dédié) :
+// mesuré dans la file du serveur mono-processus partagé par les workers, il tombait au hasard (PERF-2).

@@ -2,9 +2,9 @@ import { test, expect, type Page } from '@playwright/test';
 import { connecter } from './connexion';
 
 /**
- * Oracle du lot V2-05a — aperçu réel. Un PDF de 3 pages s'affiche vite (< 1 s pour la première page),
- * la page 2 est atteignable au clavier, 0 erreur console ; images (png/jpg/tiff) et bureautique
- * (message nommé quand LibreOffice manque) ; la miniature est servie en PNG.
+ * Oracle du lot V2-05a — aperçu réel : 3 pages rendues et lisibles, page 2 au clavier, zoom et rotation,
+ * 0 erreur console ; images (png/jpg/tiff) et bureautique (message nommé quand LibreOffice manque) ;
+ * la miniature est servie en PNG. Les budgets de temps (première page PDF) vivent dans `budget-apercu.spec.ts`.
  */
 test.beforeEach(async ({ page }) => { await connecter(page); });
 
@@ -15,25 +15,8 @@ function surveillerConsole(page: Page): string[] {
   return erreurs;
 }
 
-test('aperçu PDF : 3 pages affichées, première page en moins d’une seconde, 0 erreur', async ({ page }) => {
-  const erreurs = surveillerConsole(page);
-  // Deux budgets distincts (décision harness du 30-09 : le seuil unique tombait au hasard sur une machine chargée) :
-  // ouverture à froid (pdf.js pas encore en cache) < 2 s, puis ouverture courante < 1 s.
-  let debut = Date.now();
-  await page.goto('/documents/204/apercu');
-  await page.waitForSelector('[data-testid="visionneuse-canvas-1"][data-rendu="1"]', { state: 'visible', timeout: 8_000 });
-  expect(Date.now() - debut, 'première page du PDF, à froid, en moins de 2 s').toBeLessThan(2000);
-
-  debut = Date.now();
-  await page.goto('/documents/204/apercu');
-  await page.waitForSelector('[data-testid="visionneuse-canvas-1"][data-rendu="1"]', { state: 'visible', timeout: 8_000 });
-  expect(Date.now() - debut, 'première page du PDF affichée en moins de 1 s').toBeLessThan(1000);
-
-  await page.waitForSelector('[data-testid="visionneuse-canvas-3"][data-rendu="1"]', { state: 'visible', timeout: 8_000 });
-  await expect(page.getByTestId('visionneuse-page')).toContainText('page 1');
-
-  expect(erreurs, 'aucune erreur console').toEqual([]);
-});
+// Le budget « première page PDF < 1 s » vit dans `budget-apercu.spec.ts` (projet « budgets », serveur dédié) :
+// mesuré dans la file du serveur mono-processus partagé par les workers, il tombait au hasard (PERF-2).
 
 test('aperçu PDF : la page 2 est atteignable au clavier, zoom et rotation répondent', async ({ page }) => {
   const erreurs = surveillerConsole(page);
