@@ -6,7 +6,11 @@ declare(strict_types=1);
  * Installateur de GEDv2 : pose un schéma neuf, refuse une base peuplée sans --remplacer (et fait alors
  * un dump AVANT de remplacer).
  *
- *   php tools/installer.php [base] --admin=<identifiant> [--motdepasse=<...>] [--remplacer]
+ *   php tools/installer.php [base] --admin=<adresse de courriel> [--motdepasse=<...>] [--remplacer]
+ *
+ * L'identifiant admin DOIT être une adresse de courriel : l'écran de connexion exige un champ
+ * `type=email`, et un identifiant sans courriel ne pourrait jamais se connecter. La validation
+ * précède toute action sur la base (un refus ne modifie rien).
  *
  * Le schéma du Socle est posé, puis celui de chaque secteur présent (`Ged\<Secteur>\Schema::installer`),
  * dans l'ordre du Kernel. La base ne peut être que gedv2 (dév) ou gedv2_test (tests/harness) : jamais
@@ -39,6 +43,13 @@ foreach (array_slice($argv, 1) as $arg) {
 }
 
 try {
+    if ($admin !== null && trim($admin) !== '') {
+        $admin = trim($admin);
+        if (filter_var($admin, FILTER_VALIDATE_EMAIL) === false) {
+            throw new InvalidArgumentException("identifiant admin « $admin » invalide : une adresse de courriel est exigée"
+                . ' (l’écran de connexion demande un courriel, un autre identifiant ne pourrait jamais se connecter)');
+        }
+    }
     if ($base !== null) {
         if (!preg_match('/^[A-Za-z0-9_]+$/', $base)) {
             throw new InvalidArgumentException("nom de base invalide : $base");

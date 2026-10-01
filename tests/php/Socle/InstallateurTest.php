@@ -7,7 +7,7 @@ namespace Ged\Tests\Socle;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin` pose un schéma neuf (≤ 20 tables),
+ * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose un schéma neuf (≤ 20 tables),
  * refuse une base peuplée sans --remplacer, et fait alors un dump AVANT de remplacer.
  * La commande réelle est exécutée comme le juge la rejouera.
  */
@@ -32,7 +32,7 @@ final class InstallateurTest extends TestCase
     {
         // État final laissé à la suite : une installation fraîche, comme après un vrai installateur.
         $this->viderBase();
-        $this->installer('--admin=admin');
+        $this->installer('--admin=admin@gedv2.test');
     }
 
     /** Les tables de TOUT secteur présent, pour repartir d'une base vierge entre chaque cas (base de TEST). */
@@ -55,7 +55,7 @@ final class InstallateurTest extends TestCase
 
     public function testPoseUnSchemaNeufAvecCompteAdmin(): void
     {
-        [$code, $sortie] = $this->installer('--admin=admin');
+        [$code, $sortie] = $this->installer('--admin=admin@gedv2.test');
 
         self::assertSame(0, $code, "l’installateur devait réussir : $sortie");
         $tables = $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
@@ -64,30 +64,30 @@ final class InstallateurTest extends TestCase
         self::assertLessThanOrEqual(20, count($tables), '≤ 20 tables au départ');
 
         $compte = $this->pdo->query('SELECT identifiant, role FROM comptes')->fetch(\PDO::FETCH_ASSOC);
-        self::assertSame(['identifiant' => 'admin', 'role' => 'admin'], $compte, 'le compte admin existe, un seul');
+        self::assertSame(['identifiant' => 'admin@gedv2.test', 'role' => 'admin'], $compte, 'le compte admin existe, un seul');
         self::assertStringContainsString('admin', $sortie);
     }
 
     public function testRefuseUneBasePeupleeSansRemplacer(): void
     {
-        $this->installer('--admin=admin');   // base peuplée : le schéma + le compte
+        $this->installer('--admin=admin@gedv2.test');   // base peuplée : le schéma + le compte
 
-        [$code, $sortie] = $this->installer('--admin=autre');
+        [$code, $sortie] = $this->installer('--admin=autre@gedv2.test');
 
         self::assertNotSame(0, $code, 'refuser, pas écraser');
         self::assertStringContainsString('peuplée', $sortie, 'l’erreur se nomme');
         self::assertStringContainsString('--remplacer', $sortie, 'et dit la sortie de secours');
-        self::assertSame(['admin'], $this->pdo->query('SELECT identifiant FROM comptes')->fetchAll(\PDO::FETCH_COLUMN),
+        self::assertSame(['admin@gedv2.test'], $this->pdo->query('SELECT identifiant FROM comptes')->fetchAll(\PDO::FETCH_COLUMN),
             'rien n’a changé : ni le compte, ni le schéma');
     }
 
     public function testRemplacerFaitUnDumpDabordPuisReposeLeSchema(): void
     {
-        $this->installer('--admin=admin');
+        $this->installer('--admin=admin@gedv2.test');
         $this->pdo->exec("INSERT INTO documents (chemin_relatif, nom, titre, empreinte, taille, mime, meta)"
             . " VALUES ('2026/x.pdf', 'x.pdf', 'Ancien', '" . str_repeat('a', 64) . "', 1, 'application/pdf', '{}')");
 
-        [$code, $sortie] = $this->installer('--admin=admin --remplacer');
+        [$code, $sortie] = $this->installer('--admin=admin@gedv2.test --remplacer');
 
         self::assertSame(0, $code, $sortie);
         self::assertStringContainsString('Dump', $sortie, 'le dump est annoncé dans la sortie');
@@ -97,7 +97,7 @@ final class InstallateurTest extends TestCase
             'le dump contient les données d’avant remplacement');
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM documents')->fetchColumn(),
             'la base est neuve, l’ancienne ligne a vécu dans le dump');
-        self::assertSame(['admin'], $this->pdo->query('SELECT identifiant FROM comptes')->fetchAll(\PDO::FETCH_COLUMN));
+        self::assertSame(['admin@gedv2.test'], $this->pdo->query('SELECT identifiant FROM comptes')->fetchAll(\PDO::FETCH_COLUMN));
     }
 
     public function testUneBaseInconnueEstRefusee(): void
