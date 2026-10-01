@@ -118,6 +118,48 @@ final class DroitsDossiers
         return $chemin === false ? null : $this->dossierPourChemin((string) $chemin);
     }
 
+    /**
+     * Garantit le dossier de droits d'un document à partir de son chemin dans le fonds, et rend
+     * l'identifiant du dossier le plus précis — ou null si le chemin n'a pas de dossier (racine).
+     *
+     * Chaque niveau du chemin devient un dossier ACL, enfant du précédent : l'héritage du parent
+     * décide donc du droit le plus proche, comme pour les dossiers posés à la main. Idempotent :
+     * un dossier déjà présent n'est jamais dupliqué ; le parent d'un dossier existant n'est pas
+     * écrasé (un administrateur peut avoir posé une règle avant l'arrivée des documents).
+     */
+    public function assurerDossierPourChemin(string $chemin): ?int
+    {
+        $chemin = trim(str_replace('\\', '/', $chemin), '/');
+        if ($chemin === '' || str_contains($chemin, '..')) {
+            return null;
+        }
+        $segments = explode('/', $chemin);
+        array_pop($segments);   // le nom du fichier n'est pas un dossier
+        $parent = null;
+        $prefixe = '';
+        foreach ($segments as $segment) {
+            $segment = trim($segment);
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            $prefixe = $prefixe === '' ? $segment : "$prefixe/$segment";
+            $parent = $this->assurerDossier($parent, $prefixe);
+        }
+
+        return $parent;
+    }
+
+    /** Crée le dossier ACL s'il manque (parent posé) puis rend son identifiant, sans jamais le dupliquer. */
+    private function assurerDossier(?int $parent, string $chemin): int
+    {
+        $this->pdo->prepare('INSERT INTO securite_dossiers (parent_id, chemin_relatif) VALUES (?, ?)'
+            . ' ON DUPLICATE KEY UPDATE id = id')->execute([$parent, $chemin]);
+        $stmt = $this->pdo->prepare('SELECT id FROM securite_dossiers WHERE chemin_relatif = ? LIMIT 1');
+        $stmt->execute([$chemin]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     /** @return list<int> */
     private function groupesDuCompte(int $compte): array
     {

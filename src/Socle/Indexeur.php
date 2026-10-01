@@ -65,6 +65,9 @@ final class Indexeur
             // métadonnées à suivre (`.meta.json` édité hors application, retour de corbeille à la main).
             if ($existant !== null) {
                 $id = (int) $existant['id'];
+                // Un document déjà indexé (fonds repris d'une version antérieure) doit lui aussi avoir
+                // son dossier de droits : l'indexeur rattrape le rattachement manquant à chaque passage.
+                $this->rattacherAuxDroits($relatif);
                 $contenuChange = $existant['empreinte'] !== $empreinte;
                 $metaFichier = $this->lireMeta($absolu);
                 $metaChange = $metaFichier !== null && Fichiers::json($metaFichier) !== (string) $existant['meta'];
@@ -228,5 +231,24 @@ final class Indexeur
         }
         $this->pdo->prepare('INSERT INTO document_deplacements (document_id, chemin_avant, chemin_apres, cause, auteur)'
             . ' VALUES (?, ?, ?, ?, ?)')->execute([$id, $avant, $apres, 'indexeur', 'indexeur']);
+        // Le document a changé de place : la nouvelle place doit avoir son dossier de droits.
+        $this->rattacherAuxDroits($apres);
+    }
+
+    /**
+     * Rattache un document à son dossier de droits (secteur Droits/Sécurité, lot R1) depuis son chemin
+     * du fonds. Garde `class_exists` : le Socle ne dépend pas du secteur Droits, et un schéma d'ACL
+     * absent ne fait jamais échouer l'indexation (le rattachement sera repris au passage suivant).
+     */
+    private function rattacherAuxDroits(string $cheminRelatif): void
+    {
+        if (!class_exists(\Ged\Securite\DroitsDossiers::class)) {
+            return;
+        }
+        try {
+            (new \Ged\Securite\DroitsDossiers($this->pdo))->assurerDossierPourChemin($cheminRelatif);
+        } catch (\PDOException) {
+            // Schéma d'ACL absent : le dossier fait foi, la base s'y rattrapera.
+        }
     }
 }

@@ -82,7 +82,12 @@ final class DepotFichiers implements Depot
             ->execute([$cheminRelatif, basename($cheminRelatif), Fichiers::empreinte($absolu), (int) filesize($absolu),
                 Fichiers::mime($absolu), Fichiers::json($meta), ...$valeurs]);
 
-        return (int) $this->pdo->lastInsertId();
+        $id = (int) $this->pdo->lastInsertId();
+        // Rattachement au dossier de droits (secteur Droits/Sécurité, lot R1) : sans lui, la garde
+        // refuse l'aperçu de TOUT document rangé. Le dossier est créé à la volée depuis le chemin.
+        $this->rattacherDossierDeDroits($cheminRelatif);
+
+        return $id;
     }
 
     /** Insère la ligne d'une archive de version DÉJÀ posée sur le disque (reconstruction). */
@@ -126,6 +131,8 @@ final class DepotFichiers implements Depot
         $this->pdo->prepare('UPDATE documents SET chemin_relatif = ?, nom = ?, meta = ?, '
             . implode(' = ?, ', $entetes) . ' = ? WHERE id = ?')
             ->execute([$nouveauRel, basename($nouveauRel), Fichiers::json($meta), ...$valeurs, $idDocument]);
+        // Le rangement a pu changer : le nouveau chemin doit avoir son dossier de droits.
+        $this->rattacherDossierDeDroits($nouveauRel);
     }
 
     /**
@@ -182,6 +189,7 @@ final class DepotFichiers implements Depot
         $absolu = Fichiers::deplacerAvecAnnexes($absoluCorbeille, $this->cheminAbsolu($relatif));
         $this->pdo->prepare('UPDATE documents SET chemin_relatif = ?, nom = ?, supprime_le = NULL, supprime_par = NULL'
             . ' WHERE id = ?')->execute([substr($absolu, strlen($this->racine) + 1), basename($absolu), $idDocument]);
+        $this->rattacherDossierDeDroits($relatif);
     }
 
     /** Emplacement d'un chemin du fonds une fois à la corbeille (même arborescence, sous `.corbeille/`). */
@@ -310,5 +318,24 @@ final class DepotFichiers implements Depot
     {
         $this->pdo->prepare('INSERT INTO document_deplacements (document_id, chemin_avant, chemin_apres, cause, auteur)'
             . ' VALUES (?, ?, ?, ?, ?)')->execute([$idDocument, $avant, $apres, $cause, $auteur]);
+    }
+
+    /**
+     * Rattache le document rangé à son dossier de droits (secteur Droits/Sécurité, lot R1) : chaque
+     * niveau de son chemin devient un dossier ACL, enfant du précédent. Le Socle ne dépend pas du
+     * secteur Droits (garde `class_exists`) ; une base sans le schéma de sécurité ne fait jamais
+     * échouer un dépôt — le dossier de droits sera posé par l'indexeur ou la reconstruction F12.
+     */
+    private function rattacherDossierDeDroits(string $cheminRelatif): void
+    {
+        if (!class_exists(\Ged\Securite\DroitsDossiers::class)) {
+            return;
+        }
+        try {
+            (new \Ged\Securite\DroitsDossiers($this->pdo))->assurerDossierPourChemin($cheminRelatif);
+        } catch (\PDOException) {
+            // Schéma d'ACL absent (base en cours d'installation, test d'un autre secteur) : le dossier
+            // fait foi, l'indexeur rattachera plus tard. On ne masque pas les autres erreurs.
+        }
     }
 }

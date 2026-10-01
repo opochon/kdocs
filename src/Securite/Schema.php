@@ -9,6 +9,12 @@ use PDO;
 /** Schéma des ACL : les comptes restent la propriété du Socle, leurs droits vivent ici. */
 final class Schema
 {
+    /**
+     * Espace réservé aux dossiers d'ACL créés à la volée par le rattachement des documents rangés.
+     * Les identifiants posés explicitement restent petits ; l'auto-incrément démarre au-dessus.
+     */
+    public const DOSSIER_ID_AUTO_MIN = 1000000;
+
     public static function installer(PDO $pdo): void
     {
         $pdo->exec(<<<'SQL'
@@ -50,14 +56,18 @@ final class Schema
             SQL);
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_dossiers (
-              id INT UNSIGNED PRIMARY KEY,
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
               parent_id INT UNSIGNED NULL,
               chemin_relatif VARCHAR(1024) NOT NULL,
               cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               UNIQUE KEY uq_securite_dossier_chemin (chemin_relatif(700)),
               KEY k_securite_dossier_parent (parent_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+        // Une table posée par une version antérieure n'a pas l'auto-incrément, et une table neuve doit
+        // réserver un espace d'identifiants hors des ids explicites des dossiers créés par les tests ou
+        // l'administration : le rattachement à la volée ne doit jamais écraser un dossier existant.
+        self::assurerDossierIdAuto($pdo);
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_dossiers_droits (
               dossier_id INT UNSIGNED NOT NULL,
@@ -92,6 +102,29 @@ final class Schema
         ] as [$role, $permission]) {
             $pdo->prepare('INSERT IGNORE INTO securite_roles_permissions (role_code, permission_code) VALUES (?, ?)')
                 ->execute([$role, $permission]);
+        }
+    }
+
+    /**
+     * Pose l'auto-incrément sur `securite_dossiers.id` s'il manque (table créée avant le rattachement
+     * à la volée), puis réserve un espace d'identifiants d'ACL au-dessus de {@see DOSSIER_ID_AUTO_MIN}.
+     *
+     * Cet espace est volontairement haut : les dossiers posés explicitement (administration, tests)
+     * utilisent des identifiants petits, et le rattachement automatique ne doit jamais retomber sur
+     * l'un d'eux — un identifiant pris serait réécrit en silence. Idempotent : rejouer ne change rien.
+     */
+    public static function assurerDossierIdAuto(PDO $pdo): void
+    {
+        $extra = $pdo->query("SELECT EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+            . " AND TABLE_NAME = 'securite_dossiers' AND COLUMN_NAME = 'id'")->fetchColumn();
+        if (!is_string($extra) || stripos($extra, 'auto_increment') === false) {
+            $pdo->exec('ALTER TABLE securite_dossiers MODIFY id INT UNSIGNED NOT NULL AUTO_INCREMENT');
+        }
+
+        $suivant = (int) $pdo->query("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+            . " AND TABLE_NAME = 'securite_dossiers'")->fetchColumn();
+        if ($suivant < self::DOSSIER_ID_AUTO_MIN) {
+            $pdo->exec('ALTER TABLE securite_dossiers AUTO_INCREMENT = ' . self::DOSSIER_ID_AUTO_MIN);
         }
     }
 }
