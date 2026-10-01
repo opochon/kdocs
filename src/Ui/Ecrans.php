@@ -86,6 +86,8 @@ final class Ecrans
         // Même forme de données que l'écran réel du Socle : le gabarit ne connaît qu'un contrat.
         return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $this->commun('bibliotheque') + [
             'docs' => $docs, 'compte' => count($docs), 'total' => count($docs),
+            'totalFiltre' => count($docs), 'page' => 1, 'pages' => 1, 'pageTaille' => count($docs),
+            'lienPagePrecedente' => null, 'lienPageSuivante' => null,
             'vuesVolet' => [['id' => null, 'nom' => 'Tous les documents', 'compte' => count($docs)]],
             'vueActive' => null, 'arbre' => Maquette::arbre(), 'tousChamps' => [], 'operateurs' => [],
             'filtres' => ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null],

@@ -140,6 +140,10 @@ dl.meta dd.mono { word-break: break-all; }
 .table tr:hover td { background: var(--hover); }
 .table tr[aria-selected="true"] td { background: var(--accent-soft); }
 .table a { color: var(--text); font-weight: 500; }
+/* PERF-3 : la liste est paginée (100 lignes par page) — les commandes restent au-dessus du défilement. */
+.pagination { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-top: 1px solid var(--border); }
+.pagination .btn { margin-left: auto; }
+.pagination .btn + .btn { margin-left: 0; }
 
 /* Aperçu : une page de papier */
 .visionneuse { background: var(--surface-2); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px; overflow: auto; flex: 1; }

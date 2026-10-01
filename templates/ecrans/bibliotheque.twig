@@ -116,7 +116,12 @@
           {% endfor %}
           </tbody>
         </table>
-        <p class="muted" style="padding:10px 12px" data-testid="pagination">{{ docs|length }} sur {{ total }} document{{ total > 1 ? 's' }} · lus du fonds, sans quitter le dossier</p>
+        {# PERF-3 : la liste est paginée CÔTÉ BASE (100 lignes) — toutes les pièces restent atteignables. #}
+        <nav class="pagination" data-testid="pagination" aria-label="Pagination des documents">
+          <span class="muted">{{ totalFiltre }} document{{ totalFiltre > 1 ? 's' }} · page {{ page }} / {{ pages }}</span>
+          {% if lienPagePrecedente %}<a class="btn discret" href="{{ lienPagePrecedente }}" data-testid="page-precedente">Précédent</a>{% endif %}
+          {% if lienPageSuivante %}<a class="btn discret" href="{{ lienPageSuivante }}" data-testid="page-suivante">Suivant</a>{% endif %}
+        </nav>
       </div>
     </section>
 
