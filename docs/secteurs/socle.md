@@ -229,3 +229,8 @@ ETAT: fini
 - Demande au Classement déposée dans `classement.md` : lire la nomenclature, avec repli sur `TYPES_CONNUS`.
 - Note du juge : la session GLM arrêtée à 10:15 lisait encore (journal actif jusqu'à 10:09) ; ce n'était pas un blocage. Désormais, l'activité d'un agent se juge sur son journal de session.
 - Verdict : **V2-04 franchi.**
+
+### Note R2b (Classement, 01-10)
+
+- La liste par défaut de `Nomenclature` est étendue à Décompte, Relevé, Attestation, Police d’assurance, Avis d’impôt et Décision. Elle ne modifie jamais une nomenclature déjà posée dans le fonds : l’administrateur garde ses choix.
+- `DepotFichiers` range une pièce sans date sous `Sans_date/` et ne crée pas de sous-dossier depuis un émetteur manifestement bruité lorsque la proposition est automatique ; une validation humaine demeure crédible.

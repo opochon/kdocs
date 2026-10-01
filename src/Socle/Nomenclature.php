@@ -19,8 +19,9 @@ use RuntimeException;
  */
 final class Nomenclature
 {
-    /** Les types livrés, dans l'ordre du plan. */
-    public const TYPES_DEFAUT = ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH'];
+    /** Les types livrés, dans l'ordre du plan. L'administrateur peut ensuite les adapter dans le fonds. */
+    public const TYPES_DEFAUT = ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH',
+        'Décompte', 'Relevé', 'Attestation', 'Police d’assurance', 'Avis d’impôt', 'Décision'];
 
     /** Registre du fonds qui porte la nomenclature (types et champs : un même document de référence). */
     private const FICHIER = 'nomenclature';

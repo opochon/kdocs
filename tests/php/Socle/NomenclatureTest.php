@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Oracle V2-04 §1 : la nomenclature des types est livrée (Facture, Note de crédit, Reçu, Contrat,
- * Courrier, Document RH), lisible par les autres secteurs, et modifiable par l'administrateur —
+ * Courrier, Document RH et les types métier usuels), lisible par les autres secteurs, et modifiable par l'administrateur —
  * ajouter, renommer, désactiver. Jamais supprimée : des documents vivent avec ces valeurs.
  * Elle vit dans le fonds (`.ged/nomenclature.json`) : zéro table de plus, le plafond de 20 tient.
  */
@@ -30,11 +30,12 @@ final class NomenclatureTest extends TestCase
         $this->tearDownCorpus();
     }
 
-    public function testLesSixTypesLivrésSontLisiblesDansLOrdreDuPlan(): void
+    public function testLesTypesLivresSontLisiblesDansLOrdreDuPlan(): void
     {
         $this->nomenclature->assurer();
         self::assertSame(
-            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH'],
+            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH', 'Décompte', 'Relevé',
+                'Attestation', 'Police d’assurance', 'Avis d’impôt', 'Décision'],
             $this->nomenclature->types(),
             'la nomenclature livrée contient exactement les six types, dans l’ordre du plan',
         );
@@ -49,7 +50,8 @@ final class NomenclatureTest extends TestCase
         self::assertFileExists($fichier, 'la nomenclature vit dans le fonds, à côté des documents');
         $surDisque = json_decode((string) file_get_contents($fichier), true) ?: [];
         self::assertSame(
-            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH', 'Devis'],
+            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH', 'Décompte', 'Relevé',
+                'Attestation', 'Police d’assurance', 'Avis d’impôt', 'Décision', 'Devis'],
             array_column($surDisque['types'] ?? [], 'nom'),
             'le fichier dit les types : le dossier fait foi, même pour la configuration',
         );
@@ -65,7 +67,7 @@ final class NomenclatureTest extends TestCase
     {
         $this->nomenclature->assurer();
         $this->nomenclature->assurer();
-        self::assertCount(6, $this->nomenclature->lister(), 'rejouer assurer ne double pas la nomenclature');
+        self::assertCount(12, $this->nomenclature->lister(), 'rejouer assurer ne double pas la nomenclature');
     }
 
     public function testLAjoutDunTypeParLAdministrateur(): void
@@ -84,7 +86,7 @@ final class NomenclatureTest extends TestCase
         } catch (\RuntimeException $e) {
             self::assertStringContainsStringIgnoringCase('existe', $e->getMessage(), 'l’erreur se nomme');
         }
-        self::assertCount(6, $this->nomenclature->lister());
+        self::assertCount(12, $this->nomenclature->lister());
     }
 
     public function testUnNomVideOuTropLongEstRefusé(): void

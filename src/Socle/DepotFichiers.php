@@ -269,15 +269,42 @@ final class DepotFichiers implements Depot
                 return $dossier;
             }
         }
+        // Pas de date crédible, pas d'année inventée : une pièce sans date attend sous Sans_date.
         $annee = isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])
-            ? substr((string) $meta['date'], 0, 4) : date('Y');
+            ? substr((string) $meta['date'], 0, 4) : 'Sans_date';
         $segments = [$annee, isset($meta['type']) && $meta['type'] !== null && $meta['type'] !== ''
             ? Fichiers::assainirSegment((string) $meta['type']) : Fichiers::assainirSegment('A classer')];
-        if (isset($meta['emetteur']) && $meta['emetteur'] !== null && $meta['emetteur'] !== '') {
+        if (isset($meta['emetteur']) && $meta['emetteur'] !== null && $meta['emetteur'] !== ''
+            && self::emetteurPeutCreerDossier($meta)) {
             $segments[] = Fichiers::assainirSegment((string) $meta['emetteur']);
         }
 
         return implode('/', $segments);
+    }
+
+    /**
+     * Défense en profondeur au dépôt : une proposition automatique ne peut pas transformer une phrase
+     * OCR en dossier. Un émetteur enregistré par la validation humaine reste, lui, une source crédible.
+     * Le filtre détaillé vit dans Classement ; ce garde-fou protège aussi les pièces à contrôler.
+     */
+    private static function emetteurPeutCreerDossier(array $meta): bool
+    {
+        $source = (string) (($meta['classement']['source'] ?? ''));
+        if ($source === '' || $source === 'humain') {
+            return true;
+        }
+        $nom = trim((string) $meta['emetteur']);
+        $normalise = mb_strtolower($nom, 'UTF-8');
+        if (mb_strlen($nom) < 3 || mb_strlen($nom) > 100 || preg_match('/\d|@|https?:/u', $nom) === 1
+            || preg_match('/^(si|la|le|nous|vous|nom du destinataire|adresse|page)\b/iu', $normalise) === 1) {
+            return false;
+        }
+        $mots = preg_split('/\s+/', $normalise) ?: [];
+        if (count($mots) < 2 || in_array($normalise, ['service clientele', 'service client'], true)) {
+            return false;
+        }
+
+        return preg_match('/\b(sa|sarl|sagl|ag|gmbh|association|fondation|commune|canton|service|office|banque|assurance|energie|energies|poste)\b/iu', $normalise) === 1;
     }
 
     /**

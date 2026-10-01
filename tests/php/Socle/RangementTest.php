@@ -72,6 +72,23 @@ final class RangementTest extends TestCase
         self::assertSame('2026/A_classer/Note_sans_type.pdf', $ligne['chemin_relatif']);
     }
 
+    public function testDateAbsenteNePrendJamaisLAnneeCouranteEtBruitAutomatiqueNeCreePasDeDossier(): void
+    {
+        $idSansDate = $this->depot->deposer($this->pieceADeposer('sans-date.pdf', 'sans date'), [
+            'titre' => 'Pièce sans date', 'type' => 'Facture', 'emetteur' => 'Atelier Exemple SA',
+        ]);
+        $idBruit = $this->depot->deposer($this->pieceADeposer('bruit.pdf', 'bruit'), [
+            'titre' => 'Pièce OCR à contrôler', 'type' => 'Contrat',
+            'emetteur' => 'Si la banque exerce son droit contractuel', 'statut' => 'a_controler',
+            'classement' => ['source' => 'regle'],
+        ]);
+        $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents WHERE id IN (' . $idSansDate . ',' . $idBruit . ') ORDER BY id')
+            ->fetchAll(\PDO::FETCH_COLUMN);
+
+        self::assertSame('Sans_date/Facture/Atelier_Exemple_SA/Pièce_sans_date.pdf', $chemins[0]);
+        self::assertSame('Sans_date/Contrat/Pièce_OCR_à_contrôler.pdf', $chemins[1]);
+    }
+
     public function testUnEmetteurNeCreJamaisDeuxNiveaux(): void
     {
         // Le cas réel GEDv1 : « ISELI ENERGIE AG / ISELI ENERGIE SA » créait deux niveaux de dossiers.
