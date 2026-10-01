@@ -248,3 +248,21 @@ ETAT: bloqué — harness non entièrement vert : scénario Interface obsolète 
 - Charge isolée et harness complet : ingestion **53 pièces rangées, 0 travail restant**, p95 lecture **458 ms**, p95 écriture **141 ms**, 0 erreur, 0 collision ; harness en **514 s** : garde-fous, unitaire, bancs, écrans (46), sécurité, contrat et charge verts. Seule la couche Personas reste rouge car absente.
 
 ETAT: fini
+
+
+## Jugement R2d — 01-10-2026 (juge : Claude Code)
+
+- Harness complet du juge sur `0ee1c8f` : unitaire (365), banc (découpe 53/53, classement sans IA, bout-en-bout F1), sécurité et contrat verts. `a-traiter.spec.ts:126` (habitude) repasse. 6-charge, rejouée machine calme : verte (p95 lecture 722 ms, ingestion finie, 0 erreur).
+- Recette réelle, sur un fonds vierge et le scan de 103 pages :
+  - **6 min 46 s** (contre 14 min en R2c) ; 48 pièces ; 103 pages exactes, sans doublon ni page perdue ;
+  - **4 validées seules, 4 justes, 0 validé faux** : deux factures d'entretien de chauffage et deux décomptes d'assurance maladie ;
+  - le cas « famille » de R2c est corrigé : la convention hypothécaire reste « à contrôler » au lieu d'être validée en Police d'assurance.
+- Causes des 44 « à contrôler » : 12 types IA sans indice dans le texte, 11 divergences IA/texte, 6 émetteurs à contrôler, 4 dates à contrôler, 4 IA indisponible, 4 émetteurs non crédibles, 3 sous-types IA à contrôler.
+- Relecture des 48 propositions par le juge :
+  - titres justes 47/48 ;
+  - types justes environ 40/48 (erreurs : convention ou gage hypothécaire classés Police d'assurance ou Décompte ; convocations et demandes de documents classées Contrat ou Attestation ; une facture vétérinaire classée Relevé) ;
+  - **émetteurs : 21/48 vides**, et 3 bruités encore acceptés (« Assurance automobile: votre nouvelle police », « Assurance véhicules », « Lieu, date / référence <banque> ») ; le point 5 n'agit pas sur le vrai papier ;
+  - **dates : factures d'énergie et factures vétérinaires toujours sans date** ; le point 4 n'agit pas sur le vrai papier ;
+  - même émetteur en deux formes juridiques (« … AG » et « … SA ») : deux dossiers distincts.
+- Écart synthétique/réel : le banc annonce 44/53 validées seules avec l'IA ; le vrai papier en donne 4/48. Le corpus synthétique est trop propre.
+- Verdict : **R2d franchi sur la sûreté et la performance** (0 validé faux, durée divisée par deux, chaîne exacte, harness vert machine calme). **La qualité des propositions est renvoyée en R2e** (émetteurs vides et bruités, dates des factures, formes juridiques, types de courriers), avec un corpus bruité rendu réaliste.
