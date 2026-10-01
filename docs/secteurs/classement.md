@@ -173,5 +173,6 @@ ETAT: fini
 - Apprentissage : oracle unitaire de l’émetteur synthétique « Emetteur Oracle DMYPIQ » vert dans le code ; le filtre OCR ne s’applique pas à un nom déjà validé trois fois par un humain.
 - `php tools/banc/mesurer-classement.php classement-bruite` : 30/30, 0 validé seul sans IA, 0 type/émetteur/date faux.
 - `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : **29/30 validés seuls (96,7 %)**, 0 validé faux, 0 émetteur bruité, 0 date fausse ; la seule pièce sans source crédible reste à contrôler.
+- PHPUnit complet après mise à jour des oracles de rangement : **307 tests, 1 525 assertions, 0 défaut**.
 
 ETAT: fini
