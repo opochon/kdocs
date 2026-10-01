@@ -169,14 +169,30 @@ final class Pilote
      */
     private function dedoublonnerPages(array $pieces): array
     {
-        $vues = [];
+        // On décide d'abord l'affectation de chaque page. Un parcours « première pièce gagnante »
+        // laisse une frontière Vision dans la mauvaise pièce lorsque la seconde est la seule dont le
+        // texte porte réellement le marqueur de page.
+        $gagnante = [];
+        foreach ($pieces as $index => $piece) {
+            foreach ((array) ($piece['pages'] ?? []) as $page) {
+                $page = (int) $page;
+                if ($page <= 0) {
+                    continue;
+                }
+                $score = $this->scoreLecturePage((string) ($piece['texte'] ?? ''), $page);
+                if (!isset($gagnante[$page]) || $score > $gagnante[$page]['score']) {
+                    // À score égal, le premier rendu reste la solution déterministe de repli.
+                    $gagnante[$page] = ['index' => $index, 'score' => $score];
+                }
+            }
+        }
+
         $uniques = [];
-        foreach ($pieces as $piece) {
+        foreach ($pieces as $index => $piece) {
             $pages = [];
             foreach ((array) ($piece['pages'] ?? []) as $page) {
                 $page = (int) $page;
-                if ($page > 0 && !isset($vues[$page])) {
-                    $vues[$page] = true;
+                if ($page > 0 && ($gagnante[$page]['index'] ?? null) === $index) {
                     $pages[] = $page;
                 }
             }
@@ -189,5 +205,12 @@ final class Pilote
         }
 
         return $uniques;
+    }
+
+    /** Le texte de sortie de CMD4 indique parfois explicitement la page OCR (« Page 86 », « p. 86 »). */
+    private function scoreLecturePage(string $texte, int $page): int
+    {
+        return preg_match('/(?:^|\\R|\\b)(?:page|p\\.)\\s*[:#-]?\\s*' . preg_quote((string) $page, '/') . '\\b/iu', $texte) === 1
+            ? 1 : 0;
     }
 }

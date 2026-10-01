@@ -93,3 +93,10 @@ ETAT: fini
 - Rejeu réel `php tools/banc/mesurer-decoupe.php courrier-100p --vision` : 53/53 découpes exactes, 0 page perdue, 0 page en double, porte franchie.
 
 ETAT: fini
+
+## Journal R2c — recouvrement Vision (01-10-2026)
+
+- Le Pilote choisit désormais le détenteur de chaque page AVANT de créer les travaux : pour un recouvrement, le texte qui contient explicitement le marqueur de page l’emporte ; à égalité, la première sortie reste déterministe.
+- Oracle synthétique : A=`[85,86]` sans marqueur 86, B=`[86]` avec « Page 86 » ; le même Pilote que `tools/tache.php` range 85 et 86 une fois chacun.
+
+ETAT: fini

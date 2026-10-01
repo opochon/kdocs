@@ -82,7 +82,7 @@ final class PiloteTest extends TestCase
         self::assertSame(0, (new Travaux($this->pdo))->bilan()['en_cours']);
     }
 
-    public function testUnePageRendueDeuxFoisParLaVisionNECreeQuUnePiece(): void
+    public function testUnePlageVisionQuiSeRecouvreRangeChaquePageUneSeuleFoisDansLaPieceLaMieuxLue(): void
     {
         file_put_contents($this->tmp . '/entree/vision.pdf', '%PDF-1.4 lot');
         $decoupeur = new class implements Decoupeur {
@@ -92,8 +92,11 @@ final class PiloteTest extends TestCase
                 copy($fichier, $sortie . '/a.pdf');
                 file_put_contents($sortie . '/b.pdf', '%PDF-1.4 seconde sortie du moteur');
                 return [
-                    ['fichier' => $sortie . '/a.pdf', 'pages' => [86], 'texte' => 'A', 'analyse' => []],
-                    ['fichier' => $sortie . '/b.pdf', 'pages' => [86], 'texte' => 'B', 'analyse' => []],
+                    // La vision a rattaché la frontière 86 à A, mais seul le texte de B porte le
+                    // marqueur de cette page. C'est le cas réel : les plages, et non deux PDF
+                    // identiques, se recouvrent.
+                    ['fichier' => $sortie . '/a.pdf', 'pages' => [85, 86], 'texte' => "Page 85\nFacture A", 'analyse' => []],
+                    ['fichier' => $sortie . '/b.pdf', 'pages' => [86], 'texte' => "Page 86\nSuite de facture", 'analyse' => []],
                 ];
             }
         };
@@ -102,8 +105,11 @@ final class PiloteTest extends TestCase
         $p->tic(5);
         $p->tic(5);
 
-        self::assertCount(1, $this->depot->deposes);
-        self::assertSame('86', $this->depot->deposes[0]['meta']['origine']['pages']);
+        // Ce Pilote est celui que Fabrique donne à tools/tache.php : la porte couvre donc le chemin
+        // de rangement réel, pas uniquement la sortie brute de Cmd4Decoupeur.
+        self::assertCount(2, $this->depot->deposes);
+        self::assertSame('85', $this->depot->deposes[0]['meta']['origine']['pages']);
+        self::assertSame('86', $this->depot->deposes[1]['meta']['origine']['pages']);
     }
 
     public function testLaFabriqueBrancheLeClasseurEtLeReglageVision(): void
