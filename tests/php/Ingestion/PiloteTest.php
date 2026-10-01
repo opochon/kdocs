@@ -82,6 +82,30 @@ final class PiloteTest extends TestCase
         self::assertSame(0, (new Travaux($this->pdo))->bilan()['en_cours']);
     }
 
+    public function testUnePageRendueDeuxFoisParLaVisionNECreeQuUnePiece(): void
+    {
+        file_put_contents($this->tmp . '/entree/vision.pdf', '%PDF-1.4 lot');
+        $decoupeur = new class implements Decoupeur {
+            public function decouper(string $fichier, string $sortie): array
+            {
+                mkdir($sortie, 0775, true);
+                copy($fichier, $sortie . '/a.pdf');
+                file_put_contents($sortie . '/b.pdf', '%PDF-1.4 seconde sortie du moteur');
+                return [
+                    ['fichier' => $sortie . '/a.pdf', 'pages' => [86], 'texte' => 'A', 'analyse' => []],
+                    ['fichier' => $sortie . '/b.pdf', 'pages' => [86], 'texte' => 'B', 'analyse' => []],
+                ];
+            }
+        };
+        $p = $this->pilote($decoupeur);
+        $p->tic(5);
+        $p->tic(5);
+        $p->tic(5);
+
+        self::assertCount(1, $this->depot->deposes);
+        self::assertSame('86', $this->depot->deposes[0]['meta']['origine']['pages']);
+    }
+
     public function testLaFabriqueBrancheLeClasseurEtLeReglageVision(): void
     {
         $config = new Config(dirname(__DIR__, 3));

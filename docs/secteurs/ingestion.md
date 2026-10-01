@@ -84,3 +84,11 @@ ETAT: fini
 - Recette réelle rejouée (instance `GEDv2-recette`, vrai scan de 103 pages, fonds vierge) : la tâche d'ingestion découpe AVEC la vision, classe (IA Infomaniak), range 48 pièces en 7 min, indexe d'elle-même (48 textes, recherche immédiate) et rattache les droits ; l'aperçu s'ouvre pour un compte réel. Le branchement demandé est fait.
 - Ce que la recette révèle, hors du périmètre de ce lot : sur du vrai papier, l'émetteur vient d'une ligne d'en-tête OCR bruitée et la date est souvent fausse, et 19 pièces sur 48 sont validées seules dont une quinzaine fausses. Renvoyé au secteur Classement en lot R2-classement (porte sur un corpus bruité synthétique).
 - Verdict : **R1-chaine franchi** (branchement) ; qualité du classement réel suivie en R2.
+
+## Journal R2b — déduplication Vision (01-10-2026)
+
+- `Pilote` dédoublonne les numéros de page rendus par le moteur avant de créer les travaux : une pièce entièrement redondante est ignorée ; les pages inédites d’une sortie partiellement redondante restent présentes. La protection est donc côté GEDv2, même si ClearMyDocs produit le doublon.
+- Oracle rouge puis vert : `PiloteTest::testUnePageRendueDeuxFoisParLaVisionNECreeQuUnePiece` simule deux PDF distincts tous deux marqués page 86 et prouve qu’une seule pièce est déposée.
+- `tools/banc/mesurer-decoupe.php` reprend `CMD4_VISION_ENABLED` par défaut : la porte 0 page perdue / 0 page double joue aussi en Vision lorsqu’elle est configurée (l’option `--vision` reste explicite).
+
+ETAT: fini

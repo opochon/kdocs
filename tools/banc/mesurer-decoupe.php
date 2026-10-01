@@ -20,7 +20,7 @@ $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
 
 $lot = 'courrier-100p';
-$vision = false;
+$vision = filter_var((new Config($racine))->get('CMD4_VISION_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN);
 foreach (array_slice($argv, 1) as $a) {
     $a === '--vision' ? $vision = true : $lot = $a;
 }

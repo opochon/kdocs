@@ -79,7 +79,7 @@ final class Pilote
     private function decouper(array $lot): void
     {
         $sortie = $this->zoneTravail . '/pieces/' . $lot['id'];
-        $pieces = $this->decoupeur->decouper((string) $lot['chemin'], $sortie);
+        $pieces = $this->dedoublonnerPages($this->decoupeur->decouper((string) $lot['chemin'], $sortie));
         if ($pieces === []) {
             throw new \RuntimeException('le moteur n’a rendu aucune pièce');
         }
@@ -156,5 +156,38 @@ final class Pilote
             mkdir($cible, 0775, true);
         }
         @rename($chemin, $cible . '/' . basename($chemin));
+    }
+
+    /**
+     * Vision peut exceptionnellement rendre une frontière deux fois. Le moteur ClearMyDocs reste la
+     * source de découpe, mais la GED garantit son propre invariant : une page d'un lot n'entre qu'une
+     * fois dans les métadonnées des pièces. Une pièce entièrement redondante est ignorée ; si elle porte
+     * aussi des pages inédites, elles restent dans la chaîne (jamais de page perdue).
+     *
+     * @param list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}> $pieces
+     * @return list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}>
+     */
+    private function dedoublonnerPages(array $pieces): array
+    {
+        $vues = [];
+        $uniques = [];
+        foreach ($pieces as $piece) {
+            $pages = [];
+            foreach ((array) ($piece['pages'] ?? []) as $page) {
+                $page = (int) $page;
+                if ($page > 0 && !isset($vues[$page])) {
+                    $vues[$page] = true;
+                    $pages[] = $page;
+                }
+            }
+            if ($pages === []) {
+                continue;
+            }
+            sort($pages);
+            $piece['pages'] = $pages;
+            $uniques[] = $piece;
+        }
+
+        return $uniques;
     }
 }
