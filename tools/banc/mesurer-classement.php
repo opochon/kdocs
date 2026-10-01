@@ -64,8 +64,10 @@ if ($lot === 'classement-bruite') {
             (float) $ia['confiance'], 'simule-bruite');
     }
     $verite = ['elements' => $elements];
-    $oracle = ['lot' => $lot, 'seuils' => ['valides_type_faux' => 0, 'emetteurs_faux' => 0,
-        'autre_valides_seuls' => 0, 'dates_fausses' => 0, 'titres_invalides' => 0, 'taux_valide_seul_min' => 0.0],
+    $oracle = ['lot' => $lot, 'seuils' => ['valides_type_faux' => 0, 'valides_faux' => 0,
+        'emetteurs_faux' => 0, 'emetteurs_faux_valides' => 0, 'emetteurs_vides_max' => 0.15,
+        'autre_valides_seuls' => 0, 'dates_fausses' => 0, 'dates_vides_factures_max' => 0.15,
+        'titres_invalides' => 0, 'taux_valide_seul_min' => 0.0],
         'attendu' => ['documents' => count($pieces), 'valides_seuls_sans_ia' => 0, 'valides_seuls_avec_ia_min' => 3]];
     if ($avecIa && !$iaSimule) {
         fwrite(STDERR, "Le corpus classement-bruite est déterministe : utilisez --ia-simule, jamais une IA réelle.\n");
@@ -113,8 +115,9 @@ $classeur = new ClasseurGed($config, $pdo, $client, new Habitudes($pdo));
 $mode = $iaSimule ? 'avec-ia-simule' : ($avecIa ? 'avec-ia' : 'sans-ia');
 
 $t0 = microtime(true);
-$mes = ['documents' => 0, 'valides' => 0, 'valides_type_faux' => 0, 'types_faux' => 0,
-    'emetteurs_lus' => 0, 'emetteurs_faux' => 0, 'autre_valides_seuls' => 0,
+$mes = ['documents' => 0, 'valides' => 0, 'valides_type_faux' => 0, 'valides_faux' => 0, 'types_faux' => 0,
+    'emetteurs_lus' => 0, 'emetteurs_vides' => 0, 'emetteurs_faux' => 0, 'emetteurs_faux_valides' => 0,
+    'factures' => 0, 'dates_vides_factures' => 0, 'autre_valides_seuls' => 0,
     'dates_fausses' => 0, 'titres_invalides' => 0];
 $detail = [];
 foreach ($pieces as $piece) {
@@ -138,9 +141,14 @@ foreach ($pieces as $piece) {
     $mes['types_faux'] += (int) $typeFaux;
     $mes['valides'] += (int) $r['valide'];
     $mes['valides_type_faux'] += (int) ($r['valide'] && $typeFaux);
+    $mes['valides_faux'] += (int) ($r['valide'] && ($typeFaux || $emetteurFaux || $dateFausse));
     $mes['autre_valides_seuls'] += (int) ($r['valide'] && Regles::estAutre($r['type']));
     $mes['emetteurs_lus'] += (int) $emetteurLu;
+    $mes['emetteurs_vides'] += (int) !$emetteurLu;
     $mes['emetteurs_faux'] += (int) $emetteurFaux;
+    $mes['emetteurs_faux_valides'] += (int) ($r['valide'] && $emetteurFaux);
+    $mes['factures'] += (int) Regles::memeType($el['type'] ?? null, 'Facture');
+    $mes['dates_vides_factures'] += (int) (Regles::memeType($el['type'] ?? null, 'Facture') && ($r['date'] ?? null) === null);
     $mes['dates_fausses'] += (int) $dateFausse;
     $mes['titres_invalides'] += (int) $titreInvalide;
     $detail[] = [
@@ -155,14 +163,20 @@ $duree = round(microtime(true) - $t0, 2);
 $mesureIa = $client instanceof InfomaniakClient ? $client->statistiques() : ['appels' => 0, 'temps_s' => 0.0];
 $tempsParPiece = $mes['documents'] > 0 ? round($mesureIa['temps_s'] / $mes['documents'], 3) : 0.0;
 $taux = $mes['documents'] > 0 ? round($mes['valides'] / $mes['documents'], 4) : 0.0;
+$tauxEmetteursVides = $mes['documents'] > 0 ? round($mes['emetteurs_vides'] / $mes['documents'], 4) : 0.0;
+$tauxDatesVidesFactures = $mes['factures'] > 0 ? round($mes['dates_vides_factures'] / $mes['factures'], 4) : 0.0;
 $attendu = $oracle['attendu'];
 $modeAvecIa = $avecIa || $iaSimule;
 $validesAttendus = $modeAvecIa ? (int) $attendu['valides_seuls_avec_ia_min'] : (int) $attendu['valides_seuls_sans_ia'];
 $franchie = $mes['documents'] === (int) $attendu['documents']
     && $mes['valides_type_faux'] <= (int) $seuils['valides_type_faux']
+    && $mes['valides_faux'] <= (int) ($seuils['valides_faux'] ?? 0)
     && $mes['emetteurs_faux'] <= (int) $seuils['emetteurs_faux']
+    && $mes['emetteurs_faux_valides'] <= (int) ($seuils['emetteurs_faux_valides'] ?? 0)
+    && $tauxEmetteursVides <= (float) ($seuils['emetteurs_vides_max'] ?? 1.0)
     && $mes['autre_valides_seuls'] <= (int) $seuils['autre_valides_seuls']
     && $mes['dates_fausses'] <= (int) $seuils['dates_fausses']
+    && $tauxDatesVidesFactures <= (float) ($seuils['dates_vides_factures_max'] ?? 1.0)
     && $mes['titres_invalides'] <= (int) $seuils['titres_invalides']
     && ($modeAvecIa
         ? ($taux >= (float) $seuils['taux_valide_seul_min'] && $mes['valides'] >= $validesAttendus)
@@ -174,8 +188,12 @@ $res = [
     'chemin' => 'Ged\\Classement\\ClasseurGed', 'seuil' => (float) $config->get('CLASSEMENT_SEUIL', '0.8'),
     'documents' => $mes['documents'], 'valides' => $mes['valides'], 'taux_valide_seul' => $taux,
     'valides_attendus' => $validesAttendus,
-    'valides_type_faux' => $mes['valides_type_faux'], 'types_faux' => $mes['types_faux'],
-    'emetteurs_lus' => $mes['emetteurs_lus'], 'emetteurs_faux' => $mes['emetteurs_faux'],
+    'valides_type_faux' => $mes['valides_type_faux'], 'valides_faux' => $mes['valides_faux'], 'types_faux' => $mes['types_faux'],
+    'emetteurs_lus' => $mes['emetteurs_lus'], 'emetteurs_vides' => $mes['emetteurs_vides'],
+    'taux_emetteurs_vides' => $tauxEmetteursVides, 'emetteurs_faux' => $mes['emetteurs_faux'],
+    'emetteurs_faux_valides' => $mes['emetteurs_faux_valides'],
+    'factures' => $mes['factures'], 'dates_vides_factures' => $mes['dates_vides_factures'],
+    'taux_dates_vides_factures' => $tauxDatesVidesFactures,
     'autre_valides_seuls' => $mes['autre_valides_seuls'],
     'dates_fausses' => $mes['dates_fausses'], 'titres_invalides' => $mes['titres_invalides'],
     'seuils' => $seuils, 'porte' => $franchie ? 'FRANCHIE' : 'NON FRANCHIE', 'detail' => $detail,
@@ -195,11 +213,16 @@ $md = [
     '| Validés seuls | — | ' . $mes['valides'] . ' (' . round($taux * 100, 1) . ' %) |',
     '| Validés seuls attendus (' . $mode . ') | ' . $validesAttendus . ' | ' . $mes['valides'] . ' |',
     '| Validés seuls, type faux | 0 | ' . $mes['valides_type_faux'] . ' |',
+    '| Validés seuls faux (type, émetteur ou date) | 0 | ' . $mes['valides_faux'] . ' |',
     '| Types faux (validés ou non) | 0 | ' . $mes['types_faux'] . ' |',
     '| Émetteurs lus | — | ' . $mes['emetteurs_lus'] . ' |',
+    '| Émetteurs vides | ≤ ' . round(($seuils['emetteurs_vides_max'] ?? 1) * 100, 1) . ' % | ' . $mes['emetteurs_vides'] . ' (' . round($tauxEmetteursVides * 100, 1) . ' %) |',
     '| Émetteurs faux | 0 | ' . $mes['emetteurs_faux'] . ' |',
+    '| Émetteurs faux parmi validés | 0 | ' . $mes['emetteurs_faux_valides'] . ' |',
     '| « Autre » validé seul | 0 | ' . $mes['autre_valides_seuls'] . ' |',
     '| Dates fausses (en-tête) | 0 | ' . $mes['dates_fausses'] . ' |',
+    '| Dates vides des factures | ≤ ' . round(($seuils['dates_vides_factures_max'] ?? 1) * 100, 1) . ' % | '
+        . $mes['dates_vides_factures'] . '/' . $mes['factures'] . ' (' . round($tauxDatesVidesFactures * 100, 1) . ' %) |',
     '| Titres invalides (vide ou nom du lot) | 0 | ' . $mes['titres_invalides'] . ' |',
     '| Appels IA | — | ' . $mesureIa['appels'] . ' |',
     '| Temps IA / pièce | — | ' . $tempsParPiece . ' s |',
@@ -230,7 +253,9 @@ if ($aControler !== []) {
 }
 file_put_contents("$preuves/$lot-classement-$mode.md", implode("\n", $md) . "\n");
 
-printf("%s : %s — %d documents, %d validés seuls (%.1f %%), types faux %d, émetteurs faux %d, dates fausses %d, titres invalides %d, « Autre » validé %d ; porte %s\n",
-    $mode, $duree . ' s', $mes['documents'], $mes['valides'], $taux * 100, $mes['types_faux'], $mes['emetteurs_faux'],
-    $mes['dates_fausses'], $mes['titres_invalides'], $mes['autre_valides_seuls'], $res['porte']);
+printf("%s : %s — %d documents, %d validés seuls (%.1f %%), validés faux %d, types faux %d, émetteurs vides %d (%.1f %%), émetteurs faux %d, dates vides factures %d/%d (%.1f %%), dates fausses %d, titres invalides %d, « Autre » validé %d ; porte %s\n",
+    $mode, $duree . ' s', $mes['documents'], $mes['valides'], $taux * 100,
+    $mes['valides_faux'], $mes['types_faux'], $mes['emetteurs_vides'], $tauxEmetteursVides * 100, $mes['emetteurs_faux'],
+    $mes['dates_vides_factures'], $mes['factures'], $tauxDatesVidesFactures * 100, $mes['dates_fausses'],
+    $mes['titres_invalides'], $mes['autre_valides_seuls'], $res['porte']);
 exit($franchie ? 0 : 1);
