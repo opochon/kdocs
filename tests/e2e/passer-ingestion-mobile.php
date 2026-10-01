@@ -44,9 +44,6 @@ if ($verrou === false || !flock($verrou, LOCK_EX)) {
     exit(1);
 }
 
-$marque = '2099-01-01 00:00:00';
-$reserves = [];
-
 try {
     $config = new Config($racine);
     $pdo = Base::pdo($config);
@@ -58,10 +55,6 @@ try {
     if ($lot === 0) {
         throw new RuntimeException("aucun lot d'ingestion pour « $nom » (le dépôt photo a-t-il abouti ?)");
     }
-
-    // Mettre les autres travaux ouverts à l'écart le temps de ce passage (marque retirée ensuite).
-    $isole = $pdo->prepare("UPDATE ingestion_travaux SET reserve_jusqua = ? WHERE reserve_jusqua IS NULL AND id <> ? AND (etat = 'recu' OR (etat = 'pret' AND parent_id <> ?))");
-    $isole->execute([$marque, $lot, $lot]);
 
     $decoupeur = new class implements Decoupeur {
         public function decouper(string $fichier, string $sortie): array
@@ -81,14 +74,11 @@ try {
         }
     };
 
+    // La table `ingestion_travaux` est partagée : on ne passe pas par la file (« recu »/« pret »), on
+    // déroule le VRAI Pilote (découpeur, classeur, dépôt) sur CE lot et SA pièce, rien d'autre.
     $pilote = new Pilote(new Travaux($pdo), [], $decoupeur, new DepotFichiers($config),
         new ClasseurGed($config, $pdo, new ClientIaNul()), $zone, $config);
-    $pilote->tic(20);   // découpe le lot en une pièce « prête »
-    $pilote->tic(20);   // range la pièce par le dépôt réel
-
-    $piece = $pdo->prepare("SELECT document_id FROM ingestion_travaux WHERE parent_id = ? AND etat = 'range' AND document_id IS NOT NULL ORDER BY id DESC LIMIT 1");
-    $piece->execute([$lot]);
-    $document = (int) $piece->fetchColumn();
+    $document = deplierLot($pilote, $pdo, $lot);
     if ($document === 0) {
         throw new RuntimeException('passage mobile : la pièce déposée n’a pas été rangée');
     }
@@ -103,15 +93,45 @@ try {
     fwrite(STDERR, 'passage mobile : ' . $e->getMessage() . "\n");
     exit(1);
 } finally {
-    try {
-        if (isset($pdo) && $pdo instanceof PDO) {
-            $pdo->prepare('UPDATE ingestion_travaux SET reserve_jusqua = NULL WHERE reserve_jusqua = ?')->execute([$marque]);
-        }
-    } catch (Throwable) {
-        // la marque reste : elle expire d'elle-même, aucun travail n'est perdu
-    }
     flock($verrou, LOCK_UN);
     fclose($verrou);
+}
+
+/**
+ * Déroule le Pilote sur un lot PRÉCIS : découpe le lot, puis range sa pièce par le dépôt réel.
+ * Rend l'identifiant du document rangé (0 si rien n'a pu l'être). Aucune réservation partagée : le lot
+ * et la pièce sont désignés par leur identifiant, donc aucun travail d'un autre fonds ne peut être pris.
+ */
+function deplierLot(Pilote $pilote, PDO $pdo, int $lot): int
+{
+    $classe = new ReflectionClass($pilote);
+    $decouper = $classe->getMethod('decouper');
+    $ranger = $classe->getMethod('ranger');
+    $decouper->setAccessible(true);
+    $ranger->setAccessible(true);
+
+    $lireLot = $pdo->prepare('SELECT * FROM ingestion_travaux WHERE id = ?');
+    $lireLot->execute([$lot]);
+    $ligneLot = $lireLot->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($ligneLot)) {
+        throw new RuntimeException("lot d'ingestion $lot introuvable");
+    }
+    $decouper->invoke($pilote, $ligneLot);
+
+    $piece = $pdo->prepare("SELECT id FROM ingestion_travaux WHERE parent_id = ? AND etat = 'pret' ORDER BY id LIMIT 1");
+    $piece->execute([$lot]);
+    $pieceId = (int) $piece->fetchColumn();
+    if ($pieceId === 0) {
+        throw new RuntimeException("le lot $lot n'a rendu aucune pièce");
+    }
+    $lirePiece = $pdo->prepare('SELECT * FROM ingestion_travaux WHERE id = ?');
+    $lirePiece->execute([$pieceId]);
+    $ranger->invoke($pilote, (array) $lirePiece->fetch(PDO::FETCH_ASSOC));
+
+    $document = $pdo->prepare('SELECT document_id FROM ingestion_travaux WHERE id = ?');
+    $document->execute([$pieceId]);
+
+    return (int) $document->fetchColumn();
 }
 
 /** @param list<string> $pagesTextes */
