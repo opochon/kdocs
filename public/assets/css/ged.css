@@ -186,6 +186,41 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
 .fleche { width: 36px; height: 2px; background: var(--border-strong); position: relative; flex: none; }
 .fleche::after { content: ""; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left-color: var(--border-strong); }
 
+/* Workflows — éditeur graphique (repris du designer GEDv1). Couleurs uniquement par jetons. */
+.wf-editeur { display: grid; grid-template-columns: 216px minmax(0, 1fr) 300px; gap: 12px; flex: 1; min-height: 0; }
+.wf-outils, .wf-reglages, .wf-canevas-boite { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.wf-outils .volet-corps, .wf-reglages .volet-corps { overflow: auto; flex: 1; min-height: 0; }
+.wf-outil { display: block; width: calc(100% - 12px); margin: 4px 6px; padding: 7px 9px; text-align: left; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text-2); font: 500 var(--fs) var(--font); cursor: grab; }
+.wf-outil:hover { background: var(--hover); color: var(--text); }
+.wf-outil:active { cursor: grabbing; }
+.wf-canevas-boite { display: flex; flex-direction: column; min-height: 0; position: relative; }
+.wf-canevas { flex: 1; width: 100%; min-height: 360px; background: var(--surface-2); cursor: default; }
+.wf-aide { margin: 0; padding: 8px 12px; border-top: 1px solid var(--border); }
+.wf-dialogue { border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); color: var(--text); box-shadow: var(--shadow); max-width: 420px; padding: 4px; }
+.wf-dialogue::backdrop { background: rgba(12, 16, 24, .45); }
+.wf-essai-resultat { padding: 12px 14px; display: grid; gap: 8px; }
+.wf-reglages .champ input, .wf-reglages .champ select, .wf-reglages .champ textarea { width: 100%; }
+
+.wf-noeud { cursor: move; }
+.wf-noeud text { pointer-events: none; font-family: var(--font); }
+.wf-noeud .wf-nom { fill: #fff; font-weight: 600; font-size: 12px; }
+.wf-noeud .wf-type { fill: rgba(255, 255, 255, .82); font-size: 10px; }
+.wf-boite { stroke: var(--border); stroke-width: 1; }
+.wf-noeud.choisi .wf-boite { stroke: var(--text); stroke-width: 3; }
+.wf-noeud.chemin .wf-boite { stroke: var(--ok); stroke-width: 3; }
+.wf-noeud.chemin .wf-nom { fill: #fff; }
+.wf-c-accent { fill: var(--accent); } .wf-c-regle { fill: var(--regle); } .wf-c-ok { fill: var(--ok); }
+.wf-c-ia { fill: var(--ia); } .wf-c-habitude { fill: var(--habitude); } .wf-c-neutre { fill: var(--muted); }
+.wf-poignee { cursor: crosshair; fill: var(--surface); stroke: var(--text-2); stroke-width: 2; }
+.wf-poignee:hover { fill: var(--accent-soft); }
+.wf-sortie { stroke: var(--accent); }
+.wf-entree { stroke: var(--ok); }
+.wf-lien { fill: none; stroke: var(--border-strong); stroke-width: 2; color: var(--border-strong); }
+.wf-lien.chemin { stroke: var(--ok); color: var(--ok); stroke-width: 3; }
+.wf-temp { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 5; pointer-events: none; }
+@media (max-width: 1180px) { .wf-editeur { grid-template-columns: 190px minmax(0, 1fr); } .wf-reglages { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .wf-editeur { grid-template-columns: 1fr; } }
+
 /* Réglages */
 .reglages { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 14px; }
 .section-reglage { padding: 16px; display: grid; gap: 12px; }
