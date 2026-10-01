@@ -83,6 +83,12 @@
         <button class="btn" type="button" data-action="suivant" data-testid="action-passer">Passer<span class="kbd">→</span></button>
       </div>
     </section>
+
+    {# Téléphone (V2-10b) : le bilan d'ingestion devient UNE ligne compacte, placée APRÈS la pièce
+       courante — la pièce reste d'abord. Les trois cartes ne s'affichent que sur ordinateur. #}
+    <p class="bilan-ligne" data-testid="bilan-ligne">
+      {{ bilan.a_controler }} à contrôler · {{ bilan.auto }} classés seuls{% if bilan.en_cours > 0 %} · {{ bilan.en_cours }} en lecture{% endif %}
+    </p>
   </div>
 </div>
 {% endblock %}

@@ -51,8 +51,10 @@
   </header>
 
   <main class="contenu" id="contenu">
-    {# Écrans d'ordinateur signalés sur téléphone (V2-10a) : accessibles, mais annoncés comme tels. #}
-    {% if ecran in ['bibliotheque', 'metadonnees', 'workflows', 'application'] %}
+    {# Écrans d'ordinateur signalés sur téléphone (V2-10a) : accessibles, mais annoncés comme tels. La fiche
+       document, la recherche et À traiter font partie du périmètre mobile (V2-10b) : `avis_ordinateur`
+       permet à un écran de se retirer de la liste sans changer son entrée de rail. #}
+    {% if ecran in ['bibliotheque', 'metadonnees', 'workflows', 'application'] and (avis_ordinateur ?? true) %}
     <div class="avis-ordinateur" role="note" data-testid="ecran-ordinateur">
       {{ ic.i('biblio') }}Cet écran est conçu pour l’ordinateur : sur téléphone, l’affichage reste complet mais dense.
     </div>

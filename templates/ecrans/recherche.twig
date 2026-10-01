@@ -11,29 +11,40 @@
     <div class="actions">
       <form class="filtres" data-testid="filtres" action="/recherche" method="get" role="search">
         <input type="hidden" name="q" value="{{ q }}">
-        <label class="chip" for="filtre-type">Type
-          <select id="filtre-type" name="type" data-testid="filtre-type">
-            <option value="">tous</option>
-            {% for t in types_filtre %}<option value="{{ t }}"{% if filtres.type == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
-          </select>
-        </label>
-        <label class="chip" for="filtre-emetteur">Émetteur
-          <input id="filtre-emetteur" name="emetteur" value="{{ filtres.emetteur }}" data-testid="filtre-emetteur" size="10">
-        </label>
-        <label class="chip" for="filtre-date-debut">Du
-          <input id="filtre-date-debut" type="date" name="date_debut" value="{{ filtres.date_debut }}" data-testid="filtre-date-debut">
-        </label>
-        <label class="chip" for="filtre-date-fin">Au
-          <input id="filtre-date-fin" type="date" name="date_fin" value="{{ filtres.date_fin }}" data-testid="filtre-date-fin">
-        </label>
-        <label class="chip" for="filtre-montant-min">Montant min
-          <input id="filtre-montant-min" name="montant_min" value="{{ filtres.montant_min }}" data-testid="filtre-montant-min" size="6">
-        </label>
-        <label class="chip" for="filtre-montant-max">max
-          <input id="filtre-montant-max" name="montant_max" value="{{ filtres.montant_max }}" data-testid="filtre-montant-max" size="6">
-        </label>
-        <button class="btn discret" type="submit" data-testid="action-filtrer">Filtrer</button>
-        {% if filtres_actifs %}<a class="btn discret" href="/recherche?q={{ q|url_encode }}" data-testid="action-effacer-filtres">Effacer les filtres</a>{% endif %}
+        {# V2-10b : sur téléphone, les filtres vivent derrière un bouton « Filtres » qui ouvre un panneau
+           pleine largeur, un champ par ligne. Sur ordinateur, le panneau est `display:contents` : la
+           rangée de puces reste identique. Ouvert par défaut (sans JS, l'ordinateur est complet), le JS
+           le replie au point de rupture téléphone. #}
+        <details class="filtres-panneau" data-testid="filtres-panneau" open>
+          <summary class="btn discret" data-testid="action-filtres">{{ ic.i('vue') }}Filtres{% if filtres_actifs %}<span class="filtres-actifs" aria-hidden="true">●</span>{% endif %}</summary>
+          <div class="filtres-champs">
+            <label class="chip" for="filtre-type">Type
+              <select id="filtre-type" name="type" data-testid="filtre-type">
+                <option value="">tous</option>
+                {% for t in types_filtre %}<option value="{{ t }}"{% if filtres.type == t %} selected{% endif %}>{{ t }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="chip" for="filtre-emetteur">Émetteur
+              <input id="filtre-emetteur" name="emetteur" value="{{ filtres.emetteur }}" data-testid="filtre-emetteur" size="10">
+            </label>
+            <label class="chip" for="filtre-date-debut">Du
+              <input id="filtre-date-debut" type="date" name="date_debut" value="{{ filtres.date_debut }}" data-testid="filtre-date-debut">
+            </label>
+            <label class="chip" for="filtre-date-fin">Au
+              <input id="filtre-date-fin" type="date" name="date_fin" value="{{ filtres.date_fin }}" data-testid="filtre-date-fin">
+            </label>
+            <label class="chip" for="filtre-montant-min">Montant min
+              <input id="filtre-montant-min" name="montant_min" value="{{ filtres.montant_min }}" data-testid="filtre-montant-min" size="6">
+            </label>
+            <label class="chip" for="filtre-montant-max">max
+              <input id="filtre-montant-max" name="montant_max" value="{{ filtres.montant_max }}" data-testid="filtre-montant-max" size="6">
+            </label>
+          </div>
+          <div class="filtres-pied">
+            <button class="btn discret" type="submit" data-testid="action-filtrer">Filtrer</button>
+            {% if filtres_actifs %}<a class="btn discret" href="/recherche?q={{ q|url_encode }}" data-testid="action-effacer-filtres">Effacer les filtres</a>{% endif %}
+          </div>
+        </details>
       </form>
       <button class="btn discret" type="button" data-testid="action-enregistrer-vue">Enregistrer comme vue</button>
     </div>

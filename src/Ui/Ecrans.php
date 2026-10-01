@@ -140,8 +140,10 @@ final class Ecrans
             $reel = null;
         }
 
+        // La fiche fait partie du périmètre mobile (V2-10b) : pas d'avis « écran conçu pour l'ordinateur »,
+        // tout en gardant Bibliothèque comme entrée de rail courante.
         return $this->vue->rendre($rep, 'ecrans/document.twig',
-            $this->commun('bibliotheque') + ['doc' => $reel ?? Maquette::document($id)]);
+            $this->commun('bibliotheque') + ['avis_ordinateur' => false, 'doc' => $reel ?? Maquette::document($id)]);
     }
 
     public function workflows(Requete $req, Reponse $rep): Reponse

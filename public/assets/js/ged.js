@@ -101,3 +101,68 @@ if (fileATraiter || formulaireValidation) {
     }, { passive: true });
   }
 }
+
+// Recherche (V2-10b) : sur téléphone, les filtres sont repliés derrière le bouton « Filtres » ; ouverts, ils
+// tiennent un champ par ligne. Le gabarit est ouvert par défaut (ordinateur complet même sans JS).
+document.querySelectorAll('[data-testid="filtres-panneau"]').forEach((panneau) => {
+  if (panneau instanceof HTMLDetailsElement && matchMedia('(max-width: 768px)').matches) {
+    panneau.open = false;
+  }
+});
+
+// Déposer (V2-10b) : deux gestes français pilotent le SEUL champ de fichier (capture pour la photo), et la
+// liste des fichiers choisis montre leurs vignettes. Le contrôle natif anglais n'est jamais visible.
+const champFichier = document.querySelector('[data-testid="champ-photo"]');
+if (champFichier instanceof HTMLInputElement) {
+  const choisir = (photo) => {
+    if (photo) champFichier.setAttribute('capture', 'environment');
+    else champFichier.removeAttribute('capture');
+    champFichier.click();
+  };
+  document.querySelector('[data-action="photo"]')?.addEventListener('click', () => choisir(true));
+  document.querySelector('[data-action="fichiers"]')?.addEventListener('click', () => choisir(false));
+
+  const listeFichiers = document.querySelector('[data-testid="liste-fichiers"]');
+  if (listeFichiers) {
+    champFichier.addEventListener('change', () => {
+      listeFichiers.replaceChildren();
+      for (const fichier of champFichier.files ?? []) {
+        const item = document.createElement('li');
+        item.className = 'depot-fichier';
+        item.setAttribute('data-testid', `fichier-${fichier.name}`);
+        const vignette = document.createElement('span');
+        vignette.className = 'depot-vignette';
+        if (fichier.type.startsWith('image/')) {
+          // La CSP de la GED n'autorise que 'self' : ni blob: ni data: pour un <img>. On décode le fichier
+          // en mémoire et on le dessine dans un canvas — la vignette ne charge donc aucune URL.
+          const canvas = document.createElement('canvas');
+          canvas.width = 44;
+          canvas.height = 44;
+          vignette.appendChild(canvas);
+          if (typeof createImageBitmap === 'function') {
+            createImageBitmap(fichier).then((bitmap) => {
+              const contexte = canvas.getContext('2d');
+              const rapport = Math.max(canvas.width / bitmap.width, canvas.height / bitmap.height);
+              const largeur = bitmap.width * rapport;
+              const hauteur = bitmap.height * rapport;
+              contexte.drawImage(bitmap, (canvas.width - largeur) / 2, (canvas.height - hauteur) / 2, largeur, hauteur);
+              bitmap.close();
+            }).catch(() => { vignette.textContent = 'IMG'; });
+          } else {
+            vignette.textContent = 'IMG';
+          }
+        } else {
+          vignette.textContent = 'PDF';
+        }
+        const nom = document.createElement('span');
+        nom.className = 'depot-nom';
+        nom.textContent = fichier.name;
+        const taille = document.createElement('span');
+        taille.className = 'depot-taille';
+        taille.textContent = fichier.size < 1024 ? `${fichier.size} o` : `${Math.round(fichier.size / 1024)} Ko`;
+        item.append(vignette, nom, taille);
+        listeFichiers.appendChild(item);
+      }
+    });
+  }
+}

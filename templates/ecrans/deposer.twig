@@ -31,12 +31,19 @@
 
   <form class="carte depot-form" method="post" action="/deposer" enctype="multipart/form-data" data-testid="formulaire-depot">
     <input type="hidden" name="csrf" value="{{ csrf }}">
-    <div class="champ">
-      <label for="champ-photo">Prendre une photo ou choisir des fichiers</label>
-      <input id="champ-photo" data-testid="champ-photo" type="file" name="fichiers[]"
-        accept="image/*,application/pdf" capture="environment" multiple required>
+    <div class="champ depot-choix">
+      <span class="depot-titre">Ajouter des documents</span>
+      {# V2-10b : deux gestes français explicites ; le champ natif (et son libellé anglais) reste masqué.
+         « Prendre une photo » ouvre l'appareil (capture) ; « Choisir des fichiers » ouvre le sélecteur. #}
+      <div class="depot-boutons">
+        <button class="btn primaire" type="button" data-action="photo" data-testid="action-photo">{{ ic.i('appareil') }}Prendre une photo</button>
+        <button class="btn" type="button" data-action="fichiers" data-testid="action-fichiers">{{ ic.i('fichier') }}Choisir des fichiers</button>
+      </div>
+      <input id="champ-photo" class="champ-fichier" data-testid="champ-photo" type="file" name="fichiers[]"
+        accept="image/*,application/pdf" capture="environment" multiple>
       <span class="muted">Plusieurs photos possibles ; chaque fichier rejoint la file d’ingestion.</span>
     </div>
+    <ul class="depot-liste" data-testid="liste-fichiers" aria-live="polite"></ul>
     <div class="pied-depot">
       <button class="btn primaire" type="submit" data-testid="action-envoyer">{{ ic.i('check') }}Envoyer</button>
     </div>
