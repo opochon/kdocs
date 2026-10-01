@@ -460,3 +460,95 @@ ETAT: fini
   - les extraits « Documents semblables » de la recherche affichent du texte OCR brut ;
   - le texte d'invite de la barre de recherche est tronqué sur 390 px.
 - Verdict : **V2-10b franchi** (étape 1 mobile, « les mêmes écrans adaptés au smartphone »).
+
+## Journal PERF-3 / V2-10c — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Deux lots dans l'ordre : **PERF-3** (Bibliothèque sur gros fonds)
+puis **V2-10c** (les trois finitions du jugement V2-10b).
+
+### PERF-3 — cause mesurée, avant/après
+
+Cause trouvée en mesurant (fonds de 10 000 pièces, base `gedv2_test`, `Handler_read_rnd_next`, EXPLAIN,
+temps Twig et requête HTTP) : `EcranBibliotheque::donnees()` lisait **tout** l'index — la colonne `meta`,
+copie de chaque `.meta.json` (5,7 Mo) — puis bâtissait la liste ENTIÈRE et Twig rendait **10 000 lignes**
+(3,36 Mo de HTML). Sur un serveur `php -S` mono-processus, plusieurs workers font la queue derrière ce
+rendu : c'est la Bibliothèque SEULE qui dépassait 1,5 s, les autres écrans lisant déjà une file bornée.
+
+| Mesure (10 000 documents) | Avant | Après |
+|---|---|---|
+| `donnees()` | 87 ms | **17 ms** |
+| Lignes de la liste | 10 000 | **100** (1 page / 100) |
+| Rendu Twig | 119 ms | **40 ms** |
+| HTML de l'écran | 3 357 204 o (3,3 Mo) | **48 818 o** |
+| `Handler_read_rnd_next` de `donnees()` | +10 001 | **+0** |
+| Requête HTTP à froid | 289 ms (3 376 058 o) | **98 ms** (49 226 o) |
+| Charge (banc, p95 lecture) | 412–5 700 ms selon la charge partagée | p95 lecture du banc à rejouer |
+
+**Oracle d'abord (rouge, puis vert)** : `tests/php/Perf/BibliothequeBorneeTest.php` — 10 000 pièces
+synthétiques insérées dans la base de TEST puis retirées ; exigences : liste ≤ 1 page, HTML borné, lecture
+SQL bornée (`Handler_read_rnd_next`), écran < 1,5 s à froid. Écrit **ROUGE** (20 053 lignes lues),
+puis **VERT** après correction. Complété par `tests/php/Perf/BibliothequeFiltresTest.php` : pour 13 jeux
+de filtres (colonnes ET champs personnalisés JSON), le compte et la première page SQL sont identiques à
+`Vues::filtrerDocs` (la sémantique de référence).
+
+**Fait**
+1. **Liste paginée CÔTÉ BASE** (`src/Socle/EcranBibliotheque.php`) : `LIMIT/OFFSET` de 100, plus récent
+   d'abord (`ORDER BY id DESC`), et seulement les colonnes de l'écran — la colonne `meta` n'est plus lue
+   pour une liste. Pager (`page`, `pages`, liens précédent/suivant) dans le gabarit ; toutes les pièces
+   restent atteignables. Le contenu (colonnes, valeurs, droits) est inchangé ; seule la présentation passe
+   par des pages (plan : « liste au centre, 100 lignes puis défilement »).
+2. **Comptages bornés** : `COUNT(*)` indexé pour le fonds, une requête indexée par vue (les filtres
+   compilés sont traduits en SQL, y compris `meta.champs` — dates, nombres, booléens, texte). Plus de
+   « on filtre tout le fonds par vue ».
+3. **Arbre d'un seul passage indexé** (`FORCE INDEX (k_vivant)` sur `chemin_relatif`), avec repli honnête
+   si un chemin atteint le préfixe d'index.
+4. **Aperçu par identifiant** : le document `?doc=` est résolu par une ligne (`WHERE id = ?`), plus par un
+   balayage de la liste.
+5. **Migration d'index** : `k_vivant (supprime_le, absent_depuis, chemin_relatif(700))` — *fichier partagé,
+   à commiter par le juge* (voir ci-dessous).
+
+**Preuves** — `php vendor/bin/phpunit tests/php/Perf/BibliothequeBorneeTest.php` : **4/4** ;
+`BibliothequeParIndexTest` : **2/2** (mis à jour au contrat paginé) ; `BibliothequeFiltresTest` : **13/13**.
+`npx playwright test maquettes.spec.ts` : **12/12** — dont « écran bibliothèque » (l'ancien rouge de
+1,5 s a disparu). `bibliotheque.spec.ts` + `ecrans-reels.spec.ts` + `recherche.spec.ts` : **13/13**.
+
+### V2-10c — les trois finitions du jugement V2-10b
+
+**Oracle d'abord (rouge, puis vert)** — `tests/e2e/mobile.spec.ts` étendu (iPhone 13 + Pixel 7) :
+(a) `resume-proposition` visible SANS défilement, **juste au-dessus** de « Valider », avec type et émetteur ;
+(b) sur un document au texte OCR **bruité** (jeton unique), la carte garde titre/type/émetteur/date mais ne
+porte **aucun** extrait ; (c) l'invite de recherche est entièrement visible sur 390 px (largeur du texte
+mesurée au canvas vs place du champ). L'heuristique d'extraits est testée en unitaire
+(`tests/php/ExtraitsLisiblesTest.php`, écrit ROUGE — classe absente — puis VERT).
+
+**Fait**
+1. **a) Résumé compact** (`templates/ecrans/a-traiter.twig`, `ged.css`) : `type · émetteur · date` et le
+   motif (« à contrôler · … ») sur une ligne pleine largeur AU-DESSUS des trois gestes, dans le pied fixe
+   (téléphone seulement). Le pied grandit : la réserve basse de page passe de 150 à 230 px pour que la
+   file reste atteignable au-dessus de lui.
+2. **b) Extraits lisibles** (`src/Ui/ExtraitsLisibles.php`, `src/Ui/Ecrans.php`,
+   `templates/ecrans/recherche.twig`) : heuristique sobre sans dictionnaire — ≥ 60 % de lettres et ≥ 60 %
+   des mots portant une voyelle, au moins 3 mots ; sinon l'extrait n'est pas rendu. Le titre, le type,
+   l'émetteur et la date restent affichés.
+3. **c) Invite de recherche** (`templates/layout.twig`, `ged.js`) : sous 480 px, l'invite courte
+   « Rechercher » remplace la phrase longue (la version longue revient au-dessus).
+
+**Preuves** — `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13 + Pixel 7).
+`php vendor/bin/phpunit tests/php/ExtraitsLisiblesTest.php` : 6/6 ; `tests/php/EcransTest.php` : 16/16.
+
+**À commiter par le juge (fichier partagé — je n'y commite pas)**
+- `src/Socle/Schema.php` : index `k_vivant (supprime_le, absent_depuis, chemin_relatif(700))` dans
+  `CREATE TABLE documents` + `assurerIndexVivant()` (idempotent, pour les bases créées avant lui). Sans
+  lui, le comptage des vivants et l'arbre repassent par un parcours du fonds.
+
+**Demandes**
+- **Socle / Vue d'ensemble** : `Fonds::indexes()` n'est plus appelé par la Bibliothèque ; il reste le repli
+  « base sans index » d'autres chemins. À nettoyer un jour si `parId` couvre tout.
+- **Vue d'ensemble** : l'ordre par défaut de la Bibliothèque est désormais « plus récent d'abord »
+  (`id DESC`) — l'ancien ordre par chemin n'était pas un contrat explicite ; à figer au contrat si besoin.
+
+**Commits**
+`f290f8f` oracle PERF-3 · `1ed2aa9` bibliothèque paginée (Socle + tests) · `1fee6c2` pager et repli
+maquette · `81457da` oracle V2-10c extraits lisibles · `56778eb` extraits lisibles branchés · `b1bc706` mobile V2-10c.
+
+ETAT: fini
