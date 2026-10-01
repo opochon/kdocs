@@ -138,8 +138,13 @@ try {
         ->execute([hash('sha256', 'oracle-ecrans-' . bin2hex(random_bytes(4))), 'lot-oracle-ecrans.pdf',
             $zone . '/recus/lot-oracle-ecrans.pdf']);
 
-    // Appairage ClearMyMails actif : l'écran Application doit le voir (état réel des Jonctions).
-    (new Jetons($pdo))->creerAppairage('cmm', 'poste-oracle-ecrans', $compteId, $identifiant);
+    // Appairage ClearMyMails actif : l'écran Application doit le voir (état réel des Jonctions). Un seul
+    // suffit — on n'empile pas une ligne par passage d'oracle (la table de test est partagée).
+    $dejaRelie = (int) $pdo->query("SELECT COUNT(*) FROM jonctions_jetons WHERE nature = 'appareil'"
+        . " AND LOWER(application) = 'cmm' AND revoque_le IS NULL")->fetchColumn();
+    if ($dejaRelie === 0) {
+        (new Jetons($pdo))->creerAppairage('cmm', 'poste-oracle-ecrans', $compteId, $identifiant);
+    }
 
     // Le compteur de la file « à traiter » de CE fonds : chemin indexé ET fichier présent (le dossier fait foi).
     $compteur = 0;
