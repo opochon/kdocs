@@ -17,13 +17,12 @@ final class Regles
 {
     /** Indices forts, du plus spécifique au plus générique. Un contrat de travail est RH, pas Contrat. */
     private const INDICES = [
-        // La nature d'un envoi prime sur les objets qu'il cite : une convocation qui parle d'un
-        // contrat reste un courrier, elle n'est pas le contrat.
-        'Courrier' => ['convocation', 'demande de documents', 'rappel', 'communication'],
         'Document RH' => ['attestation de travail', 'certificat de travail', 'fiche de paie', 'bulletin de paie',
             'contrat de travail', 'decompte de salaire', 'employeur', 'lohn'],
         'Avis d’impôt' => ['avis d impot', 'bordereau d impot', 'taxation fiscale', 'steuerveranlagung', 'steuerrechnung', 'avviso fiscale'],
-        'Police d’assurance' => ['police assurance', 'police d assurance', 'versicherungspolice', 'versicherungsschein', 'polizza assicurativa', 'polizza'],
+        'Police d’assurance' => ['police assurance', 'police d assurance', 'versicherungspolice', 'versicherungsschein',
+            'polizza assicurativa', 'polizza', 'police automobile', 'police accident', 'avis de prime',
+            'numero de police', 'numéro de police', 'prime annuelle', 'couverture assurance', 'assure'],
         'Décision' => ['decision', 'decisione', 'decision administrative', 'decision judiciaire', 'decision sur', 'verfugung', 'bescheid', 'sentenza', 'provvedimento'],
         'Décompte' => ['decompte', 'decompte de prestations', 'abrechnung', 'abrechnung leistungen', 'conteggio', 'conteggio prestazioni'],
         'Relevé' => ['releve', 'releve de compte', 'releve bancaire', 'kontoauszug', 'auszug', 'estratto conto', 'estratto'],
@@ -33,6 +32,8 @@ final class Regles
         'Contrat' => ['gage hypothecaire', 'gage hypothécaire', 'convention hypothecaire', 'convention hypothécaire',
             'contrat', 'convention', 'avenant', 'soussign', 'les parties', 'vertrag', 'police'],
         'Reçu' => ['recu', 'quittance', 'ticket', 'quittung', 'encaisse', 'paye le'],
+        // La nature d'un envoi prime seulement en l'absence d'un marqueur de pièce métier.
+        'Courrier' => ['convocation', 'demande de documents', 'rappel', 'communication'],
     ];
 
     /** Sous-cas dont le libellé désigne la pièce, même si une colonne OCR cite un autre type. */
@@ -106,17 +107,22 @@ final class Regles
     public static function typeEtPreuve(string $texte): ?array
     {
         $n = self::normaliser($texte);
-        foreach (self::INDICES['Courrier'] as $indice) {
-            if (self::contientMot($n, $indice)) {
-                return ['type' => 'Courrier', 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
-            }
-        }
         foreach (self::INDICES_PRECIS as $type => $indices) {
             foreach ($indices as $indice) {
                 if (self::contientMot($n, $indice)) {
                     return ['type' => $type, 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
                 }
             }
+        }
+        $indiceCourrier = null;
+        foreach (self::INDICES['Courrier'] as $indice) {
+            if (self::contientMot($n, $indice)) {
+                $indiceCourrier = $indice;
+                break;
+            }
+        }
+        if ($indiceCourrier !== null && !self::porteMarqueurPieceMetier($n)) {
+            return ['type' => 'Courrier', 'preuve' => $indiceCourrier, 'confiance' => self::CONF_FORTE];
         }
         foreach (self::INDICES as $type => $indices) {
             if ($type === 'Courrier') {
@@ -127,6 +133,12 @@ final class Regles
                     return ['type' => $type, 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
                 }
             }
+        }
+        // Une convocation, demande, rappel ou communication reste un courrier si elle ne porte pas
+        // elle-même les marqueurs d'une police, facture, décompte… Les lettres jointes aux polices
+        // ne doivent donc pas effacer la nature de la pièce.
+        if ($indiceCourrier !== null) {
+            return ['type' => 'Courrier', 'preuve' => $indiceCourrier, 'confiance' => self::CONF_FORTE];
         }
         if (self::contientMot($n, self::INDICE_COURRIER)) {
             return ['type' => 'Courrier', 'preuve' => self::INDICE_COURRIER, 'confiance' => self::CONF_COURRIER];
@@ -151,14 +163,17 @@ final class Regles
      * si elle n'a pas les marqueurs d'une organisation. Cela laisse remonter un logo/pied de page lu par
      * OCR, mais écarte « KKK KK », « Adresse principal: » et les phrases de corps.
      */
-    public static function lireEmetteur(string $texte, string $proprietaire = ''): ?string
+    public static function lireEmetteur(string $texte, string $proprietaire = '', array $destinatairesConnus = []): ?string
     {
         $extrait = mb_substr($texte, 0, 2000);
+        $destinataires = array_map(static fn (string $nom): string => self::normaliser($nom), array_merge(
+            self::lireDestinataires($extrait), $destinatairesConnus,
+        ));
 
         if (preg_match_all('/\*\*(.+?)\*\*/s', $extrait, $m)) {
             foreach ($m[1] as $brut) {
                 $candidat = self::extraireOrganisation($brut);
-                if (self::candidatEmetteur($candidat, $proprietaire)) {
+                if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
             }
@@ -166,7 +181,7 @@ final class Regles
         if (preg_match_all('/^#{1,6}\s+(.+)$/m', $extrait, $m)) {
             foreach ($m[1] as $brut) {
                 $candidat = self::extraireOrganisation($brut);
-                if (self::candidatEmetteur($candidat, $proprietaire)) {
+                if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
             }
@@ -174,12 +189,47 @@ final class Regles
         $lignes = preg_split('/\R/', $extrait) ?: [];
         foreach ($lignes as $ligne) {
             $candidat = self::extraireOrganisation($ligne);
-            if (self::candidatEmetteur($candidat, $proprietaire)) {
+            if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
                 return $candidat;
             }
         }
 
         return null;
+    }
+
+    /** @return list<string> Noms situés dans le bloc postal du destinataire, jamais des émetteurs. */
+    public static function lireDestinataires(string $texte): array
+    {
+        $lignes = preg_split('/\R/', mb_substr($texte, 0, 1200)) ?: [];
+        $resultat = [];
+        foreach ($lignes as $i => $ligne) {
+            $candidat = self::extraireOrganisation($ligne);
+            if ($candidat === '' || !self::candidatEmetteur($candidat, '')) {
+                continue;
+            }
+            $voisines = implode("\n", array_slice($lignes, $i + 1, 3));
+            $avant = implode("\n", array_slice($lignes, max(0, $i - 2), min(2, $i)));
+            $apresMadameMonsieur = preg_match('/\b(madame|monsieur)\b/ui', $avant) === 1;
+            $blocPostal = preg_match('/\b(rue|route|avenue|chemin|place|allee|allée)\b/ui', $voisines) === 1
+                && preg_match('/(?m)^\s*\d{4}\s+\p{L}/u', $voisines) === 1;
+            // Un bloc postal anonyme n'est une destination que si un autre en-tête institutionnel
+            // apparaît ensuite : cela évite de rejeter l'adresse normale d'un expéditeur seul.
+            $autreEntete = false;
+            if ($blocPostal) {
+                foreach (array_slice($lignes, $i + 1, 20) as $suivante) {
+                    $autre = self::extraireOrganisation($suivante);
+                    if ($autre !== '' && self::candidatEmetteur($autre, '') && !self::memeType($autre, $candidat)) {
+                        $autreEntete = true;
+                        break;
+                    }
+                }
+            }
+            if ($apresMadameMonsieur || ($blocPostal && $autreEntete)) {
+                $resultat[] = $candidat;
+            }
+        }
+
+        return array_values(array_unique($resultat));
     }
 
     /** Deux noms qui désignent le même dossier métier (un type précis et son type parent). */
@@ -216,14 +266,19 @@ final class Regles
     }
 
     /** Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation. */
-    public static function emetteurIaCredible(string $texte, ?string $nom, string $proprietaire = ''): ?string
+    public static function emetteurIaCredible(string $texte, ?string $nom, string $proprietaire = '', array $destinatairesConnus = []): ?string
     {
         if ($nom === null) {
             return null;
         }
         $candidat = self::canonicaliserEmetteur(self::nettoyer($nom));
 
-        return self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
+        $destinataires = array_map(static fn (string $destinataire): string => self::normaliser($destinataire), array_merge(
+            self::lireDestinataires($texte), $destinatairesConnus,
+        ));
+
+        return !in_array(self::normaliser($candidat), $destinataires, true)
+            && self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
     }
 
     /** Le nom se lit-il vraiment dans le texte ? (le modèle recopie volontiers un nom de sa liste) */
@@ -359,7 +414,7 @@ final class Regles
      */
     public static function titrePiece(string $texte, ?string $type, ?string $emetteur, ?string $date): ?string
     {
-        if (preg_match('/^\s*[#>*_\s]*Concerne\s*:\s*(.+?)\s*$/mi', $texte, $m) === 1) {
+        if (preg_match('/^\s*[#>*_\s]*(?:Concerne|Objet|Betreff|Oggetto)\s*:\s*(.+?)\s*$/mi', $texte, $m) === 1) {
             $t = self::nettoyer($m[1]);
             if ($t !== '') {
                 return mb_substr($t, 0, 200);
@@ -381,6 +436,18 @@ final class Regles
         return $morceaux !== [] ? mb_substr(implode(' ', $morceaux), 0, 200) : null;
     }
 
+    /** Un titre réduit à une date OCR n'est pas un titre de pièce. */
+    public static function titreUtilisable(?string $titre): bool
+    {
+        $titre = trim((string) $titre);
+        if ($titre === '') {
+            return false;
+        }
+
+        return preg_match('/^\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}$/', $titre) !== 1
+            && preg_match('/^\d{4}[.\/-]\d{1,2}[.\/-]\d{1,2}$/', $titre) !== 1;
+    }
+
     private static function contientMot(string $texteNormalise, string $indice): bool
     {
         return $texteNormalise !== '' && str_contains(' ' . $texteNormalise . ' ', ' ' . $indice . ' ');
@@ -394,15 +461,36 @@ final class Regles
         $ligne = trim((string) preg_replace('/\s+/', ' ', $ligne));
         // Débris de reconnaissance au début d'un logo/pied de page : on ne les garde que s'ils
         // précèdent une vraie raison sociale, contrôlée ensuite par candidatEmetteur().
-        $ligne = preg_replace('/^(?:(?:\[[^\]]{0,30}\]|\([^)]{0,30}\)|[{}|~^`«»._-]+)\s*|(?:xx|ee|ooo|lll)\s+)+/iu', '', $ligne) ?? $ligne;
+        $ligne = preg_replace('/^(?:(?:\[[^\]]{0,30}\]|\([^)]{0,30}\)|[^\p{L}\p{N}]+)\s*|(?:xx|ee|ooo|lll)\s+)+/iu', '', $ligne) ?? $ligne;
 
         return trim($ligne);
+    }
+
+    /** Une lettre ne masque pas une police, une facture ou un décompte qu'elle accompagne. */
+    private static function porteMarqueurPieceMetier(string $texteNormalise): bool
+    {
+        foreach (['Police d’assurance', 'Facture', 'Décompte'] as $type) {
+            foreach (self::INDICES[$type] as $indice) {
+                if (self::contientMot($texteNormalise, $indice)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** Extrait une raison sociale d'une ligne de logo/pied de page, sans conserver IBAN, IDE ou colonnes. */
     private static function extraireOrganisation(string $ligne): string
     {
         $ligne = self::nettoyer($ligne);
+        // Les glyphes résiduels dans un nom sont un signe OCR, pas une raison sociale. Une ponctuation
+        // de raison sociale usuelle reste admise (apostrophe, trait d'union, barre et esperluette).
+        if ($ligne === '' || preg_match('/[^\p{L}\p{N}\s\'’\.\-&\/]/u', $ligne) === 1
+            || preg_match('/\bpopulation\s+per\.?\b/ui', $ligne) === 1) {
+            return '';
+        }
+        $ligne = self::rognerBruitEnTete($ligne);
         if (str_contains($ligne, ':') || preg_match('/\b(lieu|date|reference|référence|votre|vos)\b/ui', $ligne) === 1) {
             return '';
         }
@@ -459,6 +547,14 @@ final class Regles
             return false;
         }
         $mots = preg_split('/\s+/', $n) ?: [];
+        $particules = ['de', 'du', 'des', 'la', 'le', 'd', 'van', 'von', 'del', 'di', 'et', 'sa', 'ag', 'sarl', 'sagl', 'gmbh'];
+        if (in_array($mots[0] ?? '', ['en', 'de', 'des', 'ces'], true)
+            || array_filter($mots, static fn (string $mot): bool => strlen($mot) <= 2 && !in_array($mot, $particules, true)) !== []) {
+            return false;
+        }
+        if (preg_match('/\b(en|de|des|ces)\s+(assurance|assurances|banque|banques|service|services)\b/', $n) === 1) {
+            return false;
+        }
         $vocabulaireType = ['assurance', 'assurances', 'vehicule', 'vehicules', 'automobile', 'police', 'contrat',
             'convention', 'facture', 'releve', 'attestation', 'communication', 'rappel'];
         if (array_filter($mots, static fn (string $mot): bool => !in_array($mot, $vocabulaireType, true)
@@ -488,6 +584,29 @@ final class Regles
         }
 
         return true;
+    }
+
+    /** Retire de petits débris OCR initiaux seulement s'il reste une raison sociale structurée. */
+    private static function rognerBruitEnTete(string $ligne): string
+    {
+        $mots = preg_split('/\s+/', $ligne) ?: [];
+        while (count($mots) > 2) {
+            $premier = self::normaliser((string) $mots[0]);
+            if (in_array($premier, ['en', 'de', 'des', 'ces', 're', 'al', 'le', 'la', 'du'], true)
+                || strlen($premier) > 2) {
+                break;
+            }
+            $reste = implode(' ', array_slice($mots, 1));
+            // Ne rogne pas une phrase arbitraire : il faut ensuite une forme institutionnelle et au
+            // moins deux mots lisibles avant/avec celle-ci.
+            if (preg_match('/\b(s\.?\s*a\.?|ag|sàrl|sarl|gmbh|fondation|association|banque|assurance|office|energie)\b/ui', $reste) !== 1
+                || count(array_filter(explode(' ', self::normaliser($reste)), static fn (string $mot): bool => strlen($mot) >= 3)) < 2) {
+                break;
+            }
+            array_shift($mots);
+        }
+
+        return implode(' ', $mots);
     }
 
     /** @return list<string> */

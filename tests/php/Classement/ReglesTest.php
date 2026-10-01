@@ -175,7 +175,7 @@ final class ReglesTest extends TestCase
         return [
             'convocation qui cite un contrat' => ["CONVOCATION\nObjet : entretien relatif à votre contrat\n", 'Courrier'],
             'demande de documents qui cite une attestation' => ["DEMANDE DE DOCUMENTS\nVeuillez joindre votre attestation\n", 'Courrier'],
-            'rappel qui cite une police' => ["RAPPEL\nVotre police d'assurance reste consultable\n", 'Courrier'],
+            'rappel sans marqueur de piece' => ["RAPPEL\nVeuillez prendre contact avec notre service\n", 'Courrier'],
             'communication qui cite un contrat' => ["COMMUNICATION\nConcernant la convention annuelle\n", 'Courrier'],
             'gage hypothecaire avec decompte' => ["CONVENTION DE GAGE HYPOTHECAIRE\nDécompte indicatif joint\n", 'Contrat'],
             'facture veterinaire qui cite un releve' => ["FACTURE VETERINAIRE\nRelevé des soins\n", 'Facture'],
@@ -313,5 +313,77 @@ final class ReglesTest extends TestCase
     public function testUnPrefixeOcrEstRetireDevantUneRaisonSociale(): void
     {
         self::assertSame('Assurances Boréales SA', Regles::lireEmetteur("xx Assurances Boréales SA\nDate : 05.01.2026"));
+    }
+
+    public function testLeBlocDestinataireNeDevientJamaisEmetteur(): void
+    {
+        $texte = "Madame\nAtelier du Foyer Synthétique SA\nRue des Essais 14\n1000 Modeleville\n\n"
+            . "Assurances du Rivage AG\nCOMMUNICATION\nDate : 12.09.2026\n";
+
+        self::assertSame('Assurances du Rivage SA', Regles::lireEmetteur($texte));
+    }
+
+    public function testUnBlocPostalDuDestinataireSousEnteteEstExclu(): void
+    {
+        $texte = "Atelier du Foyer Synthétique SA\nRue des Essais 14\n1000 Modeleville\n\n"
+            . "Assurances du Rivage AG\nCOMMUNICATION\nDate : 12.09.2026\n";
+
+        self::assertSame('Assurances du Rivage SA', Regles::lireEmetteur($texte));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function bruitsDevantFormeJuridique(): array
+    {
+        return [
+            'fragment une lettre' => ["° x SA\n"],
+            'mots OCR courts' => ["re al ces papers SA\n"],
+            'phrase avec forme juridique' => ["I! en va de même de SA\n"],
+            'mot court apres banque' => ["Banque des ee\n"],
+            'signe parasite interne' => ["Maison-tz{Ville SA\n"],
+            'liaison devant libelle assurance' => ["Choa Sane Baan en Assurances\n"],
+            'suffixe OCR parasite' => ["Agence Modèle POPULATION Per.\n"],
+        ];
+    }
+
+    #[DataProvider('bruitsDevantFormeJuridique')]
+    public function testUnBruitOcrNeDevientJamaisEmetteurMemeAvecFormeJuridique(string $texte): void
+    {
+        self::assertNull(Regles::lireEmetteur($texte));
+    }
+
+    public function testUnBruitDeTeteEstRogneSeulementDevantUneVraieRaisonSociale(): void
+    {
+        self::assertSame('Assurances Boréales SA', Regles::lireEmetteur("° q Assurances Boréales SA\n"));
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function documentsAssuranceNonCourrier(): array
+    {
+        return [
+            'police automobile accompagnee communication' => [
+                "COMMUNICATION\nPOLICE D'ASSURANCE AUTOMOBILE N° PA-220\nAssuré : foyer synthétique\nCouverture et conditions\n",
+                'Police d’assurance',
+            ],
+            'police accident accompagnee lettre' => [
+                "Lettre d'accompagnement\nNuméro de police : AC-88\nAssurance accident\nPrime annuelle\n",
+                'Police d’assurance',
+            ],
+            'avis de prime' => ["COMMUNICATION\nAVIS DE PRIME\nPolice 22-88\nMontant de la prime\n", 'Police d’assurance'],
+        ];
+    }
+
+    #[DataProvider('documentsAssuranceNonCourrier')]
+    public function testUnePoliceOuPrimeNeDevientPasCourrier(string $texte, string $attendu): void
+    {
+        self::assertSame($attendu, Regles::typeEtPreuve($texte)['type'] ?? null);
+    }
+
+    public function testUneDateVeterinaireEnPiedDePieceEstLue(): void
+    {
+        $texte = "Cabinet Vétérinaire du Parc Sàrl\nFACTURE\nAnimal : Pixel\nConsultation\nVaccination\n"
+            . "Total CHF 142.80\nFacture établie le 18 septembre 2026\n";
+
+        self::assertSame('2026-09-18', Regles::dateEnTete($texte));
+        self::assertSame('Facture', Regles::typeEtPreuve($texte)['type'] ?? null);
     }
 }
