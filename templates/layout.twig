@@ -11,9 +11,10 @@
 </head>
 <body>
 <div class="app">
-  {# Une seule source d'entrées de menu. #}
+  {# Une seule source d'entrées de menu. Le compteur et les vues viennent du rail réel (Ged\Ui\Rail). #}
+  {% set rail = rail() %}
   {% set menu = [
-    {id: 'a-traiter', libelle: 'À traiter', icone: 'inbox', url: '/a-traiter', compte: bilan.a_controler},
+    {id: 'a-traiter', libelle: 'À traiter', icone: 'inbox', url: '/a-traiter', compte: rail.compte_a_traiter},
     {id: 'bibliotheque', libelle: 'Bibliothèque', icone: 'biblio', url: '/bibliotheque', compte: null},
     {id: 'recherche', libelle: 'Recherche', icone: 'loupe', url: '/recherche', compte: null},
     {id: 'workflows', libelle: 'Workflows', icone: 'flux', url: '/workflows', compte: null},
@@ -27,8 +28,11 @@
     {% endfor %}
     <div class="sep"></div>
     <div class="titre-section">Vues</div>
-    <a href="/bibliotheque?vue=factures" data-testid="menu-vue-factures">{{ ic.i('vue') }}Factures à payer</a>
-    <a href="/bibliotheque?vue=contrats" data-testid="menu-vue-contrats">{{ ic.i('vue') }}Contrats à échéance</a>
+    {% for v in rail.vues %}
+    <a href="/bibliotheque?vue={{ v.id }}" data-testid="menu-vue-{{ v.slug ?: v.id }}">{{ ic.i('vue') }}{{ v.nom }}</a>
+    {% else %}
+    <span class="muted" style="padding:7px 10px" data-testid="menu-vues-vide">Aucune vue enregistrée</span>
+    {% endfor %}
     <div class="bas">
       <a href="/application" data-testid="menu-application" {% if ecran == 'application' %}aria-current="page"{% endif %}>{{ ic.i('reglages') }}Application</a>
     </div>

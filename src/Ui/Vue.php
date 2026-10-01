@@ -7,6 +7,7 @@ namespace Ged\Ui;
 use Psr\Http\Message\ResponseInterface;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
 
 /**
  * Rendu des écrans. Twig échappe tout par défaut : aucune donnée n'entre dans le HTML sans échappement.
@@ -24,6 +25,11 @@ final class Vue
         ]);
         // La garde remplace cette valeur avant chaque rendu HTTP protégé.
         $this->twig->addGlobal('csp_nonce', '');
+
+        // Rail de navigation : le compteur « À traiter » et les vues enregistrées sont calculés à UN endroit
+        // (Ged\Ui\Rail), pour TOUS les gabarits qui étendent layout.twig, sans dépendre du secteur appelant.
+        $racine = dirname($dossierGabarits);
+        $this->twig->addFunction(new TwigFunction('rail', static fn (): array => Rail::depuisRacine($racine)->donnees()));
     }
 
     /** Expose le nonce CSP courant à tous les gabarits, y compris ceux qui étendent layout.twig. */
