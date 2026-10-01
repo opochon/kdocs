@@ -642,3 +642,67 @@ ETAT: fini
   - **extrait court presque entièrement fait de bruit** (« i feve 2 29.90/22 Qvec (a Vi 58 Facture ; i », « ayable par ï 4 dedues Ont Postion! Rares a ») ;
   - **ponctuation parasite** au milieu d'un texte lisible (« contac; = »).
 - Verdict : **V2-10d non franchi** (le critère « aucun bruit affiché » n'est pas tenu sur le vrai papier). Repris en **V2-10e** : rogner aussi la queue, refuser les extraits courts majoritairement bruités, centrer l'extrait sur le terme cherché.
+
+## Journal V2-10e — finition des extraits de recherche — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Défaut du jugement V2-10d : environ 7 extraits sur 25 encore bruités sur
+le vrai papier, en trois formes. Les cinq points du lot sont traités dans l'heuristique d'affichage (secteur
+Interface), sans toucher à `src/Classement` ni à `src/Ingestion`.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/php/corpus/ocr-extraits.php` : six formes ajoutées, chacune avec sa décision — queue de fragments après
+  une phrase (« ieee Post CHAG »), tête de fragments, fragment entre guillemets en queue (« PostC. \" »),
+  ponctuation parasite isolée (« ; = ») et multiple (« . , ; »), extrait court de majuscules criardes. Textes
+  inventés, aucune donnée réelle.
+- `tests/php/ExtraitsLisiblesTest.php` : cinq tests ajoutés (queue rognée, tête rognée, court majoritairement
+  bruité masqué, ponctuation parasite qui coupe, fenêtre autour du terme). Écrit **ROUGE** (7 échecs : queue non
+  rognée, `ALPHA BETA GAMMA DELTA` affiché, `; =` conservé, extrait resté au début du texte), puis **VERT**
+  (16/16, 162 assertions).
+
+**Fait — les cinq points du jugement**
+1. **Rogner la queue aussi** (`src/Ui/ExtraitsLisibles.php`) : les jetons de bord manifestement bruités sont
+   élagués en tête ET en queue (fragment, tout en majuscules non usuel, majuscule interne, amas de voyelles,
+   mot sans voyelle), et une fois un bruit de bord trouvé, les petits mots non usuels qui l'accompagnent le
+   sont aussi (« ieee Post CHAG » part en entier). Un seul fragment isolé en bord reste toléré quand le texte
+   entier est propre (« Rue » d'une adresse, « Mai » d'une date).
+2. **Extrait court majoritairement bruité** : sous huit mots, la moitié au moins doit voter « plausible »
+   (petit mot ou mot usuel de la GED, nombre/montant, ou nom propre à initiale majuscule) ; sinon rien n'est
+   affiché. Une courte liste de mots usuels (facture, contrat, montant, échéance…) protège les en-têtes en
+   capitales.
+3. **Ponctuation parasite** : une séquence de signes isolés au milieu (« ; = », « ' . , », apostrophe ou
+   guillemet collé en fin de mot) coupe l'extrait au premier signe. Les points de suspension et les signes
+   typographiques seuls (— : ° % « ») restent légitimes.
+4. **Fenêtre autour du terme** (`retenir`) : l'offset du premier terme trouvé est passé à `extraitPropre`, qui
+   retient le passage propre qui le CONTIENT — plus le début du texte. Si l'occurrence est elle-même bruitée
+   (jeton coupé par un chiffre), on retombe sur le segment propre de tête plutôt que de tout masquer.
+5. **Rattachement visuel** (`templates/ecrans/recherche.twig`, `public/assets/css/ged.css`) : l'extrait suit
+   immédiatement le titre du document (filet à gauche, `data-testid="extraits-<id>"`) ; le lien « Documents
+   semblables » (`data-testid="semblables-<id>"`) est descendu dans un pied de carte APRÈS l'extrait — il
+   désigne une action, plus l'intitulé de l'extrait.
+
+**Preuves**
+- `php vendor/bin/phpunit` : **390 tests, 2033 assertions, OK** (dont `ExtraitsLisiblesTest` 16/16 ;
+  `tests/php/Recherche` + `EcransTest` 29/29, le `mark` sur « maintenance » reste affiché).
+- `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13, Pixel 7) — document dont le
+  préambule est lisible mais ne porte pas le terme : l'extrait montré contient le terme cherché, ne contient
+  pas « préambule », et le lien « Documents semblables » est SOUS l'extrait (contrôle des boîtes englobantes) ;
+  le document mélangé garde son extrait rogné (adresse, aucun fragment).
+- `npx playwright test` (suite entière rejouée seule) : **46/46 verts**.
+- `powershell -File tools\harness.ps1 -SansBanc` (01-10-2026, 3 min 58 s, commit `e79604b`) :
+  **0-garde-fous VERT · 1-unitaire VERT (390 tests, 2033 assertions) · 7-securite VERT · 2-contrat VERT ·
+  6-charge VERT** (p95 lecture 709 ms, p95 écriture 159 ms, 0 erreur, 0 collision, ingestion finie).
+  `4-ecrans` : **1 échec / 44 verts** pendant le harness, **46/46 au rejeu immédiat de toute la couche** —
+  bruit de la base partagée (déjà observé sur `maquettes` recherche sous charge parallèle), aucun test du lot
+  en échec. `3-banc` sautée (`-SansBanc`) et `5-personas` « pas encore écrite » — rouges par construction.
+  **Aucun nouveau rouge dû au lot.**
+
+**Demandes**
+- **Harness / bruit partagé** : la couche 4 reste sensible aux autres sessions qui partagent `gedv2_test` ;
+  une base par parcours reste la seule façon de mesurer ces seuils sans bruit (déjà demandé en V2-10a/b).
+- **Classement / Ingestion** : non touchés, conformément au lot.
+
+**Commits**
+`7fd1624` oracle V2-10e (corpus + test) · `f8332a6` heuristique (extraits + branchement) ·
+`044ce40` rattachement visuel (gabarit + CSS) · `e79604b` oracle mobile (fenêtre et lien).
+
+ETAT: fini
