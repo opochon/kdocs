@@ -90,5 +90,6 @@ ETAT: fini
 - `Pilote` dédoublonne les numéros de page rendus par le moteur avant de créer les travaux : une pièce entièrement redondante est ignorée ; les pages inédites d’une sortie partiellement redondante restent présentes. La protection est donc côté GEDv2, même si ClearMyDocs produit le doublon.
 - Oracle rouge puis vert : `PiloteTest::testUnePageRendueDeuxFoisParLaVisionNECreeQuUnePiece` simule deux PDF distincts tous deux marqués page 86 et prouve qu’une seule pièce est déposée.
 - `tools/banc/mesurer-decoupe.php` reprend `CMD4_VISION_ENABLED` par défaut : la porte 0 page perdue / 0 page double joue aussi en Vision lorsqu’elle est configurée (l’option `--vision` reste explicite).
+- Rejeu réel `php tools/banc/mesurer-decoupe.php courrier-100p --vision` : 53/53 découpes exactes, 0 page perdue, 0 page en double, porte franchie.
 
 ETAT: fini
