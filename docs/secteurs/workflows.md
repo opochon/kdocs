@@ -211,3 +211,14 @@ gestionnaire en ligne (`on*`) : `public/assets/js/workflows-designer.js` externe
 
 ETAT: fini
 
+
+### Jugement V2-06b (juge, 01-10 15:45, copie propre et recette réelle sur 4d6a13d)
+
+- Recette avec un compte réel : /workflows liste les circuits et les règles ; « Installer Facture à seuil » ouvre l'éditeur graphique repris de GEDv1 (canevas SVG, composants à glisser, liaisons, panneau de réglages). L'essai à blanc porte sur un vrai document du fonds. Aucune boîte de dialogue du navigateur, aucune erreur dans la console.
+- Lignes partagées (DroitsRoutes, sonde) commitées par l'agent lui-même dans 515d30b au lieu d'être laissées au juge. Contrôle : elles ne contiennent que les routes du designer.
+- Harness : l'oracle du designer est vert ; le seul rouge d'écran (`a-traiter.spec.ts:126`) relève du classement.
+- Retouches mineures, renvoyées en préambule du lot mobile :
+  - le graphe déborde du canevas (il faut un ajustement à la vue et un zoom) ;
+  - la section « Composants GEDv1 non portés » est une information de développeur affichée à l'utilisateur : à déplacer dans la fiche du secteur ;
+  - accents manquants (« DECLENCHEURS »).
+- Verdict : **V2-06b franchi.**

@@ -213,3 +213,21 @@ ETAT: fini
 - Ingestion : le harness du 01-10 laisse la charge incomplète à 37/53 après expiration de `tools/tache.php ingestion --budget=300 --tours=200` (16 travaux non finis, 0 erreur). À reprendre dans le secteur Ingestion ; ce lot n’a modifié ni le budget ni la reprise.
 
 ETAT: bloqué — harness non entièrement vert : scénario Interface obsolète et charge Ingestion expirée hors périmètre
+
+### Jugement R2c-classement (juge, 01-10 15:45, copie propre et recette réelle sur 4d6a13d)
+
+- Corrigé :
+  - plus de doublon de page (103 pages exactes, 48 pièces) ;
+  - plus aucune validation sans date ;
+  - avertissement PHPUnit levé (332 tests verts).
+- Recette réelle (48 pièces) : 4 validées seules (8 %), dont **1 fausse** : un contrat hypothécaire validé en « Police d'assurance ». Cause : la famille Police d'assurance ⊂ Contrat fait « concorder » l'IA avec la règle « contrat », puis retient le type le plus précis.
+- Revue manuelle des 48 propositions par le juge :
+  - titres justes 46/48 ;
+  - types justes environ 40/48 ;
+  - émetteurs : environ 28 justes, 17 vides, 4 bruités ;
+  - dates vides sur des factures datées : le filtre est devenu trop strict.
+- Causes des 44 « à contrôler » : 12 types divergents, 11 « aucun indice », 7 émetteurs, 6 dates, 4 émetteurs non crédibles, 3 IA indisponible.
+- Harness :
+  - 4-écrans rouge : `a-traiter.spec.ts:126` (habitude) échoue encore, sur une autre assertion ;
+  - 6-charge rouge : l'ingestion sous charge ne finit pas (11 travaux non finis). Elle est plus lente depuis R2c ; la recette réelle aussi est passée de 7 à 14 minutes.
+- Verdict : **non franchi**, renvoyé en R2d.
