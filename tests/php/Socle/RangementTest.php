@@ -89,6 +89,24 @@ final class RangementTest extends TestCase
         self::assertSame('Sans_date/Contrat/Pièce_OCR_à_contrôler.pdf', $chemins[1]);
     }
 
+    public function testUnLibelleDeServiceOuUnFragmentAutomatiqueNeCreeJamaisDeDossier(): void
+    {
+        $ids = [];
+        foreach (['Service Relation Client', 'Contact Center, Service Réclamations', 'De votre contrat nous vous informons'] as $i => $emetteur) {
+            $ids[] = $this->depot->deposer($this->pieceADeposer("bruit-$i.pdf", 'bruit'), [
+                'titre' => "Bruit $i", 'type' => 'Courrier', 'emetteur' => $emetteur, 'date' => '2026-01-05',
+                'classement' => ['source' => 'ia'],
+            ]);
+        }
+        $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents ORDER BY id')->fetchAll(\PDO::FETCH_COLUMN);
+
+        self::assertSame([
+            '2026/Courrier/Bruit_0.pdf',
+            '2026/Courrier/Bruit_1.pdf',
+            '2026/Courrier/Bruit_2.pdf',
+        ], $chemins);
+    }
+
     public function testUnEmetteurNeCreJamaisDeuxNiveaux(): void
     {
         // Le cas réel GEDv1 : « ISELI ENERGIE AG / ISELI ENERGIE SA » créait deux niveaux de dossiers.

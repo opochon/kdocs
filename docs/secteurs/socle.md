@@ -234,3 +234,7 @@ ETAT: fini
 
 - La liste par défaut de `Nomenclature` est étendue à Décompte, Relevé, Attestation, Police d’assurance, Avis d’impôt et Décision. Elle ne modifie jamais une nomenclature déjà posée dans le fonds : l’administrateur garde ses choix.
 - `DepotFichiers` range une pièce sans date sous `Sans_date/` et ne crée pas de sous-dossier depuis un émetteur manifestement bruité lorsque la proposition est automatique ; une validation humaine demeure crédible.
+
+### Note R2c (Classement, 01-10)
+
+- `ReconstructionTest` suit le rangement sans date : son oracle d’absence vise désormais `Sans_date/A_classer/Unique.pdf` (changement de chemin seulement).

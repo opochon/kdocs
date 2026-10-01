@@ -296,11 +296,11 @@ final class DepotFichiers implements Depot
         $nom = trim((string) $meta['emetteur']);
         $normalise = mb_strtolower($nom, 'UTF-8');
         if (mb_strlen($nom) < 3 || mb_strlen($nom) > 100 || preg_match('/\d|@|https?:/u', $nom) === 1
-            || preg_match('/^(si|la|le|nous|vous|nom du destinataire|adresse|page)\b/iu', $normalise) === 1) {
+            || preg_match('/^(si|la|le|les|nous|vous|nom du destinataire|adresse|page|de|du|des|en|pour|avec|a|au|aux|chez|par|sur)\b/iu', $normalise) === 1) {
             return false;
         }
         $mots = preg_split('/\s+/', $normalise) ?: [];
-        if (count($mots) < 2 || in_array($normalise, ['service clientele', 'service client'], true)) {
+        if (count($mots) < 2 || preg_match('/^(service\s+(?:relation\s+)?client(?:ele|s)?|contact\s+cent(?:er|re)|contact\s+cent(?:er|re)\s+service)\b/iu', $normalise) === 1) {
             return false;
         }
 

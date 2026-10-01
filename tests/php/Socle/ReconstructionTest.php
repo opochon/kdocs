@@ -93,7 +93,7 @@ final class ReconstructionTest extends TestCase
     public function testLaReconstructionRefuseDePerdreUnDocumentAbsentDuFonds(): void
     {
         $id = $this->depot->deposer($this->pieceADeposer('unique.pdf', 'unique'), ['titre' => 'Unique']);
-        unlink($this->racine . '/fonds/2026/A_classer/Unique.pdf');
+        unlink($this->racine . '/fonds/Sans_date/A_classer/Unique.pdf');
         $indexeur = new Indexeur($this->config);
         $indexeur->passer();
         $indexeur->passer();
