@@ -189,3 +189,60 @@ ETAT: fini
 - Harness : aucun nouveau rouge dû à ce lot (4-écrans : 38/39). Les rouges 1, 2 et 4 restants viennent de R2-classement, en correction chez Codex.
 - Défaut restant, qui existait avant le lot : sur À traiter, l'aperçu reste « Chargement de l'aperçu… ». La visionneuse n'y est jamais chargée (aucune requête vers visionneuse.js, pdf.js ni le fichier), alors qu'elle fonctionne dans la Bibliothèque. Les parcours ne vérifient pas que l'aperçu est réellement affiché.
 - Verdict : **R1-ecrans franchi pour ses cinq points** ; l'aperçu d'À traiter est renvoyé en R1b-ecrans (DeepCode, 13:08), avec un oracle de rendu réel.
+
+## Journal R1b-ecrans — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Défaut bloquant de la recette réelle : sur À traiter, l'aperçu du
+document sélectionné restait « Chargement de l'aperçu… » indéfiniment (aucune requête vers
+`visionneuse.js`, `pdf.min.js` ni le fichier ; aucun canvas), alors que la Bibliothèque fonctionnait. Les
+parcours passaient sans jamais prouver qu'une page était RENDUE.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/e2e/ecrans-reels.spec.ts` : 3 parcours ajoutés (À traiter, Bibliothèque, Fiche) qui attendent la
+  PREMIÈRE page rendue — canvas `data-rendu="1"` **non vide** (pixels d'encre), pas seulement présent — en
+  moins de 2 s, et vérifient les requêtes réellement faites (`visionneuse.js`, `pdf.min.js`,
+  `/documents/{id}/apercu/fichier`). L'en-tête « page 1 / 13 » est contrôlé sur les trois écrans ; le
+  parcours des accords vérifie « 13 pages » et l'absence de « 1 pages ».
+- `tests/e2e/preparer-ecrans-reels.php` : un PDF synthétique de 13 pages est ingéré par le VRAI
+  `Ged\Ingestion\Pilote` (`Travaux` → `ClasseurGed` réel → `DepotFichiers`), `origine.pages = « 1-13 »`.
+  Le moteur de découpe externe (ClearMyDocs, autre dépôt) est remplacé par un découpeur de test : seul
+  point hors dépôt, l'orchestration/classement/rangement sont ceux de production.
+- Écrit ROUGE (compteur « 1 page », aucun canvas sur À traiter/Fiche), puis VERT.
+
+**Fait**
+1. **Chargement de la visionneuse** (`templates/layout.twig`, `templates/ecrans/bibliotheque.twig`) : le
+   comportement est chargé UNE fois par le layout (script externe `'self'`, la CSP nonce reste en place),
+   donc sur tous les écrans qui incluent la macro `visionneuse.moteur` — À traiter, Bibliothèque, Fiche,
+   et Recherche le jour où elle y est posée. La balise dupliquée de Bibliothèque est retirée. L'oubli qui
+   a produit le défaut n'est plus possible : le chargement ne dépend plus de l'écran.
+2. **Fiche document** (`src/Ui/Document.php`, `src/Ui/Ecrans.php`, `templates/ecrans/document.twig`) : la
+   fiche lit le document réel (index + `.meta.json` à côté du fichier, le dossier fait foi), ses versions
+   et son historique, et affiche la MÊME visionneuse que les listes. Un identifiant inconnu du fonds
+   retombe sur la maquette : jamais d'écran muet ni de 500 ; classes et `data-testid` inchangés.
+3. **Compteur de pages** (`src/Ui/Rendu.php`, `src/Ui/ATraiter.php`) : l'ingestion écrit `origine.pages` en
+   PLAGES (« 1-13 », « 25-28,30 ») ; `Rendu::compterPages` en lit la longueur (13, pas 1). Le rendu est
+   construit une seule fois (`Rendu::pour`) pour À traiter et la fiche.
+
+**Preuves**
+- `tests/e2e/ecrans-reels.spec.ts` : **8/8 verts** (compte RÉEL, fonds dédié, base `gedv2_test`), dont les
+  3 parcours de rendu sous 2 s ; `maquettes.spec` / `apercu.spec` / `bibliotheque.spec` inchangés.
+- `powershell -File tools\harness.ps1 -SansBanc` (01-10, 12 min 43 s, commit `0e227f3`) :
+  **0-garde-fous VERT · 4-écrans VERT (43/43, aucun échec) · 7-securite VERT · 2-contrat VERT ·
+  6-charge VERT** (p95 lecture 713 ms, p95 écriture 183 ms). Rouges restants : `1-unitaire` = les
+  3 échecs + 2 warnings de Socle en cours chez Codex (`CorbeilleTest`, `EcranMetadonneesTest`,
+   `IndexeurTest` — vérifiés nommément, aucun n'est Interface), `3-banc` (sautée par `-SansBanc`) et
+  `5-personas` (pas encore écrite). **Aucun nouveau rouge d'écran.**
+- Vérification du bruit de fond partagé : les deux échecs Playwright observés en cours de lot
+  (`maquettes.spec` bibliothèque > 1,5 s ; `bibliotheque.spec` 404 d'aperçu) se reproduisent **avec les
+  gabarits de base** : ils viennent des 10 000 documents laissés par la couche 6 (banc de charge) dans
+  `gedv2_test`, pas du lot. `ATraiterBorneTest` (compteur MySQL partagé) est également sensible à la
+  concurrence ; il passe sur base au repos et l'est dans le rejeu complet ci-dessus.
+
+**Demandes aux autres secteurs**
+- **Socle** : `EcranBibliotheque::apercu()` pose `pages => 1` en dur ; l'en-tête de la visionneuse n'est
+  juste qu'après le JS. Lire le nombre de pages du `.meta.json` (comme `ATraiter`/`Document`) le rendrait
+  juste dès le HTML.
+- **Recherche & aperçu** : la macro `visionneuse.moteur` n'est pas encore posée sur l'écran Recherche ; le
+  chargement désormais global la couvre le jour venu.
+
+ETAT: fini
