@@ -217,7 +217,7 @@ final class ReglesTest extends TestCase
         self::assertFalse(Regles::emetteursCorrespondent('Service Relation Client', 'Service Client'));
     }
 
-    /** @dataProvider emetteursOcrNonCredibles */
+    #[DataProvider('emetteursOcrNonCredibles')]
     public function testUnePhraseOuUnLibelleNeDevientJamaisEmetteur(string $texte): void
     {
         self::assertNull(Regles::lireEmetteur($texte));

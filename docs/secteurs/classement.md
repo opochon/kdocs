@@ -205,7 +205,7 @@ ETAT: fini
 
 **Preuves**
 - Oracles rouges initiaux : une validation automatique sans date était acceptée ; une plage Vision recouvrante rangeait une seule pièce `[85,86]` au lieu d’affecter 86 à la pièce qui la lit.
-- PHPUnit ciblé : 117 tests, 547 assertions, vert (Classement, contrat, Pilote, rangement et reconstruction).
+- PHPUnit ciblé : 117 tests, 547 assertions, vert, sans avertissement PHPUnit (Classement, contrat, Pilote, rangement et reconstruction).
 - `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : **29/30 validées seules (96,7 %)**, 0 type/émetteur/date faux, 0 « Autre » validé, porte franchie.
 
 ETAT: fini
