@@ -251,3 +251,114 @@ ETAT: fini
 - Recette réelle avec un compte réel : sur À traiter, la première page du PDF est rendue en 346 ms (canvas dessiné, plus de « Chargement de l'aperçu… »).
 - Harness : 4-écrans à 43/43, dont l'oracle de rendu réel.
 - Verdict : **R1b-ecrans franchi.**
+
+## Journal — préambule V2-06b (retouches designer) — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Trois retouches demandées par le jugement V2-06b, faites avant le lot mobile.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/e2e/workflows.spec.ts` : parcours ajouté — titres de groupes accentués, section technique absente, graphe ajusté
+  à la vue, zoom par boutons, molette et clavier. Rouge constaté (« DECLENCHEURS », nœuds qui débordaient), puis vert.
+
+**Fait**
+1. **Graphe ajusté et zoomable** (`public/assets/js/workflows-designer.js`, `templates/ecrans/workflows-editeur.twig`,
+   `public/assets/css/ged.css`) : une vue `translate/scale` sur `#wf-vue` ; `ajuster()` cadre le dessin à l'ouverture ;
+   molette (zoom vers le pointeur), boutons « ajuster / + / − », clavier `0`, `+`, `−`, flèches (déplacement) ;
+   l'indicateur affiche le pourcentage (`data-zoom`). Le glisser-déposer des nœuds, les liaisons et le dépôt
+   convertissent les coordonnées écran → canevas, donc restent justes à toute échelle.
+2. **Section « Composants GEDv1 non portés » retirée de l'écran** (`templates/ecrans/workflows.twig`) : l'information
+   de développeur reste recensée par `Catalogue::aPorter()` et dans `docs/secteurs/workflows.md` ; elle n'est plus
+   affichée à l'utilisateur.
+3. **Titres de groupes accentués** (`templates/ecrans/workflows-editeur.twig`) : libellés explicites
+   (Déclencheurs, Conditions, Actions, États, Approbation) + `.wf-outils .titre-section` en casse de phrase.
+
+**Preuves**
+- `npx playwright test tests/e2e/workflows.spec.ts` : **2/2 verts** (le parcours V2-06b d'origine et le nouveau).
+- Commit `f9d62c2`.
+
+## Journal V2-10a — mobile, étape 1 — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Décision d'Olivier (01-10) : « les mêmes écrans, en version adaptée au
+smartphone ». **Une seule base de gabarits Twig et de CSS**, adaptée par points de rupture (≤ 768 px, ≤ 480 px) ;
+mêmes routes, mêmes droits, même CSP. Aucune autre application.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/e2e/mobile.spec.ts` + `preparer-mobile.php` + `indexer-mobile.php` + `passer-ingestion-mobile.php` :
+  parcours sur appareils ÉMULÉS (`devices['iPhone 13']`, `devices['Pixel 7']`) avec un compte RÉEL (créé comme à
+  l'installation), sur son propre fonds synthétique `var/oracles/mobile/documents`, serveur à lui, base `gedv2_test`.
+  Contrôle automatique sur chaque écran : largeur de page ≤ largeur d'écran, et cibles tactiles de commande ≥ 44 px.
+  Écrit rouge (pas d'onglets bas), puis vert **2/2**.
+
+**Fait, périmètre de l'étape, dans l'ordre**
+1. **À traiter sur téléphone** (`templates/ecrans/a-traiter.twig`, `ged.css`, `ged.js`) : aperçu en haut, proposition
+   dessous, file en dernier **repliée en compteur** (`<details>` ouvert sur ordinateur, replié par le JS au point de
+   rupture) ; gros boutons **Valider / Corriger / Passer** dans un pied collant ; `Corriger` amène au champ Type ;
+   balayage horizontal = pièce suivante (hors aperçu) ; pincement à deux doigts dans la visionneuse (`visionneuse.js`).
+2. **Recherche et fiche** : la barre de recherche globale reste en haut ; les résultats sont des cartes sur téléphone ;
+   la fiche (`document.twig`) devient une colonne unique — aperçu, métadonnées, **Télécharger** — sans les volets
+   latéraux du bureau.
+3. **Dépôt par photo** (`src/Ui/Depot.php`, `src/Ui/Module.php`, `templates/ecrans/deposer.twig`) : l'écran `/deposer`
+   ouvre l'appareil photo (`accept="image/*,application/pdf"`, `capture="environment"`, `multiple`). Le fichier entre
+   dans la **même chaîne d'ingestion** que le dépôt de bureau : `Ged\Jonctions\SourceApi` écrit la copie de travail
+   dans la zone d'ingestion puis `Travaux::recevoir` enregistre un travail idempotent (ce que fait `POST /api/v1/depots`,
+   destination `ingestion`) ; la porte est la session et la permission `documents:traiter`, pas un jeton. Le retour est
+   un PRG nommé « reçu, en cours de lecture ». Le test « passage de la tâche » rejoue le VRAI Pilote (découpe simulée,
+   classement, rangement) et la pièce arrive dans À traiter.
+4. **Navigation** (`templates/layout.twig`, `ged.css`) : la barre latérale devient une barre d'onglets en bas
+   (À traiter, Recherche, Déposer) ; un menu « Plus » garde Bibliothèque, Métadonnées, Workflows et Application
+   accessibles, et un avis « écran conçu pour l'ordinateur » (`data-testid="ecran-ordinateur"`) les signale.
+
+Exigences tenues : cibles ≥ 44 px (le contrôle de l'oracle les mesure), aucun défilement horizontal, champs ≥ 16 px,
+clair et sombre (les jetons ne changent pas), aucune donnée réelle.
+
+**Défaut réel trouvé en chemin (corrigé)**
+- Après connexion, le premier formulaire de `/a-traiter` portait le **jeton CSRF de connexion périmé** : la réponse de
+  connexion pose le cookie de session mais pas le cookie `gedv2_csrf`, et le formulaire lisait le cookie de la REQUÊTE
+  (l'ancien jeton de connexion) alors que la garde avait déjà posé le jeton de la session. La première validation
+  partait donc en 403, et il fallait un aller-retour de plus pour obtenir un formulaire valide. Corrigé **dans mon
+  secteur** en lisant le jeton de la SESSION (source autoritaire posée par la garde), avec repli sur le cookie :
+  `Ged\Ui\Ecrans::jetonCsrf()`, utilisé par `/a-traiter`, `/workflows` et `/deposer`.
+
+**Preuves**
+- `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13 et Pixel 7, compte réel, valider au pouce,
+  chercher/ouvrir une fiche, déposer une photo et la voir arriver après passage de la tâche).
+- `npx playwright test tests/e2e/workflows.spec.ts` : **2/2 verts** (le préambule ne régresse pas le designer).
+- `npx playwright test tests/e2e/maquettes.spec.ts` : 11/12 — seul rouge, `bibliotheque` qui dépasse 1,5 s : bruit connu
+  des 10 000 documents laissés par le banc de charge dans `gedv2_test` (journal R1b), pas le lot.
+- `php tools/banc/sonde-securite.php` : **VERT** (les deux nouvelles routes de dépôt refusent CSRF absent/rejoué).
+- `php tools/banc/contrat.php` : **VERT** (toutes les routes déclarées couvertes, y compris `GET/POST /deposer`).
+- `php vendor/bin/phpunit tests/php/EcransTest.php` : 10/10 verts.
+- `npx playwright test tests/e2e/mobile.spec.ts tests/e2e/ecrans-reels.spec.ts tests/e2e/a-traiter.spec.ts` :
+  **13/13 verts**. Les helpers mobiles ne passent plus par la file partagée `ingestion_travaux` : ils déroulent le
+  VRAI Pilote (découpeur, classeur, dépôt) sur le lot et la pièce désignés par leur identifiant, donc aucun travail
+  d'un autre fonds ne peut être pris (défaut observé sous charge parallèle, corrigé par `bc72348`).
+- Harness `-SansBanc` (01-10, 13 min 15 s, commit `bc72348`) : **0-garde-fous VERT · 1-unitaire VERT**
+(341 tests, 1783 assertions) **· 7-securite VERT · 2-contrat VERT · 4-écrans : 45 verts, 1 échec**. L'unique
+échec d'écran est `maquettes.spec` « écran a-traiter » qui dépasse 1,5 s (3 971 ms) : bruit de charge connu de la
+base partagée (les 10 000 documents laissés par le banc, journal R1b) ; le rouge classement `a-traiter.spec:126`
+ne s'est **pas** reproduit. **Aucun rouge fonctionnel dû au lot.** `3-banc` est sautée (`-SansBanc`), `6-charge`
+est ROUGE sur la lecture (p95 6 065 ms ≥ 1 500 ms ; l'ingestion finit) — perf mesurée sous charge, hors Interface ;
+`5-personas` n'est pas encore écrite.
+
+**Fichiers partagés — « À commiter par le juge »**
+- `src/Securite/DroitsRoutes.php` : 2 lignes (`GET /deposer`, `POST /deposer` → `documents:traiter`).
+- `tools/banc/sonde-securite.php` : 1 charge CSRF défensive pour `POST /deposer`.
+- Aucune autre permission ni route touchée.
+
+**Demandes**
+- **Harness / bruit partagé** : l'oracle mobile s'isole entièrement (fonds dédié, serveur à lui, ligne d'index
+  reposée juste avant la recherche, et découpe/rangement du SEUL lot visé sans passer par la file
+  `ingestion_travaux`). Le bruit restant vient des parcours qui partagent encore `gedv2_test` (dernière tâche
+  d'ingestion, index `recherche_textes` d'un autre fonds, base chargée à 10 000 documents) : mesuré hors lot
+  (`maquettes a-traiter` > 1,5 s en porte 4). À traiter un jour par une base par parcours, hors de ce lot.
+- **Socle** : `SourceApi` écrit bien `<fichier>.depot.json`, mais les métadonnées du dépôt interface ne sont pas encore
+  rattachées au document par la chaîne d'ingestion (même constat que la demande V2-08a d'Ingestion).
+- **Vue d'ensemble** : l'avis « écran conçu pour l'ordinateur » vit dans `layout.twig` (liste d'écrans) ; à déplacer
+  dans un registre partagé si la liste doit être servie par le Kernel plutôt que par le gabarit.
+
+**Commits**
+`e78a4c3` oracle mobile · `30a15b0` dépôt par photo + routes/charge sonde (hors secteur) ·
+`b58c74f` adaptation téléphone (gabarits, CSS, JS) · `9c6e55a` fiabilité de l'oracle et de la connexion ·
+`bc72348` helpers mobiles déterministes · `f9d62c2` préambule designer V2-06b.
+
+ETAT: fini
