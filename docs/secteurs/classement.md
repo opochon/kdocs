@@ -266,3 +266,33 @@ ETAT: fini
   - même émetteur en deux formes juridiques (« … AG » et « … SA ») : deux dossiers distincts.
 - Écart synthétique/réel : le banc annonce 44/53 validées seules avec l'IA ; le vrai papier en donne 4/48. Le corpus synthétique est trop propre.
 - Verdict : **R2d franchi sur la sûreté et la performance** (0 validé faux, durée divisée par deux, chaîne exacte, harness vert machine calme). **La qualité des propositions est renvoyée en R2e** (émetteurs vides et bruités, dates des factures, formes juridiques, types de courriers), avec un corpus bruité rendu réaliste.
+
+## Journal R2e — 01-10-2026
+
+**Fait**
+- Corpus `classement-bruite` porté à **48 pièces OCR synthétiques** sur les 12 types : logos/tampons,
+  colonnes, destinataire avant émetteur, lignes coupées, IBAN/IDE de pied de page, montants CHF et dates
+  FR/DE/IT. Les factures énergie et vétérinaire, les courriers ambigus et les deux formes AG/SA d'un même
+  émetteur y sont explicitement reproduits. Aucune donnée réelle.
+- Émetteur : extraction d'une raison sociale dans l'en-tête ou le pied de page, conservation de la forme
+  lue, mais suffixe juridique canonique (`AG`/`S.A.` → `SA`, `GmbH`/`Sarl` → `Sàrl`). Les fragments avec
+  deux-points, possessif, lieu/date/référence ou vocabulaire de type seul sont refusés.
+- Date : lecture des libellés de facture sur la ligne précédente ou dans une colonne voisine, et des dates
+  en toutes lettres sous numéro de facture ; naissance, période et échéance restent exclues.
+- Type : convocation, demande de documents, rappel et communication sont prioritaires sur les objets cités ;
+  convention/gage hypothécaire reste Contrat et facture vétérinaire reste Facture.
+- Banc : publication de `valides_faux`, `types_faux`, émetteurs vides/faux et taux, dates vides des factures
+  et taux, en plus des mesures existantes. La porte réaliste exige 0 validé faux, 0 émetteur faux validé,
+  ≤ 15 % d'émetteurs vides et ≤ 15 % de dates vides des factures.
+
+**Preuves**
+- `php -d xdebug.mode=off vendor/bin/phpunit tests/php/Classement` : **105 tests, 560 assertions**, vert.
+- `classement-bruite --ia-simule` : **48/48**, **45 validées seules (93,8 %)**, **0 validé faux**, 0 type
+  faux, 1 émetteur vide (**2,1 %**), 0 émetteur faux, 0 date vide sur 10 factures, 0 date fausse.
+- `courrier-100p` sans IA : **53/53**, 0 validé seul et 0 validé faux. Avec IA réelle : **53 requêtes pour
+  53 pièces**, **46 validées seules (86,8 %)**, 0 validé faux, 0 émetteur faux, en **168,62 s** (< 8 min).
+- `powershell -File tools\harness.ps1` : vert hors Personas : 390 tests / 2 175 assertions, 46 écrans,
+  découpe 53/53, banc, sécurité, contrat et charge (p95 lecture 351 ms ; écriture 155 ms).
+- Commits : `095f78f` (lecture OCR/date/type), `e6356ac` (corpus/oracle), `6988373` (mesures banc).
+
+ETAT: fini

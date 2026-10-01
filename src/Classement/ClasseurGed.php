@@ -58,8 +58,8 @@ final class ClasseurGed implements Classeur
         }
         $emetteurIa = Regles::emetteurIaCredible($texte, $reponseIa?->emetteur, $proprietaire);
         $emetteurAppris = $emetteurRegle === null ? $this->habitudes->emetteurApprisDansTexte($texte) : null;
-        // L'IA est prioritaire pour la proposition : elle peut reconnaître le logo ou le pied de page. Une
-        // validation seule demandera ensuite que ce nom soit corroboré par la lecture ou une habitude.
+        // L'IA peut reconnaître le logo ou le pied de page ; une validation seule demandera ensuite que
+        // ce nom soit corroboré par la lecture ou une habitude.
         // Le texte garde sa casse et sa forme canonique : l'IA est une confirmation, pas un nom de dossier
         // concurrent (AG/SA/GmbH/Sàrl doivent aboutir au même correspondant).
         $emetteur = $emetteurRegle ?? $emetteurIa ?? $emetteurAppris;
