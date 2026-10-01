@@ -75,7 +75,10 @@ $resume = 'ECHEC: charge — la porte n’a pas tenu';
 // Environnement de TEST imposé : base gedv2_test, fonds de charge dans var/.
 foreach (['DB_NAME' => 'gedv2_test', 'APP_ENV' => 'test', 'STORAGE_ROOT' => $fonds,
     'SECURITE_DOSSIER' => $securite, 'INGESTION_DOSSIER' => $entree, 'INGESTION_TRAVAIL' => $travail,
-    'INGESTION_IMAP_HOTE' => ''] as $cle => $valeur) {
+    // La disponibilité/latence d'Infomaniak est couverte par mesurer-classement --ia. Ici, le but est
+    // de mesurer la GED (10 utilisateurs + reprise d'ingestion) : une indisponibilité réseau ne doit
+    // pas consommer le budget du tic et rendre la porte de concurrence aléatoire.
+    'INGESTION_IMAP_HOTE' => '', 'INFOMANIAK_AI_ENABLED' => 'false'] as $cle => $valeur) {
     putenv("$cle=$valeur");
 }
 
