@@ -118,6 +118,11 @@ final class GardeCentrale implements MiddlewareInterface
         if (!is_int($compte) || $compte < 1) {
             return true;
         }
+        // Le rôle administrateur (permission '*') voit tout : aucun document rangé ne peut lui être
+        // refusé faute de dossier, même pour une pièce dont l'ACL n'a pas encore été rattachée.
+        if (in_array('*', $session['permissions'], true)) {
+            return true;
+        }
         $action = match ($methode) {
             'GET', 'HEAD' => 'lire',
             'DELETE' => 'archiver',

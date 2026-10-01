@@ -22,6 +22,9 @@ final class Authentification
     public function verifier(string $identifiant, string $motDePasse): ?array
     {
         $identifiant = mb_strtolower(trim($identifiant));
+        // Le compte synthétique est un raccourci de TEST ; un compte RÉEL en base (créé par
+        // l'installateur ou l'écran Utilisateurs) reste vérifiable sous APP_ENV=test, sinon aucune
+        // recette réelle ne pourrait se connecter. En production, seule la base décide.
         if ($this->config->get('APP_ENV') === 'test') {
             $attendu = mb_strtolower($this->config->get('AUTH_TEST_LOGIN', 'testeur@gedv2.test'));
             $secret = $this->config->get('AUTH_TEST_PASSWORD', 'MotDePasse-Test-2026!');
@@ -33,7 +36,6 @@ final class Authentification
                     'workflow.gerer', 'workflow.executer', 'workflow.transition', 'workflow.transition.valider',
                 ]];
             }
-            return null;
         }
 
         try {
