@@ -9,7 +9,7 @@ use Ged\Config;
 use PHPUnit\Framework\TestCase;
 
 /**
- * L'adaptateur IA : modèle google/gemma-4-31B-it, délai 20 s, UNE reprise sur expiration, repli sans
+ * L'adaptateur IA : modèle google/gemma-4-31B-it, délai 20 s, UNE requête par pièce, repli sans
  * blocage. Le transport HTTP est injecté : ces tests ne touchent JAMAIS le réseau.
  */
 final class InfomaniakClientTest extends TestCase
@@ -65,21 +65,20 @@ final class InfomaniakClientTest extends TestCase
         self::assertStringContainsString('lignes OCR illisibles', (string) $envoye['messages'][1]['content']);
     }
 
-    public function testUneSeuleRepriseApresExpiration(): void
+    public function testUneExpirationSeReplieApresUneUniqueRequete(): void
     {
         $appels = 0;
         $client = new InfomaniakClient($this->config, function () use (&$appels): array {
             $appels++;
 
-            return $appels === 1 ? ['code' => 0, 'corps' => '', 'expire' => true] : self::reponseOk('Reçu');
+            return ['code' => 0, 'corps' => '', 'expire' => true];
         });
 
         $r = $client->classer('RECU la somme de CHF 74.55', 'recu.pdf', ['Reçu']);
 
-        self::assertNotNull($r);
-        self::assertSame('Reçu', $r->type);
-        self::assertSame(2, $appels, 'une seule reprise');
-        self::assertFalse($client->aExpire(), 'la dernière tentative a abouti');
+        self::assertNull($r);
+        self::assertSame(1, $appels, 'une pièce ne déclenche jamais une seconde requête');
+        self::assertTrue($client->aExpire());
     }
 
     public function testExpirationRepeteeSeReplieSansBloquer(): void
@@ -92,7 +91,7 @@ final class InfomaniakClientTest extends TestCase
         });
 
         self::assertNull($client->classer('du texte', 'x.pdf', ['Facture']));
-        self::assertSame(2, $appels);
+        self::assertSame(1, $appels);
         self::assertTrue($client->aExpire());
     }
 

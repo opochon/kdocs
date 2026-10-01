@@ -234,6 +234,10 @@ final class ReglesTest extends TestCase
             'service generique' => ["Service clientèle\n"],
             'contact center de service' => ["Contact Center, Service Réclamations\n"],
             'fragment apres preposition' => ["De votre contrat, nous vous informons.\n"],
+            'fragment generique majuscules' => ["BANQUE & ASSURANCES\n"],
+            'fragment proposition assurance' => ["d'assurance proposée\n"],
+            'phrase assurance' => ["Données relatives à votre assurance\n"],
+            'service possessif' => ["Votre Service Relation Client\n"],
         ];
     }
 

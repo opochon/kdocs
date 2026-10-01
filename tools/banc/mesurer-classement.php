@@ -152,6 +152,8 @@ foreach ($pieces as $piece) {
     ];
 }
 $duree = round(microtime(true) - $t0, 2);
+$mesureIa = $client instanceof InfomaniakClient ? $client->statistiques() : ['appels' => 0, 'temps_s' => 0.0];
+$tempsParPiece = $mes['documents'] > 0 ? round($mesureIa['temps_s'] / $mes['documents'], 3) : 0.0;
 $taux = $mes['documents'] > 0 ? round($mes['valides'] / $mes['documents'], 4) : 0.0;
 $attendu = $oracle['attendu'];
 $modeAvecIa = $avecIa || $iaSimule;
@@ -168,6 +170,7 @@ $franchie = $mes['documents'] === (int) $attendu['documents']
 
 $res = [
     'lot' => $lot, 'mode' => $mode, 'date' => date('c'), 'duree_s' => $duree,
+    'ia_appels' => $mesureIa['appels'], 'ia_temps_s' => $mesureIa['temps_s'], 'ia_temps_par_piece_s' => $tempsParPiece,
     'chemin' => 'Ged\\Classement\\ClasseurGed', 'seuil' => (float) $config->get('CLASSEMENT_SEUIL', '0.8'),
     'documents' => $mes['documents'], 'valides' => $mes['valides'], 'taux_valide_seul' => $taux,
     'valides_attendus' => $validesAttendus,
@@ -198,6 +201,8 @@ $md = [
     '| « Autre » validé seul | 0 | ' . $mes['autre_valides_seuls'] . ' |',
     '| Dates fausses (en-tête) | 0 | ' . $mes['dates_fausses'] . ' |',
     '| Titres invalides (vide ou nom du lot) | 0 | ' . $mes['titres_invalides'] . ' |',
+    '| Appels IA | — | ' . $mesureIa['appels'] . ' |',
+    '| Temps IA / pièce | — | ' . $tempsParPiece . ' s |',
     '| Durée | — | ' . $duree . ' s |',
     '',
 ];

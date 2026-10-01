@@ -126,7 +126,7 @@ final class HabitudesTest extends TestCase
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM classement_choix')->fetchColumn());
     }
 
-    public function testLHabitudeSansIaResteAControler(): void
+    public function testLHabitudeHumaineValideLaQuatriemePieceSansIaNiDate(): void
     {
         $h = new Habitudes($this->pdo);
         foreach (['doc-1', 'doc-2', 'doc-3'] as $ref) {
@@ -139,6 +139,6 @@ final class HabitudesTest extends TestCase
 
         self::assertSame('Vehicule', $r['type']);
         self::assertSame('habitude', $r['source']);
-        self::assertFalse($r['valide'], 'une habitude seule ne contourne pas le contrôle émetteur/date par l’IA');
+        self::assertTrue($r['valide'], 'trois validations humaines enseignent réellement la quatrième pièce');
     }
 }

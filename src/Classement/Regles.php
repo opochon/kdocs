@@ -249,13 +249,25 @@ final class Regles
     public static function dateEnTete(string $texte): ?string
     {
         $lignes = preg_split('/\R/', mb_substr($texte, 0, 2000)) ?: [];
-        foreach ($lignes as $ligne) {
+        $dernierIndiceFacture = -99;
+        $ligneDocument = 0;
+        foreach ($lignes as $index => $ligne) {
             $normalise = self::normaliser($ligne);
-            if (preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien)\b/', $normalise) === 1) {
+            if (preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien(?:ne)?)\b/', $normalise) === 1) {
+                continue;
+            }
+            if (trim($normalise) !== '') {
+                $ligneDocument++;
+            }
+            if (preg_match('/\b(facture|invoice|rechnung|fattura)\b|\bn[°o]\s*[a-z0-9]/iu', $ligne) === 1) {
+                $dernierIndiceFacture = $index;
+            }
+            if (preg_match('/\b(echeance|échéance|due date|zahlbar|scadenza)\b/u', $ligne) === 1) {
                 continue;
             }
             if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $ligne, $m) === 1) {
-                $estDateDocument = preg_match('/\b(date|datum|data)\b|,\s*le\s+\d{1,2}\.|\b(?:le|den|il)\s+\d{1,2}\./iu', $ligne) === 1;
+                $estDateDocument = preg_match('/\b(date|datum|data|rechnungsdatum)\b|,\s*le\s+\d{1,2}\.|\b(?:le|den|il)\s+\d{1,2}\./iu', $ligne) === 1
+                    || $ligneDocument <= 6 || $index - $dernierIndiceFacture <= 2;
                 if ($estDateDocument) {
                     $date = sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
                     if (checkdate((int) $m[2], (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
@@ -372,11 +384,17 @@ final class Regles
         if ($n === '') {
             return false;
         }
-        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page|si |la |le |les |nous |vous |nom du destinataire|de |du |des |en |pour |avec |a |au |aux |chez |par |sur )\b/', $n) === 1
+        if (str_starts_with($n, 'nom du destinataire')) {
+            return false;
+        }
+        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page|si |la |le |les |nous |vous |votre |notre |mon |ma |mes |ton |ta |tes |d |de |du |des |en |pour |avec |a |au |aux |chez |par |sur |donnees relatives)\b/', $n) === 1
             || preg_match('/^(service\s+(?:relation\s+)?client(?:ele|s)?|contact\s+cent(?:er|re)|contact\s+cent(?:er|re)\s+service)\b/', $n) === 1) {
             return false;
         }
         $mots = preg_split('/\s+/', $n) ?: [];
+        if (array_filter($mots, static fn (string $mot): bool => !in_array($mot, self::MOTS_EMETTEUR_GENERIQUES, true)) === []) {
+            return false;
+        }
         if (count(array_filter($mots, static fn (string $mot): bool => strlen($mot) === 1)) >= 2) {
             return false;
         }

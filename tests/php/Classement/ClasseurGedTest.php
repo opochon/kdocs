@@ -109,7 +109,7 @@ final class ClasseurGedTest extends TestCase
         self::assertTrue($r['valide']);
     }
 
-    public function testLaFamilleCompatibleRetientLeTypeLePlusPrecis(): void
+    public function testLaFamilleCompatibleSansIndiceDuSousTypeNeValidePasSeule(): void
     {
         $texte = self::ENTETE . "FACTURE — avis fiscal annuel\nDate : 05.01.2026\n";
         $ia = new ClientIaSimule(new ReponseIa('Avis d’impôt', 'Papeterie des Sapins Fictive SA', null,
@@ -118,7 +118,38 @@ final class ClasseurGedTest extends TestCase
         $r = $this->classeur($ia)->proposer($texte, [], 'avis.pdf');
 
         self::assertSame('Avis d’impôt', $r['type']);
-        self::assertTrue($r['valide']);
+        self::assertFalse($r['valide']);
+        self::assertStringContainsString('sous-type', (string) $r['raison']);
+    }
+
+    public function testUneFamilleCompatibleSansIndiceDuSousTypeResteAControler(): void
+    {
+        $texte = "Banque Exemple SA\nCONTRAT de crédit hypothécaire\nDate : 05.01.2026\n";
+        $ia = new ClientIaSimule(new ReponseIa('Police d’assurance', 'Banque Exemple SA', null,
+            '2026-01-05', null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'credit.pdf');
+
+        self::assertSame('Police d’assurance', $r['type'], 'le sous-type IA reste proposé au contrôleur');
+        self::assertFalse($r['valide']);
+        self::assertStringContainsString('sous-type', (string) $r['raison']);
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('datesFactureQualifiees')]
+    public function testUneDateDeFactureQualifieeEstLue(string $libelle, string $date): void
+    {
+        $texte = "Énergies Modèle SA\nFACTURE N° EN-26\n$libelle $date\n";
+
+        self::assertSame('2026-09-14', \Ged\Classement\Regles::dateEnTete($texte));
+    }
+
+    public static function datesFactureQualifiees(): array
+    {
+        return [
+            'fr' => ['Date de facture :', '14.09.2026'],
+            'de' => ['Rechnungsdatum :', '14.09.2026'],
+            'it' => ['Data fattura :', '14.09.2026'],
+        ];
     }
 
     public function testUnEmetteurIaInclusDansLeTexteEstCorroboreMalgreLaFormeJuridique(): void

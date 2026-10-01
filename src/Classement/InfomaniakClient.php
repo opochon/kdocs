@@ -12,8 +12,8 @@ use Ged\Config;
  *
  * - modèle de classement : INFOMANIAK_AI_MODEL_CLASSIFY, défaut `google/gemma-4-31B-it` (banc du 28-09 :
  *   50/51 types justes, 51/51 émetteurs) ;
- * - délai borné : INFOMANIAK_AI_TIMEOUT_CLASSIFY, défaut 20 s, et UNE reprise si le service a expiré
- *   (environ 1 appel sur 10 reste bloqué côté service ; le rejouer aussitôt aboutit) ;
+ * - délai borné : INFOMANIAK_AI_TIMEOUT_CLASSIFY, défaut 20 s ; une pièce ne déclenche qu'UNE requête,
+ *   pour que le budget de l'ingestion reste prévisible sous charge ;
  * - repli sans blocage : toute panne rend null, le classeur se rabat sur les règles.
  *
  * Le transport HTTP est injectable : les tests ne touchent jamais le réseau.
@@ -27,6 +27,8 @@ final class InfomaniakClient implements ClientIa
 
     private readonly ?Closure $transport;
     private bool $dernierExpire = false;
+    private int $appels = 0;
+    private float $tempsAppelsS = 0.0;
 
     public function __construct(private readonly Config $config, ?callable $transport = null)
     {
@@ -77,27 +79,22 @@ final class InfomaniakClient implements ClientIa
         ];
         $produit = rawurlencode($this->config->get('INFOMANIAK_AI_API_SECRET'));
 
-        foreach ([sprintf(self::CHEMIN_V2, $produit), sprintf(self::CHEMIN_V1, $produit)] as $url) {
-            $contenu = $this->appeler($url, $entetes, $corps, $delai);
-            if ($contenu === null && $this->aExpire()) {
-                // Service lent : une seule reprise, sur le même point d'entrée.
-                $contenu = $this->appeler($url, $entetes, $corps, $delai);
-            }
-            if ($contenu === null) {
-                if ($this->aExpire()) {
-                    break; // ne pas doubler l'attente sur le second point d'entrée
-                }
-                continue;
-            }
-            $parsed = self::extraireJson($contenu);
-            if ($parsed === null) {
-                return null; // réponse illisible : on ne devine pas
-            }
-
-            return $this->depuisReponse($parsed, $typesConnus, $modele);
+        $contenu = $this->appeler(sprintf(self::CHEMIN_V2, $produit), $entetes, $corps, $delai);
+        if ($contenu === null) {
+            return null;
+        }
+        $parsed = self::extraireJson($contenu);
+        if ($parsed === null) {
+            return null; // réponse illisible : on ne devine pas
         }
 
-        return null;
+        return $this->depuisReponse($parsed, $typesConnus, $modele);
+    }
+
+    /** @return array{appels:int, temps_s:float} Mesure cumulée, exploitable par les bancs. */
+    public function statistiques(): array
+    {
+        return ['appels' => $this->appels, 'temps_s' => round($this->tempsAppelsS, 3)];
     }
 
     /** @return array<string, mixed>|null */
@@ -124,9 +121,12 @@ final class InfomaniakClient implements ClientIa
     private function appeler(string $url, array $entetes, string $corps, int $delai): ?string
     {
         $this->dernierExpire = false;
+        $debut = microtime(true);
+        $this->appels++;
         $reponse = $this->transport !== null
             ? ($this->transport)($url, $entetes, $corps, $delai)
             : $this->curl($url, $entetes, $corps, $delai);
+        $this->tempsAppelsS += microtime(true) - $debut;
 
         if (($reponse['expire'] ?? false) === true) {
             $this->dernierExpire = true;

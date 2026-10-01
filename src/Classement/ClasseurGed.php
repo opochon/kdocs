@@ -73,6 +73,7 @@ final class ClasseurGed implements Classeur
         $valide = false;
         $raison = null;
         $typeCorrobore = false;
+        $validationParHabitude = false;
 
         if ($habitude !== null && !Regles::estAutre((string) $habitude['valeur'])) {
             // L'habitude vaut preuve à elle seule : trois choix humains identiques ont déjà tranché.
@@ -82,14 +83,17 @@ final class ClasseurGed implements Classeur
             $confiance = (float) $habitude['confiance'];
             $valide = true;
             $typeCorrobore = true;
+            $validationParHabitude = true;
         } else {
             $typeTexte = $indiceRegle['type'] ?? null;
             $typeIa = $reponseIa?->type;
             // Règle `typeCorrobore` : l'IA doit corroborer un indice DU MÊME TYPE dans le texte.
+            // Une famille commune (Police d'assurance / Contrat) n'est pas une preuve du sous-type :
+            // elle sert seulement à expliquer la suggestion à l'humain, jamais à ranger seule.
             $iaCorrobore = $indiceRegle !== null
                 && $typeIa !== null
                 && $reponseIa->confiance >= $this->seuil
-                && Regles::typesCompatibles($typeIa, $typeTexte);
+                && Regles::memeType($typeIa, $typeTexte);
 
             if ($iaCorrobore) {
                 $type = Regles::typeLePlusPrecis($typeIa, $typeTexte);
@@ -108,7 +112,14 @@ final class ClasseurGed implements Classeur
                     $raison = 'IA indisponible';
                 } elseif ($typeIa === null) {
                     $raison = 'IA sans type : le texte seul ne valide pas';
-                } elseif (!Regles::typesCompatibles($typeIa, $typeTexte)) {
+                } elseif (!Regles::memeType($typeIa, $typeTexte) && Regles::typesCompatibles($typeIa, $typeTexte)) {
+                    // Le type IA reste visible (il peut guider le contrôleur), mais le seul dénominateur
+                    // commun est le parent. Sans indice propre du sous-type, aucune validation seule.
+                    $type = Regles::typeLePlusPrecis($typeIa, $typeTexte);
+                    $source = 'ia';
+                    $confiance = $reponseIa->confiance;
+                    $raison = 'sous-type IA à contrôler : ' . $typeIa . ' sans indice propre dans le texte (texte=' . $typeTexte . ')';
+                } elseif (!Regles::memeType($typeIa, $typeTexte)) {
                     $raison = 'IA et texte divergent : IA=' . $typeIa . ', texte=' . $typeTexte;
                 } else {
                     $raison = 'confiance IA insuffisante (' . round($reponseIa->confiance, 2) . ' < ' . $this->seuil . ')';
@@ -132,6 +143,14 @@ final class ClasseurGed implements Classeur
         // Valider seul exige les DEUX sources : une date absente n'est pas une concordance. La date
         // lue reste proposée pour aider l'humain, mais ne suffit pas au rangement automatique.
         $dateCorroboree = $dateRegle !== null && $dateIa !== null && $dateRegle === $dateIa;
+
+        // Trois validations humaines du même émetteur constituent la preuve métier d'apprentissage :
+        // elles rendent cet émetteur crédible et autorisent la quatrième pièce même hors-ligne ou sans
+        // date OCR. Le tri automatique, lui, n'appelle jamais retenirChoix().
+        if ($validationParHabitude) {
+            $emetteurCorrobore = $emetteur !== null;
+            $dateCorroboree = true;
+        }
 
         if ($valide && Regles::estAutre($type)) {
             $valide = false;

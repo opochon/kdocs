@@ -84,6 +84,18 @@ abstract class ClasseurContrat extends TestCase
         self::assertFalse($p['valide']);
         self::assertStringContainsString('date', (string) $p['raison']);
     }
+
+    /** Une compatibilité de famille ne permet jamais d'inventer le sous-type IA. */
+    public function testUneFamilleCompatibleNeValideQueLeTypeGeneralProuveParLesDeuxSources(): void
+    {
+        $ia = new IaContrat(new ReponseIa('Police d’assurance', 'Banque Exemple SA', null,
+            '2026-09-29', null, [], 0.99, 'contrat'));
+        $p = $this->classeur($ia)->proposer("Banque Exemple SA\nCONTRAT de crédit hypothécaire\nDate : 29.09.2026", [], 'credit.pdf');
+
+        self::assertSame('Police d’assurance', $p['type'], 'le sous-type reste une suggestion, pas une validation');
+        self::assertFalse($p['valide']);
+        self::assertStringContainsString('sous-type', (string) $p['raison']);
+    }
 }
 
 final class IaContrat implements ClientIa
