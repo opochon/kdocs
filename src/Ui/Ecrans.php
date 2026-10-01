@@ -107,9 +107,10 @@ final class Ecrans
         // système visuel restent le contrat. Point de branchement minimal, sans toucher au Kernel.
         if (class_exists(\Ged\Recherche\Ecran::class)) {
             $donnees = \Ged\Recherche\Ecran::depuisRacine()->donnees($req->getQueryParams());
-            // V2-10c / V2-10d : on ne montre pas un extrait OCR illisible. Un extrait qui mélange
-            // bruit et texte est rogné au premier segment propre ; à défaut il est écarté. Le titre,
-            // le type, l'émetteur et la date restent affichés.
+            // V2-10c / V2-10d / V2-10e : on ne montre pas un extrait OCR illisible. Un extrait qui
+            // mélange bruit et texte est rogné (tête ET queue) au passage propre ; la fenêtre retenue
+            // contient le premier terme trouvé ; un extrait court majoritairement bruité est écarté.
+            // Le titre, le type, l'émetteur et la date restent affichés.
             foreach ($donnees['resultats'] as &$resultat) {
                 $resultat['extraits'] = ExtraitsLisibles::retenir((array) ($resultat['extraits'] ?? []));
             }

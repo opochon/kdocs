@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Ged\Ui;
 
 /**
- * V2-10c / V2-10d — lisibilité d'un extrait OCR. Un encadré de recherche ne doit jamais afficher
- * un amas de symboles, une bouillie de consonnes ni un chapelet de fragments : mieux vaut pas
- * d'extrait qu'un extrait illisible (le titre, le type, l'émetteur et la date suffisent).
+ * V2-10c / V2-10d / V2-10e — lisibilité d'un extrait OCR. Un encadré de recherche ne doit jamais
+ * afficher un amas de symboles, une bouillie de consonnes ni un chapelet de fragments : mieux vaut
+ * pas d'extrait qu'un extrait illisible (le titre, le type, l'émetteur et la date suffisent).
  *
- * L'heuristique est volontairement sans dictionnaire, mais plus stricte que la seule présence de
- * voyelles (un bruit OCR scanne des mots courts qui en portent) :
+ * L'heuristique est volontairement sans dictionnaire général, mais plus stricte que la seule
+ * présence de voyelles (un bruit OCR scanne des mots courts qui en portent) :
  *
  *  1. assez de lettres dans le texte (part minimale de lettres) ;
  *  2. une majorité de mots portant une voyelle ;
@@ -19,8 +19,17 @@ namespace Ged\Ui;
  *  4. aucun signe parasite (`{`, `|`, `~`, `#`, `@`, `^`, `\`, `<`, `>`, `_`…) ;
  *  5. au moins un mot de 5 lettres (un vrai extrait en porte un).
  *
- * Quand un extrait mélange bruit et texte, il est ROGNÉ au premier segment propre plutôt que montré
- * entier ou masqué. À défaut d'extrait propre, rien n'est rendu.
+ * V2-10e complète le tableau :
+ *
+ *  - **tête ET queue** : un extrait mixte est rogné au premier segment propre, et finit sur le
+ *    dernier mot plausible de ce segment (une suite de fragments en queue ne s'affiche plus) ;
+ *  - **extrait court majoritairement bruité** : sous huit mots, il faut que la majorité des mots
+ *    ressemble à quelque chose (mot courant — y compris les mots usuels de la GED —, nombre ou
+ *    montant, nom propre à initiale majuscule) ; sinon rien n'est montré ;
+ *  - **ponctuation parasite** : une séquence de signes isolés au milieu d'un texte (« ; = »,
+ *    « ' . , ») coupe l'extrait ;
+ *  - **fenêtre autour du terme** : quand la recherche fournit le terme trouvé (`retenir`), l'extrait
+ *    est la fenêtre propre qui contient ce terme, jamais le début du texte.
  *
  * Elle vit dans le secteur Interface : c'est une règle d'affichage, jamais une donnée métier.
  */
@@ -50,6 +59,12 @@ final class ExtraitsLisibles
     /** Minima d'un segment propre : assez de mots, assez de lettres, au moins un mot long. */
     private const SEGMENT_MIN_MOTS = 3;
     private const SEGMENT_MIN_LETTRES = 12;
+
+    /** V2-10e : en dessous de ce nombre de mots, un extrait doit être majoritairement plausible. */
+    private const COURT_MOTS = 8;
+
+    /** V2-10e : au-delà, le « terme » n'est plus un terme de recherche mais le texte entier. */
+    private const TERME_MAX = 40;
 
     /**
      * Signes qui ne figurent pas dans un texte français, allemand ou italien lisible : leur seule
@@ -86,11 +101,47 @@ final class ExtraitsLisibles
         'mi', 'ti', 'te', 'io', 'tu', 'lei', 'noi', 'voi', 'né', 'col', 'coi',
         // — abréviations administratives courantes
         'chf', 'eur', 'usd', 'ttc', 'tva', 'ht', 'sa', 'srl', 'ag', 'ch', 'av', 'tel', 'fax',
-        'mme', 'mr', 'dr', 'pr', 'no', 'num', 'ref', 'obj', 'dos', 'bic', 'ccp',
+        'mme', 'mr', 'dr', 'pr', 'no', 'num', 'ref', 'obj', 'dos', 'bic', 'ccp', 'iban',
     ];
+
+    /**
+     * V2-10e — mots usuels de la GED (pas un dictionnaire général) : ils rendent « lisibles » une
+     * en-tête en capitales (`FACTURE`, `CONTRAT`) ou un mot de métadonnée fréquent, pour ne pas
+     * rogner à tort un extrait propre et pour juger un extrait court.
+     *
+     * @var list<string>
+     */
+    private const MOTS_USUELS = [
+        'facture', 'factures', 'facturation', 'contrat', 'contrats', 'convention', 'devis', 'bon',
+        'commande', 'commandes', 'livraison', 'paiement', 'payable', 'solde', 'soldes', 'montant',
+        'montants', 'total', 'totaux', 'somme', 'date', 'objet', 'reference', 'dossier', 'dossiers',
+        'client', 'clients', 'fournisseur', 'fournisseurs', 'adresse', 'numero', 'page', 'pages',
+        'annexe', 'annexes', 'echeance', 'societe', 'raison', 'sociale', 'monsieur', 'madame',
+        'lettre', 'lettres', 'courrier', 'courriers', 'avis', 'rappel', 'rappels', 'police',
+        'assurance', 'assurances', 'expert', 'experts', 'expertise', 'expertises', 'entretien',
+        'renouvellement', 'bail', 'locaux', 'immeuble', 'vehicule', 'prestation', 'prestations',
+        'honoraires', 'quittance', 'bulletin', 'extrait', 'attestation', 'certificat', 'mandat',
+        'ordonnance', 'note', 'rapport', 'compte', 'releve', 'procedure', 'decision', 'resiliation',
+        'signature', 'signe', 'paraphe', 'cachet', 'mention', 'conditions', 'generales', 'clause',
+        'objet', 'fictif', 'fictive', 'fictifs', 'fictives', 'exemple', 'document', 'documents',
+        'copie', 'original', 'version', 'texte', 'contenu', 'service', 'groupe', 'agence',
+        'preambule', 'paragraphe', 'maintenance',
+    ];
+
+    /**
+     * Signes isolés « forts » : leur présence seule, dans un jeton de ponctuation, signe un artefact
+     * (sauf signes typographiques légitimes, traités à part).
+     */
+    private const SIGNES_FORTS = ';=+*&~|\\/<>#@^_[]{}(`¤¬¦\'"';
+
+    /** Signes isolés légitimes : un jeton d'un seul de ces signes ne coupe pas le texte. */
+    private const SIGNES_BENINS = ['—', '–', ':', '°', '%', '«', '»', '…', '·', '•', '–'];
 
     /** @var array<string,true>|null */
     private static ?array $petitsMots = null;
+
+    /** @var array<string,true>|null */
+    private static ?array $motsUsuels = null;
 
     /**
      * Texte propre à afficher pour un extrait brut, ou null si rien de lisible n'en sort.
@@ -109,12 +160,16 @@ final class ExtraitsLisibles
     }
 
     /**
-     * Le premier segment propre de l'extrait, avec ses bornes en octets : le texte entier s'il est
-     * propre, la fenêtre rognée sinon, null si aucun segment n'est propre.
+     * Le passage propre de l'extrait, avec ses bornes en octets : le texte entier s'il est propre,
+     * la fenêtre rognée sinon, null si aucun segment n'est propre.
+     *
+     * V2-10e : `$focus` est l'offset du terme trouvé. Quand il est fourni, la fenêtre retournée est
+     * celle qui CONTIENT ce terme (la première occurrence propre), jamais le début du texte. Sans
+     * focus, on prend le segment propre de tête, queue rognée comprise.
      *
      * @return array{texte:string, debut:int, fin:int}|null
      */
-    public static function extraitPropre(string $texte): ?array
+    public static function extraitPropre(string $texte, ?int $focus = null): ?array
     {
         if (trim($texte) === '') {
             return null;
@@ -122,69 +177,90 @@ final class ExtraitsLisibles
 
         $jetons = self::jetons($texte);
         $total = count($jetons);
-        $i = 0;
-        while ($i < $total) {
-            if (!$jetons[$i]['acceptable']) {
-                $i++;
-                continue;
-            }
-            $j = $i;
-            $lettres = 0;
-            $maxLettres = 0;
-            while ($j < $total && $jetons[$j]['acceptable']) {
-                $lettres += $jetons[$j]['longueur'];
-                $maxLettres = max($maxLettres, $jetons[$j]['longueur']);
-                $j++;
-            }
-            $mots = $j - $i;
-            if ($mots >= self::SEGMENT_MIN_MOTS && $lettres >= self::SEGMENT_MIN_LETTRES && $maxLettres >= self::LONGUEUR_MOT) {
-                $debut = $jetons[$i]['debut'];
-                // Fin du segment : jusqu'au mot suivant, en gardant la ponctuation et les chiffres
-                // collés (« 2026. »), mais jamais en franchissant un signe parasite.
-                $limite = $j < $total ? $jetons[$j]['debut'] : strlen($texte);
-                $fin = $jetons[$j - 1]['fin'];
-                while ($fin < $limite && !self::parasiteEn($texte, $fin)) {
-                    $fin++;
-                }
-                $candidat = rtrim(substr($texte, $debut, $fin - $debut));
-                $fin = $debut + strlen($candidat);
-                if (!self::contientParasite($candidat) && self::propre($candidat)) {
-                    $bruitAvant = 0;
-                    for ($k = 0; $k < $i; $k++) {
-                        if (!$jetons[$k]['acceptable']) {
-                            $bruitAvant++;
-                        }
-                    }
-                    $parasiteAvant = self::contientParasite(substr($texte, 0, $debut));
-                    $propreEntier = self::propre($texte);
-                    // Début propre : on ne rogne que si l'extrait entier n'est pas propre (queue
-                    // bruitée). Sinon, on rogne dès qu'un préfixe porte deux fragments ou un signe
-                    // parasite, même si l'adresse lisible dilue les ratios — c'est la forme du juge.
-                    $rogner = $debut === 0
-                        ? !$propreEntier
-                        : ($bruitAvant >= 2 || $parasiteAvant || !$propreEntier);
-                    if ($rogner) {
-                        return ['texte' => $candidat, 'debut' => $debut, 'fin' => $fin];
-                    }
+        $runs = self::segmentsPropres($jetons);
+        $propreEntier = self::propre($texte);
 
-                    return ['texte' => $texte, 'debut' => 0, 'fin' => strlen($texte)];
-                }
+        if ($runs === []) {
+            if ($focus !== null && ($focus < 0 || $focus >= strlen($texte))) {
+                return null;
             }
-            $i = $j;
+            if ($propreEntier && !self::courtEtBruite($texte)) {
+                return self::entier($texte);
+            }
+
+            return null;
         }
 
-        // Aucun segment assez long : un texte court mais propre reste montrable.
-        if (self::propre($texte)) {
-            return ['texte' => $texte, 'debut' => 0, 'fin' => strlen($texte)];
+        // — fenêtre centrée sur le terme trouvé (V2-10e) : elle doit le contenir.
+        if ($focus !== null) {
+            foreach ($runs as $run) {
+                if ($focus < $run['debut'] || $focus >= $run['fin']) {
+                    continue;
+                }
+                [$candidat, $debut, $fin, $coupe] = self::construire($texte, $jetons, $total, $run['i'], $run['j']);
+                if ($coupe || $candidat === '' || $focus < $debut || $focus >= $fin
+                    || self::contientParasite($candidat) || !self::propre($candidat)
+                    || self::courtEtBruite($candidat)) {
+                    continue;
+                }
+                if ($debut === 0 && $fin >= strlen($texte)) {
+                    return self::entier($texte);
+                }
+
+                return ['texte' => $candidat, 'debut' => $debut, 'fin' => $fin];
+            }
+
+            // Le terme n'est dans aucun passage propre : mieux vaut pas d'extrait qu'un hors-sujet.
+            return null;
         }
 
-        return null;
+        // — segment propre de tête, queue rognée : c'est le cas général (corpus, sans terme).
+        $premier = $runs[0];
+        $dernier = $runs[count($runs) - 1];
+        [$candidat, $debut, $fin, $coupeSignes] = self::construire($texte, $jetons, $total, $premier['i'], $dernier['j']);
+        if ($candidat === '' || self::contientParasite($candidat) || !self::propre($candidat)) {
+            $trouve = null;
+            foreach ($runs as $run) {
+                [$c, $d, $f, $coupe] = self::construire($texte, $jetons, $total, $run['i'], $run['j']);
+                if ($c !== '' && !self::contientParasite($c) && self::propre($c)) {
+                    $trouve = [$c, $d, $f, $coupe];
+                    break;
+                }
+            }
+            if ($trouve === null) {
+                return $propreEntier && !self::courtEtBruite($texte) ? self::entier($texte) : null;
+            }
+            [$candidat, $debut, $fin, $coupeSignes] = $trouve;
+        }
+
+        if ($debut === 0 && $fin >= strlen($texte)) {
+            return self::courtEtBruite($texte) ? null : self::entier($texte);
+        }
+
+        // Un seul fragment isolé en bord (« Rue » d'une adresse, « Mai » d'une date) reste toléré :
+        // l'extrait entier est propre et rien n'a été rogné ; on préfère alors le texte complet.
+        $bordsRognes = $premier['rogneTete'] || $dernier['rogneQueue'] || $coupeSignes;
+        $teteToleree = $premier['i'] === 0
+            || ($premier['i'] === 1 && !$jetons[0]['acceptable']);
+        $queueToleree = $dernier['j'] === $total
+            || ($dernier['j'] === $total - 1 && !$jetons[$total - 1]['acceptable']);
+        if ($propreEntier && !$bordsRognes && $teteToleree && $queueToleree
+            && !self::contientParasite(substr($texte, 0, $debut))
+            && !self::contientParasite(substr($texte, $fin))) {
+            return self::courtEtBruite($texte) ? null : self::entier($texte);
+        }
+
+        if (self::courtEtBruite($candidat)) {
+            return null;
+        }
+
+        return ['texte' => $candidat, 'debut' => $debut, 'fin' => $fin];
     }
 
     /**
      * Ne retient que les extraits qui portent un passage propre, dans l'ordre, et borne le nombre
-     * affiché. Un extrait mixte est rogné au premier segment propre ; les marques de surlignage des
-     * segments conservés sont préservées.
+     * affiché. Un extrait mixte est rogné au passage propre ; les marques de surlignage des segments
+     * conservés sont préservées. V2-10e : la fenêtre retenue contient le premier terme trouvé.
      *
      * @param list<list<array{t:string, hit:bool}>> $extraits
      * @return list<list<array{t:string, hit:bool}>>
@@ -206,7 +282,7 @@ final class ExtraitsLisibles
                 }
             }
             $texte = implode('', array_map(static fn (array $s): string => $s['t'], $segments));
-            $propre = self::extraitPropre($texte);
+            $propre = self::extraitPropre($texte, self::focusTerme($segments, $texte));
             if ($propre === null) {
                 continue;
             }
@@ -221,32 +297,275 @@ final class ExtraitsLisibles
     }
 
     /**
-     * Coupe la liste de segments aux bornes [debut, fin) du texte concaténé.
+     * Offset du premier terme trouvé — un terme de recherche est court, sinon c'est le texte entier
+     * (segment fabriqué à la main) et l'on ne centre pas.
      *
      * @param list<array{t:string, hit:bool}> $segments
-     * @return list<array{t:string, hit:bool}>
      */
-    private static function rogner(array $segments, int $debut, int $fin): array
+    private static function focusTerme(array $segments, string $texte): ?int
     {
-        $gardes = [];
         $offset = 0;
         foreach ($segments as $segment) {
             $longueur = strlen($segment['t']);
-            $segmentDebut = $offset;
-            $segmentFin = $offset + $longueur;
-            $offset = $segmentFin;
-            $a = max($debut, $segmentDebut);
-            $b = min($fin, $segmentFin);
-            if ($b <= $a) {
-                continue;
+            if ($segment['hit'] && $longueur > 0 && $longueur <= self::TERME_MAX && $longueur < strlen($texte)) {
+                return $offset;
             }
-            $gardes[] = [
-                't' => substr($segment['t'], $a - $segmentDebut, $b - $a),
-                'hit' => $segment['hit'],
-            ];
+            $offset += $longueur;
         }
 
-        return $gardes;
+        return null;
+    }
+
+    /**
+     * Fenêtre [debut, fin) construite sur la suite de mots [i, j[ : jusqu'au mot suivant, en gardant
+     * la ponctuation et les chiffres collés (« 2026. », « … »), mais jamais en franchissant un signe
+     * parasite. Une séquence de signes isolés au milieu coupe l'extrait (V2-10e).
+     *
+     * @param list<array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}> $jetons
+     * @return array{0:string, 1:int, 2:int, 3:bool}
+     */
+    private static function construire(string $texte, array $jetons, int $total, int $i, int $j): array
+    {
+        $debut = $jetons[$i]['debut'];
+        $limite = $j < $total ? $jetons[$j]['debut'] : strlen($texte);
+        $fin = $jetons[$j - 1]['fin'];
+        while ($fin < $limite && !self::parasiteEn($texte, $fin)) {
+            $fin++;
+        }
+        $candidat = rtrim(substr($texte, $debut, $fin - $debut));
+        // Une ponctuation isolée collée en bord (guillemet, apostrophe) n'appartient pas au texte.
+        $candidat = rtrim($candidat, "\t\n\r\0\x0B\"'");
+        $fin = $debut + strlen($candidat);
+
+        $coupe = self::trouverSignesIsoles($candidat);
+        if ($coupe !== null) {
+            $candidat = rtrim(substr($candidat, 0, $coupe));
+            $candidat = rtrim($candidat, "\t\n\r\0\x0B\"'");
+            $fin = $debut + strlen($candidat);
+
+            return [$candidat, $debut, $fin, true];
+        }
+
+        return [$candidat, $debut, $fin, false];
+    }
+
+    /**
+     * Segments propres : suites maximales de mots acceptables, dont la tête et la queue sont élaguées
+     * des jetons manifestement bruités (majuscules criardes, amas de voyelles, mots sans voyelle,
+     * majuscules internes). V2-10e.
+     *
+     * @param list<array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}> $jetons
+     * @return list<array{i:int, j:int, debut:int, fin:int, rogneTete:bool, rogneQueue:bool}>
+     */
+    private static function segmentsPropres(array $jetons): array
+    {
+        $total = count($jetons);
+        $segments = [];
+        $i = 0;
+        while ($i < $total) {
+            if (!$jetons[$i]['acceptable']) {
+                $i++;
+                continue;
+            }
+            $j = $i;
+            while ($j < $total && $jetons[$j]['acceptable']) {
+                $j++;
+            }
+            [$a, $b, $rogneTete, $rogneQueue] = self::rognerBords($jetons, $i, $j);
+            if ($b - $a >= self::SEGMENT_MIN_MOTS) {
+                $lettres = 0;
+                $maxLettres = 0;
+                for ($k = $a; $k < $b; $k++) {
+                    $lettres += $jetons[$k]['longueur'];
+                    $maxLettres = max($maxLettres, $jetons[$k]['longueur']);
+                }
+                if ($lettres >= self::SEGMENT_MIN_LETTRES && $maxLettres >= self::LONGUEUR_MOT) {
+                    $segments[] = [
+                        'i' => $a, 'j' => $b,
+                        'debut' => $jetons[$a]['debut'], 'fin' => $jetons[$b - 1]['fin'],
+                        'rogneTete' => $rogneTete, 'rogneQueue' => $rogneQueue,
+                    ];
+                }
+            }
+            $i = $j;
+        }
+
+        return $segments;
+    }
+
+    /**
+     * V2-10e — élague la tête et la queue d'un segment : les jetons manifestement bruités, et, une
+     * fois qu'un bruit de bord a été trouvé, les petits mots non usuels qui l'accompagnent
+     * (« ieee Post CHAG » : Majuscule courte « Post » entre deux fragments).
+     *
+     * @param list<array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}> $jetons
+     * @return array{0:int, 1:int, 2:bool, 3:bool}
+     */
+    private static function rognerBords(array $jetons, int $i, int $j): array
+    {
+        $a = $i;
+        $b = $j;
+        $rogneTete = false;
+        $rogneQueue = false;
+        $bruit = 0;
+        while ($a < $b && (self::implausible($jetons[$a]) || ($bruit > 0 && self::courtNonUsuel($jetons[$a])))) {
+            if (self::implausible($jetons[$a])) {
+                $bruit++;
+            }
+            $a++;
+            $rogneTete = true;
+        }
+        $bruit = 0;
+        while ($b > $a && (self::implausible($jetons[$b - 1]) || ($bruit > 0 && self::courtNonUsuel($jetons[$b - 1])))) {
+            if (self::implausible($jetons[$b - 1])) {
+                $bruit++;
+            }
+            $b--;
+            $rogneQueue = true;
+        }
+
+        return [$a, $b, $rogneTete, $rogneQueue];
+    }
+
+    /** V2-10e — un mot court qui n'est ni un petit mot ni un mot usuel accompagne volontiers un bruit. */
+    private static function courtNonUsuel(array $jeton): bool
+    {
+        return $jeton['longueur'] <= 4 && !self::motUsuel($jeton['lettres']);
+    }
+
+    /** Nombre de jetons rejetés (fragments) avant l'indice donné. */
+    private static function bruitAvant(array $jetons, int $indice): int
+    {
+        $n = 0;
+        for ($k = 0; $k < $indice; $k++) {
+            if (!$jetons[$k]['acceptable']) {
+                $n++;
+            }
+        }
+
+        return $n;
+    }
+
+    /**
+     * V2-10e — vrai si l'extrait est court et majoritairement fait de bruit. Un mot compte comme
+     * plausible s'il est un petit mot connu, un mot usuel de la GED, un nombre ou un montant, ou un
+     * nom propre plausible (initiale majuscule suivie de minuscules). Sous huit mots, la moitié au
+     * moins doit être plausible, sinon rien ne s'affiche.
+     */
+    private static function courtEtBruite(string $texte): bool
+    {
+        $unites = preg_split('/\s+/u', trim($texte)) ?: [];
+        $votes = [];
+        foreach ($unites as $unite) {
+            $mot = trim((string) $unite, ".,;:!?()[]{}«»\"'…-–—");
+            if ($mot === '') {
+                continue;
+            }
+            if (preg_match('/\p{N}/u', $mot) === 1) {
+                $votes[] = true;            // nombre ou montant
+                continue;
+            }
+            if (preg_match('/\p{L}/u', $mot) !== 1) {
+                continue;                    // signe pur
+            }
+            $votes[] = !self::implausible(self::jetonDepuisMot($mot));
+        }
+        $n = count($votes);
+        if ($n >= self::COURT_MOTS) {
+            return false;
+        }
+        $plausibles = count(array_filter($votes));
+
+        return $plausibles * 2 < $n;
+    }
+
+    /** Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité. */
+    private static function jetonDepuisMot(string $mot): array
+    {
+        $lettres = (string) preg_replace('/[^\p{L}]/u', '', $mot);
+        $longueur = mb_strlen($lettres);
+
+        return [
+            't' => $mot,
+            'lettres' => $lettres,
+            'debut' => 0,
+            'fin' => strlen($mot),
+            'longueur' => $longueur,
+            'acceptable' => $longueur > self::LONGUEUR_FRAGMENT || self::petitMot($lettres),
+        ];
+    }
+
+    /**
+     * V2-10e — vrai si le mot est manifestement un artefact : fragment, tout en majuscules non usuel,
+     * majuscule interne, amas de voyelles ou mot sans voyelle.
+     */
+    private static function implausible(array $jeton): bool
+    {
+        if ($jeton['longueur'] === 0) {
+            return true;
+        }
+        if (!$jeton['acceptable']) {
+            return true;
+        }
+        if (self::motUsuel($jeton['lettres'])) {
+            return false;
+        }
+        if ($jeton['t'] === mb_strtoupper($jeton['t'])) {
+            return true;
+        }
+        $suite = mb_substr($jeton['t'], 1);
+        if ($suite !== '' && preg_match('/\p{Lu}/u', $suite) === 1) {
+            return true;
+        }
+        if (preg_match('/[aeiouyàâäéèêëîïôöùûüœæ]{4,}/iu', $jeton['lettres']) === 1) {
+            return true;
+        }
+
+        return preg_match('/[aeiouyàâäéèêëîïôöùûüœæ]/iu', $jeton['lettres']) !== 1;
+    }
+
+    /**
+     * V2-10e — première séquence de signes isolés au milieu du texte, ou null. Renvoie l'offset du
+     * premier signe : la séquence retire ce qui suit (« ; = », « ' . , », apostrophe ou guillemet
+     * collé en fin de mot).
+     */
+    private static function trouverSignesIsoles(string $texte): ?int
+    {
+        $trouves = preg_match_all('/\S+/u', $texte, $unites, PREG_OFFSET_CAPTURE);
+        if ($trouves === false || $trouves === 0) {
+            return null;
+        }
+        $precedent = null;
+        foreach ($unites[0] as [$unite, $offset]) {
+            if (!self::uniteSuspecte((string) $unite)) {
+                $precedent = null;
+                continue;
+            }
+            if ($precedent !== null) {
+                return $precedent;
+            }
+            $precedent = (int) $offset;
+        }
+
+        return null;
+    }
+
+    /** V2-10e — vrai si ce jeton est une ponctuation parasite (isolée ou collée anormalement). */
+    private static function uniteSuspecte(string $unite): bool
+    {
+        if (preg_match('/\p{L}|\p{N}/u', $unite) === 1) {
+            // Un mot ou un nombre : suspect seulement si un signe fort y est collé à la fin.
+            return preg_match('/[;=\'"]$/u', $unite) === 1;
+        }
+        // Points de suspension (« … » ou « ... ») : légitimes ; un point ou une virgule SEULS, non.
+        if (preg_match('/^[.…]+$/u', $unite) === 1 && (mb_strlen($unite) >= 2 || $unite === '…')) {
+            return false;
+        }
+        if (in_array($unite, self::SIGNES_BENINS, true)) {
+            return false;
+        }
+
+        return true;
     }
 
     /** Vrai si le texte, pris entier, est lisible d'un bout à l'autre. */
@@ -333,6 +652,20 @@ final class ExtraitsLisibles
         return isset(self::$petitsMots[self::sansAccents(mb_strtolower($mot))]);
     }
 
+    /** V2-10e — un mot usuel de la GED (ou un petit mot) compte comme mot courant. */
+    private static function motUsuel(string $mot): bool
+    {
+        $cle = self::sansAccents(mb_strtolower($mot));
+        if (self::petitMot($mot)) {
+            return true;
+        }
+        if (self::$motsUsuels === null) {
+            self::$motsUsuels = array_fill_keys(array_map(self::sansAccents(...), self::MOTS_USUELS), true);
+        }
+
+        return isset(self::$motsUsuels[$cle]);
+    }
+
     /** Retire les diacritiques pour comparer les mots d'une langue à l'autre. */
     private static function sansAccents(string $texte): string
     {
@@ -368,5 +701,40 @@ final class ExtraitsLisibles
         }
 
         return false;
+    }
+
+    /** @return array{texte:string, debut:int, fin:int} */
+    private static function entier(string $texte): array
+    {
+        return ['texte' => $texte, 'debut' => 0, 'fin' => strlen($texte)];
+    }
+
+    /**
+     * Coupe la liste de segments aux bornes [debut, fin) du texte concaténé.
+     *
+     * @param list<array{t:string, hit:bool}> $segments
+     * @return list<array{t:string, hit:bool}>
+     */
+    private static function rogner(array $segments, int $debut, int $fin): array
+    {
+        $gardes = [];
+        $offset = 0;
+        foreach ($segments as $segment) {
+            $longueur = strlen($segment['t']);
+            $segmentDebut = $offset;
+            $segmentFin = $offset + $longueur;
+            $offset = $segmentFin;
+            $a = max($debut, $segmentDebut);
+            $b = min($fin, $segmentFin);
+            if ($b <= $a) {
+                continue;
+            }
+            $gardes[] = [
+                't' => substr($segment['t'], $a - $segmentDebut, $b - $a),
+                'hit' => $segment['hit'],
+            ];
+        }
+
+        return $gardes;
     }
 }
