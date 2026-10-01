@@ -17,6 +17,8 @@ declare(strict_types=1);
 use Ged\Base;
 use Ged\Classement\ClasseurGed;
 use Ged\Classement\ClientIaNul;
+use Ged\Classement\InfomaniakClient;
+use Ged\Classement\Regles;
 use Ged\Config;
 use Ged\Ingestion\Fabrique;
 
@@ -59,7 +61,12 @@ $attendus = count(array_filter($verite['elements'], fn ($e) => empty($e['blanche
 copy("$racine/tests/corpus/$lot/{$verite['fichier']}", "$bac/entree/{$verite['fichier']}");
 
 $depot = new \Ged\Socle\DepotFichiers($config);
-$classeur = new ClasseurGed($config, $pdo, $avecIa ? null : new ClientIaNul());
+$iaDisponible = (new InfomaniakClient($config))->disponible();
+if ($avecIa && !$iaDisponible) {
+    fwrite(STDERR, "F1 avec IA : les clés INFOMANIAK_AI_* actives sont requises\n");
+    exit(64);
+}
+$classeur = new ClasseurGed($config, $pdo, $avecIa ? new InfomaniakClient($config) : new ClientIaNul());
 $pilote = Fabrique::pilote($config, $pdo, $depot, $classeur);
 
 $t0 = microtime(true);
@@ -107,11 +114,58 @@ $perdues = array_values(array_diff(range(1, (int) $verite['pages']), $pagesRange
 $erreurs = $pdo->query("SELECT nom_origine, erreur FROM ingestion_travaux WHERE etat = 'erreur'")->fetchAll(PDO::FETCH_ASSOC);
 $valides = count(array_filter($metas, fn ($m) => ($m['statut'] ?? '') === 'valide'));
 $enDb = (int) $pdo->query('SELECT COUNT(*) FROM documents')->fetchColumn();
-$franchie = count($metas) === $attendus && $enDb === $attendus && $perdues === [] && $erreurs === [] && $b2['doublons'] + $b2['recus'] === 1 && $b2['recus'] === 0;
+
+// F1 vérifie aussi que la CHAÎNE a réellement classé chaque pièce. Le rapprochement se fait sur les
+// pages conservées dans le `.meta.json` (pas sur l'ordre de parcours ni sur la base reconstructible).
+$veriteParPages = [];
+foreach ($verite['elements'] as $element) {
+    if (!empty($element['blanche'])) {
+        continue;
+    }
+    $veriteParPages[\Ged\Ingestion\Travaux::plages((array) $element['pages'])] = $element;
+}
+$classement = ['pieces_verifiees' => 0, 'pieces_sans_verite' => 0, 'types_faux' => 0, 'emetteurs_faux' => 0, 'valides_faux' => 0,
+    'details' => []];
+foreach ($metas as $meta) {
+    $pages = (string) ($meta['origine']['pages'] ?? '');
+    // CMD4 peut conserver un verso/intercalaire blanc dans la plage de la pièce voisine : la vérité
+    // le déclare neutre, on le retire donc avant de chercher le document métier correspondant.
+    $pagesUtiles = [];
+    foreach (preg_split('/[,\s]+/', $pages) ?: [] as $plage) {
+        if (preg_match('/^(\d+)(?:-(\d+))?$/', $plage, $p)) {
+            foreach (range((int) $p[1], (int) ($p[2] ?? $p[1])) as $page) {
+                if (!in_array($page, $blanches, true)) {
+                    $pagesUtiles[] = $page;
+                }
+            }
+        }
+    }
+    $attendu = $veriteParPages[\Ged\Ingestion\Travaux::plages($pagesUtiles)] ?? null;
+    if ($attendu === null) {
+        $classement['pieces_sans_verite']++;
+        $classement['details'][] = ['pages' => $pages, 'cause' => 'aucune vérité pour ces pages'];
+        continue;
+    }
+    $classement['pieces_verifiees']++;
+    $typeFaux = !Regles::memeType(is_string($meta['type'] ?? null) ? $meta['type'] : null, (string) $attendu['type']);
+    $emetteurFaux = Regles::normaliser((string) ($meta['emetteur'] ?? '')) !== Regles::normaliser((string) $attendu['correspondant']);
+    $valideFaux = ($meta['statut'] ?? '') === 'valide' && ($typeFaux || $emetteurFaux);
+    $classement['types_faux'] += (int) $typeFaux;
+    $classement['emetteurs_faux'] += (int) $emetteurFaux;
+    $classement['valides_faux'] += (int) $valideFaux;
+    if ($typeFaux || $emetteurFaux || $valideFaux) {
+        $classement['details'][] = ['pages' => $pages, 'type_attendu' => $attendu['type'], 'type' => $meta['type'] ?? null,
+            'emetteur_attendu' => $attendu['correspondant'], 'emetteur' => $meta['emetteur'] ?? null, 'statut' => $meta['statut'] ?? null];
+    }
+}
+$classementJuste = $classement['pieces_verifiees'] === $attendus && $classement['pieces_sans_verite'] === 0
+    && $classement['types_faux'] === 0 && $classement['emetteurs_faux'] === 0 && $classement['valides_faux'] === 0;
+$franchie = count($metas) === $attendus && $enDb === $attendus && $perdues === [] && $erreurs === [] && $classementJuste
+    && $b2['doublons'] + $b2['recus'] === 1 && $b2['recus'] === 0;
 
 $res = ['lot' => $lot, 'date' => date('c'), 'ia' => $avecIa, 'duree_s' => $duree, 'documents_attendus' => $attendus,
     'meta_json_dans_le_fonds' => count($metas), 'documents_indexes' => $enDb, 'valides_seuls' => $valides,
-    'pages_perdues' => $perdues, 'travaux_en_erreur' => $erreurs, 'redepot' => $b2, 'tours' => $tours,
+    'pages_perdues' => $perdues, 'travaux_en_erreur' => $erreurs, 'classement' => $classement, 'redepot' => $b2, 'tours' => $tours,
     'porte' => $franchie ? 'FRANCHIE' : 'NON FRANCHIE', 'fonds' => "$bac/fonds"];
 $preuves = "$racine/recette/preuves/ingestion";
 is_dir($preuves) || mkdir($preuves, 0775, true);
@@ -125,6 +179,10 @@ file_put_contents("$preuves/$lot-bout-en-bout.md", implode("\n", [
     "| Documents indexés | $attendus | $enDb |",
     '| Pages perdues | 0 | ' . count($perdues) . ' |',
     '| Travaux en erreur | 0 | ' . count($erreurs) . ' |',
+    "| Pièces classées contre vérité | $attendus | {$classement['pieces_verifiees']} |",
+    "| Types faux | 0 | {$classement['types_faux']} |",
+    "| Émetteurs faux | 0 | {$classement['emetteurs_faux']} |",
+    "| Validés faux | 0 | {$classement['valides_faux']} |",
     '| Même lot redéposé | mis de côté | ' . ($b2['doublons'] === 1 ? 'mis de côté' : 'RÉINGÉRÉ') . ' |',
     "| Validés seuls | — | $valides |", '']) . "\n");
 printf("F1 %s : %s s — %d/%d documents dans le fonds, %d indexés, %d pages perdues, %d erreurs, redépôt %s ; porte %s\n",
