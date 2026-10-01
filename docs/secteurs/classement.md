@@ -296,3 +296,19 @@ ETAT: fini
 - Commits : `095f78f` (lecture OCR/date/type), `e6356ac` (corpus/oracle), `6988373` (mesures banc).
 
 ETAT: fini
+
+
+## Jugement R2e — 01-10-2026 (juge : Claude Code)
+
+- Recette réelle sur `fae034d` (fonds vierge, scan de 103 pages) : **7 min 04 s** ; 48 pièces ; 103 pages exactes, sans doublon.
+- **9 validées seules (contre 4 en R2d), 9 justes, 0 validé faux** : trois factures d'énergie (avec leurs dates, désormais lues), deux factures d'entretien de chauffage, un rappel bancaire et trois décomptes d'assurance maladie.
+- Acquis : les dates des factures d'énergie sont lues ; les formes juridiques AG/SA d'un même émetteur sont fusionnées en un seul dossier.
+- Raisons des 39 « à contrôler » : 15 divergences IA/texte, 9 types IA sans indice, 5 IA indisponible, 4 émetteurs à contrôler, 3 émetteurs non crédibles, 2 sous-types, 1 aucun indice.
+- Relecture des propositions — régressions et défauts :
+  - **émetteur = destinataire** : la raison sociale du DESTINATAIRE (l'entreprise du foyer, présente dans le bloc adresse) est proposée comme émetteur d'un courrier d'assureur et reprise dans un titre. C'est exactement l'interdit du point 2 de R2e ;
+  - **émetteurs bruités en hausse** (environ 7 contre 3) : fragments OCR suivis d'une forme juridique (« ° x SA », « re al ces papers SA », « I! en va de même de SA »), noms tronqués ou parasités (« <banque> des ee », « <nom>-tz{<ville> SA », « Choa Sane Baan en <assureur> »), suffixe parasite (« … POPULATION Per. »). La règle « ligne avec forme juridique = émetteur » accepte n'importe quel bruit qui précède SA. Un émetteur qui était juste en R2d (« <nom> / <nom> Basel GmbH ») est devenu du bruit ;
+  - **émetteurs vides : 19/48** (21 en R2d), loin des ≤ 15 % du banc réaliste ;
+  - **types en régression** : deux polices d'assurance (automobile, accident) et une prime d'assurance sont devenues des « Courrier » ; la priorité courrier est trop large. Une pièce n'a plus ni type ni titre (le titre est la date seule) ;
+  - les factures vétérinaires sont toujours sans date et l'une est encore typée Relevé ; le gage hypothécaire est encore typé Décompte.
+- Écart banc/réel toujours important : le corpus « réaliste » donne 45/48 et le vrai papier 9/48.
+- Verdict : **R2e franchi sur la sûreté et la validation** (0 validé faux, 9 validées justes, 7 min). **Non franchi sur la qualité des émetteurs et des types** : régressions renvoyées en **R2f**.
