@@ -1,36 +1,36 @@
-# Charge — 3 puis 10 utilisateurs — 2026-09-29 22:41
+# Charge — 3 puis 10 utilisateurs — 2026-10-01 17:19
 
-Fonds de **10 000 documents** (var/charge), base `gedv2_test`, commit `e7ee3c7`. Ingestion `courrier-100p` en parallèle.
+Fonds de **10 000 documents** (var/charge), base `gedv2_test`, commit `fd58681`. Ingestion `courrier-100p` en parallèle.
 
 | Phase | Requêtes | p95 lecture | p95 écriture | Erreurs |
 |---|---|---|---|---|
-| 3-utilisateurs | 76 | 470 ms | 139 ms | 0 |
-| 10-utilisateurs | 180 | 762 ms | 113 ms | 0 |
+| 3-utilisateurs | 76 | 411 ms | 141 ms | 0 |
+| 10-utilisateurs | 180 | 458 ms | 126 ms | 0 |
 
 ## 3-utilisateurs
 
 | Écran | n | p50 | p95 | max |
 |---|---|---|---|---|
-| Bibliothèque | 9 | 151 ms | 325 ms | 325 ms |
-| Recherche | 9 | 314 ms | 470 ms | 470 ms |
-| À traiter | 9 | 170 ms | 338 ms | 338 ms |
-| Aperçu | 9 | 114 ms | 243 ms | 243 ms |
-| Validation (écriture) | 40 | 109 ms | 139 ms | 164 ms |
+| Bibliothèque | 9 | 314 ms | 411 ms | 411 ms |
+| Recherche | 9 | 203 ms | 260 ms | 260 ms |
+| À traiter | 9 | 183 ms | 278 ms | 278 ms |
+| Aperçu | 9 | 117 ms | 153 ms | 153 ms |
+| Validation (écriture) | 40 | 123 ms | 141 ms | 150 ms |
 
 ## 10-utilisateurs
 
 | Écran | n | p50 | p95 | max |
 |---|---|---|---|---|
-| Bibliothèque | 30 | 266 ms | 490 ms | 490 ms |
-| Recherche | 30 | 376 ms | 762 ms | 797 ms |
-| À traiter | 30 | 228 ms | 370 ms | 462 ms |
-| Aperçu | 30 | 151 ms | 310 ms | 315 ms |
-| Validation (écriture) | 60 | 74 ms | 113 ms | 192 ms |
+| Bibliothèque | 30 | 397 ms | 458 ms | 587 ms |
+| Recherche | 30 | 175 ms | 335 ms | 365 ms |
+| À traiter | 30 | 123 ms | 159 ms | 186 ms |
+| Aperçu | 30 | 89 ms | 149 ms | 206 ms |
+| Validation (écriture) | 60 | 83 ms | 126 ms | 280 ms |
 
 ## Collisions et ingestion
 
 - Validations attendues : 100 ; validees (fichier + index) : 100 ; perdues : 0 ; doublees : 0 ; verrous morts : 0.
-- Ingestion : finie — 53 pièces rangées, 0 travail restant (99.4 s, 53 documents ajoutes).
+- Ingestion : finie — 53 pièces rangées, 0 travail restant (88.4 s, 53 documents ajoutes).
 
 ## Porte
 

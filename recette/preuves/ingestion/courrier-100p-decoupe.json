@@ -1,8 +1,8 @@
 {
     "lot": "courrier-100p",
-    "mode": "sans-vision",
-    "date": "2026-09-29T17:22:05+00:00",
-    "duree_s": 93,
+    "mode": "avec-vision",
+    "date": "2026-10-01T17:15:23+00:00",
+    "duree_s": 77,
     "chemin": "Ged\\Ingestion\\Cmd4Decoupeur",
     "pages": 100,
     "documents_attendus": 53,
@@ -44,7 +44,7 @@
                 2,
                 3
             ],
-            "type": "Courrier",
+            "type": "Décompte",
             "scan": true,
             "cas": null,
             "decoupe": "exacte"
@@ -56,7 +56,7 @@
                 6,
                 7
             ],
-            "type": "Courrier",
+            "type": "Relevé",
             "scan": false,
             "cas": "releve 3 pages numerotees",
             "decoupe": "exacte"
@@ -104,7 +104,7 @@
                 18,
                 19
             ],
-            "type": "Courrier",
+            "type": "Décision",
             "scan": true,
             "cas": "decision 4 pages scannees SANS numerotation ni rappel d'objet (le plus dur)",
             "decoupe": "exacte"
@@ -236,7 +236,7 @@
                 43,
                 44
             ],
-            "type": "Courrier",
+            "type": "Relevé",
             "scan": true,
             "cas": null,
             "decoupe": "exacte"

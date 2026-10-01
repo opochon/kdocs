@@ -1,14 +1,22 @@
 {
     "lot": "courrier-100p",
-    "date": "2026-09-29T17:23:35+00:00",
+    "date": "2026-10-01T17:16:42+00:00",
     "ia": false,
-    "duree_s": 89.6,
+    "duree_s": 78.5,
     "documents_attendus": 53,
     "meta_json_dans_le_fonds": 53,
     "documents_indexes": 53,
     "valides_seuls": 0,
     "pages_perdues": [],
     "travaux_en_erreur": [],
+    "classement": {
+        "pieces_verifiees": 53,
+        "pieces_sans_verite": 0,
+        "types_faux": 0,
+        "emetteurs_faux": 0,
+        "valides_faux": 0,
+        "details": []
+    },
     "redepot": {
         "recus": 0,
         "doublons": 1,
@@ -52,5 +60,5 @@
         }
     ],
     "porte": "FRANCHIE",
-    "fonds": "C:\\Users\\opochon\\AppData\\Local\\Temp/gedv2-f1-20260929-172205/fonds"
+    "fonds": "C:\\Users\\opochon\\AppData\\Local\\Temp/gedv2-f1-20261001-171523/fonds"
 }

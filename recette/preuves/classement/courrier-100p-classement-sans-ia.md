@@ -1,4 +1,4 @@
-# Classement — lot `courrier-100p` — sans-ia — 2026-09-29 17:22
+# Classement — lot `courrier-100p` — sans-ia — 2026-10-01 17:15
 
 Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 
@@ -14,16 +14,18 @@ Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 | « Autre » validé seul | 0 | 0 |
 | Dates fausses (en-tête) | 0 | 0 |
 | Titres invalides (vide ou nom du lot) | 0 | 0 |
+| Appels IA | — | 0 |
+| Temps IA / pièce | — | 0 s |
 | Durée | — | 0.02 s |
 
 ## Laissés à contrôler
 - pages 1 : `Facture` proposé — IA indisponible
-- pages 2,3,4 : `Courrier` proposé — IA indisponible
-- pages 5,6,7 : `Courrier` proposé — IA indisponible
+- pages 2,3,4 : `Décompte` proposé — IA indisponible
+- pages 5,6,7 : `Relevé` proposé — IA indisponible
 - pages 8,9 : `Facture` proposé — IA indisponible
 - pages 10,11,12,13,14 : `Contrat` proposé — IA indisponible
 - pages 15 : `Reçu` proposé — IA indisponible
-- pages 16,17,18,19 : `Courrier` proposé — IA indisponible
+- pages 16,17,18,19 : `Décision` proposé — IA indisponible
 - pages 20 : `Note de crédit` proposé — IA indisponible
 - pages 21 : `Document RH` proposé — IA indisponible
 - pages 22 : `Facture` proposé — IA indisponible
@@ -35,7 +37,7 @@ Porte V2-03 : **FRANCHIE** (via `Ged\Classement\ClasseurGed`, seuil 0.8)
 - pages 35 : `Courrier` proposé — IA indisponible
 - pages 36 : `Facture` proposé — IA indisponible
 - pages 37,38,39,40,41,42 : `Contrat` proposé — IA indisponible
-- pages 43,44 : `Courrier` proposé — IA indisponible
+- pages 43,44 : `Relevé` proposé — IA indisponible
 - pages 45 : `Facture` proposé — IA indisponible
 - pages 46 : `Courrier` proposé — IA indisponible
 - pages 47 : `Reçu` proposé — IA indisponible

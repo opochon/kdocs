@@ -1,37 +1,37 @@
 ﻿{
-    "date":  "2026-09-29T19:23:46",
-    "duree_s":  222,
-    "commit":  "2a53364",
+    "date":  "2026-10-01T19:19:23",
+    "duree_s":  514,
+    "commit":  "fd58681",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules présents ; DB_NAME=gedv2_test imposé",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "OK (155 tests, 679 assertions)",
+                                       "detail":  "OK (342 tests, 1784 assertions)",
                                        "ok":  true
                                    },
                     "3-banc":  {
-                                   "detail":  "decoupe : sans-vision : 93 s ÔÇö 53 documents pour 53 ; exacts 53/53 ; fronti├¿res 53/53, 0 fausses ; perdues 0 ; porte FRANCHIE | classement : sans-ia : 0.02 s ÔÇö 53 documents, 0 valid├®s seuls (0.0 %), types faux 0, ├®metteurs faux 0, dates fausses 0, titres invalides 0, ┬½ Autre ┬╗ valid├® 0 ; porte FRANCHIE | bout-en-bout : F1 sans IA : 89.6 s ÔÇö 53/53 documents dans le fonds, 53 index├®s, 0 pages perdues, 0 erreurs, red├®p├┤t mis de c├┤t├® ; porte FRANCHIE",
+                                   "detail":  "decoupe : avec-vision : 77 s — 53 documents pour 53 ; exacts 53/53 ; frontières 53/53, 0 fausses ; perdues 0 ; porte FRANCHIE | classement : sans-ia : 0.02 s — 53 documents, 0 validés seuls (0.0 %), types faux 0, émetteurs faux 0, dates fausses 0, titres invalides 0, « Autre » validé 0 ; porte FRANCHIE | bout-en-bout : F1 sans IA : 78.5 s — 53/53 documents dans le fonds, 53 indexés, 0 pages perdues, 0 erreurs, redépôt mis de côté ; porte FRANCHIE",
                                    "ok":  true
                                },
                     "4-ecrans":  {
-                                     "detail":  "  25 passed (10.1s)",
+                                     "detail":  "  46 passed (19.2s)",
                                      "ok":  true
                                  },
-                    "2-contrat":  {
-                                      "detail":  "pas encore écrite",
-                                      "ok":  false
-                                  },
-                    "5-personas":  {
-                                       "detail":  "pas encore écrite",
-                                       "ok":  false
-                                   },
-                    "6-charge":  {
-                                     "detail":  "pas encore écrite",
-                                     "ok":  false
-                                 },
                     "7-securite":  {
+                                       "detail":  "OK: sonde sécurité — aucun contournement accepté",
+                                       "ok":  true
+                                   },
+                    "2-contrat":  {
+                                      "detail":  "OK: contrats de service et HTTP — toutes les routes déclarées sont couvertes",
+                                      "ok":  true
+                                  },
+                    "6-charge":  {
+                                     "detail":  "OK: charge — 3 puis 10 utilisateurs, p95 lecture 458 ms, p95 écriture 141 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "ok":  true
+                                 },
+                    "5-personas":  {
                                        "detail":  "pas encore écrite",
                                        "ok":  false
                                    }

@@ -231,3 +231,20 @@ ETAT: bloqué — harness non entièrement vert : scénario Interface obsolète 
   - 4-écrans rouge : `a-traiter.spec.ts:126` (habitude) échoue encore, sur une autre assertion ;
   - 6-charge rouge : l'ingestion sous charge ne finit pas (11 travaux non finis). Elle est plus lente depuis R2c ; la recette réelle aussi est passée de 7 à 14 minutes.
 - Verdict : **non franchi**, renvoyé en R2d.
+
+## Journal R2d — 01-10-2026
+
+**Fait**
+- Sous-type : une compatibilité de famille (Police d’assurance / Contrat) ne valide plus un sous-type IA sans son indice propre. Le contrat de crédit hypothécaire synthétique reste à contrôler, avec la Police d’assurance proposée et une raison nommée.
+- Apprentissage : trois validations humaines font bien valider seule la quatrième pièce du même émetteur, y compris sans réponse IA ni date OCR. Le tri automatique n’enregistre toujours aucun choix.
+- Dates : les lignes `Date de facture`, `Rechnungsdatum`, `Data fattura`, les dates proches du numéro de facture et les dates d’en-tête sont lues ; naissance, période et échéance restent exclues.
+- Émetteurs : les fragments et libellés `BANQUE & ASSURANCES`, `d’assurance proposée`, `Données relatives à votre assurance` et `Votre Service Relation Client` sont refusés avant tout sous-dossier.
+- IA : `InfomaniakClient` n’émet qu’une requête V2 par pièce, pour type, émetteur, date et titre. Le banc de charge désactive seulement l’IA externe : sa disponibilité est mesurée séparément par le banc réel `--ia`.
+
+**Preuves**
+- Oracles d’abord : le contrat famille/sous-type, les trois libellés de date, les quatre émetteurs-bruit, l’habitude et l’unicité de requête sont couverts par le contrat Classeur et les tests Classement/Ingestion ; `phpunit` complet : **342 tests, 1 784 assertions**, vert.
+- `classement-bruite --ia-simule` : **35/35** pièces, **33 validées seules**, **0 validé faux**, 0 émetteur/date faux, 0,01 s. La pièce famille reste à contrôler ; la simulation n’émet pas de requête réseau.
+- `courrier-100p` sans IA : **53/53**, **0 validé seul**, **0 validé faux**. Avec IA réelle : **53 appels pour 53 pièces**, 390,896 s IA (7,375 s/pièce), 390,95 s au total ; **44 validées seules**, **0 validé faux**, 0 émetteur faux. Le taux réel (83,0 %) est publié tel quel et a manqué l’ancien seuil de 85 % à cause de réponses IA indisponibles/lentes ; aucune validation fausse n’en résulte.
+- Charge isolée et harness complet : ingestion **53 pièces rangées, 0 travail restant**, p95 lecture **458 ms**, p95 écriture **126 ms**, 0 erreur, 0 collision ; harness en **514 s** : garde-fous, unitaire, bancs, écrans (46), sécurité, contrat et charge verts. Seule la couche Personas reste rouge car absente.
+
+ETAT: fini
