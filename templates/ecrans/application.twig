@@ -14,24 +14,44 @@
     </ul></nav>
     <div style="display:grid;gap:12px">
       <section class="carte section-reglage" id="s-1" data-testid="reglage-ingestion"><h2>Ingestion</h2>
-        <div class="ligne-reglage"><span>Dossier d’ingestion</span><span class="mono">configuré ici, jamais montré aux utilisateurs</span></div>
-        <div class="ligne-reglage"><span>Adresse d’ingestion</span><span><span class="mono">documents@exemple.ch</span> <span class="muted">· boîte IMAP relevée chaque minute, pièces jointes → ingestion</span></span></div>
-        <div class="ligne-reglage"><span>Agent d’ingestion</span><span><span class="chip ok">connecté</span> <span class="muted">poste « scanner-accueil », dernier contact il y a 12 s</span></span></div>
-        <div class="ligne-reglage"><span>Seuil de classement automatique</span><span><strong>85 %</strong> <span class="muted">et un indice du type dans le texte, ou une habitude</span></span></div>
-        <div class="ligne-reglage"><span>Habitude formée après</span><span><strong>3</strong> choix identiques pour un même émetteur</span></div>
+        <div class="ligne-reglage"><span>Dossier d’ingestion</span><span data-testid="reglage-dossier-ingestion">
+          {% if ingestion.dossier_configure %}<span class="chip ok">configuré</span>{% else %}<span class="chip warn">non configuré</span>{% endif %}
+          <span class="muted">· le chemin n’est jamais montré aux utilisateurs</span></span></div>
+        <div class="ligne-reglage"><span>Adresse d’ingestion</span><span data-testid="reglage-adresse-ingestion">
+          {% if ingestion.adresse_configuree %}<span class="mono">{{ ingestion.adresse }}</span> <span class="muted">· boîte IMAP des pièces entrantes, relevée par la tâche d’ingestion</span>
+          {% else %}<span class="chip warn">non configuré</span> <span class="muted">· aucune boîte IMAP relevée</span>{% endif %}
+        </span></div>
+        <div class="ligne-reglage"><span>Agent d’ingestion</span><span data-testid="reglage-derniere-tache">
+          {% if ingestion.derniere_tache %}
+            <span class="chip ok">{{ ingestion.derniere_tache.etat }}</span>
+            <span class="mono">{{ ingestion.derniere_tache.nom }}</span>
+            <span class="muted">· source {{ ingestion.derniere_tache.source }}, dernière activité {{ ingestion.derniere_tache.affichage }} ({{ ingestion.derniere_tache.il_y_a }})</span>
+          {% else %}<span class="chip warn">aucune tâche</span> <span class="muted">· aucune ingestion enregistrée pour cette installation</span>{% endif %}
+        </span></div>
+        <div class="ligne-reglage"><span>Seuil de classement automatique</span><span><strong data-testid="reglage-seuil">{{ ia.seuil }} %</strong> <span class="muted">et un indice du type dans le texte, ou une habitude</span></span></div>
+        <div class="ligne-reglage"><span>Habitude formée après</span><span>
+          {% if ia.habitude is not null %}<strong data-testid="reglage-habitude">{{ ia.habitude }}</strong> choix identiques{% else %}<span class="muted" data-testid="reglage-habitude">non configuré</span>{% endif %}
+          pour un même émetteur</span></div>
       </section>
       <section class="carte section-reglage" id="s-2" data-testid="reglage-stockage"><h2>Stockage</h2>
-        <div class="ligne-reglage"><span>Racine documentaire</span><span class="mono">storage/documents — le dossier fait foi</span></div>
-        <div class="ligne-reglage"><span>Rangement</span><span class="mono">année / type / émetteur</span></div>
+        <div class="ligne-reglage"><span>Racine documentaire</span><span class="mono" data-testid="reglage-racine">{{ stockage.racine }} — le dossier fait foi</span></div>
+        <div class="ligne-reglage"><span>Rangement</span><span class="mono" data-testid="reglage-rangement">{{ stockage.rangement }} <span class="muted">· sans type : {{ stockage.sans_type }}</span></span></div>
         <div class="ligne-reglage"><span>Reconstruire l’index depuis le dossier</span><span><button class="btn" type="button" data-testid="action-reconstruire">Lancer</button></span></div>
       </section>
       <section class="carte section-reglage" id="s-3" data-testid="reglage-ia"><h2>Intelligence artificielle</h2>
-        <div class="ligne-reglage"><span>Fournisseur</span><span>Infomaniak AI (hébergé en Suisse)</span></div>
-        <div class="ligne-reglage"><span>Modèle de classement</span><span class="mono">google/gemma-4-31B-it · délai 20 s + 1 reprise</span></div>
+        <div class="ligne-reglage"><span>Fournisseur</span><span>{{ ia.fournisseur }}
+          {% if ia.actif %}<span class="chip ok">actif</span>{% else %}<span class="chip warn">non activé</span>{% endif %}</span></div>
+        <div class="ligne-reglage"><span>Modèle de classement</span><span class="mono" data-testid="reglage-modele-ia">{{ ia.modele }} <span class="muted">· délai {{ ia.delai }} s + 1 reprise</span></span></div>
       </section>
       <section class="carte section-reglage" id="s-4" data-testid="reglage-connecteurs"><h2>Connecteurs</h2>
-        <div class="ligne-reglage"><span>K-Time</span><span><span class="chip">non relié</span> <button class="btn discret" type="button">Relier</button></span></div>
-        <div class="ligne-reglage"><span>ClearMyMails</span><span><span class="chip">non relié</span> <button class="btn discret" type="button">Relier</button> <span class="muted">· classer depuis Gmail, Microsoft 365…</span></span></div>
+        <div class="ligne-reglage"><span>K-Time</span><span data-testid="etat-ktime">
+          {% if connecteurs.ktime.relie %}<span class="chip ok">relié</span> <span class="muted">· {{ connecteurs.ktime.appareils }} appairage{{ connecteurs.ktime.appareils > 1 ? 's' : '' }} actif{{ connecteurs.ktime.appareils > 1 ? 's' : '' }}</span>
+          {% else %}<span class="chip">non relié</span> <span class="muted">· aucune liaison K-Time configurée</span>{% endif %}
+        </span></div>
+        <div class="ligne-reglage"><span>ClearMyMails</span><span data-testid="etat-cmm">
+          {% if connecteurs.cmm.relie %}<span class="chip ok">relié</span> <span class="muted">· {{ connecteurs.cmm.appareils }} appareil{{ connecteurs.cmm.appareils > 1 ? 's' : '' }} appairé{{ connecteurs.cmm.appareils > 1 ? 's' : '' }} · classer depuis Gmail, Microsoft 365…</span>
+          {% else %}<span class="chip">non relié</span> <span class="muted">· classer depuis Gmail, Microsoft 365…</span>{% endif %}
+        </span></div>
         {# Lien ajusté par le secteur Jonctions (V2-08c) : la liaison part de Mon profil. #}
         <div class="ligne-reglage"><span>Mon profil · appareils reliés</span><span><a class="btn discret" href="/profil" data-testid="lien-appareils">Mon profil et appareils reliés</a></span></div>
       </section>

@@ -137,7 +137,11 @@ final class Ecrans
 
     public function application(Requete $req, Reponse $rep): Reponse
     {
-        return $this->vue->rendre($rep, 'ecrans/application.twig', $this->commun('application'));
+        // L'écran ne montre que la configuration et l'état RÉELS (jamais une valeur de maquette) : les
+        // données viennent du provider dédié, le gabarit reste le contrat visuel.
+        $donnees = Application::depuisRacine(dirname(__DIR__, 2))->donnees();
+
+        return $this->vue->rendre($rep, 'ecrans/application.twig', $this->commun('application') + $donnees);
     }
 
     /**
