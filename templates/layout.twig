@@ -51,8 +51,36 @@
   </header>
 
   <main class="contenu" id="contenu">
+    {# Écrans d'ordinateur signalés sur téléphone (V2-10a) : accessibles, mais annoncés comme tels. #}
+    {% if ecran in ['bibliotheque', 'metadonnees', 'workflows', 'application'] %}
+    <div class="avis-ordinateur" role="note" data-testid="ecran-ordinateur">
+      {{ ic.i('biblio') }}Cet écran est conçu pour l’ordinateur : sur téléphone, l’affichage reste complet mais dense.
+    </div>
+    {% endif %}
     {% block contenu %}{% endblock %}
   </main>
+
+  {# Barre latérale → barre d'onglets en bas sur téléphone (V2-10a). Mêmes routes, mêmes droits. #}
+  <nav class="onglets-bas" aria-label="Navigation téléphone" data-testid="onglets-bas">
+    <a href="/a-traiter" data-testid="onglet-a-traiter" {% if ecran == 'a-traiter' %}aria-current="page"{% endif %}>
+      {{ ic.i('inbox') }}<span>À traiter</span>{% if rail.compte_a_traiter %}<span class="compte">{{ rail.compte_a_traiter }}</span>{% endif %}
+    </a>
+    <a href="/recherche" data-testid="onglet-recherche" {% if ecran == 'recherche' %}aria-current="page"{% endif %}>
+      {{ ic.i('loupe') }}<span>Recherche</span>
+    </a>
+    <a href="/deposer" data-testid="onglet-deposer" {% if ecran == 'deposer' %}aria-current="page"{% endif %}>
+      {{ ic.i('plus') }}<span>Déposer</span>
+    </a>
+    <details class="onglet-plus">
+      <summary data-testid="onglet-plus">{{ ic.i('vue') }}<span>Plus</span></summary>
+      <div class="onglet-plus-liste">
+        <a href="/bibliotheque" data-testid="onglet-bibliotheque">{{ ic.i('biblio') }}<span>Bibliothèque</span><small>écran conçu pour l’ordinateur</small></a>
+        <a href="/metadonnees" data-testid="onglet-metadonnees">{{ ic.i('reglages') }}<span>Métadonnées</span><small>écran conçu pour l’ordinateur</small></a>
+        <a href="/workflows" data-testid="onglet-workflows">{{ ic.i('flux') }}<span>Workflows</span><small>écran conçu pour l’ordinateur</small></a>
+        <a href="/application" data-testid="onglet-application">{{ ic.i('reglages') }}<span>Application</span><small>écran conçu pour l’ordinateur</small></a>
+      </div>
+    </details>
+  </nav>
 </div>
 <script src="/assets/js/ged.js" type="module"></script>
 {# La visionneuse est un comportement partagé : chargée UNE fois pour tous les écrans qui incluent la macro

@@ -15,7 +15,7 @@
     </div>
   </div>
   <div class="volets fiche">
-    <section class="carte volet" aria-label="Aperçu">
+    <section class="carte volet volet-apercu" aria-label="Aperçu">
       {% if doc.rendu is defined %}
         {# Document du fonds : la MÊME visionneuse que la Bibliothèque et À traiter (macro du secteur Aperçu). #}
         {{ visionneuse.moteur(doc.rendu, 'apercu') }}

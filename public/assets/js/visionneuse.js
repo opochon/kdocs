@@ -85,6 +85,7 @@ class Visionneuse {
   demarrer() {
     this.ecouterOutils();
     this.ecouterClavier();
+    this.ecouterTactile();
     if (this.categorie === 'message') {
       // Le message .eml est déjà rendu en HTML nettoyé côté serveur : rien à charger.
       this.zone.querySelector('[data-testid="visionneuse-chargement"]')?.remove();
@@ -111,6 +112,28 @@ class Visionneuse {
     this.racine.querySelector('[data-action="zoom-avant"]')?.addEventListener('click', () => this.zoomer(1.2));
     this.racine.querySelector('[data-action="zoom-arriere"]')?.addEventListener('click', () => this.zoomer(1 / 1.2));
     this.racine.querySelector('[data-action="rotation"]')?.addEventListener('click', () => this.tourner());
+  }
+
+  /** Téléphone : pincer avec deux doigts zoome l'aperçu (le défilement à un doigt reste possible). */
+  ecouterTactile() {
+    let distance = 0;
+    this.zone.addEventListener('touchstart', (evenement) => {
+      distance = evenement.touches.length === 2 ? this.distanceTouches(evenement.touches) : 0;
+    }, { passive: true });
+    this.zone.addEventListener('touchmove', (evenement) => {
+      if (evenement.touches.length !== 2) return;
+      evenement.preventDefault();
+      const nouvelle = this.distanceTouches(evenement.touches);
+      if (distance > 0 && nouvelle > 0) this.zoomer(nouvelle / distance);
+      distance = nouvelle;
+    }, { passive: false });
+    this.zone.addEventListener('touchend', () => { distance = 0; }, { passive: true });
+  }
+
+  distanceTouches(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
   }
 
   ecouterClavier() {

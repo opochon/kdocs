@@ -23,13 +23,29 @@ final class Ecrans
         return ['ecran' => $ecran, 'bilan' => Maquette::bilan(), 'types' => Maquette::TYPES];
     }
 
+    /**
+     * Le jeton CSRF du formulaire. Source AUTORITAIRE : la session posée par la garde centrale (elle
+     * vient d'être créée à la connexion, alors que le cookie du navigateur porte encore le jeton de
+     * connexion précédent). On retombe sur le cookie si la garde n'a pas posé d'attribut (rendu hors
+     * requête HTTP).
+     */
+    public static function jetonCsrf(Requete $req): string
+    {
+        $session = $req->getAttribute('ged.session');
+        if (is_array($session) && isset($session['csrf']) && (string) $session['csrf'] !== '') {
+            return (string) $session['csrf'];
+        }
+
+        return (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
+    }
+
     public function aTraiter(Requete $req, Reponse $rep): Reponse
     {
         // Branchement réel : bilan du fonds + file des documents `a_controler` + proposition du Classeur.
         // Le gabarit reste le contrat visuel (mêmes classes, mêmes data-testid, même disposition) ; le
-        // jeton CSRF du formulaire vient du cookie de session courant.
+        // jeton CSRF du formulaire vient de la session courante.
         if (class_exists(ATraiter::class)) {
-            $csrf = (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
+            $csrf = self::jetonCsrf($req);
             $donnees = ATraiter::depuisRacine(dirname(__DIR__, 2))->donnees($req->getQueryParams(), $csrf);
 
             return $this->vue->rendre($rep, 'ecrans/a-traiter.twig', $donnees + $this->commun('a-traiter'));
@@ -134,7 +150,7 @@ final class Ecrans
         // Branchement minimal, comme pour /recherche : aucune donnée réelle, repli de maquette conservé.
         if (class_exists(\Ged\Workflows\Ecran::class)) {
             $donnees = \Ged\Workflows\Ecran::depuisRacine()->donnees($req->getQueryParams());
-            $donnees['csrf'] = (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
+            $donnees['csrf'] = self::jetonCsrf($req);
 
             return $this->vue->rendre($rep, 'ecrans/workflows.twig', $this->commun('workflows') + $donnees);
         }

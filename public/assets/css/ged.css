@@ -84,7 +84,7 @@ h1 { font-size: var(--fs-xl); } h2 { font-size: var(--fs-lg); } h3 { font-size: 
 .btn.primaire:hover { background: var(--accent-2); }
 .btn.discret { border-color: transparent; background: transparent; color: var(--text-2); }
 .btn.discret:hover { background: var(--hover); }
-.btn.icone { width: 32px; padding: 0; justify-content: center; }
+.btn.icone { width: 32px; padding: 0; justify-content: center; flex: none; }
 .btn .kbd { margin-left: 2px; }
 .btn.primaire .kbd { color: var(--on-accent); border-color: rgba(255, 255, 255, .45); background: transparent; }
 
@@ -245,3 +245,100 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
   .rail { display: none; }
   .bilan, .volets.traiter, .volets.biblio, .volets.fiche, .reglages { grid-template-columns: 1fr; }
 }
+
+/* ============================================================================
+   Téléphone (V2-10a) — mêmes gabarits, mêmes routes, adaptés par points de
+   rupture ≤ 768 px et ≤ 480 px. Cibles tactiles ≥ 44 px, pas de débordement
+   horizontal, champs ≥ 16 px (pas de zoom forcé iOS), clair et sombre.
+   ============================================================================ */
+
+/* Barre latérale → barre d'onglets en bas ; visible seulement sur téléphone. */
+.onglets-bas { display: none; }
+.avis-ordinateur { display: flex; align-items: center; gap: 8px; margin: 10px 14px 0; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: var(--r); background: var(--warn-soft); color: var(--warn); font-size: var(--fs-sm); }
+.avis-ordinateur .ico { flex: none; }
+.volet-file > summary { cursor: pointer; list-style: none; }
+.volet-file > summary::-webkit-details-marker { display: none; }
+.volet-file > summary::after { content: "▾"; margin-left: 8px; color: var(--muted); }
+.volet-file[open] > summary::after { content: "▴"; }
+.depot-retour { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-left: 3px solid var(--ok); }
+.depot-retour .pastille { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; flex: none; background: var(--ok-soft); color: var(--ok); }
+.depot-form { overflow: hidden; }
+.depot-form .champ input[type="file"] { padding: 8px; height: auto; }
+.pied-depot { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface-2); }
+
+@media (max-width: 768px) {
+  body { overflow-x: hidden; }
+  .app { display: block; height: auto; min-height: 100vh; }
+  .rail { display: none; }
+  .top { height: auto; min-height: 56px; padding: 6px 12px; gap: 8px; }
+  .recherche-globale { max-width: none; height: 44px; font-size: 16px; }
+  .recherche-globale input { font-size: 16px; min-height: 40px; }
+  .contenu { overflow: visible; min-height: 0; }
+  .page, .page.pleine { height: auto; min-height: 0; gap: 12px; padding: 12px 12px calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .page-tete .titre { flex-wrap: wrap; gap: 4px 10px; }
+  .actions { flex-wrap: wrap; }
+  .bilan { grid-template-columns: 1fr; }
+
+  /* Une pièce à la fois : aperçu en haut, proposition dessous, file repliée en dernier. */
+  .volets, .volets.traiter, .volets.biblio, .volets.fiche, .reglages { display: flex; flex-direction: column; gap: 12px; }
+  .volet { overflow: visible; }
+  .volets.traiter .volet-apercu, .volets.fiche .volet-apercu { order: 1; height: 48vh; overflow: hidden; }
+  .volet-apercu .visionneuse.doc { height: 100%; }
+  .visionneuse-clavier { display: none; }
+  .volets.traiter .volet-proposition, .volets.fiche .volet-fiche { order: 2; }
+  .volets.traiter .volet-file { order: 3; }
+  .volet-file .liste { max-height: 40vh; overflow: auto; }
+  .pied-validation { position: sticky; bottom: calc(58px + env(safe-area-inset-bottom, 0px)); z-index: 4; flex-wrap: wrap; }
+  .pied-validation .btn { flex: 1 1 30%; height: 48px; min-height: 48px; font-size: var(--fs-lg); justify-content: center; }
+
+  /* Cibles tactiles : toutes les commandes font au moins 44 px. */
+  .btn { min-height: 44px; }
+  .btn.icone { width: 44px; height: 44px; }
+  button.chip, .chip.btn { min-height: 44px; }
+  .onglets button { min-height: 44px; }
+  select, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), textarea { min-height: 44px; font-size: 16px; }
+  .champ select, .champ input { height: 44px; }
+  summary { min-height: 44px; }
+  .liste a { min-height: 44px; }
+  .resultat { padding: 14px; border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 10px; }
+  .resultat a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
+  .table { display: block; overflow-x: auto; }
+  .table td, .table th { white-space: normal; overflow-wrap: anywhere; }
+  .mono, .champ .mono, dl.meta dd.mono { overflow-wrap: anywhere; word-break: break-word; }
+  .chrono li { grid-template-columns: 1fr; gap: 2px; }
+  dl.meta { grid-template-columns: 96px 1fr; }
+  .wf-editeur { display: flex; flex-direction: column; }
+  .wf-canevas { min-height: 320px; }
+
+  /* Onglets du bas. */
+  .onglets-bas { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -2px 12px rgba(20, 27, 40, .08);
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px)); }
+  .onglets-bas > a, .onglets-bas .onglet-plus > summary { flex: 1; min-width: 0; min-height: 54px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    color: var(--text-2); font-size: 11px; font-weight: 500; border-radius: var(--r-sm); position: relative; }
+  .onglets-bas > a:hover, .onglets-bas .onglet-plus > summary:hover { background: var(--hover); text-decoration: none; }
+  .onglets-bas > a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+  .onglets-bas > a .compte { position: absolute; top: 4px; right: 14px; font-size: 10px; background: var(--accent); color: var(--on-accent); border-radius: 999px; padding: 0 5px; font-weight: 600; }
+  .onglets-bas .onglet-plus { flex: 1; min-width: 0; position: relative; }
+  .onglets-bas .onglet-plus > summary { list-style: none; cursor: pointer; }
+  .onglets-bas .onglet-plus > summary::-webkit-details-marker { display: none; }
+  .onglet-plus-liste { position: absolute; bottom: calc(100% + 6px); right: 0; width: min(80vw, 320px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow);
+    padding: 6px; display: grid; gap: 2px; }
+  .onglet-plus-liste a { display: flex; flex-direction: column; justify-content: center; min-height: 48px; padding: 6px 10px; color: var(--text); border-radius: var(--r-sm); }
+  .onglet-plus-liste a:hover { background: var(--hover); text-decoration: none; }
+  .onglet-plus-liste small { color: var(--muted); font-size: 11px; }
+  .avis-ordinateur { margin: 10px 12px 0; }
+}
+
+@media (max-width: 480px) {
+  .page, .page.pleine { padding-left: 10px; padding-right: 10px; }
+  .kpi .valeur { font-size: 22px; }
+  .bilan { gap: 8px; }
+  .volet-apercu { height: 44vh; }
+  dl.meta { grid-template-columns: 88px 1fr; }
+  .pied-validation .btn { flex: 1 1 100%; }
+}
+

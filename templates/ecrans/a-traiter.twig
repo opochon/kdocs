@@ -8,24 +8,26 @@
   <div class="page-tete">
     <div class="titre"><h1>À traiter</h1><span class="muted" data-testid="titre-a-traiter-compte">{{ file|length }} document{{ file|length > 1 ? 's' }} attend{{ file|length > 1 ? 'ent' : '' }} votre contrôle</span></div>
     <div class="actions">
-      <a class="btn primaire" href="#" data-testid="action-deposer">{{ ic.i('plus') }}Déposer des documents</a>
+      <a class="btn primaire" href="/deposer" data-testid="action-deposer">{{ ic.i('plus') }}Déposer des documents</a>
       <a class="btn" href="#" data-testid="action-tout-valider">{{ ic.i('check') }}Valider les suggestions sûres</a>
     </div>
   </div>
 
-  {# Bilan d'ingestion : jamais le dossier, seulement ce qui s'est passé. #}
+  {# Bilan d'ingestion : jamais le dossier, seulement ce qui s'est passé. Masqué sur téléphone (bruit). #}
   <section class="bilan" data-testid="bilan-ingestion" aria-label="Bilan d’ingestion">
     <div class="carte kpi ok" data-testid="bilan-auto"><span class="pastille">{{ ic.i('check') }}</span>
       <div><div class="valeur">{{ bilan.auto }}</div><div class="libelle">Classés automatiquement</div><div class="detail">fiabilité ≥ {{ bilan.seuil }} %, rangés sans intervention</div></div></div>
     <div class="carte kpi warn" data-testid="bilan-a-controler"><span class="pastille">{{ ic.i('alerte') }}</span>
       <div><div class="valeur">{{ bilan.a_controler }}</div><div class="libelle">À contrôler</div><div class="detail">proposition sous le seuil ou sans preuve</div></div></div>
     <div class="carte kpi info" data-testid="bilan-en-cours"><span class="pastille">{{ ic.i('horloge') }}</span>
-      <div><div class="valeur">{{ bilan.en_cours }}</div><div class="libelle">En cours de lecture</div><div class="detail">découpe et classement en arrière-plan · {{ bilan.lots }} lot{{ bilan.lots > 1 ? 's' }} scanné{{ bilan.lots > 1 ? 's' : '' }}</div></div></div>
+      <div><div class="valeur">{{ bilan.en_cours }}</div><div class="libelle">En cours de lecture</div><div class="detail">découpe et classement en arrière-plan · {{ bilan.lots }} lot{{ bilan.lots > 1 ? 's' : '' }} scanné{{ bilan.lots > 1 ? 's' : '' }}</div></div></div>
   </section>
 
+  {# Ordinateur : file à gauche, aperçu, proposition. Téléphone : aperçu en haut, proposition dessous,
+     file en dernier, repliée en simple compteur (la mise en ordre est dans le CSS, point de rupture). #}
   <div class="volets traiter">
-    <section class="carte volet" aria-label="File">
-      <div class="volet-tete">File <span class="muted">· du plus ancien au plus récent</span></div>
+    <details class="carte volet volet-file" data-testid="bloc-file" open>
+      <summary class="volet-tete" data-testid="file-repli">File <span class="muted">· {{ file|length }} à contrôler</span> <span class="muted">· du plus ancien au plus récent</span></summary>
       <ul class="liste volet-corps" data-testid="file-a-traiter">
         {% for p in file %}
         <li><a href="/a-traiter?doc={{ p.id }}" data-testid="file-item-{{ p.id }}" {% if p.id == courant.id %}aria-current="true"{% endif %}>
@@ -36,9 +38,9 @@
         </a></li>
         {% endfor %}
       </ul>
-    </section>
+    </details>
 
-    <section class="carte volet" aria-label="Aperçu">
+    <section class="carte volet volet-apercu" aria-label="Aperçu">
       <div class="volet-tete">
         <span data-testid="apercu-pages">{{ courant.pages }} page{{ courant.pages > 1 ? 's' : '' }}</span>
         <div class="outils-page" style="margin-left:auto">
@@ -55,7 +57,7 @@
       {% endif %}
     </section>
 
-    <section class="carte volet" aria-label="Classement proposé">
+    <section class="carte volet volet-proposition" aria-label="Classement proposé">
       <form class="volet-corps" data-testid="formulaire-validation" method="post"
             action="{{ courant.id > 0 ? '/a-traiter/' ~ courant.id ~ '/valider' : '' }}" data-doc="{{ courant.id }}">
         <input type="hidden" name="csrf" value="{{ csrf }}">
@@ -77,6 +79,7 @@
       </form>
       <div class="pied-validation">
         <button class="btn primaire" type="button" data-action="valider" data-testid="action-valider">{{ ic.i('check') }}Valider<span class="kbd">Entrée</span></button>
+        <button class="btn" type="button" data-action="corriger" data-testid="action-corriger">{{ ic.i('alerte') }}Corriger</button>
         <button class="btn" type="button" data-action="suivant" data-testid="action-passer">Passer<span class="kbd">→</span></button>
       </div>
     </section>
