@@ -58,8 +58,8 @@ final class CorbeilleTest extends TestCase
         $this->depot->miseALaCorbeille($sorti, 'olivia');
 
         $chemins = array_column($this->depot->lister(), 'chemin_relatif');
-        self::assertNotContains('2026/A_classer/Sorti.pdf', $chemins, 'la corbeille n’est pas le fonds');
-        self::assertContains('2026/A_classer/Gardé.pdf', $chemins);
+        self::assertNotContains('Sans_date/A_classer/Sorti.pdf', $chemins, 'la corbeille n’est pas le fonds');
+        self::assertContains('Sans_date/A_classer/Gardé.pdf', $chemins);
         self::assertSame(2, (int) $this->pdo->query('SELECT COUNT(*) FROM documents')->fetchColumn(),
             'la ligne du document à la corbeille EXISTE toujours');
         self::assertNotNull($this->depot->fiche($garde));

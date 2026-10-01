@@ -34,18 +34,19 @@ final class EcranMetadonneesTest extends TestCase
         $donnees = $ecran->donnees([], 'jeton');
 
         self::assertSame([], $donnees['types'], 'un fonds sans nomenclature se reconnaît : l’écran est vide');
-        self::assertTrue($donnees['graineAPoser'], 'et il propose de poser les six types livrés');
+        self::assertTrue($donnees['graineAPoser'], 'et il propose de poser les types livrés');
         self::assertFileDoesNotExist($this->racine . '/fonds/.ged/nomenclature.json',
             'un GET n’écrit jamais : ni graine, ni dossier .ged');
     }
 
-    public function testAprèsLaGraineLÉcranMontreLesSixTypes(): void
+    public function testAprèsLaGraineLÉcranMontreLesTypesLivrés(): void
     {
         (new Nomenclature($this->config))->assurer();   // l’acte d’administration (POST action=graine)
 
         $donnees = (new EcranMetadonnees($this->config))->donnees([], 'jeton');
         self::assertSame(
-            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH'],
+            ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH', 'Décompte', 'Relevé',
+                'Attestation', 'Police d’assurance', 'Avis d’impôt', 'Décision'],
             array_column($donnees['types'], 'nom'),
             'l’écran lit la nomenclature du fonds',
         );

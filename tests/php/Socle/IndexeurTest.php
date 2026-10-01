@@ -136,7 +136,8 @@ final class IndexeurTest extends TestCase
     public function testUnDocumentDisparuSansTraceResteDansLindex(): void
     {
         $id = $this->depot->deposer($this->pieceADeposer('x.pdf', 'x'), ['titre' => 'X']);
-        unlink($this->racine . '/fonds/2026/A_classer/X.pdf');
+        $relatif = (string) $this->depot->fiche($id)['chemin_relatif'];
+        unlink($this->racine . '/fonds/' . $relatif);
 
         $this->indexeur->passer();
         $this->indexeur->passer();
