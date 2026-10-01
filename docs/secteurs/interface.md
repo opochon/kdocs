@@ -482,7 +482,7 @@ rendu : c'est la Bibliothèque SEULE qui dépassait 1,5 s, les autres écrans li
 | HTML de l'écran | 3 357 204 o (3,3 Mo) | **48 818 o** |
 | `Handler_read_rnd_next` de `donnees()` | +10 001 | **+0** |
 | Requête HTTP à froid | 289 ms (3 376 058 o) | **98 ms** (49 226 o) |
-| Charge (banc, p95 lecture) | 412–5 700 ms selon la charge partagée | p95 lecture du banc à rejouer |
+| Charge (banc, p95 lecture) | 412–5 700 ms selon la charge partagée | **370 ms** ; Bibliothèque p95 272/231 ms (3/10 utilisateurs) |
 
 **Oracle d'abord (rouge, puis vert)** : `tests/php/Perf/BibliothequeBorneeTest.php` — 10 000 pièces
 synthétiques insérées dans la base de TEST puis retirées ; exigences : liste ≤ 1 page, HTML borné, lecture
@@ -535,6 +535,13 @@ mesurée au canvas vs place du champ). L'heuristique d'extraits est testée en u
 
 **Preuves** — `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13 + Pixel 7).
 `php vendor/bin/phpunit tests/php/ExtraitsLisiblesTest.php` : 6/6 ; `tests/php/EcransTest.php` : 16/16.
+
+**Harness `-SansBanc`** (01-10, 19:35–19:39, commit `b321e0a`, machine au repos) : **0-garde-fous VERT ·
+1-unitaire VERT (365 tests, 1 864 assertions) · 4-écrans VERT (46/46) · 7-securite VERT · 2-contrat VERT ·
+6-charge VERT** (p95 lecture 370 ms, p95 écriture 126 ms, 0 erreur, 0 collision, ingestion finie ; fonds de
+10 000 pièces). Restent ROUGES par construction, hors lot : `3-banc` sautée (`-SansBanc`) et `5-personas`
+« pas encore écrite ». **Aucun nouveau rouge dû au lot** ; le dernier rouge d'écran connu (seuil de 1,5 s
+de la Bibliothèque) a disparu.
 
 **À commiter par le juge (fichier partagé — je n'y commite pas)**
 - `src/Socle/Schema.php` : index `k_vivant (supprime_le, absent_depuis, chemin_relatif(700))` dans
