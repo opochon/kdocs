@@ -145,3 +145,17 @@ Coût : zéro table (plafond de 20 tenu), la lecture est mise en cache par requ�
   contrats et charge verts ; banc volontairement sauté, 2 échecs Playwright hors secteur Classement, personas absentes.
 
 ETAT: fini
+
+### Jugement R2-classement (juge, 01-10 12:15, copie propre et recette réelle sur 04fe19a)
+
+- Recette réelle (vrai scan de 103 pages, vision, IA) : net progrès. Les émetteurs sont désormais de vraies organisations dans la grande majorité, les dates sont plausibles, et il n'y a plus aucune validation fausse.
+- Non franchi pour quatre raisons :
+  - 0 pièce sur 49 validée seule : la nomenclature est trop pauvre, d'où les divergences IA/règle (Décompte, Police d'assurance, Relevé…).
+  - Environ 8 émetteurs restent des fragments de phrase, et ils créent encore des dossiers.
+  - Une date vide range la pièce dans l'année courante.
+  - En mode vision, la page 86 est rangée deux fois (104 pages pour 103).
+- Harness : trois rouges introduits par ce lot.
+  - Couche 1 et couche 2 : `ClasseurGedContratTest::testUneValidationAutomatiquePorteToujoursUnePreuve`.
+  - Couche 4 : `a-traiter.spec.ts:126`, l'émetteur appris par habitude est rejeté par le filtre de crédibilité.
+- Le corpus bruité (4 pièces) est trop mince pour porter la porte.
+- Verdict : **non franchi**, renvoyé en R2b avec ces points et les deux régressions en priorité.
