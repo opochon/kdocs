@@ -8,7 +8,7 @@
   <div class="page-tete">
     <div class="titre">
       <h1>Workflows</h1>
-      <span class="muted">{{ regles|length }} règles · {{ circuits|length }} circuits · {{ documents|length }} documents au fonds</span>
+      <span class="muted">{{ regles|length }} règle{{ regles|length > 1 ? 's' }} · {{ circuits|length }} circuit{{ circuits|length > 1 ? 's' }} · {{ documents|length }} document{{ documents|length > 1 ? 's' }} au fonds</span>
     </div>
     <div class="actions">
       {% for g in gabarits %}
