@@ -17,6 +17,9 @@ final class Regles
 {
     /** Indices forts, du plus spécifique au plus générique. Un contrat de travail est RH, pas Contrat. */
     private const INDICES = [
+        // La nature d'un envoi prime sur les objets qu'il cite : une convocation qui parle d'un
+        // contrat reste un courrier, elle n'est pas le contrat.
+        'Courrier' => ['convocation', 'demande de documents', 'rappel', 'communication'],
         'Document RH' => ['attestation de travail', 'certificat de travail', 'fiche de paie', 'bulletin de paie',
             'contrat de travail', 'decompte de salaire', 'employeur', 'lohn'],
         'Avis d’impôt' => ['avis d impot', 'bordereau d impot', 'taxation fiscale', 'steuerveranlagung', 'steuerrechnung', 'avviso fiscale'],
@@ -26,9 +29,16 @@ final class Regles
         'Relevé' => ['releve', 'releve de compte', 'releve bancaire', 'kontoauszug', 'auszug', 'estratto conto', 'estratto'],
         'Attestation' => ['attestation', 'attestation fiscale', 'attestation annuelle', 'bescheinigung', 'steuerbescheinigung', 'attestazione', 'certificazione'],
         'Note de crédit' => ['note de credit', 'gutschrift', 'credit note'],
-        'Facture' => ['facture', 'invoice', 'rechnung', 'fattura', 'avis de paiement', 'net a payer'],
-        'Contrat' => ['contrat', 'convention', 'avenant', 'soussign', 'les parties', 'vertrag', 'police'],
+        'Facture' => ['facture veterinaire', 'facture vétérinaire', 'facture', 'invoice', 'rechnung', 'fattura', 'avis de paiement', 'net a payer'],
+        'Contrat' => ['gage hypothecaire', 'gage hypothécaire', 'convention hypothecaire', 'convention hypothécaire',
+            'contrat', 'convention', 'avenant', 'soussign', 'les parties', 'vertrag', 'police'],
         'Reçu' => ['recu', 'quittance', 'ticket', 'quittung', 'encaisse', 'paye le'],
+    ];
+
+    /** Sous-cas dont le libellé désigne la pièce, même si une colonne OCR cite un autre type. */
+    private const INDICES_PRECIS = [
+        'Facture' => ['facture veterinaire', 'facture vétérinaire'],
+        'Contrat' => ['gage hypothecaire', 'gage hypothécaire', 'convention hypothecaire', 'convention hypothécaire'],
     ];
 
     private const INDICE_COURRIER = 'concerne';
@@ -96,7 +106,22 @@ final class Regles
     public static function typeEtPreuve(string $texte): ?array
     {
         $n = self::normaliser($texte);
+        foreach (self::INDICES['Courrier'] as $indice) {
+            if (self::contientMot($n, $indice)) {
+                return ['type' => 'Courrier', 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
+            }
+        }
+        foreach (self::INDICES_PRECIS as $type => $indices) {
+            foreach ($indices as $indice) {
+                if (self::contientMot($n, $indice)) {
+                    return ['type' => $type, 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
+                }
+            }
+        }
         foreach (self::INDICES as $type => $indices) {
+            if ($type === 'Courrier') {
+                continue;
+            }
             foreach ($indices as $indice) {
                 if (self::contientMot($n, $indice)) {
                     return ['type' => $type, 'preuve' => $indice, 'confiance' => self::CONF_FORTE];
@@ -132,7 +157,7 @@ final class Regles
 
         if (preg_match_all('/\*\*(.+?)\*\*/s', $extrait, $m)) {
             foreach ($m[1] as $brut) {
-                $candidat = self::nettoyer($brut);
+                $candidat = self::extraireOrganisation($brut);
                 if (self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
@@ -140,7 +165,7 @@ final class Regles
         }
         if (preg_match_all('/^#{1,6}\s+(.+)$/m', $extrait, $m)) {
             foreach ($m[1] as $brut) {
-                $candidat = self::nettoyer($brut);
+                $candidat = self::extraireOrganisation($brut);
                 if (self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
@@ -148,7 +173,7 @@ final class Regles
         }
         $lignes = preg_split('/\R/', $extrait) ?: [];
         foreach ($lignes as $ligne) {
-            $candidat = self::nettoyer($ligne);
+            $candidat = self::extraireOrganisation($ligne);
             if (self::candidatEmetteur($candidat, $proprietaire)) {
                 return $candidat;
             }
@@ -196,7 +221,7 @@ final class Regles
         if ($nom === null) {
             return null;
         }
-        $candidat = self::nettoyer($nom);
+        $candidat = self::canonicaliserEmetteur(self::nettoyer($nom));
 
         return self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
     }
@@ -235,6 +260,21 @@ final class Regles
         return array_values(array_diff($motsA, $motsB)) === [] || array_values(array_diff($motsB, $motsA)) === [];
     }
 
+    /**
+     * Une forme juridique ne doit pas créer un deuxième dossier. En l'absence d'un premier choix
+     * humain déjà mémorisé, la forme suisse francophone est le repli commun : AG/S.A. -> SA,
+     * GmbH/Sarl -> Sàrl. Le reste du nom et sa casse restent ceux lus dans la pièce.
+     */
+    public static function canonicaliserEmetteur(string $nom): string
+    {
+        $nom = self::nettoyer($nom);
+        $nom = preg_replace_callback('/\b(s\.?\s*a\.?|ag|sàrl|sarl|gmbh)\b/ui', static function (array $m): string {
+            return in_array(self::normaliser($m[1]), ['s a', 'sa', 'ag'], true) ? 'SA' : 'Sàrl';
+        }, $nom) ?? $nom;
+
+        return trim((string) preg_replace('/\s+/', ' ', $nom));
+    }
+
     /** Un Document RH n'est valide que si le propriétaire de la GED (GED_ORGANISATION) figure dans la pièce. */
     public static function proprietaireDansTexte(string $texte, string $proprietaire): bool
     {
@@ -251,6 +291,7 @@ final class Regles
         $lignes = preg_split('/\R/', mb_substr($texte, 0, 2000)) ?: [];
         $dernierIndiceFacture = -99;
         $ligneDocument = 0;
+        $contexteDate = 0;
         foreach ($lignes as $index => $ligne) {
             $normalise = self::normaliser($ligne);
             if (preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien(?:ne)?)\b/', $normalise) === 1) {
@@ -262,12 +303,16 @@ final class Regles
             if (preg_match('/\b(facture|invoice|rechnung|fattura)\b|\bn[°o]\s*[a-z0-9]/iu', $ligne) === 1) {
                 $dernierIndiceFacture = $index;
             }
+            if (preg_match('/\b(date(?:\s+de\s+facture)?|datum|rechnungsdatum|data(?:\s+fattura)?)\b/ui', $ligne) === 1) {
+                // Dans les scans, le libellé est souvent dans une colonne et la valeur juste dessous.
+                $contexteDate = 2;
+            }
             if (preg_match('/\b(echeance|échéance|due date|zahlbar|scadenza)\b/u', $ligne) === 1) {
                 continue;
             }
             if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $ligne, $m) === 1) {
                 $estDateDocument = preg_match('/\b(date|datum|data|rechnungsdatum)\b|,\s*le\s+\d{1,2}\.|\b(?:le|den|il)\s+\d{1,2}\./iu', $ligne) === 1
-                    || $ligneDocument <= 6 || $index - $dernierIndiceFacture <= 2;
+                    || $contexteDate > 0 || $ligneDocument <= 6 || $index - $dernierIndiceFacture <= 2;
                 if ($estDateDocument) {
                     $date = sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
                     if (checkdate((int) $m[2], (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
@@ -275,7 +320,9 @@ final class Regles
                     }
                 }
             }
-            if (preg_match('/(?:,\s*|\b)(?:le|den|il)\s+(\d{1,2})\s+([a-zà-ÿ]+)\s+(\d{4})\b/iu', $ligne, $m) === 1) {
+            if (preg_match('/(?:(?:,\s*|\b)(?:le|den|il)\s+)?(\d{1,2})\.?\s+([a-zà-ÿ]+)\s+(\d{4})\b/iu', $ligne, $m) === 1
+                && ($contexteDate > 0 || $index - $dernierIndiceFacture <= 2
+                    || preg_match('/(?:,\s*|\b)(?:le|den|il)\s+/iu', $ligne) === 1)) {
                 $mois = self::mois($m[2]);
                 if ($mois !== null) {
                     $date = sprintf('%04d-%02d-%02d', (int) $m[3], $mois, (int) $m[1]);
@@ -283,6 +330,9 @@ final class Regles
                         return $date;
                     }
                 }
+            }
+            if ($contexteDate > 0) {
+                $contexteDate--;
             }
         }
 
@@ -349,6 +399,23 @@ final class Regles
         return trim($ligne);
     }
 
+    /** Extrait une raison sociale d'une ligne de logo/pied de page, sans conserver IBAN, IDE ou colonnes. */
+    private static function extraireOrganisation(string $ligne): string
+    {
+        $ligne = self::nettoyer($ligne);
+        if (str_contains($ligne, ':') || preg_match('/\b(lieu|date|reference|référence|votre|vos)\b/ui', $ligne) === 1) {
+            return '';
+        }
+        // Une ligne légale peut être suivie par CHE, TVA, IBAN ou une seconde colonne : seul son préfixe est le nom.
+        if (preg_match('/^(.{2,90}?\b(?:s\.?\s*a\.?|ag|sàrl|sarl|gmbh)\b)/ui', $ligne, $m) === 1) {
+            $ligne = trim($m[1]);
+        } elseif (str_contains($ligne, '|')) {
+            $ligne = trim(explode('|', $ligne, 2)[0]);
+        }
+
+        return self::canonicaliserEmetteur($ligne);
+    }
+
     private static function mois(string $nom): ?int
     {
         static $mois = [
@@ -374,7 +441,7 @@ final class Regles
         if (mb_strlen($candidat) < 3 || mb_strlen($candidat) > 100) {
             return false;
         }
-        if (preg_match('/\d/', $candidat) === 1 || str_contains($candidat, '@') || str_contains(mb_strtolower($candidat), 'http')) {
+        if (preg_match('/\d/', $candidat) === 1 || str_contains($candidat, ':') || str_contains($candidat, '@') || str_contains(mb_strtolower($candidat), 'http')) {
             return false;
         }
         if (count(preg_split('/\s+/', $candidat) ?: []) < 2) {
@@ -392,6 +459,12 @@ final class Regles
             return false;
         }
         $mots = preg_split('/\s+/', $n) ?: [];
+        $vocabulaireType = ['assurance', 'assurances', 'vehicule', 'vehicules', 'automobile', 'police', 'contrat',
+            'convention', 'facture', 'releve', 'attestation', 'communication', 'rappel'];
+        if (array_filter($mots, static fn (string $mot): bool => !in_array($mot, $vocabulaireType, true)
+            && !in_array($mot, self::MOTS_VIDES, true)) === []) {
+            return false;
+        }
         if (array_filter($mots, static fn (string $mot): bool => !in_array($mot, self::MOTS_EMETTEUR_GENERIQUES, true)) === []) {
             return false;
         }

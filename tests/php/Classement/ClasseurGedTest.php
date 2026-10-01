@@ -161,7 +161,21 @@ final class ClasseurGedTest extends TestCase
         $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
 
         self::assertTrue($r['valide']);
-        self::assertSame('ASSURANCES BOREALES AG', $r['emetteur']);
+        self::assertSame('Assurances Boréales SA', $r['emetteur'], 'une forme juridique unique évite deux dossiers');
+    }
+
+    public function testUneFactureEnergieAvecDateDecaleeEstValideeSeule(): void
+    {
+        $texte = "FAMILLE SYNTHESE\nRue des Tests 8\n1200 Modeleville\n\nALPINA ENERGIE AG\n"
+            . "FACTURE energie\nN° EN-2025-07\nDate de facture\n04.07.2025\nMontant CHF 84.20\n";
+        $ia = new ClientIaSimule(new ReponseIa('Facture', 'Alpina Energie SA', null,
+            '2025-07-04', 84.20, [], 0.97, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'energie.pdf');
+
+        self::assertSame('ALPINA ENERGIE SA', $r['emetteur']);
+        self::assertSame('2025-07-04', $r['date']);
+        self::assertTrue($r['valide']);
     }
 
     public function testUneIaPeuSureNeValidePasSeule(): void

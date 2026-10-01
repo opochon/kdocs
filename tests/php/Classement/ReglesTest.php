@@ -58,7 +58,41 @@ final class ReglesTest extends TestCase
     {
         $texte = "**Karbonic Banc de test**\n**Atelier Numerique Exemple Sarl**\nAvenue Leopold-Robert 99\n";
 
-        self::assertSame('Atelier Numerique Exemple Sarl', Regles::lireEmetteur($texte, 'Karbonic Banc de test'));
+        self::assertSame('Atelier Numerique Exemple Sàrl', Regles::lireEmetteur($texte, 'Karbonic Banc de test'));
+    }
+
+    public function testUnEnteteOcrAvecDestinataireAvantEmetteurLitLaRaisonSociale(): void
+    {
+        $texte = "[LOGO ILLISIBLE]\nFAMILLE SYNTHESE\nRue des Tests 8\n1200 Modeleville\n\n"
+            . "ALPINA ENERGIE AG   |   CHE-123.456.789 TVA\nCase postale 44\n3000 Berne\n"
+            . "FACTURE / Rechnung\n";
+
+        self::assertSame('ALPINA ENERGIE SA', Regles::lireEmetteur($texte));
+    }
+
+    public function testUnEnteteOcrRetrouveLaSocieteAvantAdresseEtDepuisLePiedDePage(): void
+    {
+        $texte = "FAMILLE SYNTHESE\nRue des Tests 8\n1200 Modeleville\n\n"
+            . "HORIZON ENERGIE\nCase postale 9\n1000 Lausanne\n\nFACTURE\n"
+            . "IBAN CH93 0076 2011 6238 5295 7  HORIZON ENERGIE\n";
+
+        self::assertSame('HORIZON ENERGIE', Regles::lireEmetteur($texte));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function fragmentsEmetteurInterdits(): array
+    {
+        return [
+            'objet avec deux-points' => ["Assurance automobile: votre nouvelle police\n"],
+            'libelle generique' => ["Assurance véhicules\n"],
+            'ligne lieu reference' => ["Lieu, date / référence Banque Exemple SA\n"],
+        ];
+    }
+
+    #[DataProvider('fragmentsEmetteurInterdits')]
+    public function testUnFragmentDeServiceNeDevientJamaisEmetteur(string $texte): void
+    {
+        self::assertNull(Regles::lireEmetteur($texte));
     }
 
     /** @return array<string, array{string, ?string, string}> */
@@ -117,6 +151,41 @@ final class ReglesTest extends TestCase
     public function testDateEnTete(string $texte, ?string $attendue): void
     {
         self::assertSame($attendue, Regles::dateEnTete($texte));
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function datesFacturesReelles(): array
+    {
+        return [
+            'libelle puis date sur ligne suivante' => ["Energie Exemple SA\nFACTURE\nDate de facture\n04.07.2025\n", '2025-07-04'],
+            'colonne voisine' => ["Clinique Veterinaire Modele Sarl\nFACTURE\nDate de facture       Montant CHF\n04.07.2025             128.40\n", '2025-07-04'],
+            'date sous numero de facture allemand' => ["Tierarzt Praxis Muster GmbH\nRECHNUNG Nr. V-2025-04\nRechnungsdatum\n4. Juli 2025\n", '2025-07-04'],
+        ];
+    }
+
+    #[DataProvider('datesFacturesReelles')]
+    public function testDateDeFactureOcrSurLigneDecaleeEstLue(string $texte, string $attendue): void
+    {
+        self::assertSame($attendue, Regles::dateEnTete($texte));
+    }
+
+    /** @return array<string, array{string, string}> */
+    public static function courriersEtContrats(): array
+    {
+        return [
+            'convocation qui cite un contrat' => ["CONVOCATION\nObjet : entretien relatif à votre contrat\n", 'Courrier'],
+            'demande de documents qui cite une attestation' => ["DEMANDE DE DOCUMENTS\nVeuillez joindre votre attestation\n", 'Courrier'],
+            'rappel qui cite une police' => ["RAPPEL\nVotre police d'assurance reste consultable\n", 'Courrier'],
+            'communication qui cite un contrat' => ["COMMUNICATION\nConcernant la convention annuelle\n", 'Courrier'],
+            'gage hypothecaire avec decompte' => ["CONVENTION DE GAGE HYPOTHECAIRE\nDécompte indicatif joint\n", 'Contrat'],
+            'facture veterinaire qui cite un releve' => ["FACTURE VETERINAIRE\nRelevé des soins\n", 'Facture'],
+        ];
+    }
+
+    #[DataProvider('courriersEtContrats')]
+    public function testIndicesMetierPriorisentCourrierContratEtFacture(string $texte, string $attendu): void
+    {
+        self::assertSame($attendu, Regles::typeEtPreuve($texte)['type'] ?? null);
     }
 
     public function testDateEnTeteNeConfondPasUnNumeroIde(): void

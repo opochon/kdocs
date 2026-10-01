@@ -60,7 +60,9 @@ final class ClasseurGed implements Classeur
         $emetteurAppris = $emetteurRegle === null ? $this->habitudes->emetteurApprisDansTexte($texte) : null;
         // L'IA est prioritaire pour la proposition : elle peut reconnaître le logo ou le pied de page. Une
         // validation seule demandera ensuite que ce nom soit corroboré par la lecture ou une habitude.
-        $emetteur = $emetteurIa ?? $emetteurRegle ?? $emetteurAppris;
+        // Le texte garde sa casse et sa forme canonique : l'IA est une confirmation, pas un nom de dossier
+        // concurrent (AG/SA/GmbH/Sàrl doivent aboutir au même correspondant).
+        $emetteur = $emetteurRegle ?? $emetteurIa ?? $emetteurAppris;
         $emetteurCorrobore = $emetteurAppris !== null || ($emetteurIa !== null && $emetteurRegle !== null
             && Regles::emetteursCorrespondent($emetteurIa, $emetteurRegle));
 
