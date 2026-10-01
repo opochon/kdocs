@@ -717,3 +717,49 @@ ETAT: fini
   2. **Coupe au milieu d'un mot** en tête (« xécution… », « y, le 16 octobre ») ou en queue (« … Grande-Rue 5 ce », « … er », « … la »).
   3. **Fragment parasite résiduel en tête** (« Post CHAG <nom> … ») et bruit au milieu d'un extrait long (« tins … er EN … », « peu or0T … situatioy' »).
 - Verdict : **V2-10e non franchi.** Dernière reprise ciblée **V2-10f** : la présence du terme ne doit pas sauver un extrait bruité ; coupe aux frontières de mots ; rognage des fragments de 1 ou 2 lettres en tête et en queue.
+
+## Journal V2-10f — dernière reprise des extraits — 02-10-2026
+
+Agent : Codex (remplacement exceptionnel de DeepCode) · Juge : Claude Code. Reprise strictement limitée
+au secteur Interface, après le jugement V2-10e : un terme surligné sauvait encore une fenêtre OCR courte
+et bruitée ; des fenêtres pouvaient commencer ou finir dans un mot, et des groupes OCR résiduels restaient
+visibles.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/php/corpus/ocr-extraits.php` reçoit sept formes synthétiques supplémentaires : fenêtre courte
+  bruitée malgré « Facture », deux têtes coupées, queue après numéro, groupe « Post CHAG », groupe
+  « tins er EN » et mot mêlé de chiffres terminé par apostrophe. Aucune donnée réelle.
+- `tests/php/ExtraitsLisiblesTest.php` vérifie aussi directement que le surlignage de « Facture » ne
+  conserve aucun segment. Avant la correction, le corpus rendait les sept formes et `retenir()` gardait
+  cette fenêtre ; après, les décisions et les interdits du corpus sont tous exacts.
+
+**Fait**
+1. **Terme insuffisant** (`src/Ui/ExtraitsLisibles.php`) : les fenêtres jusqu'à onze unités requièrent une
+   majorité stricte de votes plausibles ; une couture numérique avec `/`, un fragment de bord et un jeton
+   OCR (« xx… », « qx… », mélange lettre-chiffre-lettre) ne votent jamais favorablement. Le `hit` n'est
+   volontairement pas pris en compte.
+2. **Frontières** : les amorces et queues de 1–2 lettres non usuelles sont retirées jusqu'à stabilité ;
+   la fin après un numéro élimine aussi le fragment tronqué. Un mot composé légitime (`Grande-Rue`) et les
+   petits mots courants restent préservés.
+3. **Groupes et bruit interne** : les capitales non siglées, les fragments sans voyelle, les mots mêlés
+   chiffres/lettres et une apostrophe finale anormale séparent les passages propres. On n'assemble plus
+   deux passages de part et d'autre du bruit ; la première phrase propre est choisie.
+
+**Preuves**
+- contrôle direct du corpus : **31/31** sorties exactement attendues ; le terme « Facture » surligné
+  retourne une liste vide ;
+- `php vendor/bin/phpunit tests/php/ExtraitsLisiblesTest.php --no-coverage` : **17/17 verts,
+  193 assertions** ;
+- `php vendor/bin/phpunit --no-coverage` : **408/408 verts, 2 310 assertions** ;
+- `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13 et Pixel 7) ; le terme
+  composé de l'oracle V2-10e reste bien dans sa fenêtre propre après le bruit ;
+- `powershell -File tools\harness.ps1 -SansBanc` : **0-garde-fous VERT · 1-unitaire VERT ·
+  4-écrans 46/46 VERT · 7-securite VERT · 2-contrat VERT · 6-charge VERT** (p95 lecture 956 ms,
+  écriture 289 ms, 0 erreur, 0 collision). Les seules lignes rouges, `3-banc` sautée par
+  `-SansBanc` et `5-personas` non écrite, sont préexistantes/par construction : aucun nouveau rouge.
+
+**Commits**
+`cf05104` oracle (`ExtraitsLisiblesTest.php`, `ocr-extraits.php`) · `bb6a3d8` heuristique
+(`ExtraitsLisibles.php`) · `90e6cd0` préservation des termes composés (`ExtraitsLisibles.php`).
+
+ETAT: fini
