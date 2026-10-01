@@ -129,3 +129,85 @@ du secteur Archivage est donc branchée dans `DepotFichiers::mettreAJour()` et u
 document scellé échoue **nommée** (le moteur la rattrape et la journalise, le document n'est pas touché).
 Aucune modification de ce secteur n'est requise ; test de non-régression côté Archivage (`GardeTest`).
 
+## Journal V2-06b — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Le designer de GEDv1 (« il était intéressant ») est **repris** — canevas
+SVG, nœuds glissés-déposés, liaisons, panneau de réglages — et **adapté** au modèle GEDv2 (circuits = états +
+transitions, règles = déclencheur + conditions + actions) et au système visuel (jetons, clair/sombre, aucune
+classe Tailwind). L'écran `/workflows` redevient un outil pour l'utilisateur : la liste des circuits et des règles,
+et l'éditeur.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/php/Workflows/AdaptateurGrapheTest.php` + `CatalogueTest.php` écrits avant le code : rouge
+  « Class "Ged\Workflows\Catalogue" not found », vert après (aller-retour graphe → circuit → graphe identique,
+  6 cas d'erreur nommée).
+- `tests/e2e/workflows.spec.ts` écrit avant l'écran. Trois rouges successifs, tous réels : volet de réglages qui
+  débordait sous la structure du graphe, bouton « Relier » masquant la fonction `relier()` (homonymie), corps JSON
+  non parsé par Slim (corps désormais form-encodé) ; puis **1/1 vert**.
+
+**Fait, clause par clause**
+1. **Écran utilisateur.** `/workflows` liste les circuits (états, transitions avec leur droit, règles rattachées,
+   lien « Ouvrir l'éditeur ») et les règles (déclencheur, conditions, actions, veille/actif), les gabarits
+   installables, le journal. La console technique (essai/événement/transition simulés) quitte l'écran ; les routes
+   moteur restent pour l'Ingestion et le clavier.
+2. **Modèle inchangé, adaptateur dans les deux sens.** `AdaptateurGraphe::versModele()` projette le dessin sur le
+   circuit (états + transitions) et les règles (déclencheur + conditions + actions) ; `versGraphe()` reconstruit le
+   dessin. La disposition (positions, identifiants, ordre) est rangée dans `corps.graphe` du circuit : **le format de
+   nœuds de GEDv1 n'entre pas en base**. `Editeur` ouvre/enregistre ; `Circuits::mettreAJour` et
+   `Regles::mettreAJour` sont ajoutés — **aucune suppression** : une règle qui quitte le dessin passe en veille.
+3. **Catalogue = ce que le moteur exécute.** Déclencheurs (document déposé, mis à jour, échéance), conditions
+   (type, émetteur, titre, montant, date, étiquette, étiquettes, texte, délai d'échéance — exactement
+   `Conditions::CHAMPS`), actions (poser, étiqueter, notifier, appeler une jonction), approbation
+   (demander une validation, assigner), états. Servi par `GET /workflows/catalogue` (**route déclarée**). Un nœud
+   de GEDv1 que le moteur ne sait pas exécuter n'apparaît pas : `Catalogue::aPorter()` en recense 16 (OCR, IA,
+   classification, scan, upload, webhook, courriel, attente, délai, jeton d'approbation…), affichés « à porter plus
+   tard » sur l'écran et listés dans la fiche.
+4. **Essai à blanc depuis l'éditeur.** Sur un vrai document du fonds, `Moteur::essayer` **sans dépôt** ; le plan est
+   rendu et le **chemin suivi est surligné** dans le graphe (`data-chemin`). Preuve : empreinte du document
+   (journal, instances, sha256 du fichier et du `.meta.json`) **identique avant/après**.
+5. **Gabarits.** « Facture à seuil » et « Contrat à échéance » s'ouvrent dans l'éditeur, modifiables (testés).
+
+**Interface, CSP et dialogues**
+Canevas SVG maison ; couleurs uniquement par jetons (bloc `wf-*` de `ged.css`) ; clair et sombre. **Aucun
+`confirm()`, `alert()` ni `prompt()`** : boîtes de dialogue de l'application (`<dialog>` + statut nommé). Aucun
+gestionnaire en ligne (`on*`) : `public/assets/js/workflows-designer.js` externe, données dans un
+`<script type="application/json" nonce>` ; l'enregistrement est un `fetch` form-encodé sous CSRF.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Workflows` : **38 tests, 301 assertions, vert** (Catalogue, Adaptateur,
+  Éditeur, Module).
+- `npx playwright test tests/e2e/workflows.spec.ts` : **1/1 vert** — compte RÉEL, installe le gabarit, change le
+  seuil (10000 → 5000), ajoute un état, relie une transition, enregistre, rouvre et constate ; essai à blanc sur un
+  document ingéré par le PILOTE (chemin affiché, zéro écriture) ; **aucun dialogue navigateur**.
+- `php tools/banc/contrat.php` VERT · `php tools/banc/sonde-securite.php` VERT.
+- `harness.ps1 -SansBanc` (01-10, 690 s, registre 14:56) : **0-garde-fous VERT · 1-unitaire VERT** (332 tests,
+  1748 assertions) **· 7-securite VERT · 2-contrat VERT · 6-charge VERT** (p95 lecture 1370 ms) ;
+  **4-écrans : 41 verts, 1 échec** — l'échec est le parcours **`a-traiter`**, **pré-existant** (Classement /
+  Interface, déjà documenté par R1) : rejoués ensemble, `a-traiter` échoue seul et `workflows` est vert. `3-banc`
+  sautée et `5-personas` non écrite (rouge attendu). **Aucun nouveau rouge dû à Workflows.**
+
+**Commits** (chacun `Co-Authored-By: DeepCode <noreply@deepcode>`)
+`d5cd2b2` catalogue + test · `d0b37c2` adaptateur + test · `33f0c07` circuits/règles modifiables · `c29fb8f`
+éditeur + test · `5e46bdd` routes + écran · `8142f5b` gabarits + designer JS · `e6906a3` styles ·
+`ab57e9b` oracle e2e · `515d30b` DroitsRoutes + sonde (hors secteur).
+
+**Fichiers partagés — « À commiter par le juge »**
+- `src/Securite/DroitsRoutes.php` : 4 lignes (`GET /workflows/catalogue`,
+  `GET /workflows/circuits/{id:[0-9]+}/editeur`, `POST /workflows/circuits`,
+  `POST /workflows/circuits/{id:[0-9]+}`) + reconnaissance des deux patrons. Aucune autre permission touchée.
+- `tools/banc/sonde-securite.php` : 2 charges CSRF défensives pour les nouvelles mutations.
+- `public/assets/css/ged.css` : bloc « Workflows — éditeur graphique » (jetons) ; fichier partagé avec Interface.
+
+**Demandes**
+- **Harness** : l'échec `a-traiter` (fonds réel / habitude) est celui déjà consigné par Interface (R1) et visé par
+  Classement R2c ; il n'est pas de ce lot et n'a pas été masqué.
+- **Interface** : le bloc `wf-*` de `ged.css` et le designer sont prêts à être alignés sur la maquette définitive ;
+  quelques `style` de mise en page hérités restent (la CSP autorise `style-src 'unsafe-inline'`).
+
+**Dettes / à suivre (« à porter plus tard »)**
+- Nœuds GEDv1 non portés : OCR / IA / classification (métier d'autres secteurs), courriel et webhook (Jonctions),
+  approbation par courriel à jeton, attentes et minuteries.
+- Confort du canevas (zoom / panoramique) et essai à blanc multi-circuits : hors de la porte.
+
+ETAT: fini
+
