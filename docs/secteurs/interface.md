@@ -572,3 +572,63 @@ ETAT: fini
   - c) l'invite de recherche est entière sur 390 px : **OK** ;
   - b) les extraits « Documents semblables » montrent **encore** du bruit OCR brut sur du vrai papier (fragments de 1 à 3 lettres et signes, suivis d'une adresse lisible). L'heuristique passe sur le synthétique mais reste trop permissive : **non franchi**.
 - Verdict : **V2-10c non franchi sur le seul point b**, repris en **V2-10d** avec un corpus OCR synthétique réaliste.
+
+## Journal V2-10d — extraits OCR lisibles (suite de V2-10c) — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Défaut du jugement V2-10c (point b) : sur du vrai papier scanné,
+les extraits « Documents semblables » affichaient encore du bruit OCR — un amas de fragments de 1 à 3
+lettres et de signes suivi d'une adresse lisible, ou un extrait fait presque uniquement de fragments à
+voyelles que l'ancienne heuristique (60 % de lettres, 60 % de mots à voyelle) jugeait « lisible ».
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/php/corpus/ocr-extraits.php` : **25** sorties OCR synthétiques réalistes (en-têtes de facture
+  FR/DE/IT, adresses, montants, tampons, logos, mélanges bruit + texte), chacune avec sa décision
+  (propre / à rogner / masquée) et les fragments qui ne doivent jamais s'afficher. Aucune donnée réelle.
+- `tests/php/ExtraitsLisiblesTest.php` étendu : le corpus doit rendre exactement l'extrait attendu, zéro
+  fragment interdit affiché, les extraits propres conservés à ≥ 90 %. Écrit **ROUGE** (méthode `nettoyer`
+  absente **et** l'ancienne heuristique renvoyait le texte bruité entier), puis **VERT**.
+- Rouge « forme du juge » mesuré : l'ancienne heuristique jugeait `lisible = true` la fenêtre
+  `… Ps TC iar ee SES a … Post CHAG` et l'extrait mixte `nn NE {EL EE PostC. Rue du Relais …` ; la
+  nouvelle rend `false` pour la première et rogne la seconde en `du Relais …`.
+
+**Fait**
+1. **Critère durci** (`src/Ui/ExtraitsLisibles.php`) :
+   - rejet d'un extrait dont plus de **40 %** des mots sont des fragments de ≤ 3 caractères hors liste de
+     petits mots FR/DE/IT et abréviations administratives courantes (CHF, TTC, TVA, SA, CH…) ;
+   - rejet dès qu'un signe parasite apparaît (`{ } [ ] | ~ # @ ^ \ < > _`…) ;
+   - un vrai extrait doit porter au moins un mot de 5 lettres ;
+   - voyelles et part de lettres conservées ; cette part passe de 60 % à 40 % pour ne pas condamner un
+     montant ou une adresse riches en chiffres — la soupe de symboles reste bien en dessous.
+2. **Rognage au premier segment propre** : un extrait qui mélange bruit et texte n'est plus montré entier
+   ni masqué ; on cherche la première suite de mots plausibles (≥ 3 mots, ≥ 12 lettres, un mot ≥ 5
+   lettres) et on affiche à partir de là, en gardant la ponctuation/chiffres collés (`2026.`) sans franchir
+   un signe parasite. À défaut de segment propre, rien n'est affiché : titre, type, émetteur et date
+   suffisent. Les segments et le surlignage du terme trouvé sont préservés (`retenir` rogne la liste).
+3. `src/Ui/Ecrans.php` (commentaire de branchement) ; `templates/ecrans/recherche.twig` inchangé (même
+   contrat de données : liste de segments surlignés).
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/ExtraitsLisiblesTest.php` : **11/11, 123 assertions** (12 extraits
+  propres conservés = 100 %) ; `tests/php/Recherche` + `tests/php/EcransTest.php` : **29/29** (le `mark`
+  sur « maintenance » du corpus d'aperçu reste affiché).
+- `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13, Pixel 7) — sur une pièce
+  synthétique au texte bruité, aucun extrait ; sur une pièce mélangée tampon + adresse, l'extrait affiché
+  porte l'adresse et aucun fragment (`nn`, `PostC`, `{`).
+- `npx playwright test` : **46/46 verts** au rejeu isolé.
+- `powershell -File tools\harness.ps1 -SansBanc` (01-10-2026, 3 min 57 s, commit `8aeecc2`) :
+  **0-garde-fous VERT · 7-securite VERT · 2-contrat VERT · 6-charge VERT** (p95 lecture 642 ms, p95
+  écriture 140 ms, 0 erreur, 0 collision, ingestion finie). `4-ecrans` : 1 échec / 45 verts pendant le
+  harness, **46/46 au rejeu immédiat** — bruit de charge sur la base partagée, aucun test du lot en échec.
+  `1-unitaire` ROUGE : 16 échecs, **tous dans `tests/php/Classement/`** (chantier Classement en cours,
+  fichiers non commités par l'autre agent) ; `3-banc` sautée (`-SansBanc`) et `5-personas` pas encore
+  écrite — rouges par construction. **Aucun nouveau rouge dû au lot.**
+
+**Demandes**
+- **Classement** : le lot V2-10d n'y touche pas ; les 16 rouges unitaires du harness viennent des
+  modifications en cours de `src/Classement/Regles.php` et `src/Classement/ClasseurGed.php` (non commitées).
+
+**Commits**
+`8dca37d` oracle V2-10d (corpus + test) · `a536e56` critère durci et rognage (extraits + branchement) ·
+`8aeecc2` oracle mobile (pièces bruitée et mélangée).
+
+ETAT: fini
