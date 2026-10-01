@@ -36,15 +36,16 @@ final class BibliothequeParIndexTest extends TestCase
         $donnees = $ecran->donnees([], 'jeton');
         $apres = $this->compteurAcces('Handler_read_rnd_next');
 
-        self::assertCount(self::PERF_DOCUMENTS, $donnees['docs'], 'la bibliothèque montre tout le fonds');
+        // PERF-3 : la liste est PAGINÉE côté base — une page bornée, jamais tout le fonds rendu.
+        self::assertLessThanOrEqual(EcranBibliotheque::PAGE_TAILLE, count($donnees['docs']),
+            'la bibliothèque rend une page, pas le fonds entier');
         self::assertSame(self::PERF_DOCUMENTS, $donnees['total']);
-        // Un écran-LISTE lit tout l'index, par construction : la preuve n'est pas « peu de lignes »
-        // (un seul passage suffit) mais « pas plus qu'UN passage » — une requête par document en
-        // lirait le double. La résidence dans l'index, elle, est prouvée par le jumeau ci-dessous.
-        self::assertLessThan(self::PERF_DOCUMENTS + 200, $apres - $avant,
-            'la liste doit coûter UN passage de l’index, pas une requête par document');
+        // Un écran-LISTE ne lit que sa page (ORDER BY id DESC LIMIT) : le compteur de lignes lues reste
+        // très en deçà du fonds, preuve qu'aucune lecture de `meta` sur tout l'index n'a lieu.
+        self::assertLessThan(self::PERF_DOCUMENTS / 4, $apres - $avant,
+            'la liste doit coûter une page, pas un balayage des 2 000 documents');
         self::assertLessThan(500.0, $this->dureeMinimale(fn (): array => $ecran->donnees([], 'jeton')),
-            '2 000 documents listés en moins de 500 ms : relire 4 000 fichiers ne le pourrait pas');
+            '2 000 documents listés en moins de 500 ms : relire tout l’index ne le pourrait pas');
     }
 
     public function testLaBibliothequeRepondFondsEloigne(): void
@@ -54,7 +55,7 @@ final class BibliothequeParIndexTest extends TestCase
 
         try {
             $donnees = $ecran->donnees(['doc' => (string) $this->idValide()], 'jeton');
-            self::assertCount(self::PERF_DOCUMENTS, $donnees['docs'],
+            self::assertLessThanOrEqual(EcranBibliotheque::PAGE_TAILLE, count($donnees['docs']),
                 'la liste vit dans l’index : le dossier éloigné ne la vide ni ne la casse');
             self::assertSame($this->idValide(), $donnees['apercu']['id'],
                 'le document retenu reste désignable : son panneau tombe sur la copie indexée');

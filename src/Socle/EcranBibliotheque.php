@@ -14,9 +14,27 @@ use RuntimeException;
  * Écran Bibliothèque (V2-04), branché sur les VRAIES données : la liste des documents vient de
  * l'index (miroir reconstructible du dossier — F12), les valeurs du document retenu se relisent de
  * son `.meta.json` (le dossier fait foi), les vues enregistrées filtrent sans jamais déplacer.
+ *
+ * PERF-3 — sur un gros fonds (10 000 pièces du banc de charge), l'écran ne devait ni lire tout
+ * l'index (la colonne `meta`, copie de chaque `.meta.json`) ni rendre 10 000 lignes : la file d'un
+ * serveur mono-processus dépassait alors le seuil de 1,5 s. Désormais :
+ * - la LISTE est paginée CÔTÉ BASE (`LIMIT`/`OFFSET`, plus récent d'abord) : quelques lignes lues ;
+ * - les COMPTAGES sont bornés (un `COUNT(*)` indexé pour le fonds, une requête par vue) ;
+ * - le panneau d'aperçu résout UN document par son identifiant (jamais un balayage du fonds) ;
+ * - l'arborescence est construite d'un SEUL passage indexé (`k_vivant`), pas d'une lecture de chaque
+ *   `.meta.json` ; un chemin plus long que le préfixe d'index force le repli honnête.
+ *
+ * Le contenu affiché ne change pas : mêmes colonnes, mêmes valeurs, mêmes droits. La liste passe par
+ * des pages de 100 lignes (plan : « liste au centre, 100 lignes puis défilement »), toutes atteignables.
  */
 final class EcranBibliotheque
 {
+    /** Lignes affichées par page : borne le travail SQL et le rendu, indépendamment du fonds. */
+    public const PAGE_TAILLE = 100;
+
+    /** Longueur du préfixe indexé de `chemin_relatif` (doit rester aligné avec `Schema`). */
+    private const PREFIXE_CHEMIN = 700;
+
     private readonly PDO $pdo;
     private readonly Fonds $fonds;
     private readonly Vues $vues;
@@ -33,23 +51,14 @@ final class EcranBibliotheque
     }
 
     /**
-     * Tout ce que `ecrans/bibliotheque.twig` attend : documents filtrés, panneau d'aperçu (avec les
-     * champs personnalisés du document retenu), vues du volet, filtres compilés pour le formulaire.
+     * Tout ce que `ecrans/bibliotheque.twig` attend : une page de documents filtrés, panneau d'aperçu
+     * (avec les champs personnalisés du document retenu), vues du volet, filtres compilés, pagination.
      *
-     * @param array<string, mixed> $parametres paramètres de requête (?doc=, ?vue=, filtres GET)
+     * @param array<string, mixed> $parametres paramètres de requête (?doc=, ?vue=, ?page=, filtres GET)
      * @return array<string, mixed>
      */
     public function donnees(array $parametres, string $csrf): array
     {
-        // La LISTE vient de l'index (une requête) : sur un gros fonds, marcher le dossier ruinerait
-        // l'écran (mesuré au banc de charge : p95 > 20 s pour 10 000 documents). L'index n'existe
-        // pas encore (première seconde d'une installation) : le dossier répond seul.
-        try {
-            $tous = $this->fonds->indexes($this->pdo);
-        } catch (PDOException) {
-            $tous = $this->fonds->tous();
-        }
-
         // Vue demandée par son numéro (liens du volet) : SES filtres compilés s'appliquent.
         $vueActive = null;
         $candidat = trim((string) ($parametres['vue'] ?? ''));
@@ -65,34 +74,43 @@ final class EcranBibliotheque
             try {
                 $filtres = $this->vues->compiler($parametres);
             } catch (RuntimeException $e) {
-                $erreur = $e->getMessage();   // filtre incohéré : nommé à l'écran, jamais un écran muet
+                $erreur = $e->getMessage();   // filtre incohérent : nommé à l'écran, jamais un écran muet
             }
         }
         $filtres ??= $this->filtresNeutres();
 
-        $docs = Vues::filtrerDocs($tous, $filtres);
+        // Le fonds entier n'est jamais chargé : comptage indexé, page bornée, arbre d'un passage indexé.
+        $total = $this->compterVivants();
+        [$where, $params] = $this->wherePourFiltres($filtres);
+        $totalFiltre = $this->compterAvec($where, $params);
 
-        // Panneau d'aperçu : le document demandé (?doc=), sinon le premier de la sélection.
+        $pages = max(1, (int) ceil($totalFiltre / self::PAGE_TAILLE));
+        $page = max(1, min($pages, (int) ($parametres['page'] ?? 1)));
+        $docs = $this->lirePage($where, $params, $page);
+
+        // Panneau d'aperçu : le document demandé (?doc=), sinon le premier de la page.
         $doc = null;
         $demande = (int) ($parametres['doc'] ?? 0);
         if ($demande > 0) {
-            foreach ($tous as $d) {
-                if ($d['id'] === $demande) {
-                    $doc = $d;
-                }
-            }
+            $doc = $this->docParId($demande);
         }
-        $doc ??= $docs[0] ?? $tous[0] ?? null;
+        $doc ??= $docs[0] ?? null;
 
         return [
             'ecran' => 'bibliotheque',
             'bilan' => \Ged\Ui\Maquette::bilan(),   // badge « à traiter » du rail : encore la maquette (branchement : secteur Ingestion)
             'docs' => $docs,
             'compte' => count($docs),
-            'total' => count($tous),
-            'vuesVolet' => $this->vuesDuVolet($tous),
+            'total' => $total,
+            'totalFiltre' => $totalFiltre,
+            'page' => $page,
+            'pages' => $pages,
+            'pageTaille' => self::PAGE_TAILLE,
+            'lienPagePrecedente' => $page > 1 ? $this->lienPage($parametres, $page - 1) : null,
+            'lienPageSuivante' => $page < $pages ? $this->lienPage($parametres, $page + 1) : null,
+            'vuesVolet' => $this->vuesDuVolet($total),
             'vueActive' => $vueActive,
-            'arbre' => $this->fonds->arbre($tous),
+            'arbre' => $this->arbreVivant(),
             'types' => $this->typesSansEchec(),
             'tousChamps' => $this->champsSansEchec(),
             'operateurs' => Champs::operateurs(),
@@ -104,23 +122,232 @@ final class EcranBibliotheque
     }
 
     /**
-     * Les vues du volet : « Tous les documents » (le fonds entier, sans filtre) puis chaque vue
-     * enregistrée avec le nombre de documents qui la satisfont — comptés sur place, jamais cachés.
+     * Les vues du volet : « Tous les documents » (le fonds entier) puis chaque vue enregistrée avec le
+     * nombre de documents qui la satisfont. Les comptes viennent d'un COUNT indexé (une requête par vue,
+     * jamais un parcours du fonds par vue) — même sémantique que `Vues::filtrerDocs`.
      *
-     * @param list<array<string, mixed>> $tous
      * @return list<array{id:?int, nom:string, compte:int}>
      */
-    private function vuesDuVolet(array $tous): array
+    private function vuesDuVolet(int $total): array
     {
-        $volet = [['id' => null, 'nom' => 'Tous les documents', 'compte' => count($tous)]];
+        $volet = [['id' => null, 'nom' => 'Tous les documents', 'compte' => $total]];
         foreach ($this->vues->lister() as $vue) {
-            $volet[] = [
-                'id' => $vue['id'], 'nom' => $vue['nom'],
-                'compte' => count(Vues::filtrerDocs($tous, $vue['filtres'])),
-            ];
+            [$where, $params] = $this->wherePourFiltres($vue['filtres']);
+            $volet[] = ['id' => $vue['id'], 'nom' => $vue['nom'], 'compte' => $this->compterAvec($where, $params)];
         }
 
         return $volet;
+    }
+
+    /**
+     * La clause SQL d'un jeu de filtres compilés, plus récentes d'abord ensuite. Reproduit la sémantique
+     * de `Vues::satisfaitTout` : les colonnes de l'index pour type/émetteur/dates/étiquettes, le JSON
+     * `meta.champs` pour les champs personnalisés. Aucune clé utilisateur n'entre dans la requête hors
+     * paramètre lié (la clé de champ est validée en slug).
+     *
+     * @param array<string, mixed> $filtres
+     * @return array{0:string, 1:list<mixed>}
+     */
+    private function wherePourFiltres(array $filtres): array
+    {
+        $clauses = ['supprime_le IS NULL', 'absent_depuis IS NULL'];
+        $params = [];
+
+        if (($filtres['type'] ?? null) !== null) {
+            $clauses[] = 'BINARY type = ?';
+            $params[] = (string) $filtres['type'];
+        }
+        if (($filtres['emetteur'] ?? null) !== null) {
+            $clauses[] = 'BINARY emetteur = ?';
+            $params[] = (string) $filtres['emetteur'];
+        }
+        if (($filtres['de'] ?? null) !== null) {
+            $clauses[] = 'date_document >= ?';
+            $params[] = (string) $filtres['de'];
+        }
+        if (($filtres['a'] ?? null) !== null) {
+            $clauses[] = 'date_document <= ?';
+            $params[] = (string) $filtres['a'];
+        }
+        foreach ((array) ($filtres['etiquettes'] ?? []) as $etiquette) {
+            // Une étiquette absente (`etiquettes` NULL) ne satisfait pas : JSON_CONTAINS rend NULL.
+            $clauses[] = 'JSON_CONTAINS(etiquettes, ?)';
+            $params[] = json_encode((string) $etiquette, JSON_UNESCAPED_UNICODE);
+        }
+        $champ = $filtres['champ'] ?? null;
+        if (is_array($champ) && isset($champ['cle'], $champ['op'])) {
+            $this->clauseChamp($clauses, $params, $champ);
+        }
+
+        return [implode(' AND ', $clauses), $params];
+    }
+
+    /**
+     * Traduit un filtre de champ personnalisé (valeur vivant dans `meta.champs.<clé>`) en clause JSON.
+     * Les mêmes règles de forme que `Vues::satisfaitChamp` : une date répond aux opérateurs de date,
+     * un nombre aux bornes, un booléen à `est` ; sinon la comparaison de texte est insensible à la casse.
+     *
+     * @param list<string> $clauses
+     * @param list<mixed> $params
+     * @param array<string, mixed> $champ
+     */
+    private function clauseChamp(array &$clauses, array &$params, array $champ): void
+    {
+        $cle = (string) $champ['cle'];
+        if (preg_match('/^[A-Za-z0-9_-]+$/', $cle) !== 1) {
+            $clauses[] = '1 = 0';   // clé impossible : le document ne satisfait pas, jamais un filtre lâche
+
+            return;
+        }
+        $chemin = "'$.champs." . $cle . "'";
+        $extrait = "JSON_EXTRACT(meta, $chemin)";
+        $type = "JSON_TYPE($extrait)";
+        $texte = "JSON_UNQUOTE($extrait)";
+        $valeur = $champ['valeur'];
+
+        switch ((string) $champ['op']) {
+            case 'avant_jours':
+                $clauses[] = "$type = 'STRING' AND $texte <= ?";
+                $params[] = date('Y-m-d', time() + ((int) $valeur) * 86400);
+                break;
+            case 'avant':
+                $clauses[] = "$type = 'STRING' AND $texte <= ?";
+                $params[] = (string) $valeur;
+                break;
+            case 'apres':
+                $clauses[] = "$type = 'STRING' AND $texte > ?";
+                $params[] = (string) $valeur;
+                break;
+            case 'min':
+                $clauses[] = "$type IN ('INTEGER','DOUBLE','DECIMAL') AND CAST($texte AS DECIMAL(20,6)) >= ?";
+                $params[] = (float) $valeur;
+                break;
+            case 'max':
+                $clauses[] = "$type IN ('INTEGER','DOUBLE','DECIMAL') AND CAST($texte AS DECIMAL(20,6)) <= ?";
+                $params[] = (float) $valeur;
+                break;
+            case 'egal':
+                $clauses[] = "$type IN ('INTEGER','DOUBLE','DECIMAL') AND ABS(CAST($texte AS DECIMAL(20,6)) - ?) < 0.005";
+                $params[] = (float) $valeur;
+                break;
+            case 'est':
+                $clauses[] = "$type = 'BOOLEAN' AND $texte = ?";
+                $params[] = mb_strtolower((string) $valeur) === 'oui' ? 'true' : 'false';
+                break;
+            case 'contient':
+                $clauses[] = "$extrait IS NOT NULL AND $texte LIKE ?";
+                $params[] = '%' . addcslashes((string) $valeur, '%_\\') . '%';
+                break;
+            default:
+                $clauses[] = "$type = 'STRING' AND LOWER(TRIM($texte)) = LOWER(TRIM(?))";
+                $params[] = (string) $valeur;
+        }
+    }
+
+    /** Nombre de documents vivants (COUNT indexé : `k_vivant`, aucune ligne de fonds lue). */
+    private function compterVivants(): int
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM documents WHERE supprime_le IS NULL AND absent_depuis IS NULL')
+            ->fetchColumn();
+    }
+
+    /** @param list<mixed> $params */
+    private function compterAvec(string $where, array $params): int
+    {
+        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents WHERE ' . $where);
+        $requete->execute($params);
+
+        return (int) $requete->fetchColumn();
+    }
+
+    /**
+     * Une page de la liste, lue CÔTÉ BASE : seules les colonnes de l'écran, plus récentes d'abord.
+     * La colonne `meta` (copie du `.meta.json`) n'est jamais lue pour une liste — un document retenu
+     * relit, lui, son fichier.
+     *
+     * @param list<mixed> $params
+     * @return list<array<string, mixed>>
+     */
+    private function lirePage(string $where, array $params, int $page): array
+    {
+        $decalage = ($page - 1) * self::PAGE_TAILLE;
+        $requete = $this->pdo->prepare(
+            'SELECT id, chemin_relatif, nom, titre, type, emetteur, date_document, montant, etiquettes'
+            . ' FROM documents WHERE ' . $where . ' ORDER BY id DESC LIMIT ' . self::PAGE_TAILLE . ' OFFSET ' . $decalage);
+        $requete->execute($params);
+
+        return array_map([$this, 'ligne'], $requete->fetchAll());
+    }
+
+    /** Le document retenu, résolu par son identifiant : une ligne, jamais un balayage du fonds. */
+    private function docParId(int $id): ?array
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT id, chemin_relatif, nom, titre, type, emetteur, date_document, montant, etiquettes'
+            . ' FROM documents WHERE id = ? AND supprime_le IS NULL AND absent_depuis IS NULL');
+        $requete->execute([$id]);
+        $ligne = $requete->fetch();
+
+        return $ligne === false ? null : $this->ligne($ligne);
+    }
+
+    /**
+     * Une ligne d'index vers la forme attendue par le gabarit et par le panneau d'aperçu (mêmes clés que
+     * `Fonds::fiche`). Les `champs` personnalisés se relisent du `.meta.json` au moment de l'aperçu.
+     *
+     * @param array<string, mixed> $ligne
+     * @return array<string, mixed>
+     */
+    private function ligne(array $ligne): array
+    {
+        $chemin = str_replace('\\', '/', (string) $ligne['chemin_relatif']);
+        $etiquettes = json_decode((string) ($ligne['etiquettes'] ?? 'null'), true);
+
+        return [
+            'id' => (int) $ligne['id'],
+            'chemin' => $chemin,
+            'nom' => (string) ($ligne['nom'] ?? basename($chemin)),
+            'titre' => (string) ($ligne['titre'] ?? pathinfo($chemin, PATHINFO_FILENAME)),
+            'type' => isset($ligne['type']) && is_string($ligne['type']) ? $ligne['type'] : null,
+            'emetteur' => isset($ligne['emetteur']) && is_string($ligne['emetteur']) ? $ligne['emetteur'] : null,
+            'date' => isset($ligne['date_document']) && is_string($ligne['date_document']) ? $ligne['date_document'] : null,
+            'montant' => isset($ligne['montant']) && is_numeric($ligne['montant']) ? (float) $ligne['montant'] : null,
+            'etiquettes' => is_array($etiquettes) ? array_values(array_map('strval', $etiquettes)) : [],
+            'champs' => [],
+        ];
+    }
+
+    /**
+     * Arborescence des dossiers du fonds, construite d'UN passage indexé : `chemin_relatif` est lu depuis
+     * l'index `k_vivant` (pas de lecture de chaque ligne du fonds). Si un chemin atteint la longueur du
+     * préfixe indexé, la valeur peut être tronquée : on retombe alors sur la lecture complète, correcte.
+     *
+     * @return list<array{nom:string, enfants:list<string>}>
+     */
+    private function arbreVivant(): array
+    {
+        try {
+            $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents FORCE INDEX (k_vivant)'
+                . ' WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException) {
+            $chemins = [];   // index absent d'une base non migrée : repli complet ci-dessous
+        }
+
+        $tronque = $chemins === [];
+        foreach ($chemins as $chemin) {
+            if (strlen((string) $chemin) >= self::PREFIXE_CHEMIN) {
+                $tronque = true;
+                break;
+            }
+        }
+        if ($tronque) {
+            $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents'
+                . ' WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        return $this->fonds->arbre(array_map(
+            static fn (mixed $chemin): array => ['chemin' => str_replace('\\', '/', (string) $chemin)],
+            $chemins));
     }
 
     /**
@@ -170,6 +397,14 @@ final class EcranBibliotheque
     private function filtresNeutres(): array
     {
         return ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null];
+    }
+
+    /** Lien vers une page du même écran, en gardant les filtres, la vue et le document demandé. */
+    private function lienPage(array $parametres, int $page): string
+    {
+        $parametres['page'] = $page;
+
+        return '/bibliotheque?' . http_build_query($parametres);
     }
 
     /**
