@@ -41,6 +41,13 @@ if (fileATraiter || formulaireValidation) {
   };
   const valider = () => {
     if (!formulaireValidation || formulaireValidation.dataset.doc === '0') return;
+    // Sans proposition, le type part vide : le refus se NOMME et se voit (jamais un faux type rangé à Entrée).
+    const type = formulaireValidation.querySelector('[name="type"]');
+    if (type && String(type.value).trim() === '') {
+      type.focus();
+      if (typeof type.reportValidity === 'function') type.reportValidity();
+      return;
+    }
     if (typeof formulaireValidation.requestSubmit === 'function') formulaireValidation.requestSubmit();
     else formulaireValidation.submit();
   };

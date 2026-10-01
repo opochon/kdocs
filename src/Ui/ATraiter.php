@@ -112,9 +112,15 @@ final class ATraiter
             throw new \RuntimeException("document $id introuvable dans l'index");
         }
 
+        // Sans proposition, le type part vide : la validation au clavier ne doit JAMAIS ranger un faux type.
+        $type = $this->champ($champs['type'] ?? null);
+        if ($type === null) {
+            throw new \RuntimeException('type requis : choisissez un type avant de valider');
+        }
+
         $meta = [
             'titre' => $this->champ($champs['titre'] ?? null) ?? (string) ($fiche['titre'] ?? $fiche['nom'] ?? ''),
-            'type' => $this->champ($champs['type'] ?? null),
+            'type' => $type,
             'emetteur' => $this->champ($champs['emetteur'] ?? null),
             'date' => $this->dateIso($champs['date'] ?? null),
             'montant' => is_numeric($champs['montant'] ?? null) ? (float) $champs['montant'] : null,
@@ -144,6 +150,12 @@ final class ATraiter
         }
 
         return $ids[$rang + 1] ?? null;
+    }
+
+    /** Compteur de la file réelle de CE fonds : la source unique du badge « À traiter » du rail. */
+    public function compterAControler(): int
+    {
+        return count($this->docsAControler());
     }
 
     /** @return list<array<string, mixed>> */
@@ -230,9 +242,16 @@ final class ATraiter
     private function ligne(array $doc): array
     {
         $meta = $doc['meta'];
-        $classement = is_array($meta['classement'] ?? null) ? $meta['classement'] : [];
-        $source = (string) ($classement['source'] ?? 'regle');
-        $confiance = (float) ($classement['confiance'] ?? 0.0);
+        // « Rien d'inventé » : sans `classement` écrit à l'ingestion, il n'y a AUCUNE proposition — pas de
+        // source, pas de badge de confiance, et le type reste vide (l'humain doit le choisir).
+        $classement = is_array($meta['classement'] ?? null) ? $meta['classement'] : null;
+        $sourceCle = is_string($classement['source'] ?? null) ? trim((string) $classement['source']) : '';
+        $source = $sourceCle !== '' ? (self::SOURCES[$sourceCle] ?? ucfirst($sourceCle)) : '';
+        $confiance = $sourceCle !== '' && isset($classement['confiance']) && is_numeric($classement['confiance'])
+            ? (int) round(max(0.0, min(1.0, (float) $classement['confiance'])) * 100) : null;
+        $raison = isset($meta['raison']) && is_string($meta['raison']) && trim($meta['raison']) !== ''
+            ? trim($meta['raison'])
+            : ($sourceCle === '' ? 'aucune proposition automatique' : 'à contrôler');
         $rendu = $this->rendu($doc);
         $pages = $this->pages($meta, $rendu);
 
@@ -241,10 +260,10 @@ final class ATraiter
             'titre' => (string) ($meta['titre'] ?? $doc['ligne']['titre'] ?? ''),
             'emetteur' => (string) ($meta['emetteur'] ?? ''),
             'type' => isset($meta['type']) && is_string($meta['type']) ? $meta['type'] : '',
-            'source' => self::SOURCES[$source] ?? ucfirst($source),
-            'source_cle' => $source,
-            'confiance' => (int) round(max(0.0, min(1.0, $confiance)) * 100),
-            'raison' => (string) ($meta['raison'] ?? 'à contrôler'),
+            'source' => $source,
+            'source_cle' => $sourceCle,
+            'confiance' => $confiance,
+            'raison' => $raison,
             'preuve' => (string) ($classement['preuve'] ?? ''),
             'date' => $this->dateIso($meta['date'] ?? null) ?? '',
             'montant' => isset($meta['montant']) && is_numeric($meta['montant']) ? (float) $meta['montant'] : null,
@@ -338,8 +357,8 @@ final class ATraiter
     private function courantVide(): array
     {
         return [
-            'id' => 0, 'titre' => '', 'emetteur' => '', 'type' => '', 'source' => 'Règle', 'source_cle' => 'regle',
-            'confiance' => 0, 'raison' => 'aucun document à contrôler', 'preuve' => '', 'date' => '',
+            'id' => 0, 'titre' => '', 'emetteur' => '', 'type' => '', 'source' => '', 'source_cle' => '',
+            'confiance' => null, 'raison' => 'aucun document à contrôler', 'preuve' => '', 'date' => '',
             'montant' => null, 'etiquettes' => [], 'pages' => 0, 'texte' => [], 'rendu' => null,
         ];
     }
