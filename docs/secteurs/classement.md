@@ -141,5 +141,7 @@ Coût : zéro table (plafond de 20 tenu), la lecture est mise en cache par requ�
 - `courrier-100p` sans IA : 53/53 pièces, 0 validé seul, 0 type/émetteur/date faux, porte franchie.
 - `courrier-100p` avec IA Infomaniak réelle : 53/53 pièces, 51 validées seules (96,2 %), 0 validé faux,
   0 émetteur/date faux, porte franchie en 185,31 s ; deux pièces restent à contrôler (panne IA, Document RH).
+- `powershell -File tools\\harness.ps1 -SansBanc` : garde-fous, 284 tests unitaires (1 372 assertions), sécurité,
+  contrats et charge verts ; banc volontairement sauté, 2 échecs Playwright hors secteur Classement, personas absentes.
 
 ETAT: fini
