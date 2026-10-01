@@ -246,3 +246,8 @@ parcours passaient sans jamais prouver qu'une page était RENDUE.
   chargement désormais global la couvre le jour venu.
 
 ETAT: fini
+### Jugement R1b-ecrans (juge, 01-10 14:30, copie propre et recette réelle sur 918a9dd)
+
+- Recette réelle avec un compte réel : sur À traiter, la première page du PDF est rendue en 346 ms (canvas dessiné, plus de « Chargement de l'aperçu… »).
+- Harness : 4-écrans à 43/43, dont l'oracle de rendu réel.
+- Verdict : **R1b-ecrans franchi.**

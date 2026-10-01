@@ -176,3 +176,19 @@ ETAT: fini
 - PHPUnit complet après mise à jour des oracles de rangement : **307 tests, 1 525 assertions, 0 défaut**.
 
 ETAT: fini
+
+### Jugement R2b-classement (juge, 01-10 14:30, copie propre et recette réelle sur 918a9dd)
+
+- Corrigé :
+  - les deux régressions de R2 (contrat Classeur, habitude) ;
+  - nomenclature élargie et réellement utilisée (Décompte, Police d'assurance, Attestation, Relevé, Décision) ;
+  - pièces sans date rangées dans `Sans_date` et non plus dans l'année courante ;
+  - porte de découpe avec vision ajoutée au banc (53/53) ;
+  - remappage de 4 types dans `verite.json`, contrôlé : nombre de pièces et pages inchangés.
+- Harness : tout vert, sauf un avertissement de `ReconstructionTest.php:96`, qui attend encore `2026/A_classer` alors que le rangement sans date a changé.
+- Recette réelle (49 pièces, 103 pages) — non franchi :
+  - La page 86 est toujours rangée deux fois : le dédoublonnage n'agit pas sur le chemin réel.
+  - 4 pièces sur 49 seulement sont validées seules (8 %), et elles le sont SANS date, contrairement à la règle annoncée.
+  - Causes des 45 « à contrôler » : 14 « émetteur à contrôler » (le rapprochement IA/texte échoue alors que l'émetteur proposé figure dans le texte), 13 « IA et texte divergent » sur le type, 11 « le type proposé par l'IA n'a aucun indice dans le texte » (les règles ne connaissent pas les nouveaux types), 4 « émetteur non crédible », 2 « IA indisponible ».
+  - Il reste environ 5 émetteurs-bruit (libellés de service, fragments, préfixes), qui créent encore des dossiers.
+- Verdict : **non franchi**, renvoyé en R2c.
