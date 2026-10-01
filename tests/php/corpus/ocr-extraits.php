@@ -200,4 +200,48 @@ return [
         'attendu' => null,
         'interdits' => ['/////', '{[]}'],
     ],
+
+    // ------------------------------------------------------------------ V2-10e — queue, extraits courts, ponctuation
+    [
+        'nom' => 'queue de fragments après une phrase lisible',
+        'categorie' => 'mixte',
+        'texte' => 'Le présent contrat de maintenance se termine ieee Post CHAG',
+        'attendu' => 'Le présent contrat de maintenance se termine',
+        'interdits' => ['ieee', 'Post', 'CHAG'],
+    ],
+    [
+        'nom' => 'tête de fragments avant une phrase lisible',
+        'categorie' => 'mixte',
+        'texte' => 'ieee Post CHAG — Le solde fictif reste payable avant le 30 avril 2026.',
+        'attendu' => 'Le solde fictif reste payable avant le 30 avril 2026.',
+        'interdits' => ['ieee', 'Post', 'CHAG'],
+    ],
+    [
+        'nom' => 'fragment entre guillemets en queue',
+        'categorie' => 'mixte',
+        'texte' => 'La facture fictive AN-5001 reste payable avant le 30 avril 2026. PostC. "',
+        'attendu' => 'La facture fictive AN-5001 reste payable avant le 30 avril 2026.',
+        'interdits' => ['PostC', '"'],
+    ],
+    [
+        'nom' => 'ponctuation parasite isolée (forme du juge)',
+        'categorie' => 'mixte',
+        'texte' => 'Le solde reste payable ; = avant le 30 avril 2026.',
+        'attendu' => 'Le solde reste payable',
+        'interdits' => ['; ='],
+    ],
+    [
+        'nom' => 'ponctuation parasite multiple (points et virgule)',
+        'categorie' => 'mixte',
+        'texte' => 'La facture porte la mention « payé » . , ; aussitôt.',
+        'attendu' => 'La facture porte la mention « payé »',
+        'interdits' => [';', 'aussitôt'],
+    ],
+    [
+        'nom' => 'extrait court de majuscules criardes (majoritairement bruité)',
+        'categorie' => 'bruit',
+        'texte' => 'ALPHA BETA GAMMA DELTA',
+        'attendu' => null,
+        'interdits' => ['ALPHA', 'GAMMA', 'DELTA'],
+    ],
 ];

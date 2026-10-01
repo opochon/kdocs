@@ -187,4 +187,63 @@ final class ExtraitsLisiblesTest extends TestCase
         self::assertFalse(self::porteInterdit((string) $resultat, 'nn'));
         self::assertStringNotContainsString('{', (string) $resultat);
     }
+
+    // ------------------------------------------------------------------ V2-10e — queue, courts, ponctuation, fenêtre
+
+    /** V2-10e : ce que l'on rogne en tête, on le rogne aussi en queue (forme du juge). */
+    public function testLaQueueBruiteeEstRognee(): void
+    {
+        self::assertSame(
+            'Le présent contrat de maintenance se termine',
+            ExtraitsLisibles::nettoyer('Le présent contrat de maintenance se termine ieee Post CHAG'),
+        );
+    }
+
+    /** V2-10e : la tête bruitée d'un extrait autrement lisible est également rognée. */
+    public function testLaTeteBruiteeEstRognee(): void
+    {
+        self::assertSame(
+            'Le solde fictif reste payable avant le 30 avril 2026.',
+            ExtraitsLisibles::nettoyer('ieee Post CHAG — Le solde fictif reste payable avant le 30 avril 2026.'),
+        );
+    }
+
+    /** V2-10e : un extrait court majoritairement fait de bruit n'est pas affiché (règle 2). */
+    public function testUnExtraitCourtMajoritairementBruiteNestPasAffiche(): void
+    {
+        self::assertNull(ExtraitsLisibles::nettoyer('ALPHA BETA GAMMA DELTA'));
+    }
+
+    /** V2-10e : une séquence de signes isolés au milieu d'un texte lisible coupe l'extrait (règle 3). */
+    public function testLaPonctuationParasiteCoupeLExtrait(): void
+    {
+        self::assertSame('Le solde reste payable',
+            ExtraitsLisibles::nettoyer('Le solde reste payable ; = avant le 30 avril 2026.'));
+        self::assertSame('La facture porte la mention « payé »',
+            ExtraitsLisibles::nettoyer('La facture porte la mention « payé » . , ; aussitôt.'));
+    }
+
+    /**
+     * V2-10e : quand la recherche a un terme, l'extrait est une fenêtre autour de la première occurrence
+     * PROPRE du terme, plus le début du texte. Le terme trouvé doit rester visible.
+     */
+    public function testLextraitEstUneFenetreAutourDuTerme(): void
+    {
+        $extrait = [
+            ['t' => 'Le premier paragraphe lisible ici. nn NE {EL EE PostC. Rue du ', 'hit' => false],
+            ['t' => 'Simplon', 'hit' => true],
+            ['t' => ' 12, 1006 Lausanne, dossier 88.', 'hit' => false],
+        ];
+
+        $gardes = ExtraitsLisibles::retenir([$extrait], 3);
+
+        self::assertCount(1, $gardes);
+        $rendu = implode('', array_map(static fn (array $s): string => (string) $s['t'], $gardes[0]));
+        self::assertStringContainsString('Simplon', $rendu, 'l’extrait porte le terme cherché');
+        self::assertStringStartsWith('du Simplon', $rendu);
+        self::assertStringNotContainsString('paragraphe', $rendu, 'ce n’est plus le début du texte');
+        $surligue = array_values(array_filter($gardes[0], static fn (array $s): bool => ($s['hit'] ?? false) === true));
+        self::assertCount(1, $surligue, 'le terme trouvé reste surligné');
+        self::assertSame('Simplon', $surligue[0]['t']);
+    }
 }
