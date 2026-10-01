@@ -185,6 +185,11 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
 /* Recherche */
 .resultat { padding: 12px 16px; border-bottom: 1px solid var(--border); display: grid; gap: 4px; }
 .resultat mark { background: color-mix(in srgb, var(--warn) 25%, transparent); color: inherit; border-radius: 2px; padding: 0 1px; }
+.resultat-tete { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* V2-10e : l'extrait est rattaché au document (il suit son titre, filet à gauche) et reste au-dessus
+   du lien « Documents semblables », qui est une action et non l'intitulé de l'extrait. */
+.extraits { display: grid; gap: 2px; border-left: 2px solid var(--border); padding-left: 10px; margin-top: 2px; }
+.resultat-pied { display: flex; justify-content: flex-end; margin-top: 2px; }
 .filtres { display: flex; gap: 6px; flex-wrap: wrap; }
 /* V2-10b : le panneau de filtres est transparent sur ordinateur (rangée de puces inchangée) ; il ne
    devient un vrai panneau repliable que sur téléphone (voir le point de rupture ≤ 768 px). */

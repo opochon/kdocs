@@ -60,7 +60,7 @@
   <section class="carte" data-testid="resultats" data-mode="{{ mode }}">
     {% for r in resultats %}
       <article class="resultat" data-testid="resultat-{{ r.id }}">
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="resultat-tete">
           {% if r.id > 0 %}
             <a href="/documents/{{ r.id }}"><strong>{% for s in r.titre_segments %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</strong></a>
           {% else %}
@@ -70,10 +70,10 @@
           {% if r.emetteur %}<span class="muted">{{ r.emetteur }}</span>{% endif %}
           {% if r.date %}<span class="muted">{{ r.date|date('d.m.Y') }}</span>{% endif %}
           {% if r.montant is not null %}<span class="muted">{{ r.montant|number_format(2, '.', ' ') }} CHF</span>{% endif %}
-          <a class="btn discret" style="margin-left:auto" href="/bibliotheque?doc={{ r.id }}">Documents semblables</a>
         </div>
-        {# V2-10c : seuls les extraits lisibles sont rendus (heuristique `ExtraitsLisibles`) — jamais un
-           amas OCR brut. Le titre, le type, l'émetteur et la date restent affichés au-dessus. #}
+        {# V2-10c / V2-10e : seuls les extraits lisibles sont rendus (heuristique `ExtraitsLisibles`) — jamais
+           un amas OCR brut. L'extrait est rattaché au document : il suit immédiatement son titre, AVANT le
+           lien « Documents semblables », qui désigne une action et non l'extrait. #}
         {% if r.extraits %}
         <div class="extraits" data-testid="extraits-{{ r.id }}">
           {% for extrait in r.extraits %}
@@ -81,6 +81,9 @@
           {% endfor %}
         </div>
         {% endif %}
+        <div class="resultat-pied">
+          <a class="btn discret" href="/bibliotheque?doc={{ r.id }}" data-testid="semblables-{{ r.id }}">Documents semblables</a>
+        </div>
       </article>
     {% else %}
       {% if not erreur %}
