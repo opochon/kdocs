@@ -290,6 +290,10 @@ try {
         'POST /workflows/regles' => 'nom=&action_type=',
         'POST /workflows/regles/{id:[0-9]+}/basculer' => 'actif=0',
         'POST /workflows/gabarits/{nom}' => 'sonde=1',
+        // Workflows V2-06b (designer) : la création sans nom et l'enregistrement sans graphe sont refusés
+        // par le métier, sans écrire ; la sonde ne vérifie que le CSRF absent / rejoué.
+        'POST /workflows/circuits' => 'nom=',
+        'POST /workflows/circuits/{id:[0-9]+}' => 'graphe=',
         'POST /workflows/essai' => 'document_id=0',
         'POST /workflows/evenements' => 'document_id=0',
         'POST /workflows/transitions' => 'document_id=0&vers=invalide',

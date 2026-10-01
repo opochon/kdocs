@@ -23,6 +23,12 @@ final class DroitsRoutes
         'GET /documents/{id:[0-9]+}/fichier' => 'document.voir',
         'GET /documents/{id:[0-9]+}/miniature' => 'document.voir',
         'GET /workflows' => 'workflows:lire',
+        // Workflows V2-06b : catalogue, éditeur graphique et enregistrement du dessin (lignes signalées
+        // hors secteur, à commiter par le juge).
+        'GET /workflows/catalogue' => 'workflows:lire',
+        'GET /workflows/circuits/{id:[0-9]+}/editeur' => 'workflows:lire',
+        'POST /workflows/circuits' => 'workflow.gerer',
+        'POST /workflows/circuits/{id:[0-9]+}' => 'workflow.gerer',
         'POST /workflows/regles' => 'workflow.gerer',
         'POST /workflows/regles/{id:[0-9]+}/basculer' => 'workflow.gerer',
         'POST /workflows/gabarits/{nom}' => 'workflow.gerer',
@@ -90,12 +96,20 @@ final class DroitsRoutes
                     return self::PERMISSIONS['GET /documents/{id:[0-9]+}' . $suffixe];
                 }
             }
+            // Ouvre l'éditeur graphique d'un circuit (Workflows V2-06b).
+            if (preg_match('#^/workflows/circuits/[0-9]+/editeur$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /workflows/circuits/{id:[0-9]+}/editeur'];
+            }
         }
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
             if (preg_match('#^/a-traiter/[0-9]+/valider$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/valider'];
+            }
+            // Enregistre le dessin d'un circuit (Workflows V2-06b ; la création exacte est déjà reconnue).
+            if (preg_match('#^/workflows/circuits/[0-9]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /workflows/circuits/{id:[0-9]+}'];
             }
             if (preg_match('#^/workflows/regles/[0-9]+/basculer$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/regles/{id:[0-9]+}/basculer'];
