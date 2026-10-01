@@ -114,3 +114,66 @@ simultanés, tâche d'ingestion `courrier-100p` en fond. Preuves : `recette/preu
 
 Aucune autre attente : les validations (écriture) tiennent le seuil (p95 2,6–2,9 s < 3 s), 0 collision,
 0 erreur, la tâche d'ingestion finit.
+
+## Journal R1-ecrans — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Défauts de la recette réelle (instance installée, scan 103 pages).
+Reprise de zéro sur l'arbre courant (un premier agent n'avait rien modifié).
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/e2e/ecrans-reels.spec.ts` + `tests/e2e/preparer-ecrans-reels.php` : parcours avec un compte RÉEL
+  (créé comme par l'installateur : courriel + mot de passe haché, rôle admin), sur son propre fonds
+  synthétique `var/oracles/ecrans-reels/documents`, serveur à lui, base `gedv2_test` (verrou partagé).
+- Écrit rouge : « documents@exemple.ch » restait affiché, le type valait « Facture » sans proposition,
+  les vues du rail étaient figées, le compteur différait, « 1 pages » apparaissait. Puis vert : 5 parcours.
+
+**Fait (défauts de la recette)**
+1. **Application** (`src/Ui/Application.php`, `templates/ecrans/application.twig`) : plus aucune valeur de
+   maquette. Dossier/adresse d'ingestion → « configuré »/« non configuré » (le chemin n'est jamais montré) ;
+   agent d'ingestion = DERNIÈRE tâche réelle de la zone de travail de l'instance + horodatage ; racine =
+   `STORAGE_ROOT` ; modèle = `INFOMANIAK_AI_MODEL_CLASSIFY` réel ; seuil et seuil d'habitude lus de la
+   config/`Habitudes` ; K-Time et ClearMyMails = état RÉEL des appairages `jonctions_jetons` (actif/non
+   révoqué) ; une information absente le dit.
+2. **À traiter sans proposition** (`src/Ui/ATraiter.php`, `templates/ecrans/a-traiter.twig`,
+   `public/assets/js/ged.js`) : un `classement` absent laisse `type` VIDE, n'affiche AUCUN badge de source,
+   et la validation est refusée tant que le type n'est pas choisi — côté navigateur (`required` + garde JS,
+   le refus se nomme) et côté serveur (`valider()` lève « type requis », 422 nommé). Le titre affiché reste
+   celui proposé par le Classeur, jamais le nom de fichier technique.
+3. **Accords** : « 1 page / N pages », « 1 document / N documents », « lot/lots scanné(s) », règles,
+   circuits, résultats — singulier/pluriel partout.
+4. **Compteur unique** (`src/Ui/Rail.php`, `src/Ui/Vue.php`, `templates/layout.twig`) : le rail lit la file
+   réelle du fonds (documents `a_controler` dont le fichier existe), calculée à UN endroit et exposée à tous
+   les gabarits par la fonction Twig `rail()` — plus de « 5 » de maquette à côté d'un « 48 » réel.
+5. **Vues de la barre latérale** : elles viennent du registre du fonds (`.ged/vues.json`) et pointent vers
+   leur VRAI identifiant (`/bibliotheque?vue=<id>`) ; aucune vue enregistrée → l'écran le dit.
+
+**Preuves**
+- `tests/e2e/ecrans-reels.spec.ts` : 5/5 verts en isolé (Application réelle ; type vide + refus serveur ;
+  proposition affichée + compteur unique sur 5 écrans ; vues réelles filtrantes ; accords).
+- `php vendor/bin/phpunit` : mes tests d'écrans passent ; les rouges unitaires du rejeu sont ceux du
+  Classement en cours (`ReglesTest`/`ClasseurGedTest` : 16 échecs + 1 erreur, travail concurrent hors lot)
+  et de `Contrats\ClasseurGedContratTest` (déjà en échec avant mes modifications).
+- `powershell -File tools\harness.ps1 -SansBanc` (01-10, 8 min 34 s) : **0-garde-fous VERT · 7-securite VERT ·
+  6-charge VERT** (p95 lecture 704 ms) ; `4-ecrans` : **1 échec / 38 verts** — l'unique échec est
+  `a-traiter.spec` « valider trois pièces … habitude », **pré-existant hors lot** (le R2 classement a durci
+  `Regles::lireEmetteur` : « Emetteur Oracle … » n'a plus de raison sociale et rend `null`, donc l'habitude
+  n'est plus corroborée) ; `1-unitaire` et `2-contrat` rouges par le travail Classement en cours.
+  **Aucun nouveau rouge d'écran** ; mon parcours compte dans les 38 verts.
+- `/a-traiter` et les écrans restent sous 1,5 s (le rail ne fait qu'une file bornée déjà bornée par
+  `ATraiter`) ; charge p95 lecture 704 ms.
+
+**Demandes aux autres secteurs**
+- **Classement** : `Regles::candidatEmetteur()` exige désormais une raison sociale (`sa|sarl|banque|…`).
+  L'oracle `tests/oracles/interface/preparer-a-traiter.php` fabrique des émetteurs fictifs
+  `« Emetteur Oracle <jeton> »` sans suffixe : `lireEmetteur()` rend `null`, la 4ᵉ pièce n'a plus ni
+  émetteur ni habitude, et `a-traiter.spec` échoue — vérifié indépendamment de mes fichiers. Deux issues :
+  soit autoriser un nom d'organisation déjà corroboré par l'IA/le texte, soit mettre l'oracle d'interface à
+  jour (nom fictif avec suffixe légal) — je ne modifie pas `tests/oracles/` (hors lot).
+- **Vue d'ensemble / Socle** : `EcranProfil` et `EcranMetadonnees` passent encore `Maquette::bilan()` ;
+  le rail n'en dépend plus (fonction `rail()`), leur `bilan` local est donc inutilisé — à retirer un jour.
+
+Aucune ligne sous « À commiter par le juge » n'est due : ni `DroitsRoutes.php` ni `sonde-securite.php` n'ont
+été touchés.
+
+ETAT: fini
+
