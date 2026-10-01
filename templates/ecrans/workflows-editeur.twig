@@ -1,0 +1,140 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}{{ circuit.nom }} — éditeur{% endblock %}
+{% block contenu %}
+{# Éditeur graphique repris du designer de GEDv1, adapté au système visuel GEDv2 : canevas SVG, nœuds
+   glissés-déposés, liaisons, panneau de réglages. Aucun gestionnaire en ligne : tout est lié par
+   public/assets/js/workflows-designer.js. L'essai à blanc vit ici, sur un vrai document du fonds. #}
+<div class="page pleine" data-testid="ecran-workflows-editeur" data-circuit-id="{{ circuit.id }}">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>{{ circuit.nom }}</h1>
+      <span class="muted">{% if circuit.gabarit %}gabarit {{ circuit.gabarit }} · {% endif %}{{ circuit.regles }} règle{{ circuit.regles > 1 ? 's' }} · {{ graphe.noeuds|length }} nœuds</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/workflows" data-testid="action-retour">{{ ic.i('fleche') }}Retour à la liste</a>
+      <button class="btn" type="button" data-testid="action-ajouter-etat" data-action="ajouter-etat">{{ ic.i('plus') }}Ajouter un état</button>
+      <button class="btn primaire" type="button" data-testid="action-enregistrer" data-action="enregistrer">
+        {{ ic.i('check') }}Enregistrer le circuit</button>
+      <span class="chip" role="status" data-testid="statut-enregistrement" hidden></span>
+      <input type="hidden" id="workflows-csrf" value="{{ csrf }}">
+    </div>
+  </div>
+
+  <div class="wf-editeur">
+    <section class="carte wf-outils" aria-label="Composants">
+      <div class="volet-tete">{{ ic.i('flux') }}Composants</div>
+      <div class="volet-corps" data-testid="workflows-outils">
+        {% for categorie, entrees in catalogue %}
+        <div class="titre-section">{{ categorie|capitalize }}</div>
+        {% for e in entrees %}
+        <button class="wf-outil" type="button" draggable="true" data-testid="outil-{{ e.type }}" data-type="{{ e.type }}"
+          data-genre="{{ e.genre }}" title="{{ e.description }}">{{ e.libelle }}</button>
+        {% endfor %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="carte wf-canevas-boite" aria-label="Canevas du circuit">
+      <svg id="workflows-canevas" class="wf-canevas" data-testid="workflows-canevas" role="application"
+        aria-label="Canevas du circuit" tabindex="0">
+        <defs>
+          <marker id="wf-fleche" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0 0 L9 3 L0 6 z" fill="currentColor"></path>
+          </marker>
+        </defs>
+        <g id="wf-liens"></g>
+        <g id="wf-noeuds"></g>
+      </svg>
+      <p class="wf-aide muted" data-testid="workflows-aide">Glissez un composant depuis la gauche, reliez une sortie
+        (●) à une entrée, cliquez un nœud pour le régler. Double-cliquez une liaison pour la supprimer.</p>
+    </section>
+
+    <section class="carte wf-reglages" aria-label="Réglages du nœud">
+      <div class="volet-tete">{{ ic.i('reglages') }}Réglages
+        <button class="btn discret icone" type="button" data-action="fermer-reglages" data-testid="action-fermer-reglages"
+          title="Fermer les réglages">×</button></div>
+      <div class="volet-corps" data-testid="panneau-reglages">
+        <p class="muted">Sélectionnez un nœud pour le régler.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="carte" data-testid="essai">
+    <div class="volet-tete">{{ ic.i('horloge') }}Essai à blanc sur un document du fonds
+      <span class="muted">— aucune écriture</span></div>
+    <div class="panneau">
+      <form method="post" action="/workflows/essai" class="actions" data-testid="formulaire-essai">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="circuit" value="{{ circuit.id }}">
+        <label class="muted" for="essai-document">Document</label>
+        <select id="essai-document" name="document_id" data-testid="essai-document">
+          {% for d in documents %}<option value="{{ d.id }}">{{ d.titre }} — {{ d.type ?: 'sans type' }}</option>{% endfor %}
+        </select>
+        <label class="muted" for="essai-declencheur">Déclencheur</label>
+        <select id="essai-declencheur" name="declencheur" data-testid="essai-declencheur">
+          {% for code, libelle in declencheurs %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select>
+        <button class="btn" type="submit" data-testid="action-essai-editeur">{{ ic.i('horloge') }}Tester à blanc</button>
+      </form>
+
+      {% if essai %}
+      <div class="carte wf-essai-resultat" data-testid="essai-resultat">
+        <p><strong>{{ essai.document.titre }}</strong> · {{ declencheurs[essai.declencheur]|default(essai.declencheur) }}
+          <span class="chip ok" data-testid="essai-zero-ecriture">zéro écriture</span>
+          {% if essai.chemin %}<span class="chip" data-testid="essai-chemin">chemin : {{ essai.chemin|join(' → ') }}</span>
+          {% else %}<span class="chip warn" data-testid="essai-chemin">chemin vide</span>{% endif %}</p>
+        <p class="muted">Règles évaluées :
+          {% for r in essai.regles %}<span class="chip{{ r.retenue ? ' ok' : '' }}">{{ r.nom }}{% if not r.actif %} (en veille){% endif %}</span>{% endfor %}
+          {% if essai.regles is empty %}aucune règle rattachée{% endif %}</p>
+        {% if essai.etapes %}
+        <p class="muted">Ce qui se passerait :</p>
+        <ul class="liste">
+          {% for e in essai.etapes %}<li class="l2">{{ e.texte }} <span class="muted">(règle « {{ e.regle }} »)</span></li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Aucune règle ne réagit à ce déclencheur pour ce document.</p>
+        {% endif %}
+        {% for err in essai.erreurs %}<div class="raison">{{ ic.i('alerte') }}Règle « {{ err.regle }} » — {{ err.cause }}</div>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <details class="carte" data-testid="graphe-texte">
+    <summary class="volet-tete" style="cursor:pointer; list-style:none">Structure du graphe
+      <span class="muted">— lecture sans souris ; sélection d’un nœud</span></summary>
+    <div class="panneau">
+      <ul class="liste" data-testid="liste-noeuds">
+        {% for n in graphe.noeuds %}
+        <li class="l2"><button class="btn discret" type="button" data-testid="selection-{{ n.id }}" data-noeud="{{ n.id }}"
+          data-chemin="{{ n.id in essai.chemin|default([]) ? '1' : '0' }}">{{ n.genre }} — {{ n.nom }}</button></li>
+        {% endfor %}
+      </ul>
+      <ul class="liste" data-testid="liste-liens">
+        {% for l in graphe.liens %}
+        <li class="l2 mono" data-testid="lien-{{ l.id }}" data-de="{{ l.de }}" data-vers="{{ l.vers }}">{{ l.de }} → {{ l.vers }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+
+  <dialog id="wf-dialogue" class="wf-dialogue" data-testid="dialogue">
+    <form method="dialog" class="panneau">
+      <h2 data-testid="dialogue-titre">Confirmer</h2>
+      <p class="muted" data-testid="dialogue-message"></p>
+      <div class="champ" data-testid="dialogue-champ-boite" hidden>
+        <label for="wf-dialogue-champ">Valeur</label>
+        <input id="wf-dialogue-champ" data-testid="dialogue-champ">
+      </div>
+      <div class="actions">
+        <button class="btn primaire" value="valider" data-testid="dialogue-valider">Confirmer</button>
+        <button class="btn" value="annuler" data-testid="dialogue-annuler">Annuler</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="application/json" id="workflows-donnees" nonce="{{ csp_nonce }}">{{ donnees_json|raw }}</script>
+  <script src="/assets/js/workflows-designer.js" type="module"></script>
+</div>
+{% endblock %}
