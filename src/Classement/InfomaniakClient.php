@@ -204,7 +204,10 @@ final class InfomaniakClient implements ClientIa
 
         Règles :
         - Le correspondant est l'ÉMETTEUR du document (qui l'a écrit ou envoyé), jamais le destinataire.
+          Ignore les lignes OCR illisibles, adresses et phrases de corps ; cherche aussi dans le logo ou pied de page.
         {$proprietaire}- document_type_name DOIT être un des types disponibles ; si aucun ne convient vraiment, null.
+        - document_date est la date D'ÉMISSION du document, jamais une date de naissance, une période de
+          prestation, une échéance ancienne ou une date seulement citée dans le corps. Si elle n'est pas sûre, null.
         - confidence : ta probabilité réelle d'avoir juste sur le TYPE ; baisse-la en cas de doute.
 
         Réponds UNIQUEMENT en JSON valide avec ce format :

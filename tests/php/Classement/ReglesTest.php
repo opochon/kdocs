@@ -115,6 +115,16 @@ final class ReglesTest extends TestCase
         self::assertNull(Regles::dateEnTete("**Atelier Numerique Exemple Sarl**\nCHE-100.000.002 TVA\n"));
     }
 
+    public function testDateEnTeteIgnoreNaissanceEtPeriodeEtGardeEmission(): void
+    {
+        $texte = "Post CHAG\nDate de naissance : 14.09.1976\nPériode de prestation : 01.01.2010 au 31.12.2010\n"
+            . "Lausanne, le 14.09.2026\n";
+
+        self::assertSame('2026-09-14', Regles::dateEnTete($texte));
+        self::assertFalse(Regles::datePlausible('1976-09-14'));
+        self::assertFalse(Regles::datePlausible('2080-01-01'));
+    }
+
     public function testTitreVientDeLaPieceJamaisDuLot(): void
     {
         self::assertSame(

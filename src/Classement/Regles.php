@@ -7,8 +7,8 @@ namespace Ged\Classement;
 /**
  * Règles de lecture du texte d'une pièce, sans IA et sans base.
  *
- * - L'émetteur est le premier titre lisible du document (gras markdown, titre, ou première ligne) ;
- *   le propriétaire de la GED n'est jamais l'émetteur : c'est le destinataire.
+ * - L'émetteur est un nom institutionnel lisible dans la pièce (en-tête ou pied de page), jamais une
+ *   ligne OCR isolée ; le propriétaire de la GED n'est jamais l'émetteur : c'est le destinataire.
  * - Un type n'est reconnu que sur un indice fort dans le texte (typeCorrobore de GEDv1) ; « Autre »
  *   n'est jamais proposé, et aucun indice ne donne jamais « Autre ».
  * - Le pliage des accents est fait par une table maison : l'iconv local translittère « É » en « E' ».
@@ -111,8 +111,9 @@ final class Regles
     }
 
     /**
-     * L'émetteur lu dans l'en-tête : premier titre (gras, titre markdown) puis première ligne pleine.
-     * Les lignes d'adresse (chiffres) et le propriétaire de la GED sont écartés ; sinon null.
+     * L'émetteur lu dans les zones textuelles de la pièce : titre puis lignes. Une ligne ne suffit pas
+     * si elle n'a pas les marqueurs d'une organisation. Cela laisse remonter un logo/pied de page lu par
+     * OCR, mais écarte « KKK KK », « Adresse principal: » et les phrases de corps.
      */
     public static function lireEmetteur(string $texte, string $proprietaire = ''): ?string
     {
@@ -135,7 +136,7 @@ final class Regles
             }
         }
         $lignes = preg_split('/\R/', $extrait) ?: [];
-        foreach (array_slice($lignes, 0, 15) as $ligne) {
+        foreach ($lignes as $ligne) {
             $candidat = self::nettoyer($ligne);
             if (self::candidatEmetteur($candidat, $proprietaire)) {
                 return $candidat;
@@ -143,6 +144,17 @@ final class Regles
         }
 
         return null;
+    }
+
+    /** Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation. */
+    public static function emetteurIaCredible(string $texte, ?string $nom, string $proprietaire = ''): ?string
+    {
+        if ($nom === null) {
+            return null;
+        }
+        $candidat = self::nettoyer($nom);
+
+        return self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
     }
 
     /** Le nom se lit-il vraiment dans le texte ? (le modèle recopie volontiers un nom de sa liste) */
@@ -169,22 +181,44 @@ final class Regles
     }
 
     /**
-     * La date de l'en-tête : première date suisse JJ.MM.AAAA du haut de la pièce (« <lieu>, le 22.01.2026 »,
-     * « Date : 05.01.2026 »). Une date citée dans le corps (« depuis le 1er janvier 2024 ») n'a pas ce
-     * format et ne piège pas ; un numéro IDE (CHE-100.000.002) non plus.
+     * La date d'émission : une date suisse située dans une ligne qui la qualifie (« <lieu>, le … »,
+     * « Date d'émission : … », « Date : … »). Une date de naissance, une période de prestation ou un
+     * millésime historique ne peuvent donc pas gagner parce qu'ils apparaissent plus haut dans l'OCR.
      */
     public static function dateEnTete(string $texte): ?string
     {
-        $entete = mb_substr($texte, 0, 1000);
-        if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $entete, $m) !== 1) {
-            return null;
-        }
-        [$jour, $mois, $annee] = [(int) $m[1], (int) $m[2], (int) $m[3]];
-        if (!checkdate($mois, $jour, $annee)) {
-            return null;
+        $lignes = preg_split('/\R/', mb_substr($texte, 0, 2000)) ?: [];
+        foreach ($lignes as $ligne) {
+            $normalise = self::normaliser($ligne);
+            if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $ligne, $m) !== 1
+                || preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien)\b/', $normalise) === 1) {
+                continue;
+            }
+            $estDateDocument = preg_match('/\bdate\b|,\s*le\s+\d{1,2}\.|\ble\s+\d{1,2}\./iu', $ligne) === 1;
+            if (!$estDateDocument) {
+                continue;
+            }
+            $date = sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
+            if (checkdate((int) $m[2], (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
+                return $date;
+            }
         }
 
-        return sprintf('%04d-%02d-%02d', $annee, $mois, $jour);
+        return null;
+    }
+
+    /** Date documentaire acceptable : du 01.01.1990 à aujourd'hui + 31 jours inclus. */
+    public static function datePlausible(?string $date): bool
+    {
+        if ($date === null || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $m) !== 1
+            || !checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+            return false;
+        }
+        $valeur = new \DateTimeImmutable($date);
+        $minimum = new \DateTimeImmutable('1990-01-01');
+        $maximum = (new \DateTimeImmutable('today'))->modify('+31 days');
+
+        return $valeur >= $minimum && $valeur <= $maximum;
     }
 
     /**
@@ -243,6 +277,13 @@ final class Regles
         if ($n === '') {
             return false;
         }
+        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page)\b/', $n) === 1) {
+            return false;
+        }
+        $mots = preg_split('/\s+/', $n) ?: [];
+        if (count(array_filter($mots, static fn (string $mot): bool => strlen($mot) === 1)) >= 2) {
+            return false;
+        }
         foreach (['concerne', 'objet', 'page ', 'date ', 'recu', 'facture', 'note de credit', 'total', 'article'] as $motif) {
             if (str_starts_with($n, $motif)) {
                 return false;
@@ -250,6 +291,12 @@ final class Regles
         }
         $p = self::normaliser($proprietaire);
         if ($p !== '' && (str_contains($n, $p) || str_contains($p, $n))) {
+            return false;
+        }
+
+        // Une raison sociale, une autorité ou une marque institutionnelle : sans ce signal, une ligne OCR
+        // quelconque ne doit pas devenir un dossier du fonds.
+        if (preg_match('/\b(sa|sarl|sagl|ag|gmbh|association|fondation|commune|canton|service|office|banque|assurance|energie|energies|poste)\b/', $n) !== 1) {
             return false;
         }
 

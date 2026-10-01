@@ -15,7 +15,8 @@ use Throwable;
  *
  *   1. une habitude de l'émetteur (N choix humains identiques), OU BIEN
  *   2. une IA à confiance ≥ seuil (CLASSEMENT_SEUIL, défaut 0,8) qui propose le même type qu'un indice
- *      du texte — l'IA ET le mot-clé, jamais l'un sans l'autre.
+ *      du texte — l'IA ET la règle/habitude, jamais l'un sans l'autre ;
+ *   3. dans tous les cas, émetteur et date d'émission crédibles, corroborés par l'IA et la pièce.
  *
  * Un mot-clé seul reste une suggestion ; l'IA absente, en panne ou en désaccord laisse la pièce dans
  * « À traiter » avec sa raison (« IA indisponible », « IA et texte divergent : IA=…, texte=… »).
@@ -43,7 +44,7 @@ final class ClasseurGed implements Classeur
     {
         $proprietaire = $this->config->get('GED_ORGANISATION', '');
         $indiceRegle = Regles::typeEtPreuve($texte);
-        $emetteur = Regles::lireEmetteur($texte, $proprietaire);
+        $emetteurRegle = Regles::lireEmetteur($texte, $proprietaire);
 
         // L'IA n'est consultée que si elle est disponible ; toute panne se replie sans bloquer le rangement.
         $reponseIa = null;
@@ -54,9 +55,12 @@ final class ClasseurGed implements Classeur
                 $reponseIa = null;
             }
         }
-        if ($emetteur === null && $reponseIa?->emetteur !== null && Regles::nomSeLit($texte, $reponseIa->emetteur)) {
-            $emetteur = $reponseIa->emetteur;
-        }
+        $emetteurIa = Regles::emetteurIaCredible($texte, $reponseIa?->emetteur, $proprietaire);
+        // L'IA est prioritaire pour la proposition : elle peut reconnaître le logo ou le pied de page. Une
+        // validation seule demandera ensuite que ce nom soit corroboré par la lecture ou une habitude.
+        $emetteur = $emetteurIa ?? $emetteurRegle;
+        $emetteurCorrobore = $emetteurIa !== null && $emetteurRegle !== null
+            && Regles::memeType($emetteurIa, $emetteurRegle);
 
         $habitude = $emetteur !== null ? $this->habitudes->habitude($emetteur, Habitudes::CHAMP_TYPE) : null;
 
@@ -66,6 +70,7 @@ final class ClasseurGed implements Classeur
         $confiance = 0.0;
         $valide = false;
         $raison = null;
+        $typeCorrobore = false;
 
         if ($habitude !== null && !Regles::estAutre((string) $habitude['valeur'])) {
             // L'habitude vaut preuve à elle seule : trois choix humains identiques ont déjà tranché.
@@ -74,6 +79,8 @@ final class ClasseurGed implements Classeur
             $preuve = 'habitude : ' . $habitude['choix'] . ' choix identiques pour cet émetteur';
             $confiance = (float) $habitude['confiance'];
             $valide = true;
+            $typeCorrobore = $reponseIa !== null && $reponseIa->confiance >= $this->seuil
+                && Regles::memeType($reponseIa->type, $type);
         } else {
             $typeTexte = $indiceRegle['type'] ?? null;
             $typeIa = $reponseIa?->type;
@@ -89,6 +96,7 @@ final class ClasseurGed implements Classeur
                 $preuve = 'ia + ' . $indiceRegle['preuve'];
                 $confiance = max($indiceRegle['confiance'], $reponseIa->confiance);
                 $valide = true;
+                $typeCorrobore = true;
             } elseif ($indiceRegle !== null) {
                 // Un mot-clé seul reste une suggestion : jamais de rangement automatique.
                 $type = $typeTexte;
@@ -114,6 +122,13 @@ final class ClasseurGed implements Classeur
             }
         }
 
+        // Une date ne vient jamais seule de l'IA ni des dates de corps que l'OCR extrait sans contexte.
+        // Le parseur de facture est une seconde source structurée, après l'en-tête documentaire.
+        $dateRegle = Regles::dateEnTete($texte) ?? $this->dateFacture($analyse);
+        $dateIa = Regles::datePlausible($reponseIa?->date) ? $reponseIa?->date : null;
+        $dateDocument = $dateRegle;
+        $dateCorroboree = $dateRegle !== null && $dateIa !== null && $dateRegle === $dateIa;
+
         if ($valide && Regles::estAutre($type)) {
             $valide = false;
             $raison = '« Autre » n’est jamais validé seul';
@@ -126,14 +141,23 @@ final class ClasseurGed implements Classeur
             $valide = false;
             $raison = 'confiance insuffisante (' . round($confiance, 2) . ' < ' . $this->seuil . ')';
         }
+        if ($valide && !$typeCorrobore) {
+            $valide = false;
+            $raison = 'type à contrôler : IA et règle/habitude ne concordent pas';
+        }
+        if ($valide && !$emetteurCorrobore) {
+            $valide = false;
+            $raison = $emetteur === null ? 'émetteur non crédible : aucune source lisible corroborée'
+                : 'émetteur à contrôler : IA et texte ne concordent pas';
+        }
+        if ($valide && !$dateCorroboree) {
+            $valide = false;
+            $raison = $dateDocument === null ? 'date du document non crédible ou absente'
+                : 'date à contrôler : IA et document ne concordent pas';
+        }
         if (!$valide && $raison === null) {
             $raison = 'à contrôler';
         }
-
-        // La date vient de l'en-tête de la pièce, puis de la facture, puis de l'IA, et seulement en
-        // dernier recours d'une date citée dans le corps. Le titre vient de la pièce, jamais du lot.
-        $dateDocument = Regles::dateEnTete($texte) ?? $this->dateFacture($analyse) ?? $reponseIa?->date
-            ?? $this->dateCorps($analyse);
 
         return [
             'titre' => $reponseIa?->titre ?? Regles::titrePiece($texte, $type, $emetteur, $dateDocument),
@@ -158,26 +182,8 @@ final class ClasseurGed implements Classeur
             return null;
         }
         foreach (['invoice_date', 'due_date'] as $cle) {
-            if (is_string($facture[$cle] ?? null) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $facture[$cle], $m) === 1
-                && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+            if (is_string($facture[$cle] ?? null) && Regles::datePlausible($facture[$cle])) {
                 return $facture[$cle];
-            }
-        }
-
-        return null;
-    }
-
-    /** Date citée dans le corps de la pièce — dernier recours. @param array<string, mixed> $analyse */
-    private function dateCorps(array $analyse): ?string
-    {
-        $dates = $analyse['origine']['cles']['dates'] ?? [];
-        if (!is_array($dates)) {
-            return null;
-        }
-        foreach ($dates as $d) {
-            if (is_string($d) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $d, $m) === 1
-                && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
-                return $d;
             }
         }
 

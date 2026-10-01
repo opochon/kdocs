@@ -90,12 +90,12 @@ final class HabitudesTest extends TestCase
 
     public function testLeTriAutomatiqueNEnseigneJamais(): void
     {
-        $texte = "Garage du Banc d'Essai Sarl\nRue des Pistons 4\n2300 La Chaux-de-Fonds\nFACTURE N° GB-4410\nTotal TTC CHF 441.00\n";
+        $texte = "Garage du Banc d'Essai Sarl\nRue des Pistons 4\n2300 La Chaux-de-Fonds\nFACTURE N° GB-4410\nDate : 05.01.2026\nTotal TTC CHF 441.00\n";
         // Le tri automatique s'appuie sur l'IA ; même quand elle valide, elle n'enseigne rien.
         $ia = new class implements ClientIa {
             public function classer(string $texte, string $nomFichier, array $typesConnus): ?ReponseIa
             {
-                return new ReponseIa('Facture', "Garage du Banc d'Essai Sarl", null, null, null, [], 0.95, 'simule');
+                return new ReponseIa('Facture', "Garage du Banc d'Essai Sarl", null, '2026-01-05', null, [], 0.95, 'simule');
             }
 
             public function aExpire(): bool
@@ -126,7 +126,7 @@ final class HabitudesTest extends TestCase
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM classement_choix')->fetchColumn());
     }
 
-    public function testLHabitudePrimeSurLaRegleEtValideSeule(): void
+    public function testLHabitudeSansIaResteAControler(): void
     {
         $h = new Habitudes($this->pdo);
         foreach (['doc-1', 'doc-2', 'doc-3'] as $ref) {
@@ -139,6 +139,6 @@ final class HabitudesTest extends TestCase
 
         self::assertSame('Vehicule', $r['type']);
         self::assertSame('habitude', $r['source']);
-        self::assertTrue($r['valide']);
+        self::assertFalse($r['valide'], 'une habitude seule ne contourne pas le contrôle émetteur/date par l’IA');
     }
 }

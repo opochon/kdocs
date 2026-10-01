@@ -114,3 +114,32 @@ Au prochain lot Classement :
 - ne supprime pas `TYPES_CONNUS` d'un coup : garde-la comme repli si `.ged/nomenclature.json` est absent
   (fonds d'avant V2-04), puis fais-la disparaître quand tu branches tes tests dessus.
 Coût : zéro table (plafond de 20 tenu), la lecture est mise en cache par requête (`Ged\Socle\Registre`).
+
+## Journal R2-classement — 01-10-2026
+
+**Fait**
+- Corpus déterministe `tests/corpus/classement-bruite/` : quatre pièces OCR synthétiques, en-têtes illisibles,
+  logos/pieds de page, dates de naissance et périodes historiques. Aucune donnée personnelle ou document réel.
+- `Regles` n'accepte un émetteur que s'il ressemble à une organisation lisible ; une ligne OCR ou une phrase de
+  corps ne peut plus devenir un dossier. Une proposition IA doit aussi être lue dans la pièce.
+- Date documentaire : seulement une ligne qualifiée (« Date », « <lieu>, le … »), dans [1990 ; aujourd'hui + 31 j].
+  Les dates de naissance, périodes et anciennes dates du corps sont écartées.
+- Validation seule : type, émetteur et date doivent tous être corroborés IA + texte/règle ou habitude ; sinon la
+  proposition est conservée en `a_controler` avec une raison explicite. Sans émetteur crédible, la métadonnée reste
+  vide : le dépôt ne peut donc créer aucun sous-dossier depuis un bruit OCR.
+- L'invite Infomaniak demande explicitement l'émetteur et la date d'émission, en excluant bruit OCR, naissance et
+  périodes de prestation.
+- Banc étendu : `php tools/banc/mesurer-classement.php classement-bruite [--ia-simule]` ; l'IA simulée est figée dans
+  la vérité du corpus, donc aucune requête réseau ni donnée réelle.
+
+**Preuves**
+- Oracle rouge avant correction : `1976-09-14` était retenue au lieu de `2026-09-14` pour la première pièce bruitée.
+- `php vendor/bin/phpunit tests/php/Classement` : 58 tests, 230 assertions, vert.
+- `classement-bruite` sans IA : 4/4 pièces, 0 validé seul, 0 émetteur faux/poubelle, 0 date fausse/hors fenêtre.
+- `classement-bruite --ia-simule` : 4/4 pièces, 3 validées seules, 0 validé faux, 0 émetteur poubelle, 0 date hors
+  fenêtre ; la pièce sans source crédible reste à contrôler.
+- `courrier-100p` sans IA : 53/53 pièces, 0 validé seul, 0 type/émetteur/date faux, porte franchie.
+- `courrier-100p` avec IA Infomaniak réelle : 53/53 pièces, 51 validées seules (96,2 %), 0 validé faux,
+  0 émetteur/date faux, porte franchie en 185,31 s ; deux pièces restent à contrôler (panne IA, Document RH).
+
+ETAT: fini

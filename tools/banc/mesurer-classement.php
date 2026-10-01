@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Porte V2-03 : mesure le classement d'un lot du corpus contre sa vérité, À TRAVERS le classeur de la GED
  * (Ged\Classement\ClasseurGed), c'est-à-dire exactement ce que la tâche d'ingestion exécute.
  *
- *   php tools/banc/mesurer-classement.php [courrier-100p] [--ia]
+ *   php tools/banc/mesurer-classement.php [courrier-100p|classement-bruite] [--ia|--ia-simule]
  *
  * Par défaut, aucune IA n'est appelée (client inerte) : on mesure le socle déterministe règles + habitudes.
  * --ia branche Infomaniak (réseau) et confirme/porte la source des types corroborés.
@@ -20,9 +20,11 @@ declare(strict_types=1);
 
 use Ged\Base;
 use Ged\Classement\ClasseurGed;
+use Ged\Classement\ClientIa;
 use Ged\Classement\ClientIaNul;
 use Ged\Classement\Habitudes;
 use Ged\Classement\InfomaniakClient;
+use Ged\Classement\ReponseIa;
 use Ged\Classement\Regles;
 use Ged\Classement\Schema;
 use Ged\Config;
@@ -35,18 +37,50 @@ putenv('DB_NAME=gedv2_test');
 
 $lot = 'courrier-100p';
 $avecIa = false;
+$iaSimule = false;
 foreach (array_slice($argv, 1) as $a) {
-    $a === '--ia' ? $avecIa = true : $lot = $a;
+    if ($a === '--ia') {
+        $avecIa = true;
+    } elseif ($a === '--ia-simule') {
+        $iaSimule = true;
+    } else {
+        $lot = $a;
+    }
 }
 
-$oracle = json_decode((string) file_get_contents("$racine/tests/oracles/classement/$lot.json"), true, 512, JSON_THROW_ON_ERROR);
-$fPieces = $racine . '/' . $oracle['pieces'];
-if (!is_file($fPieces)) {
-    fwrite(STDERR, "Pièces absentes : lancez d'abord `php tools/banc/mesurer-decoupe.php $lot`\n");
-    exit(2);
+$reponsesSimulees = [];
+if ($lot === 'classement-bruite') {
+    // Porte R2 autonome : OCR synthétique, réponses IA figées dans la vérité, aucun réseau ni document réel.
+    $corpus = json_decode((string) file_get_contents("$racine/tests/corpus/classement-bruite/verite.json"), true, 512, JSON_THROW_ON_ERROR);
+    $pieces = [];
+    $elements = [];
+    foreach ($corpus['pieces'] as $i => $piece) {
+        $page = $i + 1;
+        $pieces[] = ['pages' => [$page], 'texte' => $piece['texte'], 'analyse' => [], 'fichier' => $piece['id'] . '.pdf'];
+        $elements[] = ['pages' => [$page], 'type' => $piece['type'], 'correspondant' => $piece['emetteur'],
+            'date' => $piece['date'] !== null ? date('d.m.Y', strtotime($piece['date'])) : null];
+        $ia = $piece['ia'];
+        $reponsesSimulees[$piece['id']] = new ReponseIa($ia['type'], $ia['emetteur'], null, $ia['date'], null, [],
+            (float) $ia['confiance'], 'simule-bruite');
+    }
+    $verite = ['elements' => $elements];
+    $oracle = ['lot' => $lot, 'seuils' => ['valides_type_faux' => 0, 'emetteurs_faux' => 0,
+        'autre_valides_seuls' => 0, 'dates_fausses' => 0, 'titres_invalides' => 0, 'taux_valide_seul_min' => 0.0],
+        'attendu' => ['documents' => count($pieces), 'valides_seuls_sans_ia' => 0, 'valides_seuls_avec_ia_min' => 3]];
+    if ($avecIa && !$iaSimule) {
+        fwrite(STDERR, "Le corpus classement-bruite est déterministe : utilisez --ia-simule, jamais une IA réelle.\n");
+        exit(2);
+    }
+} else {
+    $oracle = json_decode((string) file_get_contents("$racine/tests/oracles/classement/$lot.json"), true, 512, JSON_THROW_ON_ERROR);
+    $fPieces = $racine . '/' . $oracle['pieces'];
+    if (!is_file($fPieces)) {
+        fwrite(STDERR, "Pièces absentes : lancez d'abord `php tools/banc/mesurer-decoupe.php $lot`\n");
+        exit(2);
+    }
+    $pieces = json_decode((string) file_get_contents($fPieces), true, 512, JSON_THROW_ON_ERROR);
+    $verite = json_decode((string) file_get_contents($racine . '/' . $oracle['verite']), true, 512, JSON_THROW_ON_ERROR);
 }
-$pieces = json_decode((string) file_get_contents($fPieces), true, 512, JSON_THROW_ON_ERROR);
-$verite = json_decode((string) file_get_contents($racine . '/' . $oracle['verite']), true, 512, JSON_THROW_ON_ERROR);
 $seuils = $oracle['seuils'];
 
 $parPage = [];
@@ -61,8 +95,22 @@ $pdo = Base::pdo($config);
 // Base de TEST : on repart d'une mémoire d'apprentissage vide pour que la mesure soit reproductible.
 $pdo->exec('DROP TABLE IF EXISTS classement_choix');
 Schema::installer($pdo);
-$classeur = new ClasseurGed($config, $pdo, $avecIa ? new InfomaniakClient($config) : new ClientIaNul(), new Habitudes($pdo));
-$mode = $avecIa ? 'avec-ia' : 'sans-ia';
+$client = $avecIa ? new InfomaniakClient($config) : new ClientIaNul();
+if ($iaSimule) {
+    $client = new class($reponsesSimulees) implements ClientIa {
+        /** @param array<string, ReponseIa> $reponses */
+        public function __construct(private readonly array $reponses) {}
+        public function classer(string $texte, string $nomFichier, array $typesConnus): ?ReponseIa
+        {
+            return $this->reponses[pathinfo($nomFichier, PATHINFO_FILENAME)] ?? null;
+        }
+        public function aExpire(): bool { return false; }
+        public function disponible(): bool { return true; }
+        public function modele(): string { return 'simule-bruite'; }
+    };
+}
+$classeur = new ClasseurGed($config, $pdo, $client, new Habitudes($pdo));
+$mode = $iaSimule ? 'avec-ia-simule' : ($avecIa ? 'avec-ia' : 'sans-ia');
 
 $t0 = microtime(true);
 $mes = ['documents' => 0, 'valides' => 0, 'valides_type_faux' => 0, 'types_faux' => 0,
@@ -106,14 +154,15 @@ foreach ($pieces as $piece) {
 $duree = round(microtime(true) - $t0, 2);
 $taux = $mes['documents'] > 0 ? round($mes['valides'] / $mes['documents'], 4) : 0.0;
 $attendu = $oracle['attendu'];
-$validesAttendus = $avecIa ? (int) $attendu['valides_seuls_avec_ia_min'] : (int) $attendu['valides_seuls_sans_ia'];
+$modeAvecIa = $avecIa || $iaSimule;
+$validesAttendus = $modeAvecIa ? (int) $attendu['valides_seuls_avec_ia_min'] : (int) $attendu['valides_seuls_sans_ia'];
 $franchie = $mes['documents'] === (int) $attendu['documents']
     && $mes['valides_type_faux'] <= (int) $seuils['valides_type_faux']
     && $mes['emetteurs_faux'] <= (int) $seuils['emetteurs_faux']
     && $mes['autre_valides_seuls'] <= (int) $seuils['autre_valides_seuls']
     && $mes['dates_fausses'] <= (int) $seuils['dates_fausses']
     && $mes['titres_invalides'] <= (int) $seuils['titres_invalides']
-    && ($avecIa
+    && ($modeAvecIa
         ? ($taux >= (float) $seuils['taux_valide_seul_min'] && $mes['valides'] >= $validesAttendus)
         : ($mes['valides'] <= $validesAttendus));
 

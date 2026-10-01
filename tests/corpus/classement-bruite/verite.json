@@ -1,0 +1,43 @@
+{
+  "_role": "Corpus R2-classement : OCR synthétique bruité, sans donnée personnelle ni document réel. Les raisons sociales sont des organisations suisses génériques autorisées.",
+  "lot": "classement-bruite",
+  "regle": "Une proposition IA ne suffit à valider que si l'émetteur et la date sont aussi crédibles et corroborés par le texte.",
+  "pieces": [
+    {
+      "id": "assurance-pied-page",
+      "type": "Facture",
+      "emetteur": "CSS Assurance",
+      "date": "2026-09-14",
+      "valide": true,
+      "ia": {"type": "Facture", "emetteur": "CSS Assurance", "date": "2026-09-14", "confiance": 0.99},
+      "texte": "Post CHAG\nPs TC iar ee SES a — ad Dee ieee\n\nDate de naissance : 14.09.1976\nPériode de prestation : 01.01.2024 au 31.12.2024\n\nFACTURE N° CSS-2026-0914\nDate d'émission : 14.09.2026\nMontant CHF 184.20\n\nCSS Assurance\nCase postale, 6000 Exemple"
+    },
+    {
+      "id": "banque-logo",
+      "type": "Courrier",
+      "emetteur": "Banque Cantonale Vaudoise",
+      "date": "2026-09-18",
+      "valide": true,
+      "ia": {"type": "Courrier", "emetteur": "Banque Cantonale Vaudoise", "date": "2026-09-18", "confiance": 0.98},
+      "texte": "KKK KK\nR Al F Ë E S Ë N Garanties — Transfert de propriété\n\nNé le : 03.04.1943\nAncienne opération : 22.05.2002\n\nLausanne, le 18.09.2026\nConcerne : avis relatif à votre compte\n\nBanque Cantonale Vaudoise\nwww.bcv.ch"
+    },
+    {
+      "id": "service-automobiles-logo",
+      "type": "Courrier",
+      "emetteur": "Service des automobiles et de la navigation",
+      "date": "2026-09-22",
+      "valide": true,
+      "ia": {"type": "Courrier", "emetteur": "Service des automobiles et de la navigation", "date": "2026-09-22", "confiance": 0.97},
+      "texte": "Adresse principal:\nPe a\n\nDate de naissance 08.08.2010\nDossier archivé en 2002\n\nDate : 22.09.2026\nConcerne : renouvellement administratif\n\nService des automobiles et de la navigation\nRépublique et canton de Test"
+    },
+    {
+      "id": "sans-source-credible",
+      "type": "Facture",
+      "emetteur": null,
+      "date": null,
+      "valide": false,
+      "ia": {"type": "Facture", "emetteur": null, "date": "1976-09-14", "confiance": 0.99},
+      "texte": "La Banque se réserve le droit de prélever des frais de rappel.\nPe a\n\nDate de naissance : 14.09.1976\nPériode de prestation : 01.01.2010 au 31.12.2010\n\nFACTURE N° BR-001\nMontant CHF 12.00"
+    }
+  ]
+}

@@ -61,6 +61,8 @@ final class InfomaniakClientTest extends TestCase
         $envoye = json_decode($appels[0]['corps'], true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('google/gemma-4-31B-it', $envoye['model']);
         self::assertStringContainsString('Facture', (string) $envoye['messages'][1]['content']);
+        self::assertStringContainsString("date D'ÉMISSION", (string) $envoye['messages'][1]['content']);
+        self::assertStringContainsString('lignes OCR illisibles', (string) $envoye['messages'][1]['content']);
     }
 
     public function testUneSeuleRepriseApresExpiration(): void

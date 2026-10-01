@@ -11,8 +11,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Le classeur ne valide seul que sur une PREUVE corroborée (règle de GEDv1, `typeCorrobore`) :
- * habitude de l'émetteur, OU (IA ≥ seuil ET indice du même type dans le texte). Un mot-clé seul
- * reste une suggestion ; l'IA qui diverge, se tait ou tombe en panne laisse la pièce à contrôler.
+ * IA ≥ seuil ET indice du même type dans le texte ou habitude. L'émetteur et la date doivent aussi
+ * être corroborés : un mot-clé seul, une IA qui diverge, se tait ou tombe en panne reste à contrôler.
  * « Autre » n'est jamais validé seul ; l'émetteur non lu reste vide.
  */
 final class ClasseurGedTest extends TestCase
@@ -68,7 +68,7 @@ final class ClasseurGedTest extends TestCase
 
     public function testUneIaQuiCorroboreLeTexteValideSeul(): void
     {
-        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
+        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nDate : 05.01.2026\nTotal TTC CHF 700.38\n";
         $ia = new ClientIaSimule(new ReponseIa('Facture', 'Papeterie des Sapins Fictive SA', 'Facture PS-2026-101',
             '2026-01-05', 700.38, [], 0.95, 'simule'));
 
@@ -163,8 +163,9 @@ final class ClasseurGedTest extends TestCase
         $r = $this->classeur($ia)->proposer($texte, [], 'f.pdf');
 
         self::assertSame('Facture', $r['type']);
-        self::assertTrue($r['valide']);
+        self::assertFalse($r['valide'], 'type juste sans émetteur crédible : à contrôler');
         self::assertNull($r['emetteur'], 'pas d’émetteur inventé');
+        self::assertStringContainsString('émetteur', (string) $r['raison']);
     }
 
     public function testDocumentRhSansProprietaireNEstPasValide(): void
@@ -182,9 +183,9 @@ final class ClasseurGedTest extends TestCase
     public function testDocumentRhAvecProprietaireValideAvecIa(): void
     {
         $texte = "Commune de Modeleville\nHotel de Ville\n2999 Modeleville\nKarbonic Banc de test\n"
-            . "Concerne : Attestation de travail - collaborateur fictif Jean Exemple\n";
+            . "Date : 05.01.2026\nConcerne : Attestation de travail - collaborateur fictif Jean Exemple\n";
         $ia = new ClientIaSimule(new ReponseIa('Document RH', 'Commune de Modeleville', null,
-            null, null, [], 0.95, 'simule'));
+            '2026-01-05', null, [], 0.95, 'simule'));
 
         putenv('GED_ORGANISATION=Karbonic Banc de test');
         try {
@@ -213,20 +214,23 @@ final class ClasseurGedTest extends TestCase
 
     // ---- L'habitude vaut preuve à elle seule (jugement V2-03) --------------------------------
 
-    public function testUneHabitudeValideSeuleSansIa(): void
+    public function testUneHabitudeCorroboreeParIaValideSeule(): void
     {
         $h = new Habitudes($this->pdo);
         foreach (['doc-1', 'doc-2', 'doc-3'] as $ref) {
             $h->retenirChoix('Papeterie des Sapins Fictive SA', Habitudes::CHAMP_TYPE, 'Contrat', $ref);
         }
 
-        // 4e pièce du même émetteur : le mot-clé dit Facture, l'habitude dit Contrat — l'habitude prime.
-        $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
-        $r = $this->classeur()->proposer($texte, [], 'facture.pdf');
+        // 4e pièce du même émetteur : l'habitude et l'IA disent Contrat, le texte est ambigu et l'humain
+        // a déjà enseigné cette série. Émetteur et date restent, eux aussi, corroborés.
+        $texte = self::ENTETE . "Date : 05.01.2026\nConcerne : contrat-cadre annuel\n";
+        $ia = new ClientIaSimule(new ReponseIa('Contrat', 'Papeterie des Sapins Fictive SA', null,
+            '2026-01-05', null, [], 0.95, 'simule'));
+        $r = $this->classeur($ia)->proposer($texte, [], 'contrat.pdf');
 
         self::assertSame('Contrat', $r['type']);
         self::assertSame('habitude', $r['source']);
-        self::assertTrue($r['valide'], 'trois choix humains identiques valident la 4e pièce');
+        self::assertTrue($r['valide'], 'l’habitude corroborée par l’IA valide la 4e pièce');
     }
 }
 
