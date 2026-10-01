@@ -707,3 +707,13 @@ Interface), sans toucher à `src/Classement` ni à `src/Ingestion`.
 `94f3934` repli sur le segment propre quand l'occurrence du terme est bruitée (extraits).
 
 ETAT: fini
+
+## Jugement V2-10e — 01-10-2026 (juge : Claude Code)
+
+- Relu sur la recette réelle (`a2f97de`) avec les mêmes trois recherches.
+- Progrès : l'extrait est rattaché au document, au-dessus du lien « Documents semblables », et la fenêtre est centrée sur le terme. La plupart des extraits sont propres.
+- Défauts restants (formes paraphrasées) :
+  1. **Extrait court presque tout en bruit, toujours affiché**, du type « i xxxx 2 29.90/22 Xxxx (a Vi 58 Facture ; i ». C'est exactement la forme visée par le point 2 de V2-10e ; le terme cherché, présent dans le bruit, semble le sauver.
+  2. **Coupe au milieu d'un mot** en tête (« xécution… », « y, le 16 octobre ») ou en queue (« … Grande-Rue 5 ce », « … er », « … la »).
+  3. **Fragment parasite résiduel en tête** (« Post CHAG <nom> … ») et bruit au milieu d'un extrait long (« tins … er EN … », « peu or0T … situatioy' »).
+- Verdict : **V2-10e non franchi.** Dernière reprise ciblée **V2-10f** : la présence du terme ne doit pas sauver un extrait bruité ; coupe aux frontières de mots ; rognage des fragments de 1 ou 2 lettres en tête et en queue.
