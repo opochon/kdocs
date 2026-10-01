@@ -9,8 +9,9 @@ use Ged\Config;
 use PDO;
 
 /**
- * Adaptateur de l'écran /workflows : règle et circuit au même endroit, essai à blanc sur un vrai document
- * du fonds, journal des transitions. Si le schéma n'est pas posé, l'écran le dit — jamais une erreur muette.
+ * Adaptateur de l'écran /workflows : la LISTE des circuits et des règles, et l'ÉDITEUR graphique repris
+ * du designer de GEDv1. L'essai à blanc vit dans l'éditeur, sur un vrai document du fonds, et n'écrit rien.
+ * Si le schéma n'est pas posé, l'écran le dit — jamais une erreur muette.
  */
 final class Ecran
 {
@@ -38,11 +39,14 @@ final class Ecran
     }
 
     /**
+     * Données de la LISTE : circuits (avec leurs règles) et règles orphelines, gabarits, journal.
+     *
      * @param array<string, mixed> $parametres query string de /workflows
      * @return array<string, mixed>
      */
     public function donnees(array $parametres): array
     {
+        unset($parametres);   // l'écran de liste ne lit plus la query string (l'essai vit dans l'éditeur)
         $installe = true;
         $regles = $circuits = $journal = $gabarits = [];
         try {
@@ -55,10 +59,13 @@ final class Ecran
         }
 
         $fonds = Fonds::depuis($this->config, $this->pdo);
-        $documents = array_map(static fn (array $f): array => [
-            'id' => $f['id'], 'titre' => $f['titre'], 'type' => $f['type'], 'emetteur' => $f['emetteur'],
-            'montant' => $f['montant'], 'date' => $f['date'],
-        ], $fonds->toutes());
+        $documents = $this->documents($fonds);
+
+        // Les circuits portent le nom de leurs règles (le gabarit ou le circuit_id les rattache).
+        $editeur = new Editeur($this->pdo);
+        foreach ($circuits as $i => $circuit) {
+            $circuits[$i]['regles'] = $installe ? $editeur->reglesAssociees($circuit) : [];
+        }
 
         return [
             'installe' => $installe,
@@ -67,58 +74,114 @@ final class Ecran
             'gabarits' => $gabarits,
             'documents' => $documents,
             'journal' => array_map(fn (array $e): array => $this->entreeJournal($e), $journal),
-            'essai' => $this->essai($parametres, $fonds, $installe),
             'declencheurs' => self::DECLENCHEURS,
-            'champs_condition' => Conditions::CHAMPS,
-            'operateurs' => Conditions::OPERATEURS,
-            'etats_cibles' => $this->etatsCibles($circuits),
+            'a_porter' => Catalogue::aPorter(),
         ];
     }
 
     /**
-     * L'essai à blanc demandé par la query string (`?essai=<id>&declencheur=<...>`) : pure lecture.
+     * Données de l'ÉDITEUR d'un circuit : graphe, catalogue, documents d'essai, essai à blanc éventuel.
      *
-     * @param array<string, mixed> $parametres
-     * @return array<string, mixed>|null
+     * @param array<string, mixed> $parametres query string de l'éditeur (?essai=…&déclencheur=…)
+     * @return array<string, mixed>|null null si le circuit n'existe pas
      */
-    private function essai(array $parametres, Fonds $fonds, bool $installe): ?array
+    public function editeur(int $circuitId, array $parametres): ?array
     {
-        if (!$installe || !isset($parametres['essai']) || $this->pdo === null) {
+        $circuit = (new Circuits($this->pdo))->parId($circuitId);
+        if ($circuit === null) {
             return null;
         }
-        $fiche = $fonds->parId((int) $parametres['essai']);
+
+        $regles = (new Editeur($this->pdo))->reglesAssociees($circuit);
+        $graphe = AdaptateurGraphe::versGraphe($circuit, $regles);
+        $essai = $this->essaiEditeur($parametres, $graphe, $regles);
+        $fonds = Fonds::depuis($this->config, $this->pdo);
+
+        $donneesJs = [
+            'meta' => ['circuit_id' => $circuitId, 'nom' => $circuit['nom'], 'gabarit' => $circuit['gabarit'], 'actif' => $circuit['actif']],
+            'graphe' => $graphe,
+            'catalogue' => Catalogue::tout(),
+            'champs_posables' => Moteur::CHAMPS_POSABLES,
+            'declencheurs' => self::DECLENCHEURS,
+            'essai' => $essai,
+            'urls' => ['enregistrer' => '/workflows/circuits/' . $circuitId, 'essai' => '/workflows/essai', 'liste' => '/workflows'],
+        ];
+
+        return [
+            'circuit' => ['id' => $circuitId, 'nom' => $circuit['nom'], 'gabarit' => $circuit['gabarit'],
+                'actif' => $circuit['actif'], 'regles' => count($regles)],
+            'graphe' => $graphe,
+            'catalogue' => Catalogue::tout(),
+            'documents' => $this->documents($fonds),
+            'declencheurs' => self::DECLENCHEURS,
+            'essai' => $essai,
+            'donnees_json' => self::jsonSur($donneesJs),
+        ];
+    }
+
+    /** Le catalogue seul, pour la route JSON (aucun nœud que le moteur n'exécute). @return array<string, mixed> */
+    public function catalogue(): array
+    {
+        return ['catalogue' => Catalogue::tout(), 'a_porter' => Catalogue::aPorter(),
+            'champs_posables' => Moteur::CHAMPS_POSABLES, 'declencheurs' => self::DECLENCHEURS];
+    }
+
+    /**
+     * L'essai à blanc demandé par l'URL (`?essai=<id>&declencheur=<...>`) : un `Moteur` SANS dépôt, donc
+     * aucune écriture possible, et le chemin suivi dans le graphe pour le surligner.
+     *
+     * @param array<string, mixed> $parametres
+     * @param array<string, mixed> $graphe
+     * @param list<array<string, mixed>> $regles
+     * @return array<string, mixed>|null
+     */
+    private function essaiEditeur(array $parametres, array $graphe, array $regles): ?array
+    {
+        if ($this->pdo === null || !isset($parametres['essai'])) {
+            return null;
+        }
+        $fiche = Fonds::depuis($this->config, $this->pdo)->parId((int) $parametres['essai']);
         if ($fiche === null) {
             return null;
         }
         $declencheur = (string) ($parametres['declencheur'] ?? 'document_depose');
 
         // Moteur sans dépôt : l'essai ne peut rien écrire, même par accident.
-        $resultat = (new Moteur($this->pdo, null, $this->horloge))->essayer($declencheur, $fiche, true);
+        $plan = (new Moteur($this->pdo, null, $this->horloge))->essayer($declencheur, $fiche, true);
+        $chemin = [];
+        try {
+            $chemin = Editeur::chemin($graphe, $plan, array_map(static fn (array $r): int => (int) $r['id'], $regles));
+        } catch (ErreurWorkflow) {
+            $chemin = [];
+        }
 
         return [
             'document' => ['id' => $fiche['id'], 'titre' => $fiche['titre']],
             'declencheur' => $declencheur,
-            'regles' => $resultat['regles'],
-            'etapes' => array_map(fn (array $e): array => $this->etapeLisible($e), $resultat['etapes']),
-            'erreurs' => $resultat['erreurs'],
+            'regles' => $plan['regles'],
+            'etapes' => array_map(fn (array $e): array => $this->etapeLisible($e), $plan['etapes']),
+            'erreurs' => $plan['erreurs'],
+            'chemin' => $chemin,
+            'zero_ecriture' => true,
         ];
     }
 
-    /** @param list<array<string, mixed>> $circuits @return list<string> */
-    private function etatsCibles(array $circuits): array
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function documents(Fonds $fonds): array
     {
-        $cibles = [];
-        foreach ($circuits as $circuit) {
-            foreach ($circuit['transitions'] as $transition) {
-                $vers = (string) ($transition['vers'] ?? '');
-                if ($vers !== '' && !in_array($vers, $cibles, true)) {
-                    $cibles[] = $vers;
-                }
-            }
-        }
-        sort($cibles);
+        return array_map(static fn (array $f): array => [
+            'id' => $f['id'], 'titre' => $f['titre'], 'type' => $f['type'], 'emetteur' => $f['emetteur'],
+            'montant' => $f['montant'], 'date' => $f['date'],
+        ], $fonds->toutes());
+    }
 
-        return $cibles;
+    /** JSON sûr à encastrer dans une balise script (les chevrons et guillemets sont échappés). */
+    private static function jsonSur(array $donnees): string
+    {
+        return (string) json_encode($donnees,
+            JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     }
 
     /** @param array<string, mixed> $entree @return array<string, mixed> */

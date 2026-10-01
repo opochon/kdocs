@@ -140,9 +140,8 @@ final class Ecrans
         }
 
         return $this->vue->rendre($rep, 'ecrans/workflows.twig', $this->commun('workflows') + [
-            'workflows' => Maquette::workflows(), 'installe' => false, 'regles' => [], 'circuits' => [], 'gabarits' => [],
-            'documents' => [], 'journal' => [], 'essai' => null, 'declencheurs' => [], 'champs_condition' => [],
-            'operateurs' => [], 'etats_cibles' => [], 'csrf' => '',
+            'installe' => false, 'regles' => [], 'circuits' => [], 'gabarits' => [],
+            'documents' => [], 'journal' => [], 'declencheurs' => [], 'a_porter' => [], 'csrf' => '',
         ]);
     }
 
