@@ -25,7 +25,14 @@ $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
 
 use Ged\Base;
+use Ged\Classement\ClasseurGed;
+use Ged\Classement\ClientIaNul;
 use Ged\Config;
+use Ged\Ingestion\Decoupeur;
+use Ged\Ingestion\Entree;
+use Ged\Ingestion\Pilote;
+use Ged\Ingestion\Source;
+use Ged\Ingestion\Travaux;
 use Ged\Jonctions\Jetons;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Nomenclature;
@@ -126,6 +133,74 @@ try {
     $idContrat = $deposer(['titre' => 'Contrat oracle vue', 'type' => 'Contrat', 'emetteur' => 'Bailleur Oracle',
         'date' => '2026-02-02', 'statut' => 'valide', 'source' => 'dossier']);
 
+    // Un document ingéré par le VRAI Pilote (chaîne d'ingestion complète : Travaux → classement réel →
+    // DepotFichiers). Le moteur de découpe externe (ClearMyDocs) vit dans un autre dépôt : le test fournit
+    // le découpeur à sa place, mais l'orchestration, le classement et le rangement sont ceux de production.
+    // Le PDF fait 13 pages : c'est lui qui doit être RENDU par la visionneuse des trois écrans.
+    $zone = $config->chemin('INGESTION_TRAVAIL', 'var/ingestion');
+    $jeton = bin2hex(random_bytes(4));
+    $emetteurPilote = 'Papeterie Fictive ' . $jeton . ' SA';   // unique : aucune habitude d'un passage précédent
+    $contenuPilote = sys_get_temp_dir() . '/gedv2-ecrans-pilote-' . $jeton . '.pdf';
+    ecrirePdf(array_map(static fn (int $n): string => 'LOT FICTIF ' . $jeton . ' — page ' . $n . ' sur 13', range(1, 13)), $contenuPilote);
+
+    $source = new class ($contenuPilote) implements Source {
+        private bool $fait = false;
+
+        public function __construct(private readonly string $fichier)
+        {
+        }
+
+        public function relever(): array
+        {
+            if ($this->fait) {
+                return [];
+            }
+            $this->fait = true;
+
+            return [new Entree($this->fichier, 'dossier', 'lot-oracle-13p.pdf')];
+        }
+    };
+
+    $decoupeur = new class ($emetteurPilote) implements Decoupeur {
+        public function __construct(private readonly string $emetteur)
+        {
+        }
+
+        public function decouper(string $fichier, string $sortie): array
+        {
+            if (!is_dir($sortie) && !mkdir($sortie, 0775, true) && !is_dir($sortie)) {
+                throw new RuntimeException("moteur simulé : impossible de créer $sortie");
+            }
+            $piece = $sortie . '/piece-13p.pdf';
+            ecrirePdf(array_map(
+                fn (int $n): string => 'FACTURE FICTIVE ' . $this->emetteur . ' — page ' . $n . ' sur 13',
+                range(1, 13),
+            ), $piece);
+
+            return [[
+                'fichier' => $piece,
+                'pages' => range(1, 13),   // une seule pièce de 13 pages (origine.pages = « 1-13 »)
+                'texte' => '**' . $this->emetteur . "**\nFacture N° F-ORACLE-13P\nDate : 05.01.2026\nTotal fictif : CHF 101.00",
+                'analyse' => ['origine' => null],
+            ]];
+        }
+    };
+
+    $pilote = new Pilote(new Travaux($pdo), [$source], $decoupeur, $depot,
+        new ClasseurGed($config, $pdo, new ClientIaNul()), $zone, $config);
+    $pilote->tic(20);   // reçoit le lot
+    $pilote->tic(20);   // découpe la pièce puis la range par le dépôt réel
+
+    $idPilote = (int) $pdo->query('SELECT id FROM documents WHERE meta LIKE '
+        . $pdo->quote('%' . $jeton . '%') . ' ORDER BY id DESC LIMIT 1')->fetchColumn();
+    if ($idPilote === 0) {
+        throw new RuntimeException('ingestion Pilote : le document attendu n’a pas été rangé');
+    }
+    // Le fonds de l'oracle est un dossier dédié : on y range la pièce pour que la remise à neuf suivante
+    // la balaie (le dossier fait foi, la ligne d'index suit).
+    $depot->mettreAJour($idPilote, ['dossier' => 'oracle-ecrans-reels', 'id' => $idPilote], 'oracle');
+    @unlink($contenuPilote);
+
     // Deux VRAIES vues du fonds (registre .ged/vues.json), jamais des liens figés.
     $vues = new Vues($config);
     $idVueFactures = $vues->enregistrer('Factures à payer', ['type' => 'Facture'], 'oracle');
@@ -159,7 +234,9 @@ try {
         'compte' => $identifiant,
         'mot_de_passe' => $motDePasse,
         'fonds' => $fonds,
-        'ids' => ['sans_proposition' => $idSans, 'avec_proposition' => $idAvec, 'facture' => $idFacture, 'contrat' => $idContrat],
+        'ids' => ['sans_proposition' => $idSans, 'avec_proposition' => $idAvec, 'facture' => $idFacture, 'contrat' => $idContrat,
+            'pilote' => $idPilote],
+        'pages_pilote' => 13,
         'vues' => ['factures' => $idVueFactures, 'contrats' => $idVueContrats],
         'compteur' => $compteur,
         'modele' => $config->get('INFOMANIAK_AI_MODEL_CLASSIFY', 'google/gemma-4-31B-it'),
@@ -187,4 +264,52 @@ function supprimerDossier(string $chemin): void
         $f->isDir() ? rmdir($f->getPathname()) : unlink($f->getPathname());
     }
     rmdir($chemin);
+}
+
+/**
+ * Écrit un PDF minimal SYNTHÉTIQUE de N pages (texte latin, aucune police embarquée), pour que la
+ * visionneuse ait un vrai fichier à rendre — même technique que le corpus d'aperçu.
+ *
+ * @param list<string> $pagesTextes
+ */
+function ecrirePdf(array $pagesTextes, string $fichier): void
+{
+    $objets = [];
+    $kids = [];
+    $numero = 3;
+    foreach ($pagesTextes as $i => $texte) {
+        $page = $numero++;
+        $contenu = $numero++;
+        $kids[] = "$page 0 R";
+        $flux = 'BT /F1 20 Tf 60 780 Td (' . pdfEchappe($texte) . ") Tj ET\n"
+            . "1 w 60 740 m 535 740 l S\n"
+            . 'BT /F1 11 Tf 60 715 Td (' . pdfEchappe('Document fictif - page ' . ($i + 1) . ' sur ' . count($pagesTextes)) . ") Tj ET\n";
+        $objets[$contenu] = "<< /Length " . strlen($flux) . " >>\nstream\n" . $flux . "endstream";
+        $objets[$page] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+            . "/Resources << /Font << /F1 9 0 R >> >> /Contents $contenu 0 R >>";
+    }
+    $objets[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    $objets[2] = '<< /Type /Pages /Kids [' . implode(' ', $kids) . '] /Count ' . count($pagesTextes) . ' >>';
+    $objets[9] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    ksort($objets);
+
+    $sortie = "%PDF-1.4\n";
+    $offsets = [];
+    foreach ($objets as $n => $corps) {
+        $offsets[$n] = strlen($sortie);
+        $sortie .= "$n 0 obj\n$corps\nendobj\n";
+    }
+    $xref = strlen($sortie);
+    $max = max(array_keys($objets));
+    $sortie .= "xref\n0 " . ($max + 1) . "\n0000000000 65535 f \n";
+    for ($n = 1; $n <= $max; $n++) {
+        $sortie .= isset($offsets[$n]) ? sprintf("%010d 00000 n \n", $offsets[$n]) : "0000000000 65535 f \n";
+    }
+    $sortie .= "trailer\n<< /Size " . ($max + 1) . " /Root 1 0 R >>\nstartxref\n$xref\n%%EOF\n";
+    file_put_contents($fichier, $sortie);
+}
+
+function pdfEchappe(string $texte): string
+{
+    return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $texte);
 }

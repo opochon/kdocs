@@ -35,7 +35,8 @@ type Preparation = {
   compte: string;
   mot_de_passe: string;
   fonds: string;
-  ids: { sans_proposition: number; avec_proposition: number; facture: number; contrat: number };
+  ids: { sans_proposition: number; avec_proposition: number; facture: number; contrat: number; pilote: number };
+  pages_pilote: number;
   vues: { factures: number; contrats: number };
   compteur: number;
   modele: string;
@@ -87,6 +88,34 @@ async function pageConnectee(browser: Browser): Promise<{ page: Page; fermer: ()
   await expect(page).toHaveURL(/\/a-traiter$/);
 
   return { page, fermer: () => contexte.close() };
+}
+
+/**
+ * Le rendu n'est PROUVÉ que par un canvas réellement dessiné : pdf.js marque `data-rendu="1"` une fois la
+ * page peinte, mais un canvas vide porterait la même marque. On exige de l'encre (des pixels non blancs) :
+ * c'est ce contrôle qui manquait quand les parcours « passaient » sans qu'aucun aperçu ne s'affiche.
+ */
+async function attendrePremierePage(page: Page, testid: string): Promise<void> {
+  const canvas = page.locator(`[data-testid="${testid}"][data-rendu="1"]`);
+  await canvas.waitFor({ state: 'visible', timeout: 8_000 });
+  const encre = await canvas.evaluate((c: HTMLCanvasElement) => {
+    const contexte = c.getContext('2d');
+    if (!contexte || c.width === 0 || c.height === 0) return -1;
+    const donnees = contexte.getImageData(0, 0, c.width, c.height).data;
+    let pixels = 0;
+    for (let i = 0; i < donnees.length; i += 4) {
+      if (donnees[i + 3] > 0 && (donnees[i] < 240 || donnees[i + 1] < 240 || donnees[i + 2] < 240)) pixels++;
+    }
+    return pixels;
+  });
+  expect(encre, `la première page de « ${testid} » est dessinée (pixels d’encre)`).toBeGreaterThan(0);
+}
+
+/** Ce qu'un écran doit avoir demandé pour que l'aperçu soit réellement chargé. */
+function verifierRequetesVisionneuse(requetes: string[], idDocument: number): void {
+  expect(requetes.some((u) => u.includes('/assets/js/visionneuse.js')), 'visionneuse.js demandé').toBe(true);
+  expect(requetes.some((u) => u.includes('/assets/vendor/pdfjs/pdf.min.js')), 'pdf.js demandé').toBe(true);
+  expect(requetes.some((u) => u.includes(`/documents/${idDocument}/apercu/fichier`)), 'le PDF du document demandé').toBe(true);
 }
 
 test.describe.configure({ mode: 'serial', timeout: 90_000 });
@@ -226,9 +255,76 @@ test('Accords : « 1 page », « 2 documents », jamais « 1 pages »', async ({
     await page.goto(`/a-traiter?doc=${prep.ids.avec_proposition}`);
     await expect(page.getByTestId('apercu-pages')).toHaveText('3 pages');
 
+    // Un vrai scan de 13 pages ingéré par le Pilote : « 13 pages », jamais « 1 pages ».
+    await page.goto(`/a-traiter?doc=${prep.ids.pilote}`);
+    await expect(page.getByTestId('apercu-pages')).toHaveText(`${prep.pages_pilote} pages`);
+
     const corps = await page.locator('body').innerText();
     expect(corps).not.toMatch(/\b1 pages\b/);
     expect(corps).not.toMatch(/\b1 documents\b/);
+  } finally {
+    await fermer();
+  }
+});
+
+test('À traiter : la visionneuse charge le PDF ingéré par le Pilote et rend la première page', async ({ browser }) => {
+  const { page, fermer } = await pageConnectee(browser);
+  try {
+    const requetes: string[] = [];
+    page.on('request', (r) => requetes.push(r.url()));
+
+    const debut = Date.now();
+    await page.goto(`/a-traiter?doc=${prep.ids.pilote}`);
+    await expect(page.getByTestId('ecran-a-traiter')).toBeVisible();
+    await attendrePremierePage(page, 'visionneuse-canvas-1');
+    const ms = Date.now() - debut;
+
+    verifierRequetesVisionneuse(requetes, prep.ids.pilote);
+    expect(ms, `première page rendue en ${ms} ms (< 2 000)`).toBeLessThan(2000);
+    await expect(page.getByTestId('apercu-pages')).toHaveText(`${prep.pages_pilote} pages`);
+    await expect(page.getByTestId('visionneuse-page')).toHaveText(`page 1 / ${prep.pages_pilote}`);
+  } finally {
+    await fermer();
+  }
+});
+
+test('Bibliothèque : la visionneuse charge le même PDF ingéré et rend la première page', async ({ browser }) => {
+  const { page, fermer } = await pageConnectee(browser);
+  try {
+    const requetes: string[] = [];
+    page.on('request', (r) => requetes.push(r.url()));
+
+    const debut = Date.now();
+    // La base de test est partagée avec les bancs de charge (10 000 documents) : la vue « Factures à
+    // payer » borne la liste à ce que l'écran doit afficher, sans changer ce qu'on prouve (l'aperçu).
+    await page.goto(`/bibliotheque?vue=${prep.vues.factures}&doc=${prep.ids.pilote}`);
+    await expect(page.getByTestId('ecran-bibliotheque')).toBeVisible();
+    await attendrePremierePage(page, 'visionneuse-canvas-1');
+    const ms = Date.now() - debut;
+
+    verifierRequetesVisionneuse(requetes, prep.ids.pilote);
+    expect(ms, `première page rendue en ${ms} ms (< 2 000)`).toBeLessThan(2000);
+    await expect(page.getByTestId('visionneuse-page')).toHaveText(`page 1 / ${prep.pages_pilote}`);
+  } finally {
+    await fermer();
+  }
+});
+
+test('Fiche document : la visionneuse charge le même PDF ingéré et rend la première page', async ({ browser }) => {
+  const { page, fermer } = await pageConnectee(browser);
+  try {
+    const requetes: string[] = [];
+    page.on('request', (r) => requetes.push(r.url()));
+
+    const debut = Date.now();
+    await page.goto(`/documents/${prep.ids.pilote}`);
+    await expect(page.getByTestId('ecran-document')).toBeVisible();
+    await attendrePremierePage(page, 'visionneuse-canvas-1');
+    const ms = Date.now() - debut;
+
+    verifierRequetesVisionneuse(requetes, prep.ids.pilote);
+    expect(ms, `première page rendue en ${ms} ms (< 2 000)`).toBeLessThan(2000);
+    await expect(page.getByTestId('visionneuse-page')).toHaveText(`page 1 / ${prep.pages_pilote}`);
   } finally {
     await fermer();
   }
