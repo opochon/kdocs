@@ -104,7 +104,7 @@ final class ReglesTest extends TestCase
             'recu' => ["RECU\nRecu la somme de CHF 74.55 en especes. Ticket R-2001.\n", 'Reçu', 'recu'],
             'contrat' => ["Concerne : Contrat de bail commercial - locaux Chemin de l'Essai 1\n", 'Contrat', 'contrat'],
             'police est un contrat' => ["Concerne : Police responsabilite civile entreprise n° RC-000123\n", 'Contrat', 'police'],
-            'decompte' => ["DÉCOMPTE de prestations 2026\n", 'Décompte', 'decompte'],
+            'decompte' => ["DÉCOMPTE de prestations 2026\n", 'Décompte', 'decompte de prestations'],
             'releve' => ["RELEVÉ de compte professionnel\n", 'Relevé', 'releve'],
             'attestation' => ["ATTESTATION fiscale annuelle\n", 'Attestation', 'attestation'],
             'police assurance' => ["POLICE D'ASSURANCE responsabilité civile\n", 'Police d’assurance', 'police d assurance'],
@@ -329,6 +329,19 @@ final class ReglesTest extends TestCase
             . "Assurances du Rivage AG\nCOMMUNICATION\nDate : 12.09.2026\n";
 
         self::assertSame('Assurances du Rivage SA', Regles::lireEmetteur($texte));
+    }
+
+    public function testUneVarianteOcrDuDestinataireConnuAvecPrefixeEstRefuseeCommeEmetteur(): void
+    {
+        $texte = "Situation de Atelier du Foyerx Synthétique SA\n"
+            . "ASSURANCES DU RIVAGE AG\nCOMMUNICATION\nDate : 12.09.2026\n";
+
+        self::assertNull(Regles::emetteurIaCredible(
+            $texte,
+            'Atelier du Foyerx Synthétique SA',
+            '',
+            ['Atelier du Foyer Synthétique SA'],
+        ));
     }
 
     /** @return array<string, array{string}> */

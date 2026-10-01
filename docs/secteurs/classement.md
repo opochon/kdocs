@@ -351,3 +351,18 @@ ETAT: fini
 - Verdict : **R2f non franchi.** Repris en **R2g** :
   - un **corpus de non-régression cumulatif**, reprenant en synthétique tous les cas relevés de R2c à R2f ;
   - un **invariant de découpe** : chaque page dans une seule pièce, vérifié après la découpe, jamais laissé au hasard du modèle.
+
+## Journal R2g — non-régression cumulative (02-10-2026)
+
+**Fait**
+- Ajout de `tests/corpus/classement-regression/verite.json`, corpus intégralement synthétique qui conserve les jugements R2c à R2f : décompte maladie, polices et prime, écritures judiciaires/mémoire, notices, convention/gage, courriers, factures énergie et vétérinaire, destinataire OCR, bruits d'émetteur, AG/SA, GmbH et titre hors bloc adresse.
+- `Regles` distingue les décomptes de prestations/pharmacie/participation des polices, et les notices ou mémoires des contrats cités. Les fragments « requiert du mari le dépôt de SA » et « Assurance / accessoires » restent vides.
+- AG et SA convergent vers SA ; GmbH reste GmbH. Les destinataires connus sont comparés après retrait de « Situation de », « Madame » et « Monsieur », avec une tolérance OCR de deux lettres.
+- Le banc accepte `classement-regression` et publie, comme pour le corpus réaliste, `types_faux`, `emetteurs_vides` et `emetteurs_faux` sur l'ensemble des propositions.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Classement tests/php/Ingestion` : 144 tests, 767 assertions, vert.
+- `php tools/banc/mesurer-classement.php classement-regression --ia-simule` : 20/20, 0 type faux, 0 émetteur faux, 0 validé faux ; porte franchie. Sans IA : 0 validation seule.
+- `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : 65/65, 0 type faux, 0 émetteur faux, 0 validé faux ; les compteurs publiés couvrent toutes les propositions.
+
+ETAT: fini

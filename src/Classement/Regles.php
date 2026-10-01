@@ -40,6 +40,10 @@ final class Regles
     private const INDICES_PRECIS = [
         'Facture' => ['facture veterinaire', 'facture vétérinaire'],
         'Contrat' => ['gage hypothecaire', 'gage hypothécaire', 'convention hypothecaire', 'convention hypothécaire'],
+        // Un mot « police » ou « contrat » cité dans une écriture ne transforme pas sa nature.
+        'Courrier' => ['notice technique', 'correction de notice', 'memoire d avocat', 'mémoire d avocat'],
+        'Décision' => ['ecritures judiciaires', 'écritures judiciaires'],
+        'Décompte' => ['decompte de prestations', 'décompte de prestations', 'pharmacie', 'participation'],
     ];
 
     private const INDICE_COURRIER = 'concerne';
@@ -166,14 +170,12 @@ final class Regles
     public static function lireEmetteur(string $texte, string $proprietaire = '', array $destinatairesConnus = []): ?string
     {
         $extrait = mb_substr($texte, 0, 2000);
-        $destinataires = array_map(static fn (string $nom): string => self::normaliser($nom), array_merge(
-            self::lireDestinataires($extrait), $destinatairesConnus,
-        ));
+        $destinataires = array_merge(self::lireDestinataires($extrait), $destinatairesConnus);
 
         if (preg_match_all('/\*\*(.+?)\*\*/s', $extrait, $m)) {
             foreach ($m[1] as $brut) {
                 $candidat = self::extraireOrganisation($brut);
-                if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
+                if (!self::estDestinataire($candidat, $destinataires) && self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
             }
@@ -181,7 +183,7 @@ final class Regles
         if (preg_match_all('/^#{1,6}\s+(.+)$/m', $extrait, $m)) {
             foreach ($m[1] as $brut) {
                 $candidat = self::extraireOrganisation($brut);
-                if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
+                if (!self::estDestinataire($candidat, $destinataires) && self::candidatEmetteur($candidat, $proprietaire)) {
                     return $candidat;
                 }
             }
@@ -189,7 +191,7 @@ final class Regles
         $lignes = preg_split('/\R/', $extrait) ?: [];
         foreach ($lignes as $ligne) {
             $candidat = self::extraireOrganisation($ligne);
-            if (!in_array(self::normaliser($candidat), $destinataires, true) && self::candidatEmetteur($candidat, $proprietaire)) {
+            if (!self::estDestinataire($candidat, $destinataires) && self::candidatEmetteur($candidat, $proprietaire)) {
                 return $candidat;
             }
         }
@@ -273,12 +275,39 @@ final class Regles
         }
         $candidat = self::canonicaliserEmetteur(self::nettoyer($nom));
 
-        $destinataires = array_map(static fn (string $destinataire): string => self::normaliser($destinataire), array_merge(
-            self::lireDestinataires($texte), $destinatairesConnus,
-        ));
+        $destinataires = array_merge(self::lireDestinataires($texte), $destinatairesConnus);
 
-        return !in_array(self::normaliser($candidat), $destinataires, true)
+        return !self::estDestinataire($candidat, $destinataires)
             && self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
+    }
+
+    /** Destinataire connu : OCR toléré à deux lettres, préfixes postaux sans valeur métier ignorés. */
+    private static function estDestinataire(string $candidat, array $destinataires): bool
+    {
+        $normalise = static function (string $nom): string {
+            $nom = preg_replace('/^\s*(?:(?:situation\s+de)|madame|monsieur|mme|m\.)\s+/ui', '', $nom) ?? $nom;
+
+            return self::normaliser($nom);
+        };
+        $candidat = $normalise($candidat);
+        if ($candidat === '') {
+            return false;
+        }
+        foreach ($destinataires as $destinataire) {
+            $destinataire = $normalise((string) $destinataire);
+            if ($destinataire === '') {
+                continue;
+            }
+            if ($candidat === $destinataire) {
+                return true;
+            }
+            // Deux substitutions OCR sur un nom d'entreprise suffisamment long ne créent pas un émetteur.
+            if (min(strlen($candidat), strlen($destinataire)) >= 8 && levenshtein($candidat, $destinataire) <= 2) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Le nom se lit-il vraiment dans le texte ? (le modèle recopie volontiers un nom de sa liste) */
@@ -318,13 +347,15 @@ final class Regles
     /**
      * Une forme juridique ne doit pas créer un deuxième dossier. En l'absence d'un premier choix
      * humain déjà mémorisé, la forme suisse francophone est le repli commun : AG/S.A. -> SA,
-     * GmbH/Sarl -> Sàrl. Le reste du nom et sa casse restent ceux lus dans la pièce.
+     * Sarl -> Sàrl. GmbH reste GmbH : rapprocher n'autorise jamais à traduire une forme juridique.
      */
     public static function canonicaliserEmetteur(string $nom): string
     {
         $nom = self::nettoyer($nom);
         $nom = preg_replace_callback('/\b(s\.?\s*a\.?|ag|sàrl|sarl|gmbh)\b/ui', static function (array $m): string {
-            return in_array(self::normaliser($m[1]), ['s a', 'sa', 'ag'], true) ? 'SA' : 'Sàrl';
+            $forme = self::normaliser($m[1]);
+
+            return in_array($forme, ['s a', 'sa', 'ag'], true) ? 'SA' : ($forme === 'gmbh' ? 'GmbH' : 'Sàrl');
         }, $nom) ?? $nom;
 
         return trim((string) preg_replace('/\s+/', ' ', $nom));
@@ -555,8 +586,12 @@ final class Regles
         if (preg_match('/\b(en|de|des|ces)\s+(assurance|assurances|banque|banques|service|services)\b/', $n) === 1) {
             return false;
         }
+        if (preg_match('/^(requier|requiert|memoire|notice)\b/', $n) === 1
+            || preg_match('/^assurance\s+(?:et|accessoires)\b/', $n) === 1) {
+            return false;
+        }
         $vocabulaireType = ['assurance', 'assurances', 'vehicule', 'vehicules', 'automobile', 'police', 'contrat',
-            'convention', 'facture', 'releve', 'attestation', 'communication', 'rappel'];
+            'convention', 'facture', 'releve', 'attestation', 'communication', 'rappel', 'accessoires'];
         if (array_filter($mots, static fn (string $mot): bool => !in_array($mot, $vocabulaireType, true)
             && !in_array($mot, self::MOTS_VIDES, true)) === []) {
             return false;

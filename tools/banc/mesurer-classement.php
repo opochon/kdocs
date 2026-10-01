@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Porte V2-03 : mesure le classement d'un lot du corpus contre sa vérité, À TRAVERS le classeur de la GED
  * (Ged\Classement\ClasseurGed), c'est-à-dire exactement ce que la tâche d'ingestion exécute.
  *
- *   php tools/banc/mesurer-classement.php [courrier-100p|classement-bruite] [--ia|--ia-simule]
+ *   php tools/banc/mesurer-classement.php [courrier-100p|classement-bruite|classement-regression] [--ia|--ia-simule]
  *
  * Par défaut, aucune IA n'est appelée (client inerte) : on mesure le socle déterministe règles + habitudes.
  * --ia branche Infomaniak (réseau) et confirme/porte la source des types corroborés.
@@ -49,9 +49,9 @@ foreach (array_slice($argv, 1) as $a) {
 }
 
 $reponsesSimulees = [];
-if ($lot === 'classement-bruite') {
-    // Porte R2 autonome : OCR synthétique, réponses IA figées dans la vérité, aucun réseau ni document réel.
-    $corpus = json_decode((string) file_get_contents("$racine/tests/corpus/classement-bruite/verite.json"), true, 512, JSON_THROW_ON_ERROR);
+if (in_array($lot, ['classement-bruite', 'classement-regression'], true)) {
+    // Portes R2 autonomes : OCR synthétique et réponses IA figées dans la vérité, sans réseau ni donnée réelle.
+    $corpus = json_decode((string) file_get_contents("$racine/tests/corpus/$lot/verite.json"), true, 512, JSON_THROW_ON_ERROR);
     $pieces = [];
     $elements = [];
     foreach ($corpus['pieces'] as $i => $piece) {
@@ -61,7 +61,7 @@ if ($lot === 'classement-bruite') {
             'date' => $piece['date'] !== null ? date('d.m.Y', strtotime($piece['date'])) : null];
         $ia = $piece['ia'];
         $reponsesSimulees[$piece['id']] = new ReponseIa($ia['type'], $ia['emetteur'], null, $ia['date'], null, [],
-            (float) $ia['confiance'], 'simule-bruite');
+            (float) $ia['confiance'], 'simule-' . $lot);
     }
     $verite = ['elements' => $elements];
     $oracle = ['lot' => $lot, 'seuils' => ['valides_type_faux' => 0, 'valides_faux' => 0,
@@ -70,7 +70,7 @@ if ($lot === 'classement-bruite') {
         'titres_invalides' => 0, 'taux_valide_seul_min' => 0.0],
         'attendu' => ['documents' => count($pieces), 'valides_seuls_sans_ia' => 0, 'valides_seuls_avec_ia_min' => 3]];
     if ($avecIa && !$iaSimule) {
-        fwrite(STDERR, "Le corpus classement-bruite est déterministe : utilisez --ia-simule, jamais une IA réelle.\n");
+        fwrite(STDERR, "Le corpus $lot est déterministe : utilisez --ia-simule, jamais une IA réelle.\n");
         exit(2);
     }
 } else {
