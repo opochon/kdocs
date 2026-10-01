@@ -33,13 +33,25 @@ final class OracleClassementBruiteTest extends TestCase
                 (float) $ia['confiance'], 'simule-bruite');
         }
         $classeur = $this->classeur(new ClientIaParPiece($reponses));
+        self::assertGreaterThanOrEqual(40, count($corpus['pieces']), 'corpus de scans réalistes suffisamment large');
+        $types = array_values(array_unique(array_map(static fn (array $p): string => (string) $p['type'], $corpus['pieces'])));
+        self::assertGreaterThanOrEqual(12, count($types), 'les douze types sont représentés');
+
         $validesFaux = 0;
         $emetteursPoubelle = 0;
         $datesHorsFenetre = 0;
+        $emetteursVides = 0;
+        $factures = 0;
+        $datesVidesFactures = 0;
 
         foreach ($corpus['pieces'] as $piece) {
             $r = $classeur->proposer($piece['texte'], [], $piece['id'] . '.pdf');
-            self::assertSame($piece['emetteur'], $r['emetteur'], $piece['id'] . ' : émetteur crédible ou vide');
+            self::assertTrue(Regles::memeType((string) $piece['type'], (string) $r['type']), $piece['id'] . ' : type proposé');
+            self::assertSame($piece['emetteur'] === null, $r['emetteur'] === null, $piece['id'] . ' : émetteur crédible ou vide');
+            if ($piece['emetteur'] !== null) {
+                self::assertTrue(Regles::memeType((string) $piece['emetteur'], (string) $r['emetteur']),
+                    $piece['id'] . ' : émetteur canonique');
+            }
             self::assertSame($piece['date'], $r['date'], $piece['id'] . ' : date d’émission crédible ou vide');
             self::assertSame($piece['valide'], $r['valide'], $piece['id'] . ' : statut attendu');
 
@@ -49,11 +61,16 @@ final class OracleClassementBruiteTest extends TestCase
             $emetteursPoubelle += (int) ($r['emetteur'] !== null && in_array($r['emetteur'],
                 ['Post CHAG', 'KKK KK', 'Adresse principal:', 'Pe a', 'La Banque se réserve le droit de prélever des frais de rappel.'], true));
             $datesHorsFenetre += (int) ($r['date'] !== null && !Regles::datePlausible($r['date']));
+            $emetteursVides += (int) ($r['emetteur'] === null);
+            $factures += (int) Regles::memeType($piece['type'], 'Facture');
+            $datesVidesFactures += (int) (Regles::memeType($piece['type'], 'Facture') && $r['date'] === null);
         }
 
         self::assertSame(0, $validesFaux, '0 validé faux');
         self::assertSame(0, $emetteursPoubelle, '0 émetteur poubelle');
         self::assertSame(0, $datesHorsFenetre, '0 date hors fenêtre');
+        self::assertLessThanOrEqual(0.15, $emetteursVides / count($corpus['pieces']), 'émetteurs vides ≤ 15 %');
+        self::assertLessThanOrEqual(0.15, $datesVidesFactures / $factures, 'dates vides des factures ≤ 15 %');
     }
 
     public function testCorpusBruiteSansIaNeValideAucunePieceSeule(): void
