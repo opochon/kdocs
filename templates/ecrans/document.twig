@@ -1,6 +1,7 @@
 {% extends 'layout.twig' %}
 {% import 'partiels/icones.twig' as ic %}
 {% import 'partiels/papier.twig' as papier %}
+{% import 'partiels/visionneuse.twig' as visionneuse %}
 {% block titre %}{{ doc.titre }}{% endblock %}
 {% block contenu %}
 <div class="page pleine" data-testid="ecran-document">
@@ -14,7 +15,14 @@
     </div>
   </div>
   <div class="volets fiche">
-    <section class="carte volet" aria-label="Aperçu"><div class="visionneuse" data-testid="apercu">{{ papier.page(doc.texte, 'apercu-page') }}</div></section>
+    <section class="carte volet" aria-label="Aperçu">
+      {% if doc.rendu is defined %}
+        {# Document du fonds : la MÊME visionneuse que la Bibliothèque et À traiter (macro du secteur Aperçu). #}
+        {{ visionneuse.moteur(doc.rendu, 'apercu') }}
+      {% else %}
+        <div class="visionneuse" data-testid="apercu">{{ papier.page(doc.texte, 'apercu-page') }}</div>
+      {% endif %}
+    </section>
     <section class="carte volet" aria-label="Fiche" data-onglets>
       <div class="onglets" role="tablist">
         {% for o in ['Métadonnées', 'Versions', 'Historique', 'Notes', 'Liens'] %}
@@ -24,8 +32,8 @@
       <div class="volet-corps">
         <div class="panneau" id="p-1" role="tabpanel">
           <dl class="meta" data-testid="panneau-metadonnees">
-            <dt>Type</dt><dd>{{ doc.type }}</dd><dt>Émetteur</dt><dd>{{ doc.emetteur }}</dd>
-            <dt>Date</dt><dd>{{ doc.date|date('d.m.Y') }}</dd>
+            <dt>Type</dt><dd>{{ doc.type ?: '—' }}</dd><dt>Émetteur</dt><dd>{{ doc.emetteur ?: '—' }}</dd>
+            <dt>Date</dt><dd>{{ doc.date ? doc.date|date('d.m.Y') : '—' }}</dd>
             <dt>Montant</dt><dd class="num" style="text-align:left">{{ doc.montant is null ? '—' : 'CHF ' ~ doc.montant|number_format(2, '.', '\'') }}</dd>
             <dt>Dossier</dt><dd class="mono">{{ doc.dossier }}/</dd><dt>Fichier</dt><dd class="mono">{{ doc.fichier }}</dd>
             <dt>Métadonnées</dt><dd class="mono">{{ doc.fichier }}.meta.json</dd>

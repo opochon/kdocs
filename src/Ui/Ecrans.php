@@ -114,7 +114,18 @@ final class Ecrans
 
     public function document(Requete $req, Reponse $rep, array $args): Reponse
     {
-        return $this->vue->rendre($rep, 'ecrans/document.twig', $this->commun('bibliotheque') + ['doc' => Maquette::document((int) $args['id'])]);
+        // Fiche branchée sur le FONDS réel quand l'identifiant y existe (le dossier fait foi) : mêmes
+        // classes et data-testid, seul l'aperçu passe de la page de papier à la vraie visionneuse. Un
+        // identifiant inconnu retombe sur la maquette : jamais un écran muet ni un 500.
+        $id = (int) ($args['id'] ?? 0);
+        try {
+            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id);
+        } catch (\Throwable) {
+            $reel = null;
+        }
+
+        return $this->vue->rendre($rep, 'ecrans/document.twig',
+            $this->commun('bibliotheque') + ['doc' => $reel ?? Maquette::document($id)]);
     }
 
     public function workflows(Requete $req, Reponse $rep): Reponse
