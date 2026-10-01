@@ -763,3 +763,13 @@ visibles.
 (`ExtraitsLisibles.php`) · `90e6cd0` préservation des termes composés (`ExtraitsLisibles.php`).
 
 ETAT: fini
+
+
+## Jugement V2-10f — 02-10-2026 (juge : Claude Code)
+
+- DeepCode a planté trois fois ce soir (« Model stream was idle for 60 seconds »), sans rien écrire ; le lot a été confié à Codex (commits `cf05104`, `bb6a3d8`, `90e6cd0`, journal `61d49be`, `467e78b`).
+- Relu sur la recette réelle (`c1fdab2`), trois recherches, environ 25 extraits :
+  - plus aucun extrait court fait de bruit ; les fragments parasites de tête (« PostC. », « Post CHAG ») ont disparu ;
+  - les extraits restants sont lisibles, fenêtrés et rattachés au bon document ;
+  - **résidus mineurs** : un mot tronqué en tête (« ivier Le 25/07/2022 … ») et quelques mots parasites isolés à l'intérieur d'extraits longs (« ike », « tins », « ZAR (SLA »). C'est du texte OCR réel, pas une erreur d'affichage.
+- Verdict : **V2-10f franchi**, avec réserve sur les résidus mineurs ; un nouveau tour coûterait plus qu'il ne rapporte. L'étape mobile V2-10 est close.
