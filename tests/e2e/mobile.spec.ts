@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /**
- * Oracle V2-10a — le mobile, étape 1.
+ * Oracle V2-10a / V2-10b — le mobile.
  *
  * Une seule base de gabarits et de CSS, adaptée par points de rupture (≤ 768 px, ≤ 480 px) : mêmes routes,
  * mêmes droits, même CSP. Le parcours tourne sur des appareils ÉMULÉS (iPhone 13 et Pixel 7), avec un
@@ -17,6 +17,16 @@ import path from 'node:path';
  *   3. dépôt par photo : l'écran Déposer envoie une image dans la MÊME chaîne d'ingestion, le retour dit
  *      « reçu, en cours de lecture », et la pièce arrive dans À traiter après le passage de la tâche ;
  *   4. navigation : barre latérale → onglets en bas ; les écrans d'ordinateur sont signalés.
+ *
+ * V2-10b — l'ergonomie demandée par la recette réelle :
+ *   - la PIÈCE d'abord : à l'ouverture d'À traiter, l'aperçu et « Valider » sont visibles SANS défilement,
+ *     le bilan est une ligne compacte et les cartes d'ordinateur ne s'affichent plus ;
+ *   - les filtres de Recherche sont repliés derrière « Filtres » et, ouverts, un champ par ligne sans
+ *     aucun recouvrement (contrôle des boîtes englobantes) ;
+ *   - aucun avis « écran conçu pour l'ordinateur » sur À traiter, Recherche et la fiche ;
+ *   - Déposer offre « Prendre une photo » et « Choisir des fichiers » en français, avec la liste des
+ *     fichiers choisis et leurs vignettes — jamais le libellé natif anglais ;
+ *   - le raccourci « Ctrl K » est masqué sous 768 px.
  *
  * Contrôle automatique sur chaque écran mobile : aucune largeur de page > largeur de l'écran, et toute
  * cible tactile de commande mesurable fait au moins 44 px.
@@ -145,6 +155,66 @@ async function attendreJs(page: Page): Promise<void> {
   await page.locator('html[data-ged-js="1"]').waitFor({ state: 'attached' });
 }
 
+/**
+ * L'élément est ENTIÈREMENT dans la fenêtre au chargement, sans défilement : c'est la promesse
+ * « la pièce et Valider d'abord, au pouce ». On exige aussi que la page n'ait pas défilé.
+ */
+async function verifierVisibleSansDefilement(page: Page, testids: string[]): Promise<void> {
+  const hauteur = await page.evaluate(() => window.innerHeight);
+  for (const testid of testids) {
+    const boite = await page.getByTestId(testid).boundingBox();
+    expect(boite, `« ${testid} » existe et a une boîte`).not.toBeNull();
+    if (!boite) continue;
+    expect(boite.y, `« ${testid} » commence dans l’écran (y = ${Math.round(boite.y)})`).toBeGreaterThanOrEqual(0);
+    expect(boite.y + boite.height, `« ${testid} » finit dans l’écran (bas = ${Math.round(boite.y + boite.height)} ≤ ${hauteur})`)
+      .toBeLessThanOrEqual(hauteur + 1);
+  }
+  expect(await page.evaluate(() => window.scrollY), 'aucun défilement au chargement').toBe(0);
+}
+
+/**
+ * Sur téléphone, aucun champ de filtre ne doit recouvrir un AUTRE élément (libellé, champ ou bouton
+ * du panneau) : contrôle des boîtes englobantes, paires parent/enfant exclues (un libellé contient son
+ * propre champ, c'est normal). Rend les collisions nommées.
+ */
+async function chevauchementsFiltres(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const cibles = [...document.querySelectorAll(
+      '.filtres .chip, .filtres [data-testid^="filtre-"], .filtres .btn',
+    )] as HTMLElement[];
+    const visibles = cibles.filter((element) => {
+      const r = element.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+    const collisions: string[] = [];
+    for (let i = 0; i < visibles.length; i++) {
+      for (let j = i + 1; j < visibles.length; j++) {
+        const a = visibles[i];
+        const b = visibles[j];
+        if (a.contains(b) || b.contains(a)) continue;
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        const recouvre = ra.left < rb.right - 0.5 && rb.left < ra.right - 0.5
+          && ra.top < rb.bottom - 0.5 && rb.top < ra.bottom - 0.5;
+        if (recouvre) collisions.push(`${a.dataset.testid || a.className} ∩ ${b.dataset.testid || b.className}`);
+      }
+    }
+    return collisions;
+  });
+}
+
+/**
+ * Déplie la file « À traiter ». Le pied de validation est FIXE au-dessus des onglets (V2-10b) : on amène
+ * d'abord la file au centre de l'écran, comme le ferait le pouce, pour que le clic ne tombe pas sur la barre.
+ */
+async function deplierFile(page: Page): Promise<void> {
+  const repli = page.getByTestId('file-repli');
+  await expect(repli).toBeVisible();
+  await expect(repli).toContainText('File');
+  await repli.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await repli.click();
+}
+
 async function connecter(page: Page): Promise<void> {
   await page.goto('/connexion');
   await page.getByTestId('identifiant-connexion').fill(prep.compte);
@@ -191,6 +261,18 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await expect(page.getByTestId('onglet-a-traiter')).toHaveAttribute('aria-current', 'page');
       await verifierMobile(page);
 
+      // 5) La barre du haut ne montre pas le raccourci « Ctrl K » sur téléphone (il n'a pas de sens
+      // sans clavier) : le badge est masqué sous 768 px, la recherche reste au doigt.
+      await expect(page.locator('.recherche-globale .kbd')).toBeHidden();
+
+      // 1) V2-10b — la PIÈCE d'abord : à l'ouverture, l'aperçu et « Valider » sont dans l'écran, sans
+      // défilement ; le bilan est une ligne compacte et les trois cartes d'ordinateur ne s'affichent plus.
+      await verifierVisibleSansDefilement(page, ['apercu', 'action-valider']);
+      await expect(page.getByTestId('bilan-ligne')).toBeVisible();
+      await expect(page.getByTestId('bilan-ligne')).toContainText('à contrôler');
+      await expect(page.getByTestId('bilan-auto')).toBeHidden();
+      await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
+
       // 1) Une pièce à la fois : l'aperçu est au-dessus, la proposition dessous, gros boutons.
       await expect(page.getByTestId('apercu')).toBeVisible();
       await expect(page.getByTestId('formulaire-validation')).toBeVisible();
@@ -200,10 +282,7 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
         'l’aperçu est au-dessus de la proposition').toBe(true);
 
       // La file est un compteur + une liste REPLIABLE : le compteur est visible, la liste s'ouvre au geste.
-      const repli = page.getByTestId('file-repli');
-      await expect(repli).toBeVisible();
-      await expect(repli).toContainText('File');
-      await repli.click();
+      await deplierFile(page);
       await expect(page.getByTestId(`file-item-${prep.id_pilote}`)).toBeVisible();
 
       // Validation au pouce : le type proposé par l'ingestion est pré-rempli, le gros bouton valide.
@@ -217,6 +296,15 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       indexerCible();
       await page.goto(`/recherche?q=${prep.jeton}`);
       await expect(page.getByTestId('recherche-globale-champ')).toBeVisible();
+
+      // V2-10b : les filtres sont repliés derrière « Filtres » ; ouverts, un champ par ligne, sans aucun
+      // recouvrement (boîtes englobantes) ; et l'avis « écran conçu pour l'ordinateur » ne s'affiche pas.
+      await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
+      const boutonFiltres = page.getByTestId('action-filtres');
+      if (await boutonFiltres.isVisible().catch(() => false)) await boutonFiltres.click();
+      await expect(page.locator('.filtres .chip').first()).toBeVisible();
+      expect(await chevauchementsFiltres(page), 'aucun filtre ne recouvre un autre élément').toEqual([]);
+
       const carte = page.getByTestId(`resultat-${prep.id_recherche}`);
       await expect(carte).toBeVisible();
       await expect(carte).toContainText(prep.titre_recherche);
@@ -226,17 +314,28 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await expect(page.getByTestId('ecran-document')).toContainText(prep.jeton);
       await expect(page.getByTestId('action-telecharger')).toBeVisible();
       await expect(page.getByTestId('panneau-metadonnees')).toBeVisible();
+      // La fiche fait partie du périmètre mobile : aucun avis d'ordinateur ne s'y affiche.
+      await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
       await verifierMobile(page);
 
       // 3) Dépôt par photo : appareil photo, plusieurs fichiers, retour nommé, puis la tâche.
       await page.getByTestId('onglet-deposer').click();
       await expect(page.getByTestId('ecran-deposer')).toBeVisible();
+      // V2-10b : boutons français explicites, aucun contrôle natif anglais visible (le champ reste le
+      // même, piloté par les boutons) ; la liste des fichiers choisis porte leurs vignettes.
+      await expect(page.getByTestId('action-photo')).toBeVisible();
+      await expect(page.getByTestId('action-photo')).toContainText('Prendre une photo');
+      await expect(page.getByTestId('action-fichiers')).toBeVisible();
+      await expect(page.getByTestId('action-fichiers')).toContainText('Choisir des fichiers');
+      await expect(page.getByTestId('champ-photo')).toBeHidden();
+      expect(await page.getByTestId('ecran-deposer').innerText(), 'aucun libellé anglais').not.toMatch(/choose files?|no file chosen/i);
       const champ = page.getByTestId('champ-photo');
       await expect(champ).toHaveAttribute('accept', /image\//);
       await expect(champ).toHaveAttribute('capture', 'environment');
       await expect(champ).toHaveAttribute('multiple', '');
       const nomPhoto = `photo-mobile-${prep.jeton}.png`;
       await champ.setInputFiles({ name: nomPhoto, mimeType: 'image/png', buffer: photoUnique(prep.jeton) });
+      await expect(page.getByTestId('liste-fichiers')).toContainText(nomPhoto);
       await page.getByTestId('action-envoyer').click();
       await expect(page.getByTestId('depot-retour')).toContainText('reçu');
       await expect(page.getByTestId('depot-retour')).toContainText('en cours de lecture');
@@ -248,7 +347,7 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await page.goto('/a-traiter');
       await attendreJs(page);
       await expect(page.getByTestId('onglets-bas')).toBeVisible();
-      await page.getByTestId('file-repli').click();
+      await deplierFile(page);
       await expect(page.getByTestId(`file-item-${range.document}`)).toBeVisible();
       await verifierMobile(page);
 
