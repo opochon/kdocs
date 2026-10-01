@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Tâches de fond, courtes et reprenables (planificateur Windows, cron d'hébergement mutualisé).
  *
- *   php tools/tache.php ingestion [--budget=20] [--tours=1]
+ *   php tools/tache.php ingestion [--budget=20] [--tours=1] [--limite=200]
  *   php tools/tache.php indexation [--limite=200]
  *
  * Un seul exécutant à la fois (verrou fichier non bloquant : un second appel sort aussitôt).
@@ -79,7 +79,7 @@ if (class_exists(\Ged\Socle\DepotFichiers::class)) {
     $alertes[] = 'dépôt absent (secteur Socle) : les pièces prêtes attendent';
 }
 
-$pilote = Fabrique::pilote($config, $pdo, $depot);
+$pilote = Fabrique::pilote($config, $pdo, $depot, Fabrique::classeur($config, $pdo));
 for ($i = 1; $i <= $tours; $i++) {
     $bilan = $pilote->tic($budget);
     $bilan['alertes'] = array_merge($alertes, $bilan['alertes']);
@@ -93,5 +93,18 @@ for ($i = 1; $i <= $tours; $i++) {
     if ($vides === 1) {
         sleep(1);   // le relevé suivant doit voir une date de modification inchangée
     }
+}
+// Une seule tâche planifiable rend les documents fraîchement rangés recherchables. L'index conserve
+// son lot court et reprenable : l'appel suivant complète ce que la limite n'aurait pas couvert.
+try {
+    \Ged\Recherche\Schema::installer($pdo);
+    $limite = max(1, (int) ($options['limite'] ?? 200));
+    $poses = \Ged\Recherche\IndexPleinTexte::depuis($config, $pdo)->synchroniser($limite);
+    echo json_encode(['tache' => 'ingestion-indexation', 'poses' => $poses, 'limite' => $limite], JSON_UNESCAPED_UNICODE), "\n";
+} catch (\Throwable $e) {
+    fwrite(STDERR, 'ingestion / indexation : ' . $e->getMessage() . "\n");
+    flock($verrou, LOCK_UN);
+    fclose($verrou);
+    exit(1);
 }
 flock($verrou, LOCK_UN);

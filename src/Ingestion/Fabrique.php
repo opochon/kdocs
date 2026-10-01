@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Ged\Ingestion;
 
 use Ged\Config;
+use Ged\Classement\ClasseurGed;
+use Ged\Classement\ClientIaNul;
+use Ged\Classement\InfomaniakClient;
 use Ged\Contrats\Classeur;
 use Ged\Contrats\Depot;
 use Ged\Ingestion\Imap\ConnexionDifferee;
@@ -60,9 +63,18 @@ final class Fabrique
             $config->get('CMD4_PYTHON', 'python'),
             $config->get('CMD4_PRODUIT'),
             (int) $config->get('CMD4_DELAI_S', '900'),
+            filter_var($config->get('CMD4_VISION_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN),
         );
 
-        return new Pilote(new Travaux($pdo), self::sources($config, $pdo), $decoupeur, $depot, $classeur, self::zoneTravail($config));
+        return new Pilote(new Travaux($pdo), self::sources($config, $pdo), $decoupeur, $depot, $classeur, self::zoneTravail($config), $config);
+    }
+
+    /** Le classement de production utilise Infomaniak seulement quand ses clés l'autorisent. */
+    public static function classeur(Config $config, PDO $pdo): Classeur
+    {
+        $ia = new InfomaniakClient($config);
+
+        return new ClasseurGed($config, $pdo, $ia->disponible() ? $ia : new ClientIaNul());
     }
 
     public static function zoneTravail(Config $config): string

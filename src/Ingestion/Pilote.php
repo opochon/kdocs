@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ged\Ingestion;
 
+use Ged\Config;
 use Ged\Contrats\Classeur;
 use Ged\Contrats\Depot;
 
@@ -22,6 +23,7 @@ final class Pilote
         private readonly ?Depot $depot,
         private readonly ?Classeur $classeur,
         private readonly string $zoneTravail,
+        private readonly ?Config $config = null,
     ) {
     }
 
@@ -138,6 +140,10 @@ final class Pilote
         }
         $id = $this->depot?->deposer((string) $piece['chemin'], $meta);
         $this->travaux->passer((int) $piece['id'], 'range', $id);
+        // Le dépôt a réussi : les workflows réagissent à la fiche canonique sans jamais bloquer l'ingestion.
+        if ($this->config !== null && $id !== null && class_exists(\Ged\Workflows\Ecouteur::class)) {
+            \Ged\Workflows\Ecouteur::prevenir($this->config, 'document_depose', $id, $meta);
+        }
         if ((int) $piece['parent_id'] > 0) {
             $this->travaux->clore((int) $piece['parent_id']);
         }

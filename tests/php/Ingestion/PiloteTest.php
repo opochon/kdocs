@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Ged\Tests\Ingestion;
 
 use Ged\Base;
+use Ged\Classement\ClasseurGed;
+use Ged\Classement\ClientIaNul;
 use Ged\Config;
 use Ged\Contrats\Depot;
 use Ged\Ingestion\Decoupeur;
+use Ged\Ingestion\Fabrique;
 use Ged\Ingestion\Pilote;
 use Ged\Ingestion\Schema;
 use Ged\Ingestion\SourceDossier;
@@ -30,6 +33,7 @@ final class PiloteTest extends TestCase
         $this->pdo = Base::pdo($config);
         $this->pdo->exec('DROP TABLE IF EXISTS ingestion_travaux, ingestion_messages');   // base de TEST uniquement
         Schema::installer($this->pdo);
+        \Ged\Classement\Schema::installer($this->pdo);
         $this->tmp = sys_get_temp_dir() . '/gedv2-ing-' . bin2hex(random_bytes(4));
         mkdir($this->tmp . '/entree', 0775, true);
         $this->depot = new DepotSimule();
@@ -76,6 +80,140 @@ final class PiloteTest extends TestCase
         self::assertSame('a_controler', $this->depot->deposes[0]['meta']['statut'], 'sans classeur, rien n’est validé seul');
         // Toutes ses pièces rangées : le lot n'est plus « en cours de lecture » (défaut trouvé par le banc de charge H-6).
         self::assertSame(0, (new Travaux($this->pdo))->bilan()['en_cours']);
+    }
+
+    public function testLaFabriqueBrancheLeClasseurEtLeReglageVision(): void
+    {
+        $config = new Config(dirname(__DIR__, 3));
+        putenv('CMD4_VISION_ENABLED=1');
+        try {
+            $pilote = Fabrique::pilote($config, $this->pdo, $this->depot, Fabrique::classeur($config, $this->pdo));
+            $decoupeur = (new \ReflectionProperty($pilote, 'decoupeur'))->getValue($pilote);
+            self::assertTrue((new \ReflectionProperty($decoupeur, 'vision'))->getValue($decoupeur));
+            self::assertInstanceOf(ClasseurGed::class, Fabrique::classeur($config, $this->pdo));
+        } finally {
+            putenv('CMD4_VISION_ENABLED');
+        }
+    }
+
+    public function testRangementEcritLesPropositionsDeClassementDansLesMetadonnees(): void
+    {
+        $source = new class ($this->copie('%PDF-1.4 classement')) implements \Ged\Ingestion\Source {
+            private bool $fait = false;
+
+            public function __construct(private readonly string $fichier)
+            {
+            }
+
+            public function relever(): array
+            {
+                if ($this->fait) {
+                    return [];
+                }
+                $this->fait = true;
+
+                return [new \Ged\Ingestion\Entree($this->fichier, 'dossier', 'scan.pdf')];
+            }
+        };
+        $decoupeur = new class () implements Decoupeur {
+            public function decouper(string $fichier, string $sortie): array
+            {
+                mkdir($sortie, 0775, true);
+                $piece = $sortie . '/piece.pdf';
+                copy($fichier, $piece);
+
+                return [['fichier' => $piece, 'pages' => [1],
+                    'texte' => "**Papeterie Fictive SA**\nFacture N° F-2026-01\nDate : 05.01.2026",
+                    'analyse' => ['origine' => null]]];
+            }
+        };
+        $config = new Config(dirname(__DIR__, 3));
+        $pilote = new Pilote(new Travaux($this->pdo), [$source], $decoupeur, $this->depot,
+            new ClasseurGed($config, $this->pdo, new ClientIaNul()), $this->tmp . '/travail');
+        $pilote->tic(5);
+        $pilote->tic(5);
+
+        $meta = $this->depot->deposes[0]['meta'];
+        self::assertSame('Facture', $meta['type']);
+        self::assertSame('Papeterie Fictive SA', $meta['emetteur']);
+        self::assertSame('2026-01-05', $meta['date']);
+        self::assertSame('F-2026-01', $meta['titre']);
+    }
+
+    public function testDepotReussiDeclencheLeWorkflowDocumentDepose(): void
+    {
+        // Oracle inter-secteurs : une notification ne dépend pas du vrai fonds, mais prouve que le
+        // Pilote appelle bien l'écouteur APRÈS le dépôt et avec l'identifiant rendu par celui-ci.
+        $this->pdo->exec('DROP TABLE IF EXISTS workflow_journal, workflow_instances, workflow_definitions');
+        \Ged\Workflows\Schema::installer($this->pdo);
+        (new \Ged\Workflows\Regles($this->pdo))->creer([
+            'nom' => 'Trace le dépôt', 'declencheur' => 'document_depose', 'conditions' => [],
+            'actions' => [['type' => 'notifier', 'destinataire' => 'archive', 'message' => 'Reçu {titre}']], 'actif' => true,
+        ]);
+        $config = new Config(dirname(__DIR__, 3));
+        $source = new class ($this->copie('%PDF-1.4 workflow')) implements \Ged\Ingestion\Source {
+            private bool $fait = false;
+
+            public function __construct(private readonly string $fichier)
+            {
+            }
+
+            public function relever(): array
+            {
+                if ($this->fait) {
+                    return [];
+                }
+                $this->fait = true;
+
+                return [new \Ged\Ingestion\Entree($this->fichier, 'dossier', 'workflow.pdf')];
+            }
+        };
+        $pilote = new Pilote(new Travaux($this->pdo), [$source], new DecoupeurSimule(1), $this->depot,
+            null, $this->tmp . '/travail', $config);
+        $pilote->tic(5);
+        $pilote->tic(5);
+
+        $notifications = (int) $this->pdo->query("SELECT COUNT(*) FROM workflow_journal WHERE genre = 'notification'")->fetchColumn();
+        $this->pdo->exec('DROP TABLE IF EXISTS workflow_journal, workflow_instances, workflow_definitions');
+        self::assertSame(1, $notifications);
+    }
+
+    public function testTacheIngestionSynchroniseAussiLIndexPleinTexte(): void
+    {
+        $cles = ['INGESTION_DOSSIER', 'INGESTION_TRAVAIL', 'STORAGE_ROOT'];
+        $avant = array_combine($cles, array_map('getenv', $cles));
+        $bac = $this->tmp . '/tache';
+        mkdir($bac . '/entree', 0775, true);
+        foreach (['INGESTION_DOSSIER' => $bac . '/entree', 'INGESTION_TRAVAIL' => $bac . '/travail', 'STORAGE_ROOT' => $bac . '/fonds'] as $cle => $valeur) {
+            putenv("$cle=$valeur");
+        }
+        try {
+            $config = new Config(dirname(__DIR__, 3));
+            \Ged\Socle\Schema::installer($this->pdo);
+            $titre = 'Index tache ' . bin2hex(random_bytes(4));
+            $source = $bac . '/a-indexer.pdf';
+            file_put_contents($source, '%PDF-1.4 index synthétique');
+            (new \Ged\Socle\DepotFichiers($config))->deposer($source, [
+                'titre' => $titre, 'source' => 'test', 'texte' => 'mot-cle-indexable-synthetique', 'statut' => 'a_controler',
+            ]);
+
+            $commande = [PHP_BINARY, dirname(__DIR__, 3) . '/tools/tache.php', 'ingestion', '--budget=1', '--tours=1', '--limite=10'];
+            $processus = proc_open($commande, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $tuyaux);
+            self::assertIsResource($processus);
+            $sortie = stream_get_contents($tuyaux[1]);
+            $erreur = stream_get_contents($tuyaux[2]);
+            fclose($tuyaux[1]);
+            fclose($tuyaux[2]);
+            self::assertSame(0, proc_close($processus), $erreur . $sortie);
+            self::assertStringContainsString('ingestion-indexation', $sortie);
+            $requete = $this->pdo->prepare('SELECT COUNT(*) FROM recherche_textes WHERE titre = ? AND absent_le IS NULL');
+            $requete->execute([$titre]);
+            self::assertSame(1, (int) $requete->fetchColumn());
+        } finally {
+            foreach ($avant as $cle => $valeur) {
+                $valeur === false ? putenv($cle) : putenv("$cle=$valeur");
+            }
+        }
     }
 
     public function testLeMemeFichierNEntreJamaisDeuxFois(): void
