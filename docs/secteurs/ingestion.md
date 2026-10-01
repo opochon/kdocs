@@ -101,3 +101,15 @@ ETAT: fini
 - À reprendre par Ingestion : `harness.ps1 -SansBanc` du 01-10 expire sa charge à 37/53 pièces après `tools/tache.php ingestion --budget=300 --tours=200` (16 travaux non finis, zéro erreur). Aucun paramètre de reprise ou de budget n’a été modifié par R2c.
 
 ETAT: bloqué — charge du harness incomplète, hors correction de frontière Vision
+
+## Journal R2g — invariant de découpe (02-10-2026)
+
+**Fait**
+- Après chaque sortie de découpe, `Pilote` vérifie l'inventaire disjoint des pages contre le total du PDF source (`pdfinfo`, avec repli de test). Une frontière dupliquée est toujours attribuée une seule fois ; une page absente est rattachée déterministement à la pièce qui prolonge la séquence, gauche puis droite.
+- La réparation écrit une alerte nommée `invariant de découpe réparé` dans le bilan du tic. Si aucun rattachement sûr n'est possible, la tâche échoue explicitement : elle ne dépose pas un lot incomplet.
+
+**Preuves**
+- Oracle synthétique `PiloteTest::testInvariantDeDecoupeRepareUnePageVisionDoubleEtUnePageSauteeEtAvertit` : sortie Vision `[1,2]` + `[2,4]` sur un PDF de 4 pages ; dépôt final `1-3`, `4`, une seule occurrence de chaque page et alerte publiée.
+- `php vendor/bin/phpunit tests/php/Ingestion` : vert dans la suite R2g.
+
+ETAT: fini

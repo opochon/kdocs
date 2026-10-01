@@ -112,6 +112,36 @@ final class PiloteTest extends TestCase
         self::assertSame('86', $this->depot->deposes[1]['meta']['origine']['pages']);
     }
 
+    public function testInvariantDeDecoupeRepareUnePageVisionDoubleEtUnePageSauteeEtAvertit(): void
+    {
+        // Sortie Vision synthétique R2g : 2 est annoncé deux fois et 3 n'est annoncé par personne.
+        // La page manquante prolonge la première séquence ; elle ne peut jamais disparaître ni être dupliquée.
+        file_put_contents($this->tmp . '/entree/invariant.pdf', "%PDF-1.4\n/Type /Page\n/Type /Page\n/Type /Page\n/Type /Page\n");
+        $decoupeur = new class implements Decoupeur {
+            public function decouper(string $fichier, string $sortie): array
+            {
+                mkdir($sortie, 0775, true);
+                copy($fichier, $sortie . '/a.pdf');
+                file_put_contents($sortie . '/b.pdf', '%PDF-1.4');
+
+                return [
+                    ['fichier' => $sortie . '/a.pdf', 'pages' => [1, 2], 'texte' => "Page 1\nPage 2", 'analyse' => []],
+                    ['fichier' => $sortie . '/b.pdf', 'pages' => [2, 4], 'texte' => "Page 4", 'analyse' => []],
+                ];
+            }
+        };
+        $p = $this->pilote($decoupeur);
+        $p->tic(5);
+        $r = $p->tic(5);
+        $p->tic(5);
+
+        self::assertSame(['1-3', '4'], array_column(array_map(
+            static fn (array $depot): array => $depot['meta']['origine'], $this->depot->deposes,
+        ), 'pages'));
+        self::assertNotEmpty($r['alertes']);
+        self::assertStringContainsString('invariant de découpe', implode("\n", $r['alertes']));
+    }
+
     public function testLaFabriqueBrancheLeClasseurEtLeReglageVision(): void
     {
         $config = new Config(dirname(__DIR__, 3));

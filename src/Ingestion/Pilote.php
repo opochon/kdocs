@@ -64,7 +64,7 @@ final class Pilote
         }
         if (microtime(true) < $fin && ($t = $this->travaux->reserver('recu', 30)) !== null) {
             try {
-                $this->decouper($t);
+                $compte['alertes'] = array_merge($compte['alertes'], $this->decouper($t));
                 $compte['decoupes']++;
             } catch (\Throwable $e) {
                 $this->travaux->echouer((int) $t['id'], 'découpe : ' . $e->getMessage());
@@ -76,10 +76,15 @@ final class Pilote
     }
 
     /** @param array<string, mixed> $lot */
-    private function decouper(array $lot): void
+    /** @return list<string> alertes d'invariant réparé */
+    private function decouper(array $lot): array
     {
         $sortie = $this->zoneTravail . '/pieces/' . $lot['id'];
-        $pieces = $this->dedoublonnerPages($this->decoupeur->decouper((string) $lot['chemin'], $sortie));
+        $normalisee = $this->verifierDecoupe(
+            $this->decoupeur->decouper((string) $lot['chemin'], $sortie),
+            (string) $lot['chemin'],
+        );
+        $pieces = $normalisee['pieces'];
         if ($pieces === []) {
             throw new \RuntimeException('le moteur n’a rendu aucune pièce');
         }
@@ -96,6 +101,8 @@ final class Pilote
             $this->travaux->ajouterPiece((int) $lot['id'], $p['fichier'], $nom, (string) $lot['source'], $p['pages'], $p['texte'], $analyse);
         }
         $this->travaux->passer((int) $lot['id'], 'decoupe');
+
+        return $normalisee['alertes'];
     }
 
     /** Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null. @param array<string, mixed> $lot */
@@ -205,6 +212,105 @@ final class Pilote
         }
 
         return $uniques;
+    }
+
+    /**
+     * Porte R2g : après TOUTE sortie du moteur, l'inventaire des pages source est complet et disjoint.
+     * La Vision ne décide donc jamais seule qu'une frontière existe : un doublon est attribué de façon
+     * déterministe, une lacune est rattachée à la pièce qui prolonge sa séquence, et l'opérateur est averti.
+     *
+     * @param list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}> $pieces
+     * @return array{pieces:list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}>, alertes:list<string>}
+     */
+    private function verifierDecoupe(array $pieces, string $fichierSource): array
+    {
+        $brutes = [];
+        foreach ($pieces as $piece) {
+            $brutes = array_merge($brutes, array_map('intval', (array) ($piece['pages'] ?? [])));
+        }
+        $brutes = array_values(array_filter($brutes, static fn (int $page): bool => $page > 0));
+        $attendues = $this->compterPagesSource($fichierSource);
+        if ($brutes === []) {
+            throw new \RuntimeException('invariant de découpe : aucune page source vérifiable');
+        }
+
+        $uniques = $this->dedoublonnerPages($pieces);
+        $vues = [];
+        foreach ($uniques as $index => $piece) {
+            foreach ($piece['pages'] as $page) {
+                $vues[(int) $page] = $index;
+            }
+        }
+        $manquantes = $attendues === null ? [] : array_values(array_diff(range(1, $attendues), array_keys($vues)));
+        foreach ($manquantes as $page) {
+            $index = $this->pieceQuiProlonge($uniques, $page);
+            if ($index === null) {
+                throw new \RuntimeException('invariant de découpe : page ' . $page . ' sans pièce à prolonger');
+            }
+            $uniques[$index]['pages'][] = $page;
+            sort($uniques[$index]['pages']);
+        }
+
+        // Assertion finale, volontairement redondante : jamais un correctif partiel ne peut passer silencieusement.
+        $finales = [];
+        foreach ($uniques as $piece) {
+            foreach ($piece['pages'] as $page) {
+                $finales[] = (int) $page;
+            }
+        }
+        sort($finales);
+        $attenduFinal = $attendues === null ? array_values(array_unique($brutes)) : range(1, $attendues);
+        sort($attenduFinal);
+        if ($finales !== $attenduFinal) {
+            throw new \RuntimeException('invariant de découpe violé après correction');
+        }
+
+        $doublons = count($brutes) - count(array_unique($brutes));
+        $alertes = [];
+        if ($doublons > 0 || $manquantes !== []) {
+            $alertes[] = 'invariant de découpe réparé : ' . $doublons . ' page(s) double(s), '
+                . implode(',', $manquantes ?: []) . ' page(s) rattachée(s) à la séquence adjacente';
+        }
+
+        return ['pieces' => $uniques, 'alertes' => $alertes];
+    }
+
+    /** Compte natif du PDF ; le repli lit les dictionnaires Page des petits PDF de test. */
+    private function compterPagesSource(string $fichier): ?int
+    {
+        $commande = ['pdfinfo', $fichier];
+        $processus = @proc_open($commande, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $tuyaux);
+        if (is_resource($processus)) {
+            $sortie = (string) stream_get_contents($tuyaux[1]);
+            fclose($tuyaux[1]);
+            fclose($tuyaux[2]);
+            if (proc_close($processus) === 0 && preg_match('/^Pages:\s*(\d+)\s*$/mi', $sortie, $m) === 1) {
+                return max(1, (int) $m[1]);
+            }
+        }
+        $brut = @file_get_contents($fichier);
+        if (is_string($brut) && preg_match_all('/\/Type\s*\/Page\b/', $brut, $pages) > 0) {
+            return count($pages[0]);
+        }
+
+        return null;
+    }
+
+    /** La page absente prolonge la séquence gauche ; sans gauche, la droite. */
+    private function pieceQuiProlonge(array $pieces, int $page): ?int
+    {
+        foreach ($pieces as $index => $piece) {
+            if (in_array($page - 1, $piece['pages'], true)) {
+                return $index;
+            }
+        }
+        foreach ($pieces as $index => $piece) {
+            if (in_array($page + 1, $piece['pages'], true)) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 
     /** Le texte de sortie de CMD4 indique parfois explicitement la page OCR (« Page 86 », « p. 86 »). */
