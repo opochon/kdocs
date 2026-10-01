@@ -109,6 +109,30 @@ final class ClasseurGedTest extends TestCase
         self::assertTrue($r['valide']);
     }
 
+    public function testLaFamilleCompatibleRetientLeTypeLePlusPrecis(): void
+    {
+        $texte = self::ENTETE . "FACTURE — avis fiscal annuel\nDate : 05.01.2026\n";
+        $ia = new ClientIaSimule(new ReponseIa('Avis d’impôt', 'Papeterie des Sapins Fictive SA', null,
+            '2026-01-05', null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'avis.pdf');
+
+        self::assertSame('Avis d’impôt', $r['type']);
+        self::assertTrue($r['valide']);
+    }
+
+    public function testUnEmetteurIaInclusDansLeTexteEstCorroboreMalgreLaFormeJuridique(): void
+    {
+        $texte = "Assurances Boréales SA\nFACTURE F-2026-01\nDate : 05.01.2026\n";
+        $ia = new ClientIaSimule(new ReponseIa('Facture', 'ASSURANCES BOREALES AG', null,
+            '2026-01-05', null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'facture.pdf');
+
+        self::assertTrue($r['valide']);
+        self::assertSame('ASSURANCES BOREALES AG', $r['emetteur']);
+    }
+
     public function testUneIaPeuSureNeValidePasSeule(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
@@ -253,7 +277,9 @@ final class ClasseurGedTest extends TestCase
             $h->retenirChoix($emetteur, Habitudes::CHAMP_TYPE, 'Facture', $ref);
         }
 
-        $r = $this->classeur()->proposer($emetteur . "\nFACTURE FICTIVE-4\nConcerne : Facture oracle\n", [], 'piece-4.pdf');
+        $r = $this->classeur(new ClientIaSimule(new ReponseIa('Facture', $emetteur, null,
+            '2026-01-05', null, [], 0.95, 'simule')))->proposer(
+                $emetteur . "\nFACTURE FICTIVE-4\nDate : 05.01.2026\nConcerne : Facture oracle\n", [], 'piece-4.pdf');
 
         self::assertSame($emetteur, $r['emetteur']);
         self::assertSame('habitude', $r['source']);

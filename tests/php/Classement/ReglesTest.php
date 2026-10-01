@@ -195,7 +195,26 @@ final class ReglesTest extends TestCase
     {
         self::assertTrue(Regles::typesCompatibles('Décompte', 'Facture'));
         self::assertTrue(Regles::typesCompatibles('Police d’assurance', 'Contrat'));
+        self::assertTrue(Regles::typesCompatibles('Avis d’impôt', 'Facture'));
         self::assertFalse(Regles::typesCompatibles('Relevé', 'Facture'));
+    }
+
+    public function testLesIndicesNouveauxCouvrentLesTroisLangues(): void
+    {
+        self::assertSame('Avis d’impôt', Regles::typeEtPreuve('STEUERVERANLAGUNG 2026')['type']);
+        self::assertSame('Police d’assurance', Regles::typeEtPreuve('VERSICHERUNGSSCHEIN')['type']);
+        self::assertSame('Décompte', Regles::typeEtPreuve('CONTEGGIO PRESTAZIONI')['type']);
+        self::assertSame('Relevé', Regles::typeEtPreuve('KONTOAUSZUG')['type']);
+        self::assertSame('Attestation', Regles::typeEtPreuve('CERTIFICAZIONE FISCALE')['type']);
+        self::assertSame('Décision', Regles::typeEtPreuve('PROVVEDIMENTO amministrativo')['type']);
+    }
+
+    public function testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative(): void
+    {
+        self::assertTrue(Regles::emetteursCorrespondent('Assurances Boréales SA', 'ASSURANCES BOREALES AG'));
+        self::assertTrue(Regles::emetteursCorrespondent('Banque Cantonale du Lac SA', 'Banque Cantonale du Lac'));
+        self::assertFalse(Regles::emetteursCorrespondent('Banque', 'Banque'), 'un mot générique seul ne vaut pas rapprochement');
+        self::assertFalse(Regles::emetteursCorrespondent('Service Relation Client', 'Service Client'));
     }
 
     /** @dataProvider emetteursOcrNonCredibles */
@@ -213,6 +232,8 @@ final class ReglesTest extends TestCase
             'formule medecin' => ["Le cabinet médical vous adresse sa note d'honoraires.\n"],
             'libelle destinataire' => ["Nom du destinataire : Atelier Fictif Sarl\n"],
             'service generique' => ["Service clientèle\n"],
+            'contact center de service' => ["Contact Center, Service Réclamations\n"],
+            'fragment apres preposition' => ["De votre contrat, nous vous informons.\n"],
         ];
     }
 

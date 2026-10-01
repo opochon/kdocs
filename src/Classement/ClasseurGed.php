@@ -62,7 +62,7 @@ final class ClasseurGed implements Classeur
         // validation seule demandera ensuite que ce nom soit corroboré par la lecture ou une habitude.
         $emetteur = $emetteurIa ?? $emetteurRegle ?? $emetteurAppris;
         $emetteurCorrobore = $emetteurAppris !== null || ($emetteurIa !== null && $emetteurRegle !== null
-            && Regles::memeType($emetteurIa, $emetteurRegle));
+            && Regles::emetteursCorrespondent($emetteurIa, $emetteurRegle));
 
         $habitude = $emetteur !== null ? $this->habitudes->habitude($emetteur, Habitudes::CHAMP_TYPE) : null;
 
@@ -92,7 +92,7 @@ final class ClasseurGed implements Classeur
                 && Regles::typesCompatibles($typeIa, $typeTexte);
 
             if ($iaCorrobore) {
-                $type = Regles::memeType($typeIa, $typeTexte) ? $typeTexte : $typeIa;
+                $type = Regles::typeLePlusPrecis($typeIa, $typeTexte);
                 $source = 'ia';
                 $preuve = 'ia + ' . $indiceRegle['preuve'];
                 $confiance = max($indiceRegle['confiance'], $reponseIa->confiance);
@@ -129,9 +129,9 @@ final class ClasseurGed implements Classeur
         $dateIa = Regles::datePlausible($reponseIa?->date) ? $reponseIa?->date : null;
         $dateDocument = $dateRegle;
         // Une date absente reste absente : le dépôt la rangera sous Sans_date, jamais sous l'année du jour.
-        // Si les deux sources en donnent une, elles doivent concorder ; une date lue dans l'en-tête est
-        // en elle-même une source crédible, l'IA ne doit pas bloquer son absence.
-        $dateCorroboree = $dateRegle === null || $dateIa === null || $dateRegle === $dateIa;
+        // Valider seul exige les DEUX sources : une date absente n'est pas une concordance. La date
+        // lue reste proposée pour aider l'humain, mais ne suffit pas au rangement automatique.
+        $dateCorroboree = $dateRegle !== null && $dateIa !== null && $dateRegle === $dateIa;
 
         if ($valide && Regles::estAutre($type)) {
             $valide = false;
@@ -156,7 +156,9 @@ final class ClasseurGed implements Classeur
         }
         if ($valide && !$dateCorroboree) {
             $valide = false;
-            $raison = 'date à contrôler : IA et document ne concordent pas';
+            $raison = $dateRegle === null || $dateIa === null
+                ? 'date à contrôler : date crédible absente dans l’IA ou le document'
+                : 'date à contrôler : IA et document ne concordent pas';
         }
         if ($valide && trim((string) $preuve) === '') {
             $valide = false;

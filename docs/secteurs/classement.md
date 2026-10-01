@@ -192,3 +192,20 @@ ETAT: fini
   - Causes des 45 « à contrôler » : 14 « émetteur à contrôler » (le rapprochement IA/texte échoue alors que l'émetteur proposé figure dans le texte), 13 « IA et texte divergent » sur le type, 11 « le type proposé par l'IA n'a aucun indice dans le texte » (les règles ne connaissent pas les nouveaux types), 4 « émetteur non crédible », 2 « IA indisponible ».
   - Il reste environ 5 émetteurs-bruit (libellés de service, fragments, préfixes), qui créent encore des dossiers.
 - Verdict : **non franchi**, renvoyé en R2c.
+
+## Journal R2c — 01-10-2026
+
+**Fait**
+- Validation seule durcie : type, émetteur et date doivent chacun être crédibles et corroborés entre la pièce et l’IA ; une date absente n’est jamais une concordance.
+- Rapprochement émetteur : insensible à casse, accents, ponctuation et SA/AG/Sàrl/GmbH ; les inclusions de mots significatifs concordent, jamais un mot de service générique seul.
+- Règles FR/DE/IT étendues pour Décompte, Relevé, Attestation, Police d’assurance, Avis d’impôt et Décision ; Décompte/Facture, Police/Contrat, Attestation/Document RH et Avis d’impôt/Facture sont compatibles, avec conservation du sous-type.
+- Bruit OCR refusé : Service Relation Client, Contact Center et fragments commençant par article/préposition ne deviennent ni émetteur ni sous-dossier. Le dépôt garde la même défense en profondeur.
+- Oracle Vision de bout en bout : deux sorties `[85,86]` et `[86]` sont affectées par page avant création des travaux ; le marqueur textuel de page départage, sinon la première sortie reste déterministe. Ce Pilote est celui construit par `tools/tache.php`.
+- Corpus synthétique maintenu à 30 pièces (familles FR/DE/IT incluses), sans donnée réelle.
+
+**Preuves**
+- Oracles rouges initiaux : une validation automatique sans date était acceptée ; une plage Vision recouvrante rangeait une seule pièce `[85,86]` au lieu d’affecter 86 à la pièce qui la lit.
+- PHPUnit ciblé : 117 tests, 547 assertions, vert (Classement, contrat, Pilote, rangement et reconstruction).
+- `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : **29/30 validées seules (96,7 %)**, 0 type/émetteur/date faux, 0 « Autre » validé, porte franchie.
+
+ETAT: fini

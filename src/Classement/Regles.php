@@ -19,12 +19,12 @@ final class Regles
     private const INDICES = [
         'Document RH' => ['attestation de travail', 'certificat de travail', 'fiche de paie', 'bulletin de paie',
             'contrat de travail', 'decompte de salaire', 'employeur', 'lohn'],
-        'Avis d’impôt' => ['avis d impot', 'bordereau d impot', 'taxation fiscale'],
-        'Police d’assurance' => ['police assurance', 'police d assurance', 'versicherungspolice', 'polizza assicurativa'],
-        'Décision' => ['decision', 'decisione', 'decision administrative', 'decision judiciaire', 'decision sur', 'verfugung', 'sentenza'],
-        'Décompte' => ['decompte', 'decompte de prestations', 'abrechnung', 'conteggio'],
-        'Relevé' => ['releve', 'releve de compte', 'releve bancaire', 'auszug', 'estratto conto'],
-        'Attestation' => ['attestation', 'attestation fiscale', 'attestation annuelle', 'bescheinigung', 'attestazione'],
+        'Avis d’impôt' => ['avis d impot', 'bordereau d impot', 'taxation fiscale', 'steuerveranlagung', 'steuerrechnung', 'avviso fiscale'],
+        'Police d’assurance' => ['police assurance', 'police d assurance', 'versicherungspolice', 'versicherungsschein', 'polizza assicurativa', 'polizza'],
+        'Décision' => ['decision', 'decisione', 'decision administrative', 'decision judiciaire', 'decision sur', 'verfugung', 'bescheid', 'sentenza', 'provvedimento'],
+        'Décompte' => ['decompte', 'decompte de prestations', 'abrechnung', 'abrechnung leistungen', 'conteggio', 'conteggio prestazioni'],
+        'Relevé' => ['releve', 'releve de compte', 'releve bancaire', 'kontoauszug', 'auszug', 'estratto conto', 'estratto'],
+        'Attestation' => ['attestation', 'attestation fiscale', 'attestation annuelle', 'bescheinigung', 'steuerbescheinigung', 'attestazione', 'certificazione'],
         'Note de crédit' => ['note de credit', 'gutschrift', 'credit note'],
         'Facture' => ['facture', 'invoice', 'rechnung', 'fattura', 'avis de paiement', 'net a payer'],
         'Contrat' => ['contrat', 'convention', 'avenant', 'soussign', 'les parties', 'vertrag', 'police'],
@@ -41,6 +41,10 @@ final class Regles
 
     /** Mots trop courts ou trop génériques pour identifier un émetteur. */
     private const MOTS_VIDES = ['sa', 'sarl', 'sagl', 'ag', 'gmbh', 'snc', 'holding', 'les', 'des', 'du', 'de', 'la', 'le', 'the'];
+
+    /** Des mots de service n'identifient jamais à eux seuls une organisation. */
+    private const MOTS_EMETTEUR_GENERIQUES = ['banque', 'service', 'assurance', 'assurances', 'relation', 'client',
+        'clients', 'contact', 'center', 'centre', 'customer', 'care'];
 
     private const PLIAGE = [
         'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ă' => 'a', 'ą' => 'a', 'æ' => 'ae',
@@ -166,7 +170,24 @@ final class Regles
             ['decompte', 'facture'],
             ['contrat', 'police d assurance'],
             ['attestation', 'document rh'],
+            ['avis d impot', 'facture'],
         ], true);
+    }
+
+    /** Parmi deux membres d'une même famille, garder le sous-type utile à l'utilisateur. */
+    public static function typeLePlusPrecis(?string $a, ?string $b): ?string
+    {
+        if (self::memeType($a, $b)) {
+            return $a;
+        }
+        foreach ([['Décompte', 'Facture'], ['Police d’assurance', 'Contrat'], ['Attestation', 'Document RH'], ['Avis d’impôt', 'Facture']] as [$precis, $parent]) {
+            if (self::typesCompatibles($a, $b) && (self::memeType($a, $precis) || self::memeType($b, $precis))
+                && (self::memeType($a, $parent) || self::memeType($b, $parent))) {
+                return $precis;
+            }
+        }
+
+        return $a ?? $b;
     }
 
     /** Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation. */
@@ -183,18 +204,35 @@ final class Regles
     /** Le nom se lit-il vraiment dans le texte ? (le modèle recopie volontiers un nom de sa liste) */
     public static function nomSeLit(string $texte, string $nom): bool
     {
-        $t = ' ' . self::normaliser($texte) . ' ';
-        $mots = array_values(array_filter(explode(' ', self::normaliser($nom)),
-            static fn (string $m): bool => strlen($m) >= 3 && !in_array($m, self::MOTS_VIDES, true)));
-        if ($mots === [] || trim($t) === '') {
+        $mots = self::motsSignificatifs($nom);
+        if ($mots === [] || trim($texte) === '') {
             return false;
         }
-        if (str_contains($t, ' ' . implode(' ', array_slice($mots, 0, 2)) . ' ')) {
+
+        $texteMots = self::motsSignificatifs($texte);
+
+        return array_values(array_diff($mots, $texteMots)) === [];
+    }
+
+    /** Rapproche IA/texte sans être piégé par casse, accents, ponctuation ou forme juridique. */
+    public static function emetteursCorrespondent(?string $a, ?string $b): bool
+    {
+        $motsA = self::motsSignificatifs((string) $a);
+        $motsB = self::motsSignificatifs((string) $b);
+        if ($motsA === [] || $motsB === []) {
+            return false;
+        }
+        if (self::memeType($a, $b)) {
             return true;
         }
-        $trouves = count(array_filter($mots, static fn (string $m): bool => str_contains($t, ' ' . $m . ' ')));
+        $communs = array_values(array_intersect($motsA, $motsB));
+        if ($communs === []) {
+            return false;
+        }
 
-        return $trouves >= min(2, count($mots));
+        // Une inclusion complète (p. ex. « Banque du Lac SA » / « Banque du Lac AG ») est une
+        // concordance. Un seul mot générique a déjà été exclu par motsSignificatifs().
+        return array_values(array_diff($motsA, $motsB)) === [] || array_values(array_diff($motsB, $motsA)) === [];
     }
 
     /** Un Document RH n'est valide que si le propriétaire de la GED (GED_ORGANISATION) figure dans la pièce. */
@@ -294,7 +332,7 @@ final class Regles
         $ligne = trim((string) preg_replace('/\s+/', ' ', $ligne));
         // Débris de reconnaissance au début d'un logo/pied de page : on ne les garde que s'ils
         // précèdent une vraie raison sociale, contrôlée ensuite par candidatEmetteur().
-        $ligne = preg_replace('/^(?:[\[\](){}|~^`«»._-]{1,}|(?:xx|ee|ooo|lll))\s+/iu', '', $ligne) ?? $ligne;
+        $ligne = preg_replace('/^(?:(?:\[[^\]]{0,30}\]|\([^)]{0,30}\)|[{}|~^`«»._-]+)\s*|(?:xx|ee|ooo|lll)\s+)+/iu', '', $ligne) ?? $ligne;
 
         return trim($ligne);
     }
@@ -334,8 +372,8 @@ final class Regles
         if ($n === '') {
             return false;
         }
-        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page|si |la |le |nous |vous |nom du destinataire)\b/', $n) === 1
-            || in_array($n, ['service clientele', 'service client'], true)) {
+        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page|si |la |le |les |nous |vous |nom du destinataire|de |du |des |en |pour |avec |a |au |aux |chez |par |sur )\b/', $n) === 1
+            || preg_match('/^(service\s+(?:relation\s+)?client(?:ele|s)?|contact\s+cent(?:er|re)|contact\s+cent(?:er|re)\s+service)\b/', $n) === 1) {
             return false;
         }
         $mots = preg_split('/\s+/', $n) ?: [];
@@ -359,5 +397,19 @@ final class Regles
         }
 
         return true;
+    }
+
+    /** @return list<string> */
+    private static function motsSignificatifs(string $valeur): array
+    {
+        $mots = array_filter(explode(' ', self::normaliser($valeur)), static function (string $mot): bool {
+            return strlen($mot) >= 3 && !in_array($mot, self::MOTS_VIDES, true)
+                && !in_array($mot, self::MOTS_EMETTEUR_GENERIQUES, true);
+        });
+        $mots = array_map(static function (string $mot): string {
+            return strlen($mot) > 4 && str_ends_with($mot, 's') ? substr($mot, 0, -1) : $mot;
+        }, $mots);
+
+        return array_values(array_unique($mots));
     }
 }

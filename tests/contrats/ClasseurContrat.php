@@ -71,9 +71,18 @@ abstract class ClasseurContrat extends TestCase
     public function testUneValidationAutomatiquePorteToujoursUnePreuve(): void
     {
         $ia = new IaContrat(new ReponseIa('Facture', 'Atelier Exemple SA', 'Facture F-2026-01', '2026-09-29', 12.50, [], 0.99, 'contrat'));
-        $p = $this->classeur($ia)->proposer("Atelier Exemple SA\nFACTURE N° F-2026-01", [], 'piece.pdf');
+        $p = $this->classeur($ia)->proposer("Atelier Exemple SA\nFACTURE N° F-2026-01\nDate : 29.09.2026", [], 'piece.pdf');
         self::assertTrue($p['valide']);
         self::assertNotEmpty($p['preuve']);
+    }
+
+    public function testUneValidationAutomatiqueExigeUneDateCredibleEtConcordante(): void
+    {
+        $ia = new IaContrat(new ReponseIa('Facture', 'Atelier Exemple SA', null, null, null, [], 0.99, 'contrat'));
+        $p = $this->classeur($ia)->proposer("Atelier Exemple SA\nFACTURE N° F-2026-02", [], 'piece.pdf');
+
+        self::assertFalse($p['valide']);
+        self::assertStringContainsString('date', (string) $p['raison']);
     }
 }
 
