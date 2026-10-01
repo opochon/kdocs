@@ -19,7 +19,7 @@ namespace Ged\Ui;
  *  4. aucun signe parasite (`{`, `|`, `~`, `#`, `@`, `^`, `\`, `<`, `>`, `_`…) ;
  *  5. au moins un mot de 5 lettres (un vrai extrait en porte un).
  *
- * V2-10e complète le tableau :
+ * V2-10e / V2-10f complètent le tableau :
  *
  *  - **tête ET queue** : un extrait mixte est rogné au premier segment propre, et finit sur le
  *    dernier mot plausible de ce segment (une suite de fragments en queue ne s'affiche plus) ;
@@ -30,6 +30,10 @@ namespace Ged\Ui;
  *    « ' . , ») coupe l'extrait ;
  *  - **fenêtre autour du terme** : quand la recherche fournit le terme trouvé (`retenir`), l'extrait
  *    est la fenêtre propre qui contient ce terme, jamais le début du texte.
+ *  - **terme insuffisant** : un surlignage ne rend jamais acceptable une courte fenêtre dominée par des
+ *    fragments, des signes ou des nombres OCR mal formés ;
+ *  - **bornes de mots** : une amorce ou une terminaison de 1–2 lettres hors petits mots usuels est
+ *    retirée jusqu'à stabilité ; les groupes de capitales absurdes coupent aussi un passage en deux.
  *
  * Elle vit dans le secteur Interface : c'est une règle d'affichage, jamais une donnée métier.
  */
@@ -61,7 +65,7 @@ final class ExtraitsLisibles
     private const SEGMENT_MIN_LETTRES = 12;
 
     /** V2-10e : en dessous de ce nombre de mots, un extrait doit être majoritairement plausible. */
-    private const COURT_MOTS = 8;
+    private const COURT_MOTS = 12;
 
     /** V2-10e : au-delà, le « terme » n'est plus un terme de recherche mais le texte entier. */
     private const TERME_MAX = 40;
@@ -216,8 +220,9 @@ final class ExtraitsLisibles
 
         // — segment propre de tête, queue rognée : c'est le cas général (corpus, sans terme).
         $premier = $runs[0];
-        $dernier = $runs[count($runs) - 1];
-        [$candidat, $debut, $fin, $coupeSignes] = self::construire($texte, $jetons, $total, $premier['i'], $dernier['j']);
+        // Ne jamais franchir un jeton refusé : il peut être un groupe OCR (« CHAG », « EN er ») au
+        // milieu. Le premier passage propre est plus utile qu'une phrase dont le bruit réapparaît.
+        [$candidat, $debut, $fin, $coupeSignes] = self::construire($texte, $jetons, $total, $premier['i'], $premier['j']);
         if ($candidat === '' || self::contientParasite($candidat) || !self::propre($candidat)) {
             $trouve = null;
             foreach ($runs as $run) {
@@ -239,11 +244,11 @@ final class ExtraitsLisibles
 
         // Un seul fragment isolé en bord (« Rue » d'une adresse, « Mai » d'une date) reste toléré :
         // l'extrait entier est propre et rien n'a été rogné ; on préfère alors le texte complet.
-        $bordsRognes = $premier['rogneTete'] || $dernier['rogneQueue'] || $coupeSignes;
+        $bordsRognes = $premier['rogneTete'] || $premier['rogneQueue'] || $coupeSignes;
         $teteToleree = $premier['i'] === 0
             || ($premier['i'] === 1 && !$jetons[0]['acceptable']);
-        $queueToleree = $dernier['j'] === $total
-            || ($dernier['j'] === $total - 1 && !$jetons[$total - 1]['acceptable']);
+        $queueToleree = $premier['j'] === $total
+            || ($premier['j'] === $total - 1 && !$jetons[$total - 1]['acceptable']);
         if ($propreEntier && !$bordsRognes && $teteToleree && $queueToleree
             && !self::contientParasite(substr($texte, 0, $debut))
             && !self::contientParasite(substr($texte, $fin))) {
@@ -337,6 +342,15 @@ final class ExtraitsLisibles
         $candidat = rtrim($candidat, "\t\n\r\0\x0B\"'");
         $fin = $debut + strlen($candidat);
 
+        // Une fenêtre qui s'arrête juste après un numéro ne doit pas finir sur « ce », « er », etc. :
+        // ce sont les deux dernières lettres d'un mot que le découpeur a tronqué. Les petits mots
+        // usuels restent permis ailleurs, mais pas dans cette position sans frontière sémantique.
+        $coupeMot = preg_match('/^(.*\p{N}[^\p{L}\p{N}]+)\p{L}{1,2}$/us', $candidat, $bordCoupe) === 1;
+        if ($coupeMot) {
+            $candidat = rtrim($bordCoupe[1]);
+            $fin = $debut + strlen($candidat);
+        }
+
         $coupe = self::trouverSignesIsoles($candidat);
         if ($coupe !== null) {
             $candidat = rtrim(substr($candidat, 0, $coupe));
@@ -346,13 +360,14 @@ final class ExtraitsLisibles
             return [$candidat, $debut, $fin, true];
         }
 
-        return [$candidat, $debut, $fin, false];
+        return [$candidat, $debut, $fin, $coupeMot];
     }
 
     /**
      * Segments propres : suites maximales de mots acceptables, dont la tête et la queue sont élaguées
      * des jetons manifestement bruités (majuscules criardes, amas de voyelles, mots sans voyelle,
-     * majuscules internes). V2-10e.
+     * majuscules internes). V2-10f : un jeton implausible coupe vraiment le passage, y compris au
+     * milieu ; sinon « Post CHAG Martin » laisse le tampon OCR affiché.
      *
      * @param list<array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}> $jetons
      * @return list<array{i:int, j:int, debut:int, fin:int, rogneTete:bool, rogneQueue:bool}>
@@ -363,12 +378,12 @@ final class ExtraitsLisibles
         $segments = [];
         $i = 0;
         while ($i < $total) {
-            if (!$jetons[$i]['acceptable']) {
+            if (self::implausible($jetons[$i])) {
                 $i++;
                 continue;
             }
             $j = $i;
-            while ($j < $total && $jetons[$j]['acceptable']) {
+            while ($j < $total && !self::implausible($jetons[$j])) {
                 $j++;
             }
             [$a, $b, $rogneTete, $rogneQueue] = self::rognerBords($jetons, $i, $j);
@@ -407,17 +422,19 @@ final class ExtraitsLisibles
         $b = $j;
         $rogneTete = false;
         $rogneQueue = false;
-        $bruit = 0;
-        while ($a < $b && (self::implausible($jetons[$a]) || ($bruit > 0 && self::courtNonUsuel($jetons[$a])))) {
-            if (self::implausible($jetons[$a])) {
+        $bruit = $i > 0 && self::implausible($jetons[$i - 1]) ? 1 : 0;
+        while ($a < $b && (self::implausible($jetons[$a]) || self::fragmentDeBord($jetons[$a])
+            || ($bruit > 0 && self::courtNonUsuel($jetons[$a])))) {
+            if (self::implausible($jetons[$a]) || self::fragmentDeBord($jetons[$a])) {
                 $bruit++;
             }
             $a++;
             $rogneTete = true;
         }
-        $bruit = 0;
-        while ($b > $a && (self::implausible($jetons[$b - 1]) || ($bruit > 0 && self::courtNonUsuel($jetons[$b - 1])))) {
-            if (self::implausible($jetons[$b - 1])) {
+        $bruit = $j < count($jetons) && self::implausible($jetons[$j]) ? 1 : 0;
+        while ($b > $a && (self::implausible($jetons[$b - 1]) || self::fragmentDeBord($jetons[$b - 1])
+            || ($bruit > 0 && self::courtNonUsuel($jetons[$b - 1])))) {
+            if (self::implausible($jetons[$b - 1]) || self::fragmentDeBord($jetons[$b - 1])) {
                 $bruit++;
             }
             $b--;
@@ -427,7 +444,21 @@ final class ExtraitsLisibles
         return [$a, $b, $rogneTete, $rogneQueue];
     }
 
-    /** V2-10e — un mot court qui n'est ni un petit mot ni un mot usuel accompagne volontiers un bruit. */
+    /** V2-10f — un fragment de 1–2 lettres ne reste en bord que s'il est vraiment usuel dans une phrase. */
+    private static function fragmentDeBord(array $jeton): bool
+    {
+        if ($jeton['longueur'] > 2) {
+            return false;
+        }
+
+        return !in_array(self::sansAccents(mb_strtolower($jeton['lettres'])), [
+            'a', 'de', 'du', 'le', 'la', 'les', 'en', 'et', 'un', 'au', 'ce', 'se', 'ne',
+            'si', 'ou', 'on', 'il', 'el', 'di', 'da', 'in', 'im', 'am', 'an', 'zu', 'so', 'es',
+            'ch', 'sa', 'ag', 'ht',
+        ], true);
+    }
+
+    /** V2-10f — un mot court non usuel accompagne volontiers un bruit déjà trouvé en bord. */
     private static function courtNonUsuel(array $jeton): bool
     {
         return $jeton['longueur'] <= 4 && !self::motUsuel($jeton['lettres']);
@@ -462,13 +493,16 @@ final class ExtraitsLisibles
                 continue;
             }
             if (preg_match('/\p{N}/u', $mot) === 1) {
-                $votes[] = true;            // nombre ou montant
+                // Un montant ou une date est légitime ; « 29.90/22 » est au contraire une couture
+                // OCR qui ne peut pas servir de vote favorable.
+                $votes[] = !str_contains($mot, '/');
                 continue;
             }
             if (preg_match('/\p{L}/u', $mot) !== 1) {
                 continue;                    // signe pur
             }
-            $votes[] = !self::implausible(self::jetonDepuisMot($mot));
+            $jeton = self::jetonDepuisMot($mot);
+            $votes[] = !self::fragmentDeBord($jeton) && !self::implausible($jeton);
         }
         $n = count($votes);
         if ($n >= self::COURT_MOTS) {
@@ -476,7 +510,9 @@ final class ExtraitsLisibles
         }
         $plausibles = count(array_filter($votes));
 
-        return $plausibles * 2 < $n;
+        // À égalité, le seul mot recherché pourrait artificiellement « sauver » la fenêtre. Il faut
+        // donc une majorité stricte de votes plausibles, indépendamment du surlignage.
+        return $plausibles * 2 <= $n;
     }
 
     /** Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité. */
@@ -496,7 +532,7 @@ final class ExtraitsLisibles
     }
 
     /**
-     * V2-10e — vrai si le mot est manifestement un artefact : fragment, tout en majuscules non usuel,
+     * V2-10f — vrai si le mot est manifestement un artefact : fragment, tout en majuscules non usuel,
      * majuscule interne, amas de voyelles ou mot sans voyelle.
      */
     private static function implausible(array $jeton): bool
@@ -504,13 +540,43 @@ final class ExtraitsLisibles
         if ($jeton['longueur'] === 0) {
             return true;
         }
+        if (str_contains($jeton['t'], '-')) {
+            return false;
+        }
+        if (($jeton['bruitMele'] ?? false) === true) {
+            return true;
+        }
         if (!$jeton['acceptable']) {
+            // Un mot de trois lettres isolé (« Rue », « Mai ») est compté comme fragment par
+            // `propre()`, sans devenir pour autant une coupure dure : sinon une adresse saine est
+            // tronquée dès sa première préposition.
+            $minuscule = mb_strtolower($jeton['lettres']);
+            $sansVoyelle = preg_match('/[aeiouyàâäéèêëîïôöùûüœæ]/iu', $jeton['lettres']) !== 1;
+            $sigle = in_array(mb_strtoupper($jeton['lettres']), ['SA', 'AG', 'HT', 'CH', 'TVA', 'TTC', 'CHF', 'EUR'], true);
+
+            return !$sigle && $sansVoyelle && ($jeton['t'] === $minuscule || $jeton['t'] === mb_strtoupper($jeton['t']));
+        }
+        $toutMajuscules = $jeton['t'] === mb_strtoupper($jeton['t']);
+        $sigleAdmis = in_array($jeton['lettres'], ['SA', 'AG', 'HT', 'CH'], true);
+        // EN isolé entre des fragments n'est pas le mot allemand « en » : la casse est ici une trace
+        // du tampon OCR. Les sigles administratifs usuels restent, eux, explicitement admis.
+        if ($toutMajuscules && $jeton['longueur'] <= 2
+            && !$sigleAdmis) {
+            return true;
+        }
+        if ($jeton['longueur'] <= 2 && !$sigleAdmis && $jeton['t'] !== mb_strtolower($jeton['t']) && self::fragmentDeBord($jeton)) {
             return true;
         }
         if (self::motUsuel($jeton['lettres'])) {
             return false;
         }
-        if ($jeton['t'] === mb_strtoupper($jeton['t'])) {
+        $minuscule = mb_strtolower($jeton['lettres']);
+        // « xécution », « xxve » et « Qxec » : signatures synthétiques de mot coupé / OCR, pas des
+        // débuts de phrase plausibles. On ne généralise pas aux mots commençant par une consonne.
+        if (preg_match('/^(?:x[éèê]|xx|qx)/u', $minuscule) === 1) {
+            return true;
+        }
+        if ($toutMajuscules) {
             return true;
         }
         $suite = mb_substr($jeton['t'], 1);
@@ -540,6 +606,10 @@ final class ExtraitsLisibles
             if (!self::uniteSuspecte((string) $unite)) {
                 $precedent = null;
                 continue;
+            }
+            if (preg_match('/\p{L}|\p{N}/u', (string) $unite) === 1
+                && preg_match('/[;=\'\"]$/u', (string) $unite) === 1) {
+                return (int) $offset;
             }
             if ($precedent !== null) {
                 return $precedent;
@@ -593,8 +663,11 @@ final class ExtraitsLisibles
         $voyelles = 0;
         $longs = 0;
         foreach ($jetons as $jeton) {
-            if (!$jeton['acceptable']) {
+            if (!$jeton['acceptable'] || self::implausible($jeton)) {
                 $fragments++;
+            }
+            if (self::implausible($jeton)) {
+                return false;
             }
             if ($jeton['longueur'] >= self::LONGUEUR_MOT) {
                 $longs++;
@@ -624,17 +697,32 @@ final class ExtraitsLisibles
         if ($trouves === false || $trouves === 0) {
             return [];
         }
+        $melanges = preg_match_all('/\p{Ll}+\p{N}+\p{Lu}+/u', $texte, $trouvesMelanges, PREG_OFFSET_CAPTURE);
+        $zonesMelangees = [];
+        if ($melanges !== false) {
+            foreach ($trouvesMelanges[0] ?? [] as [$melange, $offset]) {
+                $zonesMelangees[] = [(int) $offset, (int) $offset + strlen($melange)];
+            }
+        }
         $jetons = [];
         foreach ($mots[0] as [$mot, $debut]) {
             $lettres = (string) preg_replace('/[^\p{L}]/u', '', $mot);
             $longueur = mb_strlen($lettres);
+            $melange = false;
+            foreach ($zonesMelangees as [$zoneDebut, $zoneFin]) {
+                if ($debut < $zoneFin && $debut + strlen($mot) > $zoneDebut) {
+                    $melange = true;
+                    break;
+                }
+            }
             $jetons[] = [
                 't' => $mot,
                 'lettres' => $lettres,
                 'debut' => $debut,
                 'fin' => $debut + strlen($mot),
                 'longueur' => $longueur,
-                'acceptable' => $longueur > self::LONGUEUR_FRAGMENT || self::petitMot($lettres),
+                'acceptable' => !$melange && ($longueur > self::LONGUEUR_FRAGMENT || self::petitMot($lettres)),
+                'bruitMele' => $melange,
             ];
         }
 
