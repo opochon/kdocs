@@ -60,3 +60,20 @@ de 10 000 documents (`tools/banc/charge.php`). Preuves : `recette/preuves/charge
 Preuve positive du reste de la chaîne : avec l'amorçage, la tâche finit en 137 s, **53/53 pièces rangées**,
 0 travail restant, 0 erreur, 53 documents déposés par le Socle — soit exactement le lot attendu.
 - 29-09 : demandes du banc de charge H-6 faites — `tache.php` s'arrête après deux tours à vide (le dossier ne prend un fichier qu'au second relevé) ; un lot dont toutes les pièces sont rangées passe en « range » (`Travaux::clore`) et n'est plus compté « en cours de lecture ».
+
+## Journal R1-chaine
+
+- Oracle rouge : `PiloteTest` couvre désormais la fabrique (classeur et `CMD4_VISION_ENABLED`), les champs proposés
+  dans le `.meta.json` et l'événement `document_depose` après dépôt.
+- Fait : `tools/tache.php ingestion` construit le `ClasseurGed` de production (Infomaniak seulement avec les clés
+  actives, sinon `ClientIaNul`), transmet Vision au découpeur, puis synchronise l'index plein texte par lot borné.
+- Fait : le Pilote avertit `Workflows\Ecouteur` après chaque dépôt réussi ; une panne Workflow reste isolée par le
+  contrat non levant de l'écouteur.
+- Fait : F1 compare chaque `.meta.json` aux types et émetteurs de `verite.json`, rejette tout validé faux et offre
+  `--avec-ia` lorsque `INFOMANIAK_AI_*` est activé.
+- Vert : `php vendor/bin/phpunit tests/php/Ingestion/PiloteTest.php --testdox` — 11 tests, 44 assertions ; F1 sans IA
+  — 53/53 pièces, 0 type faux, 0 émetteur faux, 0 validé faux (105,7 s).
+- Rejeu : `powershell -File tools/harness.ps1 -SansBanc` — unitaire 284/284, contrats et charge verts ; les deux
+  rouges d'écrans restent hors secteur, et les couches banc/personas sont volontairement rouges avec `-SansBanc`.
+
+ETAT: fini
