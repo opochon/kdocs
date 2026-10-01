@@ -241,3 +241,10 @@ commiter par le juge pour ce lot. Le seul fichier hors périmètre est `tests/ph
 dans `docs/secteurs/socle.md`.
 
 ETAT: fini
+
+### Jugement R1-droits (juge, 01-10 10:55, copie propre sur 67e0726)
+
+- Harness complet : 0, 1 (280 tests), 2, 3 (53/53, F1 franchie), 4 (35/35, dont `droits-reels.spec.ts` avec un compte réel), 6 (p95 lecture 979 ms) et 7 verts.
+- Recette réelle rejouée sur l'instance `GEDv2-recette` (installateur avec `admin@recette.local`, fonds de 48 pièces issues du scan de 103 pages, reconstruction F12 puis indexation) : l'administrateur ouvre l'aperçu et le fichier des documents ingérés (200, PDF servi). Avant ce lot : 403 pour tout compte réel.
+- Point produit à traiter plus tard, non bloquant : un compte non administrateur ne voit un document rangé qu'une fois une règle posée sur son dossier (refus par défaut, conforme à F10). Il faudra proposer des droits par défaut à l'installation (« tous les utilisateurs lisent le fonds » ou équivalent), à décider avec Olivier.
+- Verdict : **R1-droits franchi.**
