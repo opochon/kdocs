@@ -374,3 +374,73 @@ ETAT: fini
   5. **Barre du haut** : le raccourci « Ctrl K » reste visible sous 768 px, où il n'a pas de sens.
 - Harness rejoué par l'agent sur `bc72348` : aucun rouge fonctionnel dû au lot (maquettes a-traiter 3,9 s et 6-charge lecture : bruit de charge connu, hors interface).
 - Verdict : **V2-10a non franchi** (ergonomie). Les cinq défauts sont repris en **V2-10b**, avec un oracle visuel : pièce et « Valider » visibles sans défilement, aucun chevauchement de filtres, aucun texte anglais.
+
+## Journal V2-10b — reprise mobile après jugement — 01-10-2026
+
+Agent : DeepCode · Juge : Claude Code. Les cinq défauts d'ergonomie relevés à l'œil en recette réelle
+(compte réel, 48 documents d'un vrai scan, émulation iPhone 13). L'oracle automatique passait déjà
+(largeur, cibles 44 px, aperçu rendu) mais l'écran ne faisait pas ce qu'Olivier demandait.
+
+**Oracle d'abord (rouge, puis vert)**
+- `tests/e2e/mobile.spec.ts` complété, sur iPhone 13 **et** Pixel 7, compte réel, document ingéré par le
+  Pilote. Nouvelles exigences : (1) à l'ouverture d'À traiter, l'aperçu de la pièce ET le bouton
+  « Valider » sont ENTIÈREMENT dans la fenêtre, sans défilement (`window.scrollY = 0`), et le bilan est
+  la ligne compacte (les trois cartes sont masquées) ; (2) les filtres de Recherche, ouverts, ne se
+  recouvrent pas (contrôle des boîtes englobantes, paires parent/enfant exclues) ; (3) aucun
+  `ecran-ordinateur` sur À traiter, Recherche et la fiche ; (4) « Prendre une photo » / « Choisir des
+  fichiers » visibles, la liste porte le nom du fichier choisi, aucun texte anglais ; (5) « Ctrl K »
+  masqué sous 768 px.
+- Écrit ROUGE (le premier contrôle, « Ctrl K », échoue ; puis les autres), puis **2/2 verts**.
+
+**Fait — les cinq défauts**
+1. **À traiter** (`templates/ecrans/a-traiter.twig`, `ged.css`, `ged.js`) : la pièce d'abord — aperçu en
+   haut (pincer pour zoomer, déjà en place), proposition dessous ; le bilan devient une ligne compacte
+   (`data-testid="bilan-ligne"`) placée APRÈS la pièce, les trois cartes restant à l'ordinateur ; le pied
+   Valider/Corriger/Passer est **fixe** au-dessus des onglets, sur une seule ligne (les raccourcis
+   clavier y sont masqués), donc toujours au pouce ; la file reste une liste repliable ; le geste de
+   masse « Valider les suggestions sûres » ne s'affiche plus sur téléphone.
+2. **Recherche** (`templates/ecrans/recherche.twig`, `ged.css`, `ged.js`) : les filtres sont repliés
+   derrière un bouton « Filtres » ; ouverts, panneau pleine largeur, un champ par ligne. Sur ordinateur,
+   le panneau est en `display: contents` : la rangée de puces est **inchangée** (capture relue à l'œil).
+3. **Avis « écran conçu pour l'ordinateur »** (`templates/layout.twig`, `src/Ui/Ecrans.php`) : la fiche
+   document s'en retire (`avis_ordinateur: false`) sans perdre son entrée de rail Bibliothèque ; seuls
+   Bibliothèque, Métadonnées, Workflows et Application le gardent.
+4. **Déposer** (`templates/ecrans/deposer.twig`, `templates/partiels/icones.twig`, `ged.css`, `ged.js`) :
+   deux boutons français « Prendre une photo » (capture) et « Choisir des fichiers » pilotent le SEUL
+   champ de fichier, masqué — le libellé natif anglais n'est jamais visible ; la liste des fichiers
+   choisis montre nom, taille et vignette.
+5. **Barre du haut** (`ged.css`) : « Ctrl K » masqué sous 768 px.
+
+**Défaut réel trouvé en chemin (corrigé dans le lot)**
+- La vignette du dépôt via `URL.createObjectURL` déclenchait une violation CSP (`default-src 'self'`,
+  pas d'`img-src`) dans la console. Remplacée par un rendu `canvas` (`createImageBitmap`) : la vignette
+  ne charge donc aucune URL.
+
+**Preuves**
+- `npx playwright test tests/e2e/mobile.spec.ts` : **2/2 verts** (iPhone 13, Pixel 7, compte réel,
+  document du Pilote ; valider au pouce, filtres, fiche, dépôt par photo).
+- Non-régression bureau : `npx playwright test --workers=2` → **43 verts, 1 non joué, 2 rouges connus**
+  (`bibliotheque.spec` : 404 d'aperçu d'un document absent du fonds partagé ; `maquettes « écran
+  bibliotheque »` : 1,8 s > 1,5 s). Les deux sont **prouvés pré-existants** par `git stash` de tous mes
+  fichiers : ils échouent à l'identique sans le lot.
+- `harness.ps1 -SansBanc` (01-10, 13 min 36 s, commit `ecd5b75`) : **0-garde-fous VERT · 1-unitaire VERT
+  (341 tests, 1783 assertions) · 7-securite VERT · 2-contrat VERT** ; **4-écrans : 45 verts, 1 échec** —
+  l'unique échec est `maquettes « écran bibliotheque »` (dépassement du seuil de 1,5 s sur la base
+  partagée chargée par les 10 000 documents du banc), pas le lot. `3-banc` sautée (`-SansBanc`),
+  `5-personas` « pas encore écrite », `6-charge` ROUGE sur la lecture (p95 4 621 ms ≥ 1 500 ms,
+  ingestion finie) — perf mesurée hors Interface.
+
+**Demandes**
+- **Harness / bruit partagé** : sous la charge concurrente d'un autre agent, une même exécution des
+  parcours est tombée à `6 échecs / 28 verts` (budgets dépassés faute de CPU, base verrouillée), puis est
+  revenue à `1 échec / 45 verts` sur machine libre : le seul rouge restant est le seuil de 1,5 s de
+  Bibliothèque sur les 10 000 documents du banc. Une base par parcours reste la seule façon de mesurer
+  ces seuils sans le bruit de la base partagée (déjà demandé en V2-10a).
+- **Socle** : le rendu `canvas` des vignettes n'utilise ni `blob:` ni `data:` ; si la CSP gagne un jour
+  `img-src blob:`, on pourra revenir à un `<img>` plus simple.
+
+**Commits**
+`a07579c` oracle mobile V2-10b (`tests/e2e/mobile.spec.ts`) · `ecd5b75` adaptation téléphone
+(gabarits, CSS, JS).
+
+ETAT: fini
