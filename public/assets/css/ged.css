@@ -194,7 +194,10 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
 .wf-outil:hover { background: var(--hover); color: var(--text); }
 .wf-outil:active { cursor: grabbing; }
 .wf-canevas-boite { display: flex; flex-direction: column; min-height: 0; position: relative; }
-.wf-canevas { flex: 1; width: 100%; min-height: 360px; background: var(--surface-2); cursor: default; }
+.wf-canevas-barre { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.wf-canevas-barre [data-testid="workflows-zoom"] { min-width: 48px; text-align: center; color: var(--text-2); }
+.wf-outils .titre-section { text-transform: none; letter-spacing: normal; font-size: var(--fs); color: var(--text-2); }
+.wf-canevas { flex: 1; width: 100%; min-height: 360px; background: var(--surface-2); cursor: default; touch-action: none; }
 .wf-aide { margin: 0; padding: 8px 12px; border-top: 1px solid var(--border); }
 .wf-dialogue { border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); color: var(--text); box-shadow: var(--shadow); max-width: 420px; padding: 4px; }
 .wf-dialogue::backdrop { background: rgba(12, 16, 24, .45); }

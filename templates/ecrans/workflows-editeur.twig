@@ -25,8 +25,13 @@
     <section class="carte wf-outils" aria-label="Composants">
       <div class="volet-tete">{{ ic.i('flux') }}Composants</div>
       <div class="volet-corps" data-testid="workflows-outils">
+        {# Titres de groupes accentués (le `capitalize` de Twig laissait « Declencheurs », « Etats »). #}
+        {% set libelles_groupes = {
+          declencheurs: 'Déclencheurs', conditions: 'Conditions', actions: 'Actions',
+          etats: 'États', approbation: 'Approbation'
+        } %}
         {% for categorie, entrees in catalogue %}
-        <div class="titre-section">{{ categorie|capitalize }}</div>
+        <div class="titre-section">{{ libelles_groupes[categorie]|default(categorie|capitalize) }}</div>
         {% for e in entrees %}
         <button class="wf-outil" type="button" draggable="true" data-testid="outil-{{ e.type }}" data-type="{{ e.type }}"
           data-genre="{{ e.genre }}" title="{{ e.description }}">{{ e.libelle }}</button>
@@ -36,15 +41,27 @@
     </section>
 
     <section class="carte wf-canevas-boite" aria-label="Canevas du circuit">
+      {# Vue du canevas : le graphe est ajusté à l'ouverture, puis se zoome et se déplace (boutons, molette, clavier). #}
+      <div class="wf-canevas-barre" role="toolbar" aria-label="Vue du canevas">
+        <button class="btn discret icone" type="button" data-action="ajuster" data-testid="workflows-ajuster"
+          title="Ajuster le graphe à la vue (0)">⤢</button>
+        <button class="btn discret icone" type="button" data-action="zoom-arriere" data-testid="workflows-zoom-arriere"
+          title="Réduire (−)">−</button>
+        <span class="mono" data-testid="workflows-zoom" aria-live="polite">100 %</span>
+        <button class="btn discret icone" type="button" data-action="zoom-avant" data-testid="workflows-zoom-avant"
+          title="Agrandir (+)">+</button>
+      </div>
       <svg id="workflows-canevas" class="wf-canevas" data-testid="workflows-canevas" role="application"
-        aria-label="Canevas du circuit" tabindex="0">
+        aria-label="Canevas du circuit — ajusté à la vue, zoomez avec la molette ou + / −, flèches pour déplacer" tabindex="0">
         <defs>
           <marker id="wf-fleche" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
             <path d="M0 0 L9 3 L0 6 z" fill="currentColor"></path>
           </marker>
         </defs>
-        <g id="wf-liens"></g>
-        <g id="wf-noeuds"></g>
+        <g id="wf-vue">
+          <g id="wf-liens"></g>
+          <g id="wf-noeuds"></g>
+        </g>
       </svg>
       <p class="wf-aide muted" data-testid="workflows-aide">Glissez un composant depuis la gauche, reliez une sortie
         (●) à une entrée, cliquez un nœud pour le régler. Double-cliquez une liaison pour la supprimer.</p>

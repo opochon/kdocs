@@ -132,16 +132,6 @@
     {% endif %}
   </section>
 
-  <details class="carte" data-testid="a-porter">
-    <summary class="volet-tete" style="cursor:pointer; list-style:none">Composants GEDv1 non portés
-      <span class="muted">— {{ a_porter|length }} nœuds que le moteur GEDv2 n’exécute pas encore</span></summary>
-    <div class="panneau">
-      <ul class="liste">
-        {% for n in a_porter %}<li class="l2"><span class="mono">{{ n.type }}</span> — {{ n.libelle }} : {{ n.raison }}</li>{% endfor %}
-      </ul>
-    </div>
-  </details>
-
   {% endif %}
 </div>
 {% endblock %}

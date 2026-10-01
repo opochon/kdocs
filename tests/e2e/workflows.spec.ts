@@ -205,3 +205,72 @@ test('workflows : ouvrir le gabarit, changer le seuil, ajouter un état, relier,
     await fermer();
   }
 });
+
+test('designer : graphe ajusté à la vue, zoomable (boutons, molette, clavier), titres accentués, plus de section technique', async ({ browser }) => {
+  const { page, fermer } = await pageConnectee(browser);
+  try {
+    await ouvrirGabarit(page);
+
+    // a) Les titres de groupes sont accentués et en casse de phrase (« Déclencheurs », pas « DECLENCHEURS »).
+    const titres = await page.locator('[data-testid="workflows-outils"] .titre-section').allInnerTexts();
+    expect(titres.map((t) => t.trim())).toEqual(['Déclencheurs', 'Conditions', 'Actions', 'États', 'Approbation']);
+
+    // b) La section « Composants GEDv1 non portés » (information de développeur) a quitté l'écran.
+    await expect(page.getByTestId('a-porter')).toHaveCount(0);
+    expect(await page.locator('body').innerText()).not.toContain('Composants GEDv1 non portés');
+
+    const canevas = page.getByTestId('workflows-canevas');
+    await expect(canevas).toBeVisible();
+
+    // c) À l'ouverture, le graphe est ajusté à la vue : chaque nœud tient dans le canevas.
+    const cadre = await canevas.boundingBox();
+    expect(cadre).not.toBeNull();
+    const noeuds = page.locator('[data-testid^="noeud-"]');
+    const nombre = await noeuds.count();
+    expect(nombre).toBeGreaterThan(1);
+    for (let i = 0; i < nombre; i++) {
+      const boite = await noeuds.nth(i).boundingBox();
+      expect(boite, `nœud ${i} mesurable`).not.toBeNull();
+      if (!boite || !cadre) continue;
+      expect(boite.x, `nœud ${i} déborde à gauche`).toBeGreaterThanOrEqual(cadre.x - 2);
+      expect(boite.y, `nœud ${i} déborde en haut`).toBeGreaterThanOrEqual(cadre.y - 2);
+      expect(boite.x + boite.width, `nœud ${i} déborde à droite`).toBeLessThanOrEqual(cadre.x + cadre.width + 2);
+      expect(boite.y + boite.height, `nœud ${i} déborde en bas`).toBeLessThanOrEqual(cadre.y + cadre.height + 2);
+    }
+
+    const zoom = async (): Promise<number> => Number((await canevas.getAttribute('data-zoom')) ?? '0');
+
+    // d) Boutons de zoom : « + » agrandit, « − » réduit.
+    const z0 = await zoom();
+    await page.getByTestId('workflows-zoom-avant').click();
+    const z1 = await zoom();
+    expect(z1, `zoom après + (${z0} → ${z1})`).toBeGreaterThan(z0);
+    await page.getByTestId('workflows-zoom-arriere').click();
+    expect(await zoom()).toBeLessThan(z1);
+
+    // e) Molette au-dessus du canevas : agrandit vers le pointeur.
+    await canevas.hover();
+    await page.mouse.wheel(0, -400);
+    expect(await zoom()).toBeGreaterThan(z0);
+
+    // f) Clavier : « 0 » ajuste, « + » agrandit.
+    await canevas.focus();
+    await page.keyboard.press('0');
+    const ajuste = await zoom();
+    await page.keyboard.press('+');
+    expect(await zoom()).toBeGreaterThan(ajuste);
+
+    // g) Le bouton « Ajuster » ramène le graphe dans le canevas.
+    await page.getByTestId('workflows-zoom-avant').click();
+    await page.getByTestId('workflows-ajuster').click();
+    const cadre2 = await canevas.boundingBox();
+    for (let i = 0; i < nombre; i++) {
+      const boite = await noeuds.nth(i).boundingBox();
+      if (!boite || !cadre2) continue;
+      expect(boite.x).toBeGreaterThanOrEqual(cadre2.x - 2);
+      expect(boite.x + boite.width).toBeLessThanOrEqual(cadre2.x + cadre2.width + 2);
+    }
+  } finally {
+    await fermer();
+  }
+});

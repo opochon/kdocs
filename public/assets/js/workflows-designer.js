@@ -16,11 +16,13 @@ function initialiser(racine) {
   if (!donnees) return;
 
   const svg = document.getElementById('workflows-canevas');
+  const coucheVue = document.getElementById('wf-vue');
   const coucheLiens = document.getElementById('wf-liens');
   const coucheNoeuds = document.getElementById('wf-noeuds');
   const panneau = document.querySelector('[data-testid="panneau-reglages"]');
   const statut = document.querySelector('[data-testid="statut-enregistrement"]');
   const dialogue = document.getElementById('wf-dialogue');
+  const indicateurZoom = document.querySelector('[data-testid="workflows-zoom"]');
 
   const catalogue = donnees.catalogue || {};
   const champsPosables = donnees.champs_posables || [];
@@ -36,8 +38,13 @@ function initialiser(racine) {
   let suite = prochainNumero();
   let glissement = null;
   let liaison = null;
+  let panoramique = null;
+  // Vue du canevas : translation (x, y) + échelle (k). Le graphe est ajusté à l'ouverture, puis
+  // se zoome (molette, boutons, clavier) et se déplace (fond du canevas, flèches).
+  const vue = { x: 0, y: 0, k: 1 };
 
   rendre();
+  ajuster();
 
   // ------------------------------------------------------------------ rendu
 
@@ -47,6 +54,67 @@ function initialiser(racine) {
     graphe.liens.forEach(rendreLien);
     graphe.noeuds.forEach(rendreNoeud);
     surlignerEssai();
+  }
+
+  // ------------------------------------------------------------------ vue (ajustement, zoom, déplacement)
+
+  function appliquerVue() {
+    coucheVue.setAttribute('transform', `translate(${vue.x} ${vue.y}) scale(${vue.k})`);
+    svg.setAttribute('data-zoom', String(Math.round(vue.k * 100)));
+    if (indicateurZoom) indicateurZoom.textContent = Math.round(vue.k * 100) + ' %';
+  }
+
+  /** Bornes du dessin (nœuds de 160 px de large) dans le repère du canevas. */
+  function bornesGraphe() {
+    const largeur = 160;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    graphe.noeuds.forEach((n) => {
+      const h = hauteur(entrees[n.type]);
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + largeur);
+      maxY = Math.max(maxY, n.y + h);
+    });
+    return { minX, minY, maxX, maxY, largeur: Math.max(1, maxX - minX), hauteur: Math.max(1, maxY - minY) };
+  }
+
+  /** Ajuste le graphe à la vue : l'échelle tient le dessin entier dans le canevas, puis le centre. */
+  function ajuster() {
+    const largeur = Math.max(1, svg.clientWidth);
+    const hauteurVue = Math.max(1, svg.clientHeight);
+    if (graphe.noeuds.length === 0) {
+      vue.k = 1; vue.x = 0; vue.y = 0;
+      appliquerVue();
+      return;
+    }
+    const b = bornesGraphe();
+    const marge = 24;
+    vue.k = Math.min(2, Math.max(0.1, Math.min((largeur - marge * 2) / b.largeur, (hauteurVue - marge * 2) / b.hauteur)));
+    vue.k = Math.round(vue.k * 100) / 100;
+    vue.x = (largeur - b.largeur * vue.k) / 2 - b.minX * vue.k;
+    vue.y = (hauteurVue - b.hauteur * vue.k) / 2 - b.minY * vue.k;
+    appliquerVue();
+  }
+
+  /** Zoome d'un facteur autour d'un point du canevas (par défaut : le centre de la vue). */
+  function zoomer(facteur, cx, cy) {
+    const avant = vue.k;
+    vue.k = Math.min(3, Math.max(0.1, Math.round(vue.k * facteur * 100) / 100));
+    if (vue.k === avant) return;
+    const ancreX = Number.isFinite(cx) ? cx : (largeurVue() / 2 - vue.x) / avant;
+    const ancreY = Number.isFinite(cy) ? cy : (hauteurVue() / 2 - vue.y) / avant;
+    vue.x = (Number.isFinite(cx) ? cx : largeurVue() / 2) - ancreX * vue.k;
+    vue.y = (Number.isFinite(cy) ? cy : hauteurVue() / 2) - ancreY * vue.k;
+    appliquerVue();
+  }
+
+  function largeurVue() { return Math.max(1, svg.clientWidth); }
+  function hauteurVue() { return Math.max(1, svg.clientHeight); }
+
+  /** Convertit un point écran en coordonnées du canevas (tient compte de la vue). */
+  function versCanevas(clientX, clientY) {
+    const cadre = svg.getBoundingClientRect();
+    return { x: ((clientX - cadre.left) - vue.x) / vue.k, y: ((clientY - cadre.top) - vue.y) / vue.k };
   }
 
   function hauteur(entree) {
@@ -138,8 +206,8 @@ function initialiser(racine) {
       if (e.target.classList.contains('wf-sortie')) demarrerLiaison(noeud, e);
       return;
     }
-    const cadre = svg.getBoundingClientRect();
-    glissement = { noeud, dx: e.clientX - cadre.left - noeud.x, dy: e.clientY - cadre.top - noeud.y };
+    const depart = versCanevas(e.clientX, e.clientY);
+    glissement = { noeud, dx: depart.x - noeud.x, dy: depart.y - noeud.y };
     selectionner(noeud.id);
     document.addEventListener('mousemove', glisserNoeud);
     document.addEventListener('mouseup', arreterGlissement);
@@ -147,9 +215,9 @@ function initialiser(racine) {
 
   function glisserNoeud(e) {
     if (!glissement) return;
-    const cadre = svg.getBoundingClientRect();
-    glissement.noeud.x = Math.max(0, Math.round(e.clientX - cadre.left - glissement.dx));
-    glissement.noeud.y = Math.max(0, Math.round(e.clientY - cadre.top - glissement.dy));
+    const point = versCanevas(e.clientX, e.clientY);
+    glissement.noeud.x = Math.max(0, Math.round(point.x - glissement.dx));
+    glissement.noeud.y = Math.max(0, Math.round(point.y - glissement.dy));
     rendre();
   }
 
@@ -160,10 +228,10 @@ function initialiser(racine) {
   }
 
   function demarrerLiaison(noeudSource, e) {
-    const cadre = svg.getBoundingClientRect();
+    const depart = versCanevas(e.clientX, e.clientY);
     liaison = { source: noeudSource.id, sortie: e.target.getAttribute('data-sortie') || 'default',
       trait: creer('line', { class: 'wf-temp', x1: noeudSource.x + 160, y1: noeudSource.y + hauteur(entrees[noeudSource.type]) / 2,
-        x2: e.clientX - cadre.left, y2: e.clientY - cadre.top }) };
+        x2: depart.x, y2: depart.y }) };
     coucheLiens.appendChild(liaison.trait);
     document.addEventListener('mousemove', suivreLiaison);
     document.addEventListener('mouseup', terminerLiaison);
@@ -171,9 +239,9 @@ function initialiser(racine) {
 
   function suivreLiaison(e) {
     if (!liaison) return;
-    const cadre = svg.getBoundingClientRect();
-    liaison.trait.setAttribute('x2', e.clientX - cadre.left);
-    liaison.trait.setAttribute('y2', e.clientY - cadre.top);
+    const point = versCanevas(e.clientX, e.clientY);
+    liaison.trait.setAttribute('x2', point.x);
+    liaison.trait.setAttribute('y2', point.y);
   }
 
   function terminerLiaison(e) {
@@ -448,9 +516,52 @@ function initialiser(racine) {
   svg.addEventListener('drop', (e) => {
     e.preventDefault();
     const type = e.dataTransfer.getData('text/plain');
-    const cadre = svg.getBoundingClientRect();
-    if (type) ajouter(type, e.clientX - cadre.left - 80, e.clientY - cadre.top - 28);
+    const point = versCanevas(e.clientX, e.clientY);
+    if (type) ajouter(type, point.x - 80, point.y - 28);
   });
+
+  // Molette : zoom vers le pointeur. Ctrl+molette est laissé au navigateur (pas d'effet de bord).
+  svg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const point = versCanevas(e.clientX, e.clientY);
+    zoomer(e.deltaY < 0 ? 1.1 : 1 / 1.1, point.x, point.y);
+  }, { passive: false });
+
+  // Clavier : « 0 » ajuste, « + / − » zoome, les flèches déplacent la vue.
+  svg.addEventListener('keydown', (e) => {
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomer(1.2); }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomer(1 / 1.2); }
+    else if (e.key === '0') { e.preventDefault(); ajuster(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); vue.x += 40; appliquerVue(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); vue.x -= 40; appliquerVue(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); vue.y += 40; appliquerVue(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); vue.y -= 40; appliquerVue(); }
+  });
+
+  // Déplacement : glisser le fond du canevas (les nœuds gardent leur glisser-déposer).
+  svg.addEventListener('mousedown', (e) => {
+    if (e.target !== svg && e.target.id !== 'wf-vue' && e.target.id !== 'wf-liens' && e.target.id !== 'wf-noeuds') return;
+    panoramique = { x: e.clientX - vue.x, y: e.clientY - vue.y };
+    document.addEventListener('mousemove', deplacerPanoramique);
+    document.addEventListener('mouseup', arreterPanoramique);
+  });
+
+  function deplacerPanoramique(e) {
+    if (!panoramique) return;
+    vue.x = e.clientX - panoramique.x;
+    vue.y = e.clientY - panoramique.y;
+    appliquerVue();
+  }
+
+  function arreterPanoramique() {
+    panoramique = null;
+    document.removeEventListener('mousemove', deplacerPanoramique);
+    document.removeEventListener('mouseup', arreterPanoramique);
+  }
+
+  document.querySelector('[data-testid="workflows-ajuster"]')?.addEventListener('click', ajuster);
+  document.querySelector('[data-testid="workflows-zoom-avant"]')?.addEventListener('click', () => zoomer(1.2));
+  document.querySelector('[data-testid="workflows-zoom-arriere"]')?.addEventListener('click', () => zoomer(1 / 1.2));
   svg.addEventListener('click', (e) => {
     if (e.target === svg || e.target.id === 'wf-liens' || e.target.id === 'wf-noeuds') {
       selection = null;
