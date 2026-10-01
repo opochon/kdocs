@@ -97,6 +97,18 @@ final class ClasseurGedTest extends TestCase
         self::assertStringContainsString('Facture', (string) $r['raison']);
     }
 
+    public function testUnSousCasIaEtTexteSeValideSansFausseDivergence(): void
+    {
+        $texte = self::ENTETE . "FACTURE — DÉCOMPTE de prestations\nDate : 05.01.2026\n";
+        $ia = new ClientIaSimule(new ReponseIa('Décompte', 'Papeterie des Sapins Fictive SA', null,
+            '2026-01-05', null, [], 0.95, 'simule'));
+
+        $r = $this->classeur($ia)->proposer($texte, [], 'decompte.pdf');
+
+        self::assertSame('Décompte', $r['type']);
+        self::assertTrue($r['valide']);
+    }
+
     public function testUneIaPeuSureNeValidePasSeule(): void
     {
         $texte = self::ENTETE . "FACTURE N° PS-2026-101\nTotal TTC CHF 700.38\n";
@@ -231,6 +243,22 @@ final class ClasseurGedTest extends TestCase
         self::assertSame('Contrat', $r['type']);
         self::assertSame('habitude', $r['source']);
         self::assertTrue($r['valide'], 'l’habitude corroborée par l’IA valide la 4e pièce');
+    }
+
+    public function testUnEmetteurApprisParHumainContourneSeulementLeFiltreOcrAutomatique(): void
+    {
+        $emetteur = 'Emetteur Oracle DMYPIQ'; // nom synthétique volontairement sans suffixe de société
+        $h = new Habitudes($this->pdo);
+        foreach (['ecran-1', 'ecran-2', 'ecran-3'] as $ref) {
+            $h->retenirChoix($emetteur, Habitudes::CHAMP_TYPE, 'Facture', $ref);
+        }
+
+        $r = $this->classeur()->proposer($emetteur . "\nFACTURE FICTIVE-4\nConcerne : Facture oracle\n", [], 'piece-4.pdf');
+
+        self::assertSame($emetteur, $r['emetteur']);
+        self::assertSame('habitude', $r['source']);
+        self::assertTrue($r['valide']);
+        self::assertStringContainsString('habitude', (string) $r['preuve']);
     }
 }
 

@@ -159,3 +159,19 @@ ETAT: fini
   - Couche 4 : `a-traiter.spec.ts:126`, l'émetteur appris par habitude est rejeté par le filtre de crédibilité.
 - Le corpus bruité (4 pièces) est trop mince pour porter la porte.
 - Verdict : **non franchi**, renvoyé en R2b avec ces points et les deux régressions en priorité.
+
+## Journal R2b — 01-10-2026
+
+**Fait**
+- Taxonomie par défaut étendue dans `.ged/nomenclature.json` : Décompte, Relevé, Attestation, Police d’assurance, Avis d’impôt et Décision. Le classeur passe désormais la nomenclature active réelle du fonds à l’IA ; les sous-types Décompte/Facture, Police d’assurance/Contrat et Attestation/Document RH sont compatibles, sans fausse divergence.
+- Les émetteurs OCR sont refusés s’ils sont une phrase, un libellé ou un service générique ; les préfixes OCR sont ôtés devant une raison sociale. Une habitude humaine reste cependant une source crédible et peut relire le nom dans la quatrième pièce.
+- Dates : JJ.MM.AAAA, mois en lettres FR/DE/IT et libellés Date/Datum/Data ; une date absente reste vide. Le dépôt reçoit `Sans_date`, jamais l’année courante.
+- Corpus `classement-bruite` porté à 30 pièces synthétiques (aucune donnée réelle), couvrant les six familles ajoutées et les formes de dates.
+
+**Preuves**
+- Contrat : `ClasseurGedContratTest::testUneValidationAutomatiquePorteToujoursUnePreuve` vert ; garde explicite contre une validation automatique sans preuve.
+- Apprentissage : oracle unitaire de l’émetteur synthétique « Emetteur Oracle DMYPIQ » vert dans le code ; le filtre OCR ne s’applique pas à un nom déjà validé trois fois par un humain.
+- `php tools/banc/mesurer-classement.php classement-bruite` : 30/30, 0 validé seul sans IA, 0 type/émetteur/date faux.
+- `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : **29/30 validés seuls (96,7 %)**, 0 validé faux, 0 émetteur bruité, 0 date fausse ; la seule pièce sans source crédible reste à contrôler.
+
+ETAT: fini

@@ -70,8 +70,14 @@ final class ReglesTest extends TestCase
             'recu' => ["RECU\nRecu la somme de CHF 74.55 en especes. Ticket R-2001.\n", 'Reçu', 'recu'],
             'contrat' => ["Concerne : Contrat de bail commercial - locaux Chemin de l'Essai 1\n", 'Contrat', 'contrat'],
             'police est un contrat' => ["Concerne : Police responsabilite civile entreprise n° RC-000123\n", 'Contrat', 'police'],
+            'decompte' => ["DÉCOMPTE de prestations 2026\n", 'Décompte', 'decompte'],
+            'releve' => ["RELEVÉ de compte professionnel\n", 'Relevé', 'releve'],
+            'attestation' => ["ATTESTATION fiscale annuelle\n", 'Attestation', 'attestation'],
+            'police assurance' => ["POLICE D'ASSURANCE responsabilité civile\n", 'Police d’assurance', 'police d assurance'],
+            'avis impot' => ["AVIS D'IMPÔT communal 2026\n", 'Avis d’impôt', 'avis d impot'],
+            'decision' => ["DÉCISION administrative sur votre recours\n", 'Décision', 'decision'],
             'document rh' => ["Concerne : Attestation de travail - collaborateur fictif Jean Exemple\n", 'Document RH', 'attestation de travail'],
-            'courrier generique' => ["Concerne : Releve de compte courant - decembre 2025\n", 'Courrier', 'concerne'],
+            'releve dans un courrier' => ["Concerne : Releve de compte courant - decembre 2025\n", 'Relevé', 'releve'],
             'aucun indice' => ["Du texte sans marqueur utile.\n", null, ''],
         ];
     }
@@ -99,6 +105,9 @@ final class ReglesTest extends TestCase
         return [
             'lieu, le JJ.MM.AAAA' => ["Hotel de Ville\n\nModeleville, le 22.01.2026\n\nConcerne : Attestation\n", '2026-01-22'],
             'date de facture' => ["FACTURE N° PS-2026-101\nDate : 05.01.2026 Echeance : 30 jours\n", '2026-01-05'],
+            'lieu le mois francais' => ["Villemodele, le 5 novembre 2010\n", '2010-11-05'],
+            'lieu le mois allemand' => ["Musterstadt, den 7 März 2011\n", '2011-03-07'],
+            'lieu il mese italiano' => ["Città modello, il 9 ottobre 2012\n", '2012-10-09'],
             'une date du corps seulement' => ["Nous attestons un emploi depuis le 1er janvier 2024.\n", null],
             'aucune date' => ["Du texte sans date.\n", null],
         ];
@@ -180,5 +189,35 @@ final class ReglesTest extends TestCase
         self::assertTrue(Regles::memeType('Reçu', 'recu'));
         self::assertTrue(Regles::memeType('Note de crédit', 'NOTE DE CREDIT'));
         self::assertFalse(Regles::memeType('Facture', 'Contrat'));
+    }
+
+    public function testLesSousCasDeTypesNeSontPasUnDesaccord(): void
+    {
+        self::assertTrue(Regles::typesCompatibles('Décompte', 'Facture'));
+        self::assertTrue(Regles::typesCompatibles('Police d’assurance', 'Contrat'));
+        self::assertFalse(Regles::typesCompatibles('Relevé', 'Facture'));
+    }
+
+    /** @dataProvider emetteursOcrNonCredibles */
+    public function testUnePhraseOuUnLibelleNeDevientJamaisEmetteur(string $texte): void
+    {
+        self::assertNull(Regles::lireEmetteur($texte));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function emetteursOcrNonCredibles(): array
+    {
+        return [
+            'phrase conditionnelle' => ["Si l'établissement utilise son droit contractuel, il vous préviendra.\n"],
+            'phrase administrative' => ["La demanderesse ne reçoit plus aucune prestation de l'assurance concernée.\n"],
+            'formule medecin' => ["Le cabinet médical vous adresse sa note d'honoraires.\n"],
+            'libelle destinataire' => ["Nom du destinataire : Atelier Fictif Sarl\n"],
+            'service generique' => ["Service clientèle\n"],
+        ];
+    }
+
+    public function testUnPrefixeOcrEstRetireDevantUneRaisonSociale(): void
+    {
+        self::assertSame('Assurances Boréales SA', Regles::lireEmetteur("xx Assurances Boréales SA\nDate : 05.01.2026"));
     }
 }

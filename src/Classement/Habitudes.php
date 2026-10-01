@@ -101,4 +101,27 @@ final class Habitudes
             'confiance' => min(0.99, 0.81 + 0.03 * $serie),
         ];
     }
+
+    /**
+     * Un émetteur déjà choisi par un humain est crédible par définition. On ne court-circuite pas le
+     * filtre OCR pour les propositions automatiques : cette recherche ne retourne qu'une ligne dont la
+     * forme exacte a déjà été enregistrée par l'écran de validation.
+     */
+    public function emetteurApprisDansTexte(string $texte): ?string
+    {
+        try {
+            $cles = $this->pdo->query("SELECT DISTINCT emetteur_cle FROM classement_choix WHERE source = 'humain'")
+                ->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Throwable) {
+            return null;
+        }
+        foreach (preg_split('/\R/', mb_substr($texte, 0, 2000)) ?: [] as $ligne) {
+            $nom = trim((string) preg_replace('/[`*#_>|]+/', ' ', $ligne));
+            if ($nom !== '' && in_array(Regles::normaliser($nom), $cles, true)) {
+                return $nom;
+            }
+        }
+
+        return null;
+    }
 }

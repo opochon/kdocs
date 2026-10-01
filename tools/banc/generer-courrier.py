@@ -175,13 +175,13 @@ def composer():
         return doc("Note de crédit" if titre.startswith("NOTE") else "Facture", tiers, date, pages, ttc, scan, numerote, cas)
 
     fac("papeterie", "PS-2026-101", "05.01.2026", 3, 0)
-    doc("Courrier", "gerance", "08.01.2026", pages_texte("gerance", "08.01.2026", "Decompte de charges 2025", paras("Charges", 6), "GIM-2026-01", par_page=3), scan=True)
+    doc("Décompte", "gerance", "08.01.2026", pages_texte("gerance", "08.01.2026", "Decompte de charges 2025", paras("Charges", 6), "GIM-2026-01", par_page=3), scan=True)
     D.append({"blanche": True})
-    doc("Courrier", "banque", "10.01.2026", pages_texte("banque", "10.01.2026", "Releve de compte courant - decembre 2025", paras("Mouvements du mois", 9), "REL-12-2025", par_page=3), cas="releve 3 pages numerotees")
+    doc("Relevé", "banque", "10.01.2026", pages_texte("banque", "10.01.2026", "Releve de compte courant - decembre 2025", paras("Mouvements du mois", 9), "REL-12-2025", par_page=3), cas="releve 3 pages numerotees")
     fac("atelier", "AN-5001", "12.01.2026", 16, 3, scan=True, numerote=False, cas="facture 2 pages SANS numerotation, scan")
     doc("Contrat", "gerance", "15.01.2026", pages_texte("gerance", "15.01.2026", "Contrat de bail commercial - locaux Chemin de l'Essai 1", paras("Clause du bail", 20), "BAIL-2026-07", par_page=4), cas="contrat 5 pages numerotees")
     doc("Reçu", "garage", "16.01.2026", pages_texte("garage", "16.01.2026", "RECU", ["Recu la somme de CHF 74.55 en especes. Ticket R-2001."], "R-2001", numeroter=False), 74.55, scan=True, numerote=False)
-    doc("Courrier", "office", "18.01.2026", pages_texte("office", "18.01.2026", "Decision sur opposition - dossier fictif 2026-114", paras("Considerant", 14), "DEC-2026-114", numeroter=False, par_page=4, titre_suite=False),
+    doc("Décision", "office", "18.01.2026", pages_texte("office", "18.01.2026", "Decision sur opposition - dossier fictif 2026-114", paras("Considerant", 14), "DEC-2026-114", numeroter=False, par_page=4, titre_suite=False),
         scan=True, numerote=False, cas="decision 4 pages scannees SANS numerotation ni rappel d'objet (le plus dur)")
     fac("atelier", "AN-5001-NC", "20.01.2026", 1, 5, titre="NOTE DE CREDIT")
     # Attestation adressee au proprietaire de la GED : Document RH (sinon Courrier) — regle d'Olivier 28-09.
@@ -197,7 +197,7 @@ def composer():
     doc("Courrier", "gerance", "18.02.2026", pages_texte("gerance", "18.02.2026", "Travaux dans l'immeuble", paras("Planning", 2), "TRV-2026", numeroter=False), scan=True, numerote=False)
     fac("garage", "GB-4410", "20.02.2026", 5, 7, scan=True, cas="page scannee a l'envers", )
     doc("Contrat", "assurance", "01.03.2026", pages_texte("assurance", "01.03.2026", "Police responsabilite civile entreprise n° RC-000123", paras("Condition generale", 24), "RC-000123", par_page=4), cas="contrat 6 pages")
-    doc("Courrier", "banque", "10.03.2026", pages_texte("banque", "10.03.2026", "Releve de compte courant - fevrier 2026", paras("Mouvements du mois", 6), "REL-02-2026", par_page=3), scan=True)
+    doc("Relevé", "banque", "10.03.2026", pages_texte("banque", "10.03.2026", "Releve de compte courant - fevrier 2026", paras("Mouvements du mois", 6), "REL-02-2026", par_page=3), scan=True)
     fac("atelier", "AN-5044", "12.03.2026", 3, 6)
     doc("Courrier", "commune", "15.03.2026", pages_texte("commune", "15.03.2026", "Taxe des dechets 2026 - information", ["La taxe de base des dechets pour les entreprises est fixee a CHF 180.00 pour 2026."], "TD-2026", numeroter=False), numerote=False)
     doc("Reçu", "energie", "16.03.2026", pages_texte("energie", "16.03.2026", "RECU", ["Recu la somme de CHF 51.20 (acompte). Ticket R-2003."], "R-2003", numeroter=False), 51.20, scan=True, numerote=False)

@@ -6,6 +6,7 @@ namespace Ged\Classement;
 
 use Ged\Config;
 use Ged\Contrats\Classeur;
+use Ged\Socle\Nomenclature;
 use PDO;
 use Throwable;
 
@@ -50,17 +51,18 @@ final class ClasseurGed implements Classeur
         $reponseIa = null;
         if ($this->ia->disponible() && trim($texte) !== '') {
             try {
-                $reponseIa = $this->ia->classer($texte, $nomFichier, Regles::typesConnus());
+                $reponseIa = $this->ia->classer($texte, $nomFichier, $this->typesDuFonds());
             } catch (Throwable) {
                 $reponseIa = null;
             }
         }
         $emetteurIa = Regles::emetteurIaCredible($texte, $reponseIa?->emetteur, $proprietaire);
+        $emetteurAppris = $emetteurRegle === null ? $this->habitudes->emetteurApprisDansTexte($texte) : null;
         // L'IA est prioritaire pour la proposition : elle peut reconnaître le logo ou le pied de page. Une
         // validation seule demandera ensuite que ce nom soit corroboré par la lecture ou une habitude.
-        $emetteur = $emetteurIa ?? $emetteurRegle;
-        $emetteurCorrobore = $emetteurIa !== null && $emetteurRegle !== null
-            && Regles::memeType($emetteurIa, $emetteurRegle);
+        $emetteur = $emetteurIa ?? $emetteurRegle ?? $emetteurAppris;
+        $emetteurCorrobore = $emetteurAppris !== null || ($emetteurIa !== null && $emetteurRegle !== null
+            && Regles::memeType($emetteurIa, $emetteurRegle));
 
         $habitude = $emetteur !== null ? $this->habitudes->habitude($emetteur, Habitudes::CHAMP_TYPE) : null;
 
@@ -79,8 +81,7 @@ final class ClasseurGed implements Classeur
             $preuve = 'habitude : ' . $habitude['choix'] . ' choix identiques pour cet émetteur';
             $confiance = (float) $habitude['confiance'];
             $valide = true;
-            $typeCorrobore = $reponseIa !== null && $reponseIa->confiance >= $this->seuil
-                && Regles::memeType($reponseIa->type, $type);
+            $typeCorrobore = true;
         } else {
             $typeTexte = $indiceRegle['type'] ?? null;
             $typeIa = $reponseIa?->type;
@@ -88,10 +89,10 @@ final class ClasseurGed implements Classeur
             $iaCorrobore = $indiceRegle !== null
                 && $typeIa !== null
                 && $reponseIa->confiance >= $this->seuil
-                && Regles::memeType($typeIa, $typeTexte);
+                && Regles::typesCompatibles($typeIa, $typeTexte);
 
             if ($iaCorrobore) {
-                $type = $typeTexte;
+                $type = Regles::memeType($typeIa, $typeTexte) ? $typeTexte : $typeIa;
                 $source = 'ia';
                 $preuve = 'ia + ' . $indiceRegle['preuve'];
                 $confiance = max($indiceRegle['confiance'], $reponseIa->confiance);
@@ -107,7 +108,7 @@ final class ClasseurGed implements Classeur
                     $raison = 'IA indisponible';
                 } elseif ($typeIa === null) {
                     $raison = 'IA sans type : le texte seul ne valide pas';
-                } elseif (!Regles::memeType($typeIa, $typeTexte)) {
+                } elseif (!Regles::typesCompatibles($typeIa, $typeTexte)) {
                     $raison = 'IA et texte divergent : IA=' . $typeIa . ', texte=' . $typeTexte;
                 } else {
                     $raison = 'confiance IA insuffisante (' . round($reponseIa->confiance, 2) . ' < ' . $this->seuil . ')';
@@ -127,7 +128,10 @@ final class ClasseurGed implements Classeur
         $dateRegle = Regles::dateEnTete($texte) ?? $this->dateFacture($analyse);
         $dateIa = Regles::datePlausible($reponseIa?->date) ? $reponseIa?->date : null;
         $dateDocument = $dateRegle;
-        $dateCorroboree = $dateRegle !== null && $dateIa !== null && $dateRegle === $dateIa;
+        // Une date absente reste absente : le dépôt la rangera sous Sans_date, jamais sous l'année du jour.
+        // Si les deux sources en donnent une, elles doivent concorder ; une date lue dans l'en-tête est
+        // en elle-même une source crédible, l'IA ne doit pas bloquer son absence.
+        $dateCorroboree = $dateRegle === null || $dateIa === null || $dateRegle === $dateIa;
 
         if ($valide && Regles::estAutre($type)) {
             $valide = false;
@@ -152,8 +156,11 @@ final class ClasseurGed implements Classeur
         }
         if ($valide && !$dateCorroboree) {
             $valide = false;
-            $raison = $dateDocument === null ? 'date du document non crédible ou absente'
-                : 'date à contrôler : IA et document ne concordent pas';
+            $raison = 'date à contrôler : IA et document ne concordent pas';
+        }
+        if ($valide && trim((string) $preuve) === '') {
+            $valide = false;
+            $raison = 'preuve automatique absente';
         }
         if (!$valide && $raison === null) {
             $raison = 'à contrôler';
@@ -208,5 +215,20 @@ final class ClasseurGed implements Classeur
 
         return array_values(array_filter(array_map('trim', explode(',', (string) $h['valeur'])),
             static fn (string $v): bool => $v !== ''));
+    }
+
+    /** @return list<string> */
+    private function typesDuFonds(): array
+    {
+        try {
+            $types = (new Nomenclature($this->config))->types();
+            if ($types !== []) {
+                return $types;
+            }
+        } catch (Throwable) {
+            // Fonds antérieur à V2-04 ou registre momentanément indisponible : repli compatible.
+        }
+
+        return Regles::typesConnus();
     }
 }

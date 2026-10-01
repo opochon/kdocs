@@ -17,9 +17,15 @@ final class Regles
 {
     /** Indices forts, du plus spécifique au plus générique. Un contrat de travail est RH, pas Contrat. */
     private const INDICES = [
-        'Note de crédit' => ['note de credit', 'gutschrift', 'credit note'],
         'Document RH' => ['attestation de travail', 'certificat de travail', 'fiche de paie', 'bulletin de paie',
             'contrat de travail', 'decompte de salaire', 'employeur', 'lohn'],
+        'Avis d’impôt' => ['avis d impot', 'bordereau d impot', 'taxation fiscale'],
+        'Police d’assurance' => ['police assurance', 'police d assurance', 'versicherungspolice', 'polizza assicurativa'],
+        'Décision' => ['decision', 'decisione', 'decision administrative', 'decision judiciaire', 'decision sur', 'verfugung', 'sentenza'],
+        'Décompte' => ['decompte', 'decompte de prestations', 'abrechnung', 'conteggio'],
+        'Relevé' => ['releve', 'releve de compte', 'releve bancaire', 'auszug', 'estratto conto'],
+        'Attestation' => ['attestation', 'attestation fiscale', 'attestation annuelle', 'bescheinigung', 'attestazione'],
+        'Note de crédit' => ['note de credit', 'gutschrift', 'credit note'],
         'Facture' => ['facture', 'invoice', 'rechnung', 'fattura', 'avis de paiement', 'net a payer'],
         'Contrat' => ['contrat', 'convention', 'avenant', 'soussign', 'les parties', 'vertrag', 'police'],
         'Reçu' => ['recu', 'quittance', 'ticket', 'quittung', 'encaisse', 'paye le'],
@@ -30,7 +36,8 @@ final class Regles
     private const CONF_COURRIER = 0.82;
 
     /** Types connus tant que la nomenclature (V2-04) n'existe pas. */
-    private const TYPES_CONNUS = ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Document RH', 'Courrier'];
+    private const TYPES_CONNUS = ['Facture', 'Note de crédit', 'Reçu', 'Contrat', 'Courrier', 'Document RH',
+        'Décompte', 'Relevé', 'Attestation', 'Police d’assurance', 'Avis d’impôt', 'Décision'];
 
     /** Mots trop courts ou trop génériques pour identifier un émetteur. */
     private const MOTS_VIDES = ['sa', 'sarl', 'sagl', 'ag', 'gmbh', 'snc', 'holding', 'les', 'des', 'du', 'de', 'la', 'le', 'the'];
@@ -146,6 +153,22 @@ final class Regles
         return null;
     }
 
+    /** Deux noms qui désignent le même dossier métier (un type précis et son type parent). */
+    public static function typesCompatibles(?string $a, ?string $b): bool
+    {
+        if (self::memeType($a, $b)) {
+            return true;
+        }
+        $paire = [self::normaliser((string) $a), self::normaliser((string) $b)];
+        sort($paire);
+
+        return in_array($paire, [
+            ['decompte', 'facture'],
+            ['contrat', 'police d assurance'],
+            ['attestation', 'document rh'],
+        ], true);
+    }
+
     /** Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation. */
     public static function emetteurIaCredible(string $texte, ?string $nom, string $proprietaire = ''): ?string
     {
@@ -190,17 +213,26 @@ final class Regles
         $lignes = preg_split('/\R/', mb_substr($texte, 0, 2000)) ?: [];
         foreach ($lignes as $ligne) {
             $normalise = self::normaliser($ligne);
-            if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $ligne, $m) !== 1
-                || preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien)\b/', $normalise) === 1) {
+            if (preg_match('/\b(naissance|ne le|nee le|periode|prestation|depuis|archive|ancien)\b/', $normalise) === 1) {
                 continue;
             }
-            $estDateDocument = preg_match('/\bdate\b|,\s*le\s+\d{1,2}\.|\ble\s+\d{1,2}\./iu', $ligne) === 1;
-            if (!$estDateDocument) {
-                continue;
+            if (preg_match('/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/', $ligne, $m) === 1) {
+                $estDateDocument = preg_match('/\b(date|datum|data)\b|,\s*le\s+\d{1,2}\.|\b(?:le|den|il)\s+\d{1,2}\./iu', $ligne) === 1;
+                if ($estDateDocument) {
+                    $date = sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
+                    if (checkdate((int) $m[2], (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
+                        return $date;
+                    }
+                }
             }
-            $date = sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
-            if (checkdate((int) $m[2], (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
-                return $date;
+            if (preg_match('/(?:,\s*|\b)(?:le|den|il)\s+(\d{1,2})\s+([a-zà-ÿ]+)\s+(\d{4})\b/iu', $ligne, $m) === 1) {
+                $mois = self::mois($m[2]);
+                if ($mois !== null) {
+                    $date = sprintf('%04d-%02d-%02d', (int) $m[3], $mois, (int) $m[1]);
+                    if (checkdate($mois, (int) $m[1], (int) $m[3]) && self::datePlausible($date)) {
+                        return $date;
+                    }
+                }
             }
         }
 
@@ -259,7 +291,32 @@ final class Regles
         $ligne = preg_replace('/[\p{Z}]+/u', ' ', $ligne) ?? $ligne;
         $ligne = preg_replace('/[`*#_>|]+/', ' ', $ligne) ?? '';
 
-        return trim((string) preg_replace('/\s+/', ' ', $ligne));
+        $ligne = trim((string) preg_replace('/\s+/', ' ', $ligne));
+        // Débris de reconnaissance au début d'un logo/pied de page : on ne les garde que s'ils
+        // précèdent une vraie raison sociale, contrôlée ensuite par candidatEmetteur().
+        $ligne = preg_replace('/^(?:[\[\](){}|~^`«»._-]{1,}|(?:xx|ee|ooo|lll))\s+/iu', '', $ligne) ?? $ligne;
+
+        return trim($ligne);
+    }
+
+    private static function mois(string $nom): ?int
+    {
+        static $mois = [
+            'janvier' => 1, 'januar' => 1, 'gennaio' => 1,
+            'fevrier' => 2, 'februar' => 2, 'febbraio' => 2,
+            'mars' => 3, 'marz' => 3, 'marzo' => 3,
+            'avril' => 4, 'april' => 4, 'aprile' => 4,
+            'mai' => 5, 'maggio' => 5,
+            'juin' => 6, 'juni' => 6, 'giugno' => 6,
+            'juillet' => 7, 'juli' => 7, 'luglio' => 7,
+            'aout' => 8, 'august' => 8, 'agosto' => 8,
+            'septembre' => 9, 'september' => 9, 'settembre' => 9,
+            'octobre' => 10, 'oktober' => 10, 'ottobre' => 10,
+            'novembre' => 11, 'november' => 11,
+            'decembre' => 12, 'dezember' => 12, 'dicembre' => 12,
+        ];
+
+        return $mois[self::normaliser($nom)] ?? null;
     }
 
     private static function candidatEmetteur(string $candidat, string $proprietaire): bool
@@ -277,7 +334,8 @@ final class Regles
         if ($n === '') {
             return false;
         }
-        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page)\b/', $n) === 1) {
+        if (preg_match('/^(adresse|adresse principale|la banque se reserve|la banque se reserve le droit|page|si |la |le |nous |vous |nom du destinataire)\b/', $n) === 1
+            || in_array($n, ['service clientele', 'service client'], true)) {
             return false;
         }
         $mots = preg_split('/\s+/', $n) ?: [];
@@ -296,7 +354,7 @@ final class Regles
 
         // Une raison sociale, une autorité ou une marque institutionnelle : sans ce signal, une ligne OCR
         // quelconque ne doit pas devenir un dossier du fonds.
-        if (preg_match('/\b(sa|sarl|sagl|ag|gmbh|association|fondation|commune|canton|service|office|banque|assurance|energie|energies|poste)\b/', $n) !== 1) {
+        if (preg_match('/\b(sa|sarl|sagl|ag|gmbh|association|fondation|fondazione|commune|comune|canton|service|office|banque|assurance|energie|energies|poste)\b/', $n) !== 1) {
             return false;
         }
 
