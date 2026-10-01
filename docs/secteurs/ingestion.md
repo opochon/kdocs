@@ -77,3 +77,10 @@ Preuve positive du reste de la chaîne : avec l'amorçage, la tâche finit en 13
   rouges d'écrans restent hors secteur, et les couches banc/personas sont volontairement rouges avec `-SansBanc`.
 
 ETAT: fini
+
+### Jugement R1-chaine (juge, 01-10 11:06, copie propre sur 0c8217f)
+
+- Harness complet : 0, 1 (284 tests), 2, 3 (53/53, F1 franchie), 4 (35/35), 6 (p95 lecture 1 142 ms) et 7 verts.
+- Recette réelle rejouée (instance `GEDv2-recette`, vrai scan de 103 pages, fonds vierge) : la tâche d'ingestion découpe AVEC la vision, classe (IA Infomaniak), range 48 pièces en 7 min, indexe d'elle-même (48 textes, recherche immédiate) et rattache les droits ; l'aperçu s'ouvre pour un compte réel. Le branchement demandé est fait.
+- Ce que la recette révèle, hors du périmètre de ce lot : sur du vrai papier, l'émetteur vient d'une ligne d'en-tête OCR bruitée et la date est souvent fausse, et 19 pièces sur 48 sont validées seules dont une quinzaine fausses. Renvoyé au secteur Classement en lot R2-classement (porte sur un corpus bruité synthétique).
+- Verdict : **R1-chaine franchi** (branchement) ; qualité du classement réel suivie en R2.
