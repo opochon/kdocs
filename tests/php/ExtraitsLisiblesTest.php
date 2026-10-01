@@ -246,4 +246,16 @@ final class ExtraitsLisiblesTest extends TestCase
         self::assertCount(1, $surligue, 'le terme trouvé reste surligné');
         self::assertSame('Simplon', $surligue[0]['t']);
     }
+
+    /** V2-10f : le seul terme trouvé ne sauve jamais une fenêtre courte majoritairement bruitée. */
+    public function testLeTermeSurligneNeSauvePasUnExtraitBruite(): void
+    {
+        $extrait = [[
+            ['t' => 'i xxve 2 29.90/22 Qxec (a Vi 58 ', 'hit' => false],
+            ['t' => 'Facture', 'hit' => true],
+            ['t' => ' ; i', 'hit' => false],
+        ]];
+
+        self::assertSame([], ExtraitsLisibles::retenir($extrait));
+    }
 }

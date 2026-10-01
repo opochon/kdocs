@@ -244,4 +244,55 @@ return [
         'attendu' => null,
         'interdits' => ['ALPHA', 'GAMMA', 'DELTA'],
     ],
+
+    // ------------------------------------------------------------------ V2-10f — jugement : terme, bornes et fragments résiduels
+    [
+        'nom' => 'extrait court bruité malgré le terme recherché',
+        'categorie' => 'bruit',
+        'texte' => 'i xxve 2 29.90/22 Qxec (a Vi 58 Facture ; i',
+        'attendu' => null,
+        'interdits' => ['xxve', 'Qxec', 'Facture'],
+    ],
+    [
+        'nom' => 'début coupé au milieu du mot',
+        'categorie' => 'mixte',
+        'texte' => 'xécution du contrat prend effet le 16 octobre 2026.',
+        'attendu' => 'du contrat prend effet le 16 octobre 2026.',
+        'interdits' => ['xécution'],
+    ],
+    [
+        'nom' => 'fragment bref coupé en tête',
+        'categorie' => 'mixte',
+        'texte' => 'y, le 16 octobre 2026, le contrat est renouvelé.',
+        'attendu' => 'le 16 octobre 2026, le contrat est renouvelé.',
+        'interdits' => ['y'],
+    ],
+    [
+        'nom' => 'fragment bref coupé en queue après une adresse',
+        'categorie' => 'mixte',
+        'texte' => 'Le courrier confirme la Grande-Rue 5 ce',
+        'attendu' => 'Le courrier confirme la Grande-Rue 5',
+        'interdits' => ['ce'],
+    ],
+    [
+        'nom' => 'groupe de majuscules parasite au milieu',
+        'categorie' => 'mixte',
+        'texte' => 'Post CHAG Martin signe le contrat le 16 octobre 2026.',
+        'attendu' => 'Martin signe le contrat le 16 octobre 2026.',
+        'interdits' => ['Post', 'CHAG'],
+    ],
+    [
+        'nom' => 'fragments isolés avant le groupe en majuscules',
+        'categorie' => 'mixte',
+        'texte' => 'Le contrat reste valable tins er EN jusqu au 30 octobre 2026.',
+        'attendu' => 'Le contrat reste valable',
+        'interdits' => ['tins', 'er', 'EN'],
+    ],
+    [
+        'nom' => 'mot mêlé de chiffres et fin apostrophe parasite',
+        'categorie' => 'mixte',
+        'texte' => "La demande peu or0T reste situatioy' conforme au contrat valide.",
+        'attendu' => 'La demande peu',
+        'interdits' => ['or0T', "situatioy'"],
+    ],
 ];
