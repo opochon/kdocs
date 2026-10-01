@@ -19,8 +19,8 @@ use PDO;
  */
 final class Moteur
 {
-    /** Champs connus du `.meta.json` qu'une action « poser » peut modifier. */
-    private const CHAMPS_POSABLES = ['titre', 'type', 'emetteur', 'date', 'montant', 'statut'];
+    /** Champs connus du `.meta.json` qu'une action « poser » peut modifier (publics : le designer les propose). */
+    public const CHAMPS_POSABLES = ['titre', 'type', 'emetteur', 'date', 'montant', 'statut'];
 
     private readonly Horloge $horloge;
     private readonly Regles $regles;

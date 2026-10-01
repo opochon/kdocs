@@ -42,12 +42,13 @@ final class Circuits
         return $this->chercher('gabarit', $gabarit);
     }
 
-    /** Crée un circuit : nom, etats[], transitions[], gabarit?, actif?. */
+    /** Crée un circuit : nom, etats[], transitions[], gabarit?, actif?, graphe? (disposition du designer). */
     public function creer(array $circuit): int
     {
         $corps = json_encode([
             'etats' => array_values((array) ($circuit['etats'] ?? [])),
             'transitions' => array_values((array) ($circuit['transitions'] ?? [])),
+            'graphe' => is_array($circuit['graphe'] ?? null) ? $circuit['graphe'] : null,
         ], JSON_UNESCAPED_UNICODE);
 
         $this->pdo->prepare('INSERT INTO workflow_definitions (genre, nom, gabarit, actif, declencheur, corps)'
@@ -60,6 +61,28 @@ final class Circuits
             ]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Met à jour un circuit existant (jamais de suppression) : nom, gabarit, actif, états, transitions,
+     * disposition du designer. L'identifiant et l'historique des instances restent intacts.
+     */
+    public function mettreAJour(int $id, array $circuit): void
+    {
+        $corps = json_encode([
+            'etats' => array_values((array) ($circuit['etats'] ?? [])),
+            'transitions' => array_values((array) ($circuit['transitions'] ?? [])),
+            'graphe' => is_array($circuit['graphe'] ?? null) ? $circuit['graphe'] : null,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $this->pdo->prepare("UPDATE workflow_definitions SET nom = ?, gabarit = ?, actif = ?, corps = ?"
+            . " WHERE id = ? AND genre = 'circuit'")->execute([
+                (string) ($circuit['nom'] ?? 'Circuit sans nom'),
+                isset($circuit['gabarit']) && $circuit['gabarit'] !== '' ? (string) $circuit['gabarit'] : null,
+                !empty($circuit['actif']) ? 1 : 0,
+                $corps,
+                $id,
+            ]);
     }
 
     /** L'instance d'un document dans un circuit, ou null. @return array<string, mixed>|null */
@@ -92,6 +115,7 @@ final class Circuits
                 'actif' => (bool) $ligne['circuit_actif'],
                 'etats' => array_values((array) ($corps['etats'] ?? [])),
                 'transitions' => array_values((array) ($corps['transitions'] ?? [])),
+                'graphe' => is_array($corps['graphe'] ?? null) ? $corps['graphe'] : null,
             ];
             $instances[] = $instance;
         }
@@ -181,6 +205,7 @@ final class Circuits
             'actif' => (bool) $ligne['actif'],
             'etats' => array_values((array) ($corps['etats'] ?? [])),
             'transitions' => array_values((array) ($corps['transitions'] ?? [])),
+            'graphe' => is_array($corps['graphe'] ?? null) ? $corps['graphe'] : null,
         ];
     }
 
