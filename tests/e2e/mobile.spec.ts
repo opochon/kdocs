@@ -113,9 +113,12 @@ function passerTachePhoto(nom: string): { document: number; titre: string } {
 
 /** Le contrôle automatique du lot : pas de débordement horizontal, cibles de commande ≥ 44 px. */
 async function verifierMobile(page: Page): Promise<void> {
+  // Après un geste qui déclenche un POST (requestSubmit), la navigation peut être en cours : on attend le
+  // document, sinon `document.body` peut être nul le temps du remplacement (course observée en parallèle).
+  await page.locator('body').waitFor({ state: 'attached' });
   const mesure = await page.evaluate(() => {
     const ecran = window.innerWidth;
-    const largeur = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+    const largeur = Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0);
     // Cibles de COMMANDE (boutons, onglets, champs, lignes actionnables) — les liens en ligne du texte
     // courant ne sont pas des cibles tactiles.
     const selection = 'button, [role="tab"], summary, select, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), a.btn, .onglets-bas a, .rail a, .liste a, .resultat a:not(.btn)';
