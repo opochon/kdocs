@@ -632,3 +632,13 @@ voyelles que l'ancienne heuristique (60 % de lettres, 60 % de mots à voyelle) j
 `8aeecc2` oracle mobile (pièces bruitée et mélangée).
 
 ETAT: fini
+
+## Jugement V2-10d — 01-10-2026 (juge : Claude Code)
+
+- Relu sur la recette réelle (`653e569`, iPhone 13), trois recherches (« Visana », « facture », « assurance »), soit 25 extraits « Documents semblables ».
+- Net progrès : environ deux tiers des extraits sont propres (factures d'énergie, d'entretien et d'expertise, polices, rappels). La tête des extraits est rognée.
+- Restent bruités environ 7 extraits sur 25, de trois formes (paraphrasées) :
+  - **un fragment parasite en tête ou en queue d'un extrait sinon lisible** (« PostC. " », « ieee Post CHAG », « ... la », « Va ») ;
+  - **extrait court presque entièrement fait de bruit** (« i feve 2 29.90/22 Qvec (a Vi 58 Facture ; i », « ayable par ï 4 dedues Ont Postion! Rares a ») ;
+  - **ponctuation parasite** au milieu d'un texte lisible (« contac; = »).
+- Verdict : **V2-10d non franchi** (le critère « aucun bruit affiché » n'est pas tenu sur le vrai papier). Repris en **V2-10e** : rogner aussi la queue, refuser les extraits courts majoritairement bruités, centrer l'extrait sur le terme cherché.
