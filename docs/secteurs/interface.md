@@ -703,6 +703,7 @@ Interface), sans toucher à `src/Classement` ni à `src/Ingestion`.
 
 **Commits**
 `7fd1624` oracle V2-10e (corpus + test) · `f8332a6` heuristique (extraits + branchement) ·
-`044ce40` rattachement visuel (gabarit + CSS) · `e79604b` oracle mobile (fenêtre et lien).
+`044ce40` rattachement visuel (gabarit + CSS) · `e79604b` oracle mobile (fenêtre et lien) ·
+`94f3934` repli sur le segment propre quand l'occurrence du terme est bruitée (extraits).
 
 ETAT: fini
