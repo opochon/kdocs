@@ -55,5 +55,10 @@
   </main>
 </div>
 <script src="/assets/js/ged.js" type="module"></script>
+{# La visionneuse est un comportement partagé : chargée UNE fois pour tous les écrans qui incluent la macro
+   `visionneuse.moteur` (À traiter, Bibliothèque, Fiche, Recherche). L'écran « À traiter » l'avait oubliée
+   et restait sur « Chargement de l'aperçu… » ; le charger ici rend l'oubli impossible. Le script ne fait
+   rien quand la page n'a pas de `[data-visionneuse]`, et pdf.js ne part qu'à la première visionneuse PDF. #}
+<script src="/assets/js/visionneuse.js" type="module"></script>
 </body>
 </html>
