@@ -312,3 +312,20 @@ ETAT: fini
   - les factures vétérinaires sont toujours sans date et l'une est encore typée Relevé ; le gage hypothécaire est encore typé Décompte.
 - Écart banc/réel toujours important : le corpus « réaliste » donne 45/48 et le vrai papier 9/48.
 - Verdict : **R2e franchi sur la sûreté et la validation** (0 validé faux, 9 validées justes, 7 min). **Non franchi sur la qualité des émetteurs et des types** : régressions renvoyées en **R2f**.
+
+## Journal R2f — 02-10-2026
+
+**Fait**
+- Destinataire : le bloc postal après Madame/Monsieur, ou nom + rue + NPA/localité suivi d'un autre en-tête, est exclu. Deux apparitions sur des références distinctes l'inscrivent dans le registre reconstructible `classement_choix` (champ `destinataire`) ; il est alors refusé aussi lorsqu'il est proposé par l'IA. Aucun fichier du Socle n'est modifié.
+- Émetteur : chaque mot est contrôlé ; fragments de 1–2 caractères hors particules, signes OCR internes, mots de liaison initiaux et suffixe `POPULATION Per.` sont refusés. Un bruit de tête ne se rogne que s'il précède une raison sociale structurée. Une raison avec barre oblique et GmbH revient sous sa forme Sàrl canonique.
+- Type et titre : une police automobile/accident ou un avis de prime reste `Police d’assurance` malgré une lettre ; Courrier ne prime que sans marqueur de pièce. Sans type, le repli est `Courrier`, à contrôler, et un titre IA réduit à une date est remplacé par l'objet de la pièce.
+- Corpus : `classement-bruite` compte 65 pièces synthétiques, incluant le foyer récurrent, sept bruits émetteur, polices, avis de prime, facture vétérinaire complète et gage hypothécaire.
+
+**Preuves**
+- Oracles rouges initiaux : destinataire proposé comme émetteur, sept formes OCR, trois polices/primes devenues Courrier, titre IA réduit à une date et apprentissage du destinataire récurrent.
+- `php vendor/bin/phpunit tests/php/Classement` : 122 tests, 664 assertions, vert.
+- `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : 65/65, 54 validées seules (83,1 %), 0 validé faux, 0 type faux, 0 émetteur faux, 8 émetteurs vides publiés (12,3 %), 1/13 date de facture vide (7,7 %), porte franchie. Sans IA : 0 validation seule.
+- `courrier-100p` sans IA : 53/53, 0 validé faux, 0 émetteur faux. Avec IA réelle : 53 requêtes pour 53 pièces, 47 validées seules (88,7 %), 0 validé faux, 0 émetteur faux, 154,06 s.
+- `powershell -File tools\harness.ps1` : 588 s ; garde-fous, 408 tests / 2 310 assertions, découpe 53/53, banc, 46 écrans, sécurité, contrat et charge verts. Personas seule est absente.
+
+ETAT: fini
