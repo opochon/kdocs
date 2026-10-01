@@ -208,4 +208,8 @@ ETAT: fini
 - PHPUnit ciblé : 117 tests, 547 assertions, vert, sans avertissement PHPUnit (Classement, contrat, Pilote, rangement et reconstruction).
 - `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : **29/30 validées seules (96,7 %)**, 0 type/émetteur/date faux, 0 « Autre » validé, porte franchie.
 
-ETAT: fini
+**Demandes**
+- Interface : adapter `tests/e2e/a-traiter.spec.ts:126` à la règle R2c. Sa quatrième pièce apprise ne porte ni date documentaire ni réponse IA, donc elle doit désormais rester à contrôler ; le scénario doit lui fournir les trois preuves ou attendre ce statut.
+- Ingestion : le harness du 01-10 laisse la charge incomplète à 37/53 après expiration de `tools/tache.php ingestion --budget=300 --tours=200` (16 travaux non finis, 0 erreur). À reprendre dans le secteur Ingestion ; ce lot n’a modifié ni le budget ni la reprise.
+
+ETAT: bloqué — harness non entièrement vert : scénario Interface obsolète et charge Ingestion expirée hors périmètre

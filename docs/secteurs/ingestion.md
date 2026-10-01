@@ -98,5 +98,6 @@ ETAT: fini
 
 - Le Pilote choisit désormais le détenteur de chaque page AVANT de créer les travaux : pour un recouvrement, le texte qui contient explicitement le marqueur de page l’emporte ; à égalité, la première sortie reste déterministe.
 - Oracle synthétique : A=`[85,86]` sans marqueur 86, B=`[86]` avec « Page 86 » ; le même Pilote que `tools/tache.php` range 85 et 86 une fois chacun.
+- À reprendre par Ingestion : `harness.ps1 -SansBanc` du 01-10 expire sa charge à 37/53 pièces après `tools/tache.php ingestion --budget=300 --tours=200` (16 travaux non finis, zéro erreur). Aucun paramètre de reprise ou de budget n’a été modifié par R2c.
 
-ETAT: fini
+ETAT: bloqué — charge du harness incomplète, hors correction de frontière Vision
