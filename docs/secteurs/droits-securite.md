@@ -1,6 +1,6 @@
 # Secteur DROITS & SÉCURITÉ — connexion, sessions, garde centrale, audit
 
-Agent : Codex · Juge : Claude Code · Lot en cours : V2-07a
+Agent : DeepCode · Juge : à désigner · Lot en cours : R1-droits
 
 ## Mission
 Personne n'accède à rien sans une autorisation vérifiée côté serveur par UNE garde centrale (refus par défaut).
@@ -172,5 +172,54 @@ ETAT: fini (jugé)
   jeton de formulaire sont inchangés.
 - Preuves : `vendor\\bin\\phpunit tests\\php\\Securite\\SecuriteTest.php --filter ConnexionSansCsrf` vert
   (1 test, 3 assertions) ; `php tools\\banc\\contrat.php` vert (sortie 0 : toutes les routes déclarées sont couvertes).
+
+ETAT: fini
+
+## Journal R1-droits — rattachement des documents rangés aux dossiers de droits
+
+**Défaut constaté en recette réelle** : les 48 pièces rangées par l'ingestion n'appartenaient à aucun
+dossier de droits (`securite_dossiers` vide). `GardeCentrale::documentAutorise()` recevait `null` de
+`dossierPourDocument()` et refusait l'aperçu, le fichier et la fiche à TOUT compte réel, administrateur
+compris. Le harness restait vert parce que ses parcours se connectent avec le compte synthétique (id
+nul), qui contourne les droits par dossier.
+
+- Oracle d'abord : `tests/php/Securite/RattachementDroitsTest.php` écrit rouge (`assurerDossierPourChemin`
+  absente, aperçu admin = 403, installateur acceptant `--admin=admin`), puis vert.
+- Fait — correction à la source :
+  - `DroitsDossiers::assurerDossierPourChemin()` garantit le dossier ACL d'un document depuis son chemin
+    du fonds : chaque niveau devient un dossier, enfant du précédent (héritage du parent), sans jamais
+    dupliquer ni écraser un dossier existant.
+  - `DepotFichiers::enregistrer()` (dépôt, indexeur, reconstruction F12), `mettreAJour()` (changement de
+    rangement) et `restaurer()` rattachent leur chemin ; `Indexeur::passer()` rattrape les documents DÉJÀ
+    indexés (branche « intouché ») et les déplacements. Appels d'une ligne gardés par `class_exists`.
+  - `Schema` : `securite_dossiers.id` est auto-incrémenté et réserve son espace d'identifiants à partir
+    de `DOSSIER_ID_AUTO_MIN` (1 000 000) pour ne JAMAIS retomber sur un dossier posé explicitement par
+    l'administration ou les tests (une collision réécrivait le dossier en silence).
+  - Un compte au rôle admin (`*`) voit tout (`GardeCentrale`) ; pour les autres rôles, rien n'est relâché :
+    un document rangé sans règle de dossier reste refusé (F10).
+  - `Authentification` : un compte RÉEL en base reste vérifiable sous `APP_ENV=test` (le compte synthétique
+    est conservé) — sans quoi aucune recette réelle ne pourrait se connecter.
+  - `tools/installer.php` : `--admin` exige une adresse de courriel valide (`FILTER_VALIDATE_EMAIL`), validée
+    AVANT toute action sur la base ; aide corrigée. `tests/php/Socle/InstallateurTest.php` adapté au courriel
+    (modification minimale signalée dans `socle.md`).
+- Parcours Playwright (défaut 2) : `tests/e2e/preparer-droits.php` + `tests/e2e/droits-reels.spec.ts` créent un
+  compte RÉEL (mot de passe haché, rôle admin) et font ingérer un document par le VRAI `Pilote` (lot
+  synthétique → découpe simulée → `DepotFichiers`). Le parcours se connecte avec ce compte et ouvre l'aperçu
+  et la fiche ; sans session, la même route répond 403. La préparation échoue si le document rangé n'a pas
+  de dossier ACL : ce parcours aurait attrapé le défaut 1.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite` vert (16 tests, 112 assertions) ; suite entière verte
+  sauf `Ingestion\\PiloteTest::testLaFabriqueBrancheLeClasseurEtLeReglageVision` (`Fabrique::classeur()`),
+  travail concurrent d'un autre secteur, hors de ce lot ; Playwright vert **35 parcours** (dont le nouveau) ;
+  sonde offensive verte (« aucun contournement accepté »). Le harness `-SansBanc` est rejoué en fin de lot.
+- Commits : `ac77153` (oracle R1), `49581a5` (rattachement aux dossiers de droits, Socle compris),
+  `3aa7681` (admin voit tout, compte réel en test), `5ec801a` (installateur = courriel), `f21e2bb`
+  (parcours e2e d'un compte réel). Chaque commit porte `Co-Authored-By: DeepCode <noreply@deepcode>`.
+
+### Fichiers partagés (règle « un agent = un secteur »)
+
+Aucune ligne ajoutée dans `src/Securite/DroitsRoutes.php` ni dans `tools/banc/sonde-securite.php` : rien à
+commiter par le juge pour ce lot. Le seul fichier hors périmètre est `tests/php/Socle/InstallateurTest.php`
+(le test de l'installateur devait suivre le passage de `--admin=admin` à une adresse de courriel), signalé
+dans `docs/secteurs/socle.md`.
 
 ETAT: fini

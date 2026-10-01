@@ -123,6 +123,25 @@ Le scellement vit dans le dossier (`.scellement/<fichier>.json` + `.tsr`), jamai
 au schéma ni à la reconstruction. Merci de confirmer ces appels au prochain lot Socle (garde `class_exists`,
 le Socle ne dépend pas du tout du secteur Archivage).
 
+## Demande reçue de DROITS & SÉCURITÉ (R1, DeepCode, 01-10) — rattachement aux dossiers de droits
+
+Correction minimale signalée dans `src/Socle/DepotFichiers.php` et `src/Socle/Indexeur.php`, exactement
+pour le rattachement au dossier (le Socle ne dépend pas du secteur Droits, garde `class_exists`, une base
+sans schéma d'ACL ne fait jamais échouer un dépôt ni une indexation) :
+```php
+(new \Ged\Securite\DroitsDossiers($this->pdo))->assurerDossierPourChemin($cheminRelatif);
+```
+- appelé par `DepotFichiers::enregistrer()` (dépôt, indexeur d'un fichier posé à la main, reconstruction F12),
+  `mettreAJour()` (changement de rangement) et `restaurer()` ;
+- appelé par `Indexeur::passer()` sur un document DÉJÀ indexé (branche « intouché ») et après un déplacement,
+  pour rattraper les fonds repris d'une version antérieure.
+
+Sans ce rattachement, `GardeCentrale` refuse l'aperçu de tout document rangé à tout compte réel. À
+reprendre tel quel au prochain lot Socle. **Installateur** : `--admin` exige désormais une adresse de
+courriel valide (l'écran de connexion a un champ `type=email`) ; `tests/php/Socle/InstallateurTest.php` a
+suivi (`--admin=admin@gedv2.test`, identifiant attendu `admin@gedv2.test`), modification minimale signalée.
+
+
 
 ## Journal V2-04 (30-09) — métadonnées, types, champs personnalisés, vues
 
