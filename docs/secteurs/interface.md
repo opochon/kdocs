@@ -746,7 +746,7 @@ visibles.
    deux passages de part et d'autre du bruit ; la première phrase propre est choisie.
 
 **Preuves**
-- contrôle direct du corpus : **31/31** sorties exactement attendues ; le terme « Facture » surligné
+- contrôle direct du corpus : **38/38** sorties exactement attendues ; le terme « Facture » surligné
   retourne une liste vide ;
 - `php vendor/bin/phpunit tests/php/ExtraitsLisiblesTest.php --no-coverage` : **17/17 verts,
   193 assertions** ;
