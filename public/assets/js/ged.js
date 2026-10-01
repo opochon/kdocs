@@ -20,6 +20,20 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// V2-10c : sur téléphone (≤ 480 px), l'invite longue est tronquée. On pose une invite COURTE, entièrement
+// visible ; sur ordinateur, la phrase complète revient. Le texte long reste dans `placeholder`, la version
+// courte dans `data-invite-courte`.
+const champRechercheGlobale = document.querySelector('[data-testid="recherche-globale-champ"]');
+if (champRechercheGlobale) {
+  const inviteLongue = champRechercheGlobale.getAttribute('placeholder') ?? '';
+  const inviteCourte = champRechercheGlobale.dataset.inviteCourte || inviteLongue;
+  const appliquerInvite = () => {
+    champRechercheGlobale.placeholder = matchMedia('(max-width: 480px)').matches ? inviteCourte : inviteLongue;
+  };
+  appliquerInvite();
+  matchMedia('(max-width: 480px)').addEventListener('change', appliquerInvite);
+}
+
 // Onglets accessibles (fiche document).
 document.querySelectorAll('[data-onglets]').forEach((bloc) => {
   const onglets = [...bloc.querySelectorAll('[role="tab"]')];

@@ -78,6 +78,15 @@
         <div class="champ"><label>Rangé dans</label><span class="mono" data-testid="chemin-rangement">{{ courant.date|slice(0, 4) }}/{{ courant.type ? courant.type|replace({' ': '_'}) : 'À_classer' }}/{{ courant.emetteur|replace({' ': '_'}) }}/</span></div>
       </form>
       <div class="pied-validation">
+        {# V2-10c : au pouce, on ne valide pas à l'aveugle — la proposition tient en une ligne AU-DESSUS
+           des trois gestes (type · émetteur · date, et le motif de contrôle). Masqué sur ordinateur où le
+           formulaire complet est visible. #}
+        <div class="resume-proposition" data-testid="resume-proposition">
+          <strong>{{ courant.type ?: 'sans type' }}</strong>
+          {% if courant.emetteur %}<span class="emetteur">{{ courant.emetteur }}</span>{% endif %}
+          {% if courant.date %}<span>{{ courant.date|date('d.m.Y') }}</span>{% endif %}
+          {% if courant.raison %}<span class="motif">à contrôler · {{ courant.raison }}</span>{% endif %}
+        </div>
         <button class="btn primaire" type="button" data-action="valider" data-testid="action-valider">{{ ic.i('check') }}Valider<span class="kbd">Entrée</span></button>
         <button class="btn" type="button" data-action="corriger" data-testid="action-corriger">{{ ic.i('alerte') }}Corriger</button>
         <button class="btn" type="button" data-action="suivant" data-testid="action-passer">Passer<span class="kbd">→</span></button>

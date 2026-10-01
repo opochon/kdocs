@@ -128,7 +128,9 @@ try {
     if ($idPilote === 0) {
         throw new RuntimeException('ingestion Pilote mobile : le document attendu n’a pas été rangé');
     }
-    $depot->mettreAJour($idPilote, ['dossier' => 'oracle-mobile', 'id' => $idPilote], 'oracle');
+    // L'oracle V2-10c lit le résumé de la proposition (type · émetteur · date) : la pièce synthétique
+    // porte donc son émetteur, sans quoi le résumé ne prouverait pas sa seconde information.
+    $depot->mettreAJour($idPilote, ['dossier' => 'oracle-mobile', 'id' => $idPilote, 'emetteur' => $emetteur], 'oracle');
     @unlink($contenu);
 
     // ---- 2. Un document cherchable (jeton unique dans le titre et le texte).
@@ -163,6 +165,41 @@ try {
             is_file($metaFichier) ? hash('sha256', filesize($metaFichier) . '|' . filemtime($metaFichier)) : hash('sha256', 'mobile'),
         ]);
 
+    // ---- 3. V2-10c : un document au texte OCR BRUITÉ (consonnes et symboles). La recherche le trouve par
+    //         son jeton, mais AUCUN extrait illisible ne doit s'afficher — titre, type, émetteur et date
+    //         restent visibles.
+    $jetonBruite = bin2hex(random_bytes(4));
+    $titreBruite = 'Pièce bruitée ' . $jetonBruite;
+    $emetteurBruite = 'Scanner Fictif ' . $jetonBruite . ' SA';
+    $texteBruite = str_repeat('bcdfg hjklm npqrs tvwxz ', 14) . $jetonBruite . ' '
+        . str_repeat('wxzq tvbn kjhg pmnl ', 8);
+    $source3 = sys_get_temp_dir() . '/gedv2-mobile-bruite-' . $jetonBruite . '.pdf';
+    ecrirePdf(['BRUIT OCR ' . $jetonBruite], $source3);
+    $idBruite = $depot->deposer($source3, [
+        'dossier' => 'oracle-mobile',
+        'titre' => $titreBruite,
+        'type' => 'Courrier',
+        'emetteur' => $emetteurBruite,
+        'date' => '2026-05-06',
+        'statut' => 'valide',
+        'source' => 'dossier',
+        'texte' => $texteBruite,
+    ]);
+    $depot->mettreAJour($idBruite, ['id' => $idBruite], 'oracle');
+    @unlink($source3);
+
+    $cheminBruite = (string) $pdo->query('SELECT chemin_relatif FROM documents WHERE id = ' . $idBruite)->fetchColumn();
+    $metaBruite = $fonds . '/' . $cheminBruite . '.meta.json';
+    $pdo->prepare('INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature)'
+        . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        . ' ON DUPLICATE KEY UPDATE document_id = VALUES(document_id), titre = VALUES(titre), type = VALUES(type),'
+        . ' emetteur = VALUES(emetteur), date_document = VALUES(date_document), contenu = VALUES(contenu), absent_le = NULL')
+        ->execute([
+            hash('sha256', $cheminBruite), $cheminBruite, $idBruite,
+            $titreBruite, 'Courrier', $emetteurBruite, '2026-05-06', 0, $texteBruite,
+            is_file($metaBruite) ? hash('sha256', filesize($metaBruite) . '|' . filemtime($metaBruite)) : hash('sha256', 'mobile'),
+        ]);
+
     echo json_encode([
         'preparation' => 'prete',
         'compte' => $identifiant,
@@ -172,6 +209,10 @@ try {
         'id_pilote' => $idPilote,
         'id_recherche' => $idRecherche,
         'titre_recherche' => 'Contrat recherche ' . $jeton,
+        'id_bruite' => $idBruite,
+        'titre_bruite' => $titreBruite,
+        'jeton_bruite' => $jetonBruite,
+        'emetteur_bruite' => $emetteurBruite,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), PHP_EOL;
     exit(0);
 } catch (Throwable $e) {

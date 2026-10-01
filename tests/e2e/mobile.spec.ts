@@ -71,6 +71,10 @@ type Preparation = {
   id_pilote: number;
   id_recherche: number;
   titre_recherche: string;
+  id_bruite: number;
+  titre_bruite: string;
+  jeton_bruite: string;
+  emetteur_bruite: string;
 };
 
 let serveur: ChildProcess | undefined;
@@ -108,10 +112,14 @@ function preparer(): Preparation {
 }
 
 function indexerCible(): void {
-  execFileSync('php', ['tests/e2e/indexer-mobile.php'], {
-    cwd: RACINE,
-    env: { ...ENV, DOCUMENT_ID: String(prep.id_recherche), TITRE: prep.titre_recherche },
-  });
+  // V2-10c : on repose aussi la cible « texte bruité » — la table `recherche_textes` est partagée et un
+  // indexeur d'un autre fonds marque « absent » les lignes qu'il ne voit pas.
+  for (const [id, titre] of [[prep.id_recherche, prep.titre_recherche], [prep.id_bruite, prep.titre_bruite]] as const) {
+    execFileSync('php', ['tests/e2e/indexer-mobile.php'], {
+      cwd: RACINE,
+      env: { ...ENV, DOCUMENT_ID: String(id), TITRE: titre },
+    });
+  }
 }
 
 function passerTachePhoto(nom: string): { document: number; titre: string } {
@@ -153,6 +161,34 @@ async function verifierMobile(page: Page): Promise<void> {
 /** Attend que les comportements (ged.js) soient posés : les boutons d'action en dépendent. */
 async function attendreJs(page: Page): Promise<void> {
   await page.locator('html[data-ged-js="1"]').waitFor({ state: 'attached' });
+}
+
+/**
+ * V2-10c : l'invite de la barre de recherche doit être ENTIÈREMENT lisible sur 390 px — la version
+ * longue est tronquée, le JS pose donc une invite courte sous 480 px. On mesure la largeur réellement
+ * rendue (canvas, même police) et on la compare à la place disponible dans le champ.
+ */
+async function verifierInviteRecherche(page: Page): Promise<void> {
+  const mesure = await page.evaluate(() => {
+    const champ = document.querySelector('[data-testid="recherche-globale-champ"]') as HTMLInputElement | null;
+    if (!champ) return null;
+    const style = getComputedStyle(champ);
+    const toile = document.createElement('canvas').getContext('2d');
+    if (!toile) return null;
+    toile.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    return {
+      invite: champ.placeholder,
+      largeur: toile.measureText(champ.placeholder).width,
+      disponible: champ.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+    };
+  });
+
+  expect(mesure, 'le champ de recherche global est présent').not.toBeNull();
+  if (!mesure) return;
+  expect(mesure.invite, 'invite courte sur téléphone').toBe('Rechercher');
+  expect(mesure.largeur,
+    `invite « ${mesure.invite} » : ${Math.round(mesure.largeur)} px ≤ ${Math.round(mesure.disponible)} px disponibles`)
+    .toBeLessThanOrEqual(mesure.disponible + 1);
 }
 
 /**
@@ -264,14 +300,28 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       // 5) La barre du haut ne montre pas le raccourci « Ctrl K » sur téléphone (il n'a pas de sens
       // sans clavier) : le badge est masqué sous 768 px, la recherche reste au doigt.
       await expect(page.locator('.recherche-globale .kbd')).toBeHidden();
+      // V2-10c : l'invite de recherche est entièrement visible sur 390 px (version courte).
+      await verifierInviteRecherche(page);
 
       // 1) V2-10b — la PIÈCE d'abord : à l'ouverture, l'aperçu et « Valider » sont dans l'écran, sans
       // défilement ; le bilan est une ligne compacte et les trois cartes d'ordinateur ne s'affichent plus.
-      await verifierVisibleSansDefilement(page, ['apercu', 'action-valider']);
+      // V2-10c : la proposition (type · émetteur · date) est visible AU-DESSUS des gestes — on ne valide
+      // pas à l'aveugle.
+      await verifierVisibleSansDefilement(page, ['apercu', 'action-valider', 'resume-proposition']);
       await expect(page.getByTestId('bilan-ligne')).toBeVisible();
       await expect(page.getByTestId('bilan-ligne')).toContainText('à contrôler');
       await expect(page.getByTestId('bilan-auto')).toBeHidden();
       await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
+
+      const resume = page.getByTestId('resume-proposition');
+      await expect(resume).toBeVisible();
+      await expect(resume).toContainText('Facture');
+      await expect(resume).toContainText(`Papeterie Fictive ${prep.jeton} SA`);
+      await expect(resume).toContainText('à contrôler');
+      const boiteResume = await resume.boundingBox();
+      const boiteValider = await page.getByTestId('action-valider').boundingBox();
+      expect(boiteResume && boiteValider && boiteResume.y + boiteResume.height <= boiteValider.y + 1,
+        'le résumé est JUSTE AU-DESSUS de « Valider »').toBe(true);
 
       // 1) Une pièce à la fois : l'aperçu est au-dessus, la proposition dessous, gros boutons.
       await expect(page.getByTestId('apercu')).toBeVisible();
@@ -316,6 +366,19 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await expect(page.getByTestId('panneau-metadonnees')).toBeVisible();
       // La fiche fait partie du périmètre mobile : aucun avis d'ordinateur ne s'y affiche.
       await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
+      await verifierMobile(page);
+
+      // 2bis) V2-10c : un texte OCR bruité ne produit AUCUN extrait illisible, mais le titre, le type,
+      // l'émetteur et la date du document restent visibles.
+      await page.goto(`/recherche?q=${prep.jeton_bruite}`);
+      const carteBruitee = page.getByTestId(`resultat-${prep.id_bruite}`);
+      await expect(carteBruitee).toBeVisible();
+      await expect(carteBruitee).toContainText(prep.titre_bruite);
+      await expect(carteBruitee).toContainText('Courrier');
+      await expect(carteBruitee).toContainText(prep.emetteur_bruite);
+      await expect(carteBruitee).toContainText('06.05.2026');
+      await expect(page.getByTestId(`extraits-${prep.id_bruite}`)).toHaveCount(0);
+      await expect(carteBruitee).not.toContainText('bcdfg');
       await verifierMobile(page);
 
       // 3) Dépôt par photo : appareil photo, plusieurs fichiers, retour nommé, puis la tâche.
