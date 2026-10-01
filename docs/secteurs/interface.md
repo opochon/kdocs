@@ -177,3 +177,15 @@ Aucune ligne sous « À commiter par le juge » n'est due : ni `DroitsRoutes.php
 
 ETAT: fini
 
+
+### Jugement R1-ecrans (juge, 01-10 13:16, copie propre et recette réelle sur 534f8c0)
+
+- Repris par DeepCode à 11:58 : l'agent précédent n'avait rien modifié en 2 h 20.
+- Recette réelle (compte réel, 48 documents d'un vrai scan) :
+  - L'écran Application affiche la vraie configuration et le vrai état : racine réelle, IMAP « non configuré », dernière activité de l'ingestion, IA active, connecteurs non reliés.
+  - À traiter affiche les vraies propositions (source IA ou règle, score, raison lisible) ; sans proposition, aucun type n'est pré-rempli.
+  - Pluriels corrigés, compteur unique (48 partout), vues latérales réelles (« Aucune vue enregistrée »).
+  - Plus aucune erreur dans la console.
+- Harness : aucun nouveau rouge dû à ce lot (4-écrans : 38/39). Les rouges 1, 2 et 4 restants viennent de R2-classement, en correction chez Codex.
+- Défaut restant, qui existait avant le lot : sur À traiter, l'aperçu reste « Chargement de l'aperçu… ». La visionneuse n'y est jamais chargée (aucune requête vers visionneuse.js, pdf.js ni le fichier), alors qu'elle fonctionne dans la Bibliothèque. Les parcours ne vérifient pas que l'aperçu est réellement affiché.
+- Verdict : **R1-ecrans franchi pour ses cinq points** ; l'aperçu d'À traiter est renvoyé en R1b-ecrans (DeepCode, 13:08), avec un oracle de rendu réel.
