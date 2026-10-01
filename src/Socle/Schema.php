@@ -38,13 +38,18 @@ final class Schema
               UNIQUE KEY uq_chemin (chemin_relatif(700)),
               KEY k_empreinte (empreinte),
               KEY k_corbeille (supprime_le),
-              KEY k_statut (statut, supprime_le)
+              KEY k_statut (statut, supprime_le),
+              KEY k_vivant (supprime_le, absent_depuis, chemin_relatif(700))
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
 
         // Une table créée par une version antérieure n'a pas l'index du statut : l'écran « À traiter »
         // l'exige pour borner sa lecture à la file, jamais au fonds entier.
         self::assurerIndexStatut($pdo);
+
+        // PERF-3 : la Bibliothèque compte les vivants et dresse l'arborescence sans lire une seule ligne
+        // du fonds. Sans cet index, le moindre COUNT parcourt le fonds et l'écran dépasse son seuil.
+        self::assurerIndexVivant($pdo);
 
         // Les versions : une archive par contenu observé, dans `.versions/<fichier>/` à côté du document.
         $pdo->exec(<<<'SQL'
@@ -114,6 +119,22 @@ final class Schema
             $pdo->exec('ALTER TABLE documents DROP KEY k_statut');
         }
         $pdo->exec('ALTER TABLE documents ADD KEY k_statut (statut, supprime_le)');
+    }
+
+    /**
+     * Pose l'index des documents VIVANTS s'il manque (table créée avant lui) : `(supprime_le, absent_depuis,
+     * chemin_relatif(700))`. Il rend indexé le comptage des vivants (`COUNT(*)`, aucune ligne de fonds lue)
+     * et couvre l'arborescence de la Bibliothèque (PERF-3), qui sans lui parcourt tout le fonds. Idempotent.
+     */
+    public static function assurerIndexVivant(PDO $pdo): void
+    {
+        $colonnes = $pdo->query("SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX)"
+            . " FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
+            . " AND TABLE_NAME = 'documents' AND INDEX_NAME = 'k_vivant'")->fetchColumn();
+        if (is_string($colonnes) && $colonnes !== '') {
+            return;
+        }
+        $pdo->exec('ALTER TABLE documents ADD KEY k_vivant (supprime_le, absent_depuis, chemin_relatif(700))');
     }
 
     /** Tables de l'index documentaire, dans l'ordre de destruction/reconstruction (jamais comptes ni installation). */
