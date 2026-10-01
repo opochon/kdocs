@@ -45,7 +45,8 @@ final class ClasseurGed implements Classeur
     {
         $proprietaire = $this->config->get('GED_ORGANISATION', '');
         $indiceRegle = Regles::typeEtPreuve($texte);
-        $emetteurRegle = Regles::lireEmetteur($texte, $proprietaire);
+        $destinatairesConnus = $this->habitudes->destinatairesConnus();
+        $emetteurRegle = Regles::lireEmetteur($texte, $proprietaire, $destinatairesConnus);
 
         // L'IA n'est consultée que si elle est disponible ; toute panne se replie sans bloquer le rangement.
         $reponseIa = null;
@@ -56,7 +57,7 @@ final class ClasseurGed implements Classeur
                 $reponseIa = null;
             }
         }
-        $emetteurIa = Regles::emetteurIaCredible($texte, $reponseIa?->emetteur, $proprietaire);
+        $emetteurIa = Regles::emetteurIaCredible($texte, $reponseIa?->emetteur, $proprietaire, $destinatairesConnus);
         $emetteurAppris = $emetteurRegle === null ? $this->habitudes->emetteurApprisDansTexte($texte) : null;
         // L'IA peut reconnaître le logo ou le pied de page ; une validation seule demandera ensuite que
         // ce nom soit corroboré par la lecture ou une habitude.
@@ -135,6 +136,15 @@ final class ClasseurGed implements Classeur
                 $raison = 'aucun indice de type dans le texte';
             }
         }
+        if ($type === null) {
+            // Une pièce sans marqueur ne disparaît jamais de la taxonomie. Le repli est visible au
+            // contrôleur, non validé automatiquement faute de preuve de type.
+            $type = 'Courrier';
+            $source = 'regle';
+            $preuve = 'repli Courrier : aucun marqueur de type';
+            $confiance = 0.0;
+            $raison = 'type à contrôler : aucun marqueur de type dans le texte';
+        }
 
         // Une date ne vient jamais seule de l'IA ni des dates de corps que l'OCR extrait sans contexte.
         // Le parseur de facture est une seconde source structurée, après l'en-tête documentaire.
@@ -189,8 +199,13 @@ final class ClasseurGed implements Classeur
             $raison = 'à contrôler';
         }
 
+        $this->habitudes->retenirDestinataires(Regles::lireDestinataires($texte), $nomFichier);
+
+        $titreRegle = Regles::titrePiece($texte, $type, $emetteur, $dateDocument);
+        $titre = Regles::titreUtilisable($reponseIa?->titre) ? $reponseIa?->titre : $titreRegle;
+
         return [
-            'titre' => $reponseIa?->titre ?? Regles::titrePiece($texte, $type, $emetteur, $dateDocument),
+            'titre' => $titre,
             'type' => $type,
             'emetteur' => $emetteur,
             'date' => $dateDocument,

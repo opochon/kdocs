@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ged\Tests\Classement;
 
 use Ged\Classement\ClientIa;
+use Ged\Classement\ClientIaNul;
 use Ged\Classement\Habitudes;
 use Ged\Classement\ReponseIa;
 use PHPUnit\Framework\TestCase;
@@ -227,11 +228,11 @@ final class ClasseurGedTest extends TestCase
         self::assertNotNull($r['raison']);
     }
 
-    public function testSansIndiceDuToutAucunTypeNEstPropose(): void
+    public function testSansIndiceDuToutLeRepliCourrierEstProposeSansValidation(): void
     {
         $r = $this->classeur()->proposer("Du texte sans en-tête ni marqueur.\n", [], 'piece.pdf');
 
-        self::assertNull($r['type']);
+        self::assertSame('Courrier', $r['type']);
         self::assertFalse($r['valide']);
         self::assertSame('regle', $r['source']);
     }
@@ -330,6 +331,45 @@ final class ClasseurGedTest extends TestCase
         self::assertSame('habitude', $r['source']);
         self::assertTrue($r['valide']);
         self::assertStringContainsString('habitude', (string) $r['preuve']);
+    }
+
+    public function testUnePieceSansTypeReplieVersCourrierAvecUnTitreMetier(): void
+    {
+        $r = $this->classeur(new ClientIaNul())->proposer(
+            "Fondation Exemple\nObjet : Information annuelle aux membres\nDate : 18.09.2026\n", [], 'scan-sans-type.pdf');
+
+        self::assertSame('Courrier', $r['type']);
+        self::assertSame('Information annuelle aux membres', $r['titre']);
+        self::assertFalse($r['valide']);
+    }
+
+    public function testUnTitreIaReduitAUneDateReprendLObjectDeLaPiece(): void
+    {
+        $r = $this->classeur(new ClientIaSimule(new ReponseIa('Courrier', 'Fondation Exemple', '26.09.2026',
+            '2026-09-26', null, [], 0.98, 'simule')))->proposer(
+                "FONDATION EXEMPLE\nObjet : Information annuelle aux membres\nDate : 26.09.2026\n", [], 'scan-titre-date.pdf');
+
+        self::assertSame('Courrier', $r['type']);
+        self::assertSame('Information annuelle aux membres', $r['titre']);
+    }
+
+    public function testUnDestinataireRecurrentNeDevientJamaisEmetteurMemeProposeParIa(): void
+    {
+        $destinataire = 'Atelier du Foyer Synthétique SA';
+        foreach (['lot-a-01.pdf', 'lot-b-01.pdf'] as $fichier) {
+            $this->classeur(new ClientIaNul())->proposer(
+                "Monsieur\n$destinataire\nRue des Essais 14\n1000 Modeleville\n\nAssurances du Rivage SA\nRAPPEL\nDate : 12.09.2026\n",
+                [], $fichier,
+            );
+        }
+
+        $r = $this->classeur(new ClientIaSimule(new ReponseIa('Courrier', $destinataire, null,
+            '2026-09-13', null, [], 0.98, 'simule')))->proposer(
+                "$destinataire\nAssurances du Rivage SA\nRAPPEL\nDate : 13.09.2026\n", [], 'lot-c-01.pdf');
+
+        self::assertSame('Assurances du Rivage SA', $r['emetteur']);
+        self::assertNotSame($destinataire, $r['emetteur']);
+        self::assertFalse($r['valide'], 'une IA qui nomme un destinataire connu ne corrobore jamais un émetteur');
     }
 }
 

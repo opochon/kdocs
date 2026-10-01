@@ -124,4 +124,44 @@ final class Habitudes
 
         return null;
     }
+
+    /** @param list<string> $destinataires Bloc postal lu, jamais une décision de classement. */
+    public function retenirDestinataires(array $destinataires, string $documentRef): void
+    {
+        $ref = trim($documentRef);
+        if ($ref === '') {
+            return;
+        }
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO classement_choix (emetteur_cle, champ, valeur, document_ref, source, cree_le, maj_le)
+                 VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+                 ON DUPLICATE KEY UPDATE emetteur_cle = VALUES(emetteur_cle), cree_le = NOW(), maj_le = NOW()'
+            );
+            foreach ($destinataires as $destinataire) {
+                $cle = Regles::normaliser($destinataire);
+                if ($cle !== '') {
+                    $stmt->execute([$cle, 'destinataire', 'destinataire', mb_substr($ref, 0, 255), 'registre']);
+                }
+            }
+        } catch (Throwable) {
+            // Registre absent ou indisponible : le refus du bloc postal de la pièce reste actif.
+        }
+    }
+
+    /** @return list<string> Destinataires vus sur au moins deux pièces distinctes. */
+    public function destinatairesConnus(): array
+    {
+        try {
+            $lignes = $this->pdo->query(
+                "SELECT emetteur_cle FROM classement_choix
+                 WHERE champ = 'destinataire' AND source = 'registre'
+                 GROUP BY emetteur_cle HAVING COUNT(DISTINCT document_ref) >= 2"
+            )->fetchAll(PDO::FETCH_COLUMN);
+
+            return array_values(array_map('strval', $lignes));
+        } catch (Throwable) {
+            return [];
+        }
+    }
 }
