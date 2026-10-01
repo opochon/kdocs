@@ -329,3 +329,25 @@ ETAT: fini
 - `powershell -File tools\harness.ps1` : 588 s ; garde-fous, 408 tests / 2 310 assertions, découpe 53/53, banc, 46 écrans, sécurité, contrat et charge verts. Personas seule est absente.
 
 ETAT: fini
+
+
+## Jugement R2f — 02-10-2026 (juge : Claude Code)
+
+- Recette réelle sur `c1fdab2` (fonds vierge, scan de 103 pages) : 6 min 21 s ; **49 pièces, page 86 en DOUBLE** (deux pièces se la partagent, l'une validée) : la régression de découpe de R2b réapparaît ; le dédoublonnage Vision n'est pas une garantie.
+- **6 validées seules, 6 justes, 0 validé faux** (contre 9 en R2e) : factures d'énergie (dont le doublon), une facture d'entretien et un rappel bancaire. Les trois décomptes d'assurance maladie ne sont plus validés : ils sont désormais typés **Police d'assurance**.
+- Progrès :
+  - polices automobile et accident et avis de prime rétablis en Police d'assurance ;
+  - le destinataire n'est plus proposé sur le courrier d'assureur ;
+  - plusieurs émetteurs bruités sont nettoyés (ramoneur, gérance, assureur vie) ;
+  - l'émetteur perdu en R2e (« <nom> / <nom> Basel ») est revenu.
+- Défauts et régressions :
+  - **oscillation des types** : la correction des polices a fait basculer en Police d'assurance trois décomptes d'assurance maladie, des écritures judiciaires et une notice technique. Environ 10 types faux sur 49 ;
+  - **destinataire encore pris pour émetteur** sous une variante OCR (une lettre changée dans la raison sociale, précédée de « Situation de ») ;
+  - émetteurs bruités restants : « requiert du mari le dépôt de SA », « Assurance / accessoires » ;
+  - la forme juridique GmbH est réécrite en Sàrl (la fusion AG/SA ne doit pas traduire une forme en une autre) ;
+  - un titre tiré du bloc adresse (« Imm. N°… Madame et Monsieur ») ;
+  - factures vétérinaires toujours sans date, l'une toujours typée Relevé ; 18/49 émetteurs vides.
+- Constat de méthode : chaque lot corrige les cas cités et en casse d'autres, parce que le corpus ne garde pas la mémoire des jugements précédents.
+- Verdict : **R2f non franchi.** Repris en **R2g** :
+  - un **corpus de non-régression cumulatif**, reprenant en synthétique tous les cas relevés de R2c à R2f ;
+  - un **invariant de découpe** : chaque page dans une seule pièce, vérifié après la découpe, jamais laissé au hasard du modèle.
