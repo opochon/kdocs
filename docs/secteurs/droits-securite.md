@@ -213,7 +213,7 @@ nul), qui contourne les droits par dossier.
   `npx.cmd playwright test tests/e2e/droits-reels.spec.ts` vert, et suite Playwright verte **35 parcours**
   (dont le nouveau) au 1ᵉʳ rejeu ; sonde offensive verte (« aucun contournement accepté ») ; contrat vert
   après stabilisation de la base partagée.
-- Harness : `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` rejoué deux fois.
+- Harness : `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` rejoué trois fois.
   - Rejeu 1 (registre `2026-10-01T10:02:41`, commit `67e0726`) : `0-garde-fous` VERT, `4-ecrans` VERT
     (**35 passed**, dont `droits-reels`), `7-securite` VERT, `2-contrat` VERT, `6-charge` VERT ; seul
     `1-unitaire` ROUGE (282 tests, 1363 assertions, `Errors: 1`) sur le défaut `Fabrique::classeur()` d'un
@@ -224,6 +224,10 @@ nul), qui contourne les droits par dossier.
     le contrat tombe sur `POST /workflows/...` et redevient vert au rejeu seul ; la charge échoue au seuil
     p95 et à l'ingestion sous contention). Rejoués seuls, `tests/php/Workflows` (21/21), `php
     tools/banc/contrat.php` et les parcours R1 sont verts : aucune régression de R1.
+  - Rejeu 3 (registre `2026-10-01T10:35:51`) : `0`, `1` (**284 tests, 1372 assertions**), `7`, `2` et `6`
+    verts ; seul `4-ecrans` rouge (**2 failed, 30 passed**) sur `bibliotheque.spec.ts` et `a-traiter.spec.ts`,
+    deux parcours d'AUTRES secteurs : expiration du délai de 20 s dans leur `beforeEach` en attendant le
+    verrou `gedv2_test` tenu par un banc concurrent. Aucun parcours R1 n'a jamais échoué sur les trois rejeux.
   - `3-banc` est sautée par `-SansBanc` et `5-personas` n'est pas encore écrite : rouge attendu, hors lot.
 - Commits : `ac77153` (oracle R1), `49581a5` (rattachement aux dossiers de droits, Socle compris),
   `3aa7681` (admin voit tout, compte réel en test), `5ec801a` (installateur = courriel), `f21e2bb`
