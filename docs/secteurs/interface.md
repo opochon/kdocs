@@ -444,3 +444,19 @@ Agent : DeepCode · Juge : Claude Code. Les cinq défauts d'ergonomie relevés �
 (gabarits, CSS, JS).
 
 ETAT: fini
+
+## Jugement V2-10b — mobile, reprise — 01-10-2026 (juge : Claude Code)
+
+- Relecture à l'œil sur la recette réelle (compte réel, émulation iPhone 13, `ecd5b75`) des quatre écrans À traiter, Recherche, Fiche et Déposer : largeur 390/390, aucune cible < 44 px, aperçu rendu.
+- Les cinq défauts de V2-10a sont corrigés :
+  1. À traiter : la pièce est en haut ; « Valider », « Corriger » et « Passer » sont fixés au-dessus des onglets, sans défilement.
+  2. Recherche : les filtres sont repliés derrière « Filtres » ; plus de chevauchement.
+  3. L'avis « conçu pour l'ordinateur » est retiré de la fiche, de la recherche et d'À traiter.
+  4. Déposer : « Prendre une photo » et « Choisir des fichiers » en français, vignettes sans violer la CSP.
+  5. « Ctrl K » est masqué sous 768 px.
+- Harness de l'agent (`-SansBanc`, `ecd5b75`) : aucun nouveau rouge dû au lot. Les deux rouges d'écran sont antérieurs (prouvé par `git stash`) : une 404 sur un document absent du fonds partagé, et le seuil de 1,5 s de la Bibliothèque sur les 10 000 documents du banc. La lenteur de la Bibliothèque sur un gros fonds est réelle (p95 5,7 s sous charge) ; elle fera l'objet d'un lot de performance distinct.
+- Remarques pour l'étape mobile suivante (non bloquantes) :
+  - la proposition de classement (type, émetteur, date) n'est pas visible au-dessus de « Valider » : il faut un résumé compact juste au-dessus des boutons, pour ne pas valider à l'aveugle ;
+  - les extraits « Documents semblables » de la recherche affichent du texte OCR brut ;
+  - le texte d'invite de la barre de recherche est tronqué sur 390 px.
+- Verdict : **V2-10b franchi** (étape 1 mobile, « les mêmes écrans adaptés au smartphone »).
