@@ -252,8 +252,8 @@ final class ATraiter
         $raison = isset($meta['raison']) && is_string($meta['raison']) && trim($meta['raison']) !== ''
             ? trim($meta['raison'])
             : ($sourceCle === '' ? 'aucune proposition automatique' : 'à contrôler');
-        $rendu = $this->rendu($doc);
-        $pages = $this->pages($meta, $rendu);
+        $rendu = Rendu::pour($doc['id'], $doc['absolu'], $meta);
+        $pages = Rendu::compterPages($meta);
 
         return [
             'id' => $doc['id'],
@@ -272,57 +272,6 @@ final class ATraiter
             'texte' => $this->lignesTexte($meta['texte'] ?? null),
             'rendu' => $rendu,
         ];
-    }
-
-    /**
-     * Ce que la visionneuse du secteur Aperçu doit charger (macro `visionneuse.moteur`), construit depuis
-     * le chemin indexé. Le fichier est présent (vérifié plus haut) ; un format non rendable donne un
-     * message nommé, jamais un cadre vide.
-     *
-     * @param array{id:int, absolu:string, meta:array<string, mixed>, ligne:array<string, mixed>} $doc
-     *
-     * @return array{url:string, categorie:string, pages:int, titre:string, message:string}
-     */
-    private function rendu(array $doc): array
-    {
-        $extension = strtolower(pathinfo($doc['absolu'], PATHINFO_EXTENSION));
-        $categorie = \Ged\Apercu\Source::categorie($extension);
-        $pages = $this->pages($doc['meta'], null);
-        $titre = (string) ($doc['meta']['titre'] ?? $doc['ligne']['titre'] ?? '');
-        $url = '/documents/' . $doc['id'] . '/apercu/fichier';
-
-        if ($categorie === 'pdf') {
-            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $pages, 'titre' => $titre, 'message' => ''];
-        }
-        if ($categorie === 'image') {
-            return ['url' => $url, 'categorie' => 'image', 'pages' => 1, 'titre' => $titre, 'message' => ''];
-        }
-        if ($categorie === 'bureautique') {
-            if (\Ged\Apercu\Outils::libreOffice() === null) {
-                return ['url' => '', 'categorie' => 'bureautique', 'pages' => $pages, 'titre' => $titre, 'message' => \Ged\Apercu\Outils::MSG_LIBREOFFICE];
-            }
-
-            return ['url' => $url, 'categorie' => 'pdf', 'pages' => $pages, 'titre' => $titre, 'message' => ''];
-        }
-
-        return ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $titre, 'message' => \Ged\Apercu\Outils::MSG_FORMAT];
-    }
-
-    /** @param array<string, mixed> $meta @param array<string, mixed>|null $rendu */
-    private function pages(array $meta, ?array $rendu): int
-    {
-        if ($rendu !== null && ($rendu['pages'] ?? 0) > 0) {
-            return (int) $rendu['pages'];
-        }
-        if (isset($meta['pages']) && is_numeric($meta['pages'])) {
-            return max(1, (int) $meta['pages']);
-        }
-        $origine = is_array($meta['origine'] ?? null) ? $meta['origine'] : [];
-        if (isset($origine['pages']) && is_numeric($origine['pages'])) {
-            return max(1, (int) $origine['pages']);
-        }
-
-        return 1;
     }
 
     /** @param array{meta:array<string, mixed>, ligne:array<string, mixed>} $doc */
