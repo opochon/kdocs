@@ -362,3 +362,15 @@ est ROUGE sur la lecture (p95 6 065 ms ≥ 1 500 ms ; l'ingestion finit) — per
 `bc72348` helpers mobiles déterministes · `f9d62c2` préambule designer V2-06b.
 
 ETAT: fini
+
+## Jugement V2-10a — mobile, étape 1 — 01-10-2026 (juge : Claude Code)
+
+- Contrôles automatiques revérifiés en émulation iPhone 13 sur la recette réelle (compte réel, `9c6e55a`) : largeur 390/390, aucune cible < 44 px, aperçu rendu sur À traiter, dépôt par photo branché sur la chaîne existante. Routes `/deposer` et charge de sonde (`30a15b0`) relues : propres.
+- Relecture à l'œil des écrans (ce que l'oracle ne voit pas) — cinq défauts :
+  1. **À traiter** : le bilan s'affiche avant la pièce ; il faut défiler pour voir l'aperçu et le bouton « Valider », ce qui contredit « une pièce à la fois, au pouce ».
+  2. **Recherche** : les boîtes de filtres se chevauchent sur 390 px ; les filtres doivent être repliés derrière un bouton « Filtres ».
+  3. **Fiche document, Recherche, À traiter** : l'avertissement « écran conçu pour l'ordinateur » s'affiche alors que ces écrans sont justement adaptés au téléphone.
+  4. **Déposer** : bouton natif anglais « Choose Files » ; il faut des boutons français « Prendre une photo » et « Choisir des fichiers ».
+  5. **Barre du haut** : le raccourci « Ctrl K » reste visible sous 768 px, où il n'a pas de sens.
+- Harness rejoué par l'agent sur `bc72348` : aucun rouge fonctionnel dû au lot (maquettes a-traiter 3,9 s et 6-charge lecture : bruit de charge connu, hors interface).
+- Verdict : **V2-10a non franchi** (ergonomie). Les cinq défauts sont repris en **V2-10b**, avec un oracle visuel : pièce et « Valider » visibles sans défilement, aucun chevauchement de filtres, aucun texte anglais.
