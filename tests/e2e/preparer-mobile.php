@@ -165,14 +165,15 @@ try {
             is_file($metaFichier) ? hash('sha256', filesize($metaFichier) . '|' . filemtime($metaFichier)) : hash('sha256', 'mobile'),
         ]);
 
-    // ---- 3. V2-10c : un document au texte OCR BRUITÉ (consonnes et symboles). La recherche le trouve par
-    //         son jeton, mais AUCUN extrait illisible ne doit s'afficher — titre, type, émetteur et date
-    //         restent visibles.
-    $jetonBruite = bin2hex(random_bytes(4));
+    // ---- 3. V2-10d : un document au texte OCR BRUITÉ, fait de fragments de ≤ 3 lettres mêlés de
+    //         petits mots et de voyelles (forme relevée par le juge) : l'ancienne heuristique le
+    //         jugeait lisible. La recherche le trouve par son jeton, mais AUCUN extrait ne doit
+    //         s'afficher — titre, type, émetteur et date restent visibles. Le jeton est coupé par un
+    //         chiffre (aucune suite de lettres assez longue pour passer pour un mot).
+    $jetonBruite = bin2hex(random_bytes(2)) . '7' . bin2hex(random_bytes(2));
     $titreBruite = 'Pièce bruitée ' . $jetonBruite;
     $emetteurBruite = 'Scanner Fictif ' . $jetonBruite . ' SA';
-    $texteBruite = str_repeat('bcdfg hjklm npqrs tvwxz ', 14) . $jetonBruite . ' '
-        . str_repeat('wxzq tvbn kjhg pmnl ', 8);
+    $texteBruite = str_repeat('Ps TC iar ee SES a ad Dee ieee Post CHAG ', 4) . $jetonBruite . ' — KX KX.';
     $source3 = sys_get_temp_dir() . '/gedv2-mobile-bruite-' . $jetonBruite . '.pdf';
     ecrirePdf(['BRUIT OCR ' . $jetonBruite], $source3);
     $idBruite = $depot->deposer($source3, [
@@ -200,6 +201,39 @@ try {
             is_file($metaBruite) ? hash('sha256', filesize($metaBruite) . '|' . filemtime($metaBruite)) : hash('sha256', 'mobile'),
         ]);
 
+    // ---- 4. V2-10d : un document qui MÉLANGE bruit et texte (tampon puis adresse, même forme).
+    //         L'extrait doit être ROGNÉ au premier segment propre, sans aucun fragment affiché.
+    $jetonMelange = bin2hex(random_bytes(4));
+    $titreMelange = 'Pièce mélangée ' . $jetonMelange;
+    $emetteurMelange = 'Régie Fictive ' . $jetonMelange . ' SA';
+    $texteMelange = 'nn NE {EL EE PostC.  Rue du Relais 12, 1920 Martigny — dossier ' . $jetonMelange . '.';
+    $source4 = sys_get_temp_dir() . '/gedv2-mobile-melange-' . $jetonMelange . '.pdf';
+    ecrirePdf(['BRUIT ET ADRESSE ' . $jetonMelange], $source4);
+    $idMelange = $depot->deposer($source4, [
+        'dossier' => 'oracle-mobile',
+        'titre' => $titreMelange,
+        'type' => 'Courrier',
+        'emetteur' => $emetteurMelange,
+        'date' => '2026-06-07',
+        'statut' => 'valide',
+        'source' => 'dossier',
+        'texte' => $texteMelange,
+    ]);
+    $depot->mettreAJour($idMelange, ['id' => $idMelange], 'oracle');
+    @unlink($source4);
+
+    $cheminMelange = (string) $pdo->query('SELECT chemin_relatif FROM documents WHERE id = ' . $idMelange)->fetchColumn();
+    $metaMelange = $fonds . '/' . $cheminMelange . '.meta.json';
+    $pdo->prepare('INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature)'
+        . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        . ' ON DUPLICATE KEY UPDATE document_id = VALUES(document_id), titre = VALUES(titre), type = VALUES(type),'
+        . ' emetteur = VALUES(emetteur), date_document = VALUES(date_document), contenu = VALUES(contenu), absent_le = NULL')
+        ->execute([
+            hash('sha256', $cheminMelange), $cheminMelange, $idMelange,
+            $titreMelange, 'Courrier', $emetteurMelange, '2026-06-07', 0, $texteMelange,
+            is_file($metaMelange) ? hash('sha256', filesize($metaMelange) . '|' . filemtime($metaMelange)) : hash('sha256', 'mobile'),
+        ]);
+
     echo json_encode([
         'preparation' => 'prete',
         'compte' => $identifiant,
@@ -213,6 +247,10 @@ try {
         'titre_bruite' => $titreBruite,
         'jeton_bruite' => $jetonBruite,
         'emetteur_bruite' => $emetteurBruite,
+        'id_melange' => $idMelange,
+        'titre_melange' => $titreMelange,
+        'jeton_melange' => $jetonMelange,
+        'emetteur_melange' => $emetteurMelange,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), PHP_EOL;
     exit(0);
 } catch (Throwable $e) {

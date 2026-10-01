@@ -75,6 +75,10 @@ type Preparation = {
   titre_bruite: string;
   jeton_bruite: string;
   emetteur_bruite: string;
+  id_melange: number;
+  titre_melange: string;
+  jeton_melange: string;
+  emetteur_melange: string;
 };
 
 let serveur: ChildProcess | undefined;
@@ -112,9 +116,15 @@ function preparer(): Preparation {
 }
 
 function indexerCible(): void {
-  // V2-10c : on repose aussi la cible « texte bruité » — la table `recherche_textes` est partagée et un
-  // indexeur d'un autre fonds marque « absent » les lignes qu'il ne voit pas.
-  for (const [id, titre] of [[prep.id_recherche, prep.titre_recherche], [prep.id_bruite, prep.titre_bruite]] as const) {
+  // V2-10d : on repose aussi les cibles « texte bruité » et « texte mélangé » — la table
+  // `recherche_textes` est partagée et un indexeur d'un autre fonds marque « absent » les lignes
+  // qu'il ne voit pas.
+  const cibles: ReadonlyArray<readonly [number, string]> = [
+    [prep.id_recherche, prep.titre_recherche],
+    [prep.id_bruite, prep.titre_bruite],
+    [prep.id_melange, prep.titre_melange],
+  ];
+  for (const [id, titre] of cibles) {
     execFileSync('php', ['tests/e2e/indexer-mobile.php'], {
       cwd: RACINE,
       env: { ...ENV, DOCUMENT_ID: String(id), TITRE: titre },
@@ -368,8 +378,8 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await expect(page.getByTestId('ecran-ordinateur')).toHaveCount(0);
       await verifierMobile(page);
 
-      // 2bis) V2-10c : un texte OCR bruité ne produit AUCUN extrait illisible, mais le titre, le type,
-      // l'émetteur et la date du document restent visibles.
+      // 2bis) V2-10d : un texte OCR bruité (fragments de ≤ 3 lettres mêlés de voyelles) ne produit
+      // AUCUN extrait illisible, mais le titre, le type, l'émetteur et la date restent visibles.
       await page.goto(`/recherche?q=${prep.jeton_bruite}`);
       const carteBruitee = page.getByTestId(`resultat-${prep.id_bruite}`);
       await expect(carteBruitee).toBeVisible();
@@ -378,7 +388,25 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       await expect(carteBruitee).toContainText(prep.emetteur_bruite);
       await expect(carteBruitee).toContainText('06.05.2026');
       await expect(page.getByTestId(`extraits-${prep.id_bruite}`)).toHaveCount(0);
-      await expect(carteBruitee).not.toContainText('bcdfg');
+      await expect(carteBruitee).not.toContainText('Ps TC iar');
+      await verifierMobile(page);
+
+      // 2ter) V2-10d : un texte qui MÉLANGE bruit et adresse est ROGNÉ au premier segment propre ;
+      // l'extrait reste affiché, mais ne porte aucun fragment de tampon (le juge voyait encore du bruit).
+      await page.goto(`/recherche?q=${prep.jeton_melange}`);
+      const carteMelangee = page.getByTestId(`resultat-${prep.id_melange}`);
+      await expect(carteMelangee).toBeVisible();
+      await expect(carteMelangee).toContainText(prep.titre_melange);
+      await expect(carteMelangee).toContainText('Courrier');
+      await expect(carteMelangee).toContainText(prep.emetteur_melange);
+      await expect(carteMelangee).toContainText('07.06.2026');
+      const extraitMelange = page.getByTestId(`extraits-${prep.id_melange}`);
+      await expect(extraitMelange).toBeVisible();
+      const texteExtrait = await extraitMelange.innerText();
+      expect(texteExtrait, 'l’extrait montré porte le texte lisible').toContain('Relais');
+      expect(texteExtrait, 'aucun fragment de tampon affiché').not.toMatch(/\bnn\b/i);
+      expect(texteExtrait).not.toContain('PostC');
+      expect(texteExtrait).not.toContain('{');
       await verifierMobile(page);
 
       // 3) Dépôt par photo : appareil photo, plusieurs fichiers, retour nommé, puis la tâche.
