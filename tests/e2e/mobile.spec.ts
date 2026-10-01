@@ -79,6 +79,10 @@ type Preparation = {
   titre_melange: string;
   jeton_melange: string;
   emetteur_melange: string;
+  id_fenetre: number;
+  titre_fenetre: string;
+  terme_fenetre: string;
+  emetteur_fenetre: string;
 };
 
 let serveur: ChildProcess | undefined;
@@ -123,6 +127,7 @@ function indexerCible(): void {
     [prep.id_recherche, prep.titre_recherche],
     [prep.id_bruite, prep.titre_bruite],
     [prep.id_melange, prep.titre_melange],
+    [prep.id_fenetre, prep.titre_fenetre],
   ];
   for (const [id, titre] of cibles) {
     execFileSync('php', ['tests/e2e/indexer-mobile.php'], {
@@ -407,6 +412,34 @@ for (const appareil of ['iPhone 13', 'Pixel 7'] as const) {
       expect(texteExtrait, 'aucun fragment de tampon affiché').not.toMatch(/\bnn\b/i);
       expect(texteExtrait).not.toContain('PostC');
       expect(texteExtrait).not.toContain('{');
+      await verifierMobile(page);
+
+      // 2quater) V2-10e : le terme cherché est APRÈS un préambule lisible et du bruit. L'extrait est
+      // une fenêtre centrée sur la première occurrence PROPRE du terme — pas le début du texte — et il
+      // est rattaché au document, au-dessus du lien « Documents semblables » (point 5 du jugement).
+      await page.goto(`/recherche?q=${prep.terme_fenetre}`);
+      const carteFenetre = page.getByTestId(`resultat-${prep.id_fenetre}`);
+      await expect(carteFenetre).toBeVisible();
+      await expect(carteFenetre).toContainText(prep.titre_fenetre);
+      const extraitFenetre = page.getByTestId(`extraits-${prep.id_fenetre}`);
+      await expect(extraitFenetre).toBeVisible();
+      const texteFenetre = await extraitFenetre.innerText();
+      expect(texteFenetre, 'le terme cherché est montré').toContain(prep.terme_fenetre);
+      expect(texteFenetre, 'ce n’est plus le début du texte').not.toMatch(/pr[ée]ambule/i);
+      expect(texteFenetre, 'aucun fragment de tampon').not.toMatch(/\bnn\b/i);
+      expect(texteFenetre).not.toContain('{');
+
+      const lienSemblable = page.getByTestId(`semblables-${prep.id_fenetre}`);
+      await expect(lienSemblable).toBeVisible();
+      await expect(lienSemblable).toContainText('Documents semblables');
+      expect(await lienSemblable.innerText(), 'l’intitulé du lien n’est pas l’extrait').not.toContain(prep.terme_fenetre);
+      const boiteTete = await carteFenetre.locator('.resultat-tete').boundingBox();
+      const boiteExtrait = await extraitFenetre.boundingBox();
+      const boiteLien = await lienSemblable.boundingBox();
+      expect(boiteTete && boiteExtrait && boiteTete.y + boiteTete.height <= boiteExtrait.y + 1,
+        'l’extrait suit le titre du document').toBe(true);
+      expect(boiteExtrait && boiteLien && boiteLien.y >= boiteExtrait.y + boiteExtrait.height - 1,
+        'le lien « Documents semblables » est SOUS l’extrait, pas au-dessus').toBe(true);
       await verifierMobile(page);
 
       // 3) Dépôt par photo : appareil photo, plusieurs fichiers, retour nommé, puis la tâche.

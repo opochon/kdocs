@@ -234,6 +234,47 @@ try {
             is_file($metaMelange) ? hash('sha256', filesize($metaMelange) . '|' . filemtime($metaMelange)) : hash('sha256', 'mobile'),
         ]);
 
+    // ---- 5. V2-10e : un texte dont le DÉBUT est lisible mais ne porte PAS le terme cherché.
+    //         La fenêtre montrée doit être centrée sur la seule occurrence PROPRE du terme, pas être le
+    //         début du texte. Le terme est un vrai mot (pas un jeton coupé par un chiffre) pour que la
+    //         première occurrence propre soit trouvable.
+    $alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    $suffixe = '';
+    for ($i = 0; $i < 4; $i++) {
+        $suffixe .= $alphabet[random_int(0, 25)];
+    }
+    $termeFenetre = 'Simplonix' . ucfirst($suffixe);
+    $titreFenetre = 'Pièce fenêtre ' . $termeFenetre;
+    $emetteurFenetre = 'Régie Fictive ' . $termeFenetre . ' SA';
+    $texteFenetre = 'Le préambule lisible de cette pièce ne porte pas le terme cherché. '
+        . 'nn NE {EL EE PostC. Rue du Relais 12, 1920 Martigny, mention ' . $termeFenetre . ' à confirmer.';
+    $source5 = sys_get_temp_dir() . '/gedv2-mobile-fenetre-' . $termeFenetre . '.pdf';
+    ecrirePdf(['FENETRE OCR ' . $termeFenetre], $source5);
+    $idFenetre = $depot->deposer($source5, [
+        'dossier' => 'oracle-mobile',
+        'titre' => $titreFenetre,
+        'type' => 'Courrier',
+        'emetteur' => $emetteurFenetre,
+        'date' => '2026-08-08',
+        'statut' => 'valide',
+        'source' => 'dossier',
+        'texte' => $texteFenetre,
+    ]);
+    $depot->mettreAJour($idFenetre, ['id' => $idFenetre], 'oracle');
+    @unlink($source5);
+
+    $cheminFenetre = (string) $pdo->query('SELECT chemin_relatif FROM documents WHERE id = ' . $idFenetre)->fetchColumn();
+    $metaFenetre = $fonds . '/' . $cheminFenetre . '.meta.json';
+    $pdo->prepare('INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature)'
+        . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        . ' ON DUPLICATE KEY UPDATE document_id = VALUES(document_id), titre = VALUES(titre), type = VALUES(type),'
+        . ' emetteur = VALUES(emetteur), date_document = VALUES(date_document), contenu = VALUES(contenu), absent_le = NULL')
+        ->execute([
+            hash('sha256', $cheminFenetre), $cheminFenetre, $idFenetre,
+            $titreFenetre, 'Courrier', $emetteurFenetre, '2026-08-08', 0, $texteFenetre,
+            is_file($metaFenetre) ? hash('sha256', filesize($metaFenetre) . '|' . filemtime($metaFenetre)) : hash('sha256', 'mobile'),
+        ]);
+
     echo json_encode([
         'preparation' => 'prete',
         'compte' => $identifiant,
@@ -251,6 +292,10 @@ try {
         'titre_melange' => $titreMelange,
         'jeton_melange' => $jetonMelange,
         'emetteur_melange' => $emetteurMelange,
+        'id_fenetre' => $idFenetre,
+        'titre_fenetre' => $titreFenetre,
+        'terme_fenetre' => $termeFenetre,
+        'emetteur_fenetre' => $emetteurFenetre,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), PHP_EOL;
     exit(0);
 } catch (Throwable $e) {
