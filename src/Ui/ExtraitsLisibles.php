@@ -210,8 +210,8 @@ final class ExtraitsLisibles
                 return ['texte' => $candidat, 'debut' => $debut, 'fin' => $fin];
             }
 
-            // Le terme n'est dans aucun passage propre : mieux vaut pas d'extrait qu'un hors-sujet.
-            return null;
+            // Le terme n'est dans aucun passage propre (jeton coupé par un chiffre, occurrence noyée
+            // dans le bruit) : on retombe sur le segment propre de tête plutôt que de tout masquer.
         }
 
         // — segment propre de tête, queue rognée : c'est le cas général (corpus, sans terme).
