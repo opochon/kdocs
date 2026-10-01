@@ -580,7 +580,10 @@ final class ExtraitsLisibles
             return true;
         }
         $suite = mb_substr($jeton['t'], 1);
-        if ($suite !== '' && preg_match('/\p{Lu}/u', $suite) === 1) {
+        // Une courte majuscule interne (« PostC ») est un collage OCR ; un identifiant de recherche
+        // long peut en revanche être légitime (référence ou nom composé) et ne doit pas faire perdre
+        // le passage propre qui le porte.
+        if ($jeton['longueur'] <= 8 && $suite !== '' && preg_match('/\p{Lu}/u', $suite) === 1) {
             return true;
         }
         if (preg_match('/[aeiouyàâäéèêëîïôöùûüœæ]{4,}/iu', $jeton['lettres']) === 1) {
