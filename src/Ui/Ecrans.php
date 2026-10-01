@@ -106,8 +106,16 @@ final class Ecrans
         // Le secteur Recherche branche ses vrais résultats (source : le fonds) ; le gabarit et son
         // système visuel restent le contrat. Point de branchement minimal, sans toucher au Kernel.
         if (class_exists(\Ged\Recherche\Ecran::class)) {
+            $donnees = \Ged\Recherche\Ecran::depuisRacine()->donnees($req->getQueryParams());
+            // V2-10c : on ne montre pas un extrait OCR illisible. Le titre, le type, l'émetteur et la
+            // date restent affichés — seul l'extrait de bruit est écarté.
+            foreach ($donnees['resultats'] as &$resultat) {
+                $resultat['extraits'] = ExtraitsLisibles::retenir((array) ($resultat['extraits'] ?? []));
+            }
+            unset($resultat);
+
             return $this->vue->rendre($rep, 'ecrans/recherche.twig',
-                $this->commun('recherche') + \Ged\Recherche\Ecran::depuisRacine()->donnees($req->getQueryParams()));
+                $this->commun('recherche') + $donnees);
         }
 
         // Repli de démonstration (aucune donnée réelle) : même forme de données pour le même gabarit.

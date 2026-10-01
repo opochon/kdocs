@@ -72,9 +72,15 @@
           {% if r.montant is not null %}<span class="muted">{{ r.montant|number_format(2, '.', ' ') }} CHF</span>{% endif %}
           <a class="btn discret" style="margin-left:auto" href="/bibliotheque?doc={{ r.id }}">Documents semblables</a>
         </div>
-        {% for extrait in r.extraits %}
+        {# V2-10c : seuls les extraits lisibles sont rendus (heuristique `ExtraitsLisibles`) — jamais un
+           amas OCR brut. Le titre, le type, l'émetteur et la date restent affichés au-dessus. #}
+        {% if r.extraits %}
+        <div class="extraits" data-testid="extraits-{{ r.id }}">
+          {% for extrait in r.extraits %}
           <div class="muted">{% for s in extrait %}{% if s.hit %}<mark>{{ s.t }}</mark>{% else %}{{ s.t }}{% endif %}{% endfor %}</div>
-        {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
       </article>
     {% else %}
       {% if not erreur %}
