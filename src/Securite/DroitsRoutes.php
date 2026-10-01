@@ -15,6 +15,10 @@ final class DroitsRoutes
         'GET /' => 'documents:lire',
         'GET /a-traiter' => 'documents:traiter',
         'POST /a-traiter/{id:[0-9]+}/valider' => 'documents:traiter',
+        // Interface V2-10a (mobile) : dépôt par photo de l'écran « Déposer » — même chaîne d'ingestion
+        // que le dépôt de bureau, même droit que « À traiter » (ligne signalée hors secteur).
+        'GET /deposer' => 'documents:traiter',
+        'POST /deposer' => 'documents:traiter',
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',

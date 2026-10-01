@@ -274,6 +274,9 @@ try {
         // Charge défensive de l'écran « À traiter » (lot V2-03-écran, Interface) : l'identifiant n'existe
         // pas, le métier refuse proprement ; la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /a-traiter/{id:[0-9]+}/valider' => 'titre=Charge+sonde&type=Facture',
+        // Charge défensive du dépôt par photo (V2-10a, Interface) : sans fichier joint, le métier refuse
+        // proprement (PRG nommé) ; la sonde ne vérifie que le CSRF absent / rejoué.
+        'POST /deposer' => 'fichier=',
         // Charges défensives du Socle (V2-04) : chaque charge est refusée par le métier sans écrire.
         'POST /metadonnees/type' => 'action=inconnue',
         'POST /metadonnees/champ' => 'type=0&nom=',

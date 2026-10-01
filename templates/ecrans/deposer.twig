@@ -1,0 +1,45 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Déposer{% endblock %}
+{% block contenu %}
+{# Écran « Déposer » du mobile (V2-10a) : l'appareil photo (input capture=environment) envoie un ou
+   plusieurs fichiers dans la MÊME chaîne d'ingestion que le dépôt de bureau. Le retour dit toujours où
+   en est le travail : « reçu, en cours de lecture », jamais un écran muet. #}
+<div class="page" data-testid="ecran-deposer">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Déposer</h1>
+      <span class="muted">Photo, scan ou PDF — la même file que le dépôt de bureau.</span>
+    </div>
+  </div>
+
+  {% if recus > 0 %}
+  <div class="carte depot-retour" role="status" data-testid="depot-retour">
+    <span class="pastille">{{ ic.i('check') }}</span>
+    <div>
+      <strong>{{ recus }} fichier{{ recus > 1 ? 's' : '' }} reçu{{ recus > 1 ? 's' : '' }}, en cours de lecture.</strong>
+      <div class="muted">La pièce apparaîtra dans « À traiter » après le passage de la tâche d’ingestion.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if erreur %}
+  <div class="carte raison" role="alert" data-testid="depot-erreur">
+    {{ ic.i('alerte') }}<span>{{ erreur }}</span>
+  </div>
+  {% endif %}
+
+  <form class="carte depot-form" method="post" action="/deposer" enctype="multipart/form-data" data-testid="formulaire-depot">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="champ">
+      <label for="champ-photo">Prendre une photo ou choisir des fichiers</label>
+      <input id="champ-photo" data-testid="champ-photo" type="file" name="fichiers[]"
+        accept="image/*,application/pdf" capture="environment" multiple required>
+      <span class="muted">Plusieurs photos possibles ; chaque fichier rejoint la file d’ingestion.</span>
+    </div>
+    <div class="pied-depot">
+      <button class="btn primaire" type="submit" data-testid="action-envoyer">{{ ic.i('check') }}Envoyer</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

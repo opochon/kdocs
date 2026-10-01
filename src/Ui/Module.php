@@ -40,5 +40,55 @@ final class Module
 
             return $rep->withHeader('Location', $suivant !== null ? '/a-traiter?doc=' . $suivant : '/a-traiter')->withStatus(303);
         });
+
+        // Dépôt par photo (V2-10a) : l'écran mobile « Déposer ». Même chaîne d'ingestion que le dépôt de
+        // bureau (SourceApi + Travaux), même droit que « À traiter » ; le retour est un PRG qui nomme
+        // l'état « reçu, en cours de lecture ». Aucune donnée n'est rangée ici : le Pilote s'en charge.
+        $app->get('/deposer', function (Requete $req, Reponse $rep) use ($vue): Reponse {
+            $parametres = $req->getQueryParams();
+
+            return $vue->rendre($rep, 'ecrans/deposer.twig', [
+                'ecran' => 'deposer',
+                'csrf' => Ecrans::jetonCsrf($req),
+                'recus' => max(0, (int) ($parametres['recu'] ?? 0)),
+                'erreur' => isset($parametres['erreur']) ? (string) $parametres['erreur'] : '',
+            ]);
+        });
+
+        $app->post('/deposer', function (Requete $req, Reponse $rep) use ($config): Reponse {
+            $session = $req->getAttribute('ged.session');
+            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+
+            $bruts = $req->getUploadedFiles()['fichiers'] ?? [];
+            $fichiers = [];
+            foreach (is_array($bruts) ? $bruts : [$bruts] as $fichier) {
+                if ($fichier instanceof \Psr\Http\Message\UploadedFileInterface) {
+                    $fichiers[] = $fichier;
+                }
+            }
+            $fichiers = array_slice($fichiers, 0, 20);   // borne : un envoi reste court et repris par la file
+
+            try {
+                if ($fichiers === []) {
+                    throw new \RuntimeException('aucun fichier reçu : joignez une photo ou un PDF');
+                }
+                $resultats = Depot::depuisRacine($config->racine())->recevoir($fichiers, $auteur);
+            } catch (\Throwable $e) {
+                return $rep->withHeader('Location', '/deposer?erreur=' . rawurlencode($e->getMessage()))->withStatus(303);
+            }
+
+            $recus = count(array_filter($resultats, static fn (array $r): bool => $r['travail'] !== null));
+            $erreurs = array_values(array_filter(array_map(
+                static fn (array $r): string => $r['erreur'] ?? '',
+                $resultats,
+            ), static fn (string $e): bool => $e !== ''));
+
+            $cible = '/deposer?recu=' . $recus;
+            if ($erreurs !== []) {
+                $cible .= '&erreur=' . rawurlencode(implode(' ; ', $erreurs));
+            }
+
+            return $rep->withHeader('Location', $cible)->withStatus(303);
+        });
     }
 }
