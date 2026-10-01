@@ -115,14 +115,26 @@ final class ExtraitsLisiblesTest extends TestCase
             }
             self::assertNotNull($resultat, sprintf('forme utile « %s » : un extrait doit s’afficher', $cas['nom']));
             foreach ($cas['interdits'] as $interdit) {
-                self::assertStringNotContainsString(
-                    $interdit,
-                    $resultat,
+                self::assertFalse(
+                    self::porteInterdit((string) $resultat, $interdit),
                     sprintf('forme « %s » : le bruit « %s » est affiché', $cas['nom'], $interdit),
                 );
             }
             self::assertStringContainsString($resultat, $cas['texte'], 'l’extrait affiché ne peut être inventé');
         }
+    }
+
+    /**
+     * Un fragment interdit ne compte que comme MOT : « nn » ne doit pas se confondre avec les deux
+     * n de « Lausanne ». Les interdits non alphabétiques sont cherchés tels quels.
+     */
+    private static function porteInterdit(string $resultat, string $interdit): bool
+    {
+        if (preg_match('/^\p{L}+$/u', $interdit) === 1) {
+            return preg_match('/(?<![\p{L}])' . preg_quote($interdit, '/') . '(?![\p{L}])/u', $resultat) === 1;
+        }
+
+        return str_contains($resultat, $interdit);
     }
 
     /** Les extraits propres sont conservés (≥ 90 %) et jamais rognés à tort. */
@@ -172,7 +184,7 @@ final class ExtraitsLisiblesTest extends TestCase
 
         self::assertNotNull($resultat);
         self::assertStringStartsWith('du Simplon', (string) $resultat);
-        self::assertStringNotContainsString('nn', (string) $resultat);
+        self::assertFalse(self::porteInterdit((string) $resultat, 'nn'));
         self::assertStringNotContainsString('{', (string) $resultat);
     }
 }
