@@ -559,3 +559,16 @@ de la Bibliothèque) a disparu.
 maquette · `81457da` oracle V2-10c extraits lisibles · `56778eb` extraits lisibles branchés · `b1bc706` mobile V2-10c.
 
 ETAT: fini
+
+
+## Jugement PERF-3 / V2-10c — 01-10-2026 (juge : Claude Code)
+
+- J'ai relu et commité l'index partagé `k_vivant` de `src/Socle/Schema.php` (`0ee1c8f`). La migration est idempotente et ne fait qu'ajouter un index.
+- Harness complet du juge sur `0ee1c8f` : garde-fous, unitaire (365), banc (découpe 53/53, classement, bout-en-bout), sécurité et contrat verts. Deux rouges de temps : maquettes « bibliothèque < 1,5 s » (4 606 ms sur 63 documents) et 6-charge (p95 lecture environ 2 s, uniforme sur TOUS les écrans).
+- Rejoués seuls, machine calme : `charge.php` est **vert** (p95 lecture 722 ms ; Bibliothèque 492 ms à 3 utilisateurs et 156 ms à 10 utilisateurs, contre 5 677 ms avant PERF-3) ; `maquettes.spec` est **12/12 vert**. La recette à vide répond en 74 à 132 ms. Les rouges du harness venaient de la charge de la machine (autres sessions en cours), pas du code.
+- **PERF-3 franchi.**
+- V2-10c, relu à l'œil sur la recette réelle (iPhone 13) :
+  - a) le résumé de la proposition au-dessus de « Valider » (type, émetteur, date, motif « à contrôler ») est en place : **OK** ;
+  - c) l'invite de recherche est entière sur 390 px : **OK** ;
+  - b) les extraits « Documents semblables » montrent **encore** du bruit OCR brut sur du vrai papier (fragments de 1 à 3 lettres et signes, suivis d'une adresse lisible). L'heuristique passe sur le synthétique mais reste trop permissive : **non franchi**.
+- Verdict : **V2-10c non franchi sur le seul point b**, repris en **V2-10d** avec un corpus OCR synthétique réaliste.
