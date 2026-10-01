@@ -207,10 +207,24 @@ nul), qui contourne les droits par dossier.
   synthétique → découpe simulée → `DepotFichiers`). Le parcours se connecte avec ce compte et ouvre l'aperçu
   et la fiche ; sans session, la même route répond 403. La préparation échoue si le document rangé n'a pas
   de dossier ACL : ce parcours aurait attrapé le défaut 1.
-- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite` vert (16 tests, 112 assertions) ; suite entière verte
-  sauf `Ingestion\\PiloteTest::testLaFabriqueBrancheLeClasseurEtLeReglageVision` (`Fabrique::classeur()`),
-  travail concurrent d'un autre secteur, hors de ce lot ; Playwright vert **35 parcours** (dont le nouveau) ;
-  sonde offensive verte (« aucun contournement accepté »). Le harness `-SansBanc` est rejoué en fin de lot.
+- Preuves : `vendor\\bin\\phpunit tests\\php\\Securite` vert (16 tests, 112 assertions) ; suite entière
+  `vendor\\bin\\phpunit` verte au 2ᵉ rejeu (**283 tests, 1367 assertions**), l'erreur `Ingestion\\PiloteTest`
+  du 1ᵉʳ rejeu (`Fabrique::classeur()`) ayant été corrigée entre-temps par le secteur Ingestion ;
+  `npx.cmd playwright test tests/e2e/droits-reels.spec.ts` vert, et suite Playwright verte **35 parcours**
+  (dont le nouveau) au 1ᵉʳ rejeu ; sonde offensive verte (« aucun contournement accepté ») ; contrat vert
+  après stabilisation de la base partagée.
+- Harness : `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` rejoué deux fois.
+  - Rejeu 1 (registre `2026-10-01T10:02:41`, commit `67e0726`) : `0-garde-fous` VERT, `4-ecrans` VERT
+    (**35 passed**, dont `droits-reels`), `7-securite` VERT, `2-contrat` VERT, `6-charge` VERT ; seul
+    `1-unitaire` ROUGE (282 tests, 1363 assertions, `Errors: 1`) sur le défaut `Fabrique::classeur()` d'un
+    autre secteur, corrigé depuis. Aucun rouge imputable à R1.
+  - Rejeu 2 : `0`, `1` (**283 tests, 1367 assertions**, VERT) et `7` verts ; `2-contrat`, `4-ecrans` et
+    `6-charge` rouges par l'état de la base `gedv2_test` et la charge d'agents concurrents pendant la
+    passe (le seul échec écran est `tests/e2e/workflows.spec.ts`, testid `action-nouvelle-regle` absent ;
+    le contrat tombe sur `POST /workflows/...` et redevient vert au rejeu seul ; la charge échoue au seuil
+    p95 et à l'ingestion sous contention). Rejoués seuls, `tests/php/Workflows` (21/21), `php
+    tools/banc/contrat.php` et les parcours R1 sont verts : aucune régression de R1.
+  - `3-banc` est sautée par `-SansBanc` et `5-personas` n'est pas encore écrite : rouge attendu, hors lot.
 - Commits : `ac77153` (oracle R1), `49581a5` (rattachement aux dossiers de droits, Socle compris),
   `3aa7681` (admin voit tout, compte réel en test), `5ec801a` (installateur = courriel), `f21e2bb`
   (parcours e2e d'un compte réel). Chaque commit porte `Co-Authored-By: DeepCode <noreply@deepcode>`.
