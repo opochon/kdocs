@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import { connecter } from './connexion';
 
 /**
@@ -8,6 +9,12 @@ import { connecter } from './connexion';
  * La mesure reste le vrai parcours d'écran (serveur réel, pdf.js réel, cache chaud) : c'est la CONCURRENCE des
  * autres parcours qui est retirée, pas la difficulté de la mesure.
  */
+test.beforeAll(() => {
+  execFileSync('php', ['tests/e2e/preparer-recherche.php'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
+  });
+});
 test.beforeEach(async ({ page }) => { await connecter(page); });
 
 test('banc : les budgets tournent sur un serveur dédié, hors du pool des parcours', async ({}, testInfo) => {
