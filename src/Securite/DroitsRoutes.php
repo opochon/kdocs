@@ -22,6 +22,8 @@ final class DroitsRoutes
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
+        // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
+        'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
         'GET /documents/{id:[0-9]+}/apercu/fichier' => 'document.voir',
         'GET /documents/{id:[0-9]+}/fichier' => 'document.voir',
@@ -40,6 +42,8 @@ final class DroitsRoutes
         'POST /workflows/evenements' => 'workflow.executer',
         'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
+        'GET /archives' => 'archivage:consulter',
+        'POST /archives/verifier' => 'archivage:consulter',
         // Socle V2-04 : bibliothèque réelle, vues enregistrées, écran métadonnées de l'administrateur.
         'GET /metadonnees' => 'application:administrer',
         'POST /metadonnees/type' => 'application:administrer',
@@ -108,6 +112,9 @@ final class DroitsRoutes
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
+            if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /documents/{id:[0-9]+}/sceller'];
+            }
             if (preg_match('#^/a-traiter/[0-9]+/valider$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/valider'];
             }

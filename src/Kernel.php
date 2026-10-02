@@ -44,7 +44,7 @@ final class Kernel
         // `Ged\<Secteur>\Module::enregistrer()`. Aucun agent n'a besoin de modifier ce fichier.
         // « Ui » (Interface) ajouté par le lot V2-03-écran : modification minimale signalée dans
         // docs/secteurs/interface.md (l'écran « À traiter » porte sa route de validation).
-        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Ui'] as $secteur) {
+        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Ui', 'Archivage'] as $secteur) {
             $module = 'Ged\\' . $secteur . '\\Module';
             if (class_exists($module)) {
                 $module::enregistrer($app, $config, $vue);

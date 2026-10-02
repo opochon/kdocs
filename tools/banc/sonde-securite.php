@@ -282,6 +282,11 @@ try {
         'POST /metadonnees/champ' => 'type=0&nom=',
         'POST /bibliotheque/vue' => 'nom=',
         'POST /documents/champ' => 'doc=0',
+        // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde
+        // n'exerce ici que l'absence et le rejeu CSRF de la route irréversible.
+        'POST /documents/{id:[0-9]+}/sceller' => 'confirmation=1',
+        // La vérification crée une tâche courte interne au fonds de test, sans aucune mutation de document.
+        'POST /archives/verifier' => 'sonde=1',
         // Charges défensives de l'appairage (V2-08b, Jonctions) : le métier refuse ou ne révoque rien,
         // la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /appairage' => 'application=cmm&nom=sonde&retour=http%3A%2F%2F127.0.0.1%2Fretour&etat=sonde',
