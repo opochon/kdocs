@@ -36,7 +36,7 @@ async function pageEdition(page: Page, valeur: number) {
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(async () => { fs.mkdirSync(path.dirname(FONDS), { recursive: true }); const port = await portLibre(); base = `http://127.0.0.1:${port}`;
   serveur = spawn('php', ['-d', 'opcache.enable=0', '-S', `127.0.0.1:${port}`, '-t', 'public', 'public/index.php'], { cwd: RACINE,
-    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS, CMD4_PYTHON: 'python' }, stdio: 'ignore' }); await attendre(base); });
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS }, stdio: 'ignore' }); await attendre(base); });
 test.afterAll(() => serveur?.kill());
 test.beforeEach(() => { preparation = preparer(); });
 
