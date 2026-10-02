@@ -51,6 +51,13 @@ final class EcransTest extends TestCase
         self::assertStringNotContainsStringIgnoringCase('storage/', $html);
     }
 
+    public function testApplicationDiagnostiqueLeMoteurDeRetouche(): void
+    {
+        [, $html] = $this->get('/application');
+        self::assertStringContainsString('data-testid="reglage-editeur-pdf"', $html);
+        self::assertStringContainsString('PyMuPDF', $html);
+    }
+
     public function testPageInconnueEstNommee(): void
     {
         [$code, $html] = $this->get('/nulle-part');
