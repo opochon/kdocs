@@ -808,3 +808,17 @@ ETAT: fini
 - `powershell -ExecutionPolicy Bypass -File tools/harness.ps1 -SansBanc` (05:46) : 0, 1 (**414 tests, 2336 assertions**), 4 (**52 parcours**), 7, 2 et 6 (p95 lecture **725 ms**, écriture **182 ms**) verts ; 3 est sautée et 5 non écrite, par construction. Aucun fichier dans `tests/corpus/apercu/documents/.archivage/`.
 
 ETAT: fini
+
+
+## Jugement V2-11 — 02-10-2026 (juge : Claude Code)
+
+- J'ai relu et commité les fichiers partagés (`dc23aa9`) : route `POST /documents/{id}/versions` → `documents:modifier` ; sonde et contrat travaillent dans un bac temporaire, plus jamais dans le corpus d'aperçu suivi (la pollution `.archivage/` signalée en V2-09b est corrigée).
+- Recette réelle (compte réel, `dc23aa9`) :
+  - **aucun lien href=# sur les six écrans** (À traiter, Bibliothèque, Recherche, fiche, Archives, Application) ;
+  - Télécharger livre le PDF d'origine (236 620 octets, nom propre) ;
+  - fiche réduite aux onglets réels (Métadonnées, Versions, Historique) ;
+  - formulaire Nouvelle version présent.
+- Harness de l'agent (`-SansBanc`, 05:46) : 414 tests, 52 parcours, sécurité, contrat et charge verts.
+- **Retraits consignés par l'agent**, honnêtes mais à décider : Partager, Notes, Liens, Restaurer une version, arbre de dossiers de la Bibliothèque, Enregistrer comme vue dans Recherche, reconstruction d'index ; et surtout, dans À traiter, **rotation, découpe et fusion de pages et validation par lot**.
+- Ce dernier retrait révèle un écart avec le plan : V2-03 annonçait « édition de pages », or les boutons n'étaient pas branchés. Pour un courrier scanné, corriger une découpe (scinder, fusionner, pivoter) fait partie du cœur ; ce n'est pas une option.
+- Verdict : **V2-11 franchi** (plus aucun geste muet ; ce qui reste est réel et testé). L'édition de pages part en **V2-12a**, sans attendre : elle est dans le périmètre déjà décidé. Partage, Notes et Liens attendent une décision d'Olivier.
