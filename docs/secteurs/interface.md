@@ -1031,3 +1031,10 @@ ETAT: fini
   par étape verte, avec `Co-Authored-By: Codex <noreply@openai.com>`.
 
 ETAT: fini
+
+### Jugement V2-12c-s (juge, 2026-10-02)
+
+- Écrans rejoués seuls deux fois à `caee398` : les trois régressions V2-12c sont vertes (`bibliotheque.spec.ts:125`, `actions-v2-12c.spec.ts:13`, `edition-pages.spec.ts:43`). Bon diagnostic, et un vrai défaut corrigé au passage : le lien de fiche de la Bibliothèque (`??` sans parenthèses).
+- Restent : `recherche.spec.ts:40` rouge aux deux passages (nouvelle régression, vert à `bac9670`) ; `a-traiter.spec.ts:126` rouge une fois (uq_chemin dupliqué, pollution de la base `gedv2_test` partagée entre fonds) ; `mobile.spec.ts:298` instable connu.
+- Contournements refusés : date `1000-01-01` dans `preparer-v2-12c.php` pour passer devant les index orphelins (le défaut produit, limite de file appliquée avant le contrôle de présence du fichier, reste dans `ATraiter`) ; délais par action portés à 90 s dans deux specs.
+- Verdict : **non clos** ; reprise V2-12c-s3 (régression Recherche, isolement base/fonds à la racine, défaut de file corrigé dans le code, retrait des contournements).
