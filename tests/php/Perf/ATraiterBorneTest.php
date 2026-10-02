@@ -39,4 +39,24 @@ final class ATraiterBorneTest extends TestCase
         self::assertLessThan(500, $apres - $avant,
             'l’écran doit lire la file indexée (statut), pas parcourir les 2 000 documents du fonds');
     }
+
+    public function testLesOrphelinsPlusNombreuxQueLaLimiteNeMasquentPasLaFileVivante(): void
+    {
+        $orphelins = $this->pdo()->query('SELECT id, chemin_relatif FROM documents WHERE id > ' . self::PERF_A_CONTROLER
+            . ' ORDER BY id ASC LIMIT 1001')->fetchAll(\PDO::FETCH_ASSOC);
+        self::assertCount(1001, $orphelins, 'le fonds de charge fournit plus d’orphelins que la limite de file');
+
+        foreach ($orphelins as $orphelin) {
+            @unlink($this->fonds() . '/' . $orphelin['chemin_relatif']);
+        }
+        $ids = implode(',', array_map(static fn (array $ligne): int => (int) $ligne['id'], $orphelins));
+        $this->pdo()->exec("UPDATE documents SET statut = 'a_controler', date_document = '2000-01-01', absent_depuis = NULL"
+            . " WHERE id IN ($ids)");
+
+        $donnees = (new ATraiter($this->config(), $this->pdo()))->donnees([], 'jeton');
+
+        self::assertCount(self::PERF_A_CONTROLER, $donnees['file'],
+            'les orphelins sans drapeau ne consomment pas la limite avant les pièces présentes');
+        self::assertSame(self::PERF_A_CONTROLER, $donnees['bilan']['a_controler']);
+    }
 }
