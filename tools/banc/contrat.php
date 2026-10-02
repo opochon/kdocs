@@ -43,7 +43,10 @@ function demarrer(string $dossier, int $port): mixed
     $env = getenv();
     if (!is_array($env)) $env = [];
     $env['APP_ENV'] = 'test'; $env['DB_NAME'] = 'gedv2_test';
-    $env['STORAGE_ROOT'] = RACINE_CONTRAT . '/tests/corpus/apercu/documents';
+    // Les routes de mutation sont aussi sondées ici : leurs tâches éventuelles restent dans le bac HTTP
+    // éphémère, jamais dans le corpus versionné d'aperçu.
+    $env['STORAGE_ROOT'] = $dossier . '/documents';
+    mkdir($env['STORAGE_ROOT'], 0700, true);
     $env['SECURITE_DOSSIER'] = $dossier . '/securite';
     $env['INGESTION_TRAVAIL'] = $dossier . '/ingestion';
     $proc = proc_open([PHP_BINARY, '-d', 'opcache.enable=0', '-S', "127.0.0.1:$port", '-t', RACINE_CONTRAT . '/public', RACINE_CONTRAT . '/public/index.php'],

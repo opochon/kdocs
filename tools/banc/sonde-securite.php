@@ -92,7 +92,10 @@ function demarrerServeur(string $dossier, int $port): mixed
     }
     $environnement['APP_ENV'] = 'test';
     $environnement['DB_NAME'] = 'gedv2_test';
-    $environnement['STORAGE_ROOT'] = RACINE_SONDE . '/tests/corpus/apercu/documents';
+    // Toute mutation de sonde (notamment la tâche Archives) va dans son bac éphémère, jamais dans le
+    // corpus versionné d'aperçu. Le dossier est retiré avec le reste de la sonde en fin de passe.
+    $environnement['STORAGE_ROOT'] = $dossier . '/documents';
+    mkdir($environnement['STORAGE_ROOT'], 0700, true);
     $environnement['SECURITE_DOSSIER'] = $dossier . '/securite';
     // Tableau de commande : proc_terminate vise bien le serveur PHP, pas un shell parent sous Windows.
     $commande = [PHP_BINARY, '-d', 'opcache.enable=0', '-S', '127.0.0.1:' . $port,
@@ -128,12 +131,11 @@ function portLibre(): int
 
 function supprimerDossier(string $dossier): void
 {
-    foreach (glob($dossier . '/*') ?: [] as $element) {
-        if (is_dir($element)) {
-            supprimerDossier($element);
-        } else {
-            unlink($element);
-        }
+    if (!is_dir($dossier)) return;
+    $iterateur = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dossier, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST);
+    foreach ($iterateur as $element) {
+        $element->isDir() ? rmdir($element->getPathname()) : unlink($element->getPathname());
     }
     rmdir($dossier);
 }
@@ -282,6 +284,8 @@ try {
         'POST /metadonnees/champ' => 'type=0&nom=',
         'POST /bibliotheque/vue' => 'nom=',
         'POST /documents/champ' => 'doc=0',
+        // Nouvelle version V2-11 : fichier absent, le métier refuse sans écrire ; la sonde couvre CSRF.
+        'POST /documents/{id:[0-9]+}/versions' => 'fichier=',
         // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde
         // n'exerce ici que l'absence et le rejeu CSRF de la route irréversible.
         'POST /documents/{id:[0-9]+}/sceller' => 'confirmation=1',

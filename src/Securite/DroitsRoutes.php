@@ -22,6 +22,7 @@ final class DroitsRoutes
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
+        'POST /documents/{id:[0-9]+}/versions' => 'documents:modifier',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
@@ -112,6 +113,9 @@ final class DroitsRoutes
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
+            if (preg_match('#^/documents/[0-9]+/versions$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /documents/{id:[0-9]+}/versions'];
+            }
             if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/sceller'];
             }
