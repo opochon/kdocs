@@ -18,13 +18,12 @@ final class EditionPiecesTest extends TestCase
 
     private DepotFichiers $depot;
     private EditionPieces $edition;
-    private string|false $pythonAvant;
+    private EditeurPdf $pdf;
 
     protected function setUp(): void
     {
         $this->setUpCorpus();
-        $this->pythonAvant = getenv('CMD4_PYTHON');
-        putenv('CMD4_PYTHON=python'); // l'oracle isole l'éditeur, sans dépendre du venv local de CMD4
+        $this->pdf = EditeurPdf::depuisConfig($this->config);
         \Ged\Classement\Schema::installer($this->pdo);
         $this->depot = new DepotFichiers($this->config);
         $this->edition = new EditionPieces($this->config, $this->depot, new class implements Classeur {
@@ -39,7 +38,6 @@ final class EditionPiecesTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->pythonAvant === false ? putenv('CMD4_PYTHON') : putenv('CMD4_PYTHON=' . $this->pythonAvant);
         $this->tearDownCorpus();
     }
 
@@ -53,31 +51,31 @@ final class EditionPiecesTest extends TestCase
         ]);
 
         $this->edition->tourner($id, 3, 90, 'operatrice');
-        self::assertSame(90, EditeurPdf::rotation($this->chemin($id), 3));
+        self::assertSame(90, $this->rotation($this->chemin($id), 3));
 
         $droite = $this->edition->scinder($id, 3, 'operatrice');
-        self::assertSame(3, EditeurPdf::compterPages($this->chemin($id)));
-        self::assertSame(3, EditeurPdf::compterPages($this->chemin($droite)));
+        self::assertSame(3, $this->pages($this->chemin($id)));
+        self::assertSame(3, $this->pages($this->chemin($droite)));
         self::assertSame([1, 2, 3, 4, 5, 6], $this->pagesVivantes(71));
 
         $this->edition->fusionner($id, $droite, 'operatrice');
-        self::assertSame(6, EditeurPdf::compterPages($this->chemin($id)));
+        self::assertSame(6, $this->pages($this->chemin($id)));
         self::assertNotNull($this->depot->fiche($droite)['supprime_le']);
         self::assertSame([1, 2, 3, 4, 5, 6], $this->pagesVivantes(71));
 
         $blanche = $this->edition->retirer($id, 6, 'operatrice');
-        self::assertSame(5, EditeurPdf::compterPages($this->chemin($id)));
+        self::assertSame(5, $this->pages($this->chemin($id)));
         self::assertNotNull($this->depot->fiche($blanche)['supprime_le'], 'la page retirée va dans une corbeille récupérable');
 
         $this->edition->annuler($id, 'operatrice');
-        self::assertSame(6, EditeurPdf::compterPages($this->chemin($id)));
+        self::assertSame(6, $this->pages($this->chemin($id)));
         self::assertSame([1, 2, 3, 4, 5, 6], $this->pagesVivantes(71));
         self::assertNotEmpty($this->depot->fiche($id)['meta']['historique_pages'] ?? []);
 
         // Les annulations remontent une pile : fusion puis scission, sans remettre de page en double.
         $this->edition->annuler($id, 'operatrice');
         $this->edition->annuler($id, 'operatrice');
-        self::assertSame(6, EditeurPdf::compterPages($this->chemin($id)));
+        self::assertSame(6, $this->pages($this->chemin($id)));
         self::assertNotNull($this->depot->fiche($droite)['supprime_le']);
         self::assertSame([1, 2, 3, 4, 5, 6], $this->pagesVivantes(71));
 
@@ -108,15 +106,25 @@ final class EditionPiecesTest extends TestCase
 
     private function pdf(string $fichier, int $pages): void
     {
-        $script = "from pypdf import PdfWriter\n"
-            . "w=PdfWriter()\n"
-            . '[w.add_blank_page(width=595,height=842) for _ in range(' . $pages . ")]\n"
-            . "w.write(open(r'" . str_replace('\\', '\\\\', $fichier) . "','wb'))\n";
-        $processus = proc_open(['python', '-c', $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $script = "import fitz\n"
+            . "doc=fitz.open()\n"
+            . '[doc.new_page(width=595,height=842) for _ in range(' . $pages . ")]\n"
+            . "doc.save(r'" . str_replace('\\', '\\\\', $fichier) . "')\n";
+        $processus = proc_open([$this->config->get('CMD4_PYTHON'), '-c', $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
         self::assertIsResource($processus);
         fclose($pipes[1]);
         $erreur = stream_get_contents($pipes[2]);
         fclose($pipes[2]);
         self::assertSame(0, proc_close($processus), $erreur);
+    }
+
+    private function pages(string $fichier): int
+    {
+        return (int) ($this->pdf->executer(['action' => 'count', 'source' => $fichier])['pages'] ?? 0);
+    }
+
+    private function rotation(string $fichier, int $page): int
+    {
+        return (int) ($this->pdf->executer(['action' => 'rotation', 'source' => $fichier, 'page' => $page])['rotation'] ?? -1);
     }
 }
