@@ -798,11 +798,13 @@ ETAT: fini
 
 - `src/Securite/DroitsRoutes.php` : `POST /documents/{id:[0-9]+}/versions` → `documents:modifier`, plus sa résolution paramétrée.
 - `tools/banc/sonde-securite.php` : bac `STORAGE_ROOT` temporaire au lieu de `tests/corpus/apercu/documents`, nettoyage des dossiers cachés, et charge CSRF défensive de la nouvelle route (`fichier=`).
+- `tools/banc/contrat.php` : bac `STORAGE_ROOT` temporaire pour ses POST de contrat (dont `/archives/verifier`), afin qu’aucune tâche `.archivage/` ne soit écrite dans le corpus.
 
 **Preuves**
 - Oracle initial rouge : 3 liens morts sur la fiche document.
 - `php vendor/bin/phpunit tests/php/Socle/RangementTest.php tests/php/Archivage/InterfaceArchivageTest.php --no-coverage` : 13 tests, 69 assertions, vert.
 - `npx.cmd playwright test tests/e2e/actions-v2-11.spec.ts --project=parcours --reporter=line` : 3/3 verts.
 - `php tools/banc/sonde-securite.php` : vert, sans écriture dans `tests/corpus/`.
+- `powershell -ExecutionPolicy Bypass -File tools/harness.ps1 -SansBanc` (05:46) : 0, 1 (**414 tests, 2336 assertions**), 4 (**52 parcours**), 7, 2 et 6 (p95 lecture **725 ms**, écriture **182 ms**) verts ; 3 est sautée et 5 non écrite, par construction. Aucun fichier dans `tests/corpus/apercu/documents/.archivage/`.
 
 ETAT: fini
