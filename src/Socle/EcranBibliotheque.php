@@ -81,12 +81,17 @@ final class EcranBibliotheque
 
         // Le fonds entier n'est jamais chargé : comptage indexé, page bornée, arbre d'un passage indexé.
         $total = $this->compterVivants();
-        [$where, $params] = $this->wherePourFiltres($filtres);
+        $dossierActif = $this->dossierActif($parametres['dossier'] ?? null);
+        [$where, $params] = $this->wherePourFiltres($filtres, $dossierActif);
         $totalFiltre = $this->compterAvec($where, $params);
 
         $pages = max(1, (int) ceil($totalFiltre / self::PAGE_TAILLE));
         $page = max(1, min($pages, (int) ($parametres['page'] ?? 1)));
         $docs = $this->lirePage($where, $params, $page);
+        foreach ($docs as &$doc) {
+            $doc['lien'] = $this->lienDocument($parametres, (int) $doc['id']);
+        }
+        unset($doc);
 
         // Panneau d'aperçu : le document demandé (?doc=), sinon le premier de la page.
         $doc = null;
@@ -111,6 +116,7 @@ final class EcranBibliotheque
             'vuesVolet' => $this->vuesDuVolet($total),
             'vueActive' => $vueActive,
             'arbre' => $this->arbreVivant(),
+            'dossierActif' => $dossierActif,
             'types' => $this->typesSansEchec(),
             'tousChamps' => $this->champsSansEchec(),
             'operateurs' => Champs::operateurs(),
@@ -148,7 +154,7 @@ final class EcranBibliotheque
      * @param array<string, mixed> $filtres
      * @return array{0:string, 1:list<mixed>}
      */
-    private function wherePourFiltres(array $filtres): array
+    private function wherePourFiltres(array $filtres, ?string $dossier = null): array
     {
         $clauses = ['supprime_le IS NULL', 'absent_depuis IS NULL'];
         $params = [];
@@ -177,6 +183,11 @@ final class EcranBibliotheque
         $champ = $filtres['champ'] ?? null;
         if (is_array($champ) && isset($champ['cle'], $champ['op'])) {
             $this->clauseChamp($clauses, $params, $champ);
+        }
+        if ($dossier !== null) {
+            $clauses[] = '(chemin_relatif = ? OR chemin_relatif LIKE ?)';
+            $params[] = $dossier;
+            $params[] = $dossier . '/%';
         }
 
         return [implode(' AND ', $clauses), $params];
@@ -345,9 +356,31 @@ final class EcranBibliotheque
                 . ' WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll(PDO::FETCH_COLUMN);
         }
 
-        return $this->fonds->arbre(array_map(
-            static fn (mixed $chemin): array => ['chemin' => str_replace('\\', '/', (string) $chemin)],
-            $chemins));
+        $dossiers = [];
+        foreach ($chemins as $chemin) {
+            $segments = explode('/', str_replace('\\', '/', (string) $chemin));
+            array_pop($segments);
+            $courant = [];
+            foreach ($segments as $segment) {
+                if ($segment === '') continue;
+                $courant[] = $segment;
+                $cle = implode('/', $courant);
+                $dossiers[$cle] = ($dossiers[$cle] ?? 0) + 1;
+            }
+        }
+        ksort($dossiers, SORT_NATURAL | SORT_FLAG_CASE);
+        $arbre = [];
+        foreach ($dossiers as $chemin => $compte) {
+            $chemin = (string) $chemin;
+            $arbre[] = ['chemin' => $chemin, 'nom' => basename($chemin), 'profondeur' => substr_count($chemin, '/'), 'compte' => $compte];
+        }
+        return $arbre;
+    }
+
+    private function dossierActif(mixed $brut): ?string
+    {
+        $dossier = trim(str_replace('\\', '/', (string) $brut), '/');
+        return $dossier === '' || str_contains($dossier, '..') ? null : $dossier;
     }
 
     /**
@@ -404,6 +437,14 @@ final class EcranBibliotheque
     {
         $parametres['page'] = $page;
 
+        return '/bibliotheque?' . http_build_query($parametres);
+    }
+
+    /** Un document ouvert conserve le dossier et les filtres : retour arrière et partage restent cohérents. */
+    private function lienDocument(array $parametres, int $id): string
+    {
+        $parametres['doc'] = $id;
+        unset($parametres['page']);
         return '/bibliotheque?' . http_build_query($parametres);
     }
 
