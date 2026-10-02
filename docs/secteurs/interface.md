@@ -917,3 +917,17 @@ ETAT: fini
   `eb60e44`, `2aaaf43`, `27041ac`, `24025c4` ; aucun fichier partagé de droits ou de sonde modifié.
 
 ETAT: fini
+
+
+## Jugement V2-12b — 02-10-2026 (juge : Claude Code)
+
+- Le lot a été mené par Codex, lancé par une tâche planifiée Windows. Les trois premiers lancements, faits depuis la session distante, étaient morts sans erreur avec cette session. Le serveur de recette aussi. Les processus longs passent désormais par `schtasks`.
+- Testé par le juge sur la recette réelle (`24025c4`, configuration réelle, compte réel), sur une pièce de 8 pages :
+  - pivoter 90° : OK ;
+  - scinder après la page 3 : deux pièces de 3 et 5 pages, chacune reclassée ;
+  - fusionner, puis annuler : OK ;
+  - scinder une pièce d'une page : refus en français (« choisissez une page intérieure à la pièce ») avec une référence, sans trace technique ;
+  - `analyse.php` après les gestes : 49 pièces, **103 pages distinctes, aucun doublon, aucun manque**. L'invariant de découpe tient.
+- Harness de l'agent : 421 tests verts, sécurité et contrats verts. Les rouges d'écrans et de charge, obtenus sous concurrence, repassent au vert rejoués seuls (édition 2/2, maquettes 12/12, mobile 2/2, charge p95 lecture 794 ms).
+- L'écran Application montre l'état du moteur PDF, et l'installateur le contrôle.
+- Verdict : **V2-12b franchi.** L'édition de pages promise par V2-03 est désormais réelle.
