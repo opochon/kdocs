@@ -116,6 +116,10 @@ if (fileATraiter || formulaireValidation) {
   }
 }
 
+// L'arbre du fonds est utile au pouce sans prendre toute la hauteur : replié seulement sur téléphone.
+const blocDossiers = document.querySelector('[data-testid="bloc-dossiers"]');
+if (blocDossiers instanceof HTMLDetailsElement && matchMedia('(max-width: 768px)').matches) blocDossiers.open = false;
+
 // Recherche (V2-10b) : sur téléphone, les filtres sont repliés derrière le bouton « Filtres » ; ouverts, ils
 // tiennent un champ par ligne. Le gabarit est ouvert par défaut (ordinateur complet même sans JS).
 document.querySelectorAll('[data-testid="filtres-panneau"]').forEach((panneau) => {
