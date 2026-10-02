@@ -369,3 +369,18 @@ ETAT: fini
 - `courrier-100p` sans IA (harness) : 53/53, 0 validation seule et 0 validé faux ; avec IA réelle : 49/53 validées seules, 0 validé faux, 117,82 s (53 appels, sous 8 min).
 
 ETAT: bloqué — harness complet : écran Archivage hors périmètre et protections CSRF Archivage/Sécurité absentes
+
+
+## Jugement R2g — 02-10-2026 (juge : Claude Code)
+
+- R2g s'est déclaré « bloqué » à cause d'un harness rouge, mais ce rouge vient du travail non commité de V2-09b (archivage), pas de ce lot. Je le juge sur ses commits (`78af6b1`).
+- Recette réelle (fonds vierge, scan de 103 pages) : 6 min 15 s ; **48 pièces, 103 pages exactes, aucun doublon** : l'invariant de découpe tient.
+- **9 validées seules, 9 justes, 0 validé faux** : ramonage, trois factures d'énergie, entretien de chauffage, rappel bancaire et trois décomptes d'assurance maladie (de nouveau typés Décompte).
+- Corrigé : décomptes maladie ; forme GmbH conservée ; un émetteur bruité de R2f vidé (« requiert du mari… »).
+- **Toujours faux sur le vrai papier, bien que présents dans le corpus de non-régression :**
+  - destinataire en variante OCR (« Situation de <raison sociale du foyer, une lettre changée> ») encore proposé comme émetteur. Dans une recette sur fonds vierge, aucun destinataire n'est encore « connu » : l'apprentissage du foyer ne peut pas jouer au premier passage ;
+  - écritures judiciaires et notice technique encore en Police d'assurance ; gage hypothécaire encore en Décompte ; facture vétérinaire encore en Relevé et sans date ;
+  - nouvelle bascule : une police bâtiment devient Décompte ;
+  - deux titres régressent (« TVA », « Reçu »).
+- Diagnostic : le corpus synthétique passe à 20/20 alors que les mêmes cas échouent sur le vrai papier. Ses textes ne reproduisent pas assez le bruit réel. Les tours R2c à R2g plafonnent entre 4 et 9 validées justes sur 48, avec 0 validé faux constant.
+- Verdict : **R2g franchi sur la découpe et la sûreté** (103 pages exactes, 0 validé faux, 9 validées justes). **La qualité des propositions plafonne** : je suspends les lots de classement jusqu'à une décision d'Olivier sur l'objectif et sur la méthode de mesure, plutôt que de lancer un R2h de plus.
