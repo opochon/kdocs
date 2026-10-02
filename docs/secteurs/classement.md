@@ -22,6 +22,8 @@ avec la source de chaque suggestion (IA, habitude, règle). Les choix humains r�
 `tools/banc/prouver-apprentissage.php`. À ajouter : apprentissage sur tout le fonds (ce que Paperless fait mieux).
 
 ## Demandes aux autres secteurs (à ne pas faire ici)
+- **Archivage / Interface** : la recette isolée `tests/e2e/archivage.spec.ts` ne trouve pas `file-item-<id>` dans « À traiter » après sa préparation ; corriger dans les chemins de ces secteurs, puis rejouer l'écran.
+- **Archivage / Sécurité** : `php tools/banc/sonde-securite.php` constate l'absence de charge CSRF défensive sur `POST /documents/{id}/sceller` et `POST /archives/verifier`.
 - **Socle** : l'installateur doit appeler `Ged\Classement\Schema::installer($pdo)` (nouvelle table `classement_choix`).
 - **Ingestion** : `tools/tache.php` doit passer `new Ged\Classement\ClasseurGed($config, $pdo)` à `Fabrique::pilote(...)` ; sans classeur, `Pilote` range tout en `a_controler`.
 - **Interface** : l'écran « À traiter » enregistre chaque choix humain par `Ged\Classement\Habitudes::retenirChoix($emetteur, Habitudes::CHAMP_TYPE, $type, $refPiece)` (jamais pour un tri auto) ; il affiche `source` (IA, habitude, règle) et `preuve` de la suggestion.
