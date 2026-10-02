@@ -96,10 +96,13 @@ final class Module
                             'annuler' => $edition->annuler($id, $auteur),
                         };
                     } catch (Throwable $e) {
+                        $reference = substr(hash('sha256', 'edition:' . $action . ':' . $e->getMessage() . microtime()), 0, 10);
+                        error_log(sprintf('[GEDv2 edition %s] POST /a-traiter/%d/pages/%s : %s (%s:%d)', $reference, $id,
+                            $action, $e->getMessage(), $e->getFile(), $e->getLine()));
                         return $vue->rendre($rep, 'erreur.twig', [
                             'code' => 422, 'etape' => 'POST /a-traiter/{id}/pages/' . $action,
-                            'cause' => $e->getMessage(),
-                            'reference' => substr(hash('sha256', 'edition:' . $action . ':' . $e->getMessage() . microtime()), 0, 10),
+                            'cause' => \Ged\Ingestion\EditeurPdf::messageUtilisateur($e),
+                            'reference' => $reference,
                         ], 422);
                     }
 
