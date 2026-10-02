@@ -366,5 +366,6 @@ ETAT: fini
 - `php vendor/bin/phpunit tests/php/Classement tests/php/Ingestion` : 144 tests, 767 assertions, vert.
 - `php tools/banc/mesurer-classement.php classement-regression --ia-simule` : 20/20, 0 type faux, 0 émetteur faux, 0 validé faux ; porte franchie. Sans IA : 0 validation seule.
 - `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : 65/65, 0 type faux, 0 émetteur faux, 0 validé faux ; les compteurs publiés couvrent toutes les propositions.
+- `courrier-100p` sans IA (harness) : 53/53, 0 validation seule et 0 validé faux ; avec IA réelle : 49/53 validées seules, 0 validé faux, 117,82 s (53 appels, sous 8 min).
 
 ETAT: bloqué — harness complet : écran Archivage hors périmètre et protections CSRF Archivage/Sécurité absentes
