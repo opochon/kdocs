@@ -22,6 +22,7 @@ require $racine . '/vendor/autoload.php';
 
 use Ged\Base;
 use Ged\Config;
+use Ged\Ingestion\EditeurPdf;
 use Ged\Socle\Schema;
 
 $SECTEURS = ['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions'];
@@ -60,6 +61,10 @@ try {
     $nomBase = $config->get('DB_NAME', 'gedv2');
     if (!in_array($nomBase, ['gedv2', 'gedv2_test'], true)) {
         throw new RuntimeException("l’installateur ne pose que gedv2 ou gedv2_test, pas « $nomBase »");
+    }
+    $editionPdf = EditeurPdf::depuisConfig($config)->diagnostic();
+    if (!$editionPdf['disponible']) {
+        throw new RuntimeException(EditeurPdf::MOTEUR_ABSENT . ' (vérifiez PyMuPDF dans CMD4_PYTHON)');
     }
 
     // Y a-t-il déjà quelque chose ? (connexion serveur, sans base : elle peut ne pas exister)
