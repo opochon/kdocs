@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import { connecter } from './connexion';
 
 /**
@@ -6,6 +7,12 @@ import { connecter } from './connexion';
  * 0 erreur console ; images (png/jpg/tiff) et bureautique (message nommé quand LibreOffice manque) ;
  * la miniature est servie en PNG. Les budgets de temps (première page PDF) vivent dans `budget-apercu.spec.ts`.
  */
+test.beforeAll(() => {
+  execFileSync('php', ['tests/e2e/preparer-recherche.php'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
+  });
+});
 test.beforeEach(async ({ page }) => { await connecter(page); });
 
 function surveillerConsole(page: Page): string[] {
