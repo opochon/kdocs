@@ -34,7 +34,7 @@ final class Ecran
      * @param array<string, mixed> $parametres (query string de /recherche)
      * @return array<string, mixed>
      */
-    public function donnees(array $parametres): array
+    public function donnees(array $parametres, string $csrf = ''): array
     {
         $requete = Requete::depuisParametres($parametres);
         $resultat = $this->moteur->rechercher($requete);
@@ -78,6 +78,7 @@ final class Ecran
             'filtres' => $filtres,
             'filtres_actifs' => array_filter($filtres, static fn (?string $v): bool => $v !== null) !== [],
             'types_filtre' => $this->typesFiltre(),
+            'csrf' => $csrf,
         ];
     }
 
