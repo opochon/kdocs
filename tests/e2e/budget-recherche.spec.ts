@@ -8,7 +8,7 @@ import { connecter } from './connexion';
  * worker qui tenait le serveur au même moment. L'index plein texte reste bâti HORS requête (PERF-1).
  */
 test.beforeAll(() => {
-  execFileSync('php', ['tools/indexer-recherche.php', '--tout'], {
+  execFileSync('php', ['tests/e2e/preparer-recherche.php'], {
     cwd: process.cwd(),
     env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
   });
