@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 
 /**
  * Contrat visuel des six écrans maîtres (lot MAQUETTES). Chaque écran : répond, se désigne, ne produit
@@ -22,6 +23,12 @@ async function connecter(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/a-traiter$/);
 }
 
+test.beforeAll(() => {
+  execFileSync('php', ['tests/e2e/preparer-recherche.php'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
+  });
+});
 test.beforeEach(async ({ page }) => { await connecter(page); });
 
 function surveillerConsole(page: Page): string[] {
