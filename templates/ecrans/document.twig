@@ -70,7 +70,7 @@
         </div>
         <div class="panneau" id="p-2" role="tabpanel" hidden>
           <ul class="chrono" data-testid="panneau-versions">
-            {% for v in doc.versions %}<li><span class="mono">v{{ v.n }} · {{ v.quand }}</span><span>{{ v.quoi }} <span class="muted">— {{ v.qui }}, {{ v.taille }}</span></span></li>{% else %}<li class="muted">Aucune version archivée.</li>{% endfor %}
+            {% for v in doc.versions %}<li><span class="mono">v{{ v.n }} · {{ v.quand }}</span><span>{{ v.quoi }} <span class="muted">— {{ v.qui }}, {{ v.taille }}</span></span>{% if not doc.archivage.scelle %}<form method="post" action="/documents/{{ doc.id }}/versions/{{ v.n }}/restaurer"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="restaurer-version-{{ v.n }}">Restaurer v{{ v.n }}</button></form>{% endif %}</li>{% else %}<li class="muted">Aucune version archivée.</li>{% endfor %}
           </ul>
         </div>
         <div class="panneau" id="p-3" role="tabpanel" hidden>
