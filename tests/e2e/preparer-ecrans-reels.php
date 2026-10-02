@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Classement\ClasseurGed;
@@ -63,6 +64,7 @@ try {
     foreach (['Socle', 'Securite', 'Ingestion', 'Jonctions', 'Classement'] as $secteur) {
         ('Ged\\' . $secteur . '\\Schema')::installer($pdo);
     }
+    remettreEtatFondsE2e($pdo);
 
     // Compte RÉEL, créé comme par l'installateur : identifiant = adresse de courriel, mot de passe haché.
     $identifiant = 'recette-ecrans@gedv2.test';
