@@ -137,7 +137,12 @@ test('un persona crée le champ Échéance et la vue Contrats à échéance < 90
 
     // 2. La valeur du champ se pose SUR LE DOCUMENT, dans le panneau de la bibliothèque.
     await page.goto('/bibliotheque');
-    await page.getByRole('link', { name: prep.titre_essai }).click();
+    // L'index de test est partagé : le persona ouvre sa pièce du fonds préparé, même si un autre
+    // oracle a produit un titre ressemblant dans son propre fonds.
+    const lienEssai = page.getByTestId(`ligne-${prep.ids.essai}`).getByRole('link');
+    await expect(lienEssai).toHaveAttribute('href', `/bibliotheque?doc=${prep.ids.essai}`);
+    await lienEssai.click();
+    await expect(page).toHaveURL(new RegExp(`/bibliotheque\\?doc=${prep.ids.essai}$`));
     await expect(page.getByTestId('apercu-meta')).toContainText('Contrat');
     const cheminAvant = ((await page.getByTestId('apercu-chemin').textContent()) ?? '').trim();
 
