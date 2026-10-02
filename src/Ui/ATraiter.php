@@ -80,6 +80,15 @@ final class ATraiter
         }
         $courant ??= $file[0] ?? $this->courantVide();
         $enCours = $this->enCours();
+        $fusion = [];
+        $lotCourant = (int) ($courant['lot'] ?? 0);
+        if ($courant['id'] > 0 && $lotCourant > 0) {
+            foreach ($file as $candidate) {
+                if ($candidate['id'] !== $courant['id'] && (int) ($candidate['lot'] ?? 0) === $lotCourant) {
+                    $fusion[] = ['id' => $candidate['id'], 'titre' => $candidate['titre']];
+                }
+            }
+        }
 
         return [
             'bilan' => [
@@ -93,6 +102,7 @@ final class ATraiter
             'courant' => $courant,
             'types' => $this->types($courant['type']),
             'csrf' => $csrf,
+            'fusion' => $fusion,
         ];
     }
 
@@ -271,6 +281,7 @@ final class ATraiter
             'pages' => $pages,
             'texte' => $this->lignesTexte($meta['texte'] ?? null),
             'rendu' => $rendu,
+            'lot' => (int) ($meta['origine']['lot'] ?? 0),
         ];
     }
 
@@ -308,7 +319,7 @@ final class ATraiter
         return [
             'id' => 0, 'titre' => '', 'emetteur' => '', 'type' => '', 'source' => '', 'source_cle' => '',
             'confiance' => null, 'raison' => 'aucun document à contrôler', 'preuve' => '', 'date' => '',
-            'montant' => null, 'etiquettes' => [], 'pages' => 0, 'texte' => [], 'rendu' => null,
+            'montant' => null, 'etiquettes' => [], 'pages' => 0, 'texte' => [], 'rendu' => null, 'lot' => 0,
         ];
     }
 

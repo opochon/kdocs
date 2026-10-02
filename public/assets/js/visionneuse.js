@@ -74,6 +74,7 @@ class Visionneuse {
     this.pages = parseInt(racine.dataset.pages, 10) || 1;
     this.titre = racine.dataset.titre || '';
     this.message = racine.dataset.message || '';
+    this.edition = racine.querySelector('[data-edition-pages]');
     this.echelle = 1;
     this.rotation = 0;
     this.pageCourante = 1;
@@ -152,6 +153,12 @@ class Visionneuse {
       } else if (evenement.key === '-') {
         evenement.preventDefault();
         this.zoomer(1 / 1.2);
+      } else if (this.edition && evenement.key.toLowerCase() === 'r') {
+        evenement.preventDefault();
+        this.edition.querySelector(evenement.shiftKey ? '[data-testid="edition-tourner-180"]' : '[data-testid="edition-tourner-90"]')?.click();
+      } else if (this.edition && evenement.key.toLowerCase() === 's') {
+        evenement.preventDefault();
+        this.edition.querySelector('[data-testid="edition-scinder"]')?.click();
       } else if (evenement.key.toLowerCase() === 'r') {
         evenement.preventDefault();
         this.tourner();
@@ -258,6 +265,7 @@ class Visionneuse {
 
   majIndicateurPage() {
     if (this.indicateurPage) this.indicateurPage.textContent = `page ${this.pageCourante} / ${this.pages}`;
+    this.racine.querySelectorAll('[data-edition-page]').forEach((champ) => { champ.value = String(this.pageCourante); });
   }
 
   afficherErreur(message) {

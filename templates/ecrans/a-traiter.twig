@@ -45,7 +45,9 @@
       </div>
       {# Le vrai document remplace la page de papier dès qu'un fichier existe (macro du secteur Aperçu). #}
       {% if courant.rendu %}
-        {{ visionneuse.moteur(courant.rendu, 'apercu') }}
+        {{ visionneuse.moteur(courant.rendu, 'apercu', {
+          id: courant.id, csrf: csrf, fusion: fusion
+        }) }}
       {% else %}
         <div class="visionneuse" data-testid="apercu">{{ papier.page(courant.texte, 'apercu-page') }}</div>
       {% endif %}

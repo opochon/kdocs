@@ -822,3 +822,46 @@ ETAT: fini
 - **Retraits consignés par l'agent**, honnêtes mais à décider : Partager, Notes, Liens, Restaurer une version, arbre de dossiers de la Bibliothèque, Enregistrer comme vue dans Recherche, reconstruction d'index ; et surtout, dans À traiter, **rotation, découpe et fusion de pages et validation par lot**.
 - Ce dernier retrait révèle un écart avec le plan : V2-03 annonçait « édition de pages », or les boutons n'étaient pas branchés. Pour un courrier scanné, corriger une découpe (scinder, fusionner, pivoter) fait partie du cœur ; ce n'est pas une option.
 - Verdict : **V2-11 franchi** (plus aucun geste muet ; ce qui reste est réel et testé). L'édition de pages part en **V2-12a**, sans attendre : elle est dans le périmètre déjà décidé. Partage, Notes et Liens attendent une décision d'Olivier.
+
+## Journal V2-12a — édition de pages dans À traiter — 02-10-2026
+
+**Fait**
+- La visionneuse réelle d’À traiter porte désormais la barre de retouche de la pièce : pivoter 90°/180°,
+  scinder après la page courante, fusionner avec une pièce proposée du même lot, retirer une page et annuler.
+  Tous les gestes portent un `data-testid`; aucune commande d’affichage locale ne se substitue à une mutation.
+- La page active de PDF.js est envoyée au formulaire ; raccourcis documentés : `R` (90°), `Maj+R` (180°),
+  `S` (scinder), et flèches pour changer de page. Sur téléphone ne restent que pivoter 90° et scinder,
+  avec cibles de 44 px.
+- Les routes `POST /a-traiter/{id}/pages/*` renvoient une étape/cause nommée en cas de refus; le service
+  d’Ingestion porte l’interdiction d’une pièce validée ou scellée et l’historique persistant.
+
+**Oracle Playwright (porte HTTP franchie)**
+- `tests/e2e/edition-pages.spec.ts` lance son propre serveur, un compte réel et le fonds isolé
+  `var/oracles/edition-pages/`: six pages synthétiques (deux documents collés, une à tourner, une blanche).
+  Il enchaîne pivoter, scinder après 3, fusionner, retirer la 6, annuler, valider ;
+  `verifier-edition-pages.php` exige ensuite les pages `1..6` exactement une fois et le seul document vivant
+  `valide`. Le second parcours couvre les deux commandes mobiles et leurs cibles tactiles.
+- Le premier rejeu était rouge sur le refus central « route sans permission déclarée » ; le juge a depuis
+  commité la porte partagée `b1d98eb`. Le rejeu isolé est vert : **2/2** (bureau et téléphone, 14,6 s).
+- La préparation supprime aussi ses anciennes entrées **synthétiques V2-12a** de l’index de test, après
+  avoir remplacé son fonds isolé. Une scission d’un rejeu précédent ne peut donc plus retenir son chemin
+  unique malgré l’absence de son fichier.
+
+### Porte partagée committée par le juge
+
+- `src/Securite/DroitsRoutes.php` : cinq entrées `documents:traiter` :
+  `POST /a-traiter/{id:[0-9]+}/pages/tourner`, `/scinder`, `/fusionner`, `/retirer`, `/annuler`; et leurs
+  cinq résolutions paramétrées dans `permissionPour()`.
+- `tools/banc/sonde-securite.php` : cinq charges CSRF défensives, sans écriture : tourner
+  (`page=0&degres=90`), scinder (`page=0`), fusionner (`avec=0`), retirer (`page=0`) et annuler (vide).
+
+**Preuves de clôture**
+- `php vendor/bin/phpunit tests/php/Ingestion/EditeurPdfTest.php tests/php/Ingestion/EditionPiecesTest.php tests/php/EcransTest.php --no-coverage` : 12 tests, 55 assertions, vert.
+- La sonde de sécurité et les contrats sont verts avec les cinq charges CSRF ; le harness `-SansBanc` donne
+  aussi **416 tests / 2 369 assertions**, charge verte (p95 lecture 435 ms, écriture 200 ms), garde-fous,
+  sécurité et contrat verts.
+- Sa couche écrans a compté 2 rouges / 50 verts. Rejouée seule, elle garde exactement deux collisions de
+  données préexistantes hors V2-12a : `preparer-mobile.php` et `classer-piece-4.php` réutilisent des chemins
+  uniques dans la base partagée. L’oracle V2-12a y passe ; son rejeu direct reste 2/2 vert.
+
+ETAT: fini

@@ -159,6 +159,9 @@ dl.meta dd.mono { word-break: break-all; }
 .papier .l:first-child { font: 700 13px var(--font); }
 .papier .ligne-grise { height: 7px; border-radius: 3px; background: #e7e8ea; margin: 9px 0; }
 .outils-page { display: flex; gap: 4px; }
+.edition-pages { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.edition-pages form { display: contents; }
+.edition-pages select { max-width: 120px; min-height: 32px; }
 
 /* Formulaire de validation */
 .champ { display: grid; gap: 5px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
@@ -335,6 +338,9 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
   .volets.traiter .volet-apercu, .volets.fiche .volet-apercu { order: 1; height: 48vh; overflow: hidden; }
   .volet-apercu .visionneuse.doc { height: 100%; }
   .visionneuse-clavier { display: none; }
+  .edition-pages { width: 100%; order: 3; }
+  .edition-pages .btn { min-width: 44px; min-height: 44px; }
+  .edition-bureau { display: none !important; }
   .volets.traiter .volet-proposition, .volets.fiche .volet-fiche { order: 2; }
   .volets.traiter .volet-file { order: 4; }
   .volet-file .liste { max-height: 40vh; overflow: auto; }

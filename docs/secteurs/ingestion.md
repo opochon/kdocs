@@ -78,6 +78,41 @@ Preuve positive du reste de la chaîne : avec l'amorçage, la tâche finit en 13
 
 ETAT: fini
 
+## Journal V2-12a — édition de pages dans À traiter — 02-10-2026
+
+**Oracle d’abord**
+- `tests/php/Ingestion/EditeurPdfTest.php` a d’abord échoué (`EditeurPdf` absent), puis prouve une vraie
+  rotation dans le PDF, une scission 3/3, une fusion 6 et l’extraction d’une page. Les octets sont donc
+  remplacés, pas seulement l’aperçu.
+- `tests/php/Ingestion/EditionPiecesTest.php` construit un lot synthétique de six pages et rejoue rotation,
+  scission, fusion, corbeille de page, annulation de la dernière opération puis annulations de fusion et
+  scission. Après chaque frontière, les pages vivantes sont exactement `1..6`, sans doublon.
+
+**Fait**
+- `EditeurPdf` délègue à `agent/editer_pdf.py` (PyPDF/pypdf) et produit les fichiers temporairement puis
+  atomiquement. Le PDF du lot de travail n’est jamais ouvert en écriture.
+- `EditionPieces` refuse une pièce hors `a_controler`, scellée, non-PDF ou à la corbeille. Il utilise
+  `DepotFichiers::remplacerContenu()` : la version antérieure est archivée, la proposition est recalculée
+  par le Classeur existant et le statut reste à contrôler.
+- Scinder crée une seconde pièce, Fusionner conserve l’ordre courant puis choisi et met la source à la
+  corbeille récupérable ; Retirer dépose la page isolée avant de la mettre à la corbeille. Les listes de
+  pages d’origine sont conservées dans `origine.pages_liste` et contrôlées avant chaque fin de geste.
+- Les instantanés et pile d’annulation vivent sous `.ged/editions-pages/<id>/` ; chaque document reçoit un
+  `historique_pages` dans son `.meta.json`. L’annulation replace les octets/métadonnées et met à la corbeille
+  la pièce ajoutée par une scission, donc elle ne réintroduit jamais un doublon vivant.
+- Dépendance d’exploitation à installer dans **le même environnement Python que `CMD4_PYTHON`** : `pypdf`
+  (testé en 6.16.1).
+
+**Preuves de clôture**
+- `php vendor/bin/phpunit tests/php/Ingestion/EditeurPdfTest.php tests/php/Ingestion/EditionPiecesTest.php --no-coverage` : 2 tests, 28 assertions, vert.
+- Après le commit partagé `b1d98eb` (cinq routes `documents:traiter` et charges CSRF),
+  `npx.cmd playwright test tests/e2e/edition-pages.spec.ts --project=parcours --reporter=line` : **2/2**
+  (parcours bureau complet et contrôles tactiles téléphone).
+- `harness.ps1 -SansBanc` : unitaire, sécurité, contrat et charge verts ; les deux rouges d’écrans restants
+  sont des collisions de chemins des oracles mobile et À traiter dans la base partagée, hors V2-12a.
+
+ETAT: fini
+
 ### Jugement R1-chaine (juge, 01-10 11:06, copie propre sur 0c8217f)
 
 - Harness complet : 0, 1 (284 tests), 2, 3 (53/53, F1 franchie), 4 (35/35), 6 (p95 lecture 1 142 ms) et 7 verts.

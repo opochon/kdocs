@@ -4,7 +4,7 @@
    dans Bibliothèque / Fiche n'est pas faite. #}
 {% import 'partiels/icones.twig' as ic %}
 
-{% macro moteur(rendu, testid) %}
+{% macro moteur(rendu, testid, edition = null) %}
 {% import 'partiels/icones.twig' as ic %}
 <div class="visionneuse doc" data-visionneuse data-testid="{{ testid }}"
      data-src="{{ rendu.url }}" data-categorie="{{ rendu.categorie }}" data-pages="{{ rendu.pages }}"
@@ -13,9 +13,25 @@
     <button class="btn icone discret" type="button" data-action="zoom-arriere" data-testid="visionneuse-zoom-arriere" title="Réduire">−</button>
     <span class="visionneuse-zoom mono" data-testid="visionneuse-zoom" aria-live="polite">100 %</span>
     <button class="btn icone discret" type="button" data-action="zoom-avant" data-testid="visionneuse-zoom-avant" title="Agrandir">+</button>
-    <button class="btn discret" type="button" data-action="rotation" data-testid="visionneuse-rotation" title="Tourner la page d’affichage">{{ ic.i('rotation') }}Rotation</button>
+    {% if not edition %}<button class="btn discret" type="button" data-action="rotation" data-testid="visionneuse-rotation" title="Tourner la page d’affichage">{{ ic.i('rotation') }}Rotation</button>{% endif %}
+    {% if edition %}
+    <div class="edition-pages" data-edition-pages aria-label="Retoucher la pièce avant validation">
+      <form method="post" action="/a-traiter/{{ edition.id }}/pages/tourner"><input type="hidden" name="csrf" value="{{ edition.csrf }}"><input type="hidden" name="page" value="1" data-edition-page>
+        <button class="btn discret" type="submit" name="degres" value="90" data-testid="edition-tourner-90" title="Raccourci R">↻ 90°</button>
+        <button class="btn discret edition-bureau" type="submit" name="degres" value="180" data-testid="edition-tourner-180" title="Raccourci Maj+R">↻ 180°</button></form>
+      <form method="post" action="/a-traiter/{{ edition.id }}/pages/scinder"><input type="hidden" name="csrf" value="{{ edition.csrf }}"><input type="hidden" name="page" value="1" data-edition-page>
+        <button class="btn discret" type="submit" data-testid="edition-scinder" title="Raccourci S">Scinder</button></form>
+      <form class="edition-bureau" method="post" action="/a-traiter/{{ edition.id }}/pages/fusionner"><input type="hidden" name="csrf" value="{{ edition.csrf }}">
+        <select name="avec" aria-label="Pièce du même lot à fusionner" data-testid="edition-fusion-choix">{% for p in edition.fusion %}<option value="{{ p.id }}">{{ p.titre }}</option>{% endfor %}</select>
+        <button class="btn discret" type="submit" data-testid="edition-fusionner" {% if edition.fusion is empty %}disabled{% endif %}>Fusionner</button></form>
+      <form class="edition-bureau" method="post" action="/a-traiter/{{ edition.id }}/pages/retirer"><input type="hidden" name="csrf" value="{{ edition.csrf }}"><input type="hidden" name="page" value="1" data-edition-page>
+        <button class="btn discret" type="submit" data-testid="edition-retirer">Retirer</button></form>
+      <form class="edition-bureau" method="post" action="/a-traiter/{{ edition.id }}/pages/annuler"><input type="hidden" name="csrf" value="{{ edition.csrf }}">
+        <button class="btn discret" type="submit" data-testid="edition-annuler">Annuler</button></form>
+    </div>
+    {% endif %}
     <span class="visionneuse-page mono" data-testid="visionneuse-page" aria-live="polite">page 1 / {{ rendu.pages }}</span>
-    <span class="visionneuse-clavier muted">Page suivante / précédente au clavier</span>
+    <span class="visionneuse-clavier muted">Pages : flèches · R 90° · Maj+R 180° · S scinder</span>
   </div>
   <div class="visionneuse-pages" data-testid="visionneuse-pages" tabindex="0"
        aria-label="Aperçu du document — flèches ou Page suivante pour changer de page">

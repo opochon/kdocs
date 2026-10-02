@@ -76,6 +76,37 @@ final class Module
             return $rep->withHeader('Location', $suivant !== null ? '/a-traiter?doc=' . $suivant : '/a-traiter')->withStatus(303);
         });
 
+        // V2-12a : chaque route de page est une mutation CSRF + `documents:traiter` (la garde centrale
+        // porte ces deux contrôles avant ce code). Le service refuse encore une pièce validée ou scellée :
+        // la route ne suffit jamais à contourner cette défense métier.
+        foreach (['tourner', 'scinder', 'fusionner', 'retirer', 'annuler'] as $action) {
+            $app->post('/a-traiter/{id:[0-9]+}/pages/' . $action,
+                function (Requete $req, Reponse $rep, array $args) use ($config, $vue, $action): Reponse {
+                    $id = (int) ($args['id'] ?? 0);
+                    $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+                    $session = $req->getAttribute('ged.session');
+                    $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+                    try {
+                        $edition = new \Ged\Ingestion\EditionPieces($config, new \Ged\Socle\DepotFichiers($config));
+                        match ($action) {
+                            'tourner' => $edition->tourner($id, (int) ($corps['page'] ?? 0), (int) ($corps['degres'] ?? 0), $auteur),
+                            'scinder' => $edition->scinder($id, (int) ($corps['page'] ?? 0), $auteur),
+                            'fusionner' => $edition->fusionner($id, (int) ($corps['avec'] ?? 0), $auteur),
+                            'retirer' => $edition->retirer($id, (int) ($corps['page'] ?? 0), $auteur),
+                            'annuler' => $edition->annuler($id, $auteur),
+                        };
+                    } catch (Throwable $e) {
+                        return $vue->rendre($rep, 'erreur.twig', [
+                            'code' => 422, 'etape' => 'POST /a-traiter/{id}/pages/' . $action,
+                            'cause' => $e->getMessage(),
+                            'reference' => substr(hash('sha256', 'edition:' . $action . ':' . $e->getMessage() . microtime()), 0, 10),
+                        ], 422);
+                    }
+
+                    return $rep->withHeader('Location', '/a-traiter?doc=' . $id . '&edition_succes=' . $action)->withStatus(303);
+                });
+        }
+
         // Dépôt par photo (V2-10a) : l'écran mobile « Déposer ». Même chaîne d'ingestion que le dépôt de
         // bureau (SourceApi + Travaux), même droit que « À traiter » ; le retour est un PRG qui nomme
         // l'état « reçu, en cours de lecture ». Aucune donnée n'est rangée ici : le Pilote s'en charge.
