@@ -88,6 +88,10 @@
                  data-testid="vue-{{ v.id ?? 'toutes' }}">{{ ic.i('vue') }}<span class="libelle">{{ v.nom }}</span><span class="compte">{{ v.compte }}</span></a></li>
           {% endfor %}
         </ul>
+        <div class="titre-section">Dossiers du fonds</div>
+        <details class="dossiers" data-testid="bloc-dossiers" open><summary data-testid="dossiers-repli">Dossiers{% if dossierActif %} · {{ dossierActif }}{% endif %}</summary>
+          <ul class="arbre" data-testid="arbre-dossiers">{% for d in arbre %}<li style="padding-left: {{ d.profondeur * 12 }}px"><a href="/bibliotheque?dossier={{ d.chemin|url_encode }}" data-testid="dossier-{{ d.chemin|replace({'/':'-'}) }}" {% if dossierActif == d.chemin %}aria-current="true"{% endif %}>{{ d.nom }} <span class="compte">{{ d.compte }}</span></a></li>{% endfor %}</ul>
+        </details>
       </div>
     </aside>
 
@@ -99,7 +103,7 @@
           <tbody>
           {% for d in docs %}
             <tr {% if apercu and apercu.id == d.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
-              <td><a href="/bibliotheque?doc={{ d.id }}">{{ d.titre }}</a></td>
+              <td><a href="{{ d.lien ?? '/bibliotheque?doc=' ~ d.id }}">{{ d.titre }}</a></td>
               <td>{% if d.type %}<span class="chip">{{ d.type }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{{ d.emetteur ?? '—' }}</td>
               <td>{{ d.date ? d.date|date('d.m.Y') : '—' }}</td>
