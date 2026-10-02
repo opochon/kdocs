@@ -154,8 +154,19 @@ final class Ecrans
 
         // La fiche fait partie du périmètre mobile (V2-10b) : pas d'avis « écran conçu pour l'ordinateur »,
         // tout en gardant Bibliothèque comme entrée de rail courante.
-        return $this->vue->rendre($rep, 'ecrans/document.twig',
-            $this->commun('bibliotheque') + ['avis_ordinateur' => false, 'doc' => $reel ?? Maquette::document($id)]);
+        $doc = $reel ?? Maquette::document($id);
+        $doc += ['statut' => '', 'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
+        $session = $req->getAttribute('ged.session');
+        $permissions = is_array($session) ? (array) ($session['permissions'] ?? []) : [];
+        $peutSceller = in_array('*', $permissions, true) || in_array('archivage:sceller', $permissions, true);
+        $config = new \Ged\Config(dirname(__DIR__, 2));
+
+        return $this->vue->rendre($rep, 'ecrans/document.twig', $this->commun('bibliotheque') + [
+            'avis_ordinateur' => false, 'doc' => $doc, 'csrf' => self::jetonCsrf($req),
+            'peut_sceller' => $peutSceller, 'tsa_configuree' => trim($config->get('TSA_URL')) !== '' || $config->get('APP_ENV') === 'test',
+            'archivage_erreur' => (string) ($req->getQueryParams()['archivage_erreur'] ?? ''),
+            'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',
+        ]);
     }
 
     public function workflows(Requete $req, Reponse $rep): Reponse

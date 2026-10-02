@@ -17,6 +17,7 @@
     {id: 'a-traiter', libelle: 'À traiter', icone: 'inbox', url: '/a-traiter', compte: rail.compte_a_traiter},
     {id: 'bibliotheque', libelle: 'Bibliothèque', icone: 'biblio', url: '/bibliotheque', compte: null},
     {id: 'recherche', libelle: 'Recherche', icone: 'loupe', url: '/recherche', compte: null},
+    {id: 'archives', libelle: 'Archives', icone: 'versions', url: '/archives', compte: null},
     {id: 'workflows', libelle: 'Workflows', icone: 'flux', url: '/workflows', compte: null},
   ] %}
   <nav class="rail" aria-label="Navigation principale" data-testid="menu">
@@ -80,6 +81,7 @@
         <a href="/metadonnees" data-testid="onglet-metadonnees">{{ ic.i('reglages') }}<span>Métadonnées</span><small>écran conçu pour l’ordinateur</small></a>
         <a href="/workflows" data-testid="onglet-workflows">{{ ic.i('flux') }}<span>Workflows</span><small>écran conçu pour l’ordinateur</small></a>
         <a href="/application" data-testid="onglet-application">{{ ic.i('reglages') }}<span>Application</span><small>écran conçu pour l’ordinateur</small></a>
+        <a href="/archives" data-testid="onglet-archives">{{ ic.i('versions') }}<span>Archives</span></a>
       </div>
     </details>
   </nav>

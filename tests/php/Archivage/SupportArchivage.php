@@ -70,6 +70,16 @@ trait SupportArchivage
         return $this->horloge;
     }
 
+    protected function configArchivage(): Config
+    {
+        return $this->config;
+    }
+
+    protected function racineArchivage(): string
+    {
+        return $this->racine;
+    }
+
     protected function depot(): DepotFichiers
     {
         return new DepotFichiers($this->config);

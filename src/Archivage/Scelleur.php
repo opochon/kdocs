@@ -29,7 +29,10 @@ final class Scelleur
     {
         $depot = new DepotFichiers($config);
         $horloge ??= new HorlogeSysteme();
-        $horodateur ??= new TsaReelle($config->get('TSA_URL', ''));
+        // Toute recette automatisée reste hors réseau : seul l'environnement de test reçoit la TSA simulée.
+        $horodateur ??= $config->get('APP_ENV') === 'test'
+            ? new TsaSimulee($horloge)
+            : new TsaReelle($config->get('TSA_URL', ''));
 
         return new self($depot, $horodateur, $horloge, new Retention($depot->racine(), $horloge));
     }

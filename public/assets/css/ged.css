@@ -76,6 +76,13 @@ h1 { font-size: var(--fs-xl); } h2 { font-size: var(--fs-lg); } h3 { font-size: 
 .page-tete { display: flex; flex-direction: column; gap: 10px; }
 .page-tete .titre { display: flex; align-items: baseline; gap: 12px; }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }   /* à gauche, sous le titre */
+.action-scellement, .filtres-archives { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.action-scellement label { font-size: var(--fs-sm); color: var(--text-2); }
+.archivage-etat { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; }
+.alerte { margin: 0; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface-2); }
+.alerte.ok { border-color: var(--ok); }.alerte.erreur { border-color: var(--danger); }
+.filtres-archives { padding: 10px 12px; }.filtres-archives label { display: grid; gap: 3px; color: var(--muted); font-size: var(--fs-sm); }
+.archives-liste, .archives-echeance { padding: 12px; }.archives-liste h2, .archives-echeance h2 { margin: 0 0 8px; font-size: var(--fs-lg); }
 
 /* ---------- Composants ---------- */
 .btn { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font: 500 var(--fs) var(--font); cursor: pointer; white-space: nowrap; }
@@ -313,6 +320,8 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
   .page, .page.pleine { height: auto; min-height: 0; gap: 12px; padding: 12px 12px calc(230px + env(safe-area-inset-bottom, 0px)); }
   .page-tete .titre { flex-wrap: wrap; gap: 4px 10px; }
   .actions { flex-wrap: wrap; }
+  .action-scellement { width: 100%; }.action-scellement .btn, .filtres-archives .btn { min-height: 44px; }
+  .archivage-etat { align-items: flex-start; flex-direction: column; }
   /* V2-10b : le bilan d'ingestion est une ligne compacte ; les trois cartes restent à l'ordinateur. */
   .bilan { display: none; }
   .bilan-ligne { display: flex; align-items: center; gap: 6px; order: 3; margin: 0; padding: 8px 12px;

@@ -86,9 +86,9 @@ final class Retention
      *
      * @return list<array<string, mixed>>
      */
-    public function aEcheance(): array
+    public function aEcheance(int $dansJours = 0): array
     {
-        $aujourdhui = $this->horloge->maintenant()->format('Y-m-d');
+        $aujourdhui = $this->horloge->maintenant()->modify('+' . max(0, $dansJours) . ' days')->format('Y-m-d');
         $lignes = [];
         foreach (Scellement::parcourir($this->racineFonds) as $fichier) {
             $scellement = Scellement::decoder((string) file_get_contents($fichier));

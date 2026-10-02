@@ -1,0 +1,25 @@
+{% extends 'layout.twig' %}
+{% block titre %}Archives{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-archives">
+  <div class="page-tete">
+    <div class="titre"><h1>Archives</h1><span class="chip">{{ documents|length }} scellé(s)</span></div>
+    <div class="actions">
+      <form method="post" action="/archives/verifier"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn" type="submit" data-testid="archives-verifier">Vérifier l’intégrité</button></form>
+    </div>
+  </div>
+  {% if erreur %}<p class="alerte erreur" data-testid="archives-erreur">{{ erreur }}</p>{% endif %}
+  {% if verification %}
+    {% if verification.etat == 'en_cours' %}<p class="alerte" data-testid="archives-verification-en-cours">Vérification en cours ({{ verification.position }}/{{ verification.scellements }}). Cette tâche courte reprendra au prochain affichage.</p>{% elseif verification.ok %}<p class="alerte ok" data-testid="archives-verification-ok">Vérification terminée : 0 écart sur {{ verification.scellements }} scellement(s).</p>{% else %}<section class="alerte erreur" data-testid="archives-verification-ecarts"><strong>Vérification terminée : {{ verification.ecarts|length }} écart(s) nommé(s).</strong><ul>{% for ecart in verification.ecarts %}<li>{{ ecart }}</li>{% endfor %}</ul></section>{% endif %}
+  {% endif %}
+  <form class="filtres-archives carte" method="get" data-testid="archives-filtres">
+    <label>Type <select name="type" data-testid="archives-filtre-type"><option value="">Tous les types</option>{% for type in types %}<option value="{{ type }}" {{ filtres.type == type ? 'selected' : '' }}>{{ type }}</option>{% endfor %}</select></label>
+    <label>Échéance <select name="echeance" data-testid="archives-filtre-echeance"><option value="toutes" {{ filtres.echeance == 'toutes' ? 'selected' : '' }}>Toutes</option><option value="proche" {{ filtres.echeance == 'proche' ? 'selected' : '' }}>Dans les 90 jours</option><option value="depassee" {{ filtres.echeance == 'depassee' ? 'selected' : '' }}>Dépassée</option></select></label>
+    <button class="btn" type="submit" data-testid="archives-filtrer">Filtrer</button>
+  </form>
+  <section class="carte archives-liste" aria-label="Documents scellés"><h2>Documents scellés</h2>
+    <table class="table" data-testid="archives-liste"><thead><tr><th>Document</th><th>Type</th><th>Scellé le</th><th>Rétention jusqu’au</th><th>Jeton TSA</th></tr></thead><tbody>{% for document in documents %}<tr><td><a href="/documents/{{ document.document_id }}">{{ document.titre }}</a></td><td>{{ document.type }}</td><td>{{ document.scelle_le ? document.scelle_le|date('d.m.Y H:i') : '—' }}</td><td>{{ document.echeance ?: '—' }}</td><td class="mono">{{ document.tsa_jeton ?: '—' }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Aucun document scellé pour ce filtre.</td></tr>{% endfor %}</tbody></table>
+  </section>
+  <section class="carte archives-echeance" data-testid="archives-a-echeance"><h2>À échéance</h2><p class="muted">Rétention dépassée ou arrivant à échéance dans les 90 jours. Aucun effacement n’est automatique.</p><ul class="liste">{% for document in a_echeance %}<li><a href="/documents/{{ document.document_id }}"><span class="l1">{{ document.titre }}</span><span class="l2">{{ document.depassee ? 'Rétention dépassée' : 'Échéance proche' }} · {{ document.echeance }}</span></a></li>{% else %}<li class="muted">Aucune échéance dans les 90 jours.</li>{% endfor %}</ul></section>
+</div>
+{% endblock %}

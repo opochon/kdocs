@@ -7,6 +7,7 @@ namespace Ged\Ui;
 use Ged\Base;
 use Ged\Config;
 use Ged\Socle\Fonds;
+use Ged\Archivage\Scellement;
 use PDO;
 use Throwable;
 
@@ -55,6 +56,8 @@ final class Document
         // Les VALEURS canoniques se relisent du `.meta.json` (l'index n'en est qu'une copie).
         $meta = $this->meta($absolu);
         $meta['titre'] ??= (string) $doc['titre'];
+        $scellement = Scellement::lire($absolu, (int) $doc['id']);
+        $statut = $this->statut($pdo, (int) $doc['id']);
 
         return [
             'id' => (int) $doc['id'],
@@ -71,7 +74,30 @@ final class Document
             'historique' => $this->historique($pdo, (int) $doc['id']),
             'notes' => [],
             'liens' => [],
+            'statut' => $statut,
+            'archivage' => [
+                'scelle' => Scellement::estActif($scellement),
+                'scelle_le' => (string) ($scellement['scelle_le'] ?? ''),
+                'echeance' => (string) ($scellement['echeance'] ?? ''),
+                'tsa_jeton' => (string) ($scellement['tsa_jeton'] ?? ''),
+                'tsa_url' => (string) ($scellement['tsa_url'] ?? ''),
+            ],
         ];
+    }
+
+    private function statut(?PDO $pdo, int $id): string
+    {
+        if ($pdo === null) {
+            return '';
+        }
+        try {
+            $requete = $pdo->prepare('SELECT statut FROM documents WHERE id = ?');
+            $requete->execute([$id]);
+
+            return (string) ($requete->fetchColumn() ?: '');
+        } catch (Throwable) {
+            return '';
+        }
     }
 
     /** @return array<string, mixed> */

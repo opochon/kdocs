@@ -15,7 +15,7 @@ Un document scellé devient intouchable pendant sa durée légale (10 ans par d�
 
 ## Chemins
 `src/Archivage/`, `tests/php/Archivage/`, `tests/oracles/archivage/`, `tools/verifier-scellements.php`,
-`tools/sceller.php`
+`tools/sceller.php`, `src/Ui/`, `templates/`, `public/assets/`, `tests/e2e/`, `.env.example`
 
 ## Demandes
 
@@ -113,3 +113,37 @@ ETAT: fini
 ## Jugement V2-09 (Claude Code, 29-09) — porte franchie
 Rejoué sur le code commité : oracle `porte-v2-09.php` 7/7, 26 tests verts, bancs verts. La garde entre par des appels d'une ligne signalés dans `DepotFichiers` et `Indexeur` (Socle) : c'est le bon niveau. Les rouges du harness de ce passage viennent du lot V2-07c (Droits), pas de celui-ci. Reste : TSA réelle en recette (`TSA_URL`), écran de scellement et liste « à échéance » dans l'interface.
 ETAT: fini (jugé)
+
+## Journal V2-09b — archivage visible et utilisable — 02-10-2026
+
+**Oracle d’abord**
+- `tests/php/Archivage/InterfaceArchivageTest.php` a été posé avant le code et rejoué rouge :
+  `Ged\\Archivage\\EcranArchives` et `Ged\\Archivage\\TacheVerification` absents.
+- `tests/e2e/archivage.spec.ts` prépare un fonds et deux comptes **fictifs** dans `gedv2_test` ; la pièce
+  passe par le vrai `Pilote`, puis est validée dans « À traiter », scellée, vérifiée saine, puis altérée
+  d’un octet. Le parcours couvre bureau et iPhone 13 ainsi que le refus 403 d’un compte réel sans droit.
+
+**Fait**
+- `Archivage\\Module` expose `POST /documents/{id}/sceller`, `GET /archives` et
+  `POST /archives/verifier`. Le scellement ne passe que pour un document `valide`; la confirmation dit
+  explicitement qu’il est définitif pendant la rétention. Sans `TSA_URL` hors test, la fiche nomme
+  « horodatage externe non configuré » et désactive l’acte au lieu d’échouer silencieusement.
+- La fiche lit le justificatif dans le dossier : état non scellé/scellé, instant, jeton TSA et échéance.
+  L’écran Archives lit les seuls justificatifs actifs, filtre par type et échéance, et sa liste « À échéance »
+  appelle `Retention::aEcheance(90)` (dépassée ou dans les 90 jours), sans aucun effacement.
+- La vérification est une tâche dans `<fonds>/.archivage/taches/` : chaque reprise traite au plus cinq
+  justificatifs et moins d’une seconde. Les écarts restent nommés (fichier modifié, meta absente, jeton…).
+- `Scelleur::depuisConfig()` choisit obligatoirement `TsaSimulee` en `APP_ENV=test`; `.env.example`
+  documente `TSA_URL` pour la recette réelle.
+- Mobile : cibles de commande 44 px, filtres et état en colonne, aucune largeur forcée ni libellé anglais.
+
+### À commiter par le juge (fichiers partagés, non committés par l’agent Archivage)
+
+- `src/Kernel.php` : ajout de `'Archivage'` dans la liste des modules.
+- `src/Securite/DroitsRoutes.php` : `GET /archives` et `POST /archives/verifier` →
+  `archivage:consulter`; `POST /documents/{id:[0-9]+}/sceller` → `archivage:sceller`, avec sa résolution
+  paramétrée.
+- **Demande à Droits/Sécurité** : ajouter ces deux permissions au catalogue et donner
+  `archivage:consulter` / `archivage:sceller` au rôle `archiveur` (l’administrateur `*` les porte déjà).
+
+ETAT: en cours — rejoues unitaires et Playwright attendus

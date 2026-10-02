@@ -8,12 +8,33 @@
   <div class="page-tete">
     <div class="titre"><h1>{{ doc.titre }}</h1><span class="chip">{{ doc.type }}</span><span class="chip ok">Validé</span></div>
     <div class="actions">
+      {% if doc.statut == 'valide' and peut_sceller and not doc.archivage.scelle %}
+      <form method="post" action="/documents/{{ doc.id }}/sceller" class="action-scellement" data-testid="document-confirmation-scellement">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        {% if tsa_configuree %}
+        <label><input type="checkbox" required data-testid="document-confirmer-scellement"> Je confirme : le scellement est définitif pendant la rétention légale.</label>
+        <button class="btn" type="submit" data-testid="document-sceller">Sceller</button>
+        {% else %}
+        <span class="muted" data-testid="archivage-tsa-absente">Horodatage externe non configuré : renseignez TSA_URL avant de sceller.</span>
+        <button class="btn" type="submit" disabled data-testid="document-sceller">Sceller</button>
+        {% endif %}
+      </form>
+      {% endif %}
       <a class="btn" href="#" data-testid="action-telecharger">{{ ic.i('telecharger') }}Télécharger</a>
       <a class="btn" href="#" data-testid="action-nouvelle-version">{{ ic.i('versions') }}Nouvelle version</a>
       <a class="btn" href="#" data-testid="action-partager">{{ ic.i('partage') }}Partager</a>
       <a class="btn discret" href="/bibliotheque?doc={{ doc.id }}" data-testid="action-retour">Retour à la bibliothèque</a>
     </div>
   </div>
+  {% if archivage_succes %}<p class="alerte ok" data-testid="archivage-succes">Document scellé et horodaté.</p>{% endif %}
+  {% if archivage_erreur %}<p class="alerte erreur" data-testid="archivage-erreur">Scellement refusé : {{ archivage_erreur }}</p>{% endif %}
+  <section class="archivage-etat carte" data-testid="archivage-etat">
+    {% if doc.archivage.scelle %}
+    <strong>Scellé le {{ doc.archivage.scelle_le|date('d.m.Y à H:i') }}</strong><span>Jeton TSA : <span class="mono">{{ doc.archivage.tsa_jeton }}</span></span><span>Rétention jusqu’au {{ doc.archivage.echeance }}</span>
+    {% else %}
+    <strong>Non scellé</strong><span>Ce document n’est pas encore archivé légalement.</span>
+    {% endif %}
+  </section>
   <div class="volets fiche">
     <section class="carte volet volet-apercu" aria-label="Aperçu">
       {% if doc.rendu is defined %}
