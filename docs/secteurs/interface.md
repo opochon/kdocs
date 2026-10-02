@@ -955,3 +955,13 @@ ETAT: fini
 - `harness.ps1 -SansBanc` (13:58) : garde-fous, sonde, contrat et charge verts. L'unitaire (1 échec) nomme précisément `/recherche/vue` absent de `DroitsRoutes`; les écrans (6 échecs/48 verts) incluent les trois parcours de mutation V2-12c refusés par cette même porte. Rejoués seuls : PHP ciblé 32/32 vert, dossier bureau vert, dossier téléphone vert. Les autres rouges de concurrence (édition, maquette, persona, mobile) ne relèvent pas de ce lot.
 
 ETAT: bloqué — porte DroitsRoutes et sonde-securite à poser par le juge
+
+### Jugement V2-12c (juge, 2026-10-02)
+
+- Porte partagée posée par le juge (`48eb818`) : trois routes dans `DroitsRoutes` (restaurer → `documents:modifier`, vue Recherche → `documents:lire` comme la vue Bibliothèque, lot → `documents:traiter`) avec résolution paramétrée de la restauration ; trois charges CSRF dans la sonde, et substitution `{numero}` dans ses deux boucles (sans elle, la route de restauration n'aurait jamais été atteinte par la sonde).
+- Recette réelle (49 documents, `var/recette/v212c.cjs`) :
+  - Navigation par dossier : 61 nœuds dans l'arbre ; un clic sur un dossier filtre la liste (1 document pour 1997), état dans l'URL. **Franchi.**
+  - Restaurer une version : document 2, restaurer v1 → nouvelle version v2 enregistrée, l'historique garde v1. **Franchi.**
+  - Validation par lot : deux pièces cochées ; la complète est validée, l'incomplète reste avec sa raison (« proposition incomplète : émetteur »). **Franchi.**
+  - Enregistrer comme vue depuis Recherche : la recherche « facture » montre 20 résultats ; la vue créée affiche les 49 documents. Le texte est rangé dans `.ged/vues.json` mais `EcranBibliotheque` ne l'applique pas ; le test PHP vérifiait le stockage, pas l'effet. **Non franchi.**
+- Verdict : **V2-12c franchi sur 3 points sur 4** ; reprise V2-12c-r lancée pour la vue issue de Recherche.
