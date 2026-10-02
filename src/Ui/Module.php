@@ -23,7 +23,7 @@ final class Module
         // Nouvelle version : le fichier est remplacé par le Socle, qui archive systématiquement chaque
         // contenu dans `.versions/` et refuse lui-même un document scellé. La garde centrale a déjà
         // vérifié permission et CSRF avant d'arriver ici.
-        $app->post('/documents/{id:[0-9]+}/versions', function (Requete $req, Reponse $rep, array $args) use ($config): Reponse {
+        $app->post('/documents/{id:[0-9]+}/versions', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $id = (int) ($args['id'] ?? 0);
             $session = $req->getAttribute('ged.session');
             $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
@@ -42,7 +42,10 @@ final class Module
 
                 return $rep->withHeader('Location', '/documents/' . $id . '?version_succes=' . $version)->withStatus(303);
             } catch (\Ged\Archivage\ErreurScellement $e) {
-                return $rep->withStatus(403);
+                return $vue->rendre($rep, 'erreur.twig', [
+                    'code' => 403, 'etape' => 'POST /documents/{id}/versions', 'cause' => $e->getMessage(),
+                    'reference' => substr(hash('sha256', 'version:' . $e->getMessage() . microtime()), 0, 10),
+                ], 403);
             } catch (\Throwable $e) {
                 return $rep->withHeader('Location', '/documents/' . $id . '?version_erreur=' . rawurlencode($e->getMessage()))->withStatus(303);
             } finally {
