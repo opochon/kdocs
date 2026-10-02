@@ -61,6 +61,8 @@ function preparer(): Preparation {
 async function pageConnectee(browser: Browser): Promise<{ page: Page; fermer: () => Promise<void> }> {
   const contexte = await browser.newContext({ baseURL: base, viewport: { width: 1440, height: 900 }, locale: 'fr-CH' });
   const page = await contexte.newPage();
+  page.setDefaultTimeout(90_000);
+  page.setDefaultNavigationTimeout(90_000);
   await connecter(page);
 
   return { page, fermer: () => contexte.close() };
