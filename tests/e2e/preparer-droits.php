@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -66,6 +67,7 @@ try {
     SchemaSocle::installer($pdo);
     SchemaIngestion::installer($pdo);
     SchemaSecurite::installer($pdo);
+    remettreEtatFondsE2e($pdo);
 
     // Compte RÉEL, créé comme par l'installateur : identifiant = adresse de courriel, mot de passe haché.
     $identifiant = 'recette-droits@gedv2.test';
