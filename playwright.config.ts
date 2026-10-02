@@ -9,6 +9,9 @@ const envTests = { DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // `gedv2_test` est l'unique base de test admise. Chaque préparation remet ses tables de fonds à
+  // zéro sous verrou ; un worker unique garde cet état cohérent jusqu'à la fin de son parcours.
+  workers: 1,
   outputDir: './var/test-results',
   timeout: 20_000,
   expect: { timeout: 5_000 },
