@@ -89,6 +89,7 @@ final class ATraiter
                 }
             }
         }
+        $refusLot = json_decode((string) ($parametres['lot_refus'] ?? '{}'), true);
 
         return [
             'bilan' => [
@@ -103,6 +104,8 @@ final class ATraiter
             'types' => $this->types($courant['type']),
             'csrf' => $csrf,
             'fusion' => $fusion,
+            'lotValide' => max(0, (int) ($parametres['lot_valide'] ?? 0)),
+            'lotRefus' => is_array($refusLot) ? $refusLot : [],
         ];
     }
 
@@ -145,6 +148,31 @@ final class ATraiter
         if ($this->habitudes !== null && $emetteur !== '' && $type !== '') {
             $this->habitudes->retenirChoix($emetteur, Habitudes::CHAMP_TYPE, $type, (string) $id);
         }
+    }
+
+    /** Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire. */
+    public function validerPropositions(array $ids, string $auteur): array
+    {
+        $parId = [];
+        foreach ($this->file() as $piece) {
+            $parId[(int) $piece['id']] = $piece;
+        }
+        $valides = [];
+        $refuses = [];
+        foreach (array_values(array_unique(array_map('intval', $ids))) as $id) {
+            $piece = $parId[$id] ?? null;
+            if ($piece === null) { $refuses[$id] = 'pièce absente de la file'; continue; }
+            $manques = [];
+            if (trim((string) $piece['type']) === '') $manques[] = 'type';
+            if (trim((string) $piece['emetteur']) === '') $manques[] = 'émetteur';
+            if ($this->dateIso($piece['date']) === null) $manques[] = 'date';
+            if ($manques !== []) { $refuses[$id] = 'proposition incomplète : ' . implode(', ', $manques); continue; }
+            $this->valider($id, ['type' => $piece['type'], 'emetteur' => $piece['emetteur'], 'titre' => $piece['titre'],
+                'date' => $piece['date'], 'montant' => $piece['montant'], 'etiquettes' => $piece['etiquettes']], $auteur);
+            $valides[] = $id;
+        }
+
+        return ['valides' => $valides, 'refuses' => $refuses];
     }
 
     /** Identifiant du document qui suit celui-ci dans la file (recalculée après validation), ou null. */
