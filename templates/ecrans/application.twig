@@ -28,6 +28,10 @@
             <span class="muted">· source {{ ingestion.derniere_tache.source }}, dernière activité {{ ingestion.derniere_tache.affichage }} ({{ ingestion.derniere_tache.il_y_a }})</span>
           {% else %}<span class="chip warn">aucune tâche</span> <span class="muted">· aucune ingestion enregistrée pour cette installation</span>{% endif %}
         </span></div>
+        <div class="ligne-reglage"><span>Retouche de pages PDF</span><span data-testid="reglage-editeur-pdf">
+          {% if edition_pdf.disponible %}<span class="chip ok">disponible</span> <span class="muted">· {{ edition_pdf.moteur }}</span>
+          {% else %}<span class="chip warn">indisponible</span> <span class="muted">· {{ edition_pdf.message }}</span>{% endif %}
+        </span></div>
         <div class="ligne-reglage"><span>Seuil de classement automatique</span><span><strong data-testid="reglage-seuil">{{ ia.seuil }} %</strong> <span class="muted">et un indice du type dans le texte, ou une habitude</span></span></div>
         <div class="ligne-reglage"><span>Habitude formée après</span><span>
           {% if ia.habitude is not null %}<strong data-testid="reglage-habitude">{{ ia.habitude }}</strong> choix identiques{% else %}<span class="muted" data-testid="reglage-habitude">non configuré</span>{% endif %}
