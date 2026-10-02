@@ -27,16 +27,16 @@
   <div class="volets traiter">
     <details class="carte volet volet-file" data-testid="bloc-file" open>
       <summary class="volet-tete" data-testid="file-repli">File <span class="muted">· {{ file|length }} à contrôler</span> <span class="muted">· du plus ancien au plus récent</span></summary>
-      <ul class="liste volet-corps" data-testid="file-a-traiter">
+      <form method="post" action="/a-traiter/valider-lot" data-testid="formulaire-validation-lot"><input type="hidden" name="csrf" value="{{ csrf }}"><ul class="liste volet-corps" data-testid="file-a-traiter">
         {% for p in file %}
-        <li><a href="/a-traiter?doc={{ p.id }}" data-testid="file-item-{{ p.id }}" {% if p.id == courant.id %}aria-current="true"{% endif %}>
+        <li><label><input type="checkbox" name="documents[]" value="{{ p.id }}" data-testid="selection-lot-{{ p.id }}"></label><a href="/a-traiter?doc={{ p.id }}" data-testid="file-item-{{ p.id }}" {% if p.id == courant.id %}aria-current="true"{% endif %}>
           <span class="l1"><span>{{ p.titre }}</span></span>
           <span class="l2"><span>{{ p.emetteur }}</span></span>
           <span class="l2">{% if p.source %}<span class="source {{ p.source }}">{{ p.source }}</span>{% endif %}{{ p.type }}{% if p.confiance is not null %}
             <span class="jauge {{ p.confiance >= bilan.seuil ? 'haute' }}"><b style="width: {{ p.confiance }}%"></b></span>{{ p.confiance }} %{% endif %}</span>
         </a></li>
         {% endfor %}
-      </ul>
+      </ul><button class="btn discret" type="submit" data-testid="action-valider-lot">Valider la sélection</button></form>
     </details>
 
     <section class="carte volet volet-apercu" aria-label="Aperçu">
@@ -95,5 +95,7 @@
       {{ bilan.a_controler }} à contrôler · {{ bilan.auto }} classés seuls{% if bilan.en_cours > 0 %} · {{ bilan.en_cours }} en lecture{% endif %}
     </p>
   </div>
+  {% if lotValide > 0 %}<p class="alerte ok" data-testid="lot-valide">{{ lotValide }} pièce{{ lotValide > 1 ? 's' }} validée{{ lotValide > 1 ? 's' }}.</p>{% endif %}
+  {% for id, raison in lotRefus %}<p class="raison" data-testid="lot-refus-{{ id }}">Pièce {{ id }} : {{ raison }}</p>{% endfor %}
 </div>
 {% endblock %}
