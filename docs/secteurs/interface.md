@@ -1085,3 +1085,11 @@ ETAT: fini
   `Co-Authored-By: Codex <noreply@openai.com>`.
 
 ETAT: fini
+
+### Jugement V2-12c-s3 (juge, 2026-10-02) — V2-12c clos
+
+- Écrans rejoués seuls deux fois à `97b7f3a` (un seul worker désormais, 1,5 à 1,9 min) : 57 verts sur 58, seul rouge `mobile.spec.ts:298`, instable connu depuis avant V2-12c. `recherche.spec.ts:40` et `a-traiter.spec.ts:126` verts ; maquettes vertes.
+- Défaut produit corrigé dans le code : la file À traiter écarte les lignes non vivantes avant sa limite et se complète si un fichier manque encore (`ATraiter`, `DepotFichiers`, index `k_statut` élargi à `absent_depuis` avec migration idempotente), prouvé par `ATraiterBorneTest` (orphelins plus nombreux que la limite).
+- Contournements retirés : plus de date `1000-01-01` ; les délais longs vivent au niveau du test pour l'attente du verrou de préparation. Réserve : `edition-pages.spec.ts:30` garde un délai par action à 90 s (`setDefaultTimeout`), à ramener au délai global lors du prochain passage sur ce fichier.
+- Incident signalé par l'agent : un lancement manuel sans `STORAGE_ROOT` a écrit un fonds synthétique dans `storage/documents` de l'arbre principal (ignoré par Git, 2 fichiers). La base `gedv2` de la recette est intacte (49 documents, vérifié). Règle : tout script de préparation exige `STORAGE_ROOT` explicite et refuse la racine du `.env`.
+- Verdict : **V2-12c franchi et clos** (dossiers, restaurer une version, vue depuis Recherche, validation par lot), sans régression d'écrans.
