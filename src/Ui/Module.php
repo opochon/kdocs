@@ -55,6 +55,22 @@ final class Module
             }
         });
 
+        // Restaurer crée une NOUVELLE version depuis vN ; le Socle garde tout l'historique et refuse un scellement.
+        $app->post('/documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $id = (int) ($args['id'] ?? 0);
+            $session = $req->getAttribute('ged.session');
+            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+            try {
+                $nouvelle = (new \Ged\Socle\DepotFichiers($config))->restaurerVersion($id, (int) ($args['numero'] ?? 0), $auteur);
+                return $rep->withHeader('Location', '/documents/' . $id . '?version_succes=' . $nouvelle)->withStatus(303);
+            } catch (\Ged\Archivage\ErreurScellement $e) {
+                return $vue->rendre($rep, 'erreur.twig', ['code' => 403, 'etape' => 'POST /documents/{id}/versions/{n}/restaurer',
+                    'cause' => $e->getMessage(), 'reference' => substr(hash('sha256', 'restauration:' . microtime()), 0, 10)], 403);
+            } catch (Throwable $e) {
+                return $rep->withHeader('Location', '/documents/' . $id . '?version_erreur=' . rawurlencode($e->getMessage()))->withStatus(303);
+            }
+        });
+
         $app->post('/a-traiter/{id:[0-9]+}/valider', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
             $session = $req->getAttribute('ged.session');
@@ -74,6 +90,21 @@ final class Module
             }
 
             return $rep->withHeader('Location', $suivant !== null ? '/a-traiter?doc=' . $suivant : '/a-traiter')->withStatus(303);
+        });
+
+        $app->post('/a-traiter/valider-lot', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $ids = array_values(array_filter(array_map('intval', (array) ($corps['documents'] ?? [])), static fn (int $id): bool => $id > 0));
+            $session = $req->getAttribute('ged.session');
+            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+            try {
+                $bilan = ATraiter::depuisRacine($config->racine())->validerPropositions($ids, $auteur);
+            } catch (Throwable $e) {
+                return $vue->rendre($rep, 'erreur.twig', ['code' => 422, 'etape' => 'POST /a-traiter/valider-lot',
+                    'cause' => $e->getMessage(), 'reference' => substr(hash('sha256', 'lot:' . microtime()), 0, 10)], 422);
+            }
+            return $rep->withHeader('Location', '/a-traiter?lot_valide=' . count($bilan['valides'])
+                . '&lot_refus=' . rawurlencode(json_encode($bilan['refuses'], JSON_UNESCAPED_UNICODE) ?: '{}'))->withStatus(303);
         });
 
         // V2-12a : chaque route de page est une mutation CSRF + `documents:traiter` (la garde centrale
