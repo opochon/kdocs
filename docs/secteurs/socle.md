@@ -243,3 +243,9 @@ ETAT: fini
 
 - Modification minimale signalée depuis Interface : `DepotFichiers::remplacerContenu()` conserve le même nom et les mêmes métadonnées, refuse le changement de type MIME, passe par `Archivage\Garde::interdireMutation()` puis archive le contenu entrant dans `.versions/` et met à jour empreinte/taille/MIME de l’index. Si le contenu sortant n’était pas encore archivé, il est archivé avant remplacement. Aucun fichier utilisateur n’est supprimé par le produit.
 - Oracle : `RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu` (v1 + v2 archivées, index et courant = v2).
+
+## Note V2-12c — restauration versionnée et navigation indexée — 02-10-2026
+
+- Modification minimale signalée depuis Interface : `DepotFichiers::restaurerVersion()` reprend une archive `.versions/` comme une nouvelle version via `remplacerContenu()`, donc ne détruit aucune version, respecte le scellement et trace `restauration`.
+- Modification minimale signalée depuis Interface : `EcranBibliotheque` utilise uniquement l'index `k_vivant` pour former l'arbre et filtre un dossier/ses descendants par préfixe SQL; aucun fichier du fonds n'est lu au GET.
+- Oracle : `V212cTest` prouve v1 → v2 → restauration v1 = v3, et un dossier parent qui compte et filtre ses deux descendants.
