@@ -7,6 +7,10 @@ namespace Ged\Tests\Socle;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\EcranBibliotheque;
 use Ged\Socle\Vues;
+use Ged\Recherche\IndexPleinTexte;
+use Ged\Recherche\Requete as RequeteRecherche;
+use Ged\Recherche\Schema as SchemaRecherche;
+use Ged\Recherche\Service as ServiceRecherche;
 use Ged\Ui\ATraiter;
 use PHPUnit\Framework\TestCase;
 
@@ -51,17 +55,56 @@ final class V212cTest extends TestCase
         self::assertSame('2026/Factures', $donnees['dossierActif']);
     }
 
-    public function testLesFiltresDeRechercheDeviennentUneVueDeBibliotheque(): void
+    public function testUneVueIssueDeRechercheAfficheExactementLesMemesDocumentsEtLeMemeCompteur(): void
     {
+        $depot = new DepotFichiers($this->config);
+        foreach ([
+            ['facture-energie.txt', 'Facture énergie solaire', 'Facture', 'énergie solaire pour atelier fictif'],
+            ['contrat-energie.txt', 'Contrat énergie solaire', 'Contrat', 'énergie solaire pour atelier fictif'],
+            ['facture-eau.txt', 'Facture eau courante', 'Facture', 'eau courante pour atelier fictif'],
+        ] as [$fichier, $titre, $type, $texte]) {
+            $depot->deposer($this->pieceADeposer($fichier, $texte), [
+                'titre' => $titre, 'type' => $type, 'emetteur' => 'Atelier Fictif SA',
+                'date' => '2026-10-02', 'texte' => $texte, 'statut' => 'valide',
+            ]);
+        }
+        SchemaRecherche::installer($this->pdo);
+        $index = IndexPleinTexte::depuis($this->config, $this->pdo);
+        $index->synchroniser(null); // le job hors requête alimente l'index de la recherche réelle
+
+        $criteres = ['q' => 'énergie', 'type' => 'Facture', 'emetteur' => 'Atelier Fictif SA'];
+        $recherche = (new ServiceRecherche($this->pdo, $index))->rechercher(RequeteRecherche::depuisParametres($criteres));
         $id = (new Vues($this->config))->enregistrerRecherche('Factures de recherche', [
-            'q' => 'énergie', 'type' => 'Facture', 'emetteur' => 'Atelier Fictif SA', 'date_debut' => '2026-01-01',
+            ...$criteres, 'date_debut' => '2026-01-01',
         ], 'recette');
         $vue = (new Vues($this->config))->lire($id);
+        $bibliotheque = (new EcranBibliotheque($this->config))->donnees(['vue' => $id], 'csrf');
 
         self::assertSame('Facture', $vue['filtres']['type']);
         self::assertSame('Atelier Fictif SA', $vue['filtres']['emetteur']);
         self::assertSame('2026-01-01', $vue['filtres']['de']);
         self::assertSame('énergie', $vue['recherche']['q']);
+        self::assertSame(array_column($recherche->trouvailles, 'id'), array_column($bibliotheque['docs'], 'id'));
+        self::assertSame($recherche->total, $bibliotheque['totalFiltre']);
+        self::assertSame($recherche->total, current(array_filter($bibliotheque['vuesVolet'],
+            static fn (array $v): bool => $v['id'] === $id))['compte']);
+    }
+
+    public function testUneVueDeBibliothequeSansTexteGardeSonFiltreHabituel(): void
+    {
+        $depot = new DepotFichiers($this->config);
+        $facture = $depot->deposer($this->pieceADeposer('vue-facture.txt', 'facture'), [
+            'titre' => 'Facture sans recherche', 'type' => 'Facture', 'statut' => 'valide',
+        ]);
+        $depot->deposer($this->pieceADeposer('vue-contrat.txt', 'contrat'), [
+            'titre' => 'Contrat sans recherche', 'type' => 'Contrat', 'statut' => 'valide',
+        ]);
+        $id = (new Vues($this->config))->enregistrer('Factures seulement', ['type' => 'Facture'], 'recette');
+
+        $bibliotheque = (new EcranBibliotheque($this->config))->donnees(['vue' => $id], 'csrf');
+
+        self::assertSame([$facture], array_column($bibliotheque['docs'], 'id'));
+        self::assertSame(1, $bibliotheque['totalFiltre']);
     }
 
     public function testValidationDeLotPasseParLaValidationUnitaireEtNAbandonnePasLesIncompletes(): void

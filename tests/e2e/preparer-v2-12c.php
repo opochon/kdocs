@@ -7,6 +7,7 @@ require $racine . '/vendor/autoload.php';
 use Ged\Base;
 use Ged\Config;
 use Ged\Recherche\Schema as SchemaRecherche;
+use Ged\Recherche\IndexPleinTexte;
 use Ged\Securite\Schema as SchemaSecurite;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Schema as SchemaSocle;
@@ -32,6 +33,8 @@ try {
     $hors = $depot->deposer($poser('contrat.pdf', "%PDF-1.4\n% contrat\n%%EOF\n"), $commun + ['titre' => 'Contrat hors dossier', 'dossier' => '2026/Contrats']);
     $lotBon = $depot->deposer($poser('lot-bon.pdf', "%PDF-1.4\n% lot bon\n%%EOF\n"), $commun + ['titre' => 'Lot complet', 'statut' => 'a_controler']);
     $lotMauvais = $depot->deposer($poser('lot-mauvais.pdf', "%PDF-1.4\n% lot mauvais\n%%EOF\n"), ['titre' => 'Lot incomplet', 'type' => 'Facture', 'statut' => 'a_controler']);
+    // Même index plein texte que l'écran Recherche, construit hors requête sur ce fonds synthétique.
+    IndexPleinTexte::depuis($config, $pdo)->synchroniser(null);
     echo json_encode(compact('compte', 'mot', 'version', 'suisse', 'france', 'hors', 'lotBon', 'lotMauvais'), JSON_UNESCAPED_UNICODE), PHP_EOL;
 } finally { flock($verrou, LOCK_UN); fclose($verrou); }
 

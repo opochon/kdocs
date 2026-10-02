@@ -6,6 +6,9 @@ namespace Ged\Socle;
 
 use Ged\Base;
 use Ged\Config;
+use Ged\Recherche\IndexPleinTexte;
+use Ged\Recherche\Requete as RequeteRecherche;
+use Ged\Recherche\Service as ServiceRecherche;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -36,13 +39,19 @@ final class EcranBibliotheque
     private const PREFIXE_CHEMIN = 700;
 
     private readonly PDO $pdo;
+    private readonly Config $config;
     private readonly Fonds $fonds;
     private readonly Vues $vues;
     private readonly Champs $champs;
     private readonly Nomenclature $nomenclature;
+    /** @var array<int, list<int>> Résultats du moteur Recherche, mémorisés pendant ce rendu. */
+    private array $idsRecherche = [];
+    /** @var array<int, string> Erreurs nommées du moteur Recherche, par vue. */
+    private array $erreursRecherche = [];
 
     public function __construct(Config $config)
     {
+        $this->config = $config;
         $this->pdo = Base::pdo($config);
         $this->fonds = new Fonds($config);
         $this->vues = new Vues($config);
@@ -83,11 +92,19 @@ final class EcranBibliotheque
         $total = $this->compterVivants();
         $dossierActif = $this->dossierActif($parametres['dossier'] ?? null);
         [$where, $params] = $this->wherePourFiltres($filtres, $dossierActif);
+        $ordreRecherche = null;
+        if ($vueActive !== null && $this->estVueRecherche($vueActive)) {
+            $ordreRecherche = $this->idsPourVueRecherche($vueActive);
+            if (isset($this->erreursRecherche[(int) $vueActive['id']])) {
+                $erreur = $this->erreursRecherche[(int) $vueActive['id']];
+            }
+            [$where, $params] = $this->restreindreAuxIds($where, $params, $ordreRecherche);
+        }
         $totalFiltre = $this->compterAvec($where, $params);
 
         $pages = max(1, (int) ceil($totalFiltre / self::PAGE_TAILLE));
         $page = max(1, min($pages, (int) ($parametres['page'] ?? 1)));
-        $docs = $this->lirePage($where, $params, $page);
+        $docs = $this->lirePage($where, $params, $page, $ordreRecherche);
         foreach ($docs as &$doc) {
             $doc['lien'] = $this->lienDocument($parametres, (int) $doc['id']);
         }
@@ -139,6 +156,9 @@ final class EcranBibliotheque
         $volet = [['id' => null, 'nom' => 'Tous les documents', 'compte' => $total]];
         foreach ($this->vues->lister() as $vue) {
             [$where, $params] = $this->wherePourFiltres($vue['filtres']);
+            if ($this->estVueRecherche($vue)) {
+                [$where, $params] = $this->restreindreAuxIds($where, $params, $this->idsPourVueRecherche($vue));
+            }
             $volet[] = ['id' => $vue['id'], 'nom' => $vue['nom'], 'compte' => $this->compterAvec($where, $params)];
         }
 
@@ -271,6 +291,48 @@ final class EcranBibliotheque
         return (int) $requete->fetchColumn();
     }
 
+    /** Une vue Recherche garde un tableau non vide dans le registre ; une vue Bibliothèque reste inchangée. */
+    private function estVueRecherche(array $vue): bool
+    {
+        return isset($vue['recherche']) && is_array($vue['recherche']) && $vue['recherche'] !== [];
+    }
+
+    /**
+     * Interroge le moteur de Recherche existant (son index FULLTEXT/repli LIKE), jamais le fonds.
+     * Les identifiants gardent son ordre de pertinence pour que la vue reproduise aussi la liste visible.
+     *
+     * @param array<string, mixed> $vue
+     * @return list<int>
+     */
+    private function idsPourVueRecherche(array $vue): array
+    {
+        $idVue = (int) $vue['id'];
+        if (isset($this->idsRecherche[$idVue])) {
+            return $this->idsRecherche[$idVue];
+        }
+        $moteur = new ServiceRecherche($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo));
+        $resultat = $moteur->rechercher(RequeteRecherche::depuisParametres($this->vues->criteresRecherche($vue)));
+        if ($resultat->erreur !== null) {
+            $this->erreursRecherche[$idVue] = 'vue Recherche impossible : étape « ' . $resultat->erreur->etape
+                . ' », cause : ' . $resultat->erreur->cause;
+        }
+
+        return $this->idsRecherche[$idVue] = array_values(array_unique(array_map(
+            static fn ($trouvaille): int => $trouvaille->id,
+            $resultat->trouvailles,
+        )));
+    }
+
+    /** Ajoute la liste issue du moteur Recherche à la clause de la Bibliothèque, sans second moteur. */
+    private function restreindreAuxIds(string $where, array $params, array $ids): array
+    {
+        if ($ids === []) {
+            return [$where . ' AND 1 = 0', $params];
+        }
+
+        return [$where . ' AND id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')', [...$params, ...$ids]];
+    }
+
     /**
      * Une page de la liste, lue CÔTÉ BASE : seules les colonnes de l'écran, plus récentes d'abord.
      * La colonne `meta` (copie du `.meta.json`) n'est jamais lue pour une liste — un document retenu
@@ -279,12 +341,17 @@ final class EcranBibliotheque
      * @param list<mixed> $params
      * @return list<array<string, mixed>>
      */
-    private function lirePage(string $where, array $params, int $page): array
+    private function lirePage(string $where, array $params, int $page, ?array $ordreRecherche = null): array
     {
         $decalage = ($page - 1) * self::PAGE_TAILLE;
+        $ordre = 'id DESC';
+        if ($ordreRecherche !== null && $ordreRecherche !== []) {
+            $ordre = 'FIELD(id, ' . implode(', ', array_fill(0, count($ordreRecherche), '?')) . ')';
+            $params = [...$params, ...$ordreRecherche];
+        }
         $requete = $this->pdo->prepare(
             'SELECT id, chemin_relatif, nom, titre, type, emetteur, date_document, montant, etiquettes'
-            . ' FROM documents WHERE ' . $where . ' ORDER BY id DESC LIMIT ' . self::PAGE_TAILLE . ' OFFSET ' . $decalage);
+            . ' FROM documents WHERE ' . $where . ' ORDER BY ' . $ordre . ' LIMIT ' . self::PAGE_TAILLE . ' OFFSET ' . $decalage);
         $requete->execute($params);
 
         return array_map([$this, 'ligne'], $requete->fetchAll());

@@ -199,6 +199,30 @@ final class Vues
     }
 
     /**
+     * Traduit une vue issue de Recherche vers les paramètres de son unique moteur plein texte.
+     * Les vues de Bibliothèque n'ont pas de clé `recherche` : elles continuent donc de n'utiliser
+     * que leurs filtres documentaires, sans changer leur comportement.
+     *
+     * @param array<string, mixed> $vue
+     * @return array<string, mixed>
+     */
+    public function criteresRecherche(array $vue): array
+    {
+        $filtres = (array) ($vue['filtres'] ?? []);
+        $recherche = (array) ($vue['recherche'] ?? []);
+
+        return [
+            'q' => (string) ($recherche['q'] ?? ''),
+            'type' => (string) ($filtres['type'] ?? ''),
+            'emetteur' => (string) ($filtres['emetteur'] ?? ''),
+            'date_debut' => (string) ($filtres['de'] ?? ''),
+            'date_fin' => (string) ($filtres['a'] ?? ''),
+            'montant_min' => (string) ($recherche['montant_min'] ?? ''),
+            'montant_max' => (string) ($recherche['montant_max'] ?? ''),
+        ];
+    }
+
+    /**
      * Applique des filtres compilés à une liste de documents du fonds (forme des entrées de Fonds::tous()).
      * Pure : aucune base, aucun fichier — une vue ne déplace rien, elle ne retient que ce qui la satisfait.
      *
