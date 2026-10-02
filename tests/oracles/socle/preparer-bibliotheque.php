@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 3);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -52,6 +53,7 @@ try {
     Base::assurerBase($config);
     $pdo = Base::pdo($config);
     Schema::installer($pdo);
+    remettreEtatFondsE2e($pdo);
 
     // La configuration de la GED (nomenclature, vues) vit dans LE fonds (`.ged/`, V2-04) : le recréer
     // à neuf l'a déjà remise à zéro — champs et vues d'un passage précédent ont disparu avec lui.
