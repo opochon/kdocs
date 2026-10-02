@@ -5,6 +5,7 @@ declare(strict_types=1);
 /** Prépare uniquement le fonds synthétique du parcours V2-09b, via le vrai Pilote. */
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -32,6 +33,7 @@ try {
     putenv('INGESTION_DOSSIER=' . $bac . '/entree'); putenv('INGESTION_TRAVAIL=' . $bac . '/travail');
     Base::assurerBase($config); $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo); SchemaIngestion::installer($pdo); SchemaSecurite::installer($pdo);
+    remettreEtatFondsE2e($pdo);
     $admin = 'archivage-admin@gedv2.test'; $lecteur = 'archivage-lecteur@gedv2.test';
     $secret = 'MotDePasse-Archivage-2026!';
     foreach ([[$admin, 'admin'], [$lecteur, 'lecteur']] as [$identifiant, $role]) {
