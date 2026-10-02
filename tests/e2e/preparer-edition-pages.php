@@ -5,6 +5,7 @@ declare(strict_types=1);
 /** Fonds V2-12a : six pages synthétiques, dont une tournée et une blanche, sans corpus réel. */
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -29,6 +30,7 @@ try {
         ('Ged\\' . $secteur . '\\Schema')::installer($pdo);
     }
     SchemaSecurite::installer($pdo);
+    remettreEtatFondsE2e($pdo);
     purgerEditionPrecedente($pdo);
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE empreinte = VALUES(empreinte), role = VALUES(role)')
         ->execute(['testeur@gedv2.test', password_hash('MotDePasse-Test-2026!', PASSWORD_DEFAULT), 'admin']);
