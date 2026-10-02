@@ -880,3 +880,40 @@ ETAT: fini
   - un contrôle de dépendances dans l'installateur et le diagnostic ;
   - un message d'erreur en français, sans trace ;
   - un oracle qui tourne avec le Python CONFIGURÉ, jamais celui du système.
+
+## Journal V2-12b — moteur PDF configuré — 02-10-2026
+
+**Oracle d’abord**
+- `EditeurPdfTest::testLeMoteurNImporteQueDesModulesDuPythonConfigure` charge le script complet avec le
+  `CMD4_PYTHON` lu par `Config` depuis `.env` : un import absent de ce venv fait échouer l'oracle. Il a
+  d'abord mis en évidence que le précédent moteur dépendait de `pypdf`, absent du venv CMD4.
+- L'oracle couvre aussi le diagnostic de l'installateur lorsque le binaire Python est absent, et une sortie
+  `ModuleNotFoundError` : le message affichable est exactement « La retouche de page est indisponible :
+  moteur PDF absent », jamais une trace.
+
+**Fait**
+- L'écran Application expose l'état réel de la retouche (`data-testid="reglage-editeur-pdf"`) : moteur
+  PyMuPDF disponible ou message clair d'indisponibilité.
+- Les routes de retouche transforment toute cause technique en message utilisateur français. La cause,
+  son fichier et sa ligne sont écrits dans le journal serveur avec une référence ; l'écran montre cette
+  référence sans exposer stderr Python.
+- L'oracle Playwright ne force plus `CMD4_PYTHON=python` : préparation du fonds, serveur et gestes de
+  retouche utilisent la configuration réelle. `tools/sonde-tsa.php` était déjà absent de l'espace de
+  travail ; il n'a jamais été ajouté ni committé.
+
+**Preuves**
+- Venv configuré : PyMuPDF 1.28.0 ; `php vendor/bin/phpunit
+  tests/php/Ingestion/EditeurPdfTest.php tests/php/Ingestion/EditionPiecesTest.php tests/php/EcransTest.php
+  --no-coverage` : 17 tests, 75 assertions, vert. L'oracle édition Playwright : 2/2 vert.
+- `harness.ps1 -SansBanc` : garde-fous, 421 tests / 2 389 assertions, sécurité et contrats verts. Ses
+  trois rouges Écrans sous concurrence (édition, une mesure maquette à 1 939 ms, recherche mobile) se
+  rejouent seuls verts : édition 2/2, maquettes 12/12, mobile 2/2. La charge rouge du harness (p95 lecture
+  2 119 ms) se rejoue seule verte : p95 lecture 794 ms, écriture 269 ms, zéro erreur et collision.
+  Le banc est explicitement sauté par `-SansBanc` et Personas n'est pas encore écrit : rouges attendus,
+  hors V2-12b.
+
+**Commits**
+- Un fichier par commit : `4df4305`, `6a53dbb`, `d8806ab`, `1ae145a`, `7e339d8`, `92cf95e`, `23ac2c2`,
+  `eb60e44`, `2aaaf43`, `27041ac`, `24025c4` ; aucun fichier partagé de droits ou de sonde modifié.
+
+ETAT: fini
