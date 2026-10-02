@@ -148,3 +148,30 @@ ETAT: bloqué — charge du harness incomplète, hors correction de frontière V
 - `php vendor/bin/phpunit tests/php/Ingestion` : vert dans la suite R2g.
 
 ETAT: fini
+
+## Journal V2-12b — moteur PDF configuré — 02-10-2026
+
+**Oracle d'abord**
+- `EditeurPdfTest` exécute le script entier avec `CMD4_PYTHON` obtenu par `Config` depuis `.env` ; tout
+  import absent du venv configuré rend le diagnostic rouge. Les fabriques de PDF et les vérifications de
+  pages de `EditionPiecesTest` utilisent désormais ce même interpréteur, jamais le Python système.
+- Un second oracle fait tourner l'installateur avec un Python introuvable et attend le refus nommé ; un
+  troisième vérifie qu'un `ModuleNotFoundError` ne devient jamais une trace envoyée à l'utilisateur.
+
+**Fait**
+- `agent/editer_pdf.py` remplace `pypdf` par PyMuPDF (`fitz`) : rotation, scission, fusion et retrait
+  travaillent toujours sur un nouveau PDF atomique. Le venv de CMD4 configuré contient PyMuPDF 1.28.0 ;
+  aucune dépendance n'a été installée dans ce venv externe.
+- `EditeurPdf::diagnostic()` vérifie réellement ce moteur par le Python configuré. L'installateur refuse
+  avant toute écriture si le moteur manque et nomme « La retouche de page est indisponible : moteur PDF
+  absent » ; le diagnostic Application restitue le même état.
+- L'erreur métier garde les causes de geste compréhensibles. Une cause technique PDF est journalisée côté
+  serveur avec sa référence et remplacée côté écran par le message français sûr, sans stderr ni trace.
+
+**Preuves**
+- Ciblé : 17 tests PHP / 75 assertions et le parcours `edition-pages` 2/2 verts avec le venv CMD4.
+- `harness.ps1 -SansBanc` : unitaire (421 / 2 389), sécurité et contrats verts. Les rouges Écrans sous
+  concurrence se rejouent seuls verts (édition 2/2, maquettes 12/12, mobile 2/2) ; la charge rouge
+  (p95 lecture 2 119 ms) est verte seule à 794 ms, écriture 269 ms, 0 erreur, 0 collision.
+
+ETAT: fini
