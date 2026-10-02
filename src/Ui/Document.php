@@ -133,6 +133,7 @@ final class Document
             'qui' => 'système',
             'quoi' => 'contenu archivé (' . (string) $v['nom_archive'] . ')',
             'taille' => self::taille((int) $v['taille']),
+            'restaurable' => true,
         ], $lignes);
     }
 
@@ -148,8 +149,10 @@ final class Document
             $requete->execute([$id]);
             $lignes = array_map(static fn (array $d): array => [
                 'quand' => (string) $d['date_deplacement'],
-                'quoi' => 'Déplacé : ' . (string) $d['chemin_avant'] . ' → ' . (string) $d['chemin_apres']
-                    . ' (' . (string) $d['cause'] . ', ' . (string) $d['auteur'] . ')',
+                'quoi' => (string) $d['cause'] === 'restauration'
+                    ? 'Restauration : nouvelle version créée (' . (string) $d['auteur'] . ')'
+                    : 'Déplacé : ' . (string) $d['chemin_avant'] . ' → ' . (string) $d['chemin_apres']
+                        . ' (' . (string) $d['cause'] . ', ' . (string) $d['auteur'] . ')',
             ], $requete->fetchAll());
             $versions = $pdo->prepare('SELECT numero, nom_archive, cree_le FROM document_versions WHERE document_id = ?');
             $versions->execute([$id]);
