@@ -8,6 +8,7 @@ use Ged\Base;
 use Ged\Classement\Habitudes;
 use Ged\Classement\InfomaniakClient;
 use Ged\Config;
+use Ged\Ingestion\EditeurPdf;
 use Ged\Ingestion\Fabrique;
 use PDO;
 use Throwable;
@@ -51,6 +52,7 @@ final class Application
     {
         return [
             'ingestion' => $this->ingestion(),
+            'edition_pdf' => EditeurPdf::depuisConfig($this->config)->diagnostic(),
             'stockage' => $this->stockage(),
             'ia' => $this->ia(),
             'connecteurs' => [
