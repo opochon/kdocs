@@ -952,5 +952,6 @@ ETAT: fini
 **Preuves**
 - Oracle PHP vert : 4 tests, 19 assertions (`V212cTest`).
 - Oracle Playwright : arbre bureau et téléphone vert; les trois mutations restent en attente de la porte partagée ci-dessus, sans laquelle la garde centrale les refuse explicitement.
+- `harness.ps1 -SansBanc` (13:58) : garde-fous, sonde, contrat et charge verts. L'unitaire (1 échec) nomme précisément `/recherche/vue` absent de `DroitsRoutes`; les écrans (6 échecs/48 verts) incluent les trois parcours de mutation V2-12c refusés par cette même porte. Rejoués seuls : PHP ciblé 32/32 vert, dossier bureau vert, dossier téléphone vert. Les autres rouges de concurrence (édition, maquette, persona, mobile) ne relèvent pas de ce lot.
 
 ETAT: bloqué — porte DroitsRoutes et sonde-securite à poser par le juge
