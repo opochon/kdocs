@@ -1038,3 +1038,50 @@ ETAT: fini
 - Restent : `recherche.spec.ts:40` rouge aux deux passages (nouvelle régression, vert à `bac9670`) ; `a-traiter.spec.ts:126` rouge une fois (uq_chemin dupliqué, pollution de la base `gedv2_test` partagée entre fonds) ; `mobile.spec.ts:298` instable connu.
 - Contournements refusés : date `1000-01-01` dans `preparer-v2-12c.php` pour passer devant les index orphelins (le défaut produit, limite de file appliquée avant le contrôle de présence du fichier, reste dans `ATraiter`) ; délais par action portés à 90 s dans deux specs.
 - Verdict : **non clos** ; reprise V2-12c-s3 (régression Recherche, isolement base/fonds à la racine, défaut de file corrigé dans le code, retrait des contournements).
+
+## Journal V2-12c-s3 — fonds e2e cohérents et file vivante — 02-10-2026
+
+**Oracle d’abord**
+- `ATraiterBorneTest::testLesOrphelinsPlusNombreuxQueLaLimiteNeMasquentPasLaFileVivante()` a été vu rouge :
+  1 001 lignes `a_controler` sans fichier, donc davantage que la limite de 1 000, rendaient une file vide
+  alors que dix pièces réelles existaient après elles. Il est vert après correction.
+- La préparation Recherche a été rejouée après un fonds différent : l'ancienne indexation seule ne
+  reconstituait pas les documents `201..213` du corpus et `recherche.spec.ts:40` cherchait logiquement
+  `resultat-201` en vain. La préparation explicite du corpus rend les trois parcours Recherche verts.
+
+**Fait**
+- `DepotFichiers::listerParStatut()` filtre maintenant `supprime_le IS NULL AND absent_depuis IS NULL`
+  AVANT `LIMIT`; son index `k_statut` couvre aussi `absent_depuis`. `ATraiter` conserve la preuve finale
+  du disque et lit la tranche suivante lorsqu'un fichier disparaît entre l'indexation et le GET : les
+  orphelins ne peuvent plus masquer la file vivante.
+- Une seule base autorisée reste `gedv2_test`. `tests/oracles/e2e/EtatBase.php` remet à zéro, sous
+  `gedv2_test.lock`, toutes les tables dérivées du fonds synthétique (documents, index Recherche,
+  travaux, habitudes, workflows, jonctions et ACL de fonds), jamais les comptes, rôles ni installation.
+  Tous les préparateurs e2e de fonds l'appellent; `playwright.config.ts` impose un worker, afin qu'aucun
+  autre fonds ne remplace l'index entre une préparation et son parcours. Le corpus versionné de Recherche,
+  Aperçu et Maquettes est reconstruit explicitement avec ses ids contractuels `201..213`.
+- La date artificielle `1000-01-01` est retirée de `preparer-v2-12c.php`. Les 90 s globaux par action et
+  navigation sont retirés de Bibliothèque et Actions V2-12c : seul leur hook de préparation a 90 s pour
+  attendre le verrou; les gestes gardent le budget écran normal.
+
+**Preuves**
+- Ciblés : PHP `ATraiterBorneTest` **2/2**; Recherche **3/3**; À traiter **3/3** (dont l'habitude de la
+  quatrième pièce); V2-12c **5/5**; Bibliothèque **2/2**; Retouche **2/2**.
+- Couche écrans entière, deux fois seule : **57 verts, 1 rouge admis**, `mobile.spec.ts:298`; les
+  régressions V2-12c, Recherche et le classement de la quatrième pièce sont verts aux deux passages.
+  `maquettes.spec.ts` est vert aux deux passages.
+- `harness.ps1 -SansBanc` : garde-fous verts; unitaire **427 tests / 2 421 assertions**; sécurité et
+  contrats verts; charge verte (p95 lecture **391 ms**, écriture **165 ms**, 0 erreur, 0 collision).
+  Écrans : le seul rouge est `mobile.spec.ts:298`; banc sauté par option et Personas encore non écrit.
+
+**Modification minimale signalée hors Interface**
+- `src/Socle/DepotFichiers.php` et `src/Socle/Schema.php` : filtre et index de la file vivante, nécessaires
+  au défaut produit; aucun secteur Classement ni Ingestion n'est modifié.
+
+**Commits**
+- `eb84a65`, `9eae9a0`, `5fc44a1`, `de0bbc3`, `6324053`, `e4fd74c`, `4c8a940`, `bb731dd`, `65820c1`,
+  `60b2d81`, `501b27c`, `be91b16`, `0c8e7bc`, `88cf2f7`, `a0b7e74`, `f66906f`, `1727a7d`, `a785dc5`,
+  `aa93f10`, `26742f2`, `bbe95fd`, `4563ced`, `522fcd2`, `c8a02ce`; un fichier par commit, tous avec
+  `Co-Authored-By: Codex <noreply@openai.com>`.
+
+ETAT: fini
