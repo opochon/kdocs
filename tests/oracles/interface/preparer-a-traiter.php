@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 3);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -56,6 +57,7 @@ try {
     foreach (['Socle', 'Ingestion', 'Classement'] as $secteur) {
         ('Ged\\' . $secteur . '\\Schema')::installer($pdo);
     }
+    remettreEtatFondsE2e($pdo);
 
     // Contenu réel d'un PDF synthétique du corpus : l'aperçu a un vrai fichier à rendre.
     $modele = $racine . '/tests/corpus/apercu/documents/201-facture-an-5001.pdf';
