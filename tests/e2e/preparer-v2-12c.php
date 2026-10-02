@@ -31,8 +31,13 @@ try {
     $suisse = $depot->deposer($poser('suisse.pdf', "%PDF-1.4\n% suisse\n%%EOF\n"), $commun + ['titre' => 'Facture Suisse', 'dossier' => '2026/Factures/Suisse']);
     $france = $depot->deposer($poser('france.pdf', "%PDF-1.4\n% france\n%%EOF\n"), $commun + ['titre' => 'Facture France', 'dossier' => '2026/Factures/France']);
     $hors = $depot->deposer($poser('contrat.pdf', "%PDF-1.4\n% contrat\n%%EOF\n"), $commun + ['titre' => 'Contrat hors dossier', 'dossier' => '2026/Contrats']);
-    $lotBon = $depot->deposer($poser('lot-bon.pdf', "%PDF-1.4\n% lot bon\n%%EOF\n"), $commun + ['titre' => 'Lot complet', 'statut' => 'a_controler']);
-    $lotMauvais = $depot->deposer($poser('lot-mauvais.pdf', "%PDF-1.4\n% lot mauvais\n%%EOF\n"), ['titre' => 'Lot incomplet', 'type' => 'Facture', 'statut' => 'a_controler']);
+    // Le seul scénario de lot rend ses deux pièces visibles. Les autres parcours remettent ce fonds
+    // à neuf avec des pièces déjà validées : leur index partagé ne doit pas alimenter une autre file.
+    $statutLot = getenv('V212C_LOT_ACTIF') === '1' ? 'a_controler' : 'valide';
+    // La file est chronologique : une date synthétique minimale garantit que le scénario retrouve ses
+    // pièces avant les index orphelins d'un autre fonds d'essai.
+    $lotBon = $depot->deposer($poser('lot-bon.pdf', "%PDF-1.4\n% lot bon\n%%EOF\n"), array_replace($commun, ['titre' => 'Lot complet', 'date' => '1000-01-01', 'statut' => $statutLot]));
+    $lotMauvais = $depot->deposer($poser('lot-mauvais.pdf', "%PDF-1.4\n% lot mauvais\n%%EOF\n"), ['titre' => 'Lot incomplet', 'type' => 'Facture', 'date' => '1000-01-01', 'statut' => $statutLot]);
     // Même index plein texte que l'écran Recherche, construit hors requête sur ce fonds synthétique.
     IndexPleinTexte::depuis($config, $pdo)->synchroniser(null);
     echo json_encode(compact('compte', 'mot', 'version', 'suisse', 'france', 'hors', 'lotBon', 'lotMauvais'), JSON_UNESCAPED_UNICODE), PHP_EOL;
