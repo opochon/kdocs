@@ -200,6 +200,7 @@ try {
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);
         $chemin = str_replace('/{id:[0-9]+}', '/204', $chemin);
+        $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
         $chemin = str_replace('/{nom}', '/sonde_inconnue', $chemin);
         $publique = DroitsRoutes::estPublique($permission);
         $corps = in_array($methode, ['POST', 'PUT', 'PATCH', 'DELETE'], true) ? 'sonde=1' : null;
@@ -292,6 +293,10 @@ try {
         'POST /documents/champ' => 'doc=0',
         // Nouvelle version V2-11 : fichier absent, le métier refuse sans écrire ; la sonde couvre CSRF.
         'POST /documents/{id:[0-9]+}/versions' => 'fichier=',
+        // V2-12c : document inexistant, vue sans nom, lot vide ; le metier refuse sans ecrire.
+        'POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer' => '',
+        'POST /recherche/vue' => 'nom=',
+        'POST /a-traiter/valider-lot' => 'documents=',
         // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde
         // n'exerce ici que l'absence et le rejeu CSRF de la route irréversible.
         'POST /documents/{id:[0-9]+}/sceller' => 'confirmation=1',
@@ -326,6 +331,7 @@ try {
             continue;
         }
         $chemin = str_replace('/{id:[0-9]+}', '/999999999', $chemin);
+        $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
         $chemin = str_replace('/{nom}', '/sonde_inconnue', $chemin);
         $session = $sessions->ouvrir('sonde-csrf@gedv2.test', [DroitsRoutes::permissionCanonique($permission)]);
         $cookies = 'Cookie: gedv2_session=' . $session['id'] . '; gedv2_csrf=' . $session['csrf'];

@@ -29,6 +29,10 @@ final class DroitsRoutes
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
         'POST /documents/{id:[0-9]+}/versions' => 'documents:modifier',
+        // V2-12c : restaurer vN cree une nouvelle version (jamais d'ecrasement), vue depuis Recherche, lot.
+        'POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer' => 'documents:modifier',
+        'POST /recherche/vue' => 'documents:lire',
+        'POST /a-traiter/valider-lot' => 'documents:traiter',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
@@ -121,6 +125,9 @@ final class DroitsRoutes
         if (strtoupper($methode) === 'POST') {
             if (preg_match('#^/documents/[0-9]+/versions$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/versions'];
+            }
+            if (preg_match('#^/documents/[0-9]+/versions/[0-9]+/restaurer$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer'];
             }
             if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/sceller'];
