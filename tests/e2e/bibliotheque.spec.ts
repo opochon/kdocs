@@ -61,8 +61,6 @@ function preparer(): Preparation {
 async function pageConnectee(browser: Browser): Promise<{ page: Page; fermer: () => Promise<void> }> {
   const contexte = await browser.newContext({ baseURL: base, viewport: { width: 1440, height: 900 }, locale: 'fr-CH' });
   const page = await contexte.newPage();
-  page.setDefaultTimeout(90_000);
-  page.setDefaultNavigationTimeout(90_000);
   await connecter(page);
 
   return { page, fermer: () => contexte.close() };
@@ -100,10 +98,9 @@ test.afterAll(() => {
 
 test.beforeEach(() => {
   prep = preparer();
-});
+}, { timeout: 90_000 }); // le verrou de préparation a son budget; les gestes gardent le délai global.
 
 test('la bibliothèque montre les vraies vues et les vrais documents du fonds', async ({ browser }) => {
-  test.setTimeout(90_000);   // la préparation attend le verrou de gedv2_test (base partagée entre agents)
   const { page, fermer } = await pageConnectee(browser);
   const erreurs = surveillerConsole(page);
   try {
@@ -125,7 +122,6 @@ test('la bibliothèque montre les vraies vues et les vrais documents du fonds', 
 });
 
 test('un persona crée le champ Échéance et la vue Contrats à échéance < 90 j, sans aide', async ({ browser }) => {
-  test.setTimeout(90_000);   // la préparation attend le verrou de gedv2_test (base partagée entre agents)
   const { page, fermer } = await pageConnectee(browser);
   const erreurs = surveillerConsole(page);
   try {
