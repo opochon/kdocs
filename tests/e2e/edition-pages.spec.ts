@@ -27,13 +27,14 @@ function preparer() {
 }
 async function connecterPage(browser: Browser, mobile = false): Promise<{ page: Page; fermer: () => Promise<void> }> {
   const contexte = await browser.newContext({ baseURL: base, viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 }, locale: 'fr-CH' });
-  const page = await contexte.newPage(); await connecter(page); return { page, fermer: () => contexte.close() };
+  const page = await contexte.newPage(); page.setDefaultTimeout(90_000); page.setDefaultNavigationTimeout(90_000); await connecter(page); return { page, fermer: () => contexte.close() };
 }
 async function pageEdition(page: Page, valeur: number) {
   await page.locator('[data-edition-page]').evaluateAll((champs, page) => champs.forEach((c: HTMLInputElement) => { c.value = String(page); }), valeur);
 }
 
-test.describe.configure({ mode: 'serial' });
+// La préparation attend le verrou gedv2_test : le budget couvre ce protocole d'isolement, pas les assertions.
+test.describe.configure({ mode: 'serial', timeout: 90_000 });
 test.beforeAll(async () => { fs.mkdirSync(path.dirname(FONDS), { recursive: true }); const port = await portLibre(); base = `http://127.0.0.1:${port}`;
   serveur = spawn('php', ['-d', 'opcache.enable=0', '-S', `127.0.0.1:${port}`, '-t', 'public', 'public/index.php'], { cwd: RACINE,
     env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS }, stdio: 'ignore' }); await attendre(base); });
