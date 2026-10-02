@@ -143,7 +143,22 @@ ETAT: fini (jugé)
 - `src/Securite/DroitsRoutes.php` : `GET /archives` et `POST /archives/verifier` →
   `archivage:consulter`; `POST /documents/{id:[0-9]+}/sceller` → `archivage:sceller`, avec sa résolution
   paramétrée.
+- `tools/banc/sonde-securite.php` : charges CSRF défensives des deux mutations (scellement d’un id
+  absent, tâche de vérification interne au fonds de test).
 - **Demande à Droits/Sécurité** : ajouter ces deux permissions au catalogue et donner
   `archivage:consulter` / `archivage:sceller` au rôle `archiveur` (l’administrateur `*` les porte déjà).
 
-ETAT: en cours — rejoues unitaires et Playwright attendus
+**Preuves de fin**
+- `php vendor/bin/phpunit tests/php/Archivage/InterfaceArchivageTest.php --no-coverage` : **2/2**, 10 assertions.
+- `npx playwright test tests/e2e/archivage.spec.ts --project=parcours --reporter=line` : **3/3** (compte réel,
+  validation, scellement TSA simulé, intégrité saine puis octet altéré, iPhone 13, refus 403).
+- `php tests/oracles/archivage/porte-v2-09.php` : **7 étapes OK**, porte franchie.
+- `powershell -ExecutionPolicy Bypass -File tools/harness.ps1 -SansBanc` : garde-fous, unitaire
+  (**413 tests**), écrans (**49**), contrat et charge verts. La première passe a signalé la charge CSRF
+  des deux routes ajoutées ; la sonde seule rejouée après ajout est **VERTE**. Les couches 3 (sautée) et 5
+  (non écrite) restent rouges par construction, sans nouveau rouge du lot.
+
+**Commit**
+`7545e19` — `archivage: rend le scellement utilisable` (Co-Authored-By Codex).
+
+ETAT: fini
