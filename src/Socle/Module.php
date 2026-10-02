@@ -61,6 +61,17 @@ final class Module
             }
         });
 
+        // Les vues de Recherche vivent dans le même `.ged/vues.json` et se voient ensuite dans le rail Bibliothèque.
+        $app->post('/recherche/vue', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            try {
+                $id = (new Vues($config))->enregistrerRecherche(trim((string) ($corps['nom'] ?? '')), $corps, self::auteur($req));
+                return $rep->withHeader('Location', "/bibliotheque?vue=$id")->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /recherche/vue', $e->getMessage());
+            }
+        });
+
         // Poser les valeurs des champs personnalisés d'un document : écriture dans le `.meta.json`
         // (le dossier fait foi), report immédiat dans l'index. Jamais un déplacement de fichier.
         $app->post('/documents/champ', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
