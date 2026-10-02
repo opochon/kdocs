@@ -130,6 +130,35 @@ final class Vues
         return $id;
     }
 
+    /** Une recherche est rangée dans le même registre de vues que la Bibliothèque, sans perdre son texte. */
+    public function enregistrerRecherche(string $nom, array $brut, string $auteur): int
+    {
+        $nom = trim($nom);
+        if ($nom === '' || mb_strlen($nom) > 100) {
+            throw new RuntimeException('vue : nom vide ou trop long (100 caractères au plus)');
+        }
+        $filtres = $this->compiler([
+            'type' => $brut['type'] ?? '', 'emetteur' => $brut['emetteur'] ?? '',
+            'de' => $brut['date_debut'] ?? '', 'a' => $brut['date_fin'] ?? '',
+        ]);
+        foreach ($this->lister() as $vue) {
+            if (mb_strtolower($vue['nom']) === mb_strtolower($nom)) {
+                throw new RuntimeException("vue : « $nom » existe déjà");
+            }
+        }
+        $recherche = ['q' => trim((string) ($brut['q'] ?? '')),
+            'montant_min' => trim((string) ($brut['montant_min'] ?? '')),
+            'montant_max' => trim((string) ($brut['montant_max'] ?? ''))];
+        $id = 0;
+        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($nom, $filtres, $auteur, $recherche, &$id): array {
+            $id = self::prochainId($etat);
+            $etat[] = ['id' => $id, 'nom' => $nom, 'filtres' => $filtres, 'recherche' => $recherche, 'auteur' => $auteur];
+            return $etat;
+        });
+
+        return $id;
+    }
+
     /** @return array{id:int, nom:string, filtres:array<string, mixed>, auteur:string}|null */
     public function lire(int $id): ?array
     {
@@ -162,7 +191,8 @@ final class Vues
             $v = (array) $v;
             $filtres = (array) ($v['filtres'] ?? []);
             $filtres += ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null];
-            $vues[] = ['id' => (int) $v['id'], 'nom' => (string) $v['nom'], 'filtres' => $filtres, 'auteur' => (string) ($v['auteur'] ?? '')];
+            $vues[] = ['id' => (int) $v['id'], 'nom' => (string) $v['nom'], 'filtres' => $filtres,
+                'recherche' => (array) ($v['recherche'] ?? []), 'auteur' => (string) ($v['auteur'] ?? '')];
         }
 
         return $vues;
