@@ -11,7 +11,7 @@ import { connecter } from './connexion';
  * planificateur en production) ; l'écran ne le synchronise plus jamais lui-même.
  */
 test.beforeAll(() => {
-  execFileSync('php', ['tools/indexer-recherche.php', '--tout'], {
+  execFileSync('php', ['tests/e2e/preparer-recherche.php'], {
     cwd: process.cwd(),
     env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
   });
