@@ -136,7 +136,7 @@ final class Document
         ], $lignes);
     }
 
-    /** Déplacements réellement tracés par le dépôt / l'indexeur. @return list<array{quand:string, quoi:string}> */
+    /** Événements réels du Socle : versions archivées et déplacements, jamais une note inventée. @return list<array{quand:string, quoi:string}> */
     private function historique(?PDO $pdo, int $id): array
     {
         if ($pdo === null) {
@@ -146,16 +146,23 @@ final class Document
             $requete = $pdo->prepare('SELECT chemin_avant, chemin_apres, cause, auteur, date_deplacement'
                 . ' FROM document_deplacements WHERE document_id = ? ORDER BY date_deplacement DESC');
             $requete->execute([$id]);
-            $lignes = $requete->fetchAll();
+            $lignes = array_map(static fn (array $d): array => [
+                'quand' => (string) $d['date_deplacement'],
+                'quoi' => 'Déplacé : ' . (string) $d['chemin_avant'] . ' → ' . (string) $d['chemin_apres']
+                    . ' (' . (string) $d['cause'] . ', ' . (string) $d['auteur'] . ')',
+            ], $requete->fetchAll());
+            $versions = $pdo->prepare('SELECT numero, nom_archive, cree_le FROM document_versions WHERE document_id = ?');
+            $versions->execute([$id]);
+            foreach ($versions->fetchAll() as $version) {
+                $lignes[] = ['quand' => (string) $version['cree_le'],
+                    'quoi' => 'Version v' . (int) $version['numero'] . ' archivée (' . (string) $version['nom_archive'] . ')'];
+            }
+            usort($lignes, static fn (array $a, array $b): int => strcmp($b['quand'], $a['quand']));
         } catch (Throwable) {
             return [];
         }
 
-        return array_map(static fn (array $d): array => [
-            'quand' => (string) $d['date_deplacement'],
-            'quoi' => 'Déplacé : ' . (string) $d['chemin_avant'] . ' → ' . (string) $d['chemin_apres']
-                . ' (' . (string) $d['cause'] . ', ' . (string) $d['auteur'] . ')',
-        ], $lignes);
+        return $lignes;
     }
 
     private static function taille(int $octets): string

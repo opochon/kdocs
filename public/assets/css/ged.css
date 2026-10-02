@@ -328,7 +328,6 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
     border: 1px solid var(--border); border-radius: var(--r); background: var(--surface-2);
     color: var(--text-2); font-size: var(--fs-sm); font-weight: 500; }
   /* Le geste de masse est un confort de bureau : sur téléphone, place à la pièce courante. */
-  [data-testid="action-tout-valider"] { display: none; }
 
   /* Une pièce à la fois : aperçu en haut, proposition dessous, bilan compact, file repliée en dernier. */
   .volets, .volets.traiter, .volets.biblio, .volets.fiche, .reglages { display: flex; flex-direction: column; gap: 12px; }

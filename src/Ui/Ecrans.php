@@ -166,6 +166,8 @@ final class Ecrans
             'peut_sceller' => $peutSceller, 'tsa_configuree' => trim($config->get('TSA_URL')) !== '' || $config->get('APP_ENV') === 'test',
             'archivage_erreur' => (string) ($req->getQueryParams()['archivage_erreur'] ?? ''),
             'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',
+            'version_succes' => (int) ($req->getQueryParams()['version_succes'] ?? 0),
+            'version_erreur' => (string) ($req->getQueryParams()['version_erreur'] ?? ''),
         ]);
     }
 

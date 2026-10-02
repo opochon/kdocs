@@ -176,6 +176,22 @@ final class RangementTest extends TestCase
         self::assertSame('contrat', $this->meta($apres)['type']);
     }
 
+    public function testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu(): void
+    {
+        $source = $this->pieceADeposer('version-1.pdf', '%PDF-1.4 version un');
+        $id = $this->depot->deposer($source, [
+            'titre' => 'Version test', 'type' => 'facture', 'date' => '2026-10-02', 'source' => 'ecran',
+        ]);
+        $nouveau = $this->pieceADeposer('version-2.pdf', '%PDF-1.4 version deux');
+        $version = $this->depot->remplacerContenu($id, $nouveau, 'recette');
+        $relatif = (string) $this->pdo->query('SELECT chemin_relatif FROM documents WHERE id = ' . $id)->fetchColumn();
+
+        self::assertSame(2, $version);
+        self::assertSame('%PDF-1.4 version deux', file_get_contents($this->racine . '/fonds/' . $relatif));
+        self::assertCount(2, $this->versions($relatif), 'v1 et v2 restent toutes deux dans .versions');
+        self::assertSame(hash('sha256', '%PDF-1.4 version deux'), $this->pdo->query('SELECT empreinte FROM documents WHERE id = ' . $id)->fetchColumn());
+    }
+
     public function testMiseAJourDuSeulTitreNeDeplacePas(): void
     {
         $id = $this->depot->deposer($this->pieceADeposer('f.pdf', 'f'), [

@@ -88,12 +88,6 @@
                  data-testid="vue-{{ v.id ?? 'toutes' }}">{{ ic.i('vue') }}<span class="libelle">{{ v.nom }}</span><span class="compte">{{ v.compte }}</span></a></li>
           {% endfor %}
         </ul>
-        <div class="titre-section">Dossiers</div>
-        <ul class="arbre" data-testid="arbre-dossiers">
-          {% for a in arbre %}<li><a href="#">{{ ic.i('dossier') }}{{ a.nom }}</a>
-            <ul>{% for e in a.enfants %}<li><a href="#">{{ ic.i('dossier') }}{{ e }}</a></li>{% endfor %}</ul></li>
-          {% else %}<li class="muted">Le fonds est lu directement : aucun dossier à montrer.</li>{% endfor %}
-        </ul>
       </div>
     </aside>
 

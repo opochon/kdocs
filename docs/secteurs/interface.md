@@ -773,3 +773,36 @@ ETAT: fini
   - les extraits restants sont lisibles, fenêtrés et rattachés au bon document ;
   - **résidus mineurs** : un mot tronqué en tête (« ivier Le 25/07/2022 … ») et quelques mots parasites isolés à l'intérieur d'extraits longs (« ike », « tins », « ZAR (SLA »). C'est du texte OCR réel, pas une erreur d'affichage.
 - Verdict : **V2-10f franchi**, avec réserve sur les résidus mineurs ; un nouveau tour coûterait plus qu'il ne rapporte. L'étape mobile V2-10 est close.
+
+## Journal V2-11 — plus aucun bouton mort — 02-10-2026
+
+**Oracle d’abord (rouge, puis vert)**
+- `tests/e2e/actions-v2-11.spec.ts` et son fonds isolé `var/oracles/v2-11/` : le premier rejeu est rouge sur les trois `href="#"` de la fiche ; l’oracle inspecte ensuite Fiche, Bibliothèque, À traiter, Application et Recherche et refuse tout lien `href="#"` ou bouton visible sans formulaire, gestionnaire JS ou comportement d’onglet. Il prouve les onglets Versions/Historique, l’absence des onglets sans données, le téléchargement binaire PDF et PNG, et le remplacement v2/refus scellé.
+- `tests/php/Socle/RangementTest.php::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu` pose l’oracle de service : v1 et v2 sont dans `.versions/`, le fichier courant et son index portent les octets de v2.
+
+**Fait**
+- Télécharger est un lien réel vers `GET /documents/{id}/fichier` : droit `document.voir`, octets originaux, MIME du fichier et `Content-Disposition` avec le nom rangé propre du fonds.
+- Nouvelle version est un formulaire multipart réel, protégé CSRF et `documents:modifier`. `DepotFichiers::remplacerContenu()` vérifie le type, refuse au niveau du service un scellement actif, conserve la version courante si nécessaire, remplace le fichier et archive immédiatement le contenu entrant sous le numéro suivant. L’onglet Versions lit les lignes réelles de `document_versions`; Historique assemble les versions archivées et déplacements réels du Socle, dont v1.
+- Les tâches de vérification d’archivage de la sonde sortent du corpus suivi : son serveur emploie désormais son bac `var/sonde-securite-*` temporaire, supprimé après le rejeu, y compris `.archivage/`.
+
+**Retiré (aucun geste muet ne reste)**
+- retiré : Partager, raison : aucun modèle de jeton/jonction de partage approuvé par Olivier; lot qui la portera : V2-12 Partage (à décider).
+- retiré : Notes et Liens de la fiche, raison : aucune donnée Socle ni modèle métier ne les porte; lot qui les portera : V2-12 Collaboration.
+- retiré : Restaurer une version, raison : restauration de contenu doit être un acte versionné et tracé, non décidé; lot qui la portera : V2-12 Gestion des versions.
+- retiré : arbre des dossiers de Bibliothèque, raison : l’arbre était descriptif mais ses liens ne filtraient rien; lot qui le portera : V2-12 Navigation par dossier.
+- retiré : Valider les suggestions sûres, rotation/découpe/fusion et ajout d’étiquette de À traiter, raison : aucun flux de validation de lot ou de retouche de pages/étiquettes n’est branché; lot qui les portera : V2-12 Traitement avancé.
+- retiré : Lancer la reconstruction d’index, raison : l’action administrative F12 n’a pas encore de tâche courte avec reprise; lot qui la portera : V2-12 Administration de l’index.
+- retiré : Enregistrer comme vue de Recherche, raison : la création de vues typées est disponible dans Bibliothèque seulement; lot qui la portera : V2-12 Vues de recherche.
+
+### À commiter par le juge (fichiers partagés, non committés par V2-11)
+
+- `src/Securite/DroitsRoutes.php` : `POST /documents/{id:[0-9]+}/versions` → `documents:modifier`, plus sa résolution paramétrée.
+- `tools/banc/sonde-securite.php` : bac `STORAGE_ROOT` temporaire au lieu de `tests/corpus/apercu/documents`, nettoyage des dossiers cachés, et charge CSRF défensive de la nouvelle route (`fichier=`).
+
+**Preuves**
+- Oracle initial rouge : 3 liens morts sur la fiche document.
+- `php vendor/bin/phpunit tests/php/Socle/RangementTest.php tests/php/Archivage/InterfaceArchivageTest.php --no-coverage` : 13 tests, 69 assertions, vert.
+- `npx.cmd playwright test tests/e2e/actions-v2-11.spec.ts --project=parcours --reporter=line` : 3/3 verts.
+- `php tools/banc/sonde-securite.php` : vert, sans écriture dans `tests/corpus/`.
+
+ETAT: fini

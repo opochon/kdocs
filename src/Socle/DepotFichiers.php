@@ -214,6 +214,54 @@ final class DepotFichiers implements Depot
         return $numero;
     }
 
+    /**
+     * Remplace le contenu courant par un fichier déjà reçu, sans jamais perdre un octet : le contenu
+     * sortant est présent dans `.versions/`, le nouveau devient immédiatement la version suivante.
+     * Le nom rangé et ses métadonnées restent les mêmes ; changer de format demanderait une décision de
+     * rangement distincte et est donc refusé plutôt que de servir un PNG sous une extension PDF.
+     */
+    public function remplacerContenu(int $idDocument, string $nouveauFichier, string $auteur): int
+    {
+        $ligne = $this->fiche($idDocument);
+        if ($ligne === null || $ligne['supprime_le'] !== null) {
+            throw new \RuntimeException("nouvelle version : document $idDocument introuvable ou à la corbeille");
+        }
+        if (!is_file($nouveauFichier)) {
+            throw new \RuntimeException('nouvelle version : fichier téléversé introuvable');
+        }
+        $absolu = $this->cheminAbsolu((string) $ligne['chemin_relatif']);
+        if (class_exists(\Ged\Archivage\Garde::class)) {
+            \Ged\Archivage\Garde::interdireMutation($absolu, 'nouvelle version', $idDocument);
+        }
+        $mimeActuel = Fichiers::mime($absolu);
+        if (Fichiers::mime($nouveauFichier) !== $mimeActuel) {
+            throw new \RuntimeException("nouvelle version : le type du fichier doit rester $mimeActuel");
+        }
+
+        $empreinteActuelle = Fichiers::empreinte($absolu);
+        $existe = $this->pdo->prepare('SELECT 1 FROM document_versions WHERE document_id = ? AND empreinte = ? LIMIT 1');
+        $existe->execute([$idDocument, $empreinteActuelle]);
+        if ($existe->fetchColumn() === false) {
+            $this->archiverVersion($idDocument, $absolu, $empreinteActuelle, (int) filesize($absolu));
+        }
+
+        // La copie temporaire reste dans le même dossier : aucune version partiellement écrite n'est exposée.
+        $temporaire = dirname($absolu) . '/.' . basename($absolu) . '.v-' . bin2hex(random_bytes(6)) . '.tmp';
+        if (!copy($nouveauFichier, $temporaire)) {
+            throw new \RuntimeException('nouvelle version : copie temporaire impossible');
+        }
+        if (!rename($temporaire, $absolu)) {
+            @unlink($temporaire);
+            throw new \RuntimeException('nouvelle version : remplacement du fichier impossible');
+        }
+        $empreinte = Fichiers::empreinte($absolu);
+        $taille = (int) filesize($absolu);
+        $this->pdo->prepare('UPDATE documents SET empreinte = ?, taille = ?, mime = ? WHERE id = ?')
+            ->execute([$empreinte, $taille, Fichiers::mime($absolu), $idDocument]);
+
+        return $this->archiverVersion($idDocument, $absolu, $empreinte, $taille);
+    }
+
     /** La ligne d'index d'un document (meta et etiquettes décodées), ou null. */
     public function fiche(int $idDocument): ?array
     {

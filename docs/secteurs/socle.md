@@ -238,3 +238,8 @@ ETAT: fini
 ### Note R2c (Classement, 01-10)
 
 - `ReconstructionTest` suit le rangement sans date : son oracle d’absence vise désormais `Sans_date/A_classer/Unique.pdf` (changement de chemin seulement).
+
+## Note V2-11 — versions téléversées — 02-10-2026
+
+- Modification minimale signalée depuis Interface : `DepotFichiers::remplacerContenu()` conserve le même nom et les mêmes métadonnées, refuse le changement de type MIME, passe par `Archivage\Garde::interdireMutation()` puis archive le contenu entrant dans `.versions/` et met à jour empreinte/taille/MIME de l’index. Si le contenu sortant n’était pas encore archivé, il est archivé avant remplacement. Aucun fichier utilisateur n’est supprimé par le produit.
+- Oracle : `RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu` (v1 + v2 archivées, index et courant = v2).

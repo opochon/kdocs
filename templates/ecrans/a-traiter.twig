@@ -9,7 +9,6 @@
     <div class="titre"><h1>À traiter</h1><span class="muted" data-testid="titre-a-traiter-compte">{{ file|length }} document{{ file|length > 1 ? 's' }} attend{{ file|length > 1 ? 'ent' : '' }} votre contrôle</span></div>
     <div class="actions">
       <a class="btn primaire" href="/deposer" data-testid="action-deposer">{{ ic.i('plus') }}Déposer des documents</a>
-      <a class="btn" href="#" data-testid="action-tout-valider">{{ ic.i('check') }}Valider les suggestions sûres</a>
     </div>
   </div>
 
@@ -43,11 +42,6 @@
     <section class="carte volet volet-apercu" aria-label="Aperçu">
       <div class="volet-tete">
         <span data-testid="apercu-pages">{{ courant.pages }} page{{ courant.pages > 1 ? 's' : '' }}</span>
-        <div class="outils-page" style="margin-left:auto">
-          <button class="btn icone discret" type="button" title="Tourner la page" data-testid="page-tourner">{{ ic.i('rotation') }}</button>
-          <button class="btn icone discret" type="button" title="Couper ici : deux documents" data-testid="page-couper">{{ ic.i('ciseaux') }}</button>
-          <button class="btn icone discret" type="button" title="Fusionner avec le document suivant" data-testid="page-fusionner">{{ ic.i('fusion') }}</button>
-        </div>
       </div>
       {# Le vrai document remplace la page de papier dès qu'un fichier existe (macro du secteur Aperçu). #}
       {% if courant.rendu %}
@@ -73,7 +67,7 @@
         <div class="champ"><label for="f-titre">Titre</label><input id="f-titre" name="titre" value="{{ courant.titre }}" data-testid="champ-titre"></div>
         <div class="champ"><label for="f-date">Date du document</label><input id="f-date" name="date" type="date" value="{{ courant.date }}" data-testid="champ-date"></div>
         <div class="champ"><label for="f-montant">Montant (CHF)</label><input id="f-montant" name="montant" inputmode="decimal" value="{{ courant.montant is null ? '' : courant.montant|number_format(2, '.', '\'') }}" data-testid="champ-montant"></div>
-        <div class="champ"><label>Étiquettes</label><div class="filtres">{% for e in courant.etiquettes %}<span class="chip">{{ e }}</span>{% endfor %}<button class="chip" type="button" data-testid="ajouter-etiquette">+ ajouter</button></div>
+        <div class="champ"><label>Étiquettes</label><div class="filtres">{% for e in courant.etiquettes %}<span class="chip">{{ e }}</span>{% endfor %}</div>
           <input type="hidden" name="etiquettes" value="{{ courant.etiquettes|join(', ') }}"></div>
         <div class="champ"><label>Rangé dans</label><span class="mono" data-testid="chemin-rangement">{{ courant.date|slice(0, 4) }}/{{ courant.type ? courant.type|replace({' ': '_'}) : 'À_classer' }}/{{ courant.emetteur|replace({' ': '_'}) }}/</span></div>
       </form>

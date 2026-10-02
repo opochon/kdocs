@@ -20,6 +20,38 @@ final class Module
 {
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
+        // Nouvelle version : le fichier est remplacé par le Socle, qui archive systématiquement chaque
+        // contenu dans `.versions/` et refuse lui-même un document scellé. La garde centrale a déjà
+        // vérifié permission et CSRF avant d'arriver ici.
+        $app->post('/documents/{id:[0-9]+}/versions', function (Requete $req, Reponse $rep, array $args) use ($config): Reponse {
+            $id = (int) ($args['id'] ?? 0);
+            $session = $req->getAttribute('ged.session');
+            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+            $fichier = $req->getUploadedFiles()['fichier'] ?? null;
+            $temporaire = null;
+            try {
+                if (!$fichier instanceof \Psr\Http\Message\UploadedFileInterface || $fichier->getError() !== UPLOAD_ERR_OK) {
+                    throw new \RuntimeException('nouvelle version : choisissez un fichier à téléverser');
+                }
+                $temporaire = tempnam(sys_get_temp_dir(), 'gedv2-version-');
+                if ($temporaire === false) {
+                    throw new \RuntimeException('nouvelle version : espace temporaire indisponible');
+                }
+                $fichier->moveTo($temporaire);
+                $version = (new \Ged\Socle\DepotFichiers($config))->remplacerContenu($id, $temporaire, $auteur);
+
+                return $rep->withHeader('Location', '/documents/' . $id . '?version_succes=' . $version)->withStatus(303);
+            } catch (\Ged\Archivage\ErreurScellement $e) {
+                return $rep->withStatus(403);
+            } catch (\Throwable $e) {
+                return $rep->withHeader('Location', '/documents/' . $id . '?version_erreur=' . rawurlencode($e->getMessage()))->withStatus(303);
+            } finally {
+                if (is_string($temporaire) && is_file($temporaire)) {
+                    @unlink($temporaire);
+                }
+            }
+        });
+
         $app->post('/a-traiter/{id:[0-9]+}/valider', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
             $session = $req->getAttribute('ged.session');
