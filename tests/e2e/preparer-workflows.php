@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Classement\ClasseurGed;
@@ -56,6 +57,7 @@ try {
     foreach (['Socle', 'Securite', 'Ingestion', 'Jonctions', 'Classement', 'Workflows', 'Recherche', 'Archivage'] as $secteur) {
         ('Ged\\' . $secteur . '\\Schema')::installer($pdo);
     }
+    remettreEtatFondsE2e($pdo);
 
     // Les gabarits repartent d'un dessin neuf : le parcours modifie le seuil et ajoute un état.
     $pdo->exec("DELETE FROM workflow_definitions WHERE gabarit IN ('facture_a_seuil', 'contrat_a_echeance')");
