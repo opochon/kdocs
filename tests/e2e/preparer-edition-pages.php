@@ -36,7 +36,7 @@ try {
     $jeton = bin2hex(random_bytes(5));
     $lot = random_int(1_000_000, 9_999_999);
     $source = dirname($fonds) . '/lot-six-pages-' . $jeton . '.pdf';
-    creerPdf($source, 6);
+    creerPdf($config, $source, 6);
     $depot = new DepotFichiers($config);
     $id = $depot->deposer($source, [
         'titre' => 'Courrier synthétique ' . $jeton . ' — deux documents collés', 'type' => 'Courrier',
@@ -55,11 +55,11 @@ try {
     fclose($verrou);
 }
 
-function creerPdf(string $fichier, int $pages): void
+function creerPdf(Config $config, string $fichier, int $pages): void
 {
-    $script = "from pypdf import PdfWriter\nw=PdfWriter()\n[w.add_blank_page(width=595,height=842) for _ in range($pages)]\nw.write(open(r'"
-        . str_replace('\\', '\\\\', $fichier) . "','wb'))\n";
-    $processus = proc_open(['python', '-c', $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+    $script = "import fitz\ndoc=fitz.open()\n[doc.new_page(width=595,height=842) for _ in range($pages)]\ndoc.save(r'"
+        . str_replace('\\', '\\\\', $fichier) . "')\n";
+    $processus = proc_open([$config->get('CMD4_PYTHON'), '-c', $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
     if (!is_resource($processus)) throw new RuntimeException('Python indisponible');
     fclose($pipes[1]);
     $erreur = stream_get_contents($pipes[2]);
