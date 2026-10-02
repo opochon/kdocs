@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Classement\ClasseurGed;
@@ -59,6 +60,7 @@ try {
         ('Ged\\' . $secteur . '\\Schema')::installer($pdo);
     }
     SchemaRecherche::installer($pdo);
+    remettreEtatFondsE2e($pdo);
 
     // Compte RÉEL, créé comme par l'installateur.
     $identifiant = 'recette-mobile@gedv2.test';
