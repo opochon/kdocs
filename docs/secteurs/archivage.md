@@ -162,3 +162,19 @@ ETAT: fini (jugé)
 `7545e19` — `archivage: rend le scellement utilisable` (Co-Authored-By Codex).
 
 ETAT: fini
+
+
+## Jugement V2-09b — 02-10-2026 (juge : Claude Code)
+
+- J'ai relu et commité les fichiers partagés (`2754d3e`) : module Archivage ajouté à la liste du Kernel ; routes `POST /documents/{id}/sceller` (`archivage:sceller`), `GET /archives` et `POST /archives/verifier` (`archivage:consulter`) ; charges CSRF de la sonde. Rien d'autre n'est touché.
+- Copie du juge sur `2754d3e` : `phpunit tests/php/Archivage` **28 tests verts** ; `archivage.spec.ts` **3/3 verts** (scellement avec la TSA simulée, Archives, vérification et écart nommé après altération, refus sans droit).
+- Recette réelle (compte réel, bureau et iPhone 13) :
+  - fiche d'un document validé : bandeau « Non scellé » ;
+  - sans `TSA_URL`, message clair (« Horodatage externe non configuré ») et bouton Sceller désactivé, au lieu d'une erreur ;
+  - écran Archives : filtres par type et par échéance, liste « à échéance » (« aucun effacement n'est automatique »), bouton Vérifier ;
+  - 390/390, sans débordement.
+- Non vérifié en recette : un scellement avec une vraie TSA. Le choix du prestataire d'horodatage (prestataire qualifié pour une valeur légale, ou service gratuit pour l'essai) revient à Olivier.
+- Remarques :
+  - les rejeux de test écrivent des tâches dans `tests/corpus/apercu/documents/.archivage/` (pollution d'un corpus suivi) ;
+  - hors lot : sur la fiche, Télécharger, Nouvelle version et Partager sont des liens morts (`href="#"`).
+- Verdict : **V2-09b franchi** (interface d'archivage utilisable, prouvée avec la TSA simulée). TSA réelle en attente d'Olivier ; les liens morts de la fiche partent en lot **V2-11**.
