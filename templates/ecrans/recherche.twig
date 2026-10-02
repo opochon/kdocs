@@ -46,6 +46,12 @@
           </div>
         </details>
       </form>
+      <details data-testid="bloc-vue-recherche"><summary class="btn discret" style="list-style:none;cursor:pointer" data-testid="action-enregistrer-vue-recherche">Enregistrer comme vue</summary>
+        <form class="panneau" method="post" action="/recherche/vue" data-testid="formulaire-vue-recherche">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="type" value="{{ filtres.type }}"><input type="hidden" name="emetteur" value="{{ filtres.emetteur }}"><input type="hidden" name="date_debut" value="{{ filtres.date_debut }}"><input type="hidden" name="date_fin" value="{{ filtres.date_fin }}"><input type="hidden" name="montant_min" value="{{ filtres.montant_min }}"><input type="hidden" name="montant_max" value="{{ filtres.montant_max }}">
+          <label for="nom-vue-recherche">Nom de la vue</label><input id="nom-vue-recherche" name="nom" required data-testid="nom-vue-recherche"><button class="btn primaire" type="submit" data-testid="action-creer-vue-recherche">Créer la vue</button>
+        </form>
+      </details>
     </div>
   </div>
 
