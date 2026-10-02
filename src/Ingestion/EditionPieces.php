@@ -18,6 +18,7 @@ use Ged\Archivage\Scellement;
 final class EditionPieces
 {
     private readonly Classeur $classeur;
+    private readonly EditeurPdf $pdf;
 
     public function __construct(
         private readonly Config $config,
@@ -25,6 +26,7 @@ final class EditionPieces
         ?Classeur $classeur = null,
     ) {
         $this->classeur = $classeur ?? Fabrique::classeur($config, Base::pdo($config));
+        $this->pdf = EditeurPdf::depuisConfig($config);
     }
 
     public function tourner(int $id, int $page, int $degres, string $auteur): void
@@ -33,7 +35,8 @@ final class EditionPieces
         $instantane = $this->instantane($id, [$piece]);
         $sortie = $this->temporaire('tourne');
         try {
-            EditeurPdf::tourner($this->chemin($piece), $sortie, $page, $degres);
+            $this->pdf->executer(['action' => 'turn', 'source' => $this->chemin($piece), 'output' => $sortie,
+                'page' => $page, 'degrees' => $degres]);
             $this->appliquer($piece, $sortie, $this->pages($piece['meta']), 'rotation', $auteur,
                 'page ' . $page . ' tournée de ' . $degres . '°');
             $this->finir($id, $instantane, 'rotation', []);
@@ -53,7 +56,8 @@ final class EditionPieces
         $instantane = $this->instantane($id, [$piece]);
         [$gauche, $droite] = [$this->temporaire('gauche'), $this->temporaire('droite')];
         try {
-            EditeurPdf::scinder($this->chemin($piece), $gauche, $droite, $apres);
+            $this->pdf->executer(['action' => 'split', 'source' => $this->chemin($piece), 'left' => $gauche,
+                'right' => $droite, 'after' => $apres]);
             $pagesGauche = array_slice($pages, 0, $apres);
             $pagesDroite = array_slice($pages, $apres);
             $this->appliquer($piece, $gauche, $pagesGauche, 'scission', $auteur, 'scindée après la page ' . $apres);
@@ -89,7 +93,8 @@ final class EditionPieces
         $instantane = $this->instantane($id, [$courante, $suivante]);
         $sortie = $this->temporaire('fusion');
         try {
-            EditeurPdf::fusionner([$this->chemin($courante), $this->chemin($suivante)], $sortie);
+            $this->pdf->executer(['action' => 'merge', 'sources' => [$this->chemin($courante), $this->chemin($suivante)],
+                'output' => $sortie]);
             $this->appliquer($courante, $sortie, $pagesAvant, 'fusion', $auteur,
                 'fusionnée avec la pièce ' . $avec);
             // La deuxième pièce reste récupérable avec ses annexes, mais n'est plus une pièce vivante.
@@ -112,7 +117,8 @@ final class EditionPieces
         $instantane = $this->instantane($id, [$piece]);
         [$sortie, $retiree] = [$this->temporaire('sans-page'), $this->temporaire('page-retiree')];
         try {
-            EditeurPdf::retirer($this->chemin($piece), $sortie, $retiree, $page);
+            $this->pdf->executer(['action' => 'remove', 'source' => $this->chemin($piece), 'output' => $sortie,
+                'removed' => $retiree, 'page' => $page]);
             $pageSource = $pages[$page - 1];
             $pagesRestantes = $pages;
             array_splice($pagesRestantes, $page - 1, 1);
@@ -329,6 +335,9 @@ final class EditionPieces
             throw new \RuntimeException('édition impossible : espace temporaire indisponible');
         }
 
-        return $fichier . '.pdf';
+        $sortie = $fichier . '.pdf';
+        @unlink($fichier); // seul le fichier temporaire vide est retiré, jamais une donnée utilisateur
+
+        return $sortie;
     }
 }

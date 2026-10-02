@@ -18,10 +18,13 @@ final class EditionPiecesTest extends TestCase
 
     private DepotFichiers $depot;
     private EditionPieces $edition;
+    private string|false $pythonAvant;
 
     protected function setUp(): void
     {
         $this->setUpCorpus();
+        $this->pythonAvant = getenv('CMD4_PYTHON');
+        putenv('CMD4_PYTHON=python'); // l'oracle isole l'éditeur, sans dépendre du venv local de CMD4
         \Ged\Classement\Schema::installer($this->pdo);
         $this->depot = new DepotFichiers($this->config);
         $this->edition = new EditionPieces($this->config, $this->depot, new class implements Classeur {
@@ -36,6 +39,7 @@ final class EditionPiecesTest extends TestCase
 
     protected function tearDown(): void
     {
+        $this->pythonAvant === false ? putenv('CMD4_PYTHON') : putenv('CMD4_PYTHON=' . $this->pythonAvant);
         $this->tearDownCorpus();
     }
 
