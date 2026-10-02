@@ -788,11 +788,11 @@ ETAT: fini
 **Retiré (aucun geste muet ne reste)**
 - retiré : Partager, raison : aucun modèle de jeton/jonction de partage approuvé par Olivier; lot qui la portera : V2-12 Partage (à décider).
 - retiré : Notes et Liens de la fiche, raison : aucune donnée Socle ni modèle métier ne les porte; lot qui les portera : V2-12 Collaboration.
-- retiré : Restaurer une version, raison : restauration de contenu doit être un acte versionné et tracé, non décidé; lot qui la portera : V2-12 Gestion des versions.
-- retiré : arbre des dossiers de Bibliothèque, raison : l’arbre était descriptif mais ses liens ne filtraient rien; lot qui le portera : V2-12 Navigation par dossier.
-- retiré : Valider les suggestions sûres, rotation/découpe/fusion et ajout d’étiquette de À traiter, raison : aucun flux de validation de lot ou de retouche de pages/étiquettes n’est branché; lot qui les portera : V2-12 Traitement avancé.
+- rétabli V2-12c : Restaurer une version : vN devient une NOUVELLE version, sans écrasement, avec trace Historique; refus sur document scellé.
+- rétabli V2-12c : arbre des dossiers de Bibliothèque : liens filtrants (dossier et sous-dossiers), compteurs et URL partageable; le téléphone le replie.
+- rétabli V2-12c : Valider les suggestions sûres : sélection multiple puis validation des seules propositions complètes; rotation/découpe/fusion et ajout d’étiquette restent portés par leurs lots propres.
 - retiré : Lancer la reconstruction d’index, raison : l’action administrative F12 n’a pas encore de tâche courte avec reprise; lot qui la portera : V2-12 Administration de l’index.
-- retiré : Enregistrer comme vue de Recherche, raison : la création de vues typées est disponible dans Bibliothèque seulement; lot qui la portera : V2-12 Vues de recherche.
+- rétabli V2-12c : Enregistrer comme vue de Recherche : texte et filtres sont enregistrés dans `.ged/vues.json`, avec les mêmes vues que la Bibliothèque.
 
 ### À commiter par le juge (fichiers partagés, non committés par V2-11)
 
@@ -931,3 +931,26 @@ ETAT: fini
 - Harness de l'agent : 421 tests verts, sécurité et contrats verts. Les rouges d'écrans et de charge, obtenus sous concurrence, repassent au vert rejoués seuls (édition 2/2, maquettes 12/12, mobile 2/2, charge p95 lecture 794 ms).
 - L'écran Application montre l'état du moteur PDF, et l'installateur le contrôle.
 - Verdict : **V2-12b franchi.** L'édition de pages promise par V2-03 est désormais réelle.
+
+## Journal V2-12c — gestes GED rétablis — 02-10-2026
+
+**Oracle d’abord**
+- `tests/php/Socle/V212cTest.php` a été vu rouge : méthode de restauration et enregistrement de vue Recherche absents, filtre de dossier inopérant. Il couvre ensuite la nouvelle version, le préfixe de dossier et ses sous-dossiers, la persistance `.ged/vues.json` et le lot qui laisse l'incomplète en place.
+- `tests/e2e/actions-v2-12c.spec.ts` utilise un compte réellement créé dans `comptes`, un fonds isolé synthétique et son serveur : un parcours bureau par geste, plus l'arbre téléphone repliable.
+
+**Fait**
+- Bibliothèque : arborescence bâtie sur une seule lecture indexée `k_vivant`, compteurs inclusifs, filtre `dossier=` par préfixe SQL et liens qui gardent l'état URL. Aucun parcours de disque pendant le GET.
+- Versions : `restaurerVersion()` relit vN dans `.versions/`, passe par le garde de scellement puis `remplacerContenu()` : vN devient la version suivante et la trace `restauration` apparaît dans Historique.
+- Recherche : les critères recherche sont normalisés et rangés avec les vues de la Bibliothèque, dans le même `.ged/vues.json`; le texte et les bornes de montant restent attachés à la vue.
+- À traiter : le lot n'accepte que type, émetteur et date complets; chaque accepté appelle `ATraiter::valider()` (donc dépôt, habitudes et droits inchangés), chaque refus revient nommé à l'écran.
+
+### À commiter par le juge (fichiers partagés, non modifiés par V2-12c)
+
+- `src/Securite/DroitsRoutes.php` : `POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer` → `documents:modifier`, `POST /recherche/vue` → `documents:lire`, `POST /a-traiter/valider-lot` → `documents:traiter`, avec résolutions paramétrées.
+- `tools/banc/sonde-securite.php` : trois charges CSRF défensives correspondantes (restauration, vue Recherche, lot) dans son bac temporaire.
+
+**Preuves**
+- Oracle PHP vert : 4 tests, 19 assertions (`V212cTest`).
+- Oracle Playwright : arbre bureau et téléphone vert; les trois mutations restent en attente de la porte partagée ci-dessus, sans laquelle la garde centrale les refuse explicitement.
+
+ETAT: bloqué — porte DroitsRoutes et sonde-securite à poser par le juge
