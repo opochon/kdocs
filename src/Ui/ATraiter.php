@@ -220,10 +220,12 @@ final class ATraiter
             return [];
         }
         try {
-            $lignes = $this->depot instanceof DepotFichiers
-                ? $this->depot->listerParStatut('a_controler', self::FILE_MAX)
-                : array_values(array_filter($this->depot->lister(),
-                    static fn (array $ligne): bool => ($ligne['statut'] ?? 'a_controler') === 'a_controler'));
+            if ($this->depot instanceof DepotFichiers) {
+                return $this->documentsAControlerVivants();
+            }
+            $lignes = array_values(array_filter($this->depot->lister(), static fn (array $ligne): bool =>
+                    ($ligne['statut'] ?? 'a_controler') === 'a_controler'
+                    && ($ligne['supprime_le'] ?? null) === null && ($ligne['absent_depuis'] ?? null) === null));
         } catch (Throwable) {
             // Base muette (table absente, liaison perdue) : l'écran reste lisible, jamais un 500 muet.
             return [];
@@ -241,6 +243,40 @@ final class ATraiter
         });
 
         return $docs;
+    }
+
+    /**
+     * Lit la file par tranches indexées. `absent_depuis` écarte les absents connus AVANT la limite ;
+     * une ligne devenue orpheline entre l'indexation et ce rendu est encore refusée par la preuve disque
+     * puis remplacée par la tranche suivante. Une file vivante ne peut donc pas être masquée.
+     *
+     * @return list<array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}>
+     */
+    private function documentsAControlerVivants(): array
+    {
+        /** @var DepotFichiers $depot */
+        $depot = $this->depot;
+        $documents = [];
+        $decalage = 0;
+        do {
+            $tranche = $depot->listerParStatut('a_controler', self::FILE_MAX, $decalage);
+            foreach ($tranche as $ligne) {
+                $document = $this->documentDepuisLigne($ligne);
+                if ($document !== null) {
+                    $documents[] = $document;
+                    if (count($documents) === self::FILE_MAX) {
+                        break 2;
+                    }
+                }
+            }
+            $decalage += count($tranche);
+        } while (count($tranche) === self::FILE_MAX);
+
+        usort($documents, static function (array $a, array $b): int {
+            return [self::cleDate($a), $a['id']] <=> [self::cleDate($b), $b['id']];
+        });
+
+        return $documents;
     }
 
     /**
