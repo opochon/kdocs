@@ -5,6 +5,7 @@ declare(strict_types=1);
 /** Fonds et compte entièrement synthétiques de l'oracle « plus aucun bouton mort ». */
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Archivage\Scelleur;
 use Ged\Base;
@@ -32,6 +33,7 @@ try {
     $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo);
     SchemaSecurite::installer($pdo);
+    remettreEtatFondsE2e($pdo);
     $compte = 'v2-11@gedv2.test';
     $motDePasse = 'MotDePasse-V2-11-2026!';
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE empreinte = VALUES(empreinte), role = VALUES(role)')
