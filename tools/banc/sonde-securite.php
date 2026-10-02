@@ -276,6 +276,12 @@ try {
         // Charge défensive de l'écran « À traiter » (lot V2-03-écran, Interface) : l'identifiant n'existe
         // pas, le métier refuse proprement ; la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /a-traiter/{id:[0-9]+}/valider' => 'titre=Charge+sonde&type=Facture',
+        // V2-12a : retouches défensives (identifiant inexistant, aucune écriture) ; la sonde couvre le CSRF.
+        'POST /a-traiter/{id:[0-9]+}/pages/tourner' => 'page=0&degres=90',
+        'POST /a-traiter/{id:[0-9]+}/pages/scinder' => 'page=0',
+        'POST /a-traiter/{id:[0-9]+}/pages/fusionner' => 'avec=0',
+        'POST /a-traiter/{id:[0-9]+}/pages/retirer' => 'page=0',
+        'POST /a-traiter/{id:[0-9]+}/pages/annuler' => '',
         // Charge défensive du dépôt par photo (V2-10a, Interface) : sans fichier joint, le métier refuse
         // proprement (PRG nommé) ; la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /deposer' => 'fichier=',

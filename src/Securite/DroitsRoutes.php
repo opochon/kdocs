@@ -15,6 +15,12 @@ final class DroitsRoutes
         'GET /' => 'documents:lire',
         'GET /a-traiter' => 'documents:traiter',
         'POST /a-traiter/{id:[0-9]+}/valider' => 'documents:traiter',
+        // V2-12a : retouche de pièce dans À traiter (pivoter, scinder, fusionner, retirer, annuler).
+        'POST /a-traiter/{id:[0-9]+}/pages/tourner' => 'documents:traiter',
+        'POST /a-traiter/{id:[0-9]+}/pages/scinder' => 'documents:traiter',
+        'POST /a-traiter/{id:[0-9]+}/pages/fusionner' => 'documents:traiter',
+        'POST /a-traiter/{id:[0-9]+}/pages/retirer' => 'documents:traiter',
+        'POST /a-traiter/{id:[0-9]+}/pages/annuler' => 'documents:traiter',
         // Interface V2-10a (mobile) : dépôt par photo de l'écran « Déposer » — même chaîne d'ingestion
         // que le dépôt de bureau, même droit que « À traiter » (ligne signalée hors secteur).
         'GET /deposer' => 'documents:traiter',
@@ -118,6 +124,9 @@ final class DroitsRoutes
             }
             if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/sceller'];
+            }
+            if (preg_match('#^/a-traiter/[0-9]+/pages/(tourner|scinder|fusionner|retirer|annuler)$#', $chemin, $m) === 1) {
+                return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/pages/' . $m[1]];
             }
             if (preg_match('#^/a-traiter/[0-9]+/valider$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/valider'];
