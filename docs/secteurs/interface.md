@@ -990,3 +990,44 @@ ETAT: fini
 - Recette réelle à `bac9670` (`var/recette/v212c-r.cjs`, `v212c-r2.cjs`) : recherche « facture » 20 résultats → vue 20 documents, mêmes identifiants ; « assurance » 16 → 16, mêmes identifiants ; compteur du rail 20 et 16. **Vue depuis Recherche franchie.**
 - Écrans rejoués seuls sur `bac9670` : toujours les trois régressions V2-12c (`bibliotheque.spec.ts:125`, `actions-v2-12c.spec.ts:13`, `edition-pages.spec.ts:43`), plus `mobile.spec.ts:298` instable connu. Le journal V2-12c-r les dit « déjà connues et hors correction » : faux, elles sont vertes sur `b40af81`.
 - Verdict : **V2-12c franchi sur ses 4 gestes, non clos** tant que ces trois régressions restent ; reprise V2-12c-s lancée (cause réelle, sans affaiblir une assertion).
+
+## Journal V2-12c-s — régressions d'écrans V2-12c — 02-10-2026
+
+**Oracle d'abord**
+- Les trois oracles nommés par le juge étaient rouges, seuls et disque calme : persona Échéance,
+  validation de lot, et retouche de pages. La référence `b40af81` les rejouait verts.
+- L'oracle Échéance vérifie maintenant aussi l'URL exacte de la ligne de son fonds
+  (`/bibliotheque?doc=<id>`), avant de confirmer le type Contrat et de poser la date ; ce n'est pas
+  un assouplissement, mais la preuve que le clic ouvre bien la pièce demandée.
+
+**Causes et corrections**
+- **Échéance** : le nouveau repli Twig de `d.lien` concaténait `d.id` après une URL déjà construite,
+  soit `?doc=1016510165`. La fiche demandée devenait introuvable et la Bibliothèque repliait sur la
+  première facture. Les parenthèses rendent le repli atomique ; le persona cible sa ligne identifiée
+  dans l'index de test partagé.
+- **Lot** : `preparer-v2-12c.php` utilisait l'union PHP `$commun + [...]` ; la clé de gauche
+  `statut=valide` gagnait et la pièce « Lot complet » n'était jamais dans À traiter. `array_replace()`
+  pose effectivement le statut demandé. Le fonds est remis à neuf avant chaque geste ; seul le scénario
+  de lot crée des pièces `a_controler`, datées au début de la file pour ne pas être précédées par des
+  index orphelins d'autres fonds.
+- **Édition** : la limite de la file pouvait exclure la pièce demandée après une mutation, puis la
+  retouche suivante visait une autre pièce ou attendait sa navigation. `ATraiter` résout désormais
+  explicitement `?doc=<id>` avec la même preuve de présence disque, et cherche les pièces sœurs du lot
+  pour la fusion. Les oracles à fonds isolé partagent la base sous verrou : leur délai d'action couvre
+  ce verrou et la navigation, sans retirer une assertion.
+
+**Preuves**
+- Ciblés : Bibliothèque **2/2**, actions V2-12c **5/5**, édition de pages **2/2** verts.
+- Couche écrans entière, deux fois seule : `npx playwright test` → **52 verts** à chaque passage ; les
+  trois oracles repris sont verts dans les deux journaux (`var/e2e-v2-12c-s-1.log`,
+  `var/e2e-v2-12c-s-2.log`). Restent les cinq collisions connues, hors lot : `a-traiter`, maquettes,
+  mobile et recherche.
+- `harness.ps1 -SansBanc` : garde-fous, unitaire **426 / 2 417**, sécurité, contrats et charge verts
+  (p95 lecture **366 ms**, écriture **176 ms**, 0 erreur, 0 collision) ; banc et personas restent
+  explicitement rouges par construction, la couche écrans reprend les collisions ci-dessus.
+
+**Commits**
+- `2ac8a65`, `356d476`, `5ac99c5`, `f38c073`, `31ac284`, `9565912`, `addb9c5`, `6abada6` ; un fichier
+  par étape verte, avec `Co-Authored-By: Codex <noreply@openai.com>`.
+
+ETAT: fini
