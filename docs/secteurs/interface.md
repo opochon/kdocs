@@ -966,3 +966,21 @@ ETAT: bloqué — porte DroitsRoutes et sonde-securite à poser par le juge
   - Enregistrer comme vue depuis Recherche : la recherche « facture » montre 20 résultats ; la vue créée affiche les 49 documents. Le texte est rangé dans `.ged/vues.json` mais `EcranBibliotheque` ne l'applique pas ; le test PHP vérifiait le stockage, pas l'effet. **Non franchi.**
 - Verdict : **V2-12c franchi sur 3 points sur 4** ; reprise V2-12c-r lancée pour la vue issue de Recherche.
 - Rejeu seul de la couche écrans (disque calme, 15:28 puis 15:36) sur `48eb818` : 4 puis 5 rouges, toujours les mêmes : `bibliotheque.spec.ts:125` (persona Échéance : `saisie-champ-echeance` introuvable), `actions-v2-12c.spec.ts:13` (`selection-lot-<id>` introuvable), `edition-pages.spec.ts:43` (navigation après « tourner 90° » qui ne finit pas), plus `a-traiter.spec.ts:126` une fois et `mobile.spec.ts:298` (instable). Base de comparaison `b40af81` (V2-12b), même procédure : 2 rouges seulement, `maquettes` et `mobile`, connus instables. **Les trois premiers sont donc des régressions de V2-12c, pas de la concurrence** : le journal V2-12c les classait à tort hors lot. À corriger dans la reprise V2-12c-r, en commençant par le partage du fonds de test entre `preparer-v2-12c.php` et les autres parcours.
+
+## Journal V2-12c-r — vue Recherche fidèle — 02-10-2026
+
+**Oracle d'abord**
+- `V212cTest::testUneVueIssueDeRechercheAfficheExactementLesMemesDocumentsEtLeMemeCompteur()` crée trois pièces fictives, bâtit l'index plein texte hors requête, enregistre une vue depuis `q=énergie&type=Facture`, puis compare les identifiants, le total et le compteur du rail avec `Ged\Recherche\Service`. Vu rouge avant correction : Recherche ne rendait que la facture énergie, la vue ajoutait la facture eau.
+- `actions-v2-12c.spec.ts` se connecte avec le compte réellement créé dans `comptes` sur son fonds synthétique, mémorise les identifiants et le compte de Recherche, enregistre la vue, puis compare identifiants, compteur de liste et compteur du rail. La requête `Suisse&type=Facture` distingue bien une seule pièce du reste du fonds.
+
+**Fait**
+- `Vues::criteresRecherche()` recompose exactement les paramètres du moteur existant depuis `filtres` et `recherche` persistés dans `.ged/vues.json`.
+- `EcranBibliotheque` appelle ce même `Service` (FULLTEXT et repli LIKE existants), reçoit ses identifiants sans relire le disque, restreint sa requête d'index documentaire à cette sélection et garde l'ordre de pertinence.
+- Le compteur de chaque vue du rail applique la même restriction. Une vue Bibliothèque qui ne porte aucun champ `recherche` conserve son SQL et son comportement antérieurs; l'oracle PHP le couvre explicitement.
+
+**Preuves**
+- PHP ciblé : `VuesTest` + `V212cTest` : **18 tests, 67 assertions verts**.
+- Playwright ciblé : `actions-v2-12c.spec.ts -g "recherche devient une vue"` : **1/1 vert**, compte Recherche = liste de vue = rail.
+- `harness.ps1 -SansBanc` : garde-fous, unitaire (**426 tests, 2 417 assertions**), sécurité, contrats et charge verts (p95 lecture 463 ms). Écrans : **54 verts, 3 rouges**, rejoués seuls et tous reproduits hors de cette correction : `bibliotheque.spec.ts:141` (fiche Facture sélectionnée au lieu du Contrat), `actions-v2-12c.spec.ts:13` (sélection de lot absente), `mobile.spec.ts:351` (élément de file masqué). Aucun nouveau rouge de la vue Recherche.
+
+ETAT: fini
