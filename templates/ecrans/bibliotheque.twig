@@ -103,7 +103,7 @@
           <tbody>
           {% for d in docs %}
             <tr {% if apercu and apercu.id == d.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
-              <td><a href="{{ d.lien ?? '/bibliotheque?doc=' ~ d.id }}">{{ d.titre }}</a></td>
+              <td><a href="{{ d.lien ?? ('/bibliotheque?doc=' ~ d.id) }}">{{ d.titre }}</a></td>
               <td>{% if d.type %}<span class="chip">{{ d.type }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{{ d.emetteur ?? '—' }}</td>
               <td>{{ d.date ? d.date|date('d.m.Y') : '—' }}</td>
