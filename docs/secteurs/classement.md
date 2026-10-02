@@ -365,4 +365,4 @@ ETAT: fini
 - `php tools/banc/mesurer-classement.php classement-regression --ia-simule` : 20/20, 0 type faux, 0 émetteur faux, 0 validé faux ; porte franchie. Sans IA : 0 validation seule.
 - `php tools/banc/mesurer-classement.php classement-bruite --ia-simule` : 65/65, 0 type faux, 0 émetteur faux, 0 validé faux ; les compteurs publiés couvrent toutes les propositions.
 
-ETAT: fini
+ETAT: bloqué — harness complet : écran Archivage hors périmètre et protections CSRF Archivage/Sécurité absentes
