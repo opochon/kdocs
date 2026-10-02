@@ -262,6 +262,38 @@ final class DepotFichiers implements Depot
         return $this->archiverVersion($idDocument, $absolu, $empreinte, $taille);
     }
 
+    /**
+     * Rétablit une archive comme NOUVELLE version du document. Le contenu courant n'est jamais
+     * écrasé sans archive : `remplacerContenu()` le conserve, puis archive le contenu rétabli sous
+     * le numéro suivant. La trace de restauration rend l'acte lisible dans l'historique.
+     */
+    public function restaurerVersion(int $idDocument, int $numero, string $auteur): int
+    {
+        if ($numero < 1) {
+            throw new \RuntimeException('restauration : numéro de version invalide');
+        }
+        $ligne = $this->fiche($idDocument);
+        if ($ligne === null || $ligne['supprime_le'] !== null) {
+            throw new \RuntimeException("restauration : document $idDocument introuvable ou à la corbeille");
+        }
+        $version = $this->pdo->prepare('SELECT nom_archive FROM document_versions WHERE document_id = ? AND numero = ?');
+        $version->execute([$idDocument, $numero]);
+        $nomArchive = $version->fetchColumn();
+        $absolu = $this->cheminAbsolu((string) $ligne['chemin_relatif']);
+        $archive = Fichiers::dossierVersions($absolu) . '/' . (string) $nomArchive;
+        if ($nomArchive === false || !is_file($archive)) {
+            throw new \RuntimeException("restauration : archive v$numero introuvable");
+        }
+        if (class_exists(\Ged\Archivage\Garde::class)) {
+            \Ged\Archivage\Garde::interdireMutation($absolu, 'restaurer une version', $idDocument);
+        }
+
+        $nouvelle = $this->remplacerContenu($idDocument, $archive, $auteur);
+        $this->tracer($idDocument, (string) $ligne['chemin_relatif'], (string) $ligne['chemin_relatif'], 'restauration', $auteur);
+
+        return $nouvelle;
+    }
+
     /** La ligne d'index d'un document (meta et etiquettes décodées), ou null. */
     public function fiche(int $idDocument): ?array
     {
