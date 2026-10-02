@@ -984,3 +984,9 @@ ETAT: bloqué — porte DroitsRoutes et sonde-securite à poser par le juge
 - `harness.ps1 -SansBanc` : garde-fous, unitaire (**426 tests, 2 417 assertions**), sécurité, contrats et charge verts (p95 lecture 463 ms). Écrans : **54 verts, 3 rouges**, rejoués seuls et tous reproduits hors de cette correction : `bibliotheque.spec.ts:141` (fiche Facture sélectionnée au lieu du Contrat), `actions-v2-12c.spec.ts:13` (sélection de lot absente), `mobile.spec.ts:351` (élément de file masqué). Aucun nouveau rouge de la vue Recherche.
 
 ETAT: fini
+
+### Jugement V2-12c-r (juge, 2026-10-02)
+
+- Recette réelle à `bac9670` (`var/recette/v212c-r.cjs`, `v212c-r2.cjs`) : recherche « facture » 20 résultats → vue 20 documents, mêmes identifiants ; « assurance » 16 → 16, mêmes identifiants ; compteur du rail 20 et 16. **Vue depuis Recherche franchie.**
+- Écrans rejoués seuls sur `bac9670` : toujours les trois régressions V2-12c (`bibliotheque.spec.ts:125`, `actions-v2-12c.spec.ts:13`, `edition-pages.spec.ts:43`), plus `mobile.spec.ts:298` instable connu. Le journal V2-12c-r les dit « déjà connues et hors correction » : faux, elles sont vertes sur `b40af81`.
+- Verdict : **V2-12c franchi sur ses 4 gestes, non clos** tant que ces trois régressions restent ; reprise V2-12c-s lancée (cause réelle, sans affaiblir une assertion).
