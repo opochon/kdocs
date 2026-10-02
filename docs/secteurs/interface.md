@@ -865,3 +865,18 @@ ETAT: fini
   uniques dans la base partagée. L’oracle V2-12a y passe ; son rejeu direct reste 2/2 vert.
 
 ETAT: fini
+
+
+## Jugement V2-12a — 02-10-2026 (juge : Claude Code)
+
+- J'ai posé et commité moi-même les fichiers partagés (`b1d98eb`) : cinq routes `documents:traiter` et cinq charges CSRF de sonde.
+- Sur la recette réelle (`e27a2b7`, configuration réelle), avec une vraie pièce d'À traiter : la barre de retouche s'affiche (pivoter 90/180, scinder, fusionner, retirer, annuler). Mais **le premier geste, « Pivoter 90° », échoue** avec l'erreur `ModuleNotFoundError: No module named 'pypdf'`.
+  - L'éditeur appelle `CMD4_PYTHON` (le venv du produit CMD4). Ce venv a PyMuPDF mais pas pypdf ; les tests de l'agent sont passés avec le Python système, qui a pypdf.
+  - La page d'erreur montre une **trace Python brute** à l'utilisateur.
+  - Le fonds n'a pas bougé (48 pièces, 103 pages, aucun doublon) : l'échec est propre, sans dégât.
+- Hors lot : `tools/sonde-tsa.php` (non commité) appelle une TSA gratuite externe (freetsa.org). Ce n'est pas dans le lot ; je le laisse non commité. Le choix de la TSA revient à Olivier.
+- Verdict : **V2-12a non franchi** (inutilisable dans la configuration réelle). Repris en **V2-12b** :
+  - n'utiliser que des dépendances présentes et vérifiées : PyMuPDF dans le venv configuré, ou une solution PHP ;
+  - un contrôle de dépendances dans l'installateur et le diagnostic ;
+  - un message d'erreur en français, sans trace ;
+  - un oracle qui tourne avec le Python CONFIGURÉ, jamais celui du système.
