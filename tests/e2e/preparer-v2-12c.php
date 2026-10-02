@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
+require $racine . '/tests/oracles/e2e/EtatBase.php';
 
 use Ged\Base;
 use Ged\Config;
@@ -19,6 +20,7 @@ try {
     $config = new Config($racine); $fonds = $config->chemin('STORAGE_ROOT', 'var/oracles/v2-12c/documents');
     effacer($fonds); mkdir($fonds, 0775, true); Base::assurerBase($config); $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo); SchemaSecurite::installer($pdo); SchemaRecherche::installer($pdo);
+    remettreEtatFondsE2e($pdo);
     // Les identifiants d'oracle sont stables sous la base de test partagée : ne retirer que nos anciennes lignes synthétiques.
     $pdo->exec("DELETE FROM documents WHERE titre IN ('Version synthétique', 'Facture Suisse', 'Facture France', 'Contrat hors dossier', 'Lot complet', 'Lot incomplet')");
     $compte = 'v2-12c@gedv2.test'; $mot = 'MotDePasse-V2-12c!';
@@ -34,10 +36,8 @@ try {
     // Le seul scénario de lot rend ses deux pièces visibles. Les autres parcours remettent ce fonds
     // à neuf avec des pièces déjà validées : leur index partagé ne doit pas alimenter une autre file.
     $statutLot = getenv('V212C_LOT_ACTIF') === '1' ? 'a_controler' : 'valide';
-    // La file est chronologique : une date synthétique minimale garantit que le scénario retrouve ses
-    // pièces avant les index orphelins d'un autre fonds d'essai.
-    $lotBon = $depot->deposer($poser('lot-bon.pdf', "%PDF-1.4\n% lot bon\n%%EOF\n"), array_replace($commun, ['titre' => 'Lot complet', 'date' => '1000-01-01', 'statut' => $statutLot]));
-    $lotMauvais = $depot->deposer($poser('lot-mauvais.pdf', "%PDF-1.4\n% lot mauvais\n%%EOF\n"), ['titre' => 'Lot incomplet', 'type' => 'Facture', 'date' => '1000-01-01', 'statut' => $statutLot]);
+    $lotBon = $depot->deposer($poser('lot-bon.pdf', "%PDF-1.4\n% lot bon\n%%EOF\n"), array_replace($commun, ['titre' => 'Lot complet', 'statut' => $statutLot]));
+    $lotMauvais = $depot->deposer($poser('lot-mauvais.pdf', "%PDF-1.4\n% lot mauvais\n%%EOF\n"), ['titre' => 'Lot incomplet', 'type' => 'Facture', 'date' => '2026-10-02', 'statut' => $statutLot]);
     // Même index plein texte que l'écran Recherche, construit hors requête sur ce fonds synthétique.
     IndexPleinTexte::depuis($config, $pdo)->synchroniser(null);
     echo json_encode(compact('compte', 'mot', 'version', 'suisse', 'france', 'hors', 'lotBon', 'lotMauvais'), JSON_UNESCAPED_UNICODE), PHP_EOL;
