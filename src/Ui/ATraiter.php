@@ -78,12 +78,17 @@ final class ATraiter
                 break;
             }
         }
+        // Un lien /a-traiter?doc=… reste une adresse de pièce, pas seulement une position dans la
+        // première tranche de la file. C'est important si l'index contient encore des entrées dont
+        // le fichier a disparu : elles ne doivent ni masquer le document demandé ni envoyer une
+        // retouche vers une autre pièce.
+        $courant ??= $choisi > 0 ? $this->ligneDuDocumentAControler($choisi) : null;
         $courant ??= $file[0] ?? $this->courantVide();
         $enCours = $this->enCours();
         $fusion = [];
         $lotCourant = (int) ($courant['lot'] ?? 0);
         if ($courant['id'] > 0 && $lotCourant > 0) {
-            foreach ($file as $candidate) {
+            foreach ($this->piecesDuLot($lotCourant, $file) as $candidate) {
                 if ($candidate['id'] !== $courant['id'] && (int) ($candidate['lot'] ?? 0) === $lotCourant) {
                     $fusion[] = ['id' => $candidate['id'], 'titre' => $candidate['titre']];
                 }
@@ -226,26 +231,95 @@ final class ATraiter
 
         $docs = [];
         foreach ($lignes as $ligne) {
-            $relatif = str_replace('\\', '/', (string) ($ligne['chemin_relatif'] ?? ''));
-            if ($relatif === '' || str_contains($relatif, '..')) {
-                continue;
+            $document = $this->documentDepuisLigne($ligne);
+            if ($document !== null) {
+                $docs[] = $document;
             }
-            try {
-                $absolu = $this->depot->cheminAbsolu($relatif);
-            } catch (Throwable) {
-                continue;
-            }
-            if (!is_file($absolu)) {
-                continue;
-            }
-            $meta = is_string($ligne['meta'] ?? null) ? (json_decode((string) $ligne['meta'], true) ?: []) : (array) ($ligne['meta'] ?? []);
-            $docs[] = ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
         }
         usort($docs, static function (array $a, array $b): int {
             return [self::cleDate($a), $a['id']] <=> [self::cleDate($b), $b['id']];
         });
 
         return $docs;
+    }
+
+    /**
+     * Résout une pièce explicitement demandée, avec la même preuve disque que la file. La limite de
+     * la liste ne peut donc jamais changer la cible d'un geste d'édition.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function ligneDuDocumentAControler(int $id): ?array
+    {
+        if ($this->depot === null || $id < 1) {
+            return null;
+        }
+        try {
+            $ligne = $this->depot->fiche($id);
+        } catch (Throwable) {
+            return null;
+        }
+        if ($ligne === null || ($ligne['statut'] ?? '') !== 'a_controler' || ($ligne['supprime_le'] ?? null) !== null) {
+            return null;
+        }
+        $document = $this->documentDepuisLigne($ligne);
+
+        return $document === null ? null : $this->ligne($document);
+    }
+
+    /**
+     * Les pièces sœurs sont cherchées par leur lot afin que fusionner reste disponible après une
+     * scission, même lorsqu'une tranche de file est précédée par des index sans fichier.
+     *
+     * @param list<array<string, mixed>> $file
+     * @return list<array<string, mixed>>
+     */
+    private function piecesDuLot(int $lot, array $file): array
+    {
+        $pieces = $file;
+        if ($this->pdo === null || $lot < 1) {
+            return $pieces;
+        }
+        try {
+            $requete = $this->pdo->prepare("SELECT * FROM documents WHERE supprime_le IS NULL AND statut = 'a_controler'"
+                . " AND JSON_UNQUOTE(JSON_EXTRACT(meta, '$.origine.lot')) = ? ORDER BY id ASC");
+            $requete->execute([(string) $lot]);
+            foreach ($requete->fetchAll() as $ligne) {
+                $document = $this->documentDepuisLigne($ligne);
+                if ($document === null) {
+                    continue;
+                }
+                $piece = $this->ligne($document);
+                $pieces[(int) $piece['id']] = $piece;
+            }
+        } catch (Throwable) {
+            // La file déjà résolue reste utilisable si une base ancienne ne sait pas lire le JSON.
+        }
+
+        return array_values($pieces);
+    }
+
+    /** @return array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}|null */
+    private function documentDepuisLigne(array $ligne): ?array
+    {
+        if ($this->depot === null) {
+            return null;
+        }
+        $relatif = str_replace('\\', '/', (string) ($ligne['chemin_relatif'] ?? ''));
+        if ($relatif === '' || str_contains($relatif, '..')) {
+            return null;
+        }
+        try {
+            $absolu = $this->depot->cheminAbsolu($relatif);
+        } catch (Throwable) {
+            return null;
+        }
+        if (!is_file($absolu)) {
+            return null;
+        }
+        $meta = is_string($ligne['meta'] ?? null) ? (json_decode((string) $ligne['meta'], true) ?: []) : (array) ($ligne['meta'] ?? []);
+
+        return ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
     }
 
     /** Nombre de documents vivants déjà classés (`valide`) : un COUNT indexé, pas un parcours du fonds. */
