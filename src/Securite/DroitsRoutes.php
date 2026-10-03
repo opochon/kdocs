@@ -146,6 +146,9 @@ final class DroitsRoutes
         }
 
         if (strtoupper($methode) === 'GET') {
+            if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /dossiers/{id:[0-9]+}/droits'];
+            }
             foreach (['/apercu', '/apercu/fichier', '/fichier', '/miniature'] as $suffixe) {
                 if (preg_match('#^/documents/[0-9]+' . preg_quote($suffixe, '#') . '$#', $chemin) === 1) {
                     return self::PERMISSIONS['GET /documents/{id:[0-9]+}' . $suffixe];
@@ -159,6 +162,9 @@ final class DroitsRoutes
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
+            if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /dossiers/{id:[0-9]+}/droits'];
+            }
             if (preg_match('#^/documents/[0-9]+/versions$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/versions'];
             }

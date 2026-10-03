@@ -142,6 +142,12 @@ final class V213DroitsRolesTest extends TestCase
         }
     }
 
+    public function testRouteParametreeDesDroitsDeDossierEstReconnueParLaGarde(): void
+    {
+        self::assertSame('dossiers:gerer', DroitsRoutes::permissionPour('GET', '/dossiers/8501/droits'));
+        self::assertSame('dossiers:gerer', DroitsRoutes::permissionPour('POST', '/dossiers/8501/droits'));
+    }
+
     private function creerCompte(string $suffixe, string $role): int
     {
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')

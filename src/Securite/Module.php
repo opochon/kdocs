@@ -48,7 +48,11 @@ final class Module
         $app->get('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $vue) {
             $stmt = $pdo->prepare('SELECT g.id, g.nom, d.action_code, d.autorise FROM securite_groupes g LEFT JOIN securite_dossiers_droits d ON d.groupe_id = g.id AND d.dossier_id = ? ORDER BY g.nom');
             $stmt->execute([(int) $args['id']]);
-            return $vue->rendre($rep, 'securite/droits-dossier.twig', ['dossier' => (int) $args['id'], 'regles' => $stmt->fetchAll()]);
+            return $vue->rendre($rep, 'securite/droits-dossier.twig', [
+                'ecran' => 'administration',
+                'dossier' => (int) $args['id'],
+                'regles' => $stmt->fetchAll(),
+            ]);
         });
         $app->post('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $audit) {
             $corps = (array) ($req->getParsedBody() ?: []); $session = $req->getAttribute('ged.session');
