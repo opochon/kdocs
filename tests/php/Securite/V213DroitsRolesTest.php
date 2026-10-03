@@ -73,6 +73,36 @@ final class V213DroitsRolesTest extends TestCase
         self::assertSame(['Managers' => 'manager', 'Utilisateurs' => 'utilisateur'], $this->groupesInitiaux());
     }
 
+    public function testMigrationConserveLesRolesHistoriquesEtJournaliseChaqueChangement(): void
+    {
+        $suffixe = bin2hex(random_bytes(5));
+        $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
+            ->execute(['audit-' . $suffixe . '@gedv2.test', password_hash('MotDePasse-V213!', PASSWORD_DEFAULT), 'contributeur']);
+        $compte = (int) $this->pdo->lastInsertId();
+        Schema::installer($this->pdo);
+
+        self::assertSame('manager', $this->valeur('SELECT role FROM comptes WHERE id = ?', [$compte]));
+        self::assertSame('0', $this->valeur('SELECT actif FROM securite_roles WHERE code = ?', ['contributeur']));
+        self::assertSame('manager', $this->valeur('SELECT alias_vers FROM securite_roles WHERE code = ?', ['contributeur']));
+        self::assertSame('migration', $this->valeur('SELECT auteur FROM securite_audit WHERE cible = ? ORDER BY id DESC LIMIT 1', ['compte:' . $compte]));
+    }
+
+    public function testMigrationArchiverVersGererRespecteRefusSansCollisionDeCle(): void
+    {
+        $suffixe = bin2hex(random_bytes(5));
+        $droits = new DroitsDossiers($this->pdo);
+        $groupe = $droits->creerGroupe('collision-' . $suffixe, 'manager');
+        $droits->poserDossier(8701, null, 'collision-' . $suffixe);
+        $this->pdo->prepare('INSERT INTO securite_dossiers_droits (dossier_id, groupe_id, action_code, autorise) VALUES (?, ?, ?, ?)')
+            ->execute([8701, $groupe, 'archiver', 0]);
+        $droits->poserRegle(8701, $groupe, 'gerer', true);
+
+        Schema::installer($this->pdo);
+
+        self::assertSame('0', $this->valeur('SELECT autorise FROM securite_dossiers_droits WHERE dossier_id = ? AND groupe_id = ? AND action_code = ?', [8701, $groupe, 'gerer']));
+        self::assertSame('0', $this->valeur('SELECT autorise FROM securite_dossiers_droits WHERE dossier_id = ? AND groupe_id = ? AND action_code = ?', [8701, $groupe, 'archiver']));
+    }
+
     public function testNiveauxDeDossierSontCumulatifsEtLeRefusRestePrioritaire(): void
     {
         $droits = new DroitsDossiers($this->pdo);

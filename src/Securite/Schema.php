@@ -20,9 +20,12 @@ final class Schema
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_roles (
               code VARCHAR(64) PRIMARY KEY,
-              libelle VARCHAR(128) NOT NULL
+              libelle VARCHAR(128) NOT NULL,
+              actif TINYINT(1) NOT NULL DEFAULT 1,
+              alias_vers VARCHAR(64) NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+        self::assurerColonnesRoles($pdo);
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_permissions (
               code VARCHAR(64) PRIMARY KEY,
@@ -78,6 +81,19 @@ final class Schema
               maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               PRIMARY KEY (dossier_id, groupe_id, action_code),
               KEY k_securite_droit_groupe (groupe_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS securite_audit (
+              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              action VARCHAR(64) NOT NULL,
+              cible VARCHAR(128) NOT NULL,
+              ancien VARCHAR(64) NULL,
+              nouveau VARCHAR(64) NULL,
+              auteur VARCHAR(64) NOT NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE KEY uq_securite_audit_migration (action, cible, ancien, nouveau, auteur),
+              KEY k_securite_audit_cible (cible, cree_le)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
 
@@ -136,16 +152,50 @@ final class Schema
         ];
     }
 
-    /** Migration conservatrice : les affectations existantes changent de code, jamais de propriétaire. */
+    /** Migration conservatrice : les affectations changent de code, jamais de propriétaire ni de trace. */
     private static function migrerRolesHistoriques(PDO $pdo): void
     {
         foreach (['admin' => 'administrateur', 'lecteur' => 'utilisateur', 'contributeur' => 'manager', 'archiveur' => 'manager'] as $ancien => $nouveau) {
+            self::journaliserMigration($pdo, 'compte', 'role', $ancien, $nouveau);
+            self::journaliserMigration($pdo, 'groupe', 'role_code', $ancien, $nouveau);
             $pdo->prepare('UPDATE comptes SET role = ? WHERE role = ?')->execute([$nouveau, $ancien]);
             $pdo->prepare('UPDATE securite_groupes SET role_code = ? WHERE role_code = ?')->execute([$nouveau, $ancien]);
+            $pdo->prepare('INSERT IGNORE INTO securite_roles (code, libelle, actif, alias_vers) VALUES (?, ?, 0, ?)')
+                ->execute([$ancien, ucfirst($ancien) . ' (historique)', $nouveau]);
+            $pdo->prepare('UPDATE securite_roles SET actif = 0, alias_vers = ? WHERE code = ?')->execute([$nouveau, $ancien]);
         }
-        $pdo->exec("DELETE FROM securite_roles_permissions WHERE role_code IN ('admin', 'lecteur', 'contributeur', 'archiveur')");
-        $pdo->exec("DELETE FROM securite_roles WHERE code IN ('admin', 'lecteur', 'contributeur', 'archiveur')");
-        $pdo->exec("UPDATE securite_dossiers_droits SET action_code = 'gerer' WHERE action_code = 'archiver'");
+        // Une règle `gerer` déjà présente et son historique `archiver` ont la même clé cible : le refus
+        // explicite gagne, sinon l'accord. L'ancienne règle reste lisible comme trace de migration.
+        $pdo->exec("UPDATE securite_dossiers_droits gerer JOIN securite_dossiers_droits archiver
+            ON gerer.dossier_id = archiver.dossier_id AND gerer.groupe_id = archiver.groupe_id
+            SET gerer.autorise = IF(gerer.autorise = 0 OR archiver.autorise = 0, 0, 1)
+            WHERE gerer.action_code = 'gerer' AND archiver.action_code = 'archiver'");
+        $pdo->exec("UPDATE securite_dossiers_droits archiver LEFT JOIN securite_dossiers_droits gerer
+            ON gerer.dossier_id = archiver.dossier_id AND gerer.groupe_id = archiver.groupe_id AND gerer.action_code = 'gerer'
+            SET archiver.action_code = 'gerer' WHERE archiver.action_code = 'archiver' AND gerer.dossier_id IS NULL");
+    }
+
+    private static function assurerColonnesRoles(PDO $pdo): void
+    {
+        foreach (['actif' => 'TINYINT(1) NOT NULL DEFAULT 1', 'alias_vers' => 'VARCHAR(64) NULL'] as $colonne => $definition) {
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+            $stmt->execute(['securite_roles', $colonne]);
+            if ((int) $stmt->fetchColumn() === 0) {
+                $pdo->exec("ALTER TABLE securite_roles ADD COLUMN $colonne $definition");
+            }
+        }
+    }
+
+    private static function journaliserMigration(PDO $pdo, string $type, string $champ, string $ancien, string $nouveau): void
+    {
+        $source = $type === 'compte' ? 'comptes' : 'securite_groupes';
+        $identifiant = $type === 'compte' ? 'id' : 'id';
+        $stmt = $pdo->prepare("SELECT $identifiant FROM $source WHERE $champ = ?");
+        $stmt->execute([$ancien]);
+        $audit = $pdo->prepare('INSERT IGNORE INTO securite_audit (action, cible, ancien, nouveau, auteur) VALUES (?, ?, ?, ?, ?)');
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {
+            $audit->execute(['changement_role', $type . ':' . $id, $ancien, $nouveau, 'migration']);
+        }
     }
 
     /**
