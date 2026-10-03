@@ -161,6 +161,27 @@ final class V213DroitsRolesTest extends TestCase
         self::assertStringContainsString('cause', (string) $reponse->getBody());
     }
 
+    public function testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit(): void
+    {
+        $suffixe = bin2hex(random_bytes(5));
+        $app = \Ged\Kernel::creer(dirname(__DIR__, 3));
+        $factory = new ServerRequestFactory();
+        $compte = $factory->createServerRequest('POST', '/administration/comptes')->withParsedBody([
+            'identifiant' => "administration-$suffixe@gedv2.test",
+            'mot_de_passe' => 'MotDePasse-V213!',
+            'role' => 'utilisateur',
+        ]);
+        $groupe = $factory->createServerRequest('POST', '/administration/groupes')->withParsedBody([
+            'nom' => "administration-$suffixe",
+            'role' => 'manager',
+        ]);
+
+        self::assertSame(303, $app->handle($compte)->getStatusCode());
+        self::assertSame(303, $app->handle($groupe)->getStatusCode());
+        self::assertSame('utilisateur', $this->valeur('SELECT role FROM comptes WHERE identifiant = ?', ["administration-$suffixe@gedv2.test"]));
+        self::assertSame('manager', $this->valeur('SELECT role_code FROM securite_groupes WHERE nom = ?', ["administration-$suffixe"]));
+    }
+
     private function creerCompte(string $suffixe, string $role): int
     {
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')

@@ -33,11 +33,42 @@ final class Module
                 'comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll(),
             ]);
         });
+        $app->post('/administration/comptes', function ($req, $rep) use ($pdo, $audit) {
+            $corps = (array) ($req->getParsedBody() ?: []);
+            $identifiant = mb_strtolower(trim((string) ($corps['identifiant'] ?? '')));
+            $motDePasse = (string) ($corps['mot_de_passe'] ?? '');
+            $role = (string) ($corps['role'] ?? '');
+            if (filter_var($identifiant, FILTER_VALIDATE_EMAIL) === false || strlen($motDePasse) < 12
+                || !self::roleActif($pdo, $role)) {
+                throw new \Slim\Exception\HttpBadRequestException($req, 'Compte administratif invalide.');
+            }
+            $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
+                ->execute([$identifiant, password_hash($motDePasse, PASSWORD_DEFAULT), $role]);
+            $audit->ajouter('changement_role', self::auteur($req), [
+                'cible' => 'compte:' . $identifiant, 'ancien' => null, 'nouveau' => $role,
+            ]);
+
+            return $rep->withHeader('Location', '/administration/comptes')->withStatus(303);
+        });
         $app->get('/administration/groupes', function ($req, $rep) use ($pdo, $vue) {
             return $vue->rendre($rep, 'securite/groupes.twig', [
                 'ecran' => 'administration',
                 'groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll(),
             ]);
+        });
+        $app->post('/administration/groupes', function ($req, $rep) use ($pdo, $audit) {
+            $corps = (array) ($req->getParsedBody() ?: []);
+            $nom = trim((string) ($corps['nom'] ?? ''));
+            $role = (string) ($corps['role'] ?? '');
+            if ($nom === '' || mb_strlen($nom) > 128 || !self::roleActif($pdo, $role)) {
+                throw new \Slim\Exception\HttpBadRequestException($req, 'Groupe administratif invalide.');
+            }
+            $pdo->prepare('INSERT INTO securite_groupes (nom, role_code) VALUES (?, ?)')->execute([$nom, $role]);
+            $audit->ajouter('changement_role', self::auteur($req), [
+                'cible' => 'groupe:' . $nom, 'ancien' => null, 'nouveau' => $role,
+            ]);
+
+            return $rep->withHeader('Location', '/administration/groupes')->withStatus(303);
         });
         $app->get('/administration/roles', function ($req, $rep) use ($pdo, $vue) {
             return $vue->rendre($rep, 'securite/roles.twig', [
@@ -63,8 +94,7 @@ final class Module
                 || !self::aclCibleExiste($pdo, $dossier, $groupe)) {
                 throw new \Slim\Exception\HttpBadRequestException($req, 'Règle de droit invalide.');
             }
-            $session = $req->getAttribute('ged.session');
-            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+            $auteur = self::auteur($req);
             $autorise = (string) ($corps['autorise'] ?? '') === '1';
             (new DroitsDossiers($pdo))->poserRegle($dossier, $groupe, $niveau, $autorise);
             $audit->changementDroit($auteur, 'dossier:' . $dossier, $niveau, $autorise);
@@ -80,5 +110,20 @@ final class Module
         $requete->execute([$dossier, $groupe]);
 
         return (int) $requete->fetchColumn() === 2;
+    }
+
+    private static function roleActif(\PDO $pdo, string $role): bool
+    {
+        $requete = $pdo->prepare('SELECT 1 FROM securite_roles WHERE code = ? AND actif = 1');
+        $requete->execute([$role]);
+
+        return $requete->fetchColumn() !== false;
+    }
+
+    private static function auteur(\Psr\Http\Message\ServerRequestInterface $requete): string
+    {
+        $session = $requete->getAttribute('ged.session');
+
+        return is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
     }
 }
