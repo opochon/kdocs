@@ -1228,3 +1228,12 @@ ETAT: bloqué — le double harness ne laisse pas le seul rouge mobile admis ; i
 - Les deux essais de harness n’ont pas produit de nouveau registre dans cette session; aucun chiffre global n’est donc prétendu. Seul `mobile.spec.ts:298` reste le rouge qui serait admis.
 
 ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’un poste stabilisé; résultats ciblés et migration verts.
+
+## Jugement V2-12d (juge, 03-10 18:25) — porte franchie
+
+- Code jugé : `aebab81` (V2-12d7 `e5cf226` + `a8635c1`), copie propre du juge, harness complet seul sur machine calme.
+- Harness : 0 vert ; 1 vert (436 tests, 2 482 assertions, 0 échec) ; 3 vert (découpe 53/53, classement sans IA porte franchie, bout-en-bout 53/53, 0 page perdue) ; 2 vert ; 6 vert (3 puis 10 utilisateurs, p95 lecture 407 ms, écriture 174 ms, 0 erreur) ; 7 vert (aucun contournement, sondes du jeton faux comprises) ; 4 : 62 verts, 1 rouge, `mobile.spec.ts:298` (élément de liste `file-item-<id>` masqué sur iPhone 13), rouge déjà connu ; 5 Personas non écrite.
+- Schéma : 21 tables exactement, plafond relevé à 21 par décision du juge (collaboration consolidée dans `document_collaboration`, état de reconstruction dans `.ged/` via Registre).
+- Recette réelle (`gedv2`, après migration) : note migrée visible et trouvée par la recherche, lien doc2–doc3 repris des deux côtés, partage externe révoqué toujours révoqué (`revoque_le` conservé), nouveau lien externe : anonyme 200, après révocation 403 (page et fichier), reconstruction terminée en 2 tranches.
+- Défauts relevés, reportés dans V2-13 partie A : un partage révoqué ou expiré s'affiche sans son état ; `mobile.spec.ts:298` à corriger, il n'est plus admis ; routes de partage de `Ui/Module.php` écrites en lignes de plusieurs centaines de caractères ; `Ui/ATraiter` hors contrat `Contrats\Depot` (relevé par PHPStan).
+- Verdict : **V2-12d franchi.**
