@@ -1197,3 +1197,25 @@ ETAT: bloqué — attente de la seule modification de route réservée au juge, 
 - `1fb8726` — interface : prépare le lecteur ACLé V2-12d.
 
 ETAT: bloqué — les 4 échecs PHPUnit Socle persistent seuls ; le seul rouge écran est `mobile.spec.ts:298`, admis.
+
+## Journal V2-12d6 — reprise Socle — 03-10-2026
+
+**Fait**
+
+- `JetonPartageSession` consomme désormais le flash de partage par renommage atomique puis effacement du fichier temporaire : aucun `TRUNCATE` ni `DELETE` SQL hors reconstructeur.
+- L'installateur, son test PHPUnit et la porte V2-01 contrôlent désormais la liste exacte des **25 tables** ; le remplacement repose aussi les cinq tables V2-12d. La porte utilise aussi les identifiants courriel exigés par l'installateur.
+- La file « À traiter » a retrouvé son ordre indexé : `k_statut` couvre statut, suppression, absence, date et id ; l'oracle PERF-1 est vert (2 tests, 9 assertions).
+
+**Preuves**
+
+- Ciblé : `CorbeilleTest::testAucuneSuppressionSqlSurLesDonneesUtilisateur` vert (1 test, 2 assertions) ; `InstallateurTest` vert (4 tests, 21 assertions) ; porte V2-01 franchie (6 clauses) ; PERF-1 vert (2 tests, 9 assertions).
+- Premier `harness.ps1 -SansBanc` : garde-fous, sécurité et contrat verts ; unitaire **434 tests, 2 466 assertions, 1 échec** (PERF-1, ensuite corrigé) ; écrans **62 verts, 1 rouge** ; charge **p95 lecture 27 895 ms**, p95 écriture 289 ms, 0 erreur, 0 collision.
+- Second `harness.ps1 -SansBanc` : garde-fous, sécurité et contrat verts ; unitaire **434 tests, 2 465 assertions, 1 échec** ; écrans **61 verts, 2 rouges** ; charge **p95 lecture 2 795 ms**, p95 écriture 393 ms, 0 erreur, 0 collision. Le poste portait de nombreux processus PHP/Node externes actifs durant le rejeu : la porte demandée (« seul `mobile.spec.ts:298` rouge ») n'est donc pas atteinte et les rouges restants ne sont pas dissimulés.
+
+**Commits**
+
+- `84bb905` — socle : consomme atomiquement le flash de partage.
+- `2732cf1` — socle : vérifie les vingt-cinq tables à l’installation.
+- `dd93dc1` — socle : indexe le tri de la file à traiter.
+
+ETAT: bloqué — le double harness ne laisse pas le seul rouge mobile admis ; il faut un rejeu sur poste stabilisé.

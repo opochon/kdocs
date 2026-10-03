@@ -260,3 +260,12 @@ ETAT: fini
 **Demande au juge Droits/Sécurité** : voir les routes et charges de sonde exactes dans `docs/secteurs/interface.md`, Journal V2-12d. Les mutations de note/lien/partage interne doivent être évaluées avec l'action de dossier `lire` afin de respecter le modèle Utilisateur ; le lien externe demeure réservé au Manager/Administrateur jusqu'à V2-13.
 
 ETAT: fini
+
+## Journal V2-12d6 — reprise installation et session — 03-10-2026
+
+- L'oracle rouge de suppression SQL est vert : `JetonPartageSession` prend le flash par renommage atomique puis supprime son fichier temporaire, sans instruction SQL destructive.
+- L'installation contrôle strictement les 25 tables de secteurs présentes, dont `document_notes`, `document_liens`, `document_partages`, `document_collaboration_evenements` et `reconstruction_index_jobs`. La réinitialisation est vérifiée contre cette même liste exacte.
+- Preuves ciblées : Corbeille 1/2, Installateur 4/21, PERF-1 2/9 et porte V2-01 (6 clauses) verts. Commits `84bb905`, `2732cf1`, `dd93dc1`.
+- Rejeux `harness.ps1 -SansBanc` : 434/2 466/1 puis 434/2 465/1 côté unitaire ; charge p95 lecture 27 895 ms puis 2 795 ms. La machine hébergeait de nombreux processus PHP/Node externes ; la porte globale est à rejouer stabilisée.
+
+ETAT: bloqué — le double harness ne respecte pas encore l'unique rouge mobile admis.
