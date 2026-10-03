@@ -190,5 +190,37 @@ final class Module
 
             return $rep->withHeader('Location', $cible)->withStatus(303);
         });
+
+        // Collaboration V2-12d : les règles de session/CSRF sont déjà appliquées par la garde ; le
+        // service garde la propriété de note, la lisibilité des deux documents et la traçabilité.
+        $app->post('/documents/{id:[0-9]+}/notes', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $c=(array)($req->getParsedBody() ?: []); $a=self::auteur($req); $id=(int)$args['id']; $s=new \Ged\Socle\Collaboration($config);
+            try { match((string)($c['action']??'ajouter')) { 'ajouter'=>$s->ajouterNote($id,$a,(string)($c['texte']??'')), 'modifier'=>$s->modifierNote((int)($c['note']??0),$a,(string)($c['texte']??'')), 'retirer'=>$s->retirerNote((int)($c['note']??0),$a), default=>throw new \RuntimeException('note : action inconnue') }; return $rep->withHeader('Location','/documents/'.$id.'?note_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/notes',$e->getMessage()); }
+        });
+        $app->post('/documents/{id:[0-9]+}/liens', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $c=(array)($req->getParsedBody() ?: []);$id=(int)$args['id'];$s=new \Ged\Socle\Collaboration($config);
+            try { if((string)($c['action']??'lier')==='retirer')$s->retirerLien((int)($c['lien']??0),self::auteur($req));else $s->lier($id,(int)($c['cible']??0),(string)($c['libelle']??''),self::auteur($req),self::compte($req)); return $rep->withHeader('Location','/documents/'.$id.'?lien_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/liens',$e->getMessage()); }
+        });
+        $app->post('/documents/{id:[0-9]+}/partages', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $c=(array)($req->getParsedBody() ?: []);$id=(int)$args['id'];$s=new \Ged\Socle\Collaboration($config);
+            try { $action=(string)($c['action']??''); if($action==='interne')$s->partagerInterne($id,(string)($c['cible_type']??''),(int)($c['cible']??0),self::auteur($req)); elseif($action==='externe'){ $p=$s->partagerExterne($id,self::auteur($req),(string)($c['expiration']??'')); return $rep->withHeader('Location','/documents/'.$id.'?partage_lien='.rawurlencode($p['jeton']))->withStatus(303); } elseif($action==='revoquer')$s->revoquerPartage((int)($c['partage']??0),self::auteur($req)); else throw new \RuntimeException('partage : action inconnue'); return $rep->withHeader('Location','/documents/'.$id.'?partage_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/partages',$e->getMessage()); }
+        });
+        $app->get('/partages-avec-moi', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $compte = self::compte($req);
+            $partages = $compte === null ? [] : (new \Ged\Socle\Collaboration($config))->partagesAvecMoi($compte);
+            return $vue->rendre($rep, 'ecrans/partages-avec-moi.twig', [
+                'ecran' => 'partages', 'partages' => $partages,
+            ]);
+        });
+        // Ces deux routes sont publiques seulement au sens de la garde : le jeton long, expirant et
+        // révocable est vérifié ICI. Aucun autre chemin n'accepte un jeton.
+        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { $s=new \Ged\Socle\Collaboration($config);$v=$s->lienExterneValide((string)$args['jeton']); if($v===null)return self::erreur($vue,$rep,'GET /partages/{jeton}','lien externe invalide, expiré ou révoqué',403);$d=$s->cheminDocument($v['document']);if($d===null)return self::erreur($vue,$rep,'GET /partages/{jeton}','document indisponible',404);return $vue->rendre($rep,'ecrans/partage-externe.twig',['titre'=>$d['titre'],'jeton'=>(string)$args['jeton']]); });
+        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}/fichier', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { $s=new \Ged\Socle\Collaboration($config);$v=$s->lienExterneValide((string)$args['jeton']);if($v===null)return self::erreur($vue,$rep,'GET /partages/{jeton}/fichier','lien externe invalide, expiré ou révoqué',403);$d=$s->cheminDocument($v['document']);$root=realpath($config->chemin('STORAGE_ROOT','storage/documents'));$file=$d===null?false:realpath($root.'/'.$d['chemin_relatif']);if($root===false||$file===false||!str_starts_with(str_replace('\\','/',$file),str_replace('\\','/',$root).'/'))return self::erreur($vue,$rep,'GET /partages/{jeton}/fichier','document indisponible',404);$rep->getBody()->write((string)file_get_contents($file));return $rep->withHeader('Content-Type',(string)$d['mime'])->withHeader('Content-Disposition','inline; filename="'.rawurlencode((string)$d['nom']).'"'); });
+        $app->post('/application/reconstruction-index', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index',$e->getMessage());} });
+        $app->post('/application/reconstruction-index/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index/{id}/tranche',$e->getMessage());} });
     }
+
+    private static function auteur(Requete $req): string { $s=$req->getAttribute('ged.session'); return is_array($s)?(string)($s['utilisateur']??'inconnu'):'inconnu'; }
+    private static function compte(Requete $req): ?int { $s=$req->getAttribute('ged.session');$c=is_array($s)?($s['compte']??null):null;return is_int($c)&&$c>0?$c:null; }
+    private static function erreur(Vue $vue, Reponse $rep, string $etape, string $cause, int $code=422): Reponse { return $vue->rendre($rep,'erreur.twig',['code'=>$code,'etape'=>$etape,'cause'=>$cause,'reference'=>''],$code); }
 }

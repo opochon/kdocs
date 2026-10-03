@@ -1,0 +1,11 @@
+{% extends 'layout.twig' %}
+{% block titre %}Partagés avec moi{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="partages-avec-moi">
+  <div class="page-tete"><div class="titre"><h1>Partagés avec moi</h1><span class="muted">Les documents signalés restent soumis aux droits de leur dossier.</span></div></div>
+  <section class="carte"><ul class="chrono">
+    {% for partage in partages %}<li><a href="/documents/{{ partage.document }}" data-testid="partage-document-{{ partage.document }}">{{ partage.titre }}</a><span class="muted">partagé par {{ partage.auteur }} · {{ partage.cree_le }}</span></li>
+    {% else %}<li class="muted" data-testid="partages-vide">Aucun document partagé avec vous.</li>{% endfor %}
+  </ul></section>
+</div>
+{% endblock %}

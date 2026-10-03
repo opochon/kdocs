@@ -1,0 +1,10 @@
+{% extends 'layout.twig' %}
+{% block titre %}{{ titre }} — partage{% endblock %}
+{% block contenu %}
+<main class="page partage-externe" data-testid="partage-externe">
+  <div class="page-tete"><div class="titre"><h1>{{ titre }}</h1><span class="chip">lecture seule</span></div></div>
+  <p class="muted">Ce lien donne accès uniquement à l’aperçu et au téléchargement de ce document.</p>
+  <iframe title="Aperçu du document partagé" class="partage-apercu" src="/partages/{{ jeton }}/fichier" data-testid="partage-apercu"></iframe>
+  <a class="btn" href="/partages/{{ jeton }}/fichier" download data-testid="partage-telecharger">Télécharger</a>
+</main>
+{% endblock %}

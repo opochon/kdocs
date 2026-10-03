@@ -32,7 +32,7 @@ final class Document
     }
 
     /** @return array<string, mixed>|null */
-    public function donnees(int $id): ?array
+    public function donnees(int $id, ?int $compte = null): ?array
     {
         $fonds = new Fonds($this->config);
         $pdo = null;
@@ -58,6 +58,8 @@ final class Document
         $meta['titre'] ??= (string) $doc['titre'];
         $scellement = Scellement::lire($absolu, (int) $doc['id']);
         $statut = $this->statut($pdo, (int) $doc['id']);
+        $collaboration = null;
+        try { $collaboration = new \Ged\Socle\Collaboration($this->config); } catch (Throwable) { /* base en amorçage */ }
 
         return [
             'id' => (int) $doc['id'],
@@ -71,9 +73,10 @@ final class Document
             'texte' => self::lignesTexte($meta['texte'] ?? null),
             'rendu' => Rendu::pour((int) $doc['id'], $absolu, $meta),
             'versions' => $this->versions($pdo, (int) $doc['id']),
-            'historique' => $this->historique($pdo, (int) $doc['id']),
-            'notes' => [],
-            'liens' => [],
+            'historique' => array_merge($this->historique($pdo, (int) $doc['id']), $collaboration?->historique((int) $doc['id']) ?? []),
+            'notes' => $collaboration?->notes((int) $doc['id']) ?? [],
+            'liens' => $collaboration?->liens((int) $doc['id'], $compte) ?? [],
+            'partages' => $collaboration?->partages((int) $doc['id']) ?? [],
             'statut' => $statut,
             'archivage' => [
                 'scelle' => Scellement::estActif($scellement),

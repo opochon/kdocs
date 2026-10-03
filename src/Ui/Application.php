@@ -59,7 +59,15 @@ final class Application
                 'ktime' => $this->connecteur(self::K_TIME),
                 'cmm' => $this->connecteur(self::CLEARMYMAILS),
             ],
+            'reconstruction' => $this->reconstruction(),
         ];
+    }
+
+    /** @return array{id:int,etat:string,total:int,traite:int,erreur:?string}|null */
+    private function reconstruction(): ?array
+    {
+        if ($this->pdo === null) return null;
+        try { return (new \Ged\Socle\ReconstructionIndex($this->config))->etat(); } catch (Throwable) { return null; }
     }
 
     /** @return array<string, mixed> */

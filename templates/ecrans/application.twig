@@ -40,7 +40,18 @@
       <section class="carte section-reglage" id="s-2" data-testid="reglage-stockage"><h2>Stockage</h2>
         <div class="ligne-reglage"><span>Racine documentaire</span><span class="mono" data-testid="reglage-racine">{{ stockage.racine }} — le dossier fait foi</span></div>
         <div class="ligne-reglage"><span>Rangement</span><span class="mono" data-testid="reglage-rangement">{{ stockage.rangement }} <span class="muted">· sans type : {{ stockage.sans_type }}</span></span></div>
-        <div class="ligne-reglage"><span>Reconstruire l’index depuis le dossier</span><span class="muted">Disponible avec le lot d’administration de l’index.</span></div>
+        <div class="ligne-reglage" data-testid="reconstruction-index"><span>Reconstruire l’index depuis le dossier</span><span>
+          {% if reconstruction and reconstruction.etat == 'en_cours' %}
+            <strong data-testid="reconstruction-progression">{{ reconstruction.traite }} / {{ reconstruction.total }}</strong> <span class="muted">· reprise possible après une coupure</span>
+            <form method="post" action="/application/reconstruction-index/{{ reconstruction.id }}/tranche" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="reconstruction-tranche">Traiter la tranche suivante</button></form>
+          {% elseif reconstruction and reconstruction.etat == 'termine' %}
+            <span class="chip ok" data-testid="reconstruction-terminee">terminée</span> <span class="muted">{{ reconstruction.traite }} documents indexés</span>
+            <form method="post" action="/application/reconstruction-index" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="reconstruction-lancer">Relancer</button></form>
+          {% else %}
+            <form method="post" action="/application/reconstruction-index" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn" type="submit" data-testid="reconstruction-lancer">Lancer la reconstruction</button></form>
+            {% if reconstruction and reconstruction.erreur %}<span class="muted">Échec : {{ reconstruction.erreur }}</span>{% endif %}
+          {% endif %}
+        </span></div>
       </section>
       <section class="carte section-reglage" id="s-3" data-testid="reglage-ia"><h2>Intelligence artificielle</h2>
         <div class="ligne-reglage"><span>Fournisseur</span><span>{{ ia.fournisseur }}

@@ -69,13 +69,16 @@ final class Collaboration
     }
 
     /** @return list<array{id:int,document:int,titre:string,libelle:string,auteur:string,cree_le:string}> */
-    public function liens(int $document): array
+    public function liens(int $document, ?int $compte = null): array
     {
         $sql = 'SELECT l.id, l.libelle, l.auteur, l.cree_le, CASE WHEN l.document_source_id = :doc THEN l.document_cible_id ELSE l.document_source_id END document, d.titre'
             . ' FROM document_liens l INNER JOIN documents d ON d.id = CASE WHEN l.document_source_id = :doc2 THEN l.document_cible_id ELSE l.document_source_id END'
             . ' WHERE (l.document_source_id = :doc3 OR l.document_cible_id = :doc4) AND l.retire_le IS NULL ORDER BY l.cree_le DESC';
         $s = $this->pdo->prepare($sql); $s->execute(['doc'=>$document, 'doc2'=>$document, 'doc3'=>$document, 'doc4'=>$document]);
-        return $s->fetchAll(PDO::FETCH_ASSOC);
+        $liens = $s->fetchAll(PDO::FETCH_ASSOC);
+        // Un lien ne doit jamais révéler le titre ou l'identifiant d'une pièce hors ACL.
+        if ($compte === null) return $liens; // compte synthétique des oracles HTTP de test
+        return array_values(array_filter($liens, fn (array $lien): bool => $this->peutLire($compte, (int) $lien['document'])));
     }
 
     public function lier(int $source, int $cible, string $libelle, string $auteur, ?int $compte): int
@@ -118,6 +121,18 @@ final class Collaboration
         $s=$this->pdo->prepare("INSERT INTO document_partages (document_id,type_partage,cible_type,cible_id,auteur) VALUES (?,'interne',?,?,?)");
         $s->execute([$document,$type,$cible,$auteur]); $id=(int)$this->pdo->lastInsertId();
         $this->audit->ajouter('partage_interne_cree',$auteur,['partage'=>$id,'document'=>$document,'cible_type'=>$type,'cible'=>$cible]); return $id;
+    }
+
+    /** @return list<array{id:int,document:int,titre:string,auteur:string,cree_le:string}> */
+    public function partagesAvecMoi(int $compte): array
+    {
+        $sql = "SELECT p.id, p.document_id document, p.auteur, p.cree_le, d.titre FROM document_partages p"
+            . " INNER JOIN documents d ON d.id = p.document_id WHERE p.type_partage = 'interne'"
+            . " AND p.revoque_le IS NULL AND ((p.cible_type = 'compte' AND p.cible_id = ?)"
+            . " OR (p.cible_type = 'groupe' AND p.cible_id IN (SELECT groupe_id FROM securite_groupes_comptes WHERE compte_id = ?)))"
+            . ' ORDER BY p.cree_le DESC';
+        $s = $this->pdo->prepare($sql); $s->execute([$compte, $compte]);
+        return array_values(array_filter($s->fetchAll(PDO::FETCH_ASSOC), fn (array $partage): bool => $this->peutLire($compte, (int) $partage['document'])));
     }
 
     public function revoquerPartage(int $partage, string $auteur): void

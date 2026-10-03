@@ -147,7 +147,9 @@ final class Ecrans
         // identifiant inconnu retombe sur la maquette : jamais un écran muet ni un 500.
         $id = (int) ($args['id'] ?? 0);
         try {
-            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id);
+            $session = $req->getAttribute('ged.session');
+            $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id, $compte);
         } catch (\Throwable) {
             $reel = null;
         }
@@ -168,6 +170,10 @@ final class Ecrans
             'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',
             'version_succes' => (int) ($req->getQueryParams()['version_succes'] ?? 0),
             'version_erreur' => (string) ($req->getQueryParams()['version_erreur'] ?? ''),
+            // Le jeton externe ne repasse qu'une fois dans le PRG : aucune table ne le conserve en clair.
+            'partage_lien' => isset($req->getQueryParams()['partage_lien'])
+                ? '/partages/' . (string) $req->getQueryParams()['partage_lien'] : '',
+            'auteur_courant' => is_array($session) ? (string) ($session['utilisateur'] ?? '') : '',
         ]);
     }
 
@@ -194,7 +200,9 @@ final class Ecrans
         // données viennent du provider dédié, le gabarit reste le contrat visuel.
         $donnees = Application::depuisRacine(dirname(__DIR__, 2))->donnees();
 
-        return $this->vue->rendre($rep, 'ecrans/application.twig', $this->commun('application') + $donnees);
+        return $this->vue->rendre($rep, 'ecrans/application.twig', $this->commun('application') + $donnees + [
+            'csrf' => self::jetonCsrf($req),
+        ]);
     }
 
     /**
