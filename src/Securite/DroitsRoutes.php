@@ -36,9 +36,9 @@ final class DroitsRoutes
         // V2-12d : notes et liens relevent du role Utilisateur (droit de dossier Lecture, voir GardeCentrale).
         'POST /documents/{id:[0-9]+}/notes' => 'documents:lire',
         'POST /documents/{id:[0-9]+}/liens' => 'documents:lire',
-        // Partages : la route porte aussi le lien externe, reserve au Manager. Tant que V2-13 n'a pas
-        // separe le geste externe (route et permission propres), toute la route reste administrateur.
-        'POST /documents/{id:[0-9]+}/partages' => 'application:administrer',
+        // Partage interne (et sa revocation) : geste de lecteur ; le controleur verifie que le destinataire
+        // lit deja le dossier. Le lien externe a sa route propre ci-dessous.
+        'POST /documents/{id:[0-9]+}/partages' => 'documents:lire',
         // Lien externe (creation et revocation) : geste propre, reserve au Manager ; jusqu'a V2-13 seul
         // l'administrateur (permission '*') porte documents:partager-externe.
         'POST /documents/{id:[0-9]+}/partages/externe' => 'documents:partager-externe',
