@@ -32,13 +32,13 @@
       <a class="btn discret" href="/bibliotheque?doc={{ doc.id }}" data-testid="action-retour">Retour à la bibliothèque</a>
     </div>
   </div>
-  {% if archivage_succes %}<p class="alerte ok" data-testid="archivage-succes">Document scellé et horodaté.</p>{% endif %}
+  {% if archivage_succes %}<p class="alerte ok" data-testid="archivage-succes">Document scellé par une TSA publique non qualifiée.</p>{% endif %}
   {% if archivage_erreur %}<p class="alerte erreur" data-testid="archivage-erreur">Scellement refusé : {{ archivage_erreur }}</p>{% endif %}
   {% if version_succes %}<p class="alerte ok" data-testid="version-succes">Nouvelle version v{{ version_succes }} enregistrée.</p>{% endif %}
   {% if version_erreur %}<p class="alerte erreur" data-testid="version-erreur">Nouvelle version refusée : {{ version_erreur }}</p>{% endif %}
   <section class="archivage-etat carte" data-testid="archivage-etat">
     {% if doc.archivage.scelle %}
-    <strong>Scellé le {{ doc.archivage.scelle_le|date('d.m.Y à H:i') }}</strong><span>Jeton TSA : <span class="mono">{{ doc.archivage.tsa_jeton }}</span></span><span>Rétention jusqu’au {{ doc.archivage.echeance }}</span>
+    <strong>Scellé le {{ doc.archivage.scelle_le|date('d.m.Y à H:i') }}</strong><span>TSA publique non qualifiée : <span class="mono">{{ doc.archivage.tsa_url }}</span></span><span>Jeton TSA : <span class="mono">{{ doc.archivage.tsa_jeton }}</span></span><span>Rétention jusqu’au {{ doc.archivage.echeance }}</span>
     {% else %}
     <strong>Non scellé</strong><span>Ce document n’est pas encore archivé légalement.</span>
     {% endif %}
@@ -88,7 +88,7 @@
           <form method="post" action="/documents/{{ doc.id }}/partages" data-testid="partage-interne"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="interne"><label>Destinataire <select name="cible_type"><option value="compte">Compte</option><option value="groupe">Groupe</option></select></label><input name="cible" type="number" min="1" required data-testid="partage-cible"><button class="btn" type="submit" data-testid="partage-interne-envoyer">Partager en interne</button></form>
           {% if peut_partager_externe %}<form method="post" action="/documents/{{ doc.id }}/partages/externe" data-testid="partage-externe-creer"><input type="hidden" name="csrf" value="{{ csrf }}"><label>Expiration obligatoire <input type="date" name="expiration" required data-testid="partage-expiration"></label><button class="btn" type="submit" data-testid="partage-externe-envoyer">Créer le lien externe</button></form>{% endif %}
           {% if partage_lien %}<p class="alerte ok" data-testid="partage-lien">Copiez ce lien maintenant : <code>{{ partage_lien }}</code></p>{% endif %}
-          <ul class="chrono">{% for partage in doc.partages %}<li><span>{{ partage.type }} · {{ partage.cible }}{% if partage.expire_le %} · expire {{ partage.expire_le }}{% endif %}</span>{% if not partage.revoque_le and (partage.type == 'interne' or peut_partager_externe) %}<form method="post" action="/documents/{{ doc.id }}/partages{% if partage.type == 'externe' %}/externe{% endif %}"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="revoquer"><input type="hidden" name="partage" value="{{ partage.id }}"><button class="btn discret" type="submit" data-testid="partage-{{ partage.type }}-revoquer-{{ partage.id }}">Révoquer</button></form>{% endif %}</li>{% else %}<li class="muted">Aucun partage.</li>{% endfor %}</ul>
+          <ul class="chrono">{% for partage in doc.partages %}<li><span>{{ partage.type }} · {{ partage.cible }}</span>{% if partage.revoque_le %}<span class="muted" data-testid="partage-etat-revoque-{{ partage.id }}">révoqué le {{ partage.revoque_le }}</span>{% elseif partage.expire_le and partage.expire_le < 'now'|date('Y-m-d H:i:s') %}<span class="muted" data-testid="partage-etat-expire-{{ partage.id }}">expiré le {{ partage.expire_le }}</span>{% elseif partage.expire_le %}<span class="muted" data-testid="partage-etat-echance-{{ partage.id }}">expire le {{ partage.expire_le }}</span>{% endif %}{% if not partage.revoque_le and (partage.type == 'interne' or peut_partager_externe) %}<form method="post" action="/documents/{{ doc.id }}/partages{% if partage.type == 'externe' %}/externe{% endif %}"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="revoquer"><input type="hidden" name="partage" value="{{ partage.id }}"><button class="btn discret" type="submit" data-testid="partage-{{ partage.type }}-revoquer-{{ partage.id }}">Révoquer</button></form>{% endif %}</li>{% else %}<li class="muted">Aucun partage.</li>{% endfor %}</ul>
         </div>
       </div>
     </section>

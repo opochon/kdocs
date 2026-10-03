@@ -89,4 +89,13 @@ final class EcransTest extends TestCase
 
         self::assertSame(200, $reponse->getStatusCode(), (string) $reponse->getBody());
     }
+
+    public function testPanneauPartagesNommeLesEtatsRevoqueEtExpire(): void
+    {
+        $gabarit = (string) file_get_contents(dirname(__DIR__, 2) . '/templates/ecrans/document.twig');
+
+        self::assertStringContainsString('révoqué le', $gabarit);
+        self::assertStringContainsString('expiré le', $gabarit);
+        self::assertStringContainsString('data-testid="partage-etat-', $gabarit);
+    }
 }
