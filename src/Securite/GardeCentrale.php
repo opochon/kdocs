@@ -123,15 +123,7 @@ final class GardeCentrale implements MiddlewareInterface
         if (in_array('*', $session['permissions'], true)) {
             return true;
         }
-        // V2-12d : noter, lier ou partager un document lisible est un geste de lecteur (modele du 03-10).
-        if ($methode === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|partages)$#', $chemin) === 1) {
-            $methode = 'GET';
-        }
-        $action = match ($methode) {
-            'GET', 'HEAD' => 'lire',
-            'DELETE' => 'archiver',
-            default => 'modifier',
-        };
+        $action = DroitsRoutes::niveauDossierPour($methode, $chemin) ?? 'lire';
         try {
             $dossier = $this->droitsDossiers->dossierPourDocument((int) $trouve[1]);
 

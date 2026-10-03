@@ -81,28 +81,71 @@ final class Schema
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
 
+        self::migrerRolesHistoriques($pdo);
+
         foreach ([
-            'admin' => 'Administrateur', 'lecteur' => 'Lecteur', 'contributeur' => 'Contributeur',
-            'archiveur' => 'Archiveur', 'aucun' => 'Aucun droit',
+            'utilisateur' => 'Utilisateur', 'manager' => 'Manager', 'administrateur' => 'Administrateur',
+            'aucun' => 'Aucun droit',
         ] as $code => $libelle) {
             $pdo->prepare('INSERT IGNORE INTO securite_roles (code, libelle) VALUES (?, ?)')->execute([$code, $libelle]);
         }
-        foreach ([
-            '*' => 'Toutes les permissions', 'documents:lire' => 'Lire les documents',
-            'documents:modifier' => 'Modifier les documents', 'documents:archiver' => 'Archiver les documents',
-            'recherche:lire' => 'Rechercher', 'workflows:lire' => 'Consulter les workflows',
-            'application:administrer' => 'Administrer l’application',
-        ] as $code => $libelle) {
+        foreach (self::libellesPermissions() as $code => $libelle) {
             $pdo->prepare('INSERT IGNORE INTO securite_permissions (code, libelle) VALUES (?, ?)')->execute([$code, $libelle]);
         }
-        foreach ([
-            ['admin', '*'], ['lecteur', 'documents:lire'], ['lecteur', 'recherche:lire'],
-            ['contributeur', 'documents:lire'], ['contributeur', 'documents:modifier'],
-            ['archiveur', 'documents:lire'], ['archiveur', 'documents:archiver'],
-        ] as [$role, $permission]) {
-            $pdo->prepare('INSERT IGNORE INTO securite_roles_permissions (role_code, permission_code) VALUES (?, ?)')
-                ->execute([$role, $permission]);
+        foreach (self::matriceRoles() as $role => $permissions) {
+            foreach ($permissions as $permission) {
+                $pdo->prepare('INSERT IGNORE INTO securite_roles_permissions (role_code, permission_code) VALUES (?, ?)')
+                    ->execute([$role, $permission]);
+            }
         }
+        foreach (['Utilisateurs' => 'utilisateur', 'Managers' => 'manager'] as $nom => $role) {
+            $pdo->prepare('INSERT IGNORE INTO securite_groupes (nom, role_code) VALUES (?, ?)')->execute([$nom, $role]);
+        }
+    }
+
+    /** @return array<string, list<string>> Matrice de la décision du 2026-10-03. */
+    public static function matriceRoles(): array
+    {
+        return [
+            'utilisateur' => ['documents:lire', 'recherche:lire', 'documents:deposer'],
+            'manager' => [
+                'documents:lire', 'recherche:lire', 'documents:deposer', 'documents:traiter', 'documents:modifier',
+                'documents:partager-externe', 'archivage:consulter', 'archivage:sceller', 'dossiers:gerer',
+                'workflows:lire', 'workflow.gerer', 'workflow.executer', 'workflow.transition',
+            ],
+            'administrateur' => [
+                '*', 'documents:lire', 'recherche:lire', 'documents:deposer', 'documents:traiter', 'documents:modifier',
+                'documents:partager-externe', 'archivage:consulter', 'archivage:sceller', 'dossiers:gerer',
+                'workflows:lire', 'workflow.gerer', 'workflow.executer', 'workflow.transition', 'application:administrer',
+            ],
+        ];
+    }
+
+    /** @return array<string, string> */
+    private static function libellesPermissions(): array
+    {
+        return [
+            '*' => 'Toutes les permissions', 'documents:lire' => 'Lire les documents',
+            'documents:deposer' => 'Déposer des documents', 'documents:traiter' => 'Traiter les documents',
+            'documents:modifier' => 'Modifier les documents', 'documents:partager-externe' => 'Partager en externe',
+            'recherche:lire' => 'Rechercher', 'workflows:lire' => 'Consulter les workflows',
+            'workflow.gerer' => 'Gérer les workflows', 'workflow.executer' => 'Exécuter les workflows',
+            'workflow.transition' => 'Faire avancer les workflows', 'archivage:consulter' => 'Consulter les archives',
+            'archivage:sceller' => 'Sceller les archives', 'dossiers:gerer' => 'Gérer les droits des dossiers',
+            'application:administrer' => 'Administrer l’application',
+        ];
+    }
+
+    /** Migration conservatrice : les affectations existantes changent de code, jamais de propriétaire. */
+    private static function migrerRolesHistoriques(PDO $pdo): void
+    {
+        foreach (['admin' => 'administrateur', 'lecteur' => 'utilisateur', 'contributeur' => 'manager', 'archiveur' => 'manager'] as $ancien => $nouveau) {
+            $pdo->prepare('UPDATE comptes SET role = ? WHERE role = ?')->execute([$nouveau, $ancien]);
+            $pdo->prepare('UPDATE securite_groupes SET role_code = ? WHERE role_code = ?')->execute([$nouveau, $ancien]);
+        }
+        $pdo->exec("DELETE FROM securite_roles_permissions WHERE role_code IN ('admin', 'lecteur', 'contributeur', 'archiveur')");
+        $pdo->exec("DELETE FROM securite_roles WHERE code IN ('admin', 'lecteur', 'contributeur', 'archiveur')");
+        $pdo->exec("UPDATE securite_dossiers_droits SET action_code = 'gerer' WHERE action_code = 'archiver'");
     }
 
     /**

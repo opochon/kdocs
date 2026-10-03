@@ -10,8 +10,11 @@ use PDO;
 final class DroitsDossiers
 {
     /** @var array<string, string> */
+    private const NIVEAUX = ['lire', 'deposer', 'modifier', 'gerer'];
+
     private const PERMISSIONS_ACTIONS = [
-        'lire' => 'documents:lire', 'modifier' => 'documents:modifier', 'archiver' => 'documents:archiver',
+        'lire' => 'documents:lire', 'deposer' => 'documents:deposer', 'modifier' => 'documents:modifier',
+        'gerer' => 'dossiers:gerer',
     ];
 
     public function __construct(private readonly PDO $pdo)
@@ -20,6 +23,7 @@ final class DroitsDossiers
 
     public function creerGroupe(string $nom, string $role): int
     {
+        $role = $this->roleCanonique($role);
         $this->exigerRole($role);
         $this->pdo->prepare('INSERT INTO securite_groupes (nom, role_code) VALUES (?, ?)')->execute([$nom, $role]);
 
@@ -45,6 +49,7 @@ final class DroitsDossiers
 
     public function poserRegle(int $dossier, int $groupe, string $action, bool $autorise): void
     {
+        $action = $this->actionCanonique($action);
         $this->permissionAction($action);
         $this->pdo->prepare('INSERT INTO securite_dossiers_droits (dossier_id, groupe_id, action_code, autorise) VALUES (?, ?, ?, ?) '
             . 'ON DUPLICATE KEY UPDATE autorise = VALUES(autorise)')
@@ -65,6 +70,7 @@ final class DroitsDossiers
 
     public function autorise(int $compte, int $dossier, string $action): bool
     {
+        $action = $this->actionCanonique($action);
         $permission = $this->permissionAction($action);
         $permissions = $this->permissionsPourCompte($compte);
         if (in_array('*', $permissions, true)) {
@@ -78,22 +84,13 @@ final class DroitsDossiers
         if ($groupes === []) {
             return false;
         }
-        $vus = [];
-        $courant = $dossier;
-        while ($courant > 0 && !isset($vus[$courant])) {
-            $vus[$courant] = true;
-            $regle = $this->regleDuDossier($courant, $groupes, $action);
-            if ($regle !== null) {
-                return $regle;
+        foreach (array_slice(self::NIVEAUX, 0, array_search($action, self::NIVEAUX, true) + 1) as $niveau) {
+            if ($this->decisionHeritee($dossier, $groupes, $niveau) !== true) {
+                return false;
             }
-            $parent = $this->parentDuDossier($courant);
-            if ($parent === null) {
-                break;
-            }
-            $courant = $parent;
         }
 
-        return false;
+        return true;
     }
 
     /** Retourne le dossier ACL le plus précis couvrant le chemin d’un document, ou null. */
@@ -169,19 +166,53 @@ final class DroitsDossiers
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    /** null signifie héritage ; un refus de groupe l’emporte toujours sur un accord concurrent. */
+    /** null signifie héritage ; une permission haute inclut les niveaux précédents. */
+    private function decisionHeritee(int $dossier, array $groupes, string $action): ?bool
+    {
+        $vus = [];
+        $courant = $dossier;
+        while ($courant > 0 && !isset($vus[$courant])) {
+            $vus[$courant] = true;
+            $regle = $this->regleDuDossier($courant, $groupes, $action);
+            if ($regle !== null) {
+                return $regle;
+            }
+            $parent = $this->parentDuDossier($courant);
+            if ($parent === null) {
+                break;
+            }
+            $courant = $parent;
+        }
+
+        return null;
+    }
+
+    /** null signifie héritage ; un refus explicite du niveau demandé gagne au dossier courant. */
     private function regleDuDossier(int $dossier, array $groupes, string $action): ?bool
     {
         $marqueurs = implode(',', array_fill(0, count($groupes), '?'));
-        $stmt = $this->pdo->prepare('SELECT autorise FROM securite_dossiers_droits WHERE dossier_id = ? AND action_code = ? '
+        $stmt = $this->pdo->prepare('SELECT action_code, autorise FROM securite_dossiers_droits WHERE dossier_id = ? '
             . "AND groupe_id IN ($marqueurs)");
-        $stmt->execute([$dossier, $action, ...$groupes]);
-        $regles = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        if ($regles === []) {
-            return null;
+        $stmt->execute([$dossier, ...$groupes]);
+        $regles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($regles as $regle) {
+            if ((string) $regle['action_code'] === $action && (int) $regle['autorise'] === 0) {
+                return false;
+            }
+        }
+        foreach ($regles as $regle) {
+            $niveau = array_search((string) $regle['action_code'], self::NIVEAUX, true);
+            if ($niveau !== false && $niveau >= array_search($action, self::NIVEAUX, true) && (int) $regle['autorise'] === 1) {
+                return true;
+            }
         }
 
-        return !in_array('0', array_map('strval', $regles), true);
+        return null;
+    }
+
+    private function actionCanonique(string $action): string
+    {
+        return $action === 'archiver' ? 'gerer' : $action;
     }
 
     private function parentDuDossier(int $dossier): ?int
@@ -196,6 +227,14 @@ final class DroitsDossiers
     private function permissionAction(string $action): string
     {
         return self::PERMISSIONS_ACTIONS[$action] ?? throw new \InvalidArgumentException('Action de droit inconnue.');
+    }
+
+    private function roleCanonique(string $role): string
+    {
+        return match ($role) {
+            'admin' => 'administrateur', 'lecteur' => 'utilisateur', 'contributeur', 'archiveur' => 'manager',
+            default => $role,
+        };
     }
 
     private function exigerRole(string $role): void

@@ -22,9 +22,9 @@ final class DroitsRoutes
         'POST /a-traiter/{id:[0-9]+}/pages/retirer' => 'documents:traiter',
         'POST /a-traiter/{id:[0-9]+}/pages/annuler' => 'documents:traiter',
         // Interface V2-10a (mobile) : dépôt par photo de l'écran « Déposer » — même chaîne d'ingestion
-        // que le dépôt de bureau, même droit que « À traiter » (ligne signalée hors secteur).
-        'GET /deposer' => 'documents:traiter',
-        'POST /deposer' => 'documents:traiter',
+        // que le dépôt de bureau : la décision V2-13 l'ouvre à l'Utilisateur.
+        'GET /deposer' => 'documents:deposer',
+        'POST /deposer' => 'documents:deposer',
         'GET /bibliotheque' => 'documents:lire',
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
@@ -195,5 +195,24 @@ final class DroitsRoutes
     public static function permissionCanonique(string $permission): string
     {
         return $permission === 'document.voir' ? 'documents:lire' : $permission;
+    }
+
+    /** Niveau ACL requis par une route documentaire ; null si elle n'adresse pas encore de document. */
+    public static function niveauDossierPour(string $methode, string $chemin): ?string
+    {
+        if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
+            return 'gerer';
+        }
+        if (preg_match('#^/documents/[0-9]+/(?:notes|liens|partages)(?:/externe)?$#', $chemin) === 1) {
+            return 'lire';
+        }
+        if (preg_match('#^/documents/[0-9]+/(?:versions(?:/[0-9]+/restaurer)?)$#', $chemin) === 1) {
+            return 'modifier';
+        }
+        if (preg_match('#^/documents/[0-9]+(?:/|$)#', $chemin) === 1) {
+            return strtoupper($methode) === 'GET' || strtoupper($methode) === 'HEAD' ? 'lire' : 'modifier';
+        }
+
+        return null;
     }
 }
