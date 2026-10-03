@@ -1130,12 +1130,12 @@ Le modèle décidé le 03-10 réserve le lien externe au Manager. Le rôle fonct
 **Preuves**
 
 - PHP ciblé : **5 tests, 34 assertions, vert**. Le préparateur V2-12d et la compilation des quatre parcours Playwright sont verts.
-- Premier parcours e2e honnêtement rouge : les routes nouvelles sont actuellement « route sans permission déclarée » dans la garde centrale ; c'est précisément la porte partagée ci-dessus, non une assertion affaiblie. Aucun délai ni donnée truquée n'a été ajouté.
+- Porte partagée intégrée par le juge (`60d292f`) : notes/liens sont `documents:lire` avec action de dossier Lecture ; partages et reconstruction sont administrateur tant que V2-13 n'a pas séparé le rôle Manager du lien externe. Les deux routes de jeton sont les seules publiques. Les **4 parcours V2-12d sont verts** après ce branchement ; aucun délai ni donnée truquée n'a été ajouté.
 
 **Commits**
 
 - `1ab1fba` — socle : rend collaboration et reconstruction réelles.
 - `e0b23a5` — interface : rend notes partages et reconstruction actionnables.
-- `fd25cd9`, `75977b9` — interface : parcours isolés et oracles V2-12d.
+- `fd25cd9`, `75977b9`, `bb752fe`, `41e6152` — interface : parcours isolés, oracles, partage externe public et oracle V2-11 adapté aux gestes rétablis.
 
-ETAT: bloqué — déclarations DroitsRoutes/sonde et distinction fonctionnelle Manager du lien externe attendues du juge
+ETAT: fini

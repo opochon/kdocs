@@ -259,4 +259,4 @@ ETAT: fini
 
 **Demande au juge Droits/Sécurité** : voir les routes et charges de sonde exactes dans `docs/secteurs/interface.md`, Journal V2-12d. Les mutations de note/lien/partage interne doivent être évaluées avec l'action de dossier `lire` afin de respecter le modèle Utilisateur ; le lien externe demeure réservé au Manager/Administrateur jusqu'à V2-13.
 
-ETAT: bloqué — porte partagée DroitsRoutes/sonde
+ETAT: fini
