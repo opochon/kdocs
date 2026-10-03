@@ -3,7 +3,12 @@
 declare(strict_types=1);
 
 use Ged\Securite\DroitsRoutes;
+use Ged\Securite\DroitsDossiers;
 use Ged\Securite\RegistreSessions;
+use Ged\Securite\Schema as SchemaSecurite;
+use Ged\Socle\Schema as SchemaSocle;
+use Ged\Base;
+use Ged\Config;
 
 /**
  * Sonde offensive V2-07c.
@@ -223,6 +228,41 @@ try {
         } else {
             $verifier($autre['code'] < 500, "$definition échoue avec une session d’un autre dossier");
         }
+    }
+
+    // B7 : un véritable compte en base, avec un mot de passe haché et le rôle Utilisateur, ne peut
+    // atteindre aucun geste porté seulement par Manager ou Administrateur. La garde doit refuser avant
+    // le métier : des identifiants volontairement inexistants ne peuvent donc rien modifier.
+    $config = new Config(RACINE_SONDE);
+    Base::assurerBase($config);
+    $pdo = Base::pdo($config);
+    SchemaSocle::installer($pdo);
+    SchemaSecurite::installer($pdo);
+    $identifiantUtilisateur = 'sonde-utilisateur-' . bin2hex(random_bytes(5)) . '@gedv2.test';
+    $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
+        ->execute([$identifiantUtilisateur, password_hash('Sonde-V213-2026!', PASSWORD_DEFAULT), 'utilisateur']);
+    $compteUtilisateur = (int) $pdo->lastInsertId();
+    $droitsUtilisateur = (new DroitsDossiers($pdo))->permissionsPourCompte($compteUtilisateur);
+    $sessionUtilisateur = $sessions->ouvrir($identifiantUtilisateur, $droitsUtilisateur, null, $compteUtilisateur);
+    foreach (DroitsRoutes::declarees() as $definition => $permission) {
+        $permissionCanonique = DroitsRoutes::permissionCanonique($permission);
+        if (DroitsRoutes::estPublique($permission) || $permissionCanonique === 'session:active'
+            || in_array($permissionCanonique, $droitsUtilisateur, true)) {
+            continue;
+        }
+        [$methode, $chemin] = explode(' ', $definition, 2);
+        $chemin = str_replace('/{id:[0-9]+}', '/999999999', $chemin);
+        $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
+        $chemin = str_replace('/{jeton:[A-Za-z0-9_-]+}', '/jeton_faux_sonde_0000000000000000', $chemin);
+        $chemin = str_replace('/{nom}', '/sonde_inconnue', $chemin);
+        $mutation = in_array($methode, ['POST', 'PUT', 'PATCH', 'DELETE'], true);
+        $entetes = ['Cookie: gedv2_session=' . $sessionUtilisateur['id']];
+        if ($mutation) {
+            $entetes[] = 'Content-Type: application/x-www-form-urlencoded';
+            $entetes[] = 'X-CSRF-Token: ' . $sessionUtilisateur['csrf'];
+        }
+        $refus = requete($base, $methode, $chemin, $entetes, $mutation ? 'sonde=1' : null);
+        $verifier($refus['code'] === 403, "B7 utilisateur réel accepté sur $definition");
     }
 
     // Injections SQL/XSS : elles ne doivent ni exécuter une requête ni ressortir dans le HTML brut.
