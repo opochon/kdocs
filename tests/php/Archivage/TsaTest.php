@@ -23,6 +23,14 @@ final class TsaTest extends TestCase
         return hash('sha256', 'document synthétique à horodater', true);
     }
 
+    public function testLaListeDeTsaRespecteLOrdreEtIgnoreLesEspacesVides(): void
+    {
+        self::assertSame(
+            ['http://timestamp.digicert.test', 'https://freetsa.test/tsr'],
+            TsaReelle::urls(' http://timestamp.digicert.test, , https://freetsa.test/tsr '),
+        );
+    }
+
     public function testTsaReelleConstruitUneRequeteRfc3161(): void
     {
         $tsq = TsaReelle::requete($this->empreinte());
@@ -42,12 +50,13 @@ final class TsaTest extends TestCase
             $recu = [$url, $tsq];
 
             return $reponse;
-        });
+        }, static fn (string $tsq, string $tsr): string => "-----BEGIN CERTIFICATE-----\nsimulée\n-----END CERTIFICATE-----\n");
 
         self::assertSame($reponse, $tsa->horodater($this->empreinte()));
         self::assertIsArray($recu);
         self::assertSame('https://tsa.example.test/', $recu[0]);
-        self::assertSame(TsaReelle::requete($this->empreinte()), $recu[1]);
+        self::assertStringContainsString($this->empreinte(), $recu[1]);
+        self::assertStringContainsString("\x01\x01\xff", $recu[1], 'certReq force la chaîne de certificats dans la réponse');
     }
 
     public function testTsaReelleSansUrlSeNomme(): void
@@ -70,7 +79,7 @@ final class TsaTest extends TestCase
             $tsa->horodater($this->empreinte());
             self::fail('une réponse non DER doit être refusée');
         } catch (ErreurScellement $e) {
-            self::assertStringContainsString('illisible', $e->getMessage());
+        self::assertStringContainsString('réponse refusée', $e->getMessage());
         }
     }
 

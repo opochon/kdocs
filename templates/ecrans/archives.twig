@@ -18,6 +18,7 @@
     <button class="btn" type="submit" data-testid="archives-filtrer">Filtrer</button>
   </form>
   <section class="carte archives-liste" aria-label="Documents scellés"><h2>Documents scellés</h2>
+    <p class="muted">Les scellements utilisent une TSA publique non qualifiée ; ils ne constituent pas un horodatage qualifié.</p>
     <table class="table" data-testid="archives-liste"><thead><tr><th>Document</th><th>Type</th><th>Scellé le</th><th>Rétention jusqu’au</th><th>Jeton TSA</th></tr></thead><tbody>{% for document in documents %}<tr><td><a href="/documents/{{ document.document_id }}">{{ document.titre }}</a></td><td>{{ document.type }}</td><td>{{ document.scelle_le ? document.scelle_le|date('d.m.Y H:i') : '—' }}</td><td>{{ document.echeance ?: '—' }}</td><td class="mono">{{ document.tsa_jeton ?: '—' }}</td></tr>{% else %}<tr><td colspan="5" class="muted">Aucun document scellé pour ce filtre.</td></tr>{% endfor %}</tbody></table>
   </section>
   <section class="carte archives-echeance" data-testid="archives-a-echeance"><h2>À échéance</h2><p class="muted">Rétention dépassée ou arrivant à échéance dans les 90 jours. Aucun effacement n’est automatique.</p><ul class="liste">{% for document in a_echeance %}<li><a href="/documents/{{ document.document_id }}"><span class="l1">{{ document.titre }}</span><span class="l2">{{ document.depassee ? 'Rétention dépassée' : 'Échéance proche' }} · {{ document.echeance }}</span></a></li>{% else %}<li class="muted">Aucune échéance dans les 90 jours.</li>{% endfor %}</ul></section>

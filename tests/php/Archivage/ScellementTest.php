@@ -7,7 +7,9 @@ namespace Ged\Tests\Archivage;
 use Ged\Archivage\Empreintes;
 use Ged\Archivage\ErreurScellement;
 use Ged\Archivage\Scellement;
+use Ged\Archivage\Scelleur;
 use Ged\Archivage\TsaReelle;
+use Ged\Archivage\TsaSimulee;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -65,6 +67,31 @@ final class ScellementTest extends TestCase
         self::assertTrue($second['already_sealed']);
         self::assertSame($premier['scelle_le'], $second['scelle_le'], 're-sceller ne réécrit pas l\'horodatage');
         self::assertSame('olivia', Scellement::lire($this->absolu($id), $id)['scelle_par'] ?? null);
+    }
+
+    public function testTsaPubliqueConserveRequeteEtChaineAvecLeJeton(): void
+    {
+        $id = $this->deposer('facture-tsa-publique.pdf', ['titre' => 'Facture TSA publique', 'type' => 'facture']);
+        $tsa = new TsaReelle(
+            'https://tsa.example.test/',
+            static function (string $url, string $requete): string {
+                $position = strpos($requete, "\x04\x20");
+                self::assertNotFalse($position);
+
+                return TsaSimulee::reponseDepuis(substr($requete, $position + 2, 32), 1775347200);
+            },
+            static fn (string $requete, string $reponse): string => "-----BEGIN CERTIFICATE-----\nchaîne synthétique\n-----END CERTIFICATE-----\n",
+        );
+        $scelleur = new Scelleur($this->depot(), $tsa, $this->horloge(), $this->retention());
+
+        $scelleur->sceller($id, 'olivia');
+
+        $absolu = $this->absolu($id);
+        $scellement = Scellement::lire($absolu, $id);
+        self::assertSame('publique_non_qualifiee', $scellement['tsa_type'] ?? null);
+        self::assertFileExists(Scellement::cheminRequete($absolu));
+        self::assertFileExists(Scellement::cheminChaine($absolu));
+        self::assertStringContainsString('BEGIN CERTIFICATE', (string) file_get_contents(Scellement::cheminChaine($absolu)));
     }
 
     public function testEcheanceSansDateSAppuieSurLHorlogeFigee(): void

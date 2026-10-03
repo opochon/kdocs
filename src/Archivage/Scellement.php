@@ -32,8 +32,18 @@ final class Scellement
         return self::dossier($absoluDocument) . '/' . basename($absoluDocument) . '.tsr';
     }
 
+    public static function cheminRequete(string $absoluDocument): string
+    {
+        return self::dossier($absoluDocument) . '/' . basename($absoluDocument) . '.tsq';
+    }
+
+    public static function cheminChaine(string $absoluDocument): string
+    {
+        return self::dossier($absoluDocument) . '/' . basename($absoluDocument) . '.tsa-chain.pem';
+    }
+
     /** Écrit le jeton puis le justificatif (le JSON en dernier : sa présence dit le scellement complet). */
-    public static function ecrire(string $absoluDocument, array $donnees, string $jeton): void
+    public static function ecrire(string $absoluDocument, array $donnees, string $jeton, ?string $requete = null, ?string $chaine = null): void
     {
         $dossier = self::dossier($absoluDocument);
         if (!is_dir($dossier) && !mkdir($dossier, 0775, true) && !is_dir($dossier)) {
@@ -44,6 +54,12 @@ final class Scellement
         }
         if (file_put_contents(self::cheminJeton($absoluDocument), $jeton, LOCK_EX) === false) {
             throw ErreurScellement::scellement('impossible d’écrire le jeton TSA');
+        }
+        if ($requete !== null && file_put_contents(self::cheminRequete($absoluDocument), $requete, LOCK_EX) === false) {
+            throw ErreurScellement::scellement('impossible d’écrire la requête TSA (nonce)');
+        }
+        if ($chaine !== null && file_put_contents(self::cheminChaine($absoluDocument), $chaine, LOCK_EX) === false) {
+            throw ErreurScellement::scellement('impossible d’écrire la chaîne de certificats TSA');
         }
         if (file_put_contents(self::cheminJson($absoluDocument), self::encoder($donnees), LOCK_EX) === false) {
             throw ErreurScellement::scellement('impossible d’écrire le justificatif de scellement');

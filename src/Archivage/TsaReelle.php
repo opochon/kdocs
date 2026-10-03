@@ -7,21 +7,33 @@ namespace Ged\Archivage;
 /**
  * Client RFC 3161 réel (porté de GEDv1 `TsaService`, jamais câblé là-bas). Il construit une TimeStampReq
  * DER, la POSTe à la TSA par un transport injectable (curl par défaut) et vérifie la réponse :
- * SEQUENCE DER, statut « granted », empreinte couverte. La signature PKI de la TSA relève d'`openssl ts`.
+ * SEQUENCE DER, statut « granted », empreinte couverte, nonce et signature CMS. Chaque réponse est vérifiée
+ * par `openssl ts -verify` contre les racines versionnées avant d'être acceptée.
  *
- * `TSA_URL` absente = refus NOMMÉ : on ne scelle jamais en silence sans horodatage qualifié.
+ * `TSA_URL` absente = refus NOMMÉ : on ne scelle jamais en silence sans TSA publique configurée.
  */
 final class TsaReelle implements Horodateur
 {
     /** @var callable(string, string): string */
     private readonly mixed $transport;
+    /** @var callable(string, string): string */
+    private readonly mixed $verifier;
+    private string $derniereRequete = '';
+    private string $derniereChaine = '';
 
-    public function __construct(private readonly string $url, ?callable $transport = null)
+    public function __construct(private readonly string $url, ?callable $transport = null, ?callable $verifier = null)
     {
         $this->transport = $transport ?? self::transportCurl(...);
+        $this->verifier = $verifier ?? OpenSslTsa::verifier(...);
     }
 
-    public static function requete(string $empreinteBinaire): string
+    /** @return list<string> */
+    public static function urls(string $liste): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', $liste)), static fn (string $url): bool => $url !== ''));
+    }
+
+    public static function requete(string $empreinteBinaire, ?string $nonce = null): string
     {
         if (strlen($empreinteBinaire) !== 32) {
             throw ErreurScellement::horodatage('l’empreinte à horodater doit faire 32 octets (sha256)');
@@ -31,33 +43,55 @@ final class TsaReelle implements Horodateur
         $algorithme = Der::tlv(0x30, $oid . "\x05\x00");
         $messageImprint = Der::tlv(0x30, $algorithme . Der::tlv(0x04, $empreinteBinaire));
 
-        // TimeStampReq ::= SEQUENCE { version v1(1), messageImprint, certReq TRUE }
-        return Der::tlv(0x30, "\x02\x01\x01" . $messageImprint . "\x01\x01\xff");
+        // RFC 3161 §2.4.1 : un nonce 64 bits aléatoire doit être renvoyé identiquement par la TSA.
+        $nonce ??= random_bytes(8);
+        if (strlen($nonce) !== 8) {
+            throw ErreurScellement::horodatage('nonce TSA invalide : 64 bits attendus');
+        }
+        $nonceEntier = ord($nonce[0]) >= 0x80 ? "\x00" . $nonce : $nonce;
+
+        // TimeStampReq ::= SEQUENCE { version, messageImprint, nonce, certReq TRUE }
+        return Der::tlv(0x30, "\x02\x01\x01" . $messageImprint . Der::tlv(0x02, $nonceEntier) . "\x01\x01\xff");
     }
 
     public function horodater(string $empreinteBinaire): string
     {
-        if (trim($this->url) === '') {
-            throw ErreurScellement::horodatage('TSA_URL non configurée : aucun horodatage qualifié ne peut être posé');
+        $urls = self::urls($this->url);
+        if ($urls === []) {
+            throw ErreurScellement::horodatage('TSA_URL non configurée : aucune TSA publique non qualifiée ne peut être jointe');
         }
-        $reponse = ($this->transport)($this->url, self::requete($empreinteBinaire));
-        if (!Der::estSequence($reponse)) {
-            throw ErreurScellement::horodatage('réponse TSA illisible (ce n’est pas une TimeStampResp DER)');
-        }
-        if (!Der::statutAccorde($reponse)) {
-            throw ErreurScellement::horodatage('la TSA a refusé l’horodatage (statut différent de granted)');
-        }
-        if (!Der::couvre($reponse, $empreinteBinaire)) {
-            throw ErreurScellement::horodatage('le jeton TSA ne couvre pas l’empreinte soumise');
-        }
+        $causes = [];
+        foreach ($urls as $url) {
+            $requete = self::requete($empreinteBinaire);
+            try {
+                $reponse = ($this->transport)($url, $requete);
+                if (!Der::estSequence($reponse) || !Der::statutAccorde($reponse) || !Der::couvre($reponse, $empreinteBinaire)) {
+                    throw ErreurScellement::horodatage('réponse refusée : statut, structure ou empreinte invalide');
+                }
+                $chaine = ($this->verifier)($requete, $reponse);
+                $this->derniereRequete = $requete;
+                $this->derniereChaine = $chaine;
+                $this->urlUtilisee = $url;
 
-        return $reponse;
+                return $reponse;
+            } catch (ErreurScellement $e) {
+                $causes[] = $url . ' : ' . $e->getMessage();
+            } catch (\RuntimeException $e) {
+                $causes[] = $url . ' : ' . $e->getMessage();
+            }
+        }
+        throw ErreurScellement::horodatage('toutes les TSA ont refusé ou sont injoignables — ' . implode(' ; ', $causes));
     }
 
     public function etiquette(): string
     {
-        return $this->url;
+        return $this->urlUtilisee ?? $this->url;
     }
+
+    private ?string $urlUtilisee = null;
+
+    public function requeteEnvoyee(): string { return $this->derniereRequete; }
+    public function chaineCertificats(): string { return $this->derniereChaine; }
 
     /** Transport par défaut : POST curl, `Content-Type: application/timestamp-query`. */
     private static function transportCurl(string $url, string $requete): string

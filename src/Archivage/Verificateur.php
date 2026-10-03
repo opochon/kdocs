@@ -9,8 +9,8 @@ namespace Ged\Archivage;
  * métadonnées, empreinte composite scellée, et jeton TSA (structure DER, statut granted, empreinte
  * couverte, sha256 du jeton). Un fonds sain rend 0 écart ; un octet changé est trouvé et nommé.
  *
- * Limite assumée : la signature PKI de la TSA n'est pas vérifiée cryptographiquement (openssl ts le ferait) ;
- * on vérifie ici que le jeton existe, est bien formé, couvre l'empreinte scellée et n'a pas bougé.
+ * Les jetons publics sont contrôlés par OpenSSL : signature CMS, EKU timeStamping, chaîne et nonce via la
+ * requête originelle. La TSA simulée reste réservée aux corpus de test.
  */
 final class Verificateur
 {
@@ -94,6 +94,28 @@ final class Verificateur
             } elseif (preg_match('/^[0-9a-f]{64}$/', (string) ($scellement['empreinte_scellee'] ?? '')) === 1
                 && !Der::couvre($octets, Empreintes::binaire((string) $scellement['empreinte_scellee']))) {
                 $ecarts[] = 'jeton TSA valide mais ne couvre pas l’empreinte scellée';
+            }
+            if (($scellement['tsa_type'] ?? '') === 'publique_non_qualifiee') {
+                $nomRequete = (string) ($scellement['tsa_requete'] ?? '');
+                $nomChaine = (string) ($scellement['tsa_chaine'] ?? '');
+                $requete = dirname($cheminJson) . '/' . $nomRequete;
+                $chaine = dirname($cheminJson) . '/' . $nomChaine;
+                if ($nomRequete === '' || basename($nomRequete) !== $nomRequete || !is_file($requete)) {
+                    $ecarts[] = 'requête TSA introuvable (nonce invérifiable)';
+                } elseif ($nomChaine === '' || basename($nomChaine) !== $nomChaine || !is_file($chaine)) {
+                    $ecarts[] = 'chaîne de certificats TSA introuvable';
+                } else {
+                    try {
+                        $requeteOctets = file_get_contents($requete);
+                        $chaineOctets = file_get_contents($chaine);
+                        if ($requeteOctets === false || $chaineOctets === false) {
+                            throw ErreurScellement::horodatage('lecture des preuves TSA impossible');
+                        }
+                        OpenSslTsa::verifier($requeteOctets, $octets, $chaineOctets);
+                    } catch (ErreurScellement $e) {
+                        $ecarts[] = 'signature TSA invalide : ' . $e->getMessage();
+                    }
+                }
             }
         }
 

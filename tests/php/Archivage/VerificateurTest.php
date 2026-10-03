@@ -44,6 +44,24 @@ final class VerificateurTest extends TestCase
         self::assertSame([], $bilan['ecarts']);
     }
 
+    public function testUnJetonForgeAnnonceCommePublicEstRefuse(): void
+    {
+        $id = $this->sceller('jeton-forge.pdf');
+        $absolu = $this->absolu($id);
+        $json = Scellement::cheminJson($absolu);
+        $scellement = Scellement::lire($absolu, $id);
+        self::assertNotNull($scellement);
+        $scellement['tsa_type'] = 'publique_non_qualifiee';
+        $scellement['tsa_requete'] = 'inexistante.tsq';
+        $scellement['tsa_chaine'] = 'inexistante.pem';
+        file_put_contents($json, json_encode($scellement, JSON_THROW_ON_ERROR));
+
+        $bilan = (new Verificateur($this->racine))->verifier($json);
+
+        self::assertFalse($bilan['ok']);
+        self::assertStringContainsString('nonce invérifiable', implode(' ', $bilan['ecarts']));
+    }
+
     public function testUnOctetChangeDansLeDocumentEstTrouve(): void
     {
         $id = $this->sceller();

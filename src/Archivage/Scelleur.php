@@ -74,6 +74,7 @@ final class Scelleur
         $empreinteMeta = Empreintes::meta($absolu);
         $empreinteScellee = Empreintes::scellee($empreinteFichier, $empreinteMeta);
         $jeton = $this->horodateur->horodater(Empreintes::binaire($empreinteScellee));
+        $tsaReelle = $this->horodateur instanceof TsaReelle ? $this->horodateur : null;
         $instant = $this->horloge->maintenant();
         $reference = $this->retention->reference($meta, $instant);
         $type = isset($meta['type']) && $meta['type'] !== null ? (string) $meta['type'] : null;
@@ -94,7 +95,10 @@ final class Scelleur
             'retention_annees' => $this->retention->annees($type),
             'echeance' => $this->retention->echeance($reference, $type),
             'tsa_url' => $this->horodateur->etiquette(),
+            'tsa_type' => $tsaReelle === null ? 'simulee' : 'publique_non_qualifiee',
             'tsa_jeton' => basename($absolu) . '.tsr',
+            'tsa_requete' => $tsaReelle === null ? null : basename(Scellement::cheminRequete($absolu)),
+            'tsa_chaine' => $tsaReelle === null ? null : basename(Scellement::cheminChaine($absolu)),
             'tsa_sha256' => hash('sha256', $jeton),
         ];
 
@@ -103,7 +107,7 @@ final class Scelleur
             $this->archiverJustificatif($absolu, $existant);
         }
 
-        Scellement::ecrire($absolu, $donnees, $jeton);
+        Scellement::ecrire($absolu, $donnees, $jeton, $tsaReelle?->requeteEnvoyee(), $tsaReelle?->chaineCertificats());
 
         return $donnees + ['already_sealed' => false];
     }
