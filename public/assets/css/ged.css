@@ -331,7 +331,10 @@ dl.meta dt { color: var(--muted); } dl.meta dd { margin: 0; font-weight: 500; }
     border: 1px solid var(--border); border-radius: var(--r); background: var(--surface-2);
     color: var(--text-2); font-size: var(--fs-sm); font-weight: 500; }
   /* Le geste de masse est un confort de bureau : sur téléphone, place à la pièce courante. */
-  [data-testid="formulaire-validation-lot"] { display: none; }
+  /* La file reste navigable au doigt : seul le geste de masse et ses cases disparaissent. */
+  [data-testid="formulaire-validation-lot"] { display: block; }
+  [data-testid="formulaire-validation-lot"] label,
+  [data-testid="action-valider-lot"] { display: none; }
   [data-testid="bloc-dossiers"] summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
 
   /* Une pièce à la fois : aperçu en haut, proposition dessous, bilan compact, file repliée en dernier. */
