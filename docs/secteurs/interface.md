@@ -786,12 +786,12 @@ ETAT: fini
 - Les tâches de vérification d’archivage de la sonde sortent du corpus suivi : son serveur emploie désormais son bac `var/sonde-securite-*` temporaire, supprimé après le rejeu, y compris `.archivage/`.
 
 **Retiré (aucun geste muet ne reste)**
-- retiré : Partager, raison : aucun modèle de jeton/jonction de partage approuvé par Olivier; lot qui la portera : V2-12 Partage (à décider).
-- retiré : Notes et Liens de la fiche, raison : aucune donnée Socle ni modèle métier ne les porte; lot qui les portera : V2-12 Collaboration.
+- rétabli V2-12d : Partager : partage interne seulement pour un compte/groupe qui lit déjà le dossier, vue « Partagés avec moi » ; lien externe lecture seule, jeton long haché en base, expiration obligatoire, révocation et audit.
+- rétabli V2-12d : Notes et Liens de la fiche : note de son auteur éditable/retirable, date et Historique ; liens libellés bilatéraux, jamais visibles si la cible n'est pas lisible.
 - rétabli V2-12c : Restaurer une version : vN devient une NOUVELLE version, sans écrasement, avec trace Historique; refus sur document scellé.
 - rétabli V2-12c : arbre des dossiers de Bibliothèque : liens filtrants (dossier et sous-dossiers), compteurs et URL partageable; le téléphone le replie.
 - rétabli V2-12c : Valider les suggestions sûres : sélection multiple puis validation des seules propositions complètes; rotation/découpe/fusion et ajout d’étiquette restent portés par leurs lots propres.
-- retiré : Lancer la reconstruction d’index, raison : l’action administrative F12 n’a pas encore de tâche courte avec reprise; lot qui la portera : V2-12 Administration de l’index.
+- rétabli V2-12d : Lancer la reconstruction d’index : tâche en tranches, reprise visible, index de lecture maintenu disponible et second lancement refusé.
 - rétabli V2-12c : Enregistrer comme vue de Recherche : texte et filtres sont enregistrés dans `.ged/vues.json`, avec les mêmes vues que la Bibliothèque.
 
 ### À commiter par le juge (fichiers partagés, non committés par V2-11)
@@ -1097,3 +1097,45 @@ ETAT: fini
 ### Décision d'Olivier (2026-10-03) — écrans retirés en V2-11
 
 - Feu vert pour Partager, Notes, Liens et la reconstruction d'index : **lot V2-12d**. Partage : interne (comptes et groupes, sous les droits de dossier) et lien externe en lecture seule, expirant, révocable, tracé.
+
+## Journal V2-12d — collaboration, partage et index — 03-10-2026
+
+**Oracle d'abord**
+
+- `tests/php/Socle/V212dTest.php` a d'abord échoué : la modification de note n'était pas une ligne d'Historique et une reconstruction marquait tout l'index sans le reprendre par tranches. Il couvre maintenant note auteur/date/édition/retrait/index, liens des deux côtés, partage interne sous ACL, jeton externe faux/expiré/révoqué et sans fuite, puis la reprise bornée de la reconstruction.
+- `tests/e2e/collaboration-v2-12d.spec.ts` prépare un compte administrateur RÉEL et un fonds synthétique distinct par geste (`notes`, `liens`, `partager`, `reconstruction`). Son préparateur exige `STORAGE_ROOT` explicite, refuse exactement la racine du `.env`, prend le verrou de base V2-12c-s3 et remet son état cohérent avant chaque parcours. Notes et Partager sont à 390 px ; aucun délai par geste n'est augmenté.
+
+**Fait**
+
+- Notes : `document_notes` est en ajout/retrait logique ; seule l'identité auteur peut modifier ou retirer. Chaque action est tracée dans `document_collaboration_evenements` et l'index plein texte `recherche_textes` reçoit le texte des notes actives : aucun moteur parallèle.
+- Liens : `document_liens` garde source, cible, libellé et auteur ; le lien est rendu des deux côtés et filtré côté service si la cible n'est pas lisible. La création vérifie la lecture des deux documents, le retrait est logique et audité.
+- Partages : `document_partages` ne garde que SHA-256 du jeton externe aléatoire de 32 octets. Le service impose une date future, journalise chaque accès sans jeton, refuse faux/expiré/révoqué, et le gabarit public n'expose qu'aperçu/téléchargement. Le partage interne refuse un compte/groupe sans lecture préexistante et la vue « Partagés avec moi » refiltre à nouveau par ACL.
+- Reconstruction : une ligne `reconstruction_index_jobs` marque l'unique tâche active. Le lancement marque le cache Recherche absent, chaque tranche réactive au plus 25 lignes, consultation comprise ; l'état survit à une coupure et un second lancement est refusé proprement.
+
+### À commiter par le juge (fichiers partagés, non modifiés par V2-12d)
+
+`src/Securite/DroitsRoutes.php` doit déclarer et résoudre exactement :
+
+- `POST /documents/{id:[0-9]+}/notes` → `documents:lire` (Utilisateur ; la garde de dossier doit donc traiter ce geste comme `lire`, pas `modifier`).
+- `POST /documents/{id:[0-9]+}/liens` → `documents:lire` (Utilisateur ; même action de dossier `lire`).
+- `POST /documents/{id:[0-9]+}/partages` → `documents:lire` pour le partage interne ; l'autorisation de dossier du destinataire reste vérifiée par `Collaboration`.
+- `GET /partages-avec-moi` → `documents:lire`.
+- `GET /partages/{jeton:[A-Za-z0-9_-]+}` et `GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier` → `publique:partage-externe` ; ces DEUX routes seulement sont publiques, le contrôleur vérifie le jeton haché, jamais la garde.
+- `POST /application/reconstruction-index` et `POST /application/reconstruction-index/{id:[0-9]+}/tranche` → `application:administrer`.
+
+Le modèle décidé le 03-10 réserve le lien externe au Manager. Le rôle fonctionnel `documents:partager-externe` n'existe pas encore (V2-13) : le juge doit soit le poser avec le rôle Manager, soit laisser l'action externe interdite hors administrateur ; il ne faut pas l'accorder par défaut au rôle Utilisateur. La route actuelle porte les deux types de partage : cette séparation de rôle doit être faite avant ouverture aux non-administrateurs.
+
+`tools/banc/sonde-securite.php` doit ajouter une charge CSRF absente puis rejouée pour les cinq POST ci-dessus, et pour les deux POST de partage selon leur action. Elle doit aussi sonder un faux jeton sur les deux routes publiques (403), un jeton révoqué/expiré (403), son emploi comme paramètre sur `/documents/{id}` (403 sans session), puis contrôler que `audit.ndjson` ne contient jamais le jeton créé.
+
+**Preuves**
+
+- PHP ciblé : **5 tests, 34 assertions, vert**. Le préparateur V2-12d et la compilation des quatre parcours Playwright sont verts.
+- Premier parcours e2e honnêtement rouge : les routes nouvelles sont actuellement « route sans permission déclarée » dans la garde centrale ; c'est précisément la porte partagée ci-dessus, non une assertion affaiblie. Aucun délai ni donnée truquée n'a été ajouté.
+
+**Commits**
+
+- `1ab1fba` — socle : rend collaboration et reconstruction réelles.
+- `e0b23a5` — interface : rend notes partages et reconstruction actionnables.
+- `fd25cd9`, `75977b9` — interface : parcours isolés et oracles V2-12d.
+
+ETAT: bloqué — déclarations DroitsRoutes/sonde et distinction fonctionnelle Manager du lien externe attendues du juge

@@ -52,7 +52,7 @@ try {
     $identifiant = 'v212d-' . $geste . '@exemple.test'; $motDePasse = 'MotDePasse-V2-12d-2026!';
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE empreinte=VALUES(empreinte), role=VALUES(role)')
         ->execute([$identifiant, password_hash($motDePasse, PASSWORD_DEFAULT), 'admin']);
-    $source = dirname($racineDemandee) . '/depots'; mkdir($source, 0775, true);
+    $source = dirname($racineDemandee) . '/depots'; if (!is_dir($source)) mkdir($source, 0775, true);
     $depot = new DepotFichiers($config);
     $commun = ['type'=>'Facture', 'emetteur'=>'Atelier V2-12d SA', 'date'=>'2026-10-03', 'statut'=>'valide', 'texte'=>'document synthétique V2-12d'];
     $premier = $depot->deposer(piece($source, 'premier.pdf', 'Premier document V2-12d'), $commun + ['titre'=>'Facture V2-12d']);

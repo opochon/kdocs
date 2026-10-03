@@ -249,3 +249,14 @@ ETAT: fini
 - Modification minimale signalée depuis Interface : `DepotFichiers::restaurerVersion()` reprend une archive `.versions/` comme une nouvelle version via `remplacerContenu()`, donc ne détruit aucune version, respecte le scellement et trace `restauration`.
 - Modification minimale signalée depuis Interface : `EcranBibliotheque` utilise uniquement l'index `k_vivant` pour former l'arbre et filtre un dossier/ses descendants par préfixe SQL; aucun fichier du fonds n'est lu au GET.
 - Oracle : `V212cTest` prouve v1 → v2 → restauration v1 = v3, et un dossier parent qui compte et filtre ses deux descendants.
+
+## Journal V2-12d — données de collaboration et reconstruction — 03-10-2026
+
+- `document_notes`, `document_liens`, `document_partages`, `document_collaboration_evenements` et `reconstruction_index_jobs` sont installées idempotemment par `Socle\Schema`. Aucune donnée utilisateur n'est supprimée : retrait/révocation sont datés.
+- `Collaboration` garde les jetons externes uniquement sous empreinte SHA-256, vérifie expiration/révocation, journalise sans secret, actualise la ligne du même index Recherche après une note, et vérifie les ACL existantes avant lien ou partage interne.
+- `ReconstructionIndex` vide logiquement le cache Recherche, puis le reprend par lots au plus 100 (25 depuis l'écran). Une tâche `en_cours` est son point de reprise et empêche un lancement concurrent ; aucun GET de consultation n'est bloqué.
+- Oracle : `V212dTest` 5 tests / 34 assertions verts (notes, index, historique, liens, ACL de partage interne, faux/expiré/révoqué/sans fuite externe, reprise d'index).
+
+**Demande au juge Droits/Sécurité** : voir les routes et charges de sonde exactes dans `docs/secteurs/interface.md`, Journal V2-12d. Les mutations de note/lien/partage interne doivent être évaluées avec l'action de dossier `lire` afin de respecter le modèle Utilisateur ; le lien externe demeure réservé au Manager/Administrateur jusqu'à V2-13.
+
+ETAT: bloqué — porte partagée DroitsRoutes/sonde
