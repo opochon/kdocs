@@ -95,7 +95,9 @@ final class V212dTest extends TestCase
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), role=VALUES(role)')->execute(['lecteur@exemple.test', 'x', 'lecteur']);
         $lecteur = (int) $this->pdo->lastInsertId();
         $droits = new \Ged\Securite\DroitsDossiers($this->pdo);
-        $groupe = $droits->creerGroupe('Lecteurs V2-12d', 'lecteur'); $droits->ajouterCompteAuGroupe($lecteur, $groupe);
+        $trouverGroupe = $this->pdo->prepare('SELECT id FROM securite_groupes WHERE nom = ?'); $trouverGroupe->execute(['Lecteurs V2-12d']);
+        $groupe = (int) $trouverGroupe->fetchColumn(); if ($groupe < 1) $groupe = $droits->creerGroupe('Lecteurs V2-12d', 'lecteur');
+        $droits->ajouterCompteAuGroupe($lecteur, $groupe);
         $dossier = $droits->dossierPourDocument($id); self::assertNotNull($dossier);
         $collaboration = new Collaboration($this->config);
         $this->expectExceptionMessage('doit déjà lire le dossier');
@@ -138,6 +140,7 @@ final class V212dTest extends TestCase
         return (new DepotFichiers($this->config))->deposer($this->pieceADeposer($nom, $texte), [
             'titre' => $titre, 'type' => 'Facture', 'emetteur' => 'Atelier Fictif SA',
             'date' => '2026-10-03', 'texte' => $texte, 'statut' => 'valide',
+            'dossier' => 'V212d/' . basename($this->racine),
         ]);
     }
 }
