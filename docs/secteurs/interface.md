@@ -1139,3 +1139,35 @@ Le modèle décidé le 03-10 réserve le lien externe au Manager. Le rôle fonct
 - `fd25cd9`, `75977b9`, `bb752fe`, `41e6152` — interface : parcours isolés, oracles, partage externe public et oracle V2-11 adapté aux gestes rétablis.
 
 ETAT: bloqué — la porte V2-12d est verte, mais le rejeu global demandé deux fois reste à refaire sur un arbre stable : le harness a relevé 5 rouges PHPUnit et 3 rouges d’écrans dans les travaux concurrents ; l’ancien oracle V2-11 Notes/Liens a été corrigé ici après ce passage.
+
+## Journal V2-12d3 — séparation du lien externe et reprise de contrat — 03-10-2026
+
+**Oracle d'abord**
+
+- Le parcours `collaboration-v2-12d.spec.ts` prépare maintenant un compte Utilisateur réellement ACLé : il partage en interne, ne voit pas le geste externe et reçoit 403 s'il appelle directement sa route.
+- `V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois()` vérifie le passage du secret par le flash serveur, lu puis vidé : aucune redirection ne l'expose.
+- `EcransTest::testFicheInconnueAvecSessionSynthetiqueSansCompteNeRendPas500()` a été rouge (la maquette Notes/Liens ne suivait plus le contrat de la fiche), puis vert ; `php tools/banc/contrat.php` est vert.
+
+**Fait**
+
+- `POST /documents/{id}/partages` ne gère plus que création et révocation internes. Création et révocation externes passent exclusivement par `POST /documents/{id}/partages/externe`.
+- Le formulaire externe est conditionné à `documents:partager-externe` (ou `*`). Après création, le jeton est conservé comme flash associé à la session HTTP, rendu une seule fois, puis effacé ; l'URL de redirection est strictement `/documents/{id}`.
+- La fiche de repli conserve exactement le contrat Notes/Liens/Partages du gabarit et répond donc 200 avec une session synthétique sans compte et un document inconnu.
+
+### À commiter par le juge
+
+- `src/Securite/DroitsRoutes.php` : `POST /documents/{id:[0-9]+}/partages` → `documents:lire` et l'action de dossier Lecture, maintenant que l'action externe est séparée.
+- `src/Securite/GardeCentrale.php` : le POST `/documents/{id}/partages/externe` est un geste de lecture de dossier (l'autorisation fonctionnelle reste `documents:partager-externe`), pour permettre le futur rôle Manager sans exiger Modification.
+- `tools/banc/sonde-securite.php` et `tools/banc/contrat.php` : conserver la route externe comme seule porte du lien et couvrir le refus Utilisateur.
+
+**Preuves**
+
+- PHP ciblé : 18 tests, 67 assertions verts ; contrat HTTP vert.
+- Parcours V2-12d : les quatre parcours d'origine sont verts. Le nouveau parcours Utilisateur est rouge tant que le juge n'a pas remplacé l'ancienne permission administrateur de `/partages`.
+
+**Commits**
+
+- `a20d94f` — socle : sépare la révocation des partages externes.
+- `b934225` — interface : affiche le lien externe une seule fois.
+
+ETAT: bloqué — attente de la seule modification de route réservée au juge, puis rejeu global double sur arbre stable.
