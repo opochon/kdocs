@@ -1171,3 +1171,29 @@ ETAT: bloqué — la porte V2-12d est verte, mais le rejeu global demandé deux 
 - `b934225` — interface : affiche le lien externe une seule fois.
 
 ETAT: bloqué — attente de la seule modification de route réservée au juge, puis rejeu global double sur arbre stable.
+
+## Journal V2-12d5 — porte lecteur et rejeux stabilisés — 03-10-2026
+
+**Oracle d'abord, puis porte intégrée**
+
+- Après le commit juge `b54031f`, `POST /documents/{id}/partages` porte bien `documents:lire` : le parcours Utilisateur est devenu vert. Le préparateur crée un vrai compte lecteur, l'ajoute à un groupe ACLé en lecture sur le dossier de la pièce, puis le parcours prouve la création du partage interne, l'absence du geste externe et le refus HTTP 403 de sa route directe.
+- `tests/e2e/collaboration-v2-12d.spec.ts` : **5/5 verts** en **20,5 s** (Notes, Liens, externe administrateur, interne Utilisateur, reconstruction).
+
+**Rejeux sur le commit `1fb8726`**
+
+- `npx playwright test` entier : **64/64 verts**. Aucun rouge, y compris `mobile.spec.ts:298` sur ce passage.
+- `powershell -File tools\\harness.ps1 -SansBanc` : **443 s** ; garde-fous, sécurité, contrat et charge verts ; charge **p95 lecture 453 ms**, **p95 écriture 198 ms**, **0 erreur**, **0 collision**. Écrans : **62 verts, 1 rouge** ; unitaire : **434 tests, 2 457 assertions, 4 échecs** ; banc volontairement sauté, personas non écrites.
+- Le rouge écran a été rejoué seul : `mobile.spec.ts:298`, **1 échec, 1 non exécuté**. La ligne `file-item-1` reste cachée après l'ouverture de la file sur iPhone 13 : c'est le rouge mobile expressément admis pour ce rejeu.
+- Les 4 rouges unitaires ont été rejoués seuls et persistent : `CorbeilleTest::testAucuneSuppressionSqlSurLesDonneesUtilisateur` (**1 test, 2 assertions**) détecte un `TRUNCATE` hors reconstructeur dans `src/Socle/JetonPartageSession.php` ; `InstallateurTest` (**3 tests, 9 assertions**) échoue sur les 25 tables posées au lieu des 20 attendues et sur la remise à zéro du compte d'installation.
+
+**Demandes au Socle**
+
+- Corriger `JetonPartageSession.php` pour respecter l'oracle zéro suppression SQL, ou mettre en œuvre un mécanisme admis par le secteur Socle.
+- Mettre à jour, avec l'oracle correspondant, l'installation/réinitialisation pour les 25 tables désormais présentes et préserver le compte lorsque l'installation d'une base peuplée est refusée. Ces fichiers sont hors des chemins Interface ; aucune modification hors secteur n'a été faite.
+
+**Commits**
+
+- `ae941b9` — interface : couvre le partage Utilisateur V2-12d.
+- `1fb8726` — interface : prépare le lecteur ACLé V2-12d.
+
+ETAT: bloqué — les 4 échecs PHPUnit Socle persistent seuls ; le seul rouge écran est `mobile.spec.ts:298`, admis.
