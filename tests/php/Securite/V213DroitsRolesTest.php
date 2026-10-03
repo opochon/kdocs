@@ -30,11 +30,19 @@ final class V213DroitsRolesTest extends TestCase
     {
         $matrice = Schema::matriceRoles();
 
-        self::assertSame(['utilisateur', 'manager', 'administrateur'], array_keys($matrice));
-        self::assertContains('documents:deposer', $matrice['utilisateur']);
-        self::assertContains('documents:partager-externe', $matrice['manager']);
-        self::assertContains('archivage:sceller', $matrice['manager']);
-        self::assertContains('application:administrer', $matrice['administrateur']);
+        self::assertSame([
+            'utilisateur' => ['documents:lire', 'recherche:lire', 'documents:deposer'],
+            'manager' => [
+                'documents:lire', 'recherche:lire', 'documents:deposer', 'documents:traiter', 'documents:modifier',
+                'documents:partager-externe', 'archivage:consulter', 'archivage:sceller', 'dossiers:gerer',
+                'workflows:lire', 'workflow.gerer', 'workflow.executer', 'workflow.transition',
+            ],
+            'administrateur' => [
+                '*', 'documents:lire', 'recherche:lire', 'documents:deposer', 'documents:traiter', 'documents:modifier',
+                'documents:partager-externe', 'archivage:consulter', 'archivage:sceller', 'dossiers:gerer',
+                'workflows:lire', 'workflow.gerer', 'workflow.executer', 'workflow.transition', 'application:administrer',
+            ],
+        ], $matrice);
 
         $couvertes = array_fill_keys(array_merge(...array_values($matrice)), true);
         foreach (DroitsRoutes::declarees() as $permission) {
@@ -42,6 +50,27 @@ final class V213DroitsRolesTest extends TestCase
                 self::assertArrayHasKey(DroitsRoutes::permissionCanonique($permission), $couvertes, $permission);
             }
         }
+    }
+
+    public function testMigrationDesRolesEtGroupesInitiauxEstIdempotente(): void
+    {
+        $suffixe = bin2hex(random_bytes(5));
+        $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
+            ->execute(['migration-' . $suffixe . '@gedv2.test', password_hash('MotDePasse-V213!', PASSWORD_DEFAULT), 'lecteur']);
+        $compte = (int) $this->pdo->lastInsertId();
+        $this->pdo->prepare('INSERT INTO securite_groupes (nom, role_code) VALUES (?, ?)')->execute(['legacy-' . $suffixe, 'archiveur']);
+        $groupe = (int) $this->pdo->lastInsertId();
+        $this->pdo->prepare('INSERT INTO securite_groupes_comptes (groupe_id, compte_id) VALUES (?, ?)')->execute([$groupe, $compte]);
+        $this->pdo->prepare('INSERT INTO securite_dossiers_droits (dossier_id, groupe_id, action_code, autorise) VALUES (?, ?, ?, 1)')
+            ->execute([8601, $groupe, 'archiver']);
+
+        Schema::installer($this->pdo);
+        Schema::installer($this->pdo);
+
+        self::assertSame('utilisateur', $this->valeur('SELECT role FROM comptes WHERE id = ?', [$compte]));
+        self::assertSame('manager', $this->valeur('SELECT role_code FROM securite_groupes WHERE id = ?', [$groupe]));
+        self::assertSame('gerer', $this->valeur('SELECT action_code FROM securite_dossiers_droits WHERE dossier_id = 8601 AND groupe_id = ?', [$groupe]));
+        self::assertSame(['Managers' => 'manager', 'Utilisateurs' => 'utilisateur'], $this->groupesInitiaux());
     }
 
     public function testNiveauxDeDossierSontCumulatifsEtLeRefusRestePrioritaire(): void
@@ -71,5 +100,23 @@ final class V213DroitsRolesTest extends TestCase
             ->execute(['v213-' . $suffixe . '@gedv2.test', password_hash('MotDePasse-V213!', PASSWORD_DEFAULT), $role]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    /** @param list<int|string> $parametres */
+    private function valeur(string $sql, array $parametres): string
+    {
+        $requete = $this->pdo->prepare($sql);
+        $requete->execute($parametres);
+
+        return (string) $requete->fetchColumn();
+    }
+
+    /** @return array<string, string> */
+    private function groupesInitiaux(): array
+    {
+        $lignes = $this->pdo->query("SELECT nom, role_code FROM securite_groupes WHERE nom IN ('Utilisateurs', 'Managers') ORDER BY nom")
+            ->fetchAll(\PDO::FETCH_KEY_PAIR);
+
+        return array_map('strval', $lignes);
     }
 }
