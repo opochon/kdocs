@@ -25,11 +25,13 @@ use Ged\Config;
 use Ged\Ingestion\EditeurPdf;
 use Ged\Socle\Schema;
 
-$SECTEURS = ['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions'];
+// Le Socle pose `comptes`, dont la migration des rôles de Sécurité a besoin : ordre de dépendance,
+// jamais une lecture de table avant sa création sur une base neuve.
+$SECTEURS = ['Socle', 'Securite', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions'];
 $TABLES_ATTENDUES = [
     'classement_choix', 'comptes', 'document_collaboration', 'document_deplacements', 'document_versions', 'documents',
     'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
-    'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+    'securite_audit', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
     'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
     'workflow_definitions', 'workflow_instances', 'workflow_journal',
 ];
@@ -101,7 +103,7 @@ try {
         }
     }
     $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-    if (count($TABLES_ATTENDUES) !== 21 || $tables !== $TABLES_ATTENDUES || count($tables) > 21) {
+    if (count($TABLES_ATTENDUES) !== 22 || $tables !== $TABLES_ATTENDUES || count($tables) > 22) {
         throw new RuntimeException('schéma posé inattendu : ' . implode(', ', $tables)
             . ' ; attendu : ' . implode(', ', $TABLES_ATTENDUES));
     }
