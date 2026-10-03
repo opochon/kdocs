@@ -124,6 +124,15 @@ final class V213DroitsRolesTest extends TestCase
         self::assertFalse($droits->autorise($compte, $enfant, 'deposer'));
     }
 
+    public function testContratDepotExposeLesLecturesUtiliseesParATraiter(): void
+    {
+        $contrat = new \ReflectionClass(\Ged\Contrats\Depot::class);
+
+        foreach (['fiche', 'lister', 'cheminAbsolu'] as $methode) {
+            self::assertTrue($contrat->hasMethod($methode), $methode . ' manque au contrat Depot');
+        }
+    }
+
     private function creerCompte(string $suffixe, string $role): int
     {
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')

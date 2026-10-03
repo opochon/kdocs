@@ -739,24 +739,6 @@ parameters:
 			path: src/Socle/Vues.php
 
 		-
-			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:cheminAbsolu\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Ui/ATraiter.php
-
-		-
-			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:fiche\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Ui/ATraiter.php
-
-		-
-			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:lister\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Ui/ATraiter.php
-
-		-
 			message: '#^Method Ged\\Ui\\ATraiter\:\:documentDepuisLigne\(\) has parameter \$ligne with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

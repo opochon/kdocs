@@ -28,4 +28,13 @@ interface Depot
      * @param array<string, mixed> $metadonnees
      */
     public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void;
+
+    /** @return array<string, mixed>|null Ligne d'index et métadonnées décodées. */
+    public function fiche(int $idDocument): ?array;
+
+    /** @return list<array<string, mixed>> Documents vivants de l'index. */
+    public function lister(): array;
+
+    /** Résout un chemin relatif du fonds, en refusant toute sortie de racine. */
+    public function cheminAbsolu(string $cheminRelatif): string;
 }

@@ -368,4 +368,19 @@ final class DepotSimule implements Depot
     public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void
     {
     }
+
+    public function fiche(int $idDocument): ?array
+    {
+        return null;
+    }
+
+    public function lister(): array
+    {
+        return [];
+    }
+
+    public function cheminAbsolu(string $cheminRelatif): string
+    {
+        return $cheminRelatif;
+    }
 }
