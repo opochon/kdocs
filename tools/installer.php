@@ -26,6 +26,14 @@ use Ged\Ingestion\EditeurPdf;
 use Ged\Socle\Schema;
 
 $SECTEURS = ['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions'];
+$TABLES_ATTENDUES = [
+    'classement_choix', 'comptes', 'document_collaboration_evenements', 'document_deplacements',
+    'document_liens', 'document_notes', 'document_partages', 'document_versions', 'documents',
+    'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
+    'reconstruction_index_jobs', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+    'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
+    'workflow_definitions', 'workflow_instances', 'workflow_journal',
+];
 
 $base = null;
 $admin = null;
@@ -94,8 +102,9 @@ try {
         }
     }
     $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-    if (count($tables) > 20) {
-        throw new RuntimeException(count($tables) . ' tables posées : le départ doit tenir en 20, resserrer le schéma');
+    if ($tables !== $TABLES_ATTENDUES) {
+        throw new RuntimeException('schéma posé inattendu : ' . implode(', ', $tables)
+            . ' ; attendu : ' . implode(', ', $TABLES_ATTENDUES));
     }
 
     $compte = null;

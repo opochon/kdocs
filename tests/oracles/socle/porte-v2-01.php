@@ -24,6 +24,14 @@ use Ged\Socle\Export;
 use Ged\Socle\Indexeur;
 
 $echecs = 0;
+$tablesAttendues = [
+    'classement_choix', 'comptes', 'document_collaboration_evenements', 'document_deplacements',
+    'document_liens', 'document_notes', 'document_partages', 'document_versions', 'documents',
+    'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
+    'reconstruction_index_jobs', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+    'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
+    'workflow_definitions', 'workflow_instances', 'workflow_journal',
+];
 
 /** Exécute une clause de la porte : affiche OK ou ÉCHEC avec la cause. */
 $etape = function (string $nom, callable $clause) use (&$echecs): void {
@@ -77,17 +85,17 @@ echo "Porte V2-01 — base gedv2_test, fonds éphémère $fonds/fonds\n";
 // --- Les six clauses ---------------------------------------------------------------------------
 $pdo = null;
 
-$etape('1. installateur : schéma neuf, admin posé, base peuplée refusée sans --remplacer', function () use (&$pdo, $config, $racine): ?string {
+$etape('1. installateur : schéma neuf, admin posé, base peuplée refusée sans --remplacer', function () use (&$pdo, $config, $racine, $tablesAttendues): ?string {
     viderBase($config);
-    [$code, $sortie] = commande('tools/installer.php', '--admin=admin');
+    [$code, $sortie] = commande('tools/installer.php', '--admin=admin@gedv2.test');
     exiger($code === 0, "installation échouée : $sortie");
     $pdo = Base::pdo($config);
     $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-    exiger(count($tables) > 0 && count($tables) <= 20, count($tables) . ' tables (≤ 20 attendu)');
-    exiger((int) $pdo->query("SELECT COUNT(*) FROM comptes WHERE identifiant = 'admin'")->fetchColumn() === 1,
+    exiger($tables === $tablesAttendues, 'tables inattendues : ' . implode(', ', $tables));
+    exiger((int) $pdo->query("SELECT COUNT(*) FROM comptes WHERE identifiant = 'admin@gedv2.test'")->fetchColumn() === 1,
         'le compte admin manque');
 
-    [$codeRefus, $refus] = commande('tools/installer.php', '--admin=autre');
+    [$codeRefus, $refus] = commande('tools/installer.php', '--admin=autre@gedv2.test');
     exiger($codeRefus !== 0, 'une base peuplée doit être refusée sans --remplacer');
     exiger(str_contains($refus, 'peuplée'), "le refus doit se nommer : $refus");
 

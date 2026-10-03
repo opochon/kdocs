@@ -7,12 +7,22 @@ namespace Ged\Tests\Socle;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose un schéma neuf (≤ 20 tables),
+ * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose les 25 tables attendues,
  * refuse une base peuplée sans --remplacer, et fait alors un dump AVANT de remplacer.
  * La commande réelle est exécutée comme le juge la rejouera.
  */
 final class InstallateurTest extends TestCase
 {
+    /** Tables de tous les secteurs présents, y compris collaboration et reconstruction V2-12d. */
+    private const TABLES_ATTENDUES = [
+        'classement_choix', 'comptes', 'document_collaboration_evenements', 'document_deplacements',
+        'document_liens', 'document_notes', 'document_partages', 'document_versions', 'documents',
+        'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
+        'reconstruction_index_jobs', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+        'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
+        'workflow_definitions', 'workflow_instances', 'workflow_journal',
+    ];
+
     private string $depot;        // racine du dépôt
     private string $sauvegardes;  // var/sauvegardes du dépôt
     private \PDO $pdo;
@@ -59,9 +69,7 @@ final class InstallateurTest extends TestCase
 
         self::assertSame(0, $code, "l’installateur devait réussir : $sortie");
         $tables = $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
-        self::assertContains('documents', $tables, 'le schéma du socle est posé');
-        self::assertContains('ingestion_travaux', $tables, 'les schémas des autres secteurs présents sont posés aussi');
-        self::assertLessThanOrEqual(20, count($tables), '≤ 20 tables au départ');
+        self::assertSame(self::TABLES_ATTENDUES, $tables, 'le schéma neuf contient exactement les tables des secteurs présents');
 
         $compte = $this->pdo->query('SELECT identifiant, role FROM comptes')->fetch(\PDO::FETCH_ASSOC);
         self::assertSame(['identifiant' => 'admin@gedv2.test', 'role' => 'admin'], $compte, 'le compte admin existe, un seul');
@@ -97,6 +105,8 @@ final class InstallateurTest extends TestCase
             'le dump contient les données d’avant remplacement');
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM documents')->fetchColumn(),
             'la base est neuve, l’ancienne ligne a vécu dans le dump');
+        self::assertSame(self::TABLES_ATTENDUES, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN),
+            'la réinitialisation repose aussi les tables V2-12d');
         self::assertSame(['admin@gedv2.test'], $this->pdo->query('SELECT identifiant FROM comptes')->fetchAll(\PDO::FETCH_COLUMN));
     }
 
