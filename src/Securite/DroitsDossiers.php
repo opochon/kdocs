@@ -9,7 +9,7 @@ use PDO;
 /** Résolution des droits de dossier : groupe local, parent, puis refus explicite par défaut. */
 final class DroitsDossiers
 {
-    /** @var array<string, string> */
+    /** @var list<string> */
     private const NIVEAUX = ['lire', 'deposer', 'modifier', 'gerer'];
 
     private const PERMISSIONS_ACTIONS = [
@@ -168,7 +168,7 @@ final class DroitsDossiers
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    /** null signifie héritage ; une permission haute inclut les niveaux précédents. */
+    /** @param list<int> $groupes null signifie héritage ; une permission haute inclut les niveaux précédents. */
     private function decisionHeritee(int $dossier, array $groupes, string $action): ?bool
     {
         $vus = [];
