@@ -98,4 +98,13 @@ final class EcransTest extends TestCase
         self::assertStringContainsString('expiré le', $gabarit);
         self::assertStringContainsString('data-testid="partage-etat-', $gabarit);
     }
+
+    public function testRoutesDeCollaborationSontLisibles(): void
+    {
+        $source = (string) file_get_contents(dirname(__DIR__, 2) . '/src/Ui/Module.php');
+
+        foreach (['partageInterne', 'partageExterne', 'pagePartageExterne', 'fichierPartageExterne'] as $methode) {
+            self::assertStringContainsString('function ' . $methode, $source);
+        }
+    }
 }

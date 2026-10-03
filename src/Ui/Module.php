@@ -202,20 +202,10 @@ final class Module
             try { if((string)($c['action']??'lier')==='retirer')$s->retirerLien((int)($c['lien']??0),self::auteur($req));else $s->lier($id,(int)($c['cible']??0),(string)($c['libelle']??''),self::auteur($req),self::compte($req)); return $rep->withHeader('Location','/documents/'.$id.'?lien_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/liens',$e->getMessage()); }
         });
         $app->post('/documents/{id:[0-9]+}/partages', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
-            $c=(array)($req->getParsedBody() ?: []);$id=(int)$args['id'];$s=new \Ged\Socle\Collaboration($config);
-            try { $action=(string)($c['action']??''); if($action==='interne')$s->partagerInterne($id,(string)($c['cible_type']??''),(int)($c['cible']??0),self::auteur($req)); elseif($action==='revoquer')$s->revoquerPartageInterne((int)($c['partage']??0),self::auteur($req)); else throw new \RuntimeException('partage interne : action inconnue'); return $rep->withHeader('Location','/documents/'.$id.'?partage_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/partages',$e->getMessage()); }
+            return self::partageInterne($req, $rep, $args, $config, $vue);
         });
         $app->post('/documents/{id:[0-9]+}/partages/externe', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
-            $c = (array) ($req->getParsedBody() ?: []); $id = (int) $args['id']; $s = new \Ged\Socle\Collaboration($config);
-            try {
-                if ((string) ($c['action'] ?? '') === 'revoquer') {
-                    $s->revoquerPartageExterne((int) ($c['partage'] ?? 0), self::auteur($req));
-                } else {
-                    $p = $s->partagerExterne($id, self::auteur($req), (string) ($c['expiration'] ?? ''));
-                    (new \Ged\Socle\JetonPartageSession($config))->poser((string) ($req->getCookieParams()['gedv2_session'] ?? ''), $p['jeton']);
-                }
-                return $rep->withHeader('Location', '/documents/' . $id)->withStatus(303);
-            } catch (\Throwable $e) { return self::erreur($vue, $rep, 'POST /documents/{id}/partages/externe', $e->getMessage()); }
+            return self::partageExterne($req, $rep, $args, $config, $vue);
         });
         $app->get('/partages-avec-moi', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
             $compte = self::compte($req);
@@ -226,10 +216,78 @@ final class Module
         });
         // Ces deux routes sont publiques seulement au sens de la garde : le jeton long, expirant et
         // révocable est vérifié ICI. Aucun autre chemin n'accepte un jeton.
-        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { $s=new \Ged\Socle\Collaboration($config);$v=$s->lienExterneValide((string)$args['jeton']); if($v===null)return self::erreur($vue,$rep,'GET /partages/{jeton}','lien externe invalide, expiré ou révoqué',403);$d=$s->cheminDocument($v['document']);if($d===null)return self::erreur($vue,$rep,'GET /partages/{jeton}','document indisponible',404);return $vue->rendre($rep,'ecrans/partage-externe.twig',['ecran'=>'partage-externe','titre'=>$d['titre'],'jeton'=>(string)$args['jeton']]); });
-        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}/fichier', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { $s=new \Ged\Socle\Collaboration($config);$v=$s->lienExterneValide((string)$args['jeton']);if($v===null)return self::erreur($vue,$rep,'GET /partages/{jeton}/fichier','lien externe invalide, expiré ou révoqué',403);$d=$s->cheminDocument($v['document']);$root=realpath($config->chemin('STORAGE_ROOT','storage/documents'));$file=$d===null?false:realpath($root.'/'.$d['chemin_relatif']);if($root===false||$file===false||!str_starts_with(str_replace('\\','/',$file),str_replace('\\','/',$root).'/'))return self::erreur($vue,$rep,'GET /partages/{jeton}/fichier','document indisponible',404);$rep->getBody()->write((string)file_get_contents($file));return $rep->withHeader('Content-Type',(string)$d['mime'])->withHeader('Content-Disposition','inline; filename="'.rawurlencode((string)$d['nom']).'"'); });
+        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return self::pagePartageExterne($rep, $args, $config, $vue);
+        });
+        $app->get('/partages/{jeton:[A-Za-z0-9_-]+}/fichier', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return self::fichierPartageExterne($rep, $args, $config, $vue);
+        });
         $app->post('/application/reconstruction-index', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index',$e->getMessage());} });
         $app->post('/application/reconstruction-index/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index/{id}/tranche',$e->getMessage());} });
+    }
+
+    /** @param array<string, string> $args */
+    private static function partageInterne(Requete $req, Reponse $rep, array $args, Config $config, Vue $vue): Reponse
+    {
+        $corps = (array) ($req->getParsedBody() ?: []);
+        $id = (int) $args['id'];
+        try {
+            $service = new \Ged\Socle\Collaboration($config);
+            if (($corps['action'] ?? '') === 'interne') {
+                $service->partagerInterne($id, (string) ($corps['cible_type'] ?? ''), (int) ($corps['cible'] ?? 0), self::auteur($req));
+            } elseif (($corps['action'] ?? '') === 'revoquer') {
+                $service->revoquerPartageInterne((int) ($corps['partage'] ?? 0), self::auteur($req));
+            } else {
+                throw new \RuntimeException('partage interne : action inconnue');
+            }
+            return $rep->withHeader('Location', '/documents/' . $id . '?partage_succes=1')->withStatus(303);
+        } catch (\Throwable $e) {
+            return self::erreur($vue, $rep, 'POST /documents/{id}/partages', $e->getMessage());
+        }
+    }
+
+    /** @param array<string, string> $args */
+    private static function partageExterne(Requete $req, Reponse $rep, array $args, Config $config, Vue $vue): Reponse
+    {
+        $corps = (array) ($req->getParsedBody() ?: []);
+        $id = (int) $args['id'];
+        try {
+            $service = new \Ged\Socle\Collaboration($config);
+            if (($corps['action'] ?? '') === 'revoquer') {
+                $service->revoquerPartageExterne((int) ($corps['partage'] ?? 0), self::auteur($req));
+            } else {
+                $partage = $service->partagerExterne($id, self::auteur($req), (string) ($corps['expiration'] ?? ''));
+                (new \Ged\Socle\JetonPartageSession($config))->poser((string) ($req->getCookieParams()['gedv2_session'] ?? ''), $partage['jeton']);
+            }
+            return $rep->withHeader('Location', '/documents/' . $id)->withStatus(303);
+        } catch (\Throwable $e) {
+            return self::erreur($vue, $rep, 'POST /documents/{id}/partages/externe', $e->getMessage());
+        }
+    }
+
+    /** @param array<string, string> $args */
+    private static function pagePartageExterne(Reponse $rep, array $args, Config $config, Vue $vue): Reponse
+    {
+        $service = new \Ged\Socle\Collaboration($config);
+        $partage = $service->lienExterneValide((string) $args['jeton']);
+        if ($partage === null) return self::erreur($vue, $rep, 'GET /partages/{jeton}', 'lien externe invalide, expiré ou révoqué', 403);
+        $document = $service->cheminDocument($partage['document']);
+        if ($document === null) return self::erreur($vue, $rep, 'GET /partages/{jeton}', 'document indisponible', 404);
+        return $vue->rendre($rep, 'ecrans/partage-externe.twig', ['ecran' => 'partage-externe', 'titre' => $document['titre'], 'jeton' => (string) $args['jeton']]);
+    }
+
+    /** @param array<string, string> $args */
+    private static function fichierPartageExterne(Reponse $rep, array $args, Config $config, Vue $vue): Reponse
+    {
+        $service = new \Ged\Socle\Collaboration($config);
+        $partage = $service->lienExterneValide((string) $args['jeton']);
+        if ($partage === null) return self::erreur($vue, $rep, 'GET /partages/{jeton}/fichier', 'lien externe invalide, expiré ou révoqué', 403);
+        $document = $service->cheminDocument($partage['document']);
+        $racine = realpath($config->chemin('STORAGE_ROOT', 'storage/documents'));
+        $fichier = $document === null ? false : realpath($racine . '/' . $document['chemin_relatif']);
+        if ($racine === false || $fichier === false || !str_starts_with(str_replace('\\', '/', $fichier), str_replace('\\', '/', $racine) . '/')) return self::erreur($vue, $rep, 'GET /partages/{jeton}/fichier', 'document indisponible', 404);
+        $rep->getBody()->write((string) file_get_contents($fichier));
+        return $rep->withHeader('Content-Type', (string) $document['mime'])->withHeader('Content-Disposition', 'inline; filename="' . rawurlencode((string) $document['nom']) . '"');
     }
 
     private static function auteur(Requete $req): string { $s=$req->getAttribute('ged.session'); return is_array($s)?(string)($s['utilisateur']??'inconnu'):'inconnu'; }
