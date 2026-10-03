@@ -88,6 +88,17 @@ final class V212dTest extends TestCase
         self::assertNull($collaboration->lienExterneValide($expire['jeton']));
     }
 
+    public function testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois(): void
+    {
+        $flash = new \Ged\Socle\JetonPartageSession($this->config);
+        $session = 'session-synthetique-v212d';
+        $jeton = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        $flash->poser($session, $jeton);
+
+        self::assertSame($jeton, $flash->consommer($session));
+        self::assertSame('', $flash->consommer($session));
+    }
+
     public function testLePartageInterneNeCreePasDeDroitEtNeListeQueLesDestinatairesAutorises(): void
     {
         $id = $this->document('interne.txt', 'Interne', 'partage interne');

@@ -142,6 +142,16 @@ final class Collaboration
         $this->audit->ajouter('partage_revoque',$auteur,['partage'=>$partage]);
     }
 
+    public function revoquerPartageInterne(int $partage, string $auteur): void
+    {
+        $this->revoquerPartageType($partage, 'interne', $auteur);
+    }
+
+    public function revoquerPartageExterne(int $partage, string $auteur): void
+    {
+        $this->revoquerPartageType($partage, 'externe', $auteur);
+    }
+
     /** @return array{document:int,partage:int}|null */
     public function lienExterneValide(string $jeton): ?array
     {
@@ -161,6 +171,7 @@ final class Collaboration
     public function cheminDocument(int $document): ?array { $s=$this->pdo->prepare('SELECT chemin_relatif,nom,mime,titre FROM documents WHERE id=? AND supprime_le IS NULL AND absent_depuis IS NULL');$s->execute([$document]);$r=$s->fetch(PDO::FETCH_ASSOC);return is_array($r)?$r:null; }
 
     private function exigerDocument(int $id): void { if ($this->cheminDocument($id)===null) throw new RuntimeException('document introuvable dans le fonds'); }
+    private function revoquerPartageType(int $partage, string $type, string $auteur): void { $s=$this->pdo->prepare('UPDATE document_partages SET revoque_le = NOW() WHERE id = ? AND type_partage = ? AND revoque_le IS NULL'); $s->execute([$partage, $type]); if ($s->rowCount() !== 1) throw new RuntimeException('partage ' . $type . ' : introuvable ou déjà révoqué'); $this->audit->ajouter('partage_revoque', $auteur, ['partage'=>$partage, 'type'=>$type]); }
     private function evenement(int $document, string $action, string $auteur, ?int $objet = null): void { $this->pdo->prepare('INSERT INTO document_collaboration_evenements (document_id, action, auteur, objet_id) VALUES (?, ?, ?, ?)')->execute([$document, $action, $auteur, $objet]); }
     /** Met à jour la ligne du MÊME index plein texte dès qu'une note change, sans moteur parallèle. */
     private function actualiserRecherche(int $document): void { try { $s=$this->pdo->prepare('SELECT meta FROM documents WHERE id=?');$s->execute([$document]);$meta=json_decode((string)$s->fetchColumn(),true);$texte=is_array($meta)?(string)($meta['texte']??$meta['ocr']??''):'';$n=$this->pdo->prepare('SELECT texte FROM document_notes WHERE document_id=? AND retire_le IS NULL');$n->execute([$document]);$contenu=trim($texte."\n".implode("\n",array_map('strval',$n->fetchAll(PDO::FETCH_COLUMN))));$this->pdo->prepare('UPDATE recherche_textes SET contenu=? WHERE document_id=?')->execute([$contenu,$document]); } catch(\PDOException) {} }
