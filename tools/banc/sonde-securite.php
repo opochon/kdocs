@@ -310,6 +310,7 @@ try {
         'POST /documents/{id:[0-9]+}/notes' => 'texte=',
         'POST /documents/{id:[0-9]+}/liens' => 'cible=0',
         'POST /documents/{id:[0-9]+}/partages' => 'action=inconnue',
+        'POST /documents/{id:[0-9]+}/partages/externe' => 'expiration=',
         'POST /application/reconstruction-index' => 'confirmation=',
         'POST /application/reconstruction-index/{id:[0-9]+}/tranche' => '',
         // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde

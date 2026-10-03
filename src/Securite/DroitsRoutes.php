@@ -39,6 +39,9 @@ final class DroitsRoutes
         // Partages : la route porte aussi le lien externe, reserve au Manager. Tant que V2-13 n'a pas
         // separe le geste externe (route et permission propres), toute la route reste administrateur.
         'POST /documents/{id:[0-9]+}/partages' => 'application:administrer',
+        // Lien externe (creation et revocation) : geste propre, reserve au Manager ; jusqu'a V2-13 seul
+        // l'administrateur (permission '*') porte documents:partager-externe.
+        'POST /documents/{id:[0-9]+}/partages/externe' => 'documents:partager-externe',
         'GET /partages-avec-moi' => 'documents:lire',
         // Lien externe : seules ces deux routes sont publiques ; le controleur verifie le jeton hache.
         'GET /partages/{jeton:[A-Za-z0-9_-]+}' => 'publique:partage-externe',
@@ -119,6 +122,9 @@ final class DroitsRoutes
         // Lien externe V2-12d (jeton seul, aucune session).
         if (strtoupper($methode) === 'GET' && preg_match('#^/partages/[A-Za-z0-9_-]+(/fichier)?$#', $chemin, $m) === 1) {
             return self::PERMISSIONS['GET /partages/{jeton:[A-Za-z0-9_-]+}' . ($m[1] ?? '')];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/partages/externe$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /documents/{id:[0-9]+}/partages/externe'];
         }
         if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|partages)$#', $chemin, $m) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/' . $m[1]];
