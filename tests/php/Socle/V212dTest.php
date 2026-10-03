@@ -92,7 +92,7 @@ final class V212dTest extends TestCase
     {
         $id = $this->document('interne.txt', 'Interne', 'partage interne');
         \Ged\Securite\Schema::installer($this->pdo);
-        $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')->execute(['lecteur@exemple.test', 'x', 'lecteur']);
+        $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), role=VALUES(role)')->execute(['lecteur@exemple.test', 'x', 'lecteur']);
         $lecteur = (int) $this->pdo->lastInsertId();
         $droits = new \Ged\Securite\DroitsDossiers($this->pdo);
         $groupe = $droits->creerGroupe('Lecteurs V2-12d', 'lecteur'); $droits->ajouterCompteAuGroupe($lecteur, $groupe);
