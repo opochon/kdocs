@@ -33,6 +33,18 @@ final class DroitsRoutes
         'POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer' => 'documents:modifier',
         'POST /recherche/vue' => 'documents:lire',
         'POST /a-traiter/valider-lot' => 'documents:traiter',
+        // V2-12d : notes et liens relevent du role Utilisateur (droit de dossier Lecture, voir GardeCentrale).
+        'POST /documents/{id:[0-9]+}/notes' => 'documents:lire',
+        'POST /documents/{id:[0-9]+}/liens' => 'documents:lire',
+        // Partages : la route porte aussi le lien externe, reserve au Manager. Tant que V2-13 n'a pas
+        // separe le geste externe (route et permission propres), toute la route reste administrateur.
+        'POST /documents/{id:[0-9]+}/partages' => 'application:administrer',
+        'GET /partages-avec-moi' => 'documents:lire',
+        // Lien externe : seules ces deux routes sont publiques ; le controleur verifie le jeton hache.
+        'GET /partages/{jeton:[A-Za-z0-9_-]+}' => 'publique:partage-externe',
+        'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 'publique:partage-externe',
+        'POST /application/reconstruction-index' => 'application:administrer',
+        'POST /application/reconstruction-index/{id:[0-9]+}/tranche' => 'application:administrer',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
@@ -102,6 +114,17 @@ final class DroitsRoutes
 
         if (strtoupper($methode) === 'GET' && preg_match('#^/documents/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS['GET /documents/{id:[0-9]+}'];
+        }
+
+        // Lien externe V2-12d (jeton seul, aucune session).
+        if (strtoupper($methode) === 'GET' && preg_match('#^/partages/[A-Za-z0-9_-]+(/fichier)?$#', $chemin, $m) === 1) {
+            return self::PERMISSIONS['GET /partages/{jeton:[A-Za-z0-9_-]+}' . ($m[1] ?? '')];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|partages)$#', $chemin, $m) === 1) {
+            return self::PERMISSIONS['POST /documents/{id:[0-9]+}/' . $m[1]];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/application/reconstruction-index/[0-9]+/tranche$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /application/reconstruction-index/{id:[0-9]+}/tranche'];
         }
 
         // Suivi d'un travail de l'API d'entrée (identifiant numérique, route sous jeton).

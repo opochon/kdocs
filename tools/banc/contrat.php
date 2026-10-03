@@ -106,7 +106,7 @@ try {
     $sessions = new RegistreSessions($dossier . '/securite/sessions');
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);
-        $chemin = str_replace(['/{id:[0-9]+}', '/{nom}'], ['/999999999', '/contrat_synthetique'], $chemin);
+        $chemin = str_replace(['/{id:[0-9]+}', '/{nom}', '/{jeton:[A-Za-z0-9_-]+}'], ['/999999999', '/contrat_synthetique', '/jeton_faux_contrat_0000000000000000'], $chemin);
         $mutation = $methode === 'POST';
         $corps = $mutation ? http_build_query(['nom' => '', 'action_type' => '', 'document_id' => 0, 'actif' => 0, 'vers' => 'invalide']) : null;
         $entetes = $mutation ? ['Content-Type: application/x-www-form-urlencoded'] : [];
@@ -120,6 +120,8 @@ try {
                 // d'appairage manquant est un 400 nommé, un jeton absent un 401).
                 'POST /api/v1/appairage/jeton' => 400,
                 'GET /api/v1/appairage/moi', 'DELETE /api/v1/appairage/moi', 'GET /api/v1/dossiers' => 401,
+                // V2-12d : lien externe sans jeton valide, refus nommé.
+                'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 default => 0,
             };
             if ($rep['code'] !== $attendu) $defauts[] = "$definition : statut attendu $attendu, reçu {$rep['code']}";

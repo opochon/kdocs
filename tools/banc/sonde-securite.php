@@ -191,6 +191,13 @@ try {
     $secure = requete($base, 'GET', '/connexion', ['X-Forwarded-Proto: https']);
     $verifier(str_contains(enteteCookie($secure['headers'], 'gedv2_csrf'), 'Secure'), 'cookie CSRF sans Secure derrière HTTPS');
 
+    // Lien externe V2-12d : un jeton faux est refusé sur les deux routes publiques, et un jeton n'ouvre
+    // jamais une autre page (paramètre ou cookie sur une fiche sans session).
+    foreach (['/partages/jeton_faux_sonde_0000000000000000', '/partages/jeton_faux_sonde_0000000000000000/fichier'] as $cheminPartage) {
+        $verifier(requete($base, 'GET', $cheminPartage)['code'] === 403, "$cheminPartage : jeton faux accepté");
+    }
+    $verifier(requete($base, 'GET', '/documents/204?jeton=jeton_faux_sonde_0000000000000000')['code'] === 403, 'jeton de partage accepté hors de sa route');
+
     // Toute route déclarée est appelée sans session, puis avec un compte sans permission.
     $sessions = new RegistreSessions($dossier . '/securite/sessions');
     $sansDroit = $sessions->ouvrir('sonde-sans-droit@gedv2.test', []);
@@ -201,6 +208,7 @@ try {
         [$methode, $chemin] = explode(' ', $definition, 2);
         $chemin = str_replace('/{id:[0-9]+}', '/204', $chemin);
         $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
+        $chemin = str_replace('/{jeton:[A-Za-z0-9_-]+}', '/jeton_faux_sonde_0000000000000000', $chemin);
         $chemin = str_replace('/{nom}', '/sonde_inconnue', $chemin);
         $publique = DroitsRoutes::estPublique($permission);
         $corps = in_array($methode, ['POST', 'PUT', 'PATCH', 'DELETE'], true) ? 'sonde=1' : null;
@@ -297,6 +305,13 @@ try {
         'POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer' => '',
         'POST /recherche/vue' => 'nom=',
         'POST /a-traiter/valider-lot' => 'documents=',
+        // V2-12d : note vide, lien vers 0, action de partage inconnue, tranche d'une tache inexistante ;
+        // le lancement de reconstruction n'est jamais atteint (CSRF absent ou rejoue).
+        'POST /documents/{id:[0-9]+}/notes' => 'texte=',
+        'POST /documents/{id:[0-9]+}/liens' => 'cible=0',
+        'POST /documents/{id:[0-9]+}/partages' => 'action=inconnue',
+        'POST /application/reconstruction-index' => 'confirmation=',
+        'POST /application/reconstruction-index/{id:[0-9]+}/tranche' => '',
         // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde
         // n'exerce ici que l'absence et le rejeu CSRF de la route irréversible.
         'POST /documents/{id:[0-9]+}/sceller' => 'confirmation=1',
@@ -332,6 +347,7 @@ try {
         }
         $chemin = str_replace('/{id:[0-9]+}', '/999999999', $chemin);
         $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
+        $chemin = str_replace('/{jeton:[A-Za-z0-9_-]+}', '/jeton_faux_sonde_0000000000000000', $chemin);
         $chemin = str_replace('/{nom}', '/sonde_inconnue', $chemin);
         $session = $sessions->ouvrir('sonde-csrf@gedv2.test', [DroitsRoutes::permissionCanonique($permission)]);
         $cookies = 'Cookie: gedv2_session=' . $session['id'] . '; gedv2_csrf=' . $session['csrf'];
