@@ -33,19 +33,19 @@ final class JetonPartageSession
             return '';
         }
         $fichier = $this->fichier($session);
-        $verrou = @fopen($fichier, 'c+');
-        if ($verrou === false || !flock($verrou, LOCK_EX)) {
+        // Le renommage dans le même dossier est atomique : un seul lecteur peut prendre le flash.
+        // La lecture ne touche à aucune table SQL et ne laisse pas de
+        // secret vide derrière lui.
+        $lecture = $fichier . '.' . bin2hex(random_bytes(8)) . '.lecture';
+        if (!@rename($fichier, $lecture)) {
             return '';
         }
         try {
-            $jeton = stream_get_contents($verrou);
-            ftruncate($verrou, 0);
-            fflush($verrou);
+            $jeton = file_get_contents($lecture);
 
             return is_string($jeton) ? trim($jeton) : '';
         } finally {
-            flock($verrou, LOCK_UN);
-            fclose($verrou);
+            @unlink($lecture);
         }
     }
 
