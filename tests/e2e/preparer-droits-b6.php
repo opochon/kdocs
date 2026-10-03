@@ -37,18 +37,20 @@ try {
     $groupeManagers = $droits->creerGroupe("B6 managers $suffixe", 'manager');
     $droits->ajouterCompteAuGroupe($comptes['utilisateur']['id'], $groupeUtilisateurs);
     $droits->ajouterCompteAuGroupe($comptes['manager']['id'], $groupeManagers);
-    $dossierA = 910000 + random_int(1, 89999);
-    $dossierB = $dossierA + 1;
-    $droits->poserDossier($dossierA, null, "b6-$suffixe/A");
-    $droits->poserDossier($dossierB, null, "b6-$suffixe/B");
-    $droits->poserRegle($dossierA, $groupeUtilisateurs, 'deposer', true);
-    $droits->poserRegle($dossierA, $groupeManagers, 'gerer', true);
-    foreach (['A' => $dossierA, 'B' => $dossierB] as $nom => $dossier) {
+    $documents = [];
+    foreach (['A', 'B'] as $nom) {
         $chemin = "b6-$suffixe/$nom/document-$nom.txt";
         $pdo->prepare('INSERT INTO documents (chemin_relatif, nom, titre, empreinte, taille, mime, meta, statut) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([$chemin, "document-$nom.txt", "B6 dossier $nom $suffixe", hash('sha256', $chemin), 1, 'text/plain', '{}', 'a_controler']);
         $documents[$nom] = (int) $pdo->lastInsertId();
     }
+    $dossierA = $droits->assurerDossierPourChemin("b6-$suffixe/A/document-A.txt");
+    $dossierB = $droits->assurerDossierPourChemin("b6-$suffixe/B/document-B.txt");
+    if ($dossierA === null || $dossierB === null) {
+        throw new RuntimeException('B6 : dossiers ACL impossibles à préparer.');
+    }
+    $droits->poserRegle($dossierA, $groupeUtilisateurs, 'deposer', true);
+    $droits->poserRegle($dossierA, $groupeManagers, 'gerer', true);
     echo json_encode(['mot_de_passe' => $motDePasse, 'comptes' => $comptes, 'dossiers' => ['A' => $dossierA, 'B' => $dossierB],
         'documents' => $documents, 'groupe_utilisateurs' => $groupeUtilisateurs], JSON_THROW_ON_ERROR), PHP_EOL;
 } finally {

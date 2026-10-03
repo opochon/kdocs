@@ -27,6 +27,11 @@ test('B6 : trois comptes réels respectent les droits sur les dossiers A et B', 
     expect((await utilisateur.page.goto(`/documents/${prep.documents.A}`))?.status()).toBe(200);
     expect((await utilisateur.page.goto(`/documents/${prep.documents.B}`))?.status()).toBe(403);
     expect((await utilisateur.page.goto(`/documents/${prep.documents.B}/apercu`))?.status()).toBe(403);
+    expect((await utilisateur.page.goto(`/documents/${prep.documents.B}/fichier`))?.status()).toBe(403);
+    expect((await utilisateur.page.goto(`/recherche?q=${encodeURIComponent('B6 dossier B')}`))?.status()).toBe(200);
+    await expect(utilisateur.page.getByTestId(`resultat-${prep.documents.B}`)).toHaveCount(0);
+    expect((await utilisateur.page.goto(`/bibliotheque`))?.status()).toBe(200);
+    await expect(utilisateur.page.getByTestId(`ligne-${prep.documents.B}`)).toHaveCount(0);
     expect((await utilisateur.page.goto(`/dossiers/${prep.dossiers.A}/droits`))?.status()).toBe(403);
     expect((await utilisateur.page.goto('/administration/comptes'))?.status()).toBe(403);
   } finally { await utilisateur.fermer(); }
@@ -35,6 +40,11 @@ test('B6 : trois comptes réels respectent les droits sur les dossiers A et B', 
   try {
     expect((await manager.page.goto(`/dossiers/${prep.dossiers.A}/droits`))?.status()).toBe(200);
     await expect(manager.page.getByTestId('action-enregistrer-droit')).toBeVisible();
+    await manager.page.getByTestId('droit-groupe').selectOption(String(prep.groupe_utilisateurs));
+    await manager.page.getByTestId('droit-niveau').selectOption('lire');
+    await manager.page.getByTestId('droit-decision').selectOption('1');
+    await manager.page.getByTestId('action-enregistrer-droit').click();
+    await expect(manager.page).toHaveURL(new RegExp(`/dossiers/${prep.dossiers.A}/droits$`));
   } finally { await manager.fermer(); }
 
   const administrateur = await connecter(browser, 'administrateur');
