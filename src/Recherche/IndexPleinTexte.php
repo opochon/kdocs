@@ -115,7 +115,7 @@ final class IndexPleinTexte
         $notes = '';
         if ($documentId !== null) {
             try {
-                $s = $this->pdo->prepare('SELECT texte FROM document_notes WHERE document_id = ? AND retire_le IS NULL ORDER BY id');
+                $s = $this->pdo->prepare("SELECT texte FROM document_collaboration WHERE document_id = ? AND type = 'note' AND retire_le IS NULL ORDER BY id");
                 $s->execute([$documentId]);
                 $notes = implode("\n", array_map('strval', $s->fetchAll(PDO::FETCH_COLUMN)));
             } catch (\PDOException) {

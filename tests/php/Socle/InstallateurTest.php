@@ -7,18 +7,17 @@ namespace Ged\Tests\Socle;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose les 25 tables attendues,
+ * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose exactement 21 tables,
  * refuse une base peuplée sans --remplacer, et fait alors un dump AVANT de remplacer.
  * La commande réelle est exécutée comme le juge la rejouera.
  */
 final class InstallateurTest extends TestCase
 {
-    /** Tables de tous les secteurs présents, y compris collaboration et reconstruction V2-12d. */
+    /** Décision juge V2-12d7 : plafond explicite de 21, collaboration consolidée. */
     private const TABLES_ATTENDUES = [
-        'classement_choix', 'comptes', 'document_collaboration_evenements', 'document_deplacements',
-        'document_liens', 'document_notes', 'document_partages', 'document_versions', 'documents',
+        'classement_choix', 'comptes', 'document_collaboration', 'document_deplacements', 'document_versions', 'documents',
         'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
-        'reconstruction_index_jobs', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+        'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
         'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
         'workflow_definitions', 'workflow_instances', 'workflow_journal',
     ];
@@ -117,5 +116,14 @@ final class InstallateurTest extends TestCase
         exec($commande, $sorties, $code);
         self::assertNotSame(0, $code, 'jamais une autre base que gedv2 et gedv2_test');
         self::assertStringContainsString('gedv2', implode("\n", $sorties));
+    }
+
+    public function testLePlafondVingtEtUneTablesEstExplicite(): void
+    {
+        [$code, $sortie] = $this->installer('--admin=admin@gedv2.test');
+
+        self::assertSame(0, $code, $sortie);
+        self::assertCount(21, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN));
+        self::assertSame(self::TABLES_ATTENDUES, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN));
     }
 }

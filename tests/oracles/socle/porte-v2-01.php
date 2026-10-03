@@ -25,10 +25,9 @@ use Ged\Socle\Indexeur;
 
 $echecs = 0;
 $tablesAttendues = [
-    'classement_choix', 'comptes', 'document_collaboration_evenements', 'document_deplacements',
-    'document_liens', 'document_notes', 'document_partages', 'document_versions', 'documents',
+    'classement_choix', 'comptes', 'document_collaboration', 'document_deplacements', 'document_versions', 'documents',
     'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
-    'reconstruction_index_jobs', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+    'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
     'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
     'workflow_definitions', 'workflow_instances', 'workflow_journal',
 ];
@@ -91,7 +90,7 @@ $etape('1. installateur : schéma neuf, admin posé, base peuplée refusée sans
     exiger($code === 0, "installation échouée : $sortie");
     $pdo = Base::pdo($config);
     $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-    exiger($tables === $tablesAttendues, 'tables inattendues : ' . implode(', ', $tables));
+    exiger(count($tablesAttendues) === 21 && count($tables) <= 21 && $tables === $tablesAttendues, 'tables inattendues : ' . implode(', ', $tables));
     exiger((int) $pdo->query("SELECT COUNT(*) FROM comptes WHERE identifiant = 'admin@gedv2.test'")->fetchColumn() === 1,
         'le compte admin manque');
 

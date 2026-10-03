@@ -48,7 +48,7 @@ try {
     Base::assurerBase($config); $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo); SchemaSecurite::installer($pdo); SchemaRecherche::installer($pdo);
     remettreEtatFondsE2e($pdo);
-    foreach (['document_collaboration_evenements', 'document_notes', 'document_liens', 'document_partages', 'reconstruction_index_jobs'] as $table) $pdo->exec("DELETE FROM `$table`");
+    $pdo->exec('DELETE FROM document_collaboration');
     $identifiant = 'v212d-' . $geste . '@exemple.test'; $motDePasse = 'MotDePasse-V2-12d-2026!';
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE empreinte=VALUES(empreinte), role=VALUES(role)')
         ->execute([$identifiant, password_hash($motDePasse, PASSWORD_DEFAULT), 'admin']);

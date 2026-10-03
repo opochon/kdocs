@@ -100,76 +100,41 @@ final class Schema
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
 
-        // Collaboration V2-12d. Ces lignes sont des données utilisateur : retrait et révocation sont
-        // des marqueurs, jamais un DELETE. Les documents restent la référence ; les clés servent aux
-        // jointures et à l'historique de la fiche.
+        // Décision juge V2-12d7 : une seule table typée pour toute la collaboration. Retrait et
+        // révocation restent des marqueurs, jamais un DELETE ; les colonnes nulles dépendent du type.
         $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS document_notes (
+            CREATE TABLE IF NOT EXISTS document_collaboration (
               id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
               document_id INT UNSIGNED NOT NULL,
+              type ENUM('note','lien','partage','evenement') NOT NULL,
               auteur VARCHAR(128) NOT NULL,
-              texte TEXT NOT NULL,
+              texte TEXT NULL,
+              document_source_id INT UNSIGNED NULL,
+              document_cible_id INT UNSIGNED NULL,
+              libelle VARCHAR(128) NULL,
+              type_partage ENUM('interne','externe') NULL,
+              cible_type ENUM('compte','groupe','lien') NULL,
+              cible_id INT UNSIGNED NULL,
+              jeton_empreinte CHAR(64) NULL,
+              action VARCHAR(64) NULL,
+              objet_id INT UNSIGNED NULL,
+              migration_origine VARCHAR(48) NULL,
+              migration_id INT UNSIGNED NULL,
               cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               retire_le DATETIME NULL,
-              KEY k_note_document (document_id, retire_le, cree_le)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS document_collaboration_evenements (
-              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              document_id INT UNSIGNED NOT NULL,
-              action VARCHAR(64) NOT NULL,
-              auteur VARCHAR(128) NOT NULL,
-              objet_id INT UNSIGNED NULL,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              KEY k_collaboration_document (document_id, cree_le)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS document_liens (
-              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              document_source_id INT UNSIGNED NOT NULL,
-              document_cible_id INT UNSIGNED NOT NULL,
-              libelle VARCHAR(128) NOT NULL,
-              auteur VARCHAR(128) NOT NULL,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              retire_le DATETIME NULL,
-              KEY k_lien_source (document_source_id, retire_le),
-              KEY k_lien_cible (document_cible_id, retire_le)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS document_partages (
-              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              document_id INT UNSIGNED NOT NULL,
-              type_partage ENUM('interne','externe') NOT NULL,
-              cible_type ENUM('compte','groupe','lien') NOT NULL,
-              cible_id INT UNSIGNED NULL,
-              jeton_empreinte CHAR(64) NULL,
-              auteur VARCHAR(128) NOT NULL,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               expire_le DATETIME NULL,
               revoque_le DATETIME NULL,
-              KEY k_partage_document (document_id, revoque_le),
+              KEY k_collaboration_document (document_id, type, retire_le, cree_le),
+              KEY k_lien_source (document_source_id, retire_le),
+              KEY k_lien_cible (document_cible_id, retire_le),
+              KEY k_partage_document (document_id, type, revoque_le),
               KEY k_partage_cible (cible_type, cible_id, revoque_le),
+              UNIQUE KEY uq_collaboration_migration (migration_origine, migration_id),
               UNIQUE KEY uq_partage_jeton (jeton_empreinte)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS reconstruction_index_jobs (
-              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              etat ENUM('en_cours','termine','echec') NOT NULL,
-              total INT UNSIGNED NOT NULL DEFAULT 0,
-              traite INT UNSIGNED NOT NULL DEFAULT 0,
-              auteur VARCHAR(128) NOT NULL,
-              erreur VARCHAR(512) NULL,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-              termine_le DATETIME NULL,
-              KEY k_reconstruction_etat (etat, cree_le)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
+        self::migrerCollaborationV212d($pdo);
     }
 
     /**
@@ -210,4 +175,44 @@ final class Schema
 
     /** Tables de l'index documentaire, dans l'ordre de destruction/reconstruction (jamais comptes ni installation). */
     public const TABLES_INDEX = ['documents', 'document_versions', 'document_deplacements'];
+
+    /** Migration V2-12d7 : copie vérifiée avant le retrait des cinq tables V2-12d. */
+    private static function migrerCollaborationV212d(PDO $pdo): void
+    {
+        $anciennes = ['document_notes', 'document_liens', 'document_partages', 'document_collaboration_evenements', 'reconstruction_index_jobs'];
+        $presentes = array_values(array_filter($anciennes, fn (string $table): bool => self::tableExiste($pdo, $table)));
+        if ($presentes === []) return;
+        // MySQL valide implicitement les DDL : vérifier chaque INSERT avant le premier DROP est donc
+        // plus sûr qu'une transaction illusoire. Une erreur laisse les anciennes tables intactes.
+        $copies = [
+            'document_notes' => "INSERT INTO document_collaboration (document_id,type,auteur,texte,cree_le,maj_le,retire_le,migration_origine,migration_id) SELECT document_id,'note',auteur,texte,cree_le,maj_le,retire_le,'document_notes',id FROM document_notes ON DUPLICATE KEY UPDATE migration_id=document_collaboration.migration_id",
+            'document_liens' => "INSERT INTO document_collaboration (document_id,type,auteur,document_source_id,document_cible_id,libelle,cree_le,retire_le,migration_origine,migration_id) SELECT document_source_id,'lien',auteur,document_source_id,document_cible_id,libelle,cree_le,retire_le,'document_liens',id FROM document_liens ON DUPLICATE KEY UPDATE migration_id=document_collaboration.migration_id",
+            'document_partages' => "INSERT INTO document_collaboration (document_id,type,auteur,type_partage,cible_type,cible_id,jeton_empreinte,cree_le,expire_le,revoque_le,migration_origine,migration_id) SELECT document_id,'partage',auteur,type_partage,cible_type,cible_id,jeton_empreinte,cree_le,expire_le,revoque_le,'document_partages',id FROM document_partages ON DUPLICATE KEY UPDATE migration_id=document_collaboration.migration_id",
+            'document_collaboration_evenements' => "INSERT INTO document_collaboration (document_id,type,auteur,action,objet_id,cree_le,migration_origine,migration_id) SELECT document_id,'evenement',auteur,action,objet_id,cree_le,'document_collaboration_evenements',id FROM document_collaboration_evenements ON DUPLICATE KEY UPDATE migration_id=document_collaboration.migration_id",
+        ];
+        foreach ($copies as $table => $sql) {
+            if (!in_array($table, $presentes, true)) continue;
+            $attendues = (int) $pdo->query("SELECT COUNT(*) FROM `$table`")->fetchColumn();
+            $pdo->exec($sql);
+            $s = $pdo->prepare('SELECT COUNT(*) FROM document_collaboration WHERE migration_origine = ?'); $s->execute([$table]);
+            if ((int) $s->fetchColumn() !== $attendues) throw new \RuntimeException("migration collaboration : copie $table incomplète");
+        }
+        if (in_array('reconstruction_index_jobs', $presentes, true)) {
+            $ancien = $pdo->query('SELECT id, etat, total, traite, auteur, erreur FROM reconstruction_index_jobs ORDER BY id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+            if (is_array($ancien)) {
+                $registre = new Registre(new \Ged\Config(dirname(__DIR__, 2)));
+                $registre->modifier('reconstruction-index', static fn (array $etat): array => [
+                    'id' => (int) $ancien['id'], 'etat' => (string) $ancien['etat'], 'total' => (int) $ancien['total'],
+                    'traite' => (int) $ancien['traite'], 'auteur' => (string) $ancien['auteur'], 'erreur' => $ancien['erreur'],
+                ]);
+            }
+        }
+        foreach ($presentes as $table) $pdo->exec("DROP TABLE `$table`");
+    }
+
+    private static function tableExiste(PDO $pdo, string $table): bool
+    {
+        $s = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
+        $s->execute([$table]); return (int) $s->fetchColumn() === 1;
+    }
 }

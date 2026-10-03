@@ -78,13 +78,13 @@ final class V212dTest extends TestCase
         self::assertMatchesRegularExpression('/^[A-Za-z0-9_-]{40,}$/', $partage['jeton']);
         self::assertNull($collaboration->lienExterneValide(str_repeat('x', 43)));
         self::assertSame($id, $collaboration->lienExterneValide($partage['jeton'])['document']);
-        self::assertStringNotContainsString($partage['jeton'], (string) $this->pdo->query('SELECT GROUP_CONCAT(jeton_empreinte) FROM document_partages')->fetchColumn());
+        self::assertStringNotContainsString($partage['jeton'], (string) $this->pdo->query("SELECT GROUP_CONCAT(jeton_empreinte) FROM document_collaboration WHERE type = 'partage'")->fetchColumn());
         self::assertStringNotContainsString($partage['jeton'], (string) file_get_contents($this->racine . '/audit/audit.ndjson'));
 
         $collaboration->revoquerPartage($partage['id'], 'manager@exemple.test');
         self::assertNull($collaboration->lienExterneValide($partage['jeton']));
         $expire = $collaboration->partagerExterne($id, 'manager@exemple.test', '2099-01-02');
-        $this->pdo->prepare('UPDATE document_partages SET expire_le = DATE_SUB(NOW(), INTERVAL 1 SECOND) WHERE id = ?')->execute([$expire['id']]);
+        $this->pdo->prepare("UPDATE document_collaboration SET expire_le = DATE_SUB(NOW(), INTERVAL 1 SECOND) WHERE id = ? AND type = 'partage'")->execute([$expire['id']]);
         self::assertNull($collaboration->lienExterneValide($expire['jeton']));
     }
 
@@ -144,6 +144,38 @@ final class V212dTest extends TestCase
         self::assertSame('termine', $fini['etat']);
         self::assertSame(2, $fini['traite']);
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM recherche_textes WHERE absent_le IS NOT NULL')->fetchColumn());
+        self::assertFileExists($this->racine . '/fonds/.ged/reconstruction-index.json');
+    }
+
+    public function testMigrationV212dConsolideSansPerteLesNotesLiensPartagesEtEvenements(): void
+    {
+        $document = $this->document('migration.txt', 'Migration', 'texte');
+        $this->pdo->exec("CREATE TABLE document_notes (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, document_id INT UNSIGNED NOT NULL, auteur VARCHAR(128) NOT NULL, texte TEXT NOT NULL, cree_le DATETIME NOT NULL, maj_le DATETIME NOT NULL, retire_le DATETIME NULL)");
+        $this->pdo->exec("CREATE TABLE document_liens (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, document_source_id INT UNSIGNED NOT NULL, document_cible_id INT UNSIGNED NOT NULL, libelle VARCHAR(128) NOT NULL, auteur VARCHAR(128) NOT NULL, cree_le DATETIME NOT NULL, retire_le DATETIME NULL)");
+        $this->pdo->exec("CREATE TABLE document_partages (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, document_id INT UNSIGNED NOT NULL, type_partage VARCHAR(16) NOT NULL, cible_type VARCHAR(16) NOT NULL, cible_id INT UNSIGNED NULL, jeton_empreinte CHAR(64) NULL, auteur VARCHAR(128) NOT NULL, cree_le DATETIME NOT NULL, expire_le DATETIME NULL, revoque_le DATETIME NULL)");
+        $this->pdo->exec("CREATE TABLE document_collaboration_evenements (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, document_id INT UNSIGNED NOT NULL, action VARCHAR(64) NOT NULL, auteur VARCHAR(128) NOT NULL, objet_id INT UNSIGNED NULL, cree_le DATETIME NOT NULL)");
+        $this->pdo->exec("CREATE TABLE reconstruction_index_jobs (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, etat VARCHAR(16) NOT NULL, total INT UNSIGNED NOT NULL, traite INT UNSIGNED NOT NULL, auteur VARCHAR(128) NOT NULL, erreur VARCHAR(512) NULL, cree_le DATETIME NOT NULL, maj_le DATETIME NOT NULL, termine_le DATETIME NULL)");
+        $hash = hash('sha256', 'jeton-v2-12d-conserve');
+        $this->pdo->prepare("INSERT INTO document_notes (document_id,auteur,texte,cree_le,maj_le) VALUES (?, 'alice@exemple.test', 'note migrée', NOW(), NOW())")->execute([$document]);
+        $this->pdo->prepare("INSERT INTO document_liens (document_source_id,document_cible_id,libelle,auteur,cree_le) VALUES (?, ?, 'lien migré', 'alice@exemple.test', NOW())")->execute([$document, $document]);
+        $this->pdo->prepare("INSERT INTO document_partages (document_id,type_partage,cible_type,jeton_empreinte,auteur,cree_le,expire_le,revoque_le) VALUES (?, 'externe', 'lien', ?, 'alice@exemple.test', NOW(), '2099-01-01', NOW())")->execute([$document, $hash]);
+        $this->pdo->prepare("INSERT INTO document_collaboration_evenements (document_id,action,auteur,cree_le) VALUES (?, 'note ajoutée', 'alice@exemple.test', NOW())")->execute([$document]);
+        $this->pdo->exec("INSERT INTO reconstruction_index_jobs (etat,total,traite,auteur,cree_le,maj_le) VALUES ('en_cours', 7, 3, 'alice@exemple.test', NOW(), NOW())");
+        \Ged\Socle\Schema::installer($this->pdo);
+
+        self::assertSame(1, (int) $this->pdo->query("SELECT COUNT(*) FROM document_collaboration WHERE type = 'note' AND texte = 'note migrée'")->fetchColumn());
+        self::assertSame(1, (int) $this->pdo->query("SELECT COUNT(*) FROM document_collaboration WHERE type = 'lien' AND libelle = 'lien migré'")->fetchColumn());
+        self::assertSame($hash, $this->pdo->query("SELECT jeton_empreinte FROM document_collaboration WHERE type = 'partage'")->fetchColumn());
+        self::assertNotFalse($this->pdo->query("SELECT revoque_le FROM document_collaboration WHERE type = 'partage'")->fetchColumn());
+        self::assertSame(3, json_decode((string) file_get_contents($this->racine . '/fonds/.ged/reconstruction-index.json'), true)['traite']);
+        foreach (['document_notes', 'document_liens', 'document_partages', 'document_collaboration_evenements', 'reconstruction_index_jobs'] as $ancienne) self::assertFalse($this->tableExiste($ancienne));
+    }
+
+    private function tableExiste(string $table): bool
+    {
+        $s = $this->pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
+        $s->execute([$table]);
+        return (int) $s->fetchColumn() === 1;
     }
 
     private function document(string $nom, string $titre, string $texte): int
