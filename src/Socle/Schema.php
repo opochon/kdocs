@@ -38,7 +38,7 @@ final class Schema
               UNIQUE KEY uq_chemin (chemin_relatif(700)),
               KEY k_empreinte (empreinte),
               KEY k_corbeille (supprime_le),
-              KEY k_statut (statut, supprime_le, absent_depuis),
+              KEY k_statut (statut, supprime_le, absent_depuis, date_document, id),
               KEY k_vivant (supprime_le, absent_depuis, chemin_relatif(700))
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
@@ -184,12 +184,12 @@ final class Schema
             . " FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
             . " AND TABLE_NAME = 'documents' AND INDEX_NAME = 'k_statut'")->fetchColumn();
         if (is_string($colonnes) && $colonnes !== '') {
-            if (strcasecmp($colonnes, 'statut,supprime_le,absent_depuis') === 0) {
+            if (strcasecmp($colonnes, 'statut,supprime_le,absent_depuis,date_document,id') === 0) {
                 return;
             }
             $pdo->exec('ALTER TABLE documents DROP KEY k_statut');
         }
-        $pdo->exec('ALTER TABLE documents ADD KEY k_statut (statut, supprime_le, absent_depuis)');
+        $pdo->exec('ALTER TABLE documents ADD KEY k_statut (statut, supprime_le, absent_depuis, date_document, id)');
     }
 
     /**

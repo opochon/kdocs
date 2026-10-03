@@ -323,7 +323,7 @@ final class DepotFichiers implements Depot
     public function listerParStatut(string $statut, int $limite = 1000, int $decalage = 0): array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM documents WHERE statut = ? AND supprime_le IS NULL'
-            . ' AND absent_depuis IS NULL ORDER BY COALESCE(date_document, DATE(cree_le)) ASC, id ASC LIMIT '
+            . ' AND absent_depuis IS NULL ORDER BY date_document ASC, id ASC LIMIT '
             . max(1, $limite) . ' OFFSET ' . max(0, $decalage));
         $stmt->execute([$statut]);
 
