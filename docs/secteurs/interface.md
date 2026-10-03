@@ -706,7 +706,7 @@ Interface), sans toucher à `src/Classement` ni à `src/Ingestion`.
 `044ce40` rattachement visuel (gabarit + CSS) · `e79604b` oracle mobile (fenêtre et lien) ·
 `94f3934` repli sur le segment propre quand l'occurrence du terme est bruitée (extraits).
 
-ETAT: fini
+ETAT: bloqué — la porte V2-12d est verte, mais le rejeu global demandé deux fois reste à refaire sur un arbre stable : le harness a relevé 5 rouges PHPUnit et 3 rouges d’écrans dans les travaux concurrents ; l’ancien oracle V2-11 Notes/Liens a été corrigé ici après ce passage.
 
 ## Jugement V2-10e — 01-10-2026 (juge : Claude Code)
 
