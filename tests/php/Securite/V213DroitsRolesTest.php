@@ -73,6 +73,15 @@ final class V213DroitsRolesTest extends TestCase
         self::assertSame(['Managers' => 'manager', 'Utilisateurs' => 'utilisateur'], $this->groupesInitiaux());
     }
 
+    public function testGroupesInitiauxNeRecoiventAucuneRegleDeDossierImplicite(): void
+    {
+        $regles = (int) $this->pdo->query("SELECT COUNT(*) FROM securite_dossiers_droits d
+            INNER JOIN securite_groupes g ON g.id = d.groupe_id
+            WHERE g.nom IN ('Utilisateurs', 'Managers')")->fetchColumn();
+
+        self::assertSame(0, $regles, 'L’installation ne doit ouvrir aucun dossier sans règle posée par un administrateur.');
+    }
+
     public function testMigrationConserveLesRolesHistoriquesEtJournaliseChaqueChangement(): void
     {
         $suffixe = bin2hex(random_bytes(5));
