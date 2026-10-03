@@ -29,7 +29,8 @@ test('oracle : aucun lien mort ni bouton visible sans mécanisme sur les écrans
     await page.goto(`/documents/${prep.document}`);
     await page.getByTestId('onglet-versions').click(); await expect(page.getByTestId('panneau-versions')).toBeVisible();
     await page.getByTestId('onglet-historique').click(); await expect(page.getByTestId('panneau-historique')).toBeVisible();
-    await expect(page.getByTestId('onglet-notes')).toHaveCount(0); await expect(page.getByTestId('onglet-liens')).toHaveCount(0);
+    // V2-12d rend ces gestes réels : ils ne sont plus retirés de la fiche.
+    await expect(page.getByTestId('onglet-notes')).toHaveCount(1); await expect(page.getByTestId('onglet-liens')).toHaveCount(1);
   } finally { await c.close(); }
 });
 
