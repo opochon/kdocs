@@ -57,11 +57,22 @@ try {
     $commun = ['type'=>'Facture', 'emetteur'=>'Atelier V2-12d SA', 'date'=>'2026-10-03', 'statut'=>'valide', 'texte'=>'document synthétique V2-12d'];
     $premier = $depot->deposer(piece($source, 'premier.pdf', 'Premier document V2-12d'), $commun + ['titre'=>'Facture V2-12d']);
     $second = $depot->deposer(piece($source, 'second.pdf', 'Second document V2-12d'), $commun + ['titre'=>'Contrat V2-12d']);
+    $utilisateur = 'utilisateur-v212d@exemple.test'; $motDePasseUtilisateur = 'MotDePasse-Utilisateur-V2-12d!';
+    $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE empreinte=VALUES(empreinte), role=VALUES(role)')
+        ->execute([$utilisateur, password_hash($motDePasseUtilisateur, PASSWORD_DEFAULT), 'lecteur']);
+    $idUtilisateur = (int) $pdo->query("SELECT id FROM comptes WHERE identifiant = 'utilisateur-v212d@exemple.test'")->fetchColumn();
+    $droits = new \Ged\Securite\DroitsDossiers($pdo); $nomGroupe = 'Utilisateurs V2-12d ' . $geste;
+    $trouverGroupe = $pdo->prepare('SELECT id FROM securite_groupes WHERE nom = ?'); $trouverGroupe->execute([$nomGroupe]);
+    $groupe = (int) $trouverGroupe->fetchColumn(); if ($groupe < 1) $groupe = $droits->creerGroupe($nomGroupe, 'lecteur');
+    $droits->ajouterCompteAuGroupe($idUtilisateur, $groupe); $dossier = $droits->dossierPourDocument($premier);
+    if ($dossier === null) throw new RuntimeException('dossier de droits manquant pour le document V2-12d');
+    $droits->poserRegle($dossier, $groupe, 'lire', true);
     if ($geste === 'reconstruction') {
         for ($n = 3; $n <= 26; $n++) $depot->deposer(piece($source, 'reconstruction-' . $n . '.pdf', 'Reconstruction ' . $n), $commun + ['titre'=>'Reconstruction V2-12d ' . $n]);
     }
     (new IndexPleinTexte($pdo, new \Ged\Recherche\SourceRecherche($racineDemandee)))->synchroniser();
-    echo json_encode(['compte'=>$identifiant, 'mot_de_passe'=>$motDePasse, 'document'=>$premier, 'cible'=>$second], JSON_UNESCAPED_SLASHES), PHP_EOL;
+    echo json_encode(['compte'=>$identifiant, 'mot_de_passe'=>$motDePasse, 'document'=>$premier, 'cible'=>$second,
+        'utilisateur'=>$utilisateur, 'mot_de_passe_utilisateur'=>$motDePasseUtilisateur, 'cible_partage'=>$idUtilisateur], JSON_UNESCAPED_SLASHES), PHP_EOL;
 } catch (Throwable $e) { fwrite(STDERR, 'préparation V2-12d : ' . $e->getMessage() . PHP_EOL); exit(1); }
 finally { flock($verrou, LOCK_UN); fclose($verrou); }
 
