@@ -70,14 +70,32 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
   A3 : les routes de partage, lien externe et fichier partagé sont factorisées en méthodes courtes, leurs erreurs
   restent rendues nommément. A4 : la file mobile est repliée au départ et, une fois ouverte, reste visible ;
   `mobile.spec.ts:298` (iPhone 13) est vert trois fois consécutives.
-- Preuves ciblées : `V213DroitsRolesTest` vert (5 tests, 72 assertions avant l’oracle de contrat ajouté),
-  `EcransTest` ciblé vert, parcours collaboration vert, PHPStan niveau 6 vert (0 erreur ; baseline diminuée de 5).
-- Commits de reprise : `4185fd8`, `312231a`, `0a4460b`, `64ece02`, `d58577c`, `ac3a577`.
+- Contrat HTTP : le journal PHP du serveur de contrat a mené à la mutation ACL sans `niveau` (charge synthétique) ;
+  `DroitsDossiers::poserRegle()` levait alors « Action de droit inconnue », rendu en 500. L'oracle
+  `testMutationAclInvalideEstUnRefusNommeEtJamaisUneErreurServeur` a été rouge (303), puis vert (400 nommé,
+  2 assertions). Les cibles dossier et groupe sont maintenant contrôlées avant écriture.
+- Sonde : les charges CSRF défensives couvrent désormais la mutation ACL, puis les mutations déclarées des comptes
+  et groupes ; aucune sonde antérieure n'a été retirée ou assouplie. B7 utilise un compte `utilisateur` réellement
+  créé en base, mot de passe haché, et vérifie 403 pour chaque permission réservée manager ou administrateur.
+- B6 : l'oracle de rôles est vert (9 tests, 87 assertions) et `droits-b6.spec.ts` est vert (1 parcours) avec trois
+  comptes synthétiques réels en base, mots de passe hachés, deux dossiers A/B, refus 403 de B et de l'administration
+  pour l'utilisateur, gestion ACL pour le manager, accès complet administrateur.
+- Preuves ciblées : contrat HTTP vert ; PHPStan niveau 6 vert (0 erreur hors baseline) ; parcours B6 vert.
+- Commits de reprise : `4185fd8`, `312231a`, `0a4460b`, `64ece02`, `d58577c`, `ac3a577`, `4c4a136`, `196833e`,
+  `1ff76d2`, `07e4414`, `2adc0e1`, `0613d2f`, `8a3f641`.
 - Porte qualité : revue manuelle des changements contre php-reviewer, security-reviewer et silent-failure-hunter :
   suppression SQL interdite retirée, SQL utilisateur paramétré, erreurs de routes nommées et tracées ; aucun
   `catch (Throwable)` ajouté sans réponse d’erreur. Le harness global double n’est pas validé : son registre
   disponible montre 434 tests/2465 assertions avec 1 échec, 61 parcours verts/2 échecs et charge p95 2795 ms.
-  B3 à B7 restent à réaliser, donc aucune clôture de porte n’est revendiquée.
+  Rejeux `harness.ps1 -SansBanc` :
+  - 1 : 450 tests / 2 589 assertions, 48 écrans verts / 7 rouges ; contrat, charge (p95 lecture 1 325 ms,
+    écriture 529 ms), statique verts ; sécurité rouge avant l'ajout des charges comptes/groupes.
+  - 2 : 450 tests / 2 593 assertions verts ; contrat, sécurité, charge (p95 lecture 1 122 ms, écriture 498 ms)
+    et statique verts ; couche écrans rouge avec sortie Playwright vide pendant les exécutions concurrentes.
+- Porte qualité : revue manuelle contre php-reviewer, security-reviewer et silent-failure-hunter. SQL de contrôle
+  paramétré, validation explicite des entrées ACL, aucun secret réel, ni `catch (Throwable)` avalé ; pas de constat
+  critique ou élevé sur le diff. La porte globale ne peut pas être déclarée verte tant que la couche écrans n'est pas
+  rejouée isolément par le juge.
 
 - H-2 contrat (29-09) : `POST /connexion` sans CSRF répond correctement 403, mais le gabarit de refus ne publie pas
   les deux champs nommés `etape` et `cause` exigés par le contrat HTTP (contrairement à `GardeCentrale::refuser`).
