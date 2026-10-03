@@ -57,6 +57,9 @@ try {
     $commun = ['type'=>'Facture', 'emetteur'=>'Atelier V2-12d SA', 'date'=>'2026-10-03', 'statut'=>'valide', 'texte'=>'document synthétique V2-12d'];
     $premier = $depot->deposer(piece($source, 'premier.pdf', 'Premier document V2-12d'), $commun + ['titre'=>'Facture V2-12d']);
     $second = $depot->deposer(piece($source, 'second.pdf', 'Second document V2-12d'), $commun + ['titre'=>'Contrat V2-12d']);
+    if ($geste === 'reconstruction') {
+        for ($n = 3; $n <= 26; $n++) $depot->deposer(piece($source, 'reconstruction-' . $n . '.pdf', 'Reconstruction ' . $n), $commun + ['titre'=>'Reconstruction V2-12d ' . $n]);
+    }
     (new IndexPleinTexte($pdo, new \Ged\Recherche\SourceRecherche($racineDemandee)))->synchroniser();
     echo json_encode(['compte'=>$identifiant, 'mot_de_passe'=>$motDePasse, 'document'=>$premier, 'cible'=>$second], JSON_UNESCAPED_SLASHES), PHP_EOL;
 } catch (Throwable $e) { fwrite(STDERR, 'préparation V2-12d : ' . $e->getMessage() . PHP_EOL); exit(1); }

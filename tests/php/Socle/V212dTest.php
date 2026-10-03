@@ -83,6 +83,29 @@ final class V212dTest extends TestCase
 
         $collaboration->revoquerPartage($partage['id'], 'manager@exemple.test');
         self::assertNull($collaboration->lienExterneValide($partage['jeton']));
+        $expire = $collaboration->partagerExterne($id, 'manager@exemple.test', '2099-01-02');
+        $this->pdo->prepare('UPDATE document_partages SET expire_le = DATE_SUB(NOW(), INTERVAL 1 SECOND) WHERE id = ?')->execute([$expire['id']]);
+        self::assertNull($collaboration->lienExterneValide($expire['jeton']));
+    }
+
+    public function testLePartageInterneNeCreePasDeDroitEtNeListeQueLesDestinatairesAutorises(): void
+    {
+        $id = $this->document('interne.txt', 'Interne', 'partage interne');
+        \Ged\Securite\Schema::installer($this->pdo);
+        $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')->execute(['lecteur@exemple.test', 'x', 'lecteur']);
+        $lecteur = (int) $this->pdo->lastInsertId();
+        $droits = new \Ged\Securite\DroitsDossiers($this->pdo);
+        $groupe = $droits->creerGroupe('Lecteurs V2-12d', 'lecteur'); $droits->ajouterCompteAuGroupe($lecteur, $groupe);
+        $dossier = $droits->dossierPourDocument($id); self::assertNotNull($dossier);
+        $collaboration = new Collaboration($this->config);
+        $this->expectExceptionMessage('doit déjà lire le dossier');
+        try { $collaboration->partagerInterne($id, 'compte', $lecteur, 'alice@exemple.test'); }
+        finally {
+            $droits->poserRegle($dossier, $groupe, 'lire', true);
+            $partage = $collaboration->partagerInterne($id, 'compte', $lecteur, 'alice@exemple.test');
+            self::assertSame([$id], array_column($collaboration->partagesAvecMoi($lecteur), 'document'));
+            self::assertGreaterThan(0, $partage);
+        }
     }
 
     public function testLaReconstructionEstBorneeRepriseEtRefuseUnSecondLancement(): void
