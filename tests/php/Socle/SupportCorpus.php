@@ -28,7 +28,7 @@ trait SupportCorpus
         Base::assurerBase($this->config);
         $this->pdo = Base::pdo($this->config);
         // Tables du Socle seules : les autres secteurs gèrent les leurs (base de TEST uniquement).
-        $this->pdo->exec('DROP TABLE IF EXISTS documents, document_versions, document_deplacements');
+        $this->pdo->exec('DROP TABLE IF EXISTS recherche_textes, document_collaboration_evenements, document_notes, document_liens, document_partages, reconstruction_index_jobs, documents, document_versions, document_deplacements');
         Schema::installer($this->pdo);
 
         $this->storageRootAvant = getenv('STORAGE_ROOT');

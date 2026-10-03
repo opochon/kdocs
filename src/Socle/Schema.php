@@ -99,6 +99,77 @@ final class Schema
               valeur VARCHAR(255) NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+
+        // Collaboration V2-12d. Ces lignes sont des données utilisateur : retrait et révocation sont
+        // des marqueurs, jamais un DELETE. Les documents restent la référence ; les clés servent aux
+        // jointures et à l'historique de la fiche.
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS document_notes (
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              document_id INT UNSIGNED NOT NULL,
+              auteur VARCHAR(128) NOT NULL,
+              texte TEXT NOT NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              retire_le DATETIME NULL,
+              KEY k_note_document (document_id, retire_le, cree_le)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS document_collaboration_evenements (
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              document_id INT UNSIGNED NOT NULL,
+              action VARCHAR(64) NOT NULL,
+              auteur VARCHAR(128) NOT NULL,
+              objet_id INT UNSIGNED NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              KEY k_collaboration_document (document_id, cree_le)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS document_liens (
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              document_source_id INT UNSIGNED NOT NULL,
+              document_cible_id INT UNSIGNED NOT NULL,
+              libelle VARCHAR(128) NOT NULL,
+              auteur VARCHAR(128) NOT NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              retire_le DATETIME NULL,
+              KEY k_lien_source (document_source_id, retire_le),
+              KEY k_lien_cible (document_cible_id, retire_le)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS document_partages (
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              document_id INT UNSIGNED NOT NULL,
+              type_partage ENUM('interne','externe') NOT NULL,
+              cible_type ENUM('compte','groupe','lien') NOT NULL,
+              cible_id INT UNSIGNED NULL,
+              jeton_empreinte CHAR(64) NULL,
+              auteur VARCHAR(128) NOT NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              expire_le DATETIME NULL,
+              revoque_le DATETIME NULL,
+              KEY k_partage_document (document_id, revoque_le),
+              KEY k_partage_cible (cible_type, cible_id, revoque_le),
+              UNIQUE KEY uq_partage_jeton (jeton_empreinte)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
+        $pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS reconstruction_index_jobs (
+              id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              etat ENUM('en_cours','termine','echec') NOT NULL,
+              total INT UNSIGNED NOT NULL DEFAULT 0,
+              traite INT UNSIGNED NOT NULL DEFAULT 0,
+              auteur VARCHAR(128) NOT NULL,
+              erreur VARCHAR(512) NULL,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              maj_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              termine_le DATETIME NULL,
+              KEY k_reconstruction_etat (etat, cree_le)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
     }
 
     /**

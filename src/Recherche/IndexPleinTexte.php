@@ -45,7 +45,15 @@ final class IndexPleinTexte
             $existante = $signatures[$cle] ?? null;
             if ($existante !== null && $existante['signature'] === $document->signature) {
                 if ($existante['absent']) {
+                    // Une reconstruction commence par marquer le cache absent. Réactiver est donc
+                    // aussi un vrai travail, borné comme une indexation : sinon un premier appel
+                    // relirait et réactiverait tout le fonds malgré sa limite.
+                    if ($limite !== null && $faits >= $limite) {
+                        $complet = false;
+                        break;
+                    }
                     $this->reactiver($cle);   // le fichier est revenu : la ligne ressort de l'absence
+                    $faits++;
                 }
                 continue;
             }
@@ -102,6 +110,18 @@ final class IndexPleinTexte
 
     private function poser(string $cle, DocumentFonds $document, ?int $documentId): void
     {
+        // V2-12d : les notes font partie du même cache FULLTEXT que le document. Aucun second moteur,
+        // et une note retirée sort au prochain passage de l'indexeur.
+        $notes = '';
+        if ($documentId !== null) {
+            try {
+                $s = $this->pdo->prepare('SELECT texte FROM document_notes WHERE document_id = ? AND retire_le IS NULL ORDER BY id');
+                $s->execute([$documentId]);
+                $notes = implode("\n", array_map('strval', $s->fetchAll(PDO::FETCH_COLUMN)));
+            } catch (\PDOException) {
+                // Base d'une version antérieure : le schéma Socle sera posé avant le prochain job.
+            }
+        }
         $sql = 'INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, emetteur, date_document, montant, contenu, signature, absent_le)'
             . ' VALUES (:cle, :chemin, :document_id, :titre, :type, :emetteur, :date_document, :montant, :contenu, :signature, NULL)'
             . ' ON DUPLICATE KEY UPDATE chemin = VALUES(chemin), document_id = VALUES(document_id), titre = VALUES(titre),'
@@ -116,7 +136,7 @@ final class IndexPleinTexte
             'emetteur' => $document->emetteur,
             'date_document' => $document->date,
             'montant' => $document->montant,
-            'contenu' => $document->texte,
+            'contenu' => trim($document->texte . "\n" . $notes),
             'signature' => $document->signature,
         ]);
     }
