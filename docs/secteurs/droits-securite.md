@@ -248,3 +248,16 @@ ETAT: fini
 - Recette réelle rejouée sur l'instance `GEDv2-recette` (installateur avec `admin@recette.local`, fonds de 48 pièces issues du scan de 103 pages, reconstruction F12 puis indexation) : l'administrateur ouvre l'aperçu et le fichier des documents ingérés (200, PDF servi). Avant ce lot : 403 pour tout compte réel.
 - Point produit à traiter plus tard, non bloquant : un compte non administrateur ne voit un document rangé qu'une fois une règle posée sur son dossier (refus par défaut, conforme à F10). Il faudra proposer des droits par défaut à l'installation (« tous les utilisateurs lisent le fonds » ou équivalent), à décider avec Olivier.
 - Verdict : **R1-droits franchi.**
+
+### Décision (2026-10-03) — modèle de droits des non-administrateurs
+
+Demande d'Olivier : un manager peut classer, créer des règles, etc. ; un utilisateur peut consulter et poser un document s'il a les droits sur le dossier ; s'aligner sur les GED de référence. Modèle retenu, sur ce que font Alfresco (rôles par espace : Consumer, Contributor, Collaborator, Manager), DocuWare (droits fonctionnels distincts des droits sur les objets) et M-Files (listes d'accès, autoriser/refuser, le refus explicite gagnant) :
+
+1. **Deux couches qui se cumulent par intersection** : un rôle fonctionnel dit quels gestes le compte peut faire dans la GED ; le droit sur le dossier dit où il peut les faire. Un geste exige les deux.
+2. **Rôles fonctionnels** :
+   - Utilisateur : consulter, rechercher, télécharger, déposer, ajouter notes et liens, partager en interne ce qu'il peut lire.
+   - Manager : tout l'Utilisateur, plus classer et valider dans À traiter, retoucher les pages, modifier les métadonnées, créer et modifier les règles de classement, les circuits de workflow, les vues partagées, gérer les droits des dossiers qu'il gère, sceller (archivage) et créer des liens de partage externes.
+   - Administrateur : configuration, comptes et groupes, types et champs, reconstruction d'index, et tout le reste.
+3. **Droits par dossier** (hérités du parent, refus explicite qui l'emporte, refus par défaut, déjà portés par `DroitsDossiers`) en quatre niveaux : Lecture (voir, rechercher, télécharger), Dépôt (Lecture + déposer), Modification (Dépôt + modifier, nouvelle version, restaurer), Gestion (Modification + supprimer, sceller, gérer les droits du dossier).
+4. La recherche, la Bibliothèque, les vues et l'API ne montrent jamais un document hors des dossiers lisibles du compte (filtrage dans la requête, pas après).
+5. Lot à venir : **V2-13 Droits par rôle**, après V2-12d.

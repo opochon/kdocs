@@ -1093,3 +1093,7 @@ ETAT: fini
 - Contournements retirés : plus de date `1000-01-01` ; les délais longs vivent au niveau du test pour l'attente du verrou de préparation. Réserve : `edition-pages.spec.ts:30` garde un délai par action à 90 s (`setDefaultTimeout`), à ramener au délai global lors du prochain passage sur ce fichier.
 - Incident signalé par l'agent : un lancement manuel sans `STORAGE_ROOT` a écrit un fonds synthétique dans `storage/documents` de l'arbre principal (ignoré par Git, 2 fichiers). La base `gedv2` de la recette est intacte (49 documents, vérifié). Règle : tout script de préparation exige `STORAGE_ROOT` explicite et refuse la racine du `.env`.
 - Verdict : **V2-12c franchi et clos** (dossiers, restaurer une version, vue depuis Recherche, validation par lot), sans régression d'écrans.
+
+### Décision d'Olivier (2026-10-03) — écrans retirés en V2-11
+
+- Feu vert pour Partager, Notes, Liens et la reconstruction d'index : **lot V2-12d**. Partage : interne (comptes et groupes, sous les droits de dossier) et lien externe en lecture seule, expirant, révocable, tracé.

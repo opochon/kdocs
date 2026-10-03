@@ -178,3 +178,10 @@ ETAT: fini
   - les rejeux de test écrivent des tâches dans `tests/corpus/apercu/documents/.archivage/` (pollution d'un corpus suivi) ;
   - hors lot : sur la fiche, Télécharger, Nouvelle version et Partager sont des liens morts (`href="#"`).
 - Verdict : **V2-09b franchi** (interface d'archivage utilisable, prouvée avec la TSA simulée). TSA réelle en attente d'Olivier ; les liens morts de la fiche partent en lot **V2-11**.
+
+### Horodatage réel (2026-10-03) — options relevées pour le choix d'Olivier
+
+- **Qualifié suisse (SCSE/ZertES)** : SwissSign (RFC 3161, authentification HTTP, prix sur offre) ; Swisscom Trust Services (qualifié ZertES et eIDAS, prix sur offre).
+- **Qualifié UE (eIDAS)** : GLOBALTRUST (RFC 3161, 20 EUR pour 100 horodatages par an, 185 EUR pour 1 000) ; autres prestataires de la liste de confiance UE.
+- **Gratuit non qualifié** : TSA publiques (DigiCert, FreeTSA) : preuve technique d'antériorité, sans valeur de signature qualifiée.
+- Le moteur reste multi-TSA ; la TSA simulée demeure pour les tests. En attente : choix d'Olivier.

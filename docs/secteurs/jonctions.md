@@ -256,3 +256,7 @@ ETAT: fini
 - Correctif 4cd225b conservé (tables GED partagées).
 - **Pas encore franchi, faute de preuve de bout en bout** : le parcours Playwright isolé, la recette socle et l'ouverture d'une boîte de développement n'ont pas pu tourner. Le runtime PostgreSQL temporaire des tests CMM ne démarre pas, et le PostgreSQL de développement (:5433) refuse l'authentification `cmm`. C'est l'infrastructure de test de CMM, pas le lot ; l'agent ne l'a pas contournée.
 - À reprendre dès que l'infrastructure PostgreSQL de test de CMM répond : Playwright GED, socle sans nouveau rouge, boîte fictive qui s'ouvre.
+
+### Décision d'Olivier (2026-10-03) — liaison CMM
+
+- **Jamais d'accès direct à une base** dans un sens ou dans l'autre : la GED expose son API ; elle interroge CMM par l'API de CMM. Les identifiants PostgreSQL de CMM ne sont donc plus demandés.
