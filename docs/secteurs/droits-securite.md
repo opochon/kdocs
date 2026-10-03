@@ -59,6 +59,26 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 
 ## Demandes
 
+### Journal V2-13 — reprise (03-10)
+
+- Corrections du juge : migration sans `DELETE` sur les rôles ni leurs permissions ; les rôles historiques restent
+  inactifs et portent leur alias canonique. Les changements de rôle effectués par migration sont inscrits dans
+  `securite_audit` (ancien, nouveau, auteur `migration`, date). La migration `archiver` vers `gerer` traite la
+  collision de clé : refus explicite prioritaire, sinon accord ; la règle historique reste lisible.
+- A1 : les partages révoqués ou expirés rendent respectivement « révoqué le … » et « expiré le … » avec testid.
+  A2 : `Depot` déclare `fiche`, `lister` et `cheminAbsolu` ; les trois ignores PHPStan de `ATraiter` sont retirés.
+  A3 : les routes de partage, lien externe et fichier partagé sont factorisées en méthodes courtes, leurs erreurs
+  restent rendues nommément. A4 : la file mobile est repliée au départ et, une fois ouverte, reste visible ;
+  `mobile.spec.ts:298` (iPhone 13) est vert trois fois consécutives.
+- Preuves ciblées : `V213DroitsRolesTest` vert (5 tests, 72 assertions avant l’oracle de contrat ajouté),
+  `EcransTest` ciblé vert, parcours collaboration vert, PHPStan niveau 6 vert (0 erreur ; baseline diminuée de 5).
+- Commits de reprise : `4185fd8`, `312231a`, `0a4460b`, `64ece02`, `d58577c`, `ac3a577`.
+- Porte qualité : revue manuelle des changements contre php-reviewer, security-reviewer et silent-failure-hunter :
+  suppression SQL interdite retirée, SQL utilisateur paramétré, erreurs de routes nommées et tracées ; aucun
+  `catch (Throwable)` ajouté sans réponse d’erreur. Le harness global double n’est pas validé : son registre
+  disponible montre 434 tests/2465 assertions avec 1 échec, 61 parcours verts/2 échecs et charge p95 2795 ms.
+  B3 à B7 restent à réaliser, donc aucune clôture de porte n’est revendiquée.
+
 - H-2 contrat (29-09) : `POST /connexion` sans CSRF répond correctement 403, mais le gabarit de refus ne publie pas
   les deux champs nommés `etape` et `cause` exigés par le contrat HTTP (contrairement à `GardeCentrale::refuser`).
   À corriger dans le secteur Droits/Sécurité ; le harness le laisse ROUGE, sans masquer l'écart.
