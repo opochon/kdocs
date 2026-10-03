@@ -106,7 +106,10 @@ final class Ecrans
         // Le secteur Recherche branche ses vrais résultats (source : le fonds) ; le gabarit et son
         // système visuel restent le contrat. Point de branchement minimal, sans toucher au Kernel.
         if (class_exists(\Ged\Recherche\Ecran::class)) {
-            $donnees = \Ged\Recherche\Ecran::depuisRacine()->donnees($req->getQueryParams(), self::jetonCsrf($req));
+            $session = $req->getAttribute('ged.session');
+            $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+            $administrateur = is_array($session) && in_array('*', (array) ($session['permissions'] ?? []), true);
+            $donnees = \Ged\Recherche\Ecran::depuisRacine(null, $compte, $administrateur)->donnees($req->getQueryParams(), self::jetonCsrf($req));
             // V2-10c / V2-10d / V2-10e : on ne montre pas un extrait OCR illisible. Un extrait qui
             // mélange bruit et texte est rogné (tête ET queue) au passage propre ; la fenêtre retenue
             // contient le premier terme trouvé ; un extrait court majoritairement bruité est écarté.

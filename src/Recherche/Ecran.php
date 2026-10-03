@@ -22,12 +22,12 @@ final class Ecran
     }
 
     /** Construit l'écran réel depuis la racine du projet (la config vient de l'environnement). */
-    public static function depuisRacine(?string $racine = null): self
+    public static function depuisRacine(?string $racine = null, ?int $compte = null, bool $administrateur = false): self
     {
         $config = new Config($racine ?? dirname(__DIR__, 2));
         $pdo = Base::pdo($config);
 
-        return new self(new Service($pdo, IndexPleinTexte::depuis($config, $pdo)), $pdo);
+        return new self(new Service($pdo, IndexPleinTexte::depuis($config, $pdo), true, $compte, $administrateur), $pdo);
     }
 
     /**

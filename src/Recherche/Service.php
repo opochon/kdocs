@@ -29,6 +29,8 @@ final class Service implements Moteur
         private readonly PDO $pdo,
         private readonly IndexPleinTexte $index,
         private readonly bool $autoInstaller = true,
+        private readonly ?int $compte = null,
+        private readonly bool $administrateur = false,
     ) {
     }
 
@@ -123,6 +125,34 @@ final class Service implements Moteur
         // Une ligne dont le fichier a disparu du fonds reste en base mais sort du périmètre cherché.
         $morceaux = ['t.absent_le IS NULL'];
         $parametres = [];
+
+        // Le périmètre ACL appartient à la requête elle-même : l'index ne livre jamais au PHP un
+        // document que le compte ne peut lire. Une règle de niveau supérieur inclut la lecture ; le
+        // refus explicite « lire » du dossier le plus proche gagne, comme DroitsDossiers.
+        if ($this->compte !== null && !$this->administrateur) {
+            $morceaux[] = "t.document_id IS NOT NULL AND EXISTS (\n"
+                . " SELECT 1 FROM securite_dossiers_droits droit\n"
+                . " INNER JOIN securite_groupes_comptes membre ON membre.groupe_id = droit.groupe_id\n"
+                . " INNER JOIN securite_dossiers dossier ON dossier.id = droit.dossier_id\n"
+                . " INNER JOIN documents document_acl ON document_acl.id = t.document_id\n"
+                . " WHERE membre.compte_id = :acl_compte\n"
+                . " AND (document_acl.chemin_relatif = dossier.chemin_relatif OR document_acl.chemin_relatif LIKE CONCAT(dossier.chemin_relatif, '/%'))\n"
+                . " AND droit.action_code IN ('lire', 'deposer', 'modifier', 'gerer') AND droit.autorise = 1\n"
+                . " AND NOT EXISTS (SELECT 1 FROM securite_dossiers_droits refus\n"
+                . "   INNER JOIN securite_groupes_comptes membre_refus ON membre_refus.groupe_id = refus.groupe_id\n"
+                . "   WHERE refus.dossier_id = droit.dossier_id AND membre_refus.compte_id = :acl_compte_refus\n"
+                . "   AND refus.action_code = 'lire' AND refus.autorise = 0)\n"
+                . " AND NOT EXISTS (SELECT 1 FROM securite_dossiers_droits plus_proche\n"
+                . "   INNER JOIN securite_groupes_comptes membre_proche ON membre_proche.groupe_id = plus_proche.groupe_id\n"
+                . "   INNER JOIN securite_dossiers dossier_proche ON dossier_proche.id = plus_proche.dossier_id\n"
+                . "   WHERE membre_proche.compte_id = :acl_compte_proche\n"
+                . "   AND (document_acl.chemin_relatif = dossier_proche.chemin_relatif OR document_acl.chemin_relatif LIKE CONCAT(dossier_proche.chemin_relatif, '/%'))\n"
+                . "   AND CHAR_LENGTH(dossier_proche.chemin_relatif) > CHAR_LENGTH(dossier.chemin_relatif))\n"
+                . ")";
+            $parametres['acl_compte'] = $this->compte;
+            $parametres['acl_compte_refus'] = $this->compte;
+            $parametres['acl_compte_proche'] = $this->compte;
+        }
 
         if ($mode === 'fulltext' && $termes->expressionFulltext() !== '') {
             $morceaux[] = 'MATCH(t.titre, t.contenu) AGAINST(:plein_texte IN BOOLEAN MODE)';
