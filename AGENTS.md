@@ -44,3 +44,7 @@ IF NOT EXISTS, idempotent) ; l'installateur du Socle appelle celui de chaque sec
 ## Commandes
 - `powershell -File tools\serve.ps1` : serveur de dev sur http://127.0.0.1:8870
 - `powershell -File tools\harness.ps1` : garde-fous + PHPUnit + Playwright + registre (`recette/registre.json`)
+
+## Porte qualité (ECC)
+
+Avant tout `ETAT: fini`, applique `docs/qualite/README.md` : analyse statique, revue du diff contre les grilles ECC recopiées dans `docs/qualite/ecc/` (php-reviewer, security-reviewer, silent-failure-hunter), TDD, rubrique « Porte qualité » dans le journal du lot.
