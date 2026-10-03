@@ -184,4 +184,10 @@ ETAT: fini
 - **Qualifié suisse (SCSE/ZertES)** : SwissSign (RFC 3161, authentification HTTP, prix sur offre) ; Swisscom Trust Services (qualifié ZertES et eIDAS, prix sur offre).
 - **Qualifié UE (eIDAS)** : GLOBALTRUST (RFC 3161, 20 EUR pour 100 horodatages par an, 185 EUR pour 1 000) ; autres prestataires de la liste de confiance UE.
 - **Gratuit non qualifié** : TSA publiques (DigiCert, FreeTSA) : preuve technique d'antériorité, sans valeur de signature qualifiée.
-- Le moteur reste multi-TSA ; la TSA simulée demeure pour les tests. En attente : choix d'Olivier.
+- Le moteur reste multi-TSA ; la TSA simulée demeure pour les tests.
+
+### Décision d'Olivier (2026-10-03) — horodatage gratuit pour cette version
+
+- Cette version utilise des TSA publiques gratuites, non qualifiées : DigiCert (`http://timestamp.digicert.com`) en premier, FreeTSA (`https://freetsa.org/tsr`) en secours. Aucun frais. Un prestataire qualifié (SwissSign, Swisscom, GLOBALTRUST) ne sera ajouté que sur demande.
+- Essai du juge depuis le poste (18:30) : les deux TSA répondent `granted` au `TsaReelle` actuel (DigiCert 416 ms, FreeTSA 704 ms).
+- Écarts relevés par le juge, à traiter en V2-14a : une seule URL sans secours ; pas de nonce dans la requête ; la signature de la TSA n'est jamais vérifiée (un jeton DER forgé avec statut granted et la bonne empreinte passerait le `Verificateur`) ; la chaîne de certificats n'est pas conservée avec le jeton (vérification à 10 ans) ; les messages parlent d'horodatage qualifié alors que ces TSA ne le sont pas.
