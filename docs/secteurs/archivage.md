@@ -191,3 +191,34 @@ ETAT: fini
 - Cette version utilise des TSA publiques gratuites, non qualifiées : DigiCert (`http://timestamp.digicert.com`) en premier, FreeTSA (`https://freetsa.org/tsr`) en secours. Aucun frais. Un prestataire qualifié (SwissSign, Swisscom, GLOBALTRUST) ne sera ajouté que sur demande.
 - Essai du juge depuis le poste (18:30) : les deux TSA répondent `granted` au `TsaReelle` actuel (DigiCert 416 ms, FreeTSA 704 ms).
 - Écarts relevés par le juge, à traiter en V2-14a : une seule URL sans secours ; pas de nonce dans la requête ; la signature de la TSA n'est jamais vérifiée (un jeton DER forgé avec statut granted et la bonne empreinte passerait le `Verificateur`) ; la chaîne de certificats n'est pas conservée avec le jeton (vérification à 10 ans) ; les messages parlent d'horodatage qualifié alors que ces TSA ne le sont pas.
+
+## Journal V2-14a — horodatage réel — 03-10-2026
+
+**Oracle d'abord**
+- `TsaTest::testLaListeDeTsaRespecteLOrdreEtIgnoreLesEspacesVides()` a été ajouté avant le code : rouge (méthode `TsaReelle::urls()` absente), puis vert.
+- `VerificateurTest::testUnJetonForgeAnnonceCommePublicEstRefuse()` marque un jeton structurellement plausible comme TSA publique sans requête/chaîne : il est refusé, nonce invérifiable.
+
+**Fait**
+- `TSA_URL` accepte une liste ordonnée séparée par des virgules ; chaque échec est conservé dans le refus final et l’URL effectivement signataire est inscrite dans le justificatif. La valeur par défaut est DigiCert puis FreeTSA.
+- La requête RFC 3161 porte `certReq` et un nonce aléatoire de 64 bits. `openssl ts -verify -queryfile … -CAfile …` contrôle la signature CMS, l’EKU `timeStamping`, la chaîne et le nonce au scellement comme au rejeu. La chaîne conservée est fournie à OpenSSL en `-untrusted` lors du rejeu.
+- Pour une TSA publique, `.scellement/` contient le `.tsr`, la requête `.tsq` et la chaîne `.tsa-chain.pem`. Le justificatif nomme la TSA, son type `publique_non_qualifiee` et ces deux preuves. Les libellés ne promettent plus un horodatage qualifié.
+- `tools/essai-tsa-reelle.php`, hors harness, exerce les deux TSA avec des empreintes synthétiques.
+
+**Racines versionnées et vérifiées**
+- **DigiCert Trusted Root G4** : téléchargé depuis `https://cacerts.digicert.com/DigiCertTrustedRootG4.crt`, DER converti localement en PEM ; empreinte SHA-256 du certificat `55:2F:7B:DC:F1:A7:AF:9E:6C:E6:72:01:7F:4F:12:AB:F7:72:40:C7:8E:76:1A:C2:03:D1:D9:D2:0A:C8:99:88`, recoupée avec le magasin de certificats Git.
+- **FreeTSA Root CA** : téléchargé depuis `https://freetsa.org/files/cacert.pem` ; SHA-256 du fichier `2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438`, identique à la valeur publiée par FreeTSA ; empreinte SHA-256 du certificat `A6:37:9E:7C:EC:C0:5F:AA:3C:BF:07:60:13:D7:45:E3:27:BB:BA:A3:8C:0B:9A:F2:24:69:D4:70:1D:18:AA:BC`.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Archivage --no-coverage` : **31 tests, 135 assertions, vert**. Dont le jeton forge annoncé public refusé et la conservation de la requête/chaîne à côté du jeton.
+- `php tests/oracles/archivage/porte-v2-09.php` : **7 étapes OK, code 0**.
+- `php tools/essai-tsa-reelle.php` : **2/2 vert** : DigiCert **6 008 octets**, FreeTSA **4 643 octets**, signatures CMS et nonces vérifiés.
+
+**Porte qualité**
+- `php vendor/bin/phpstan analyse --memory-limit=2G` : **0 erreur hors baseline** (baseline inchangée).
+- Revue ECC `php-reviewer` : aucun constat critique ou élevé ; types stricts, API courte, aucun SQL ajouté. Revue `security-reviewer` : commandes OpenSSL composées avec des chemins temporaires internes et `escapeshellarg`, noms de preuves du justificatif bornés à un nom de fichier, aucune donnée réelle ni secret. Revue `silent-failure-hunter` : les écritures et lectures de preuves sont contrôlées ; les causes des TSA sont propagées et nommées, aucun `catch (Throwable)` muet.
+- `harness.ps1 -SansBanc` : **bloqué avant le verdict** au démarrage de PHPUnit (processus sans progression, arrêté pour ne pas concurrencer les tests partagés). Les deux exécutions complètes exigées, et donc la condition « seuls rouges 5-personas et 3-banc », ne peuvent pas être attestées dans l’état courant du dépôt.
+
+**Commits**
+- `45b5b19` — `archivage: vérifie les TSA publiques réelles` (Co-Authored-By Codex).
+
+ETAT: bloqué — harness -SansBanc ne termine pas (bloqué dès PHPUnit), deux passages complets impossibles à attester
