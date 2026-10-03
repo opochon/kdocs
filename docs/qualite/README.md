@@ -10,9 +10,17 @@ Source : [ECC — Everything Claude Code](https://github.com/affaan-m/ECC), vers
 
 ## Porte qualité de chaque lot (obligatoire avant ETAT: fini)
 
-1. **Analyse statique** (couche 8 du harness, à poser) : PHPStan au niveau fixé dans `phpstan.neon`, aucune erreur nouvelle hors baseline ; une erreur ignorée l'est par `@phpstan-ignore` motivé, jamais en grossissant la baseline.
+1. **Analyse statique** (couche 8 du harness, posée le 2026-10-03) : PHPStan au niveau fixé dans `phpstan.neon` (niveau 6), commande `php vendor\bin\phpstan analyse --memory-limit=2G`, aucune erreur nouvelle hors baseline ; une erreur ignorée l'est par `@phpstan-ignore` motivé, jamais en grossissant la baseline.
 2. **Revue du diff du lot** contre les grilles `php-reviewer`, `security-reviewer` et `silent-failure-hunter` : chaque constat CRITIQUE ou ÉLEVÉ est corrigé, ou listé avec sa raison dans le journal du lot. En particulier : pas de `catch (Throwable)` qui avale une erreur sans la tracer, pas de SQL construit par concaténation d'une entrée, `declare(strict_types=1)`, fonctions courtes et lisibles (pas de contrôleur de 400 caractères sur une ligne).
 3. **TDD** : l'oracle est rouge avant le code, et le reste du lot ne l'affaiblit pas.
 4. **Journal** : rubrique « Porte qualité » avec les chiffres (PHPStan, constats de revue corrigés ou motivés).
 
 Le juge applique les mêmes grilles à sa relecture.
+
+## Baseline PHPStan
+
+Mesure du 2026-10-03 sur `src` (commit aebab81) : niveau 0 : 0 erreur, niveau 3 : 7, niveau 5 : 40, niveau 6 : 177, niveau 8 : 261. Niveau retenu : 6, les 177 erreurs existantes sont dans `phpstan-baseline.neon`.
+
+- La baseline ne grossit jamais. Toute erreur corrigée en sort (`reportUnmatchedIgnoredErrors` rend la couche rouge si une entrée devient caduque : on régénère alors la baseline, à la baisse).
+- Défauts réels repérés dans la baseline, à corriger en priorité : `Ui\ATraiter` appelle `fiche()`, `lister()` et `cheminAbsolu()` absents du contrat `Contrats\Depot` (fonctionne par accident avec l'implémentation actuelle, casse avec une autre) ; `EcranBibliotheque::arbreVivant()` déclare un type de retour faux ; `Recherche\Service::$index` écrit jamais lu ; conditions toujours vraies dans les horloges figées et `AdaptateurGraphe`.
+- La couche 8 lance aussi `composer audit` : une vulnérabilité connue dans une dépendance, ou un audit impossible, rend la couche rouge.

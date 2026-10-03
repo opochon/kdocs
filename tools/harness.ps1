@@ -60,6 +60,12 @@ if (-not (Test-Path $charge)) {
   $couches['6-charge'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Select-Object -Last 1) -join '' }
 }
 
+# 8. Qualité statique : PHPStan niveau 6 (aucune erreur hors baseline) + audit des dépendances (composer audit).
+#    Voir docs\qualite\README.md (Porte qualité). Un audit impossible (réseau) compte ROUGE : on ne ment pas.
+$stan = & php vendor\bin\phpstan analyse --no-progress --memory-limit=2G --error-format=raw 2>&1; $okStan = ($LASTEXITCODE -eq 0)
+$nbStan = ($stan | Select-String ':\d+:').Count
+$audit = & php tools\composer.phar audit --locked --no-interaction 2>&1; $okAudit = ($LASTEXITCODE -eq 0)
+$couches['8-statique'] = @{ ok = ($okStan -and $okAudit); detail = ("phpstan : $nbStan erreur(s) hors baseline | audit : " + (($audit | Select-Object -Last 1) -join ''))}
 # Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
 foreach ($c in '5-personas') {
   $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }

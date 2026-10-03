@@ -1,0 +1,11 @@
+# Couche 8 du harness : analyse statique. Niveau 6, aucune erreur nouvelle hors baseline.
+# La baseline se réduit, elle ne grossit jamais : une régénération doit être justifiée dans le journal (rubrique Porte qualité).
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+    tmpDir: var/phpstan-cache
+    reportUnmatchedIgnoredErrors: true

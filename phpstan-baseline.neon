@@ -1,0 +1,1033 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Ged\\Apercu\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Apercu/Module.php
+
+		-
+			message: '#^Method Ged\\Archivage\\EcranArchives\:\:donnees\(\) has parameter \$query with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/EcranArchives.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Garde\:\:estScelle\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Garde.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Garde\:\:journaliserAlerte\(\) has parameter \$alerte with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Garde.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Archivage/HorlogeFigee.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Archivage/Module.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Module\:\:filtrerParDroits\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Module.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Retention\:\:durees\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Retention.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Retention\:\:enregistrerDurees\(\) has parameter \$durees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Retention.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Retention\:\:enregistrerDurees\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Retention.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Retention\:\:journaliser\(\) has parameter \$entree with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Retention.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Retention\:\:reference\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Retention.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Scellement\:\:ecrire\(\) has parameter \$donnees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Scellement.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Scellement\:\:estActif\(\) has parameter \$scellement with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Scellement.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Scellement\:\:lire\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Scellement.php
+
+		-
+			message: '#^Static method Ged\\Archivage\\Scellement\:\:descendre\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Archivage/Scellement.php
+
+		-
+			message: '#^Method Ged\\Archivage\\Scelleur\:\:archiverJustificatif\(\) has parameter \$existant with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Archivage/Scelleur.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Archivage/Scelleur.php
+
+		-
+			message: '#^Method Ged\\Classement\\ClasseurGed\:\:dateFacture\(\) has parameter \$analyse with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Classement/ClasseurGed.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Classement/ClasseurGed.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>etiquettes" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Classement/ClasseurGed.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>montant" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Classement/ClasseurGed.php
+
+		-
+			message: '#^Constant Ged\\Classement\\InfomaniakClient\:\:CHEMIN_V1 is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: src/Classement/InfomaniakClient.php
+
+		-
+			message: '#^Method Ged\\Classement\\Regles\:\:emetteurIaCredible\(\) has parameter \$destinatairesConnus with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Classement/Regles.php
+
+		-
+			message: '#^Method Ged\\Classement\\Regles\:\:estDestinataire\(\) has parameter \$destinataires with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Classement/Regles.php
+
+		-
+			message: '#^Method Ged\\Classement\\Regles\:\:lireEmetteur\(\) has parameter \$destinatairesConnus with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Classement/Regles.php
+
+		-
+			message: '#^Offset ''exitcode'' on array\{command\: string, pid\: int, running\: false, signaled\: bool, stopped\: bool, exitcode\: int, termsig\: int, stopsig\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ingestion/Cmd4Decoupeur.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditeurPdf\:\:appel\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditeurPdf.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditeurPdf\:\:executer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditeurPdf.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:appliquer\(\) has parameter \$pages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:finir\(\) has parameter \$crees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:instantane\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:metaEditee\(\) has parameter \$pages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:metaEditee\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:pages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\EditionPieces\:\:verifierPages\(\) has parameter \$obtenues with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Offset ''confiance'' on array\{titre\: string\|null, type\: string\|null, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, confiance\: float, source\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Offset ''source'' on array\{titre\: string\|null, type\: string\|null, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, confiance\: float, source\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ingestion/EditionPieces.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Imap\\Boite\:\:nonLus\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Imap/Boite.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Imap\\ConnexionDifferee\:\:nonLus\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Imap/ConnexionDifferee.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Imap\\ImapBoite\:\:nonLus\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Imap/ImapBoite.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Pilote\:\:decouper\(\) has parameter \$lot with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Pilote\:\:origineCourriel\(\) has parameter \$lot with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Pilote\:\:origineCourriel\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Pilote\:\:pieceQuiProlonge\(\) has parameter \$pieces with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Offset ''pages'' on array\{fichier\: string, pages\: list\<int\>, texte\: string, analyse\: array\<string, mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Offset ''texte'' on array\{fichier\: string, pages\: list\<int\>, texte\: string, analyse\: array\<string, mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ingestion/Pilote.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Source\:\:relever\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Source.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\SourceAdresse\:\:relever\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/SourceAdresse.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Travaux\:\:ajouterPiece\(\) has parameter \$pages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Travaux.php
+
+		-
+			message: '#^Method Ged\\Ingestion\\Travaux\:\:plages\(\) has parameter \$pages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ingestion/Travaux.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\AppairageApi\:\:champs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/AppairageApi.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\Courriel\:\:rendu\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/Courriel.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\Courriel\:\:rendu\(\) has parameter \$pieces with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/Courriel.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\DepotApi\:\:origine\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/DepotApi.php
+
+		-
+			message: '#^Parameter \#3 \$donnees of method Ged\\Jonctions\\DepotApi\:\:json\(\) expects array\<string, mixed\>, list\<array\<string, bool\|string\>\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Jonctions/DepotApi.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Jonctions/Module.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\TransportFichier\:\:message\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/TransportFichier.php
+
+		-
+			message: '#^Method Ged\\Jonctions\\TransportSmtp\:\:message\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Jonctions/TransportSmtp.php
+
+		-
+			message: '#^Method Ged\\Kernel\:\:creer\(\) return type with generic class Slim\\App does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Kernel.php
+
+		-
+			message: '#^Method Ged\\Recherche\\Service\:\:chercherLike\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Method Ged\\Recherche\\Service\:\:chercherPleinTexte\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Method Ged\\Recherche\\Service\:\:executer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Method Ged\\Recherche\\Service\:\:lister\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Property Ged\\Recherche\\Service\:\:\$index is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-empty\-list\<non\-falsy\-string\> and array\{\} will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Recherche/Service.php
+
+		-
+			message: '#^Method Ged\\Recherche\\Termes\:\:__construct\(\) has parameter \$negatifs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Recherche/Termes.php
+
+		-
+			message: '#^Method Ged\\Securite\\DroitsDossiers\:\:regleDuDossier\(\) has parameter \$groupes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Securite/DroitsDossiers.php
+
+		-
+			message: '#^Method Ged\\Securite\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Securite/Module.php
+
+		-
+			message: '#^Method Ged\\Securite\\RegistreSessions\:\:ouvrir\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Securite/RegistreSessions.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Securite/RegistreSessions.php
+
+		-
+			message: '#^Method Ged\\Socle\\Champs\:\:nettoyerOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Champs.php
+
+		-
+			message: '#^Method Ged\\Socle\\Champs\:\:operateurs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Champs.php
+
+		-
+			message: '#^Method Ged\\Socle\\Champs\:\:parCle\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Champs.php
+
+		-
+			message: '#^Method Ged\\Socle\\Champs\:\:prochainId\(\) has parameter \$entrees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Champs.php
+
+		-
+			message: '#^Method Ged\\Socle\\Champs\:\:valider\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Champs.php
+
+		-
+			message: '#^Method Ged\\Socle\\Collaboration\:\:cheminDocument\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Collaboration.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:cheminRangement\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:emetteurPeutCreerDossier\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:enregistrer\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:fiche\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:fusionner\(\) has parameter \$actuel with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:fusionner\(\) has parameter \$nouvelles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:fusionner\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:lister\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:metaDeDepot\(\) has parameter \$metadonnees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:metaDeDepot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\DepotFichiers\:\:rapporterMeta\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: src/Socle/DepotFichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:arbreVivant\(\) should return list\<array\{nom\: string, enfants\: list\<string\>\}\> but returns list\<array\{chemin\: non\-falsy\-string, nom\: string, profondeur\: int\<0, max\>, compte\: int\<1, max\>\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:docParId\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:estVueRecherche\(\) has parameter \$vue with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:filtresNeutres\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:lienDocument\(\) has parameter \$parametres with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:lienPage\(\) has parameter \$parametres with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:lirePage\(\) has parameter \$ordreRecherche with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:restreindreAuxIds\(\) has parameter \$ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:restreindreAuxIds\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:restreindreAuxIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/EcranBibliotheque.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fichiers\:\:colonnesIndex\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fichiers\:\:colonnesIndex\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fichiers\:\:json\(\) has parameter \$valeurs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fichiers\:\:metaMinimale\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fichiers.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fonds\:\:fichiers\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fonds.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fonds\:\:idsParChemin\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fonds.php
+
+		-
+			message: '#^Method Ged\\Socle\\Fonds\:\:parId\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Fonds.php
+
+		-
+			message: '#^Method Ged\\Socle\\Indexeur\:\:lireMeta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Indexeur.php
+
+		-
+			message: '#^Method Ged\\Socle\\Indexeur\:\:versions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Indexeur.php
+
+		-
+			message: '#^Method Ged\\Socle\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Socle/Module.php
+
+		-
+			message: '#^Method Ged\\Socle\\Nomenclature\:\:prochainId\(\) has parameter \$entrees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Nomenclature.php
+
+		-
+			message: '#^Method Ged\\Socle\\Nomenclature\:\:transformer\(\) has parameter \$transformation with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Nomenclature.php
+
+		-
+			message: '#^Method Ged\\Socle\\Reconstructeur\:\:lireFonds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Reconstructeur.php
+
+		-
+			message: '#^Method Ged\\Socle\\ReconstructionIndex\:\:avancer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/ReconstructionIndex.php
+
+		-
+			message: '#^Method Ged\\Socle\\ReconstructionIndex\:\:lancer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/ReconstructionIndex.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Socle/Registre.php
+
+		-
+			message: '#^Method Ged\\Socle\\Registre\:\:lire\(\) has parameter \$defaut with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Registre.php
+
+		-
+			message: '#^Method Ged\\Socle\\Registre\:\:lire\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Registre.php
+
+		-
+			message: '#^Method Ged\\Socle\\Registre\:\:modifier\(\) has parameter \$defaut with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Registre.php
+
+		-
+			message: '#^Method Ged\\Socle\\Vues\:\:enregistrerRecherche\(\) has parameter \$brut with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Vues.php
+
+		-
+			message: '#^Method Ged\\Socle\\Vues\:\:parSlug\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Vues.php
+
+		-
+			message: '#^Method Ged\\Socle\\Vues\:\:prochainId\(\) has parameter \$vues with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Vues.php
+
+		-
+			message: '#^Method Ged\\Socle\\Vues\:\:satisfaitTout\(\) has parameter \$d with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Vues.php
+
+		-
+			message: '#^Method Ged\\Socle\\Vues\:\:satisfaitTout\(\) has parameter \$filtres with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Socle/Vues.php
+
+		-
+			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:cheminAbsolu\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:fiche\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Call to an undefined method Ged\\Contrats\\Depot\:\:lister\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Method Ged\\Ui\\ATraiter\:\:documentDepuisLigne\(\) has parameter \$ligne with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Method Ged\\Ui\\ATraiter\:\:validerPropositions\(\) has parameter \$ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Method Ged\\Ui\\ATraiter\:\:validerPropositions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Offset ''type'' on array\{titre\: string, type\: string, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, statut\: ''valide'', classement\: array\{source\: ''humain'', confiance\: 1\.0, preuve\: ''validation humaine'', auteur\: string, le\: non\-falsy\-string\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<array\<string, mixed\>\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Parameter \#1 \$config of class Ged\\Socle\\Nomenclature constructor expects Ged\\Config, PDO given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Ui/ATraiter.php
+
+		-
+			message: '#^Method Ged\\Ui\\Document\:\:historique\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/Document.php
+
+		-
+			message: '#^Method Ged\\Ui\\Document\:\:versions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/Document.php
+
+		-
+			message: '#^Method Ged\\Ui\\Ecrans\:\:document\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/Ecrans.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{t\: string, hit\: bool\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Constant Ged\\Ui\\ExtraitsLisibles\:\:SIGNES_FORTS is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:bruitAvant\(\) has parameter \$jetons with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:courtNonUsuel\(\) has parameter \$jeton with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:fragmentDeBord\(\) has parameter \$jeton with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:implausible\(\) has parameter \$jeton with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:jetonDepuisMot\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Offset ''hit'' on array\{t\: string, hit\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Offset ''t'' on array\{t\: string, hit\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Offset 0 on array\{list\<array\{string, int\<\-1, max\>\}\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Static method Ged\\Ui\\ExtraitsLisibles\:\:bruitAvant\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Ui/ExtraitsLisibles.php
+
+		-
+			message: '#^Method Ged\\Ui\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Ui/Module.php
+
+		-
+			message: '#^Match arm comparison between ''action'' and ''action'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: src/Workflows/AdaptateurGraphe.php
+
+		-
+			message: '#^Method Ged\\Workflows\\AdaptateurGraphe\:\:entreeEtat\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/AdaptateurGraphe.php
+
+		-
+			message: '#^Method Ged\\Workflows\\AdaptateurGraphe\:\:entreeRegle\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/AdaptateurGraphe.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Workflows/AdaptateurGraphe.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Catalogue\:\:operateurs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Catalogue.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:aEtat\(\) has parameter \$circuit with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:creer\(\) has parameter \$circuit with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:decoder\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:decoderInstance\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:etatInitial\(\) has parameter \$circuit with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:instance\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:instancesDocument\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:mettreAJour\(\) has parameter \$circuit with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Circuits\:\:transition\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Circuits.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Workflows/Conditions.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Ecran\:\:catalogue\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Ecran.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Ecran\:\:entreeJournal\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Ecran.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Ecran\:\:jsonSur\(\) has parameter \$donnees with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Ecran.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Workflows/HorlogeFigee.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Workflows/Module.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Moteur\:\:appliquerEtape\(\) has parameter \$fiche with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Moteur.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Moteur\:\:substituer\(\) has parameter \$contexte with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Moteur.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Regles\:\:creer\(\) has parameter \$regle with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Regles.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Regles\:\:decoder\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Regles.php
+
+		-
+			message: '#^Method Ged\\Workflows\\Regles\:\:mettreAJour\(\) has parameter \$regle with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Workflows/Regles.php
