@@ -60,7 +60,9 @@ final class DroitsDossiers
     public function permissionsPourCompte(int $compte): array
     {
         $sql = 'SELECT DISTINCT rp.permission_code FROM securite_roles_permissions rp WHERE rp.role_code IN ('
-            . 'SELECT role FROM comptes WHERE id = ? UNION SELECT g.role_code FROM securite_groupes g '
+            . "SELECT CASE role WHEN 'admin' THEN 'administrateur' WHEN 'lecteur' THEN 'utilisateur' "
+            . "WHEN 'contributeur' THEN 'manager' WHEN 'archiveur' THEN 'manager' ELSE role END FROM comptes WHERE id = ? "
+            . 'UNION SELECT g.role_code FROM securite_groupes g '
             . 'INNER JOIN securite_groupes_comptes gc ON gc.groupe_id = g.id WHERE gc.compte_id = ?)';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$compte, $compte]);
