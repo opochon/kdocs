@@ -28,13 +28,22 @@ final class Module
         $app->post('/connexion', [$controleur, 'connecter']);
         $app->post('/deconnexion', [$controleur, 'deconnecter']);
         $app->get('/administration/comptes', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/comptes.twig', ['comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll()]);
+            return $vue->rendre($rep, 'securite/comptes.twig', [
+                'ecran' => 'administration',
+                'comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll(),
+            ]);
         });
         $app->get('/administration/groupes', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/groupes.twig', ['groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll()]);
+            return $vue->rendre($rep, 'securite/groupes.twig', [
+                'ecran' => 'administration',
+                'groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll(),
+            ]);
         });
         $app->get('/administration/roles', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/roles.twig', ['roles' => $pdo->query('SELECT code, libelle FROM securite_roles WHERE actif = 1 ORDER BY code')->fetchAll()]);
+            return $vue->rendre($rep, 'securite/roles.twig', [
+                'ecran' => 'administration',
+                'roles' => $pdo->query('SELECT code, libelle FROM securite_roles WHERE actif = 1 ORDER BY code')->fetchAll(),
+            ]);
         });
         $app->get('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $vue) {
             $stmt = $pdo->prepare('SELECT g.id, g.nom, d.action_code, d.autorise FROM securite_groupes g LEFT JOIN securite_dossiers_droits d ON d.groupe_id = g.id AND d.dossier_id = ? ORDER BY g.nom');
