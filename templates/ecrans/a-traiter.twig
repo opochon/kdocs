@@ -25,7 +25,7 @@
   {# Ordinateur : file à gauche, aperçu, proposition. Téléphone : aperçu en haut, proposition dessous,
      file en dernier, repliée en simple compteur (la mise en ordre est dans le CSS, point de rupture). #}
   <div class="volets traiter">
-    <details class="carte volet volet-file" data-testid="bloc-file">
+    <details class="carte volet volet-file" data-testid="bloc-file" open>
       <summary class="volet-tete" data-testid="file-repli">File <span class="muted">· {{ file|length }} à contrôler</span> <span class="muted">· du plus ancien au plus récent</span></summary>
       <form method="post" action="/a-traiter/valider-lot" data-testid="formulaire-validation-lot"><input type="hidden" name="csrf" value="{{ csrf }}"><ul class="liste volet-corps" data-testid="file-a-traiter">
         {% for p in file %}
@@ -38,6 +38,9 @@
         {% endfor %}
       </ul><button class="btn discret" type="submit" data-testid="action-valider-lot">Valider la sélection</button></form>
     </details>
+    {# La file reste ouverte sur ordinateur. Le téléphone la replie après le rendu : CSS seul ne peut
+       pas modifier l'état natif d'un <details> sans aussi masquer ses liens de navigation. #}
+    <script nonce="{{ csp_nonce }}">if (window.matchMedia('(max-width: 760px)').matches) { document.querySelector('[data-testid="bloc-file"]').removeAttribute('open'); }</script>
 
     <section class="carte volet volet-apercu" aria-label="Aperçu">
       <div class="volet-tete">
