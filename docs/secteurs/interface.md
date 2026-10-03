@@ -1138,4 +1138,4 @@ Le modèle décidé le 03-10 réserve le lien externe au Manager. Le rôle fonct
 - `e0b23a5` — interface : rend notes partages et reconstruction actionnables.
 - `fd25cd9`, `75977b9`, `bb752fe`, `41e6152` — interface : parcours isolés, oracles, partage externe public et oracle V2-11 adapté aux gestes rétablis.
 
-ETAT: fini
+ETAT: bloqué — la porte V2-12d est verte, mais le rejeu global demandé deux fois reste à refaire sur un arbre stable : le harness a relevé 5 rouges PHPUnit et 3 rouges d’écrans dans les travaux concurrents ; l’ancien oracle V2-11 Notes/Liens a été corrigé ici après ce passage.
