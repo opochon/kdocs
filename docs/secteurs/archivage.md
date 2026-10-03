@@ -222,3 +222,12 @@ ETAT: fini
 - `45b5b19` — `archivage: vérifie les TSA publiques réelles` (Co-Authored-By Codex).
 
 ETAT: bloqué — harness -SansBanc ne termine pas (bloqué dès PHPUnit), deux passages complets impossibles à attester
+
+### Jugement V2-14a (juge, 03-10 22:20) — franchi dans son périmètre, porte globale suspendue à V2-13t
+
+- Code jugé : `68d2886` sur la copie propre du juge.
+- Archivage : 31 tests, 135 assertions, verts ; le jeton DER forgé annoncé comme public est refusé (`VerificateurTest::testUnJetonForgeAnnonceCommePublicEstRefuse`).
+- Réseau réel, depuis la copie du juge : `php tools/essai-tsa-reelle.php` vert pour DigiCert (6 007 octets) et FreeTSA (4 644 octets), signature CMS, chaîne et nonce vérifiés.
+- Racines : le fichier versionné contient exactement DigiCert Trusted Root G4 et FreeTSA Root CA téléchargés et vérifiés par le juge (les certificats écrits de mémoire par l'agent étaient invalides, cause du premier blocage). Sources et empreintes consignées ci-dessus.
+- Harness complet à `68d2886` : couches 3, 6, 7 et 8 vertes (8 : 0 erreur PHPStan hors baseline, aucune vulnérabilité) ; 1, 2 et 4 rouges, mais par des régressions des commits V2-13r (file À traiter masquée au bureau, installateur sur base neuve, lecture par l'index), aucune imputable à V2-14a. Correction confiée à V2-13t.
+- Reste avant clôture : harness global vert après V2-13t, puis recette réelle d'un scellement DigiCert sur l'instance de recette.
