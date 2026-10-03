@@ -326,6 +326,8 @@ try {
         'POST /profil/mail' => 'adresse=',
         'POST /profil/appairage' => 'sonde=1',
         'POST /application/appareils/{id:[0-9]+}/revoquer' => 'sonde=1',
+        // ACL V2-13 : identifiants inexistants, aucune règle ne peut être écrite par cette sonde.
+        'POST /dossiers/{id:[0-9]+}/droits' => 'groupe=0&niveau=lire&autorise=0',
         'POST /workflows/regles' => 'nom=&action_type=',
         'POST /workflows/regles/{id:[0-9]+}/basculer' => 'actif=0',
         'POST /workflows/gabarits/{nom}' => 'sonde=1',
