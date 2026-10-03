@@ -1219,3 +1219,12 @@ ETAT: bloqué — les 4 échecs PHPUnit Socle persistent seuls ; le seul rouge �
 - `dd93dc1` — socle : indexe le tri de la file à traiter.
 
 ETAT: bloqué — le double harness ne laisse pas le seul rouge mobile admis ; il faut un rejeu sur poste stabilisé.
+
+## Journal V2-12d7 — reprise après consolidation Socle — 03-10-2026
+
+- Aucun geste utilisateur ne change : Notes, Liens, Partager, Partagés avec moi et la reconstruction gardent leurs routes, `data-testid` et contrats V2-12d6.
+- La reconstruction lit désormais son état persistant dans `.ged/reconstruction-index.json`; l’écran conserve progression, reprise, tranche et refus du second lancement.
+- Les parcours et leur préparateur utilisent la table unique `document_collaboration`; la recherche de notes lit cette même source.
+- Les deux essais de harness n’ont pas produit de nouveau registre dans cette session; aucun chiffre global n’est donc prétendu. Seul `mobile.spec.ts:298` reste le rouge qui serait admis.
+
+ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’un poste stabilisé; résultats ciblés et migration verts.

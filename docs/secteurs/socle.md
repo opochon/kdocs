@@ -269,3 +269,23 @@ ETAT: fini
 - Rejeux `harness.ps1 -SansBanc` : 434/2 466/1 puis 434/2 465/1 côté unitaire ; charge p95 lecture 27 895 ms puis 2 795 ms. La machine hébergeait de nombreux processus PHP/Node externes ; la porte globale est à rejouer stabilisée.
 
 ETAT: bloqué — le double harness ne respecte pas encore l'unique rouge mobile admis.
+
+## Journal V2-12d7 — consolidation imposée par le juge — 03-10-2026
+
+**Décision appliquée**
+
+- La porte V2-01 et l’installateur contrôlent exactement **21 tables** et le plafond explicite de **21**. Motif du juge : les données de collaboration sont consolidées, aucune table superflue n’est ajoutée.
+- `document_collaboration` remplace `document_notes`, `document_liens`, `document_partages` et `document_collaboration_evenements`. Son type est `note`, `lien`, `partage` ou `evenement`; les index couvrent fiche, liens des deux côtés, destinataires, révocation et empreinte SHA-256 unique du jeton. Notes, recherche plein texte, historique, Partagés avec moi et liens externes restent inchangés fonctionnellement.
+- L’état de reconstruction vit dans `.ged/reconstruction-index.json` via `Registre` : verrou exclusif, fichier temporaire puis renommage. Le second lancement est refusé et la reprise après coupure demeure visible.
+- La migration V2-12d est idempotente : elle marque chaque ligne copiée par sa table/id source, vérifie les comptes avant retrait, conserve les empreintes de jeton et les révocations, publie le dernier état de reconstruction dans le fonds puis seulement retire les cinq anciennes tables.
+
+**Oracles**
+
+- Rouge confirmé avant code : la liste 21 tables et `document_collaboration` étaient absents; le test de migration échouait sur l’absence de la cible.
+- Vert : `V212dTest` **7 tests / 49 assertions**; `InstallateurTest` **5 tests / 25 assertions**. La migration de `gedv2` a repris **1 note, 1 lien, 1 partage révoqué, 3 événements**; les cinq anciennes tables n’existent plus.
+
+**Rejeux globaux**
+
+- Les deux essais lancés n’ont pas atteint la production de `recette/registre.json` (le dernier reste celui de 15:29:50 sur `dd93dc1`). Les processus PHP/Node externes restent présents; aucun chiffre de rejeu global n’est donc prétendu.
+
+ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’un poste stabilisé; résultats ciblés et migration verts.
