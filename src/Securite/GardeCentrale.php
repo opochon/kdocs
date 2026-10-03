@@ -112,7 +112,12 @@ final class GardeCentrale implements MiddlewareInterface
     private function documentAutorise(string $chemin, string $methode, array $session): bool
     {
         if (preg_match('#^/documents/([0-9]+)(?:/|$)#', $chemin, $trouve) !== 1) {
-            return true;
+            if (preg_match('#^/dossiers/([0-9]+)/droits$#', $chemin, $trouve) !== 1) {
+                return true;
+            }
+            $compte = $session['compte'] ?? null;
+            return !is_int($compte) || $compte < 1 || in_array('*', $session['permissions'], true)
+                || $this->droitsDossiers->autorise($compte, (int) $trouve[1], 'gerer');
         }
         $compte = $session['compte'] ?? null;
         if (!is_int($compte) || $compte < 1) {

@@ -1,0 +1,1 @@
+{% extends 'layout.twig' %}{% block contenu %}<h1>Rôles</h1><a data-testid="action-roles" href="/administration/roles">Rôles</a>{% for role in roles %}<p data-testid="role-{{ role.code }}">{{ role.libelle }}</p>{% endfor %}{% endblock %}

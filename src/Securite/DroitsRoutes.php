@@ -68,6 +68,13 @@ final class DroitsRoutes
         'POST /workflows/evenements' => 'workflow.executer',
         'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
+        'GET /administration/comptes' => 'application:administrer',
+        'POST /administration/comptes' => 'application:administrer',
+        'GET /administration/groupes' => 'application:administrer',
+        'POST /administration/groupes' => 'application:administrer',
+        'GET /administration/roles' => 'application:administrer',
+        'GET /dossiers/{id:[0-9]+}/droits' => 'dossiers:gerer',
+        'POST /dossiers/{id:[0-9]+}/droits' => 'dossiers:gerer',
         'GET /archives' => 'archivage:consulter',
         'POST /archives/verifier' => 'archivage:consulter',
         // Socle V2-04 : bibliothèque réelle, vues enregistrées, écran métadonnées de l'administrateur.
@@ -205,6 +212,9 @@ final class DroitsRoutes
         }
         if (preg_match('#^/documents/[0-9]+/(?:notes|liens|partages)(?:/externe)?$#', $chemin) === 1) {
             return 'lire';
+        }
+        if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
+            return 'gerer';
         }
         if (preg_match('#^/documents/[0-9]+/(?:versions(?:/[0-9]+/restaurer)?)$#', $chemin) === 1) {
             return 'modifier';

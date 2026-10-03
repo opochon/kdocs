@@ -1,0 +1,1 @@
+{% extends 'layout.twig' %}{% block contenu %}<h1>Groupes</h1><a data-testid="action-groupes" href="/administration/groupes">Groupes</a>{% for groupe in groupes %}<p data-testid="groupe-{{ groupe.id }}">{{ groupe.nom }} — {{ groupe.role_code }}</p>{% endfor %}{% endblock %}

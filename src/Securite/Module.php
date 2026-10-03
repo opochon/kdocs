@@ -25,6 +25,28 @@ final class Module
         $app->get('/connexion', [$controleur, 'formulaire']);
         $app->post('/connexion', [$controleur, 'connecter']);
         $app->post('/deconnexion', [$controleur, 'deconnecter']);
+        $app->get('/administration/comptes', function ($req, $rep) use ($pdo, $vue) {
+            return $vue->rendre($rep, 'securite/comptes.twig', ['comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll()]);
+        });
+        $app->get('/administration/groupes', function ($req, $rep) use ($pdo, $vue) {
+            return $vue->rendre($rep, 'securite/groupes.twig', ['groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll()]);
+        });
+        $app->get('/administration/roles', function ($req, $rep) use ($pdo, $vue) {
+            return $vue->rendre($rep, 'securite/roles.twig', ['roles' => $pdo->query('SELECT code, libelle FROM securite_roles WHERE actif = 1 ORDER BY code')->fetchAll()]);
+        });
+        $app->get('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $vue) {
+            $stmt = $pdo->prepare('SELECT g.id, g.nom, d.action_code, d.autorise FROM securite_groupes g LEFT JOIN securite_dossiers_droits d ON d.groupe_id = g.id AND d.dossier_id = ? ORDER BY g.nom');
+            $stmt->execute([(int) $args['id']]);
+            return $vue->rendre($rep, 'securite/droits-dossier.twig', ['dossier' => (int) $args['id'], 'regles' => $stmt->fetchAll()]);
+        });
+        $app->post('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $audit) {
+            $corps = (array) ($req->getParsedBody() ?: []); $session = $req->getAttribute('ged.session');
+            $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
+            $autorise = (string) ($corps['autorise'] ?? '') === '1';
+            (new DroitsDossiers($pdo))->poserRegle((int) $args['id'], (int) ($corps['groupe'] ?? 0), (string) ($corps['niveau'] ?? ''), $autorise);
+            $audit->changementDroit($auteur, 'dossier:' . (int) $args['id'], (string) ($corps['niveau'] ?? ''), $autorise);
+            return $rep->withHeader('Location', '/dossiers/' . (int) $args['id'] . '/droits')->withStatus(303);
+        });
         $app->add(new GardeCentrale($sessions, $audit, $vue, new DroitsDossiers($pdo)));
     }
 }
