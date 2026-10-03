@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const RACINE = process.cwd();
-type Prep = { compte:string; mot_de_passe:string; document:number; cible:number };
+type Prep = { compte:string; mot_de_passe:string; document:number; cible:number; utilisateur?:string; mot_de_passe_utilisateur?:string; cible_partage?:number };
 async function portLibre(): Promise<number> { return new Promise((ok, ko) => { const s=createServer(); s.once('error',ko); s.listen(0,'127.0.0.1',()=>{const a=s.address();const p=typeof a==='object'&&a?a.port:0;s.close(()=>ok(p));}); }); }
 async function attente(base:string): Promise<void> { for(let i=0;i<100;i++){ try { if((await fetch(base+'/sante')).ok)return; }catch{} await new Promise(r=>setTimeout(r,100)); } throw new Error('serveur V2-12d indisponible'); }
 async function connecter(page:Page, prep:Prep):Promise<void> { await page.goto('/connexion'); await page.getByTestId('identifiant-connexion').fill(prep.compte); await page.getByTestId('mot-de-passe-connexion').fill(prep.mot_de_passe); await page.getByTestId('action-connexion').click(); await expect(page).toHaveURL(/\/a-traiter$/); }
@@ -35,10 +35,19 @@ test('Liens, bureau : libellé bilatéral et retrait réel', async({browser}) =>
 
 test('Partager, téléphone : le jeton n’ouvre que le document, expire et se révoque', async({browser}) => {
   await avecGeste('partager', async(base, prep) => { const c=await browser.newContext({baseURL:base,viewport:{width:390,height:844}});const page=await c.newPage(); try {
-    await connecter(page,prep); await page.goto(`/documents/${prep.document}`); await page.getByTestId('onglet-partager').click(); await page.getByTestId('partage-expiration').fill('2099-01-01'); await page.getByTestId('partage-externe-envoyer').click(); const lien=await page.getByTestId('partage-lien').locator('code').textContent(); expect(lien).toMatch(/^\/partages\/[A-Za-z0-9_-]{40,}$/);
+    await connecter(page,prep); await page.goto(`/documents/${prep.document}`); await page.getByTestId('onglet-partager').click(); await expect(page.getByTestId('partage-externe-creer')).toHaveAttribute('action', `/documents/${prep.document}/partages/externe`); await page.getByTestId('partage-expiration').fill('2099-01-01'); await page.getByTestId('partage-externe-envoyer').click(); await expect(page).toHaveURL(new RegExp(`/documents/${prep.document}$`)); const lien=await page.getByTestId('partage-lien').locator('code').textContent(); expect(lien).toMatch(/^\/partages\/[A-Za-z0-9_-]{40,}$/); await page.reload(); await expect(page.getByTestId('partage-lien')).toHaveCount(0);
     const externe=await browser.newContext({baseURL:base}); const lecteur=await externe.newPage(); await lecteur.goto(lien!); await expect(lecteur.getByTestId('partage-externe')).toBeVisible(); await expect(lecteur.getByTestId('partage-telecharger')).toBeVisible(); expect((await lecteur.locator('a,form,button').allTextContents()).join(' ')).not.toContain('Modifier');
     const faux=await lecteur.goto('/partages/'+ 'x'.repeat(43)); expect(faux?.status()).toBe(403); const reutilise=await lecteur.goto(`/documents/${prep.document}?jeton=${encodeURIComponent(lien!)}`); expect(reutilise?.status()).toBe(403); await externe.close();
-    await page.goto(`/documents/${prep.document}`); await page.getByTestId('onglet-partager').click(); await page.locator('[data-testid^="partage-revoquer-"]').click(); const apres=await page.request.get(base+lien!); expect(apres.status()).toBe(403); const audit=fs.readFileSync(path.join(RACINE,'var','oracles','v2-12d','partager','audit','audit.ndjson'),'utf8'); expect(audit).toContain('partage_externe_acces'); expect(audit).not.toContain(lien!.slice('/partages/'.length));
+    await page.goto(`/documents/${prep.document}`); await page.getByTestId('onglet-partager').click(); await page.locator('[data-testid^="partage-externe-revoquer-"]').click(); const apres=await page.request.get(base+lien!); expect(apres.status()).toBe(403); const audit=fs.readFileSync(path.join(RACINE,'var','oracles','v2-12d','partager','audit','audit.ndjson'),'utf8'); expect(audit).toContain('partage_externe_acces'); expect(audit).not.toContain(lien!.slice('/partages/'.length));
+  } finally { await c.close(); } });
+});
+
+test('Partager, Utilisateur : le partage interne reste permis, le geste externe est absent et refusé', async({browser}) => {
+  await avecGeste('partager', async(base, prep) => { const c=await browser.newContext({baseURL:base}); const page=await c.newPage(); try {
+    await connecter(page, { ...prep, compte: prep.utilisateur!, mot_de_passe: prep.mot_de_passe_utilisateur! }); await page.goto(`/documents/${prep.document}`); await page.getByTestId('onglet-partager').click();
+    await expect(page.getByTestId('partage-interne')).toBeVisible(); await expect(page.getByTestId('partage-externe-creer')).toHaveCount(0);
+    await page.getByTestId('partage-cible').fill(String(prep.cible_partage)); await page.getByTestId('partage-interne-envoyer').click(); await expect(page).toHaveURL(new RegExp(`/documents/${prep.document}`)); await expect(page.getByTestId('ecran-document')).toBeVisible();
+    const csrf=(await c.cookies()).find(x=>x.name==='gedv2_csrf')?.value; const externe=await page.request.post(`/documents/${prep.document}/partages/externe`, { headers:{'X-CSRF-Token':csrf!}, form:{expiration:'2099-01-01'}, maxRedirects:0 }); expect(externe.status()).toBe(403);
   } finally { await c.close(); } });
 });
 
