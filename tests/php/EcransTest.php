@@ -78,4 +78,15 @@ final class EcransTest extends TestCase
         $s = Ecrans::surligner('Contrat de Maintenance annuelle', 'maintenance');
         self::assertSame([['t' => 'Contrat de ', 'hit' => false], ['t' => 'Maintenance', 'hit' => true], ['t' => ' annuelle', 'hit' => false]], $s);
     }
+
+    public function testFicheInconnueAvecSessionSynthetiqueSansCompteNeRendPas500(): void
+    {
+        $app = Kernel::creer(dirname(__DIR__, 2));
+        $requete = (new ServerRequestFactory())->createServerRequest('GET', '/documents/999999999')
+            ->withAttribute('ged.session', ['utilisateur' => 'contrat-http@gedv2.test', 'compte' => null,
+                'permissions' => ['documents:lire'], 'csrf' => 'csrf-synthetique', 'cree_le' => 0, 'expire_le' => PHP_INT_MAX]);
+        $reponse = $app->handle($requete);
+
+        self::assertSame(200, $reponse->getStatusCode(), (string) $reponse->getBody());
+    }
 }

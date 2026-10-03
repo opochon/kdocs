@@ -123,8 +123,12 @@ final class Maquette
                 ['quand' => '2026-02-14 16:40', 'quoi' => 'Nouvelle version (v2) : page 2 tournée'],
                 ['quand' => '2026-02-20 09:12', 'quoi' => 'Workflow « Facture à valider » : visa donné'],
             ],
-            'notes' => [['qui' => 'Olivier', 'quand' => '2026-02-20', 'texte' => 'Contrôlé avec le bon de commande BC-114.']],
-            'liens' => [['id' => 202, 'titre' => 'Note de crédit AN-5001-NC', 'relation' => 'corrige']],
+            // Même contrat que la source Collaboration : la fiche de repli doit aussi répondre avec
+            // une session synthétique et un identifiant de document absent.
+            'notes' => [['id' => 1, 'auteur' => 'Olivier', 'cree_le' => '2026-02-20', 'maj_le' => '2026-02-20',
+                'texte' => 'Contrôlé avec le bon de commande BC-114.']],
+            'liens' => [['id' => 202, 'document' => 202, 'titre' => 'Note de crédit AN-5001-NC', 'libelle' => 'corrige']],
+            'partages' => [],
         ];
     }
 

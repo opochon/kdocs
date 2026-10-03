@@ -170,9 +170,12 @@ final class Ecrans
             'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',
             'version_succes' => (int) ($req->getQueryParams()['version_succes'] ?? 0),
             'version_erreur' => (string) ($req->getQueryParams()['version_erreur'] ?? ''),
-            // Le jeton externe ne repasse qu'une fois dans le PRG : aucune table ne le conserve en clair.
-            'partage_lien' => isset($req->getQueryParams()['partage_lien'])
-                ? '/partages/' . (string) $req->getQueryParams()['partage_lien'] : '',
+            // Le secret ne transite jamais dans l'URL : le flash serveur est consommé à ce seul rendu.
+            'partage_lien' => ($jeton = (new \Ged\Socle\JetonPartageSession($config))->consommer(
+                (string) ($req->getCookieParams()['gedv2_session'] ?? '')
+            )) !== '' ? '/partages/' . $jeton : '',
+            'peut_partager_externe' => in_array('*', $permissions, true)
+                || in_array('documents:partager-externe', $permissions, true),
             'auteur_courant' => is_array($session) ? (string) ($session['utilisateur'] ?? '') : '',
         ]);
     }

@@ -203,7 +203,19 @@ final class Module
         });
         $app->post('/documents/{id:[0-9]+}/partages', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $c=(array)($req->getParsedBody() ?: []);$id=(int)$args['id'];$s=new \Ged\Socle\Collaboration($config);
-            try { $action=(string)($c['action']??''); if($action==='interne')$s->partagerInterne($id,(string)($c['cible_type']??''),(int)($c['cible']??0),self::auteur($req)); elseif($action==='externe'){ $p=$s->partagerExterne($id,self::auteur($req),(string)($c['expiration']??'')); return $rep->withHeader('Location','/documents/'.$id.'?partage_lien='.rawurlencode($p['jeton']))->withStatus(303); } elseif($action==='revoquer')$s->revoquerPartage((int)($c['partage']??0),self::auteur($req)); else throw new \RuntimeException('partage : action inconnue'); return $rep->withHeader('Location','/documents/'.$id.'?partage_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/partages',$e->getMessage()); }
+            try { $action=(string)($c['action']??''); if($action==='interne')$s->partagerInterne($id,(string)($c['cible_type']??''),(int)($c['cible']??0),self::auteur($req)); elseif($action==='revoquer')$s->revoquerPartageInterne((int)($c['partage']??0),self::auteur($req)); else throw new \RuntimeException('partage interne : action inconnue'); return $rep->withHeader('Location','/documents/'.$id.'?partage_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/partages',$e->getMessage()); }
+        });
+        $app->post('/documents/{id:[0-9]+}/partages/externe', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $c = (array) ($req->getParsedBody() ?: []); $id = (int) $args['id']; $s = new \Ged\Socle\Collaboration($config);
+            try {
+                if ((string) ($c['action'] ?? '') === 'revoquer') {
+                    $s->revoquerPartageExterne((int) ($c['partage'] ?? 0), self::auteur($req));
+                } else {
+                    $p = $s->partagerExterne($id, self::auteur($req), (string) ($c['expiration'] ?? ''));
+                    (new \Ged\Socle\JetonPartageSession($config))->poser((string) ($req->getCookieParams()['gedv2_session'] ?? ''), $p['jeton']);
+                }
+                return $rep->withHeader('Location', '/documents/' . $id)->withStatus(303);
+            } catch (\Throwable $e) { return self::erreur($vue, $rep, 'POST /documents/{id}/partages/externe', $e->getMessage()); }
         });
         $app->get('/partages-avec-moi', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
             $compte = self::compte($req);
