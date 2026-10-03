@@ -55,13 +55,30 @@ final class Module
             ]);
         });
         $app->post('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $audit) {
-            $corps = (array) ($req->getParsedBody() ?: []); $session = $req->getAttribute('ged.session');
+            $corps = (array) ($req->getParsedBody() ?: []);
+            $groupe = (int) ($corps['groupe'] ?? 0);
+            $niveau = (string) ($corps['niveau'] ?? '');
+            $dossier = (int) $args['id'];
+            if ($groupe < 1 || !in_array($niveau, ['lire', 'deposer', 'modifier', 'gerer'], true)
+                || !self::aclCibleExiste($pdo, $dossier, $groupe)) {
+                throw new \Slim\Exception\HttpBadRequestException($req, 'Règle de droit invalide.');
+            }
+            $session = $req->getAttribute('ged.session');
             $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
             $autorise = (string) ($corps['autorise'] ?? '') === '1';
-            (new DroitsDossiers($pdo))->poserRegle((int) $args['id'], (int) ($corps['groupe'] ?? 0), (string) ($corps['niveau'] ?? ''), $autorise);
-            $audit->changementDroit($auteur, 'dossier:' . (int) $args['id'], (string) ($corps['niveau'] ?? ''), $autorise);
-            return $rep->withHeader('Location', '/dossiers/' . (int) $args['id'] . '/droits')->withStatus(303);
+            (new DroitsDossiers($pdo))->poserRegle($dossier, $groupe, $niveau, $autorise);
+            $audit->changementDroit($auteur, 'dossier:' . $dossier, $niveau, $autorise);
+            return $rep->withHeader('Location', '/dossiers/' . $dossier . '/droits')->withStatus(303);
         });
         $app->add(new GardeCentrale($sessions, $audit, $vue, new DroitsDossiers($pdo)));
+    }
+
+    private static function aclCibleExiste(\PDO $pdo, int $dossier, int $groupe): bool
+    {
+        $requete = $pdo->prepare('SELECT (SELECT COUNT(*) FROM securite_dossiers WHERE id = ?) + '
+            . '(SELECT COUNT(*) FROM securite_groupes WHERE id = ?)');
+        $requete->execute([$dossier, $groupe]);
+
+        return (int) $requete->fetchColumn() === 2;
     }
 }

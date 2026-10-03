@@ -11,6 +11,7 @@ use Ged\Securite\DroitsRoutes;
 use Ged\Securite\Schema;
 use Ged\Socle\Schema as SchemaSocle;
 use PHPUnit\Framework\TestCase;
+use Slim\Psr7\Factory\ServerRequestFactory;
 
 /** Oracle V2-13 : décision du 03-10, rôles fonctionnels et niveaux d'ACL. */
 final class V213DroitsRolesTest extends TestCase
@@ -146,6 +147,18 @@ final class V213DroitsRolesTest extends TestCase
     {
         self::assertSame('dossiers:gerer', DroitsRoutes::permissionPour('GET', '/dossiers/8501/droits'));
         self::assertSame('dossiers:gerer', DroitsRoutes::permissionPour('POST', '/dossiers/8501/droits'));
+    }
+
+    public function testMutationAclInvalideEstUnRefusNommeEtJamaisUneErreurServeur(): void
+    {
+        $app = \Ged\Kernel::creer(dirname(__DIR__, 3));
+        $requete = (new ServerRequestFactory())->createServerRequest('POST', '/dossiers/999999999/droits')
+            ->withParsedBody(['groupe' => '0', 'niveau' => 'lire', 'autorise' => '0']);
+
+        $reponse = $app->handle($requete);
+
+        self::assertSame(400, $reponse->getStatusCode(), (string) $reponse->getBody());
+        self::assertStringContainsString('cause', (string) $reponse->getBody());
     }
 
     private function creerCompte(string $suffixe, string $role): int
