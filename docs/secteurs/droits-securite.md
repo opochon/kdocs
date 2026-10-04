@@ -132,6 +132,19 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 
 ETAT: fini
 
+### Journal V2-13v — reprise des refus Q1 à Q3 (04-10)
+
+- Q1 — commit `af7096b` : `securite_audit` n'est plus créée, l'installateur revient à la liste et au plafond exacts de **21 tables** et ne tolère qu'un reliquat homonyme sans le lire ni le supprimer. La migration des rôles écrit désormais les changements dans `JournalAudit` NDJSON en ajout seul (auteur `migration`, cible, ancien, nouveau, horodatage).
+- Q2 — commit `f10e590` : les cinq bancs qui ouvrent un PDO (`charge`, `contrat`, `mesurer-classement`, `rejouer-ingestion`, `sonde-securite`) imposent et contrôlent `gedv2_test`; l'oracle `BancIsolationTest` les couvre. La sonde prend `sys_get_temp_dir()/gedv2_test.lock`, identique à PHPUnit.
+- Q3 — commit `9651cd9` : le compte B7 est préfixé `sonde-utilisateur-`, haché, créé uniquement dans `gedv2_test` et retiré dans le `finally` sous verrou. L'oracle vérifie le marqueur et le nettoyage.
+- Oracles ciblés : avant correction, plafond 21 : **3 échecs** (table excédentaire) ; après Q1, `InstallateurTest` + `V213DroitsRolesTest` : **15 tests, 116 assertions** verts. Avant Q2, l'oracle des bancs échouait ; après Q2/Q3, `BancIsolationTest` : **2 tests, 13 assertions** verts. Aucun compte `sonde-utilisateur-*` ne subsistait dans `gedv2_test` après la sonde interrompue.
+- Porte qualité : PHPStan niveau 6 et `composer audit` verts dans les deux rejeux (**0 erreur hors baseline**, aucune vulnérabilité). Revue manuelle php-reviewer/security-reviewer/silent-failure-hunter : SQL de migration fixe ou paramétré, aucun secret réel, audit NDJSON ajout-seul, `catch` de nettoyage converti en échec nommé de sonde ; aucun constat critique ou élevé.
+- Rejeux isolés `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` :
+  - 1 — **736 s** : unitaire **453/2612** vert, contrat et charge verts (p95 lecture **590 ms**, écriture **451 ms**), statique vert ; écrans **35 passed / 12 failed** et sonde rouge (timeout `POST /deposer`).
+  - 2 — **750 s** : unitaire **453/2612** vert, statique vert ; écrans **45 passed / 9 failed**, sonde rouge (timeout `POST /connexion`), contrat rouge (**10 tests, 34 assertions, 3 erreurs**), charge rouge (p95 lecture **24 191 ms**, écriture **626 ms**, **1** erreur). `3-banc` et `5-personas` sont les deux rouges admis.
+
+ETAT: bloqué — les rouges restants proviennent des expirations HTTP et de la saturation de services externes au lot; ils empêchent le verdict demandé (seuls 3-banc et 5-personas admis).
+
 ## Jugement V2-07b (Claude Code, 29-09) — porte franchie
 Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
 ETAT: fini (jugé)
