@@ -75,7 +75,12 @@ final class Ecrans
 
                 return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $donnees);
             } catch (\PDOException) {
-                // base absente : repli de démonstration ci-dessous, l'écran n'est jamais muet
+                return $this->vue->rendre($rep, 'erreur.twig', [
+                    'code' => 503,
+                    'etape' => 'GET /bibliotheque',
+                    'cause' => 'Schéma documentaire absent ou indisponible : exécutez tools/installer.php.',
+                    'reference' => '',
+                ], 503);
             }
         }
 

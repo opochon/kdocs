@@ -52,7 +52,7 @@ final class EcranTest extends TestCase
 
         self::assertStringContainsString('data-testid="recherche-erreur"', $html);
         self::assertStringContainsString('recherche plein texte', $html);
-        self::assertStringContainsString('table de recherche absente', $html);
+        self::assertStringContainsString('Schéma de recherche absent', $html);
         self::assertStringContainsString('ref-1a2b3c4d5e', $html);
         self::assertStringNotContainsString('data-testid="recherche-vide"', $html, 'une panne n’est pas une absence');
     }
@@ -89,6 +89,6 @@ final class MoteurEnPanne implements Moteur
 {
     public function rechercher(Requete $requete): Resultat
     {
-        return Resultat::enErreur(new ErreurSql('recherche plein texte', 'table de recherche absente', 'ref-1a2b3c4d5e'), 0.1);
+        return Resultat::enErreur(new ErreurSql('recherche plein texte', 'Schéma de recherche absent ou indisponible : exécutez tools/installer.php.', 'ref-1a2b3c4d5e'), 0.1);
     }
 }

@@ -40,6 +40,17 @@ final class DdlHorsHttpTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/Schema(?:Recherche)?::installer\\s*\\(/', $sources);
     }
 
+    public function testLesEcransNommentLeSchemaAbsentSansLeCreer(): void
+    {
+        $racine = dirname(__DIR__, 3) . '/src/';
+        $bibliotheque = (string) file_get_contents($racine . 'Ui/Ecrans.php');
+        $recherche = (string) file_get_contents($racine . 'Recherche/ErreurSql.php');
+
+        self::assertStringContainsString('Schéma documentaire absent ou indisponible', $bibliotheque);
+        self::assertStringContainsString('Schéma de recherche absent ou indisponible', $recherche);
+        self::assertStringContainsString('tools/installer.php', $bibliotheque . $recherche);
+    }
+
     public function testAucunModuleOuServiceHttpNAppelleUnInstallateurDeSchema(): void
     {
         $racine = dirname(__DIR__, 3) . '/src';

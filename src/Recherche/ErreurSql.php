@@ -31,7 +31,7 @@ final readonly class ErreurSql
     {
         $message = $erreur->getMessage();
         $connues = [
-            '42S02' => 'table de recherche absente ou illisible — lancer php tools/installer.php',
+            '42S02' => 'Schéma de recherche absent ou indisponible : exécutez tools/installer.php.',
             '42S22' => 'colonne de recherche inconnue — schéma à réinstaller',
             '42000' => 'requête de recherche refusée par la base',
             '1045' => 'accès à la base refusé',
