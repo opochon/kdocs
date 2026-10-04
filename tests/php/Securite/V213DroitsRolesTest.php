@@ -190,6 +190,17 @@ final class V213DroitsRolesTest extends TestCase
         self::assertSame('manager', $this->valeur('SELECT role_code FROM securite_groupes WHERE nom = ?', ["administration-$suffixe"]));
     }
 
+    /**
+     * Le Kernel charge ce module au démarrage de chaque requête : il ne peut donc jamais poser ou
+     * migrer le schéma. Seuls tools/installer.php et les amorces de test appellent Schema::installer().
+     */
+    public function testModuleNExecuteAucuneInstallationDeSchemaAuDemarrage(): void
+    {
+        $module = (string) file_get_contents(dirname(__DIR__, 3) . '/src/Securite/Module.php');
+
+        self::assertDoesNotMatchRegularExpression('/(?:\\\\Ged\\\\Socle\\\\)?Schema::installer\\s*\\(/', $module);
+    }
+
     private function creerCompte(string $suffixe, string $role): int
     {
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')

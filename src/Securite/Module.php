@@ -7,6 +7,8 @@ namespace Ged\Securite;
 use Ged\Config;
 use Ged\Base;
 use Ged\Ui\Vue;
+use PDOException;
+use Psr\Http\Message\ResponseInterface as Reponse;
 use Slim\App;
 
 /** Point d'entrée autonome du secteur, appelé automatiquement par Kernel. */
@@ -18,8 +20,6 @@ final class Module
         $sessions = new RegistreSessions($dossier . '/sessions');
         $audit = new JournalAudit($dossier . '/audit.ndjson');
         $pdo = Base::pdo($config);
-        \Ged\Socle\Schema::installer($pdo);
-        Schema::installer($pdo, $audit);
         $controleur = new ConnexionController(
             new Authentification($config, $pdo), $sessions, new ProtectionBruteForce($dossier . '/brute-force.json'), $audit, $vue,
         );
@@ -28,10 +28,14 @@ final class Module
         $app->post('/connexion', [$controleur, 'connecter']);
         $app->post('/deconnexion', [$controleur, 'deconnecter']);
         $app->get('/administration/comptes', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/comptes.twig', [
-                'ecran' => 'administration',
-                'comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll(),
-            ]);
+            try {
+                return $vue->rendre($rep, 'securite/comptes.twig', [
+                    'ecran' => 'administration',
+                    'comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll(),
+                ]);
+            } catch (PDOException) {
+                return self::schemaIndisponible($vue, $rep, 'GET /administration/comptes');
+            }
         });
         $app->post('/administration/comptes', function ($req, $rep) use ($pdo, $audit) {
             $corps = (array) ($req->getParsedBody() ?: []);
@@ -51,10 +55,14 @@ final class Module
             return $rep->withHeader('Location', '/administration/comptes')->withStatus(303);
         });
         $app->get('/administration/groupes', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/groupes.twig', [
-                'ecran' => 'administration',
-                'groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll(),
-            ]);
+            try {
+                return $vue->rendre($rep, 'securite/groupes.twig', [
+                    'ecran' => 'administration',
+                    'groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll(),
+                ]);
+            } catch (PDOException) {
+                return self::schemaIndisponible($vue, $rep, 'GET /administration/groupes');
+            }
         });
         $app->post('/administration/groupes', function ($req, $rep) use ($pdo, $audit) {
             $corps = (array) ($req->getParsedBody() ?: []);
@@ -71,19 +79,27 @@ final class Module
             return $rep->withHeader('Location', '/administration/groupes')->withStatus(303);
         });
         $app->get('/administration/roles', function ($req, $rep) use ($pdo, $vue) {
-            return $vue->rendre($rep, 'securite/roles.twig', [
-                'ecran' => 'administration',
-                'roles' => $pdo->query('SELECT code, libelle FROM securite_roles WHERE actif = 1 ORDER BY code')->fetchAll(),
-            ]);
+            try {
+                return $vue->rendre($rep, 'securite/roles.twig', [
+                    'ecran' => 'administration',
+                    'roles' => $pdo->query('SELECT code, libelle FROM securite_roles WHERE actif = 1 ORDER BY code')->fetchAll(),
+                ]);
+            } catch (PDOException) {
+                return self::schemaIndisponible($vue, $rep, 'GET /administration/roles');
+            }
         });
         $app->get('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $vue) {
-            $stmt = $pdo->prepare('SELECT g.id, g.nom, d.action_code, d.autorise FROM securite_groupes g LEFT JOIN securite_dossiers_droits d ON d.groupe_id = g.id AND d.dossier_id = ? ORDER BY g.nom');
-            $stmt->execute([(int) $args['id']]);
-            return $vue->rendre($rep, 'securite/droits-dossier.twig', [
-                'ecran' => 'administration',
-                'dossier' => (int) $args['id'],
-                'regles' => $stmt->fetchAll(),
-            ]);
+            try {
+                $stmt = $pdo->prepare('SELECT g.id, g.nom, d.action_code, d.autorise FROM securite_groupes g LEFT JOIN securite_dossiers_droits d ON d.groupe_id = g.id AND d.dossier_id = ? ORDER BY g.nom');
+                $stmt->execute([(int) $args['id']]);
+                return $vue->rendre($rep, 'securite/droits-dossier.twig', [
+                    'ecran' => 'administration',
+                    'dossier' => (int) $args['id'],
+                    'regles' => $stmt->fetchAll(),
+                ]);
+            } catch (PDOException) {
+                return self::schemaIndisponible($vue, $rep, 'GET /dossiers/' . (int) $args['id'] . '/droits');
+            }
         });
         $app->post('/dossiers/{id:[0-9]+}/droits', function ($req, $rep, array $args) use ($pdo, $audit) {
             $corps = (array) ($req->getParsedBody() ?: []);
@@ -110,6 +126,16 @@ final class Module
         $requete->execute([$dossier, $groupe]);
 
         return (int) $requete->fetchColumn() === 2;
+    }
+
+    private static function schemaIndisponible(Vue $vue, Reponse $reponse, string $etape): Reponse
+    {
+        return $vue->rendre($reponse, 'erreur.twig', [
+            'code' => 503,
+            'etape' => $etape,
+            'cause' => 'Schéma d’administration absent ou indisponible : exécutez tools/installer.php.',
+            'reference' => substr(hash('sha256', 'schema-administration:' . $etape), 0, 10),
+        ], 503);
     }
 
     private static function roleActif(\PDO $pdo, string $role): bool
