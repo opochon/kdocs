@@ -44,6 +44,9 @@ foreach (['DB_NAME' => 'gedv2_test', 'APP_ENV' => 'test', 'STORAGE_ROOT' => "$ba
 mkdir("$bac/entree", 0775, true);
 mkdir("$bac/fonds", 0775, true);
 $config = new Config($racine);
+if ($config->get('DB_NAME') !== 'gedv2_test') {
+    throw new RuntimeException('le banc d’ingestion n’écrit que sur gedv2_test');
+}
 Base::assurerBase($config);
 $pdo = Base::pdo($config);
 // Base de TEST uniquement : on repart de tables vides pour que le décompte soit celui de ce rejeu.

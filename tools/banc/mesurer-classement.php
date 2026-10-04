@@ -93,6 +93,9 @@ foreach ($verite['elements'] as $el) {
 }
 
 $config = new Config($racine);
+if ($config->get('DB_NAME') !== 'gedv2_test') {
+    throw new RuntimeException('le banc de classement n’écrit que sur gedv2_test');
+}
 $pdo = Base::pdo($config);
 // Base de TEST : on repart d'une mémoire d'apprentissage vide pour que la mesure soit reproductible.
 $pdo->exec('DROP TABLE IF EXISTS classement_choix');

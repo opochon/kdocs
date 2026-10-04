@@ -19,6 +19,8 @@ use Ged\Config;
 const RACINE_SONDE = __DIR__ . '/../..';
 
 require RACINE_SONDE . '/vendor/autoload.php';
+putenv('DB_NAME=gedv2_test');
+putenv('APP_ENV=test');
 
 /** @return array{code:int,headers:array<string,list<string>>,body:string} */
 function requete(string $base, string $methode, string $chemin, array $entetes = [], ?string $corps = null): array
@@ -146,7 +148,7 @@ function supprimerDossier(string $dossier): void
 }
 
 $defauts = [];
-$verrou = fopen(RACINE_SONDE . '/var/gedv2_test.lock', 'c');
+$verrou = fopen(sys_get_temp_dir() . '/gedv2_test.lock', 'c');
 if ($verrou === false || !flock($verrou, LOCK_EX)) {
     fwrite(STDERR, "ECHEC: verrou gedv2_test indisponible\n");
     exit(1);
@@ -234,6 +236,9 @@ try {
     // atteindre aucun geste porté seulement par Manager ou Administrateur. La garde doit refuser avant
     // le métier : des identifiants volontairement inexistants ne peuvent donc rien modifier.
     $config = new Config(RACINE_SONDE);
+    if ($config->get('DB_NAME') !== 'gedv2_test') {
+        throw new RuntimeException('la sonde sécurité n’écrit que sur gedv2_test');
+    }
     Base::assurerBase($config);
     $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo);
