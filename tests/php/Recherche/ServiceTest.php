@@ -69,16 +69,16 @@ final class ServiceTest extends TestCase
         self::assertSame('Attestation de travail', $resultat->trouvailles[0]->titre);
     }
 
-    public function testIndexFulltextRetirePuisReposeALaRechercheSuivante(): void
+    public function testIndexFulltextRetireActiveLeRepliLikeSansMigration(): void
     {
-        $moteur = $this->moteur();   // autoInstaller : le produit se répare tout seul
+        $moteur = $this->moteur();
         $moteur->rechercher(new Requete('maintenance'));
         $this->pdo->exec('ALTER TABLE ' . Schema::TABLE . ' DROP INDEX ' . Schema::INDEX_PLEIN_TEXTE);
 
         $resultat = $moteur->rechercher(new Requete('maintenance'));
 
         self::assertNull($resultat->erreur?->cause);
-        self::assertSame('fulltext', $resultat->mode, 'l’index a été reposé par l’installateur idempotent');
+        self::assertSame('like', $resultat->mode, 'un écran ne répare jamais le schéma');
         self::assertSame('Contrat de maintenance CM-2026-04', $resultat->trouvailles[0]->titre);
     }
 
@@ -99,7 +99,7 @@ final class ServiceTest extends TestCase
     {
         $this->pdo->exec('DROP TABLE ' . Schema::TABLE);   // table du secteur uniquement
 
-        $resultat = $this->moteur(false)->rechercher(new Requete('maintenance'));
+        $resultat = $this->moteur()->rechercher(new Requete('maintenance'));
 
         self::assertNotNull($resultat->erreur);
         self::assertSame('recherche plein texte', $resultat->erreur->etape);

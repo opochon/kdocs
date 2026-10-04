@@ -23,6 +23,14 @@ final class DdlHorsHttpTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/Schema::installer\\s*\\(/', $collaboration);
     }
 
+    public function testLaRechercheNeMigrePasDepuisUnEcran(): void
+    {
+        $service = (string) file_get_contents(dirname(__DIR__, 3) . '/src/Recherche/Service.php');
+        $ecran = (string) file_get_contents(dirname(__DIR__, 3) . '/src/Recherche/Ecran.php');
+
+        self::assertDoesNotMatchRegularExpression('/Schema::installer\\s*\\(/', $service . $ecran);
+    }
+
     public function testAucunModuleOuServiceHttpNAppelleUnInstallateurDeSchema(): void
     {
         $racine = dirname(__DIR__, 3) . '/src';

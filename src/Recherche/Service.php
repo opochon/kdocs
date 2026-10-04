@@ -28,7 +28,6 @@ final class Service implements Moteur
     public function __construct(
         private readonly PDO $pdo,
         private readonly IndexPleinTexte $index,
-        private readonly bool $autoInstaller = true,
         private readonly ?int $compte = null,
         private readonly bool $administrateur = false,
     ) {
@@ -38,9 +37,6 @@ final class Service implements Moteur
     {
         $debut = microtime(true);
         try {
-            if ($this->autoInstaller) {
-                Schema::installer($this->pdo);   // idempotent : l'écran ne tombe jamais pour une table absente
-            }
             $termes = Termes::depuis($requete->texte);
             $pleinTexte = Schema::pleinTexteUtilisable($this->pdo) && $termes->expressionFulltext() !== '';
             $mode = $pleinTexte ? 'fulltext' : ($termes->positifs() === [] ? 'liste' : 'like');

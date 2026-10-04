@@ -73,10 +73,10 @@ trait SupportRecherche
         return $oracle['corpus'];
     }
 
-    /** Un moteur branché sur le fonds du test ; l'installation automatique du schéma peut être coupée. */
-    private function moteur(bool $autoInstaller = true): Service
+    /** Un moteur branché sur le fonds du test ; le schéma vient exclusivement de l'amorce. */
+    private function moteur(): Service
     {
-        return new Service($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo), $autoInstaller);
+        return new Service($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo));
     }
 
     /**
