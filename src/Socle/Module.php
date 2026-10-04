@@ -7,8 +7,6 @@ namespace Ged\Socle;
 use Ged\Base;
 use Ged\Config;
 use Ged\Ui\Vue;
-use PDO;
-use PDOException;
 use Psr\Http\Message\ResponseInterface as Reponse;
 use Psr\Http\Message\ServerRequestInterface as Requete;
 use RuntimeException;
@@ -26,23 +24,8 @@ final class Module
 {
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
-        // Auto-guérison paresseuse : une sonde à lecture seule par requête, le schéma n'est posé que
-        // s'il manque. Poser les CREATE TABLE à chaque requête prendrait un verrou de métadonnées à
-        // chaque appel — sous charge, les lectures se mettraient en file derrière leurs propres
-        // tables (mesuré : p95 lecture à 21 s). L'écran ne doit jamais être muet parce que la base
-        // n'existe pas encore, mais il ne doit pas non plus payer le schéma à chaque page.
-        // La nomenclature et les vues vivent dans le fonds (.ged/, V2-04) : la graine s'y pose à la
-        // première lecture, il n'y a rien à amorcer en base au-delà de l'index.
-        try {
-            Base::pdo($config)->query('SELECT 1 FROM documents LIMIT 1')->fetchColumn();
-        } catch (PDOException) {
-            try {
-                Base::assurerBase($config);
-                Schema::installer(Base::pdo($config));
-            } catch (PDOException $e) {
-                error_log('[GEDv2 socle] amorçage de la base impossible : ' . $e->getMessage());
-            }
-        }
+        // Le schéma est exclusivement posé par tools/installer.php, les outils CLI et les amorces
+        // de test. Le Kernel est créé à chaque requête : aucune migration ne doit donc vivre ici.
 
         // La bibliothèque elle-même (GET /bibliotheque) vit dans Ged\Ui\Ecrans : FastRoute refuse deux
         // routes identiques, et le Kernel enregistre déjà la sienne. L'écran maître délègue au Socle
