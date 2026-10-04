@@ -334,3 +334,40 @@ Demande d'Olivier : un manager peut classer, créer des règles, etc. ; un utili
 3. **Droits par dossier** (hérités du parent, refus explicite qui l'emporte, refus par défaut, déjà portés par `DroitsDossiers`) en quatre niveaux : Lecture (voir, rechercher, télécharger), Dépôt (Lecture + déposer), Modification (Dépôt + modifier, nouvelle version, restaurer), Gestion (Modification + supprimer, sceller, gérer les droits du dossier).
 4. La recherche, la Bibliothèque, les vues et l'API ne montrent jamais un document hors des dossiers lisibles du compte (filtrage dans la requête, pas après).
 5. Lot à venir : **V2-13 Droits par rôle**, après V2-12d.
+
+### Journal V2-13x — DDL strictement hors requête HTTP (04-10)
+
+- Oracle d'abord : `DdlHorsHttpTest` a été écrit rouge ; il trouvait exactement cinq appels hors
+  `Schema.php` : `Socle/Module`, `Socle/Collaboration`, `Recherche/Service`,
+  `Socle/ReconstructionIndex` et `Socle/Reconstructeur`.
+- Fait : X1, X2, X3 et X4 retirent ces appels. `ReconstructionIndex` et `Reconstructeur` supposent
+  désormais le schéma posé par `tools/installer.php` ou une amorce CLI/de test. Le POST Workflow de
+  gabarit reste une écriture de données idempotente, sans DDL.
+- X5 : Bibliothèque rend désormais une 503 nommée « Schéma documentaire absent ou indisponible :
+  exécutez tools/installer.php. » ; Recherche rend le même diagnostic pour son schéma. Aucune page
+  ne retombe plus sur une maquette ni ne crée une table lorsqu'elle constate cette absence.
+- X6 : garde-fou global statique sur tout `src/` (seuls `Schema.php` peuvent contenir
+  `Schema::installer()`), et oracle dynamique sur une base déjà installée. Il recrée le Kernel et joue
+  `/`, `/a-traiter`, `/bibliotheque`, `/recherche`, `/documents/1`, `/workflows` et `/application` :
+  les compteurs MariaDB `Com_create_table`, `Com_alter_table` et `Com_drop_table` restent identiques.
+  `DdlHorsHttpTest` : **7 tests, 16 assertions, vert**.
+- Preuves ciblées : Recherche Service **8 tests, 30 assertions, vert** ; Recherche Écran **4 tests,
+  19 assertions, vert** ; reconstruction Socle + V2-12d **11 tests, 72 assertions, vert**.
+- Écrans : premier lancement isolé de `npx.cmd playwright test --reporter=line` démarre **65 parcours**
+  et ses deux serveurs, mais le lanceur s'interrompt avant le bilan et laisse les serveurs orphelins ;
+  ils ont été fermés par PID exact. Le second lancement s'arrête avant tout parcours : la sonde
+  `http://127.0.0.1:8871/sante` expire à **15 s**. Aucun résultat écran n'est donc présenté comme vert.
+  La sonde HTTP lancée ensuite ne produit pas de bilan avant l'interruption du lanceur.
+- Harness : `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` est lancé une fois.
+  Après plus de dix minutes, son processus PowerShell reste suspendu sans enfant actif et sans écrire
+  `recette/registre.json` ; le dernier registre est celui de V2-13w (`f94f5ae`) et n'est pas attribué
+  à ce lot.
+- Commits : `830507b` (X1), `eb6a236` (X2), `cabdde3` (X3), `5ac8ae8` (X4), `83540b0` (X5),
+  `e3c9c10` (X6). Tous portent `Co-Authored-By: Codex <noreply@openai.com>`.
+- Porte qualité : PHPStan niveau 6 : **0 erreur** ; `php tools\composer.phar audit --locked
+  --no-interaction` : **aucun avis de vulnérabilité**. Revue du diff contre `php-reviewer`,
+  `security-reviewer` et `silent-failure-hunter` : aucune concaténation SQL ou entrée utilisateur
+  ajoutée, aucun secret, aucune nouvelle route ni garde relâchée ; les nouveaux `PDOException` sont
+  rendus en 503 nommée, sans repli silencieux. Aucun constat critique ou élevé.
+
+ETAT: bloqué — lanceurs de recette externes suspendus/expirés (Playwright et harness), sans bilan final ni registre nouveau.
