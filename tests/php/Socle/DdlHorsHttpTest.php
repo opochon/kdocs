@@ -16,6 +16,13 @@ final class DdlHorsHttpTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/(?:Base::assurerBase|Schema::installer)\\s*\\(/', $module);
     }
 
+    public function testLaCollaborationNeMigrePasLorsDeChaqueFiche(): void
+    {
+        $collaboration = (string) file_get_contents(dirname(__DIR__, 3) . '/src/Socle/Collaboration.php');
+
+        self::assertDoesNotMatchRegularExpression('/Schema::installer\\s*\\(/', $collaboration);
+    }
+
     public function testAucunModuleOuServiceHttpNAppelleUnInstallateurDeSchema(): void
     {
         $racine = dirname(__DIR__, 3) . '/src';

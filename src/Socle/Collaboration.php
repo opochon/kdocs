@@ -21,7 +21,6 @@ final class Collaboration
     public function __construct(private readonly Config $config)
     {
         $this->pdo = Base::pdo($config);
-        Schema::installer($this->pdo);
         $this->droits = new DroitsDossiers($this->pdo);
         $this->audit = new JournalAudit($config->chemin('SECURITE_DOSSIER', 'var/securite') . '/audit.ndjson');
     }
