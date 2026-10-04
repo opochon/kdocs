@@ -31,6 +31,15 @@ final class DdlHorsHttpTest extends TestCase
         self::assertDoesNotMatchRegularExpression('/Schema::installer\\s*\\(/', $service . $ecran);
     }
 
+    public function testLesReconstructeursHttpSupposentLeSchemaInstalle(): void
+    {
+        $racine = dirname(__DIR__, 3) . '/src/Socle/';
+        $sources = (string) file_get_contents($racine . 'ReconstructionIndex.php')
+            . (string) file_get_contents($racine . 'Reconstructeur.php');
+
+        self::assertDoesNotMatchRegularExpression('/Schema(?:Recherche)?::installer\\s*\\(/', $sources);
+    }
+
     public function testAucunModuleOuServiceHttpNAppelleUnInstallateurDeSchema(): void
     {
         $racine = dirname(__DIR__, 3) . '/src';

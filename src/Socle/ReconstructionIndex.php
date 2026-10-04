@@ -7,7 +7,6 @@ namespace Ged\Socle;
 use Ged\Base;
 use Ged\Config;
 use Ged\Recherche\IndexPleinTexte;
-use Ged\Recherche\Schema as SchemaRecherche;
 use RuntimeException;
 
 /** Reconstruction courte : son état appartient au fonds, sous .ged/, jamais à l'index SQL. */
@@ -17,9 +16,8 @@ final class ReconstructionIndex
 
     public function __construct(private readonly Config $config)
     {
-        $pdo = Base::pdo($config);
-        Schema::installer($pdo);
-        SchemaRecherche::installer($pdo);
+        // L'administrateur lance cette reconstruction sur un schéma déjà posé par l'installateur.
+        // Cet objet est construit depuis une route : aucune migration ne peut y être déclenchée.
         $this->registre = new Registre($config);
     }
 

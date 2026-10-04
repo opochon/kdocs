@@ -29,7 +29,6 @@ final class Reconstructeur
         $this->depot = new DepotFichiers($config);
         $this->pdo = Base::pdo($config);
         $this->racine = $this->depot->racine();
-        Schema::installer($this->pdo);   // idempotent : la reconstruction peut partir d'une base vide
     }
 
     /** @return array{documents:int, corbeille:int, versions:int} */
