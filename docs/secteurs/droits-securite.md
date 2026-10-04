@@ -59,6 +59,12 @@ unifiée (`document.voir` du secteur Aperçu ↔ `documents:lire` de la garde).
 
 ## Demandes
 
+### W2 — DDL interdit dans les chemins HTTP (04-10)
+
+- À Socle : retirer l'auto-guérison de `src/Socle/Module.php:35-43` (`Base::assurerBase()` et `Schema::installer()`), appelée par chaque création de Kernel. Si `documents` est absente, rendre une erreur nommée orientant vers `tools/installer.php`, sans DDL. Retirer aussi les appels constructeurs de `Schema::installer()` dans `src/Socle/Collaboration.php:24` et `src/Socle/ReconstructionIndex.php:21-22` lorsqu'ils sont atteignables depuis une route ; l'installation appartient exclusivement aux outils et amorces de test.
+- À Recherche : retirer `Schema::installer()` de `src/Recherche/Service.php:42` et l'option `autoInstaller` appelée par `Recherche\\Ecran`. Une table absente doit produire une erreur de recherche nommée, jamais une migration au clic.
+- À vue d'ensemble : ajouter un oracle inter-secteurs qui échoue si un `src/*/Module.php` ou une classe atteignable d'une route appelle `Schema::installer()` / DDL ; les exceptions doivent être limitées à `tools/` et `tests/` et documentées. Droits & Sécurité ne peut pas modifier ces chemins hors de son secteur.
+
 ### Journal V2-13 — reprise (03-10)
 
 - Corrections du juge : migration sans `DELETE` sur les rôles ni leurs permissions ; les rôles historiques restent
@@ -144,6 +150,22 @@ ETAT: fini
   - 2 — **750 s** : unitaire **453/2612** vert, statique vert ; écrans **45 passed / 9 failed**, sonde rouge (timeout `POST /connexion`), contrat rouge (**10 tests, 34 assertions, 3 erreurs**), charge rouge (p95 lecture **24 191 ms**, écriture **626 ms**, **1** erreur). `3-banc` et `5-personas` sont les deux rouges admis.
 
 ETAT: bloqué — les rouges restants proviennent des expirations HTTP et de la saturation de services externes au lot; ils empêchent le verdict demandé (seuls 3-banc et 5-personas admis).
+
+### Journal V2-13w — retrait du DDL du chemin HTTP (04-10)
+
+- Oracle d'abord : `testModuleNExecuteAucuneInstallationDeSchemaAuDemarrage` a été ajouté rouge : il trouvait les deux appels `Socle\\Schema::installer()` et `Securite\\Schema::installer()` dans `Securite\\Module`, appelé par le Kernel à chaque requête. Après retrait, il est vert (**1 test, 1 assertion**).
+- Fait — W1 : `Securite\\Module` ne pose ni ne migre plus aucun schéma. Les quatre écrans d'administration (`/administration/comptes`, `/administration/groupes`, `/administration/roles`, `/dossiers/{id}/droits`) attrapent seulement l'indisponibilité PDO en lecture et rendent un **503 nommé** (« Schéma d’administration absent ou indisponible : exécutez tools/installer.php. ») ; ils ne créent rien.
+- Audit W2 : `rg` sur `CREATE`, `ALTER` et `installer(` dans `src/` n'a trouvé aucun autre DDL dans le secteur Sécurité hors `Schema.php`. Il reste toutefois quatre poses de schéma hors secteur : `src/Socle/Module.php:41` (appelée au démarrage du Kernel), `src/Recherche/Service.php:42` (écran de recherche), `src/Socle/Collaboration.php:24` et `src/Socle/ReconstructionIndex.php:21-22`. `src/Socle/Reconstructeur.php:32` est actuellement seulement appelé par `tools/reconstruire-index.php` et les préparations de test. Ces appels ne sont pas modifiables par Droits & Sécurité ; demandes détaillées ci-dessous.
+- W3 : l'oracle statique interdit désormais tout `Schema::installer()` dans `src/Securite/Module.php`, donc dans la classe du secteur appelée au démarrage d'une requête. Il ne peut pas servir de preuve globale tant que les appels Socle/Recherche ci-dessus existent.
+- Preuves ciblées : `php vendor\\bin\\phpunit tests\\php\\Securite` vert : **29 tests, 251 assertions**. `php vendor\\bin\\phpstan analyse --memory-limit=2G` vert : **0 erreur**. `composer audit` n'a pas pu être relancé : l'exécutable `composer` est absent du PATH de cette session.
+- Écrans, deux rejeux isolés `npx.cmd playwright test --reporter=line` :
+  - 1 — **45 passed, 10 failed, 10 did not run (4,7 min)**. Une préparation `edition-pages` échoue encore avec `MySQL server has gone away`; autres rouges d'écrans/budgets hors secteur.
+  - 2 — **40 passed, 9 failed, 16 did not run (4,1 min)**. La console de Bibliothèque rapporte `net::ERR_CONNECTION_TIMED_OUT`; les erreurs `chrome-error://chromewebdata/`, les délais d'aperçu et le budget Recherche (**1 134 ms**) restent hors du diff V2-13w. Les rouges imputables à l'ancien `Schema::installer()` de `Securite\\Module` ne sont plus observés pendant le démarrage du module, mais les rouges de saturation ne peuvent pas être déclarés disparus tant que W2 global n'est pas traité.
+- Harness : `powershell -ExecutionPolicy Bypass -File tools\\harness.ps1 -SansBanc` lancé une fois ; son processus s'est terminé sans sortie et sans mettre à jour `recette/registre.json` (dernier registre conservé : 04:27, commit `40dc908`). Aucun registre n'est attribué à V2-13w.
+- Commit : `f94f5ae` (`droits-securite: retire le schema du demarrage HTTP`, avec `Co-Authored-By: Codex <noreply@openai.com>`).
+- Porte qualité : revue manuelle du diff selon php-reviewer, security-reviewer et silent-failure-hunter : SQL existant paramétré, aucune entrée utilisateur ajoutée aux requêtes, aucune exception avalée (le seul `catch PDOException` rend une erreur 503 nommée), pas de secret. Aucun constat critique ou élevé. PHPStan vert ; `composer audit` indisponible dans la session ; couche écrans rouge par défaillances externes ci-dessus.
+
+ETAT: bloqué — W2 globale requiert les corrections Socle/Recherche hors périmètre et les deux rejeux d’écrans restent rouges sur timeouts/connexions MariaDB externes.
 
 ## Jugement V2-07b (Claude Code, 29-09) — porte franchie
 Même harness complet vert. Comptes en base (`password_verify`), rôles et groupes, héritage par dossier avec refus par défaut, aperçu recoupé avec l'ACL du dossier. Reste : couche 7 du harness (sonde offensive : injection, chemins hors racine, contournement de la garde) à écrire par ce secteur.
