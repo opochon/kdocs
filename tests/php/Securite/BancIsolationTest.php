@@ -27,4 +27,12 @@ final class BancIsolationTest extends TestCase
         }
         self::assertSame(['charge.php', 'contrat.php', 'mesurer-classement.php', 'rejouer-ingestion.php', 'sonde-securite.php'], $bancsPdo);
     }
+
+    public function testLeCompteReelDeLaSondeEstMarqueEtNettoye(): void
+    {
+        $source = (string) file_get_contents(dirname(__DIR__, 3) . '/tools/banc/sonde-securite.php');
+
+        self::assertStringContainsString('sonde-utilisateur-', $source);
+        self::assertMatchesRegularExpression('/DELETE FROM comptes WHERE id = \\?/', $source);
+    }
 }

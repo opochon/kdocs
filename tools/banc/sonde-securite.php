@@ -156,6 +156,8 @@ if ($verrou === false || !flock($verrou, LOCK_EX)) {
 $dossier = RACINE_SONDE . '/var/sonde-securite-' . bin2hex(random_bytes(6));
 mkdir($dossier, 0700, true);
 $processus = null;
+$pdo = null;
+$compteUtilisateur = null;
 
 try {
     $port = portLibre();
@@ -243,6 +245,7 @@ try {
     $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo);
     SchemaSecurite::installer($pdo);
+    // Marqueur réservé aux données éphémères de sonde, supprimées dans le finally sous ce même verrou.
     $identifiantUtilisateur = 'sonde-utilisateur-' . bin2hex(random_bytes(5)) . '@gedv2.test';
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
         ->execute([$identifiantUtilisateur, password_hash('Sonde-V213-2026!', PASSWORD_DEFAULT), 'utilisateur']);
@@ -423,6 +426,14 @@ try {
             usleep(100000);
         }
         proc_close($processus);
+    }
+    if ($pdo instanceof PDO && is_int($compteUtilisateur)) {
+        // Jamais une donnée utilisateur : ce compte synthétique vit uniquement dans gedv2_test.
+        try {
+            $pdo->prepare('DELETE FROM comptes WHERE id = ?')->execute([$compteUtilisateur]);
+        } catch (Throwable $erreur) {
+            $defauts[] = 'suppression du compte éphémère impossible : ' . $erreur->getMessage();
+        }
     }
     if (is_dir($dossier)) {
         supprimerDossier($dossier);
