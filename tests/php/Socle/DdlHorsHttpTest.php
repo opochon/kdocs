@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Ged\Tests\Socle;
 
+use Ged\Base;
+use Ged\Config;
+use Ged\Kernel;
 use PHPUnit\Framework\TestCase;
+use Slim\Psr7\Factory\ServerRequestFactory;
 
 /** Oracle V2-13x : une requête HTTP n'installe ni ne migre jamais le schéma. */
 final class DdlHorsHttpTest extends TestCase
@@ -70,5 +74,37 @@ final class DdlHorsHttpTest extends TestCase
         }
 
         self::assertSame([], $infractions, 'seuls les outils CLI et les amorces de test installent le schéma');
+    }
+
+    public function testLesEcransPrincipauxNExecutentAucunDdlSurSchemaInstalle(): void
+    {
+        $racine = dirname(__DIR__, 3);
+        $config = new Config($racine);
+        Base::assurerBase($config);
+        $pdo = Base::pdo($config);
+        foreach (['Socle', 'Securite', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Archivage'] as $secteur) {
+            $schema = 'Ged\\' . $secteur . '\\Schema';
+            if (class_exists($schema)) {
+                $schema::installer($pdo);
+            }
+        }
+
+        $avant = $this->compteursDdl($pdo);
+        $factory = new ServerRequestFactory();
+        foreach (['/', '/a-traiter', '/bibliotheque', '/recherche', '/documents/1', '/workflows', '/application'] as $chemin) {
+            $reponse = Kernel::creer($racine)->handle($factory->createServerRequest('GET', $chemin));
+            self::assertLessThan(500, $reponse->getStatusCode(), $chemin . ' doit répondre sans erreur serveur');
+        }
+
+        self::assertSame($avant, $this->compteursDdl($pdo), 'aucun écran ne doit exécuter CREATE, ALTER ou DROP');
+    }
+
+    /** @return array<string, int> */
+    private function compteursDdl(\PDO $pdo): array
+    {
+        $releve = $pdo->query("SHOW GLOBAL STATUS WHERE Variable_name IN ('Com_create_table', 'Com_alter_table', 'Com_drop_table')")
+            ->fetchAll(\PDO::FETCH_KEY_PAIR);
+
+        return array_map('intval', $releve);
     }
 }
