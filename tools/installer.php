@@ -31,7 +31,7 @@ $SECTEURS = ['Socle', 'Securite', 'Ingestion', 'Classement', 'Apercu', 'Recherch
 $TABLES_ATTENDUES = [
     'classement_choix', 'comptes', 'document_collaboration', 'document_deplacements', 'document_versions', 'documents',
     'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
-    'securite_audit', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+    'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
     'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
     'workflow_definitions', 'workflow_instances', 'workflow_journal',
 ];
@@ -103,7 +103,10 @@ try {
         }
     }
     $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
-    if (count($TABLES_ATTENDUES) !== 22 || $tables !== $TABLES_ATTENDUES || count($tables) > 22) {
+    // Une ancienne recette peut conserver la table abandonnée V2-13 `securite_audit` : elle n'est
+    // ni lue ni supprimée (zéro suppression), mais n'est plus comptée dans les 21 tables du schéma.
+    $tablesSansReliquat = array_values(array_filter($tables, static fn (string $table): bool => $table !== 'securite_audit'));
+    if (count($TABLES_ATTENDUES) !== 21 || $tablesSansReliquat !== $TABLES_ATTENDUES || count($tablesSansReliquat) > 21) {
         throw new RuntimeException('schéma posé inattendu : ' . implode(', ', $tables)
             . ' ; attendu : ' . implode(', ', $TABLES_ATTENDUES));
     }

@@ -7,17 +7,17 @@ namespace Ged\Tests\Socle;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose exactement 22 tables,
+ * Oracle V2-01 §1 : `php tools/installer.php gedv2_test --admin=admin@gedv2.test` pose exactement 21 tables,
  * refuse une base peuplée sans --remplacer, et fait alors un dump AVANT de remplacer.
  * La commande réelle est exécutée comme le juge la rejouera.
  */
 final class InstallateurTest extends TestCase
 {
-    /** Décision V2-13 : plafond explicite de 22, journal d'audit des droits inclus. */
+    /** Plafond explicite de 21 : l'audit des droits reste le journal NDJSON en ajout seul. */
     private const TABLES_ATTENDUES = [
         'classement_choix', 'comptes', 'document_collaboration', 'document_deplacements', 'document_versions', 'documents',
         'ingestion_messages', 'ingestion_travaux', 'installation', 'jonctions_jetons', 'recherche_textes',
-        'securite_audit', 'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
+        'securite_dossiers', 'securite_dossiers_droits', 'securite_groupes',
         'securite_groupes_comptes', 'securite_permissions', 'securite_roles', 'securite_roles_permissions',
         'workflow_definitions', 'workflow_instances', 'workflow_journal',
     ];
@@ -118,12 +118,12 @@ final class InstallateurTest extends TestCase
         self::assertStringContainsString('gedv2', implode("\n", $sorties));
     }
 
-    public function testLePlafondVingtDeuxTablesEstExplicite(): void
+    public function testLePlafondVingtEtUneTablesEstExplicite(): void
     {
         [$code, $sortie] = $this->installer('--admin=admin@gedv2.test');
 
         self::assertSame(0, $code, $sortie);
-        self::assertCount(22, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN));
+        self::assertCount(21, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN));
         self::assertSame(self::TABLES_ATTENDUES, $this->pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN));
     }
 }

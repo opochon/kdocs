@@ -19,7 +19,7 @@ final class Module
         $audit = new JournalAudit($dossier . '/audit.ndjson');
         $pdo = Base::pdo($config);
         \Ged\Socle\Schema::installer($pdo);
-        Schema::installer($pdo);
+        Schema::installer($pdo, $audit);
         $controleur = new ConnexionController(
             new Authentification($config, $pdo), $sessions, new ProtectionBruteForce($dossier . '/brute-force.json'), $audit, $vue,
         );

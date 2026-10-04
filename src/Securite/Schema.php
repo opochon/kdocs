@@ -15,7 +15,7 @@ final class Schema
      */
     public const DOSSIER_ID_AUTO_MIN = 1000000;
 
-    public static function installer(PDO $pdo): void
+    public static function installer(PDO $pdo, ?JournalAudit $audit = null): void
     {
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_roles (
@@ -83,21 +83,9 @@ final class Schema
               KEY k_securite_droit_groupe (groupe_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS securite_audit (
-              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-              action VARCHAR(64) NOT NULL,
-              cible VARCHAR(128) NOT NULL,
-              ancien VARCHAR(64) NULL,
-              nouveau VARCHAR(64) NULL,
-              auteur VARCHAR(64) NOT NULL,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              UNIQUE KEY uq_securite_audit_migration (action, cible, ancien, nouveau, auteur),
-              KEY k_securite_audit_cible (cible, cree_le)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
-
-        self::migrerRolesHistoriques($pdo);
+        // L'audit reste le journal NDJSON en ajout seul (V2-07a) : aucune table supplémentaire.
+        $audit ??= new JournalAudit((getenv('SECURITE_DOSSIER') ?: dirname(__DIR__, 2) . '/var/securite') . '/audit.ndjson');
+        self::migrerRolesHistoriques($pdo, $audit);
 
         foreach ([
             'utilisateur' => 'Utilisateur', 'manager' => 'Manager', 'administrateur' => 'Administrateur',
@@ -153,11 +141,11 @@ final class Schema
     }
 
     /** Migration conservatrice : les affectations changent de code, jamais de propriétaire ni de trace. */
-    private static function migrerRolesHistoriques(PDO $pdo): void
+    private static function migrerRolesHistoriques(PDO $pdo, JournalAudit $audit): void
     {
         foreach (['admin' => 'administrateur', 'lecteur' => 'utilisateur', 'contributeur' => 'manager', 'archiveur' => 'manager'] as $ancien => $nouveau) {
-            self::journaliserMigration($pdo, 'compte', 'role', $ancien, $nouveau);
-            self::journaliserMigration($pdo, 'groupe', 'role_code', $ancien, $nouveau);
+            self::journaliserMigration($pdo, $audit, 'compte', 'role', $ancien, $nouveau);
+            self::journaliserMigration($pdo, $audit, 'groupe', 'role_code', $ancien, $nouveau);
             $pdo->prepare('UPDATE comptes SET role = ? WHERE role = ?')->execute([$nouveau, $ancien]);
             $pdo->prepare('UPDATE securite_groupes SET role_code = ? WHERE role_code = ?')->execute([$nouveau, $ancien]);
             $pdo->prepare('INSERT IGNORE INTO securite_roles (code, libelle, actif, alias_vers) VALUES (?, ?, 0, ?)')
@@ -186,15 +174,18 @@ final class Schema
         }
     }
 
-    private static function journaliserMigration(PDO $pdo, string $type, string $champ, string $ancien, string $nouveau): void
+    private static function journaliserMigration(PDO $pdo, JournalAudit $audit, string $type, string $champ, string $ancien, string $nouveau): void
     {
         $source = $type === 'compte' ? 'comptes' : 'securite_groupes';
         $identifiant = $type === 'compte' ? 'id' : 'id';
         $stmt = $pdo->prepare("SELECT $identifiant FROM $source WHERE $champ = ?");
         $stmt->execute([$ancien]);
-        $audit = $pdo->prepare('INSERT IGNORE INTO securite_audit (action, cible, ancien, nouveau, auteur) VALUES (?, ?, ?, ?, ?)');
         foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {
-            $audit->execute(['changement_role', $type . ':' . $id, $ancien, $nouveau, 'migration']);
+            $audit->ajouter('changement_role', 'migration', [
+                'cible' => $type . ':' . $id,
+                'ancien' => $ancien,
+                'nouveau' => $nouveau,
+            ]);
         }
     }
 

@@ -8,6 +8,7 @@ use Ged\Base;
 use Ged\Config;
 use Ged\Securite\DroitsDossiers;
 use Ged\Securite\DroitsRoutes;
+use Ged\Securite\JournalAudit;
 use Ged\Securite\Schema;
 use Ged\Socle\Schema as SchemaSocle;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +25,7 @@ final class V213DroitsRolesTest extends TestCase
         Base::assurerBase($config);
         $this->pdo = Base::pdo($config);
         SchemaSocle::installer($this->pdo);
-        Schema::installer($this->pdo);
+        Schema::installer($this->pdo, new JournalAudit(sys_get_temp_dir() . '/gedv2-v213-audit.ndjson'));
     }
 
     public function testMatriceCanoniqueSuitLaDecisionEtCouvreLesRoutes(): void
@@ -65,7 +66,9 @@ final class V213DroitsRolesTest extends TestCase
         $this->pdo->prepare('INSERT INTO securite_dossiers_droits (dossier_id, groupe_id, action_code, autorise) VALUES (?, ?, ?, 1)')
             ->execute([8601, $groupe, 'archiver']);
 
-        Schema::installer($this->pdo);
+        $journal = sys_get_temp_dir() . '/gedv2-v213-audit.ndjson';
+        @unlink($journal);
+        Schema::installer($this->pdo, new JournalAudit($journal));
         Schema::installer($this->pdo);
 
         self::assertSame('utilisateur', $this->valeur('SELECT role FROM comptes WHERE id = ?', [$compte]));
@@ -89,12 +92,17 @@ final class V213DroitsRolesTest extends TestCase
         $this->pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
             ->execute(['audit-' . $suffixe . '@gedv2.test', password_hash('MotDePasse-V213!', PASSWORD_DEFAULT), 'contributeur']);
         $compte = (int) $this->pdo->lastInsertId();
-        Schema::installer($this->pdo);
+        $journal = sys_get_temp_dir() . '/gedv2-v213-audit.ndjson';
+        @unlink($journal);
+        Schema::installer($this->pdo, new JournalAudit($journal));
 
         self::assertSame('manager', $this->valeur('SELECT role FROM comptes WHERE id = ?', [$compte]));
         self::assertSame('0', $this->valeur('SELECT actif FROM securite_roles WHERE code = ?', ['contributeur']));
         self::assertSame('manager', $this->valeur('SELECT alias_vers FROM securite_roles WHERE code = ?', ['contributeur']));
-        self::assertSame('migration', $this->valeur('SELECT auteur FROM securite_audit WHERE cible = ? ORDER BY id DESC LIMIT 1', ['compte:' . $compte]));
+        $entrees = array_map(static fn (string $ligne): array => json_decode($ligne, true, 512, JSON_THROW_ON_ERROR),
+            file($journal, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: []);
+        self::assertTrue((bool) array_filter($entrees, static fn (array $entree): bool => $entree['action'] === 'changement_role'
+            && $entree['utilisateur'] === 'migration' && ($entree['contexte']['cible'] ?? '') === 'compte:' . $compte));
     }
 
     public function testMigrationArchiverVersGererRespecteRefusSansCollisionDeCle(): void
