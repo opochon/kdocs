@@ -28,3 +28,6 @@ Mesure du 2026-10-03 sur `src` (commit aebab81) : niveau 0 : 0 erreur, niveau 3 
 ## Baseline à zéro (lot ged-phpstan, 2026-10-10)
 
 Jugé par Claude sur la copie du juge au commit c4f8158 : PHPStan niveau 6 vert avec `phpstan-baseline.neon` vide (167 → 0), aucun `phpstan-ignore` dans `src` ni `tests`, PHPUnit 462 tests / 2631 assertions vert, aucune assertion affaiblie. Défaut réel corrigé au passage, test d'abord : `Ui\ATraiter::types()` passait le PDO au lieu du dépôt à `Nomenclature`, l'écran À traiter affichait les types figés de la maquette (oracle `tests/php/Ui/ATraiterNomenclatureTest.php`). Désormais toute nouvelle erreur PHPStan rend la couche 8 rouge : la baseline reste vide.
+## Captures d'écran (décision du 10-10)
+
+Les captures des rejeux (personas, et toute couche future qui en produit) ne vont jamais dans git : elles vivent dans `var/captures/<couche>/<rejeu>/`, hors dépôt. Le harness n'en garde que les 5 derniers rejeux ; un rejeu rouge porte un `ROUGE.txt` avec le détail. À la validation d'une version (V1, version candidate), `tools/purger-captures.ps1` les vide toutes. Seuls les verdicts JSON (trouvé, temps, écran) restent versionnés dans `recette/preuves`.

@@ -12,13 +12,15 @@ import path from 'node:path';
  * Un geste non trouvé dans le budget de 30 s est un ÉCHEC NOMMÉ (persona, fonction, écran où le
  * persona s'est perdu) ; il n'est jamais sauté.
  *
- * Les captures vivent dans `recette/preuves/personas/<persona>-<geste>.png`, le verdict et les temps
- * dans `recette/preuves/personas/<persona>.json` (lu par le harness pour le registre).
+ * Le verdict et les temps vivent dans `recette/preuves/personas/<persona>-<geste>.json` (versionnés, lus par le
+ * harness pour le registre). Les captures, lourdes, restent HORS du dépôt : `var/captures/personas/<rejeu>/`,
+ * un dossier par rejeu du harness (variable GED_CAPTURES_RUN), dont le harness ne garde que les derniers.
  */
 
 export const RACINE = process.cwd();
 export const FONDS = path.join(RACINE, 'var', 'oracles', 'personas', 'documents');
 export const PREUVES = path.join(RACINE, 'recette', 'preuves', 'personas');
+export const CAPTURES = path.join(RACINE, 'var', 'captures', 'personas', process.env.GED_CAPTURES_RUN ?? 'manuel');
 
 /** Budget d'un geste : au-delà, le persona est perdu et le geste échoue nommément. */
 export const BUDGET_GESTE_MS = 30_000;
@@ -178,7 +180,8 @@ export async function mesurerGeste(page: Page, persona: string, geste: Geste, pr
   const ecran = await ecranCourant(page);
   const resultat: ResultatGeste = { nom: geste.nom, fonction: geste.fonction, libelle: geste.libelle, trouve, temps_ms, ecran, erreur };
   fs.mkdirSync(PREUVES, { recursive: true });
-  await page.screenshot({ path: path.join(PREUVES, `${persona}-${geste.nom}.png`) }).catch(() => undefined);
+  fs.mkdirSync(CAPTURES, { recursive: true });
+  await page.screenshot({ path: path.join(CAPTURES, `${persona}-${geste.nom}.png`) }).catch(() => undefined);
   // Écrit IMMÉDIATEMENT : Playwright redémarre le worker après un échec, un état en mémoire serait perdu.
   fs.writeFileSync(path.join(PREUVES, `${persona}-${geste.nom}.json`), `${JSON.stringify(resultat, null, 2)}\n`, 'utf8');
 

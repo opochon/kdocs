@@ -1,4 +1,4 @@
-﻿# Harness GEDv2 : une commande, tout rejoué, un verdict. Une couche absente est ROUGE, jamais verte.
+# Harness GEDv2 : une commande, tout rejoué, un verdict. Une couche absente est ROUGE, jamais verte.
 #   powershell -File tools\harness.ps1 [-SansBanc]   (-SansBanc : saute la couche 3, qui compte alors ROUGE)
 param([switch]$SansBanc)
 $ErrorActionPreference = 'Continue'
@@ -74,6 +74,8 @@ $couches['8-statique'] = @{ ok = ($okStan -and $okAudit); detail = ("phpstan : $
 $dossierPersonas = 'recette\preuves\personas'
 Get-ChildItem "$dossierPersonas\*.json" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 Get-ChildItem "$dossierPersonas\*.png" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+# Captures HORS du dépôt : var\captures\personas\<rejeu>\ (décision d'Olivier, 10-10 : jamais de captures dans git).
+$env:GED_CAPTURES_RUN = Get-Date -Format 'yyyy-MM-dd_HHmmss'
 $sortie = & npx.cmd playwright test --project=personas --reporter=line 2>&1
 $okPersonas = ($LASTEXITCODE -eq 0)
 $detailsPersonas = @()
@@ -100,6 +102,14 @@ foreach ($manifeste in $manifests) {
 }
 if ($detailsPersonas.Count -eq 0) { $okPersonas = $false; $detailsPersonas += 'aucun persona joué' }
 $couches['5-personas'] = @{ ok = $okPersonas; detail = ($detailsPersonas -join ' | ') }
+# Rétention des captures : les 5 derniers rejeux (un rejeu rouge est marqué ROUGE.txt ; tant qu'aucun vert ne
+# l'a suivi, il est forcément parmi les plus récents). À la validation d'une version, tools\purger-captures.ps1 vide tout.
+$dossierCaptures = 'var\captures\personas'
+$rejeu = Join-Path $dossierCaptures $env:GED_CAPTURES_RUN
+if (-not $okPersonas -and (Test-Path $rejeu)) { Set-Content (Join-Path $rejeu 'ROUGE.txt') ($detailsPersonas -join ' | ') -Encoding UTF8 }
+$rejeux = @(Get-ChildItem $dossierCaptures -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'manuel' } | Sort-Object Name -Descending)
+$rejeux | Select-Object -Skip 5 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item Env:\GED_CAPTURES_RUN -ErrorAction SilentlyContinue
 
 $registre = [ordered]@{
   date = (Get-Date).ToString('s'); duree_s = [int]((Get-Date) - $debut).TotalSeconds
