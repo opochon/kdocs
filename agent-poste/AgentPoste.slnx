@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kdocs.AgentPoste/Kdocs.AgentPoste.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kdocs.AgentPoste.Tests/Kdocs.AgentPoste.Tests.csproj" />
+  </Folder>
+</Solution>
