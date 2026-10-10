@@ -24,3 +24,7 @@ Mesure du 2026-10-03 sur `src` (commit aebab81) : niveau 0 : 0 erreur, niveau 3 
 - La baseline ne grossit jamais. Toute erreur corrigée en sort (`reportUnmatchedIgnoredErrors` rend la couche rouge si une entrée devient caduque : on régénère alors la baseline, à la baisse).
 - Défauts réels repérés dans la baseline, à corriger en priorité : `Ui\ATraiter` appelle `fiche()`, `lister()` et `cheminAbsolu()` absents du contrat `Contrats\Depot` (fonctionne par accident avec l'implémentation actuelle, casse avec une autre) ; `EcranBibliotheque::arbreVivant()` déclare un type de retour faux ; `Recherche\Service::$index` écrit jamais lu ; conditions toujours vraies dans les horloges figées et `AdaptateurGraphe`.
 - La couche 8 lance aussi `composer audit` : une vulnérabilité connue dans une dépendance, ou un audit impossible, rend la couche rouge.
+
+## Baseline à zéro (lot ged-phpstan, 2026-10-10)
+
+Jugé par Claude sur la copie du juge au commit c4f8158 : PHPStan niveau 6 vert avec `phpstan-baseline.neon` vide (167 → 0), aucun `phpstan-ignore` dans `src` ni `tests`, PHPUnit 462 tests / 2631 assertions vert, aucune assertion affaiblie. Défaut réel corrigé au passage, test d'abord : `Ui\ATraiter::types()` passait le PDO au lieu du dépôt à `Nomenclature`, l'écran À traiter affichait les types figés de la maquette (oracle `tests/php/Ui/ATraiterNomenclatureTest.php`). Désormais toute nouvelle erreur PHPStan rend la couche 8 rouge : la baseline reste vide.
