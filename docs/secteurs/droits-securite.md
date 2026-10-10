@@ -468,3 +468,8 @@ aucun droit ; la modification en masse amplifie le défaut.
   dépôt existe).
 - Commits : `9fd64e7` (cœur + oracles), `955dea6` (E2E), `4908fb9` (revue ECC). Tous portent
   `Co-Authored-By: DeepCode <noreply@deepcode>`.
+### Jugement lot ged-droits-deplacement (juge, 11-10) — fusionné
+
+- Relu sur la copie du juge après fusion de v2 : PHPStan niveau 6 sans erreur, PHPUnit 496 tests (un seul échec, le faux serveur IMAP sur un port déjà pris, sans rapport avec le lot : corrigé à part, port choisi par le système). E2E de l'agent : `droits-deplacement.spec.ts` 2/2, écrans 71/71.
+- Le contrôle vit à un seul endroit, `DepotFichiers::mettreAJour`, AVANT le déplacement : `deposer` exigé sur le dossier de droits d'arrivée, refus nommé (`Securite\RefusDepot`), rien ne bouge sur refus. Le compte est passé explicitement par la fiche, À traiter, l'édition de pièces, la modification en masse et les workflows lancés par un utilisateur.
+- Risque résiduel noté : `compte = null` reste « système, sans ACL » (oracles, règles de workflow à l'ingestion). Tout nouvel appelant HTTP doit passer le compte ; à surveiller dans chaque revue.
