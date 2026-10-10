@@ -8,6 +8,7 @@ use Ged\Base;
 use Ged\Classement\Habitudes;
 use Ged\Config;
 use Ged\Contrats\Depot;
+use Ged\Securite\DroitsDossiers;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Nomenclature;
 use PDO;
@@ -44,17 +45,19 @@ final class ATraiter
         private readonly ?PDO $pdo,
         ?Depot $depot = null,
         ?Habitudes $habitudes = null,
+        private readonly ?int $compte = null,
+        private readonly bool $administrateur = false,
     ) {
         $this->depot = $depot ?? ($pdo !== null ? new DepotFichiers($config) : null);
         $this->habitudes = $habitudes ?? ($pdo !== null ? new Habitudes($pdo) : null);
     }
 
     /** Construit l'écran depuis la racine du projet (la config vient de l'environnement). */
-    public static function depuisRacine(?string $racine = null): self
+    public static function depuisRacine(?string $racine = null, ?int $compte = null, bool $administrateur = false): self
     {
         $config = new Config($racine ?? dirname(__DIR__, 2));
 
-        return new self($config, Base::pdo($config));
+        return new self($config, Base::pdo($config), null, null, $compte, $administrateur);
     }
 
     /**
@@ -254,12 +257,10 @@ final class ATraiter
      */
     private function documentsAControlerVivants(): array
     {
-        /** @var DepotFichiers $depot */
-        $depot = $this->depot;
         $documents = [];
         $decalage = 0;
         do {
-            $tranche = $depot->listerParStatut('a_controler', self::FILE_MAX, $decalage);
+            $tranche = $this->trancheAControler($decalage);
             foreach ($tranche as $ligne) {
                 $document = $this->documentDepuisLigne($ligne);
                 if ($document !== null) {
@@ -277,6 +278,47 @@ final class ATraiter
         });
 
         return $documents;
+    }
+
+    /**
+     * Une tranche de la file « à contrôler », lue DANS la requête par statut ET par le périmètre ACL du
+     * compte (V2-13, point B3) : jamais une ligne hors droits, jamais un filtrage après coup. Le compte
+     * synthétique des oracles (id nul) garde la lecture historique par statut.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function trancheAControler(int $decalage): array
+    {
+        if ($this->pdo === null) {
+            return [];
+        }
+        $where = "d.statut = 'a_controler' AND d.supprime_le IS NULL AND d.absent_depuis IS NULL";
+        $params = [];
+        [$acl, $aclParams] = $this->clauseAcl();
+        if ($acl !== null) {
+            $where .= ' AND ' . $acl;
+            $params = $aclParams;
+        }
+        $requete = $this->pdo->prepare('SELECT * FROM documents d WHERE ' . $where
+            . ' ORDER BY d.date_document ASC, d.id ASC LIMIT ' . self::FILE_MAX . ' OFFSET ' . max(0, $decalage));
+        $requete->execute($params);
+
+        return $requete->fetchAll();
+    }
+
+    /**
+     * Le périmètre ACL du lecteur, posé DANS chaque requête de liste. Compte synthétique (id nul) et
+     * administrateur gardent leur comportement ; tout autre compte ne lit que ses dossiers.
+     *
+     * @return array{0:?string, 1:list<int>}
+     */
+    private function clauseAcl(): array
+    {
+        if ($this->administrateur || $this->compte === null || $this->compte < 1) {
+            return [null, []];
+        }
+
+        return DroitsDossiers::predicatLecture('d', $this->compte);
     }
 
     /**
@@ -317,9 +359,16 @@ final class ATraiter
             return $pieces;
         }
         try {
-            $requete = $this->pdo->prepare("SELECT * FROM documents WHERE supprime_le IS NULL AND statut = 'a_controler'"
-                . " AND JSON_UNQUOTE(JSON_EXTRACT(meta, '$.origine.lot')) = ? ORDER BY id ASC");
-            $requete->execute([(string) $lot]);
+            $where = "d.supprime_le IS NULL AND d.statut = 'a_controler'"
+                . " AND JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.origine.lot')) = ?";
+            $params = [(string) $lot];
+            [$acl, $aclParams] = $this->clauseAcl();
+            if ($acl !== null) {
+                $where .= ' AND ' . $acl;
+                $params = [...$params, ...$aclParams];
+            }
+            $requete = $this->pdo->prepare('SELECT * FROM documents d WHERE ' . $where . ' ORDER BY d.id ASC');
+            $requete->execute($params);
             foreach ($requete->fetchAll() as $ligne) {
                 $document = $this->documentDepuisLigne($ligne);
                 if ($document === null) {
@@ -358,12 +407,22 @@ final class ATraiter
         return ['id' => (int) $ligne['id'], 'absolu' => $absolu, 'ligne' => $ligne, 'meta' => $meta];
     }
 
-    /** Nombre de documents vivants déjà classés (`valide`) : un COUNT indexé, pas un parcours du fonds. */
+    /** Nombre de documents vivants déjà classés (`valide`) lisibles par ce compte : un COUNT indexé. */
     private function compterValides(): int
     {
-        if ($this->depot instanceof DepotFichiers) {
+        if ($this->depot instanceof DepotFichiers && $this->pdo !== null) {
             try {
-                return $this->depot->compterParStatut('valide');
+                $where = "d.statut = 'valide' AND d.supprime_le IS NULL AND d.absent_depuis IS NULL";
+                $params = [];
+                [$acl, $aclParams] = $this->clauseAcl();
+                if ($acl !== null) {
+                    $where .= ' AND ' . $acl;
+                    $params = $aclParams;
+                }
+                $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents d WHERE ' . $where);
+                $requete->execute($params);
+
+                return (int) $requete->fetchColumn();
             } catch (Throwable) {
                 return 0;
             }
