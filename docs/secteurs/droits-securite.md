@@ -410,3 +410,6 @@ ETAT: fini
 - Mesures sur 10bc768 : PHPStan niveau 6 sans erreur, baseline vide ; PHPUnit 471 tests / 2653 assertions vert. Écrans 65/65 verts sur la branche de l'agent avant fusion.
 - Reste pour fermer V2-13 : un harness complet sur v2 (machine 2), après le lot personas qui occupe la base de test.
 - Écart restant, non bloquant : `predicatLecture` ne vérifie pas la permission de rôle `lire`, alors que `autorise()` la vérifie. Les trois rôles l'ont aujourd'hui ; à aligner si un rôle sans lecture apparaît.
+### Fermeture V2-13 (juge, 10-10) — porte franchie
+
+Harness complet rejoué sur la machine 2 (base dédiée) au commit e037f8e, 21:10 : garde-fous, unitaire (471 tests / 2653 assertions), contrat (toutes les routes déclarées couvertes), banc (découpe 53/53, F1 de bout en bout 53/53, porte franchie), écrans 65/65 dont `droits-b6`, sécurité (aucun contournement accepté), charge (3 puis 10 utilisateurs, p95 lecture 763 ms, écriture 280 ms, 0 erreur), statique (PHPStan 0, `composer audit` propre). Seule couche rouge : personas, pas encore fusionnée à ce commit (lot ged-personas). F10 « 0 fuite » tenu sur liste, compteurs, vues, arbre, aperçu, À traiter, rail, partages, Recherche et API. V2-13 est clos.
