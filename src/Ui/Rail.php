@@ -21,13 +21,16 @@ use Throwable;
  */
 final class Rail
 {
-    public function __construct(private readonly Config $config)
-    {
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?int $compte = null,
+        private readonly bool $administrateur = false,
+    ) {
     }
 
-    public static function depuisRacine(?string $racine = null): self
+    public static function depuisRacine(?string $racine = null, ?int $compte = null, bool $administrateur = false): self
     {
-        return new self(new Config($racine ?? dirname(__DIR__, 2)));
+        return new self(new Config($racine ?? dirname(__DIR__, 2)), $compte, $administrateur);
     }
 
     /** @return array{compte_a_traiter:int, vues:list<array{id:int, nom:string, slug:string}>} */
@@ -36,11 +39,11 @@ final class Rail
         return ['compte_a_traiter' => $this->compteATraiter(), 'vues' => $this->vues()];
     }
 
-    /** Nombre de pièces réellement en attente de contrôle dans CE fonds (file bornée, fichier présent). */
+    /** Nombre de pièces réellement en attente de contrôle dans CE fonds, visibles par ce compte. */
     private function compteATraiter(): int
     {
         try {
-            return ATraiter::depuisRacine($this->config->racine())->compterAControler();
+            return ATraiter::depuisRacine($this->config->racine(), $this->compte, $this->administrateur)->compterAControler();
         } catch (Throwable) {
             return 0;
         }

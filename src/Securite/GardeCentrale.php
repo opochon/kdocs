@@ -45,6 +45,11 @@ final class GardeCentrale implements MiddlewareInterface
         if ($session === null) {
             return $this->refuser($requete, 'session absente ou expirée', $nonceCsp);
         }
+        // Le rail (menu) compte comme les listes : le badge « À traiter » ne voit que les dossiers du compte.
+        $this->vue->definirContexteRail(
+            is_int($session['compte'] ?? null) ? $session['compte'] : null,
+            in_array('*', $session['permissions'], true),
+        );
         $permissionCanonique = DroitsRoutes::permissionCanonique($permission);
         if ($permissionCanonique !== 'session:active' && !in_array('*', $session['permissions'], true)
             && !in_array($permissionCanonique, $session['permissions'], true)) {

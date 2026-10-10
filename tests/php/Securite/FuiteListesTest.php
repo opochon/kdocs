@@ -120,6 +120,13 @@ final class FuiteListesTest extends TestCase
         self::assertSame(1, $donnees['bilan']['a_controler'], 'le compteur de la file ne compte que les documents lisibles');
     }
 
+    public function testLeCompteurDuRailNeComptePasLesDocumentsHorsDroits(): void
+    {
+        $donnees = \Ged\Ui\Rail::depuisRacine($this->config->racine(), $this->compte)->donnees();
+
+        self::assertSame(1, $donnees['compte_a_traiter'], 'le badge « À traiter » du menu ne compte que les documents lisibles');
+    }
+
     /** @return array{0:int, 1:string} */
     private function creerDocument(string $dossier): array
     {
