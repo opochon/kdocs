@@ -157,7 +157,15 @@ Mesure : baseline **9 → 2 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 test
 
 Reste alors `Apercu\Module::enregistrer` et `Kernel::creer` (hors liste des 9 modules).
 
+### Apercu et Kernel (niveau 6, hors liste)
+
+`Apercu\Module::enregistrer` (App générique). Puis `Kernel::creer` : **annotation de type
+seule** (`@return App<Psr\Container\ContainerInterface>`), aucune ligne de logique touchée
+— c'était le dernier type générique manquant pour atteindre zéro.
+
+Mesure : baseline **2 → 0 entrée** (`ignoreErrors: []`). PHPStan niveau 6 vert.
+PHPUnit : 462 tests, 2620 assertions, 1 ignoré.
+
 ## Reste
 
-- Corriger `Apercu\Module::enregistrer` et `Kernel::creer` (App générique), régénérer à zéro.
 - `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` avant `ETAT: fini`.

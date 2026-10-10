@@ -19,6 +19,7 @@ use Slim\Exception\HttpNotFoundException;
  */
 final class Module
 {
+    /** @param App<\Psr\Container\ContainerInterface> $app */
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
         $source = Source::depuis($config);

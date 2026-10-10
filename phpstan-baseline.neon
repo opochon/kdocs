@@ -1,13 +1,2 @@
 parameters:
-	ignoreErrors:
-		-
-			message: '#^Method Ged\\Apercu\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Apercu/Module.php
-
-		-
-			message: '#^Method Ged\\Kernel\:\:creer\(\) return type with generic class Slim\\App does not specify its types\: TContainerInterface$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Kernel.php
+	ignoreErrors: []
