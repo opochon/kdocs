@@ -10,3 +10,4 @@
 /.phpunit.result.cache
 # Captures d'écran des rejeux : jamais dans git (décision du 10-10), elles vivent dans var/captures/
 /recette/preuves/**/*.png
+__pycache__/
