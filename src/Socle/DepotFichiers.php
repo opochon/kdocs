@@ -166,10 +166,11 @@ final class DepotFichiers implements Depot
             }
         } catch (\PDOException $e) {
             // Schéma d'ACL absent ou illisible : on NE laisse PAS passer (la garde refuse déjà tout dans
-            // ce cas). Le refus est nommé et tracé, jamais un 500 muet ni un déplacement silencieux.
+            // ce cas). Le refus est nommé ; la cause technique part au journal, jamais à l'écran.
+            error_log('F10 : contrôle des droits d’arrivée indisponible — ' . $e->getMessage());
             throw new \Ged\Securite\RefusDepot(sprintf(
-                'droits insuffisants : le dossier « %s » exige le niveau « deposer » à l’arrivée (contrôle des droits indisponible : %s)',
-                $dossierVise, $e->getMessage()
+                'droits insuffisants : le dossier « %s » exige le niveau « deposer » à l’arrivée (contrôle des droits indisponible)',
+                $dossierVise
             ), 0, $e);
         }
 

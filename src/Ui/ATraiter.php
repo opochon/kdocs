@@ -185,7 +185,9 @@ final class ATraiter
             try {
                 $this->valider($id, ['type' => $piece['type'], 'emetteur' => $piece['emetteur'], 'titre' => $piece['titre'],
                     'date' => $piece['date'], 'montant' => $piece['montant'], 'etiquettes' => $piece['etiquettes']], $auteur);
-            } catch (\Throwable $e) {
+            } catch (\RuntimeException $e) {
+                // Refus métier (proposition invalide, droits de dépôt manquants sur l'arrivée) : le document
+                // est compté avec sa raison, le lot continue. Une erreur de programmation, elle, remonte.
                 $refuses[$id] = mb_substr($e->getMessage(), 0, 512);
                 continue;
             }
