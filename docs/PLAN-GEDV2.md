@@ -116,6 +116,8 @@ La cible est « Paperless partout, M-Files là où il va plus loin, GEDv1 là o�
 | Archivage légal, rétention | non | oui | 2 | 9 | V2-09 |
 | API, applications mobiles | oui | oui | 2 | API + écrans mobiles | V2-05, V2-10 |
 | Installation, mise à jour, console éditeur | Docker | intégrateur | 2 | celles de K-Time | V2-00 |
+| Modification en masse (type, étiquettes, émetteur, dossier, corbeille) | oui | oui | 0 | 9, droits respectés | ged-parite-masse |
+| Édition depuis le poste sans rien perdre (Word, Excel, PowerPoint) | non | oui (client Desktop, réservation) | 0 | 9 : agent local, `kdocs://`, versions à chaque enregistrement, copies de secours | ged-edition-serveur, ged-agent-poste |
 
 ## 6. Matrice des flux
 
@@ -135,6 +137,7 @@ Un flux n'est au niveau 9 que s'il porte deux preuves vertes : le mécanisme sur
 | F10 | Droits | un groupe ne voit que son dossier, partout (liste, recherche, aperçu, API) | matrice qui voit quoi | 0 fuite, refus côté serveur |
 | F11 | Archivage légal | scellement → déplacement hors du fonds → horodatage → rétention | hash + jeton d'horodatage | pièce intouchable pendant la durée légale |
 | F12 | Sauvegarde, restauration, reconstruction | base perdue → reconstruite depuis le dossier ; dossier + base → restauration sur base vierge | comparaison octet par octet | restauration identique, index reconstruit identique |
+| F13 | Éditer depuis le poste | GED → `kdocs://` → Word local → Ctrl+S → version ; coupure, redémarrage, fermeture sans enregistrer | parcours sur Office réel (docs/secteurs/edition-poste.md) | aucune modification perdue, aucun écrasement, lien piégé refusé |
 
 ## 7. Oracles et corpus
 
