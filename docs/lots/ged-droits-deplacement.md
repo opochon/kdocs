@@ -17,45 +17,71 @@ est passé explicitement. Un refus est nommé (dossier visé, niveau manquant) e
 ## Fait (commits)
 
 - `9fd64e7` — **cœur + oracles** : oracle rouge d'abord
-  (`tests/php/Securite/DeplacementDroitsTest.php`, 5 refus attendus non produits), puis
-  `DepotFichiers::mettreAJour` exige `deposer` sur le dossier d'arrivée via `exigerDroitDeDepot` (héritage,
-  refus par défaut, administrateur permis, compte nul = oracles), refus nommé `Securite\RefusDepot`
-  (dossier visé + niveau). Le compte de l'appelant est passé explicitement par `ATraiter` (unitaire et lot,
-  refus compté avec sa raison), `ModificationMasse`, `Workflows\Moteur`/`Ecouteur` et `EditionPieces`.
-  `EditionPieces` pose le rangement AVANT le contenu : un refus ne remplace rien et n'archive pas.
-  Signature étendue dans `Contrats\Depot` (modification partagée signalée).
-- (commit E2E) `tests/e2e/droits-deplacement.spec.ts` + `preparer-droits-deplacement.php` : par l'écran,
-  la modification en masse affiche le refus d'arrivée pour le document concerné, et aboutit quand le droit
-  de dépôt existe.
+  (`tests/php/Securite/DeplacementDroitsTest.php`, les 5 refus attendus ne produisaient rien), puis
+  `DepotFichiers::exigerDroitDeDepot()` (résolution du dossier d'arrivée par `DroitsDossiers`,
+  `autorise(…, 'deposer')`, héritage + refus par défaut, administrateur permis, compte nul = oracles),
+  refus nommé `Securite\RefusDepot` (dossier visé + niveau). Le compte de l'appelant est passé
+  explicitement par `ATraiter` (unitaire et lot, refus compté avec sa raison), `ModificationMasse`,
+  `Workflows\Moteur`/`Ecouteur` et `EditionPieces` (rangement posé AVANT le contenu). Signature étendue
+  dans `Contrats\Depot` (modification partagée signalée).
+- `955dea6` — **E2E** : `tests/e2e/droits-deplacement.spec.ts` + `preparer-droits-deplacement.php` ; par
+  l'écran, la modification en masse affiche le refus d'arrivée pour le document concerné, et aboutit quand
+  le droit de dépôt existe.
+- `4908fb9` — **revue ECC** : la cause PDO part au journal (pas à l'écran) ; le lot « À traiter »
+  n'attrape que les refus métier.
+- `1314117` — journal du secteur `docs/secteurs/droits-securite.md`.
 
 ## Modifications minimales hors secteur (règle « un agent = un secteur »)
 
 Le contrôle devait vivre dans le service partagé ; les appelants portent le compte de l'appelant.
 
-- `src/Contrats/Depot.php` (contrat partagé, d'ordinaire réservé à la vue d'ensemble) : `mettreAJour`
-  reçoit `?int $compte = null, bool $administrateur = false`. Signalé au journal du secteur.
-- `src/Socle/DepotFichiers.php`, `src/Socle/ModificationMasse.php` : contrôle unique et passage du compte.
-- `src/Ui/ATraiter.php`, `src/Ui/Module.php` : session → service (`compte`, `administrateur`).
-- `src/Workflows/Moteur.php`, `Ecouteur.php`, `Module.php` : le compte suit jusqu'au service ; un événement
-  système garde le compte nul.
-- `src/Ingestion/EditionPieces.php` : constructeur `compte`/`administrateur` ; `appliquer()` et `annuler()`
-  posent le rangement avant le contenu. Signalé dans `docs/secteurs/ingestion.md` (journal).
-- `tests/php/Ingestion/PiloteTest.php` : le double `DepotSimule` suit la signature du contrat (aucune
-  assertion touchée).
-- `tests/php/Socle/ModificationMasseTest.php` : le contrôle d'arrivée exige `deposer` sur le dossier
-  d'arrivée `Sans_date/…` (métadonnées de test sans date) ; le setup accorde ce droit et le nettoyage
-  retire les règles par groupe. Aucune assertion affaiblie.
+- `src/Contrats/Depot.php` (contrat partagé) : `mettreAJour` reçoit `?int $compte`, `bool $administrateur`.
+- `src/Socle/DepotFichiers.php`, `src/Socle/ModificationMasse.php` : contrôle unique + compte.
+- `src/Ui/ATraiter.php`, `src/Ui/Module.php` : session → service.
+- `src/Workflows/Moteur.php`, `Ecouteur.php`, `Module.php` : compte jusqu'au service (système = nul).
+- `src/Ingestion/EditionPieces.php` : `compte`/`administrateur` ; `appliquer()`/`annuler()` posent le
+  rangement avant le contenu.
+- `tests/php/Ingestion/PiloteTest.php` : le double `DepotSimule` suit la signature (aucune assertion
+  touchée).
+- `tests/php/Socle/ModificationMasseTest.php` : le contrôle d'arrivée exige `deposer` sur `Sans_date/…`
+  (métadonnées de test sans date) ; le setup accorde ce droit et le nettoyage retire les règles par
+  groupe. Aucune assertion affaiblie.
 
-## Reste
+## Preuves exactes
 
-- Porte qualité ECC et `harness.ps1 -SansBanc` vert sur les couches touchées.
-- Journal du secteur `docs/secteurs/droits-securite.md` à compléter (fait au moment du lot).
-
-## Mesures exactes
-
-- Oracle rouge d'abord : 5 refus sur 8 tests, puis **`DeplacementDroitsTest` VERT : 9 tests, 82 assertions**.
+- Oracle rouge d'abord : 5 refus sur 8 tests, puis **`DeplacementDroitsTest` VERT : 9 tests, 82
+  assertions** (service/fiche, A traiter unitaire, lot avec refus compté, modification en masse,
+  workflow, retouche de pages, et les acceptations avec `deposer` sur l'arrivée).
 - PHPUnit complet : **488 tests / 2833 assertions / 1 skipped**, vert.
-- PHPStan niveau 6 : **0 erreur**, baseline vide inchangée.
-- `tests/e2e/droits-deplacement.spec.ts` : **2 parcours verts** (21,5 s).
-- `EditionPiecesTest` : 1 test / 19 assertions, vert après réordonnancement.
-- `ModificationMasseTest` : 4 tests / 90 assertions, vert après adaptation du jeu de droits.
+- `tests/e2e/droits-deplacement.spec.ts` : **2 parcours verts**.
+- `EditionPiecesTest` : 1 test / 19 assertions vert ; `ModificationMasseTest` : 4 tests / 90 assertions vert.
+
+## Porte qualité (ECC)
+
+- PHPStan niveau 6 : **0 erreur**, `phpstan-baseline.neon` vide et inchangée.
+- `php tools/composer.phar audit --locked --no-interaction` : **aucune vulnérabilité**.
+- Revue du diff contre `php-reviewer`, `security-reviewer` et `silent-failure-hunter` : SQL de contrôle
+  entièrement paramétré (aucune concaténation d'entrée), fail-closed sur schéma d'ACL indisponible avec
+  cause technique journalisée (jamais rendue à l'écran), aucun `catch` avalé — le seul `catch` de lot
+  convertit un refus métier en refus nommé rendu au bilan, aucune erreur de programmation masquée,
+  `declare(strict_types=1)` sur les fichiers neufs, fonctions courtes. Aucun constat critique ou élevé.
+
+## Harness `-SansBanc` (rejeu propre, registre du 10-10 23:59, 879 s, commit `1314117`)
+
+- `0-garde-fous` VERT.
+- `1-unitaire` VERT : **488 tests / 2833 assertions / 1 skipped**.
+- `2-contrat` VERT (toutes les routes déclarées couvertes).
+- `7-securite` VERT (sonde : aucun contournement accepté).
+- `6-charge` VERT : 3 puis 10 utilisateurs, p95 lecture **872 ms**, écriture **295 ms**, 0 erreur,
+  ingestion finie.
+- `8-statique` VERT : PHPStan **0 erreur** hors baseline, audit sans vulnérabilité.
+- `5-personas` VERT : 6/6 personas (4/4, 4/4, 4/4, 4/4, 4/4, 3/3).
+- `3-banc` ROUGE admis (`sautée (-SansBanc)`).
+- `4-ecrans` : **71 passed / 1 failed**. Le seul rouge est `tests/e2e/budget-apercu.spec.ts` — budget
+  « première page du PDF affichée en moins de 1 s », mesuré **1064 à 1140 ms** sous la charge des agents
+  (rejoué seul trois fois : deux mesures ~1,07 s puis **un rejeu vert**). C'est le rouge de mesure déjà
+  consigné par les lots précédents (« machine chargée, à reprendre en V2-10 au repos »), hors du diff de
+  ce lot (le lot ne touche ni l'aperçu ni la visionneuse). Le parcours `droits-deplacement` fait partie
+  des 71 verts.
+
+ETAT: fini
