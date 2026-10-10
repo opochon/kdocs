@@ -401,3 +401,12 @@ déjà ; le filtrage V2-13 (point B3 : dans la requête, jamais après coup) man
   `src/Ui/Rail.php`, `src/Ui/Vue.php`.
 
 ETAT: fini
+
+### Jugement lot ged-fuite-bibliotheque (juge, 10-10) — fusionné, fermeture V2-13 après harness complet
+
+- Relu sur la copie du juge : le filtrage vit DANS la requête (`DroitsDossiers::predicatLecture`) et reproduit la décision de `autorise(…, 'lire')` : refus explicite de lecture au dossier, règle du dossier le plus proche, refus par défaut. Les listes couvertes sont la Bibliothèque (liste, compteurs, vues, arbre, aperçu), À traiter, le rail, les partages avec moi, les types de la Recherche et l'API des dossiers.
+- Fusion de `origin/v2` (lot ged-phpstan) dans la branche : 2 conflits résolus par le juge (`Recherche\Service` n'a plus d'index en paramètre).
+- Défaut trouvé à la relecture et corrigé par le juge (10bc768), oracle d'abord : `_` et `%` sont des jokers de LIKE. Un droit sur un dossier `P_Q` ouvrait le dossier voisin `PZQ` dans le prédicat des listes, dans le filtre ACL de la Recherche et dans `dossierPourChemin`. La comparaison de préfixe est désormais exacte (`LEFT` + `CONCAT(…, '/')`).
+- Mesures sur 10bc768 : PHPStan niveau 6 sans erreur, baseline vide ; PHPUnit 471 tests / 2653 assertions vert. Écrans 65/65 verts sur la branche de l'agent avant fusion.
+- Reste pour fermer V2-13 : un harness complet sur v2 (machine 2), après le lot personas qui occupe la base de test.
+- Écart restant, non bloquant : `predicatLecture` ne vérifie pas la permission de rôle `lire`, alors que `autorise()` la vérifie. Les trois rôles l'ont aujourd'hui ; à aligner si un rôle sans lecture apparaît.
