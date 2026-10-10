@@ -41,16 +41,23 @@ et 4 écrans n'ont aucun test E2E. Cible de la ligne de matrice : « Modificatio
 - `e4c7f00` — une seule source de menu (`Ged\Ui\Rail`) : « Partagés avec moi », section Administration
   (visible seulement à `application:administrer` ou `*`), catalogue des workflows servi en page lisible
   à un navigateur (JSON conservé pour le designer/l'API), oracle `RailMenuTest` + test du catalogue HTML.
+- `b1bc516` — écran Bibliothèque : cases à cocher (`coche-doc-<id>`), « toute la page » et « tout le
+  résultat filtré », barre d'actions en masse à gauche sous le titre, confirmation qui annonce le nombre,
+  bilan des traités/refusés avec raisons ; routes `POST /bibliotheque/masse` et
+  `POST /bibliotheque/masse/{id}/tranche` ; permissions `documents:modifier` ; lien « droits du dossier »
+  depuis le dossier actif ; charges CSRF de la sonde (`tools/banc/sonde-securite.php`, fichier partagé
+  signalé) ; filtres de la sélection résolus par la MÊME méthode que la liste paginée
+  (`EcranBibliotheque::resoudre`/`idsFiltres`).
+- (commit suivant) — E2E `tests/e2e/parite-masse.spec.ts` (5 parcours) + préparation
+  `tests/e2e/preparer-parite-masse.php` : en masse par l'écran (cocher, choisir, confirmer, bilan,
+  liste, fiche), « tout le résultat filtré » au-delà de la page, et les 4 écrans jamais parcourus via
+  le menu (groupes, rôles, partagés avec moi, catalogue).
 
 ### En cours
-- **UI Bibliothèque** (écran de l'étape suivante) : cases à cocher (`coche-doc-<id>`), « toute la page »
-  et « tout le résultat filtré », barre d'actions en masse à gauche sous le titre, confirmation qui
-  annonce le nombre, bilan des traités/refusés avec raisons ; routes `POST /bibliotheque/masse` et
-  `POST /bibliotheque/masse/{id}/tranche` ; permissions `documents:modifier` ; lien « droits du dossier »
-  depuis le dossier actif ; charges CSRF de la sonde.
+- Harness `-SansBanc` complet + porte qualité ECC.
 
 ### Reste
-- E2E (parcours en masse par l'écran + 4 écrans jamais parcourus via le menu), harness, porte qualité.
+- Rien d'autre que la porte qualité et le rejeu du harness.
 
 ## Porte qualité (ECC)
 
