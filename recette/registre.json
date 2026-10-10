@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-10T19:27:55",
-    "duree_s":  543,
-    "commit":  "b8b768d",
+    "date":  "2026-10-10T20:54:35",
+    "duree_s":  639,
+    "commit":  "8483b11",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules présents ; DB_NAME=gedv2_test imposé",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[30;42mTests: 469\u001b[0m\u001b[30;42m, Assertions: 2636\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
+                                       "detail":  "\u001b[30;42mTests: 462\u001b[0m\u001b[30;42m, Assertions: 2620\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
                                        "ok":  true
                                    },
                     "3-banc":  {
@@ -16,8 +16,8 @@
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  65 passed (3.0m)",
-                                     "ok":  true
+                                     "detail":  "  1 failed   64 passed (3.1m)",
+                                     "ok":  false
                                  },
                     "7-securite":  {
                                        "detail":  "OK: sonde s├®curit├® ÔÇö aucun contournement accept├®",
@@ -28,7 +28,7 @@
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 644 ms, p95 ├®criture 254 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 769 ms, p95 ├®criture 238 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
                                      "ok":  true
                                  },
                     "8-statique":  {
@@ -36,8 +36,8 @@
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "pas encore écrite",
-                                       "ok":  false
+                                       "detail":  "administrateur: 4/4 (médiane 720 ms) | auditeur: 4/4 (médiane 581 ms) | comptable: 4/4 (médiane 518 ms) | debutant: 4/4 (médiane 436 ms) | fiduciaire: 4/4 (médiane 465 ms) | secretaire: 3/3 (médiane 612 ms)",
+                                       "ok":  true
                                    }
                 }
 }

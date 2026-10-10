@@ -1,0 +1,9 @@
+{
+  "nom": "bilan-ingestion",
+  "fonction": "F1",
+  "libelle": "Lire le bilan d’ingestion sur l’écran d’accueil",
+  "trouve": true,
+  "temps_ms": 122,
+  "ecran": "http://127.0.0.1:64176/a-traiter — À traiter",
+  "erreur": ""
+}

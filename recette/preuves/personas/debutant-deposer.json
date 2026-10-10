@@ -1,0 +1,9 @@
+{
+  "nom": "deposer",
+  "fonction": "F2",
+  "libelle": "Déposer un document par l’écran, depuis le bouton de l’accueil",
+  "trouve": true,
+  "temps_ms": 550,
+  "ecran": "http://127.0.0.1:59886/deposer?recu=1 — Déposer",
+  "erreur": ""
+}

@@ -1,0 +1,11 @@
+{
+  "persona": "administrateur",
+  "role": "administrateur",
+  "compte": "persona-administrateur@gedv2.test",
+  "gestes": [
+    "application-reglages",
+    "connecteurs",
+    "reconstruire-index",
+    "archives-verifier"
+  ]
+}

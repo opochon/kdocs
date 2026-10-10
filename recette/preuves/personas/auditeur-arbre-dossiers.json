@@ -1,0 +1,9 @@
+{
+  "nom": "arbre-dossiers",
+  "fonction": "F7",
+  "libelle": "Lire l’arbre des dossiers du fonds dans la bibliothèque",
+  "trouve": true,
+  "temps_ms": 360,
+  "ecran": "http://127.0.0.1:54559/bibliotheque — Bibliothèque",
+  "erreur": ""
+}

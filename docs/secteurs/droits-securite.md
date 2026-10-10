@@ -425,3 +425,6 @@ ETAT: fini
   (`POST /bibliotheque/masse` action inconnue, `.../tranche` tâche inconnue) ; la sonde reste VERTE.
 - Aucun écran n'a de garde propre : le refus (permission globale, CSRF, ACL de dossier) est porté par la
   garde centrale et le service.
+### Fermeture V2-13 (juge, 10-10) — porte franchie
+
+Harness complet rejoué sur la machine 2 (base dédiée) au commit e037f8e, 21:10 : garde-fous, unitaire (471 tests / 2653 assertions), contrat (toutes les routes déclarées couvertes), banc (découpe 53/53, F1 de bout en bout 53/53, porte franchie), écrans 65/65 dont `droits-b6`, sécurité (aucun contournement accepté), charge (3 puis 10 utilisateurs, p95 lecture 763 ms, écriture 280 ms, 0 erreur), statique (PHPStan 0, `composer audit` propre). Seule couche rouge : personas, pas encore fusionnée à ce commit (lot ged-personas). F10 « 0 fuite » tenu sur liste, compteurs, vues, arbre, aperçu, À traiter, rail, partages, Recherche et API. V2-13 est clos.

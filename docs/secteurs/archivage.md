@@ -231,3 +231,6 @@ ETAT: bloqué — harness -SansBanc ne termine pas (bloqué dès PHPUnit), deux 
 - Racines : le fichier versionné contient exactement DigiCert Trusted Root G4 et FreeTSA Root CA téléchargés et vérifiés par le juge (les certificats écrits de mémoire par l'agent étaient invalides, cause du premier blocage). Sources et empreintes consignées ci-dessus.
 - Harness complet à `68d2886` : couches 3, 6, 7 et 8 vertes (8 : 0 erreur PHPStan hors baseline, aucune vulnérabilité) ; 1, 2 et 4 rouges, mais par des régressions des commits V2-13r (file À traiter masquée au bureau, installateur sur base neuve, lecture par l'index), aucune imputable à V2-14a. Correction confiée à V2-13t.
 - Reste avant clôture : harness global vert après V2-13t, puis recette réelle d'un scellement DigiCert sur l'instance de recette.
+### Fermeture V2-14a (juge, 10-10) — porte globale franchie
+
+La porte globale de V2-14a attendait V2-13 (voir le jugement du 03-10). Le harness complet sur e037f8e est vert (voir la fermeture de V2-13 dans `droits-securite.md`) et l'essai d'horodatage réel `tools/essai-tsa-reelle.php` avec les racines vérifiées (DigiCert en premier, FreeTSA en secours) reste vert. V2-14a est clos. Reste pour l'archivage : le sceau DigiCert réel sur la recette de ton poste.

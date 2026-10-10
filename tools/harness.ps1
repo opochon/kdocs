@@ -1,4 +1,4 @@
-﻿# Harness GEDv2 : une commande, tout rejoué, un verdict. Une couche absente est ROUGE, jamais verte.
+# Harness GEDv2 : une commande, tout rejoué, un verdict. Une couche absente est ROUGE, jamais verte.
 #   powershell -File tools\harness.ps1 [-SansBanc]   (-SansBanc : saute la couche 3, qui compte alors ROUGE)
 param([switch]$SansBanc)
 $ErrorActionPreference = 'Continue'
@@ -33,8 +33,9 @@ if ($SansBanc) {
   $couches['3-banc'] = @{ ok = $ok; detail = ($details -join ' | ') }
 }
 
-# 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright
-$sortie = & npx.cmd playwright test --reporter=line 2>&1
+# 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright. Le projet « personas »
+#    est exclu : la couche 5 a son propre projet et se joue plus bas, seule.
+$sortie = & npx.cmd playwright test --project=parcours --project=budgets --reporter=line 2>&1
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }
 
 # 7. Sécurité : sonde offensive HTTP, serveur et sessions de test isolés.
@@ -66,10 +67,49 @@ $stan = & php vendor\bin\phpstan analyse --no-progress --memory-limit=2G --error
 $nbStan = ($stan | Select-String ':\d+:').Count
 $audit = & php tools\composer.phar audit --locked --no-interaction 2>&1; $okAudit = ($LASTEXITCODE -eq 0)
 $couches['8-statique'] = @{ ok = ($okStan -and $okAudit); detail = ("phpstan : $nbStan erreur(s) hors baseline | audit : " + (($audit | Select-Object -Last 1) -join ''))}
-# Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
-foreach ($c in '5-personas') {
-  $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }
+# 5. Personas : chaque persona joue ses gestes F1–F12 depuis l'écran d'accueil (menus et libellés
+#    visibles, jamais d'URL directe sauf la connexion). Un geste non trouvé en 30 s est un ÉCHEC NOMMÉ,
+#    jamais un test sauté. La couche est VERTE seulement si tous les personas trouvent tout ; le détail
+#    (persona, gestes trouvés / total, temps médian) vient des preuves recette\preuves\personas\.
+$dossierPersonas = 'recette\preuves\personas'
+Get-ChildItem "$dossierPersonas\*.json" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$dossierPersonas\*.png" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+# Captures HORS du dépôt : var\captures\personas\<rejeu>\ (décision d'Olivier, 10-10 : jamais de captures dans git).
+$env:GED_CAPTURES_RUN = Get-Date -Format 'yyyy-MM-dd_HHmmss'
+$sortie = & npx.cmd playwright test --project=personas --reporter=line 2>&1
+$okPersonas = ($LASTEXITCODE -eq 0)
+$detailsPersonas = @()
+$manifests = Get-ChildItem "$dossierPersonas\*.manifest.json" -ErrorAction SilentlyContinue | Sort-Object Name
+foreach ($manifeste in $manifests) {
+  $m = Get-Content $manifeste.FullName -Raw | ConvertFrom-Json
+  $trouves = 0; $temps = @()
+  foreach ($nomGeste in $m.gestes) {
+    $fichier = Join-Path $dossierPersonas ("{0}-{1}.json" -f $m.persona, $nomGeste)
+    if (Test-Path $fichier) {
+      $geste = Get-Content $fichier -Raw | ConvertFrom-Json
+      if ($geste.trouve) { $trouves++; $temps += [int]$geste.temps_ms }
+    }
+  }
+  $total = @($m.gestes).Count
+  $median = 0
+  if ($temps.Count -gt 0) {
+    $trie = @($temps | Sort-Object)
+    $milieu = [math]::Floor($trie.Count / 2)
+    if ($trie.Count % 2 -eq 0) { $median = [int](($trie[$milieu - 1] + $trie[$milieu]) / 2) } else { $median = [int]$trie[$milieu] }
+  }
+  if ($trouves -ne $total) { $okPersonas = $false }
+  $detailsPersonas += ("{0}: {1}/{2} (médiane {3} ms)" -f $m.persona, $trouves, $total, $median)
 }
+if ($detailsPersonas.Count -eq 0) { $okPersonas = $false; $detailsPersonas += 'aucun persona joué' }
+$couches['5-personas'] = @{ ok = $okPersonas; detail = ($detailsPersonas -join ' | ') }
+# Rétention des captures : les 5 derniers rejeux (un rejeu rouge est marqué ROUGE.txt ; tant qu'aucun vert ne
+# l'a suivi, il est forcément parmi les plus récents). À la validation d'une version, tools\purger-captures.ps1 vide tout.
+$dossierCaptures = 'var\captures\personas'
+$rejeu = Join-Path $dossierCaptures $env:GED_CAPTURES_RUN
+if (-not $okPersonas -and (Test-Path $rejeu)) { Set-Content (Join-Path $rejeu 'ROUGE.txt') ($detailsPersonas -join ' | ') -Encoding UTF8 }
+$rejeux = @(Get-ChildItem $dossierCaptures -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'manuel' } | Sort-Object Name -Descending)
+$rejeux | Select-Object -Skip 5 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item Env:\GED_CAPTURES_RUN -ErrorAction SilentlyContinue
 
 $registre = [ordered]@{
   date = (Get-Date).ToString('s'); duree_s = [int]((Get-Date) - $debut).TotalSeconds
