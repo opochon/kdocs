@@ -175,11 +175,18 @@ final class Secours
         return $slug !== '' ? $slug : substr(hash('sha256', $appareil), 0, 16);
     }
 
-    /** Chemin absolu du fichier de copie : la colonne `fichier` du JSON, sinon le premier non-JSON. */
+    /**
+     * Chemin absolu du fichier de copie : la colonne `fichier` du JSON, sinon le premier non-JSON.
+     *
+     * @param array<string, mixed> $meta
+     */
     private function fichier(string $dossier, array $meta): ?string
     {
-        if (isset($meta['fichier']) && is_string($meta['fichier']) && is_file($dossier . '/' . $meta['fichier'])) {
-            return $dossier . '/' . $meta['fichier'];
+        // Le nom vient du `copie.json` (notre écriture) : `basename()` interdit toute évasion de dossier
+        // si le fichier était modifié à la main.
+        $nom = isset($meta['fichier']) && is_string($meta['fichier']) ? basename($meta['fichier']) : '';
+        if ($nom !== '' && is_file($dossier . '/' . $nom)) {
+            return $dossier . '/' . $nom;
         }
         foreach (glob($dossier . '/*') ?: [] as $fichier) {
             if (is_file($fichier) && !str_ends_with(strtolower($fichier), '.json')) {

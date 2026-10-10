@@ -47,12 +47,16 @@ final class Api
         $id = (int) ($args['id'] ?? 0);
         $etape = 'GET /api/v1/edition/documents/' . $id;
         try {
-            $this->authentifier($requete, $etape);
+            $jeton = $this->authentifier($requete, $etape);
             $editeur = new Editeur($this->config);
             $doc = $this->exigerDocument($editeur, $id, $etape);
-            $this->exigerDroit($requete, $id, 'lire', $etape);
+            $this->exigerDroit($jeton, $id, 'lire', $etape);
 
-            return $this->json($reponse, 200, ['document' => $doc['id']] + $doc);
+            // Contrat de l'état, sans exposer le chemin interne du fonds.
+            return $this->json($reponse, 200, [
+                'document' => $doc['id'], 'nom' => $doc['nom'], 'mime' => $doc['mime'],
+                'taille' => $doc['taille'], 'empreinte' => $doc['empreinte'], 'version' => $doc['version'],
+            ]);
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -68,10 +72,10 @@ final class Api
         $id = (int) ($args['id'] ?? 0);
         $etape = 'GET /api/v1/edition/documents/' . $id . '/fichier';
         try {
-            $this->authentifier($requete, $etape);
+            $jeton = $this->authentifier($requete, $etape);
             $editeur = new Editeur($this->config);
             $doc = $this->exigerDocument($editeur, $id, $etape);
-            $this->exigerDroit($requete, $id, 'lire', $etape);
+            $this->exigerDroit($jeton, $id, 'lire', $etape);
             $chemin = $editeur->chemin($id);
             if ($chemin === null || !is_file($chemin)) {
                 throw new ErreurApi(404, "le fichier du document $id a disparu du fonds", $etape);
@@ -105,17 +109,18 @@ final class Api
             $jeton = $this->authentifier($requete, $etape);
             $editeur = new Editeur($this->config);
             $this->exigerDocument($editeur, $id, $etape);
-            $this->exigerDroit($requete, $id, 'modifier', $etape);
+            $this->exigerDroit($jeton, $id, 'modifier', $etape);
 
             $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
-            $brut = trim((string) ($corps['version_base'] ?? ''));
-            if ($brut === '' || !ctype_digit($brut) || (int) $brut < 1) {
+            $brut = $corps['version_base'] ?? '';
+            if (!is_string($brut) || trim($brut) === '' || !ctype_digit(trim($brut)) || (int) $brut < 1) {
                 throw new ErreurApi(400, 'version de base requise (entier ≥ 1)', $etape);
             }
+            $versionBase = (int) trim($brut);
             $fichier = $requete->getUploadedFiles()['fichier'] ?? null;
             $temporaire = $this->preparerFichier($fichier, $etape);
 
-            $resultat = $editeur->deposerVersion($id, $temporaire, (string) $jeton['compte_identifiant'], (int) $brut);
+            $resultat = $editeur->deposerVersion($id, $temporaire, (string) $jeton['compte_identifiant'], $versionBase);
 
             return $this->json($reponse, 200, $resultat);
         } catch (ErreurApi $e) {
@@ -139,7 +144,7 @@ final class Api
         try {
             $jeton = $this->authentifier($requete, $etape);
             $this->exigerDocument(new Editeur($this->config), $id, $etape);
-            $this->exigerDroit($requete, $id, 'modifier', $etape);
+            $this->exigerDroit($jeton, $id, 'modifier', $etape);
             $ouverture = (new Ouvertures($this->pdo()))->ouvrir($id, (string) $jeton['compte_identifiant'], (string) $jeton['appareil']);
 
             return $this->json($reponse, 200, ['ouverture' => $ouverture]);
@@ -159,7 +164,7 @@ final class Api
         $etape = 'POST /api/v1/edition/documents/' . $id . '/signal';
         try {
             $jeton = $this->authentifier($requete, $etape);
-            $this->exigerDroit($requete, $id, 'modifier', $etape);
+            $this->exigerDroit($jeton, $id, 'modifier', $etape);
             $prolonge = (new Ouvertures($this->pdo()))->signal($id, (string) $jeton['compte_identifiant'], (string) $jeton['appareil']);
 
             return $this->json($reponse, 200, ['prolonge' => $prolonge]);
@@ -179,7 +184,7 @@ final class Api
         $etape = 'POST /api/v1/edition/documents/' . $id . '/fermeture';
         try {
             $jeton = $this->authentifier($requete, $etape);
-            $this->exigerDroit($requete, $id, 'modifier', $etape);
+            $this->exigerDroit($jeton, $id, 'modifier', $etape);
             $ferme = (new Ouvertures($this->pdo()))->fermer($id, (string) $jeton['compte_identifiant'], (string) $jeton['appareil']);
 
             return $this->json($reponse, 200, ['ferme' => $ferme]);
@@ -201,7 +206,7 @@ final class Api
         try {
             $jeton = $this->authentifier($requete, $etape);
             $this->exigerDocument(new Editeur($this->config), $id, $etape);
-            $this->exigerDroit($requete, $id, 'modifier', $etape);
+            $this->exigerDroit($jeton, $id, 'modifier', $etape);
             $fichier = $requete->getUploadedFiles()['fichier'] ?? null;
             $temporaire = $this->preparerFichier($fichier, $etape);
             $meta = (new Secours($this->config))->deposer($id, (string) $jeton['appareil'], $temporaire);
@@ -226,9 +231,9 @@ final class Api
         $id = (int) ($args['id'] ?? 0);
         $etape = 'GET /api/v1/edition/documents/' . $id . '/secours';
         try {
-            $this->authentifier($requete, $etape);
+            $jeton = $this->authentifier($requete, $etape);
             $this->exigerDocument(new Editeur($this->config), $id, $etape);
-            $this->exigerDroit($requete, $id, 'lire', $etape);
+            $this->exigerDroit($jeton, $id, 'lire', $etape);
 
             return $this->json($reponse, 200, ['copies' => (new Secours($this->config))->lister($id)]);
         } catch (ErreurApi $e) {
@@ -297,13 +302,12 @@ final class Api
      * Le compte du jeton doit pouvoir agir sur CE document, au dossier le plus précis (même décision
      * que la garde web). Le document est d'abord résolu : inconnu = 404, hors droits = 403.
      *
+     * @param array<string, mixed> $jeton ligne résolue par `authentifier`
      * @throws ErreurApi
      */
-    private function exigerDroit(Requete $requete, int $document, string $niveau, string $etape): void
+    private function exigerDroit(array $jeton, int $document, string $niveau, string $etape): void
     {
-        $entete = trim($requete->getHeaderLine('Authorization'));
-        $jeton = preg_match('/^Bearer\s+(\S+)$/i', $entete, $trouve) === 1 ? $this->jetons->resoudre($trouve[1]) : null;
-        $compte = is_array($jeton) && is_int($jeton['compte_id'] ?? null) ? (int) $jeton['compte_id'] : null;
+        $compte = is_int($jeton['compte_id'] ?? null) ? (int) $jeton['compte_id'] : null;
         if ($compte === null) {
             throw new ErreurApi(403, 'le jeton n’est lié à aucun compte', $etape);
         }
