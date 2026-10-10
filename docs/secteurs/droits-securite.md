@@ -371,3 +371,42 @@ Demande d'Olivier : un manager peut classer, créer des règles, etc. ; un utili
   rendus en 503 nommée, sans repli silencieux. Aucun constat critique ou élevé.
 
 ETAT: bloqué — lanceurs de recette externes suspendus/expirés (Playwright et harness), sans bilan final ni registre nouveau.
+
+## Journal lot ged-fuite-bibliotheque (10-10) — F10 : 0 fuite sur les listes
+
+Correctif prioritaire demandé par le juge : la Bibliothèque montrait la ligne d'un document hors droits
+(`droits-b6.spec.ts:34`, constat du 10.10 sur `16482d5`). La recherche, l'aperçu et le fichier refusaient
+déjà ; le filtrage V2-13 (point B3 : dans la requête, jamais après coup) manquait sur la Bibliothèque.
+
+- Fait : `DroitsDossiers::predicatLecture()` est le prédicat SQL unique (héritage du parent, refus
+  explicite de lecture gagnant, refus par défaut, administrateur `*` = tout, compte synthétique des
+  oracles inchangé). Il entre DANS les requêtes de : liste Bibliothèque (paginée), `total`, compteurs de
+  vues, arborescence des dossiers, panneau `?doc=`, file « À traiter » et son bilan, pièces sœurs d'un
+  lot, compteur du rail, suggestions de type de la Recherche, « Partagés avec moi ».
+- Preuves : `tests/php/Securite/FuiteListesTest.php` (**8 tests, 18 assertions**) écrit rouge d'abord
+  (`80884e3`) puis vert ; `droits-b6.spec.ts` vert **3 fois de suite seul** (7,9 / 7,8 / 7,7 s) ;
+  suite entière **469 tests / 2636 assertions / 1 skipped**.
+- Harness `-SansBanc` (registre du 10-10 19:27, commit `b8b768d`, 543 s) : `0`, `1`, `4` (**65 passed**),
+  `7`, `2`, `6` (p95 lecture **644 ms**, écriture **254 ms**) et `8` verts ; rouges admis `3-banc`
+  (sautée) et `5-personas` (pas encore écrite).
+- Porte qualité : PHPStan niveau 6 **0 erreur** hors baseline (baseline inchangée) ; `composer audit`
+  sans vulnérabilité ; revue du diff contre php-reviewer / security-reviewer / silent-failure-hunter :
+  SQL statique paramétré, alias du prédicat constant, aucune entrée utilisateur concaténée, aucun
+  `catch` avalé ajouté, aucun secret. Aucun constat critique ou élevé.
+- Commits : `80884e3`, `92f3332`, `419fb08`, `5c4634a`, `e4f36f3`, `159da61`, `b8b768d` (+ doc).
+  Tous portent `Co-Authored-By: DeepCode <noreply@deepcode>`.
+- Modifications minimales signalées hors secteur (le correctif ne pouvait pas rester dans `src/Securite/`,
+  le prédicat est partagé mais les requêtes vivent chez les appelants) : `src/Socle/EcranBibliotheque.php`,
+  `src/Socle/Collaboration.php`, `src/Recherche/Ecran.php`, `src/Ui/ATraiter.php`, `src/Ui/Ecrans.php`,
+  `src/Ui/Rail.php`, `src/Ui/Vue.php`.
+
+ETAT: fini
+
+### Jugement lot ged-fuite-bibliotheque (juge, 10-10) — fusionné, fermeture V2-13 après harness complet
+
+- Relu sur la copie du juge : le filtrage vit DANS la requête (`DroitsDossiers::predicatLecture`) et reproduit la décision de `autorise(…, 'lire')` : refus explicite de lecture au dossier, règle du dossier le plus proche, refus par défaut. Les listes couvertes sont la Bibliothèque (liste, compteurs, vues, arbre, aperçu), À traiter, le rail, les partages avec moi, les types de la Recherche et l'API des dossiers.
+- Fusion de `origin/v2` (lot ged-phpstan) dans la branche : 2 conflits résolus par le juge (`Recherche\Service` n'a plus d'index en paramètre).
+- Défaut trouvé à la relecture et corrigé par le juge (10bc768), oracle d'abord : `_` et `%` sont des jokers de LIKE. Un droit sur un dossier `P_Q` ouvrait le dossier voisin `PZQ` dans le prédicat des listes, dans le filtre ACL de la Recherche et dans `dossierPourChemin`. La comparaison de préfixe est désormais exacte (`LEFT` + `CONCAT(…, '/')`).
+- Mesures sur 10bc768 : PHPStan niveau 6 sans erreur, baseline vide ; PHPUnit 471 tests / 2653 assertions vert. Écrans 65/65 verts sur la branche de l'agent avant fusion.
+- Reste pour fermer V2-13 : un harness complet sur v2 (machine 2), après le lot personas qui occupe la base de test.
+- Écart restant, non bloquant : `predicatLecture` ne vérifie pas la permission de rôle `lire`, alors que `autorise()` la vérifie. Les trois rôles l'ont aujourd'hui ; à aligner si un rôle sans lecture apparaît.

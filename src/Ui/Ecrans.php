@@ -46,7 +46,10 @@ final class Ecrans
         // jeton CSRF du formulaire vient de la session courante.
         if (class_exists(ATraiter::class)) {
             $csrf = self::jetonCsrf($req);
-            $donnees = ATraiter::depuisRacine(dirname(__DIR__, 2))->donnees($req->getQueryParams(), $csrf);
+            $session = $req->getAttribute('ged.session');
+            $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+            $administrateur = is_array($session) && in_array('*', (array) ($session['permissions'] ?? []), true);
+            $donnees = ATraiter::depuisRacine(dirname(__DIR__, 2), $compte, $administrateur)->donnees($req->getQueryParams(), $csrf);
 
             return $this->vue->rendre($rep, 'ecrans/a-traiter.twig', $donnees + $this->commun('a-traiter'));
         }
@@ -70,7 +73,10 @@ final class Ecrans
         // pour /recherche et /workflows ; repli de maquette si la base n'est pas encore là.
         if (class_exists(\Ged\Socle\EcranBibliotheque::class)) {
             try {
-                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)));
+                $session = $req->getAttribute('ged.session');
+                $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+                $administrateur = is_array($session) && in_array('*', (array) ($session['permissions'] ?? []), true);
+                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)), $compte, $administrateur);
                 $donnees = $ecran->donnees($req->getQueryParams(), (string) ($req->getCookieParams()['gedv2_csrf'] ?? ''));
 
                 return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $donnees);

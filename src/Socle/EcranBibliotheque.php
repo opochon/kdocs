@@ -6,6 +6,7 @@ namespace Ged\Socle;
 
 use Ged\Base;
 use Ged\Config;
+use Ged\Securite\DroitsDossiers;
 use Ged\Recherche\Requete as RequeteRecherche;
 use Ged\Recherche\Service as ServiceRecherche;
 use PDO;
@@ -42,13 +43,19 @@ final class EcranBibliotheque
     private readonly Vues $vues;
     private readonly Champs $champs;
     private readonly Nomenclature $nomenclature;
+    /** Compte réel du lecteur (null = compte synthétique des oracles : aucun périmètre ACL à poser). */
+    private readonly ?int $compte;
+    /** Un administrateur (permission '*') voit tout : le périmètre ACL est alors neutre. */
+    private readonly bool $administrateur;
     /** @var array<int, list<int>> Résultats du moteur Recherche, mémorisés pendant ce rendu. */
     private array $idsRecherche = [];
     /** @var array<int, string> Erreurs nommées du moteur Recherche, par vue. */
     private array $erreursRecherche = [];
 
-    public function __construct(Config $config)
+    public function __construct(Config $config, ?int $compte = null, bool $administrateur = false)
     {
+        $this->compte = $compte !== null && $compte > 0 ? $compte : null;
+        $this->administrateur = $administrateur;
         $this->pdo = Base::pdo($config);
         $this->fonds = new Fonds($config);
         $this->vues = new Vues($config);
@@ -173,28 +180,28 @@ final class EcranBibliotheque
      */
     private function wherePourFiltres(array $filtres, ?string $dossier = null): array
     {
-        $clauses = ['supprime_le IS NULL', 'absent_depuis IS NULL'];
+        $clauses = ['d.supprime_le IS NULL', 'd.absent_depuis IS NULL'];
         $params = [];
 
         if (($filtres['type'] ?? null) !== null) {
-            $clauses[] = 'BINARY type = ?';
+            $clauses[] = 'BINARY d.type = ?';
             $params[] = (string) $filtres['type'];
         }
         if (($filtres['emetteur'] ?? null) !== null) {
-            $clauses[] = 'BINARY emetteur = ?';
+            $clauses[] = 'BINARY d.emetteur = ?';
             $params[] = (string) $filtres['emetteur'];
         }
         if (($filtres['de'] ?? null) !== null) {
-            $clauses[] = 'date_document >= ?';
+            $clauses[] = 'd.date_document >= ?';
             $params[] = (string) $filtres['de'];
         }
         if (($filtres['a'] ?? null) !== null) {
-            $clauses[] = 'date_document <= ?';
+            $clauses[] = 'd.date_document <= ?';
             $params[] = (string) $filtres['a'];
         }
         foreach ((array) ($filtres['etiquettes'] ?? []) as $etiquette) {
             // Une étiquette absente (`etiquettes` NULL) ne satisfait pas : JSON_CONTAINS rend NULL.
-            $clauses[] = 'JSON_CONTAINS(etiquettes, ?)';
+            $clauses[] = 'JSON_CONTAINS(d.etiquettes, ?)';
             $params[] = json_encode((string) $etiquette, JSON_UNESCAPED_UNICODE);
         }
         $champ = $filtres['champ'] ?? null;
@@ -202,12 +209,33 @@ final class EcranBibliotheque
             $this->clauseChamp($clauses, $params, $champ);
         }
         if ($dossier !== null) {
-            $clauses[] = '(chemin_relatif = ? OR chemin_relatif LIKE ?)';
+            $clauses[] = '(d.chemin_relatif = ? OR d.chemin_relatif LIKE ?)';
             $params[] = $dossier;
             $params[] = $dossier . '/%';
         }
+        [$acl, $aclParams] = $this->clauseAcl();
+        if ($acl !== null) {
+            $clauses[] = $acl;
+            $params = [...$params, ...$aclParams];
+        }
 
         return [implode(' AND ', $clauses), $params];
+    }
+
+    /**
+     * Le périmètre ACL de CE lecteur, posé DANS chaque requête de liste (V2-13, point B3) : jamais un
+     * filtrage après coup. Le compte synthétique des oracles (id nul) garde le comportement historique,
+     * l’administrateur voit tout ; tout autre compte ne lit que ses dossiers.
+     *
+     * @return array{0:?string, 1:list<int>}
+     */
+    private function clauseAcl(): array
+    {
+        if ($this->administrateur || $this->compte === null) {
+            return [null, []];
+        }
+
+        return DroitsDossiers::predicatLecture('d', $this->compte);
     }
 
     /**
@@ -228,7 +256,7 @@ final class EcranBibliotheque
             return;
         }
         $chemin = "'$.champs." . $cle . "'";
-        $extrait = "JSON_EXTRACT(meta, $chemin)";
+        $extrait = "JSON_EXTRACT(d.meta, $chemin)";
         $type = "JSON_TYPE($extrait)";
         $texte = "JSON_UNQUOTE($extrait)";
         $valeur = $champ['valeur'];
@@ -272,17 +300,26 @@ final class EcranBibliotheque
         }
     }
 
-    /** Nombre de documents vivants (COUNT indexé : `k_vivant`, aucune ligne de fonds lue). */
+    /** Nombre de documents vivants lisibles par ce compte (COUNT indexé, aucune ligne de fonds lue). */
     private function compterVivants(): int
     {
-        return (int) $this->pdo->query('SELECT COUNT(*) FROM documents WHERE supprime_le IS NULL AND absent_depuis IS NULL')
-            ->fetchColumn();
+        $where = 'd.supprime_le IS NULL AND d.absent_depuis IS NULL';
+        $params = [];
+        [$acl, $aclParams] = $this->clauseAcl();
+        if ($acl !== null) {
+            $where .= ' AND ' . $acl;
+            $params = $aclParams;
+        }
+        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents d WHERE ' . $where);
+        $requete->execute($params);
+
+        return (int) $requete->fetchColumn();
     }
 
     /** @param list<mixed> $params */
     private function compterAvec(string $where, array $params): int
     {
-        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents WHERE ' . $where);
+        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents d WHERE ' . $where);
         $requete->execute($params);
 
         return (int) $requete->fetchColumn();
@@ -311,7 +348,7 @@ final class EcranBibliotheque
         if (isset($this->idsRecherche[$idVue])) {
             return $this->idsRecherche[$idVue];
         }
-        $moteur = new ServiceRecherche($this->pdo);
+        $moteur = new ServiceRecherche($this->pdo, $this->compte, $this->administrateur);
         $resultat = $moteur->rechercher(RequeteRecherche::depuisParametres($this->vues->criteresRecherche($vue)));
         if ($resultat->erreur !== null) {
             $this->erreursRecherche[$idVue] = 'vue Recherche impossible : étape « ' . $resultat->erreur->etape
@@ -337,7 +374,7 @@ final class EcranBibliotheque
             return [$where . ' AND 1 = 0', $params];
         }
 
-        return [$where . ' AND id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')', [...$params, ...$ids]];
+        return [$where . ' AND d.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')', [...$params, ...$ids]];
     }
 
     /**
@@ -352,30 +389,37 @@ final class EcranBibliotheque
     private function lirePage(string $where, array $params, int $page, ?array $ordreRecherche = null): array
     {
         $decalage = ($page - 1) * self::PAGE_TAILLE;
-        $ordre = 'id DESC';
+        $ordre = 'd.id DESC';
         if ($ordreRecherche !== null && $ordreRecherche !== []) {
-            $ordre = 'FIELD(id, ' . implode(', ', array_fill(0, count($ordreRecherche), '?')) . ')';
+            $ordre = 'FIELD(d.id, ' . implode(', ', array_fill(0, count($ordreRecherche), '?')) . ')';
             $params = [...$params, ...$ordreRecherche];
         }
         $requete = $this->pdo->prepare(
-            'SELECT id, chemin_relatif, nom, titre, type, emetteur, date_document, montant, etiquettes'
-            . ' FROM documents WHERE ' . $where . ' ORDER BY ' . $ordre . ' LIMIT ' . self::PAGE_TAILLE . ' OFFSET ' . $decalage);
+            'SELECT d.id, d.chemin_relatif, d.nom, d.titre, d.type, d.emetteur, d.date_document, d.montant, d.etiquettes'
+            . ' FROM documents d WHERE ' . $where . ' ORDER BY ' . $ordre . ' LIMIT ' . self::PAGE_TAILLE . ' OFFSET ' . $decalage);
         $requete->execute($params);
 
         return array_map([$this, 'ligne'], $requete->fetchAll());
     }
 
     /**
-     * Le document retenu, résolu par son identifiant : une ligne, jamais un balayage du fonds.
+     * Le document retenu, résolu par son identifiant ET le périmètre ACL : une ligne, jamais un balayage du fonds.
      *
      * @return array<string, mixed>|null
      */
     private function docParId(int $id): ?array
     {
+        $where = 'd.id = ? AND d.supprime_le IS NULL AND d.absent_depuis IS NULL';
+        $params = [$id];
+        [$acl, $aclParams] = $this->clauseAcl();
+        if ($acl !== null) {
+            $where .= ' AND ' . $acl;
+            $params = [...$params, ...$aclParams];
+        }
         $requete = $this->pdo->prepare(
-            'SELECT id, chemin_relatif, nom, titre, type, emetteur, date_document, montant, etiquettes'
-            . ' FROM documents WHERE id = ? AND supprime_le IS NULL AND absent_depuis IS NULL');
-        $requete->execute([$id]);
+            'SELECT d.id, d.chemin_relatif, d.nom, d.titre, d.type, d.emetteur, d.date_document, d.montant, d.etiquettes'
+            . ' FROM documents d WHERE ' . $where);
+        $requete->execute($params);
         $ligne = $requete->fetch();
 
         return $ligne === false ? null : $this->ligne($ligne);
@@ -416,9 +460,17 @@ final class EcranBibliotheque
      */
     private function arbreVivant(): array
     {
+        $where = 'd.supprime_le IS NULL AND d.absent_depuis IS NULL';
+        $params = [];
+        [$acl, $aclParams] = $this->clauseAcl();
+        if ($acl !== null) {
+            $where .= ' AND ' . $acl;
+            $params = $aclParams;
+        }
         try {
-            $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents FORCE INDEX (k_vivant)'
-                . ' WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll(PDO::FETCH_COLUMN);
+            $requete = $this->pdo->prepare('SELECT d.chemin_relatif FROM documents d FORCE INDEX (k_vivant) WHERE ' . $where);
+            $requete->execute($params);
+            $chemins = $requete->fetchAll(PDO::FETCH_COLUMN);
         } catch (PDOException) {
             $chemins = [];   // index absent d'une base non migrée : repli complet ci-dessous
         }
@@ -431,8 +483,9 @@ final class EcranBibliotheque
             }
         }
         if ($tronque) {
-            $chemins = $this->pdo->query('SELECT chemin_relatif FROM documents'
-                . ' WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll(PDO::FETCH_COLUMN);
+            $requete = $this->pdo->prepare('SELECT d.chemin_relatif FROM documents d WHERE ' . $where);
+            $requete->execute($params);
+            $chemins = $requete->fetchAll(PDO::FETCH_COLUMN);
         }
 
         $dossiers = [];
