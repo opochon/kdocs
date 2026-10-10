@@ -393,6 +393,9 @@ try {
         'POST /workflows/essai' => 'document_id=0',
         'POST /workflows/evenements' => 'document_id=0',
         'POST /workflows/transitions' => 'document_id=0&vers=invalide',
+        // Édition depuis le poste (F13) : document et copie inexistants, le métier refuse sans écrire ;
+        // la sonde ne vérifie que l'absence et le rejeu du jeton CSRF.
+        'POST /documents/{id:[0-9]+}/secours/recuperer' => 'copie=sonde',
     ];
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);

@@ -101,6 +101,9 @@ Chemins que l'agent du lot `ged-edition-serveur` est autorisé à modifier (un a
 - `docs/secteurs/edition-poste.md`, `docs/lots/ged-edition-serveur.md`, `.env.example` (SECOURS_ROOT).
 - `tests/php/Edition/`, `tests/e2e/edition-serveur.spec.ts`, `tests/e2e/preparer-edition-serveur.php`,
   `tests/e2e/README.md`.
+- `tools/banc/sonde-securite.php` et `tools/banc/contrat.php` — une entrée par route déclarée (charge
+  CSRF défensive, statut attendu sans jeton) : la sonde et le contrat EXIGENT la couverture de toute
+  route nouvelle, ces deux ajouts sont donc la contrepartie obligatoire de `DroitsRoutes`.
 
 Le stockage de secours de l'application vit hors du fonds (`SECOURS_ROOT`, défaut `var/secours`) et
 n'est jamais une version : aucune ligne de `document_versions`, aucun déplacement, aucune nouvelle table

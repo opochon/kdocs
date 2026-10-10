@@ -122,6 +122,15 @@ try {
                 'GET /api/v1/appairage/moi', 'DELETE /api/v1/appairage/moi', 'GET /api/v1/dossiers' => 401,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
+                // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.
+                'GET /api/v1/edition/documents/{id:[0-9]+}',
+                'GET /api/v1/edition/documents/{id:[0-9]+}/fichier',
+                'POST /api/v1/edition/documents/{id:[0-9]+}/versions',
+                'POST /api/v1/edition/documents/{id:[0-9]+}/ouverture',
+                'POST /api/v1/edition/documents/{id:[0-9]+}/signal',
+                'POST /api/v1/edition/documents/{id:[0-9]+}/fermeture',
+                'POST /api/v1/edition/documents/{id:[0-9]+}/secours',
+                'GET /api/v1/edition/documents/{id:[0-9]+}/secours' => 401,
                 default => 0,
             };
             if ($rep['code'] !== $attendu) $defauts[] = "$definition : statut attendu $attendu, reçu {$rep['code']}";
