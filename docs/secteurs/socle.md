@@ -289,3 +289,23 @@ ETAT: bloqué — le double harness ne respecte pas encore l'unique rouge mobile
 - Les deux essais lancés n’ont pas atteint la production de `recette/registre.json` (le dernier reste celui de 15:29:50 sur `dd93dc1`). Les processus PHP/Node externes restent présents; aucun chiffre de rejeu global n’est donc prétendu.
 
 ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’un poste stabilisé; résultats ciblés et migration verts.
+
+## Journal lot ged-parite-masse (10-10)
+
+- Nouveau `src/Socle/ModificationMasse.php` : un lot de documents reçoit la MÊME opération, mais CHAQUE
+  document passe par le service unitaire (`DepotFichiers::mettreAJour` / `miseALaCorbeille`) : même
+  `.meta.json`, mêmes versions, même trace `document_deplacements`, zéro suppression (corbeille). Actions :
+  `type`, `emetteur`, `etiquettes_ajouter`, `etiquettes_retirer`, `dossier`, `corbeille`. ACL `modifier`
+  vérifiée par document (`DroitsDossiers`), bilan `traites`/`refuses` avec raisons ; journal d'audit
+  `modification_masse` en ajout seul. Traitement par paquets courts (50 par défaut, 100 max) avec curseur
+  dans `.ged/modification-masse.json` via `Registre` : 500 documents passent, une coupure reprend au
+  dernier point publié.
+- `src/Socle/EcranBibliotheque.php` : résolution unique des filtres (`resoudre`) partagée par la liste
+  paginée et par la sélection « tout le résultat filtré » (`idsFiltres`) — la sélection applique la MÊME
+  clause ACL que la liste ; état `?masse=` exposé au gabarit ; lien « droits du dossier » du dossier actif
+  (permission `dossiers:gerer` ou `*`). `src/Socle/Module.php` : `POST /bibliotheque/masse` (premier
+  paquet + bilan) et `POST /bibliotheque/masse/{id}/tranche` (paquet suivant), refus nommés.
+- Preuves : `tests/php/Socle/ModificationMasseTest.php` (4 tests / 86 assertions : refus lecture seule,
+  effets unitaires, 500 docs en tranches de 50 avec service neuf à chaque tranche, corbeille) ;
+  E2E `tests/e2e/parite-masse.spec.ts` (5 parcours). `tests/oracles/` et le contrat `Contrats\Depot`
+  ne changent pas.

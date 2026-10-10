@@ -410,3 +410,18 @@ ETAT: fini
 - Mesures sur 10bc768 : PHPStan niveau 6 sans erreur, baseline vide ; PHPUnit 471 tests / 2653 assertions vert. Écrans 65/65 verts sur la branche de l'agent avant fusion.
 - Reste pour fermer V2-13 : un harness complet sur v2 (machine 2), après le lot personas qui occupe la base de test.
 - Écart restant, non bloquant : `predicatLecture` ne vérifie pas la permission de rôle `lire`, alors que `autorise()` la vérifie. Les trois rôles l'ont aujourd'hui ; à aligner si un rôle sans lecture apparaît.
+
+## Journal lot ged-parite-masse (10-10)
+
+- `src/Securite/DroitsRoutes.php` : 2 routes déclarées — `POST /bibliotheque/masse` et
+  `POST /bibliotheque/masse/{id:[0-9]+}/tranche` → `documents:modifier` (aux côtés de `POST /bibliotheque/vue`),
+  plus la branche regex du motif paramétré dans `permissionPour()`. La permission globale est vérifiée par
+  la garde ; le niveau `modifier` sur CHAQUE dossier est vérifié par le service (`ModificationMasse`),
+  document par document : un document en lecture seule est refusé et jamais modifié.
+- `src/Securite/GardeCentrale.php` : `Vue::definirContexteRail()` reçoit désormais les permissions de la
+  session (3ᵉ argument) ; le rail n'affiche la section Administration qu'aux rôles qui ont
+  `application:administrer` ou `*`. Aucune autre garde ni décision de droits modifiée.
+- `tools/banc/sonde-securite.php` (fichier du secteur Harness) : 2 charges CSRF défensives ajoutées
+  (`POST /bibliotheque/masse` action inconnue, `.../tranche` tâche inconnue) ; la sonde reste VERTE.
+- Aucun écran n'a de garde propre : le refus (permission globale, CSRF, ACL de dossier) est porté par la
+  garde centrale et le service.

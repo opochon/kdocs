@@ -1237,3 +1237,34 @@ ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’u
 - Recette réelle (`gedv2`, après migration) : note migrée visible et trouvée par la recherche, lien doc2–doc3 repris des deux côtés, partage externe révoqué toujours révoqué (`revoque_le` conservé), nouveau lien externe : anonyme 200, après révocation 403 (page et fichier), reconstruction terminée en 2 tranches.
 - Défauts relevés, reportés dans V2-13 partie A : un partage révoqué ou expiré s'affiche sans son état ; `mobile.spec.ts:298` à corriger, il n'est plus admis ; routes de partage de `Ui/Module.php` écrites en lignes de plusieurs centaines de caractères ; `Ui/ATraiter` hors contrat `Contrats\Depot` (relevé par PHPStan).
 - Verdict : **V2-12d franchi.**
+
+## Journal lot ged-parite-masse — menu et modification en masse (10-10)
+
+Agent : DeepCode · Juge : Claude. Constat du lot ged-personas §2 : les écrans d'administration
+n'avaient aucun lien visible.
+
+**Fait**
+- `src/Ui/Rail.php` : source UNIQUE des entrées de menu. Il porte les entrées principales (dont
+  « Partagés avec moi », `data-testid="menu-partages"`) et les SECTIONS réservées à un droit — aujourd'hui
+  « Administration » (`/metadonnees`, `/administration/comptes`, `/administration/groupes`,
+  `/administration/roles`), montrée seulement aux rôles qui ont `application:administrer` ou `*`. Les
+  identifiants des entrées existantes sont inchangés.
+- `templates/layout.twig` : le rail itère `rail.principales` puis `rail.sections` (plus aucun tableau de
+  menu en double dans le gabarit) ; `src/Ui/Vue.php` + `src/Securite/GardeCentrale.php` transmettent les
+  permissions de la session au rail.
+- `templates/ecrans/bibliotheque.twig`, `public/assets/js/ged.js`, `public/assets/css/ged.css` : cases à
+  cocher sur les lignes (`coche-doc-<id>`), « toute la page » et « tout le résultat filtré », barre
+  d'actions en masse à GAUCHE sous le titre (`barre-masse`), confirmation qui ANNONCE le nombre de
+  documents, bilan des traités/refusés avec raisons, bouton « Poursuivre » tant que la tâche n'est pas
+  finie. Les cases sont rattachées au formulaire par `form="formulaire-masse"` (HTML5) : aucun formulaire
+  imbriqué, les filtres ne sont pas dupliqués.
+- `src/Ui/Ecrans.php` : la Bibliothèque passe les permissions à l'écran du Socle et lit le jeton CSRF de
+  la session (`Ecrans::jetonCsrf`, source autoritaire) plutôt que du cookie.
+- Catalogue : `templates/ecrans/workflows-catalogue.twig` + lien dans Workflows (voir
+  `docs/secteurs/workflows.md`).
+
+**Preuves**
+- `tests/php/Ui/RailMenuTest.php` (3 tests) : « Partagés avec moi » présent, Administration absente sans
+  le droit, présente avec `application:administrer` (et avec `*`).
+- `tests/e2e/parite-masse.spec.ts` : 5 parcours verts (dont les 4 écrans jamais visités, atteints par le
+  menu) ; `maquettes.spec.ts`, `bibliotheque.spec.ts`, `actions-v2-12c.spec.ts` rejoués verts (19/19).
