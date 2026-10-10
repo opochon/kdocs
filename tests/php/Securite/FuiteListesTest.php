@@ -81,7 +81,7 @@ final class FuiteListesTest extends TestCase
         $this->pdo->prepare('DELETE FROM documents WHERE chemin_relatif LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM recherche_textes WHERE chemin LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM securite_groupes_comptes WHERE compte_id = ?')->execute([$this->compte]);
-        $this->pdo->prepare('DELETE FROM securite_groupes WHERE id = ?')->execute([$this->groupe]);
+        $this->pdo->prepare('DELETE FROM securite_groupes WHERE nom LIKE ?')->execute(['fuite-%' . $this->suffixe]);
         $this->pdo->prepare('DELETE FROM comptes WHERE id = ?')->execute([$this->compte]);
         $this->storageAvant === false ? putenv('STORAGE_ROOT') : putenv('STORAGE_ROOT=' . $this->storageAvant);
         $this->supprimerRecursif($this->bac);
@@ -142,6 +142,20 @@ final class FuiteListesTest extends TestCase
         self::assertContains($this->documentA, $documents, 'un partage interne d’un document lisible reste visible');
         self::assertNotContains($this->documentB, $documents,
             '« Partagés avec moi » ne doit pas révéler un document dont le compte n’a pas la lecture');
+    }
+
+    public function testLApiDesDossiersNeListePasUnDossierSansDroit(): void
+    {
+        $gestion = $this->droits->creerGroupe('fuite-gestion-' . $this->suffixe, 'manager');
+        $this->droits->ajouterCompteAuGroupe($this->compte, $gestion);
+        $this->droits->poserRegle($this->dossierA, $gestion, 'modifier', true);
+        $dossiers = new \Ged\Jonctions\Dossiers($this->pdo, $this->droits);
+
+        $chemins = array_column($dossiers->lister($this->compte, 'fuite-' . $this->suffixe), 'chemin');
+        self::assertContains('fuite-' . $this->suffixe . '/A', $chemins, 'un dossier où le compte peut écrire reste listé par l’API');
+        self::assertNotContains('fuite-' . $this->suffixe . '/B', $chemins,
+            'l’API des dossiers ne doit pas révéler un dossier où le compte n’a aucun droit');
+        self::assertSame(1, $dossiers->compterEcriture($this->compte), 'le compteur d’écriture ne compte pas un dossier sans droit');
     }
 
     public function testLesSuggestionsDeTypeDeLaRechercheNeFuitentPasHorsDroits(): void
