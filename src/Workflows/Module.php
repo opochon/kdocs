@@ -187,8 +187,13 @@ final class Module
             }
             $session = $req->getAttribute('ged.session');
             $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'evenement';
+            $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+            $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
 
-            (new Ecouteur($moteur, $journal))->recevoir((string) ($corps['declencheur'] ?? 'document_depose'), $id, $fiche, $auteur);
+            // Le compte de l'appelant suit jusqu'au service : une action « poser » qui change le rangement
+            // exige `deposer` sur le dossier d'ARRIVÉE (F10). Un événement système garde le compte nul.
+            (new Ecouteur($moteur, $journal))->recevoir((string) ($corps['declencheur'] ?? 'document_depose'), $id, $fiche, $auteur,
+                $compte, in_array('*', $permissions, true));
 
             return self::redirection($rep, '/workflows');
         });

@@ -70,8 +70,10 @@ final class ModificationMasseTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->pdo->prepare('DELETE FROM securite_dossiers_droits WHERE dossier_id IN (SELECT id FROM securite_dossiers WHERE chemin_relatif LIKE ?)')
-            ->execute(['masse-' . $this->suffixe . '%']);
+        // Les règles posées peuvent viser des dossiers partagés (Sans_date/…) : on les retire par groupe,
+        // jamais par chemin, pour ne pas laisser de droit orphelin derrière soi.
+        $this->pdo->prepare('DELETE FROM securite_dossiers_droits WHERE groupe_id IN (?, ?)')
+            ->execute([$this->groupeModifiable, $this->groupeLecture]);
         $this->pdo->prepare('DELETE FROM securite_dossiers WHERE chemin_relatif LIKE ?')->execute(['masse-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM document_deplacements WHERE document_id IN (SELECT id FROM documents WHERE chemin_relatif LIKE ?)')
             ->execute(['%' . $this->suffixe . '%']);
@@ -193,10 +195,15 @@ final class ModificationMasseTest extends TestCase
     {
         $modifiable = $this->droits->assurerDossierPourChemin('masse-' . $this->suffixe . '/Modifiable/document.pdf');
         $lecture = $this->droits->assurerDossierPourChemin('masse-' . $this->suffixe . '/Lecture/document.pdf');
+        // Ces pièces de test n'ont pas de date : une écriture recalcule le rangement sous « Sans_date/… ».
+        // F10 : le niveau `deposer` est donc requis sur ce dossier d'ARRIVÉE pour que la modification aboutisse.
+        $arrivee = $this->droits->assurerDossierPourChemin('Sans_date/document.pdf');
         self::assertIsInt($modifiable);
         self::assertIsInt($lecture);
+        self::assertIsInt($arrivee);
         foreach (['lire', 'deposer', 'modifier'] as $niveau) {
             $this->droits->poserRegle($modifiable, $this->groupeModifiable, $niveau, true);
+            $this->droits->poserRegle($arrivee, $this->groupeModifiable, $niveau, true);
         }
         $this->droits->poserRegle($lecture, $this->groupeLecture, 'lire', true);
     }

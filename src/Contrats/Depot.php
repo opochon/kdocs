@@ -22,12 +22,17 @@ interface Depot
     public function deposer(string $cheminFichier, array $metadonnees): int;
 
     /**
-     * Met à jour les métadonnées (et le rangement si type/émetteur/date changent) : `.meta.json` réécrit,
-     * fichier déplacé si besoin, déplacement tracé. Jamais de suppression.
+     * Met à jour les métadonnées (et le rangement si type/émetteur/date/dossier changent) : `.meta.json`
+     * réécrit, fichier déplacé si besoin, déplacement tracé. Jamais de suppression.
+     *
+     * F10 : tout changement de RANGEMENT exige le niveau `deposer` du compte de l'appelant sur le dossier
+     * de droits d'ARRIVÉE (héritage compris, refus par défaut sans règle ; administrateur toujours
+     * permis). Le refus est nommé (dossier visé, niveau manquant) et, sur refus, rien ne bouge. Le compte
+     * est passé EXPLICITEMENT par l'appelant ; `null` reste le compte synthétique des oracles, sans ACL.
      *
      * @param array<string, mixed> $metadonnees
      */
-    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void;
+    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur, ?int $compte = null, bool $administrateur = false): void;
 
     /** @return array<string, mixed>|null Ligne d'index et métadonnées décodées. */
     public function fiche(int $idDocument): ?array;

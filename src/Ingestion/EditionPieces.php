@@ -24,6 +24,8 @@ final class EditionPieces
         private readonly Config $config,
         private readonly DepotFichiers $depot,
         ?Classeur $classeur = null,
+        private readonly ?int $compte = null,
+        private readonly bool $administrateur = false,
     ) {
         $this->classeur = $classeur ?? Fabrique::classeur($config, Base::pdo($config));
         $this->pdf = EditeurPdf::depuisConfig($config);
@@ -163,11 +165,13 @@ final class EditionPieces
             if (!is_file($fichier)) {
                 throw new \RuntimeException('annulation impossible : instantané de page introuvable');
             }
-            $this->depot->remplacerContenu((int) $document['id'], $fichier, $auteur);
             $meta = is_array($instantane['meta'] ?? null) ? $instantane['meta'] : [];
             $meta['historique_pages'][] = $this->entreeHistorique('annulation', $auteur,
                 'annulation de ' . (string) ($operation['type'] ?? 'l’opération'));
-            $this->depot->mettreAJour((int) $document['id'], $meta, $auteur);
+            // Le rangement (et son contrôle d'arrivée, F10) est posé AVANT de toucher au contenu : un refus
+            // de droits ne laisse ni fichier remplacé ni version archivée.
+            $this->depot->mettreAJour((int) $document['id'], $meta, $auteur, $this->compte, $this->administrateur);
+            $this->depot->remplacerContenu((int) $document['id'], $fichier, $auteur);
         }
         // Une scission crée une seconde pièce : après remise de l'original, elle ne peut pas rester
         // vivante, sinon ses pages seraient comptées deux fois. Elle reste, elle aussi, récupérable.
@@ -241,8 +245,11 @@ final class EditionPieces
      */
     private function appliquer(array $piece, string $fichier, array $pages, string $operation, string $auteur, string $detail): void
     {
+        // F10 : le rangement est posé AVANT le contenu. Si le compte n'a pas le droit de déposer dans le
+        // dossier d'arrivée, le service refuse et NE TOUCHE À RIEN (ni fichier, ni version, ni meta).
+        $this->depot->mettreAJour((int) $piece['id'], $this->metaEditee($piece['meta'], $pages, $operation, $auteur, $detail),
+            $auteur, $this->compte, $this->administrateur);
         $this->depot->remplacerContenu((int) $piece['id'], $fichier, $auteur);
-        $this->depot->mettreAJour((int) $piece['id'], $this->metaEditee($piece['meta'], $pages, $operation, $auteur, $detail), $auteur);
     }
 
     /**

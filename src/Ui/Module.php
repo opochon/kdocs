@@ -78,7 +78,7 @@ final class Module
             $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
 
             try {
-                $atraiter = ATraiter::depuisRacine($config->racine());
+                $atraiter = ATraiter::depuisRacine($config->racine(), self::compte($req), self::administrateur($req));
                 $atraiter->valider((int) $args['id'], $corps, $auteur);
                 $suivant = $atraiter->suivant((int) $args['id']);
             } catch (Throwable $e) {
@@ -99,7 +99,8 @@ final class Module
             $session = $req->getAttribute('ged.session');
             $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
             try {
-                $bilan = ATraiter::depuisRacine($config->racine())->validerPropositions($ids, $auteur);
+                $bilan = ATraiter::depuisRacine($config->racine(), self::compte($req), self::administrateur($req))
+                    ->validerPropositions($ids, $auteur);
             } catch (Throwable $e) {
                 return $vue->rendre($rep, 'erreur.twig', ['code' => 422, 'etape' => 'POST /a-traiter/valider-lot',
                     'cause' => $e->getMessage(), 'reference' => substr(hash('sha256', 'lot:' . microtime()), 0, 10)], 422);
@@ -119,7 +120,8 @@ final class Module
                     $session = $req->getAttribute('ged.session');
                     $auteur = is_array($session) ? (string) ($session['utilisateur'] ?? 'inconnu') : 'inconnu';
                     try {
-                        $edition = new \Ged\Ingestion\EditionPieces($config, new \Ged\Socle\DepotFichiers($config));
+                        $edition = new \Ged\Ingestion\EditionPieces($config, new \Ged\Socle\DepotFichiers($config), null,
+                            self::compte($req), self::administrateur($req));
                         match ($action) {
                             'tourner' => $edition->tourner($id, (int) ($corps['page'] ?? 0), (int) ($corps['degres'] ?? 0), $auteur),
                             'scinder' => $edition->scinder($id, (int) ($corps['page'] ?? 0), $auteur),
@@ -293,5 +295,6 @@ final class Module
 
     private static function auteur(Requete $req): string { $s=$req->getAttribute('ged.session'); return is_array($s)?(string)($s['utilisateur']??'inconnu'):'inconnu'; }
     private static function compte(Requete $req): ?int { $s=$req->getAttribute('ged.session');$c=is_array($s)?($s['compte']??null):null;return is_int($c)&&$c>0?$c:null; }
+    private static function administrateur(Requete $req): bool { $s=$req->getAttribute('ged.session');return is_array($s)&&in_array('*', array_values(array_map('strval',(array)($s['permissions']??[]))),true); }
     private static function erreur(Vue $vue, Reponse $rep, string $etape, string $cause, int $code=422): Reponse { return $vue->rendre($rep,'erreur.twig',['code'=>$code,'etape'=>$etape,'cause'=>$cause,'reference'=>''],$code); }
 }

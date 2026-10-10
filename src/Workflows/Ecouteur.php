@@ -38,11 +38,11 @@ final class Ecouteur
      * @param array<string, mixed> $fiche métadonnées du document (le `.meta.json` canonique)
      * @return array<string, mixed> compte rendu de l'exécution (toujours exploitable)
      */
-    public function recevoir(string $evenement, int $idDocument, array $fiche, string $auteur = 'systeme'): array
+    public function recevoir(string $evenement, int $idDocument, array $fiche, string $auteur = 'systeme', ?int $compte = null, bool $administrateur = false): array
     {
         $fiche['id'] = $idDocument;
         try {
-            return $this->moteur->executer($evenement, $fiche, $auteur);
+            return $this->moteur->executer($evenement, $fiche, $auteur, $compte, $administrateur);
         } catch (\Throwable $e) {
             $this->journaliserErreur($idDocument, $evenement, $e->getMessage());
 
@@ -58,10 +58,10 @@ final class Ecouteur
      * @param array<string, mixed> $fiche
      * @return array<string, mixed>
      */
-    public static function prevenir(Config $config, string $evenement, int $idDocument, array $fiche, string $auteur = 'systeme'): array
+    public static function prevenir(Config $config, string $evenement, int $idDocument, array $fiche, string $auteur = 'systeme', ?int $compte = null, bool $administrateur = false): array
     {
         try {
-            return self::depuis($config)->recevoir($evenement, $idDocument, $fiche, $auteur);
+            return self::depuis($config)->recevoir($evenement, $idDocument, $fiche, $auteur, $compte, $administrateur);
         } catch (\Throwable $e) {
             return ['declencheur' => $evenement, 'document_id' => $idDocument, 'regles' => [], 'etapes' => [], 'ecritures' => 0,
                 'erreurs' => [['regle_id' => null, 'regle' => '(branchement)', 'cause' => $e->getMessage()]]];
