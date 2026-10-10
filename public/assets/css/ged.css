@@ -76,6 +76,13 @@ h1 { font-size: var(--fs-xl); } h2 { font-size: var(--fs-lg); } h3 { font-size: 
 .page-tete { display: flex; flex-direction: column; gap: 10px; }
 .page-tete .titre { display: flex; align-items: baseline; gap: 12px; }
 .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }   /* à gauche, sous le titre */
+/* Lot ged-parite-masse : barre d'actions en masse, à gauche sous le titre, compacte et sur une ligne. */
+.barre-masse { padding: 8px 12px; }
+.barre-masse form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.barre-masse .coche { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); white-space: nowrap; }
+.barre-masse .champ-inline { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); }
+.barre-masse .champ-inline select, .barre-masse .champ-inline input { height: 30px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font: inherit; padding: 0 8px; }
+.barre-masse .masse-confirmation, .barre-masse [data-testid="masse-confirmation"] { margin: 0; flex-basis: 100%; }
 .action-scellement, .filtres-archives { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .action-scellement label { font-size: var(--fs-sm); color: var(--text-2); }
 .archivage-etat { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; }

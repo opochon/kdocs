@@ -36,24 +36,21 @@ et 4 écrans n'ont aucun test E2E. Cible de la ligne de matrice : « Modificatio
 ## Avancement
 
 ### Fait (commits)
-- (à compléter au fil des commits)
+- `8a24ef3` — service `ModificationMasse` + oracle PHPUnit (refus, effets unitaires, 500 docs par
+  paquets avec reprise, corbeille).
+- `e4c7f00` — une seule source de menu (`Ged\Ui\Rail`) : « Partagés avec moi », section Administration
+  (visible seulement à `application:administrer` ou `*`), catalogue des workflows servi en page lisible
+  à un navigateur (JSON conservé pour le designer/l'API), oracle `RailMenuTest` + test du catalogue HTML.
 
 ### En cours
-- Reconnaissance (contrats, secteurs, routes, harness) terminée ; note de lot ouverte.
-- **Oracle rouge puis vert** : `tests/php/Socle/ModificationMasseTest.php` (4 tests, 86 assertions) —
-  refus d'un document en lecture seule (bilan nommé), mêmes effets que l'édition unitaire (trace
-  `document_deplacements`, `.meta.json`), 500 documents par paquets de 50 **avec reprise** (curseur
-  dans `.ged/`, service neuf à chaque tranche), corbeille = mise en corbeille (fichier sous
-  `.corbeille/`, ligne drapeautée).
-- **Service** `src/Socle/ModificationMasse.php` : actions `type`, `emetteur`, `etiquettes_ajouter`,
-  `etiquettes_retirer`, `dossier`, `corbeille` ; chaque document passe par
-  `DepotFichiers::mettreAJour`/`miseALaCorbeille` ; ACL `modifier` vérifiée par document ; journal
-  d'audit `modification_masse` en ajout seul ; `lancer`/`avancer`/`etat`, curseur reprenable.
+- **UI Bibliothèque** (écran de l'étape suivante) : cases à cocher (`coche-doc-<id>`), « toute la page »
+  et « tout le résultat filtré », barre d'actions en masse à gauche sous le titre, confirmation qui
+  annonce le nombre, bilan des traités/refusés avec raisons ; routes `POST /bibliotheque/masse` et
+  `POST /bibliotheque/masse/{id}/tranche` ; permissions `documents:modifier` ; lien « droits du dossier »
+  depuis le dossier actif ; charges CSRF de la sonde.
 
 ### Reste
-- UI Bibliothèque (cases, page/résultat filtré, barre en masse, confirmation, bilan), routes + permissions.
-- Menu/découvrabilité (Administration par droits, Partagés avec moi, catalogue, droits d'un dossier).
-- E2E (parcours en masse + 4 écrans via le menu), harness, porte qualité.
+- E2E (parcours en masse par l'écran + 4 écrans jamais parcourus via le menu), harness, porte qualité.
 
 ## Porte qualité (ECC)
 
