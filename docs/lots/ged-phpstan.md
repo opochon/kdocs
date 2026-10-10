@@ -111,6 +111,14 @@ Mesure : baseline **76 → 56 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 te
 
 Mesure : baseline **56 → 52 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Recherche (niveau 6)
+
+`Service` (chercherPleinTexte, chercherLike, lister, executer) et `Termes::__construct` :
+`list<array<string, mixed>>` / `list<string>`. Deux docblocks multi-tags sur une seule
+ligne n'étaient pas lus : scindés. Aucun changement de comportement.
+
+Mesure : baseline **52 → 47 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),

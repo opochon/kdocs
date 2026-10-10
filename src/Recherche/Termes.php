@@ -12,7 +12,10 @@ namespace Ged\Recherche;
  */
 final class Termes
 {
-    /** @param list<string> $positifs @param list<string> $negatifs */
+    /**
+     * @param list<string> $positifs
+     * @param list<string> $negatifs
+     */
     private function __construct(
         private readonly array $positifs,
         private readonly array $negatifs,

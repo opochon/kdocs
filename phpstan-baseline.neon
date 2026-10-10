@@ -139,36 +139,6 @@ parameters:
 			path: src/Kernel.php
 
 		-
-			message: '#^Method Ged\\Recherche\\Service\:\:chercherLike\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
-			message: '#^Method Ged\\Recherche\\Service\:\:chercherPleinTexte\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
-			message: '#^Method Ged\\Recherche\\Service\:\:executer\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
-			message: '#^Method Ged\\Recherche\\Service\:\:lister\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
-			message: '#^Method Ged\\Recherche\\Termes\:\:__construct\(\) has parameter \$negatifs with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Recherche/Termes.php
-
-		-
 			message: '#^Method Ged\\Securite\\DroitsDossiers\:\:regleDuDossier\(\) has parameter \$groupes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

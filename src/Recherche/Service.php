@@ -62,7 +62,11 @@ final class Service implements Moteur
         }
     }
 
-    /** Recherche FULLTEXT booléenne, classée par pertinence de la base puis reclassée. */
+    /**
+     * Recherche FULLTEXT booléenne, classée par pertinence de la base puis reclassée.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function chercherPleinTexte(Requete $requete, Termes $termes): array
     {
         $conditions = $this->conditions($requete, $termes, 'fulltext');
@@ -77,7 +81,11 @@ final class Service implements Moteur
         return $this->executer($sql, $parametres);
     }
 
-    /** Repli mot à mot : chaque terme positif doit apparaître (titre ou corps), les exclus sont écartés. */
+    /**
+     * Repli mot à mot : chaque terme positif doit apparaître (titre ou corps), les exclus sont écartés.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function chercherLike(Requete $requete, Termes $termes): array
     {
         $conditions = $this->conditions($requete, $termes, 'like');
@@ -88,7 +96,11 @@ final class Service implements Moteur
         return $this->executer($sql, $conditions['parametres']);
     }
 
-    /** Sans terme (filtres seuls, écran vierge) : le fonds filtré, du plus récent au plus ancien. */
+    /**
+     * Sans terme (filtres seuls, écran vierge) : le fonds filtré, du plus récent au plus ancien.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function lister(Requete $requete): array
     {
         $conditions = $this->conditions($requete, Termes::depuis(''), 'liste');
@@ -246,7 +258,10 @@ final class Service implements Moteur
         return $score;
     }
 
-    /** @param array<string, mixed> $parametres @return list<array<string, mixed>> */
+    /**
+     * @param array<string, mixed> $parametres
+     * @return list<array<string, mixed>>
+     */
     private function executer(string $sql, array $parametres): array
     {
         $stmt = $this->pdo->prepare($sql);
