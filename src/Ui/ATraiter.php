@@ -155,7 +155,12 @@ final class ATraiter
         }
     }
 
-    /** Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire. */
+    /**
+     * Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire.
+     *
+     * @param array<mixed> $ids identifiants demandés (coercés en int)
+     * @return array{valides: list<int>, refuses: array<int, string>}
+     */
     public function validerPropositions(array $ids, string $auteur): array
     {
         $parId = [];
@@ -336,7 +341,10 @@ final class ATraiter
         return array_values($pieces);
     }
 
-    /** @return array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}|null */
+    /**
+     * @param array<string, mixed> $ligne
+     * @return array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}|null
+     */
     private function documentDepuisLigne(array $ligne): ?array
     {
         if ($this->depot === null) {

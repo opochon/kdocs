@@ -438,7 +438,11 @@ final class ExtraitsLisibles
         return [$a, $b, $rogneTete, $rogneQueue];
     }
 
-    /** V2-10f — un fragment de 1–2 lettres ne reste en bord que s'il est vraiment usuel dans une phrase. */
+    /**
+     * V2-10f — un fragment de 1–2 lettres ne reste en bord que s'il est vraiment usuel dans une phrase.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool} $jeton
+     */
     private static function fragmentDeBord(array $jeton): bool
     {
         if ($jeton['longueur'] > 2) {
@@ -452,7 +456,11 @@ final class ExtraitsLisibles
         ], true);
     }
 
-    /** V2-10f — un mot court non usuel accompagne volontiers un bruit déjà trouvé en bord. */
+    /**
+     * V2-10f — un mot court non usuel accompagne volontiers un bruit déjà trouvé en bord.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool} $jeton
+     */
     private static function courtNonUsuel(array $jeton): bool
     {
         return $jeton['longueur'] <= 4 && !self::motUsuel($jeton['lettres']);
@@ -496,7 +504,11 @@ final class ExtraitsLisibles
         return $plausibles * 2 <= $n;
     }
 
-    /** Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité. */
+    /**
+     * Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité.
+     *
+     * @return array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}
+     */
     private static function jetonDepuisMot(string $mot): array
     {
         $lettres = (string) preg_replace('/[^\p{L}]/u', '', $mot);
@@ -515,6 +527,8 @@ final class ExtraitsLisibles
     /**
      * V2-10f — vrai si le mot est manifestement un artefact : fragment, tout en majuscules non usuel,
      * majuscule interne, amas de voyelles ou mot sans voyelle.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool, bruitMele?:bool} $jeton
      */
     private static function implausible(array $jeton): bool
     {

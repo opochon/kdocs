@@ -85,6 +85,15 @@ Annotations de types de valeur sur 13 fichiers (`@param`/`@return` `array<...>`,
 
 Mesure : baseline **134 → 87 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Ui (niveau 6)
+
+`ATraiter` (documentDepuisLigne, validerPropositions), `Document` (versions, historique —
+les `@return` inline n'étaient pas lus), `Ecrans::document`, `ExtraitsLisibles` (jeton :
+fragmentDeBord, courtNonUsuel, implausible, jetonDepuisMot), `Ui\Module::enregistrer`
+(App générique). Aucun changement de comportement.
+
+Mesure : baseline **87 → 76 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),

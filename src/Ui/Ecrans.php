@@ -148,6 +148,7 @@ final class Ecrans
         ]);
     }
 
+    /** @param array<string, mixed> $args */
     public function document(Requete $req, Reponse $rep, array $args): Reponse
     {
         // Fiche branchée sur le FONDS réel quand l'identifiant y existe (le dossier fait foi) : mêmes
