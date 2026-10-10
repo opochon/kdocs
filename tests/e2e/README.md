@@ -25,6 +25,25 @@ fonds `var/oracles/parite-masse/documents` :
 
 Aucune donnée réelle, aucun nom de client.
 
+## Comptes réels du lot ged-edition-serveur
+
+`tests/e2e/edition-serveur.spec.ts` démarre son propre serveur et son propre fonds
+`var/oracles/edition-serveur/documents` (espace de secours `var/oracles/edition-serveur/secours`) et crée
+deux comptes RÉELS par `tests/e2e/preparer-edition-serveur.php` (mot de passe haché, la voie de
+l'installateur), sur le même dossier :
+
+- `edition-e2e-manager@gedv2.test` / `MotDePasse-Edition-Manager-2026!` — rôle Manager, dossier
+  « edition-serveur/Documents » en lecture + dépôt + modification ;
+- `edition-e2e-lecteur@gedv2.test` / `MotDePasse-Edition-Lecteur-2026!` — rôle Utilisateur, même dossier
+  en lecture seule.
+
+Le manager prouve le bouton « Ouvrir dans Word/Excel » (`kdocs://ouvrir/<id>`), l'affichage « ouvert par …
+sur POSTE-E2E-F13 depuis HH:MM » et la récupération d'une copie de secours après confirmation ; le
+lecteur voit l'ouverture mais ni le bouton ni la récupération. Le jeton d'appareil de l'agent est rendu
+par la préparation ; les gestes de l'agent (ouverture, dépôt de la copie) sont joués par le vrai HTTP
+sous ce jeton, et tout le reste passe par l'écran. Aucune donnée réelle, aucun nom de client.
+
+
 ## Comptes réels de la couche 5 (Personas)
 
 `tests/e2e/personas/` joue six personas (fiduciaire, secrétaire, comptable, administrateur, auditeur,
