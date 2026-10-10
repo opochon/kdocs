@@ -9,7 +9,7 @@
       <span class="muted" data-testid="recherche-compte">{{ total }} résultat{{ total > 1 ? 's' : '' }}{% if q %} pour « {{ q }} »{% endif %} · {{ duree }} s{% if mode == 'like' %} · repli mot à mot{% endif %}</span>
     </div>
     <div class="actions">
-      {% if not (semblable is defined and semblables_actifs) %}
+      {% if not (semblable is defined and semblables_actifs is defined and semblables_actifs) %}
       <form class="filtres" data-testid="filtres" action="/recherche" method="get" role="search">
         <input type="hidden" name="q" value="{{ q }}">
         {# V2-10b : sur téléphone, les filtres vivent derrière un bouton « Filtres » qui ouvre un panneau
@@ -57,7 +57,7 @@
     </div>
   </div>
 
-  {% if semblable is defined and semblables_actifs %}
+  {% if semblable is defined and semblables_actifs is defined and semblables_actifs %}
     {% if semblable %}
     <div class="carte" data-testid="recherche-semblables" style="padding:10px 16px;margin-bottom:12px">
       <strong>Documents semblables</strong> à « <a href="/documents/{{ semblable.id }}" data-testid="semblables-source">{{ semblable.titre }}</a> »
@@ -110,8 +110,8 @@
     {% else %}
       {% if not erreur %}
       <article class="resultat" data-testid="recherche-vide">
-        <strong>{% if semblable is defined and semblables_actifs %}Aucun document semblable{% else %}Aucun document ne correspond{% endif %}</strong>
-        <div class="muted">{% if semblable is defined and semblables_actifs %}Rien de comparable dans le fonds : la liste de voisins reste vide, sans être masquée en silence.{% else %}Élargissez la requête ou retirez un filtre : rien n’est masqué en silence.{% endif %}</div>
+        <strong>{% if semblable is defined and semblables_actifs is defined and semblables_actifs %}Aucun document semblable{% else %}Aucun document ne correspond{% endif %}</strong>
+        <div class="muted">{% if semblable is defined and semblables_actifs is defined and semblables_actifs %}Rien de comparable dans le fonds : la liste de voisins reste vide, sans être masquée en silence.{% else %}Élargissez la requête ou retirez un filtre : rien n’est masqué en silence.{% endif %}</div>
       </article>
       {% endif %}
     {% endfor %}
