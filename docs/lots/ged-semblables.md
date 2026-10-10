@@ -21,18 +21,23 @@ contrairement à Paperless (`more like this`).
 
 ## Fait (commits)
 
-- (en cours) oracle rouge : `tests/oracles/recherche/semblables.json`, `tests/php/Recherche/SemblablesTest.php`.
+- `d8c99a4` — oracle rouge : `tests/oracles/recherche/semblables.json`, `tests/php/Recherche/SemblablesTest.php`, cette note.
+- (en cours) moteur : `src/Recherche/Semblables.php`, `TermesSemblables.php`, `Pertinence.php` (extrait de `Service`).
 
 ## En cours
 
-- Écrire le rouge d'abord (SemblablesTest) et vérifier qu'il échoue.
+- Moteur vert ; l'écran (mode `?semblable=`) reste à brancher.
 
 ## Reste
 
-- Moteur `Semblables` / `TermesSemblables` / `Pertinence`, écran, budget 10 000 documents, porte qualité.
+- Écran : `Ecran::donnees` mode `?semblable=`, gabarit (lien + en-tête), tests Ecran + E2E par clic.
+- Budget 10 000 documents < 1 s.
+- Porte qualité ECC et harness `-SansBanc`.
 
 ## Mesures exactes
 
-- (à compléter)
+- PHPUnit ciblé `tests/php/Recherche` : **23 tests, 128 assertions, vert** (19 existants + 4 semblables).
+- PHPStan niveau 6 : **0 erreur** hors baseline (baseline vide, inchangée).
 
 ETAT: en cours
+
