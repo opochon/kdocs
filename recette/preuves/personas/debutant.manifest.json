@@ -1,0 +1,11 @@
+{
+  "persona": "debutant",
+  "role": "manager",
+  "compte": "persona-debutant@gedv2.test",
+  "gestes": [
+    "se-reperer",
+    "deposer",
+    "retrouver",
+    "ouvrir-fiche"
+  ]
+}

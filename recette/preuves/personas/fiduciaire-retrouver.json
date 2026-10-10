@@ -1,0 +1,9 @@
+{
+  "nom": "retrouver",
+  "fonction": "F5",
+  "libelle": "Retrouver un document par la barre de recherche globale",
+  "trouve": true,
+  "temps_ms": 268,
+  "ecran": "http://127.0.0.1:64176/recherche?q=Fiduciaire — Recherche",
+  "erreur": ""
+}

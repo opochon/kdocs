@@ -1,0 +1,9 @@
+{
+  "nom": "archives-verifier",
+  "fonction": "F11",
+  "libelle": "Trouver la vérification d’intégrité des archives",
+  "trouve": true,
+  "temps_ms": 338,
+  "ecran": "http://127.0.0.1:63970/archives — Archives",
+  "erreur": ""
+}

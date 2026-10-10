@@ -1,0 +1,11 @@
+{
+  "persona": "fiduciaire",
+  "role": "manager",
+  "compte": "persona-fiduciaire@gedv2.test",
+  "gestes": [
+    "bilan-ingestion",
+    "deposer",
+    "retrouver",
+    "fiche-nouvelle-version"
+  ]
+}
