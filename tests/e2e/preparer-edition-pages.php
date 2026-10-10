@@ -59,7 +59,7 @@ try {
 
 function creerPdf(Config $config, string $fichier, int $pages): void
 {
-    $script = "import fitz\ndoc=fitz.open()\n[doc.new_page(width=595,height=842) for _ in range($pages)]\ndoc.save(r'"
+    $script = "import pymupdf as fitz\ndoc=fitz.open()\n[doc.new_page(width=595,height=842) for _ in range($pages)]\ndoc.save(r'"
         . str_replace('\\', '\\\\', $fichier) . "')\n";
     $processus = proc_open([$config->get('CMD4_PYTHON'), '-c', $script], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
     if (!is_resource($processus)) throw new RuntimeException('Python indisponible');

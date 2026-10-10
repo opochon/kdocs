@@ -106,7 +106,7 @@ final class EditionPiecesTest extends TestCase
 
     private function pdf(string $fichier, int $pages): void
     {
-        $script = "import fitz\n"
+        $script = "import pymupdf as fitz\n"
             . "doc=fitz.open()\n"
             . '[doc.new_page(width=595,height=842) for _ in range(' . $pages . ")]\n"
             . "doc.save(r'" . str_replace('\\', '\\\\', $fichier) . "')\n";

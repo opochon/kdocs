@@ -19,7 +19,7 @@ final class EditeurPdfTest extends TestCase
         $this->tmp = sys_get_temp_dir() . '/gedv2-edition-' . bin2hex(random_bytes(4));
         mkdir($this->tmp, 0775, true);
         $this->pdf = EditeurPdf::depuisConfig(new Config(dirname(__DIR__, 3)));
-        $script = "import fitz\ndoc=fitz.open()\n[doc.new_page(width=595,height=842) for _ in range(6)]\ndoc.save(r'" . str_replace('\\', '\\\\', $this->tmp . "/six.pdf") . "')\n";
+        $script = "import pymupdf as fitz\ndoc=fitz.open()\n[doc.new_page(width=595,height=842) for _ in range(6)]\ndoc.save(r'" . str_replace('\\', '\\\\', $this->tmp . "/six.pdf") . "')\n";
         $this->python($script);
     }
 

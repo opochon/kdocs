@@ -11,7 +11,7 @@ import os
 import sys
 import tempfile
 
-import fitz
+import pymupdf as fitz  # PyMuPDF >= 1.28 : import fitz ecrit un avertissement sur stdout et casse la reponse JSON
 
 
 def open_pdf(path):

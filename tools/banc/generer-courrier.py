@@ -21,7 +21,7 @@ import json
 import random
 from pathlib import Path
 
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 from fpdf import FPDF
 
 RACINE = Path(__file__).resolve().parents[2]
