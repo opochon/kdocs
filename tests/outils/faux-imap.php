@@ -5,7 +5,8 @@ declare(strict_types=1);
 /**
  * Faux serveur IMAP pour les tests : sert UNE connexion sur 127.0.0.1:<port>, avec les messages *.eml de
  * <dossier> (UID = ordre alphabétique), puis écrit dans <dossier>/journal.json les commandes reçues et
- * l'état final (lus, rangés). Usage : php faux-imap.php <port> <dossier> [sansMOVE]
+ * l'état final (lus, rangés). Usage : php faux-imap.php <port> <dossier> [sansMOVE]. Port 0 : le système choisit un
+ * port libre, annoncé sur la ligne « pret <port> » (plus de collision avec un port déjà pris sur le poste).
  */
 [$_, $port, $dossier] = $argv + [null, null, null];
 $avecMove = ($argv[3] ?? '') !== 'sansMOVE';
@@ -14,7 +15,8 @@ if ($serveur === false) {
     fwrite(STDERR, "écoute impossible : $msg\n");
     exit(1);
 }
-fwrite(STDOUT, "pret\n");
+$adresse = (string) stream_socket_get_name($serveur, false);
+fwrite(STDOUT, 'pret ' . substr($adresse, (int) strrpos($adresse, ':') + 1) . "\n");
 
 $messages = [];
 $fichiers = glob($dossier . '/*.eml') ?: [];
