@@ -200,3 +200,7 @@ le fonds courant (une tranche de plus peut être nécessaire).
 
 ETAT: fini
 
+
+## Harness complet vert, toutes couches (juge, 11-10 01:43, machine 2)
+
+Rejoué sur `C:\ged\GEDv2` (vendor propre au dépôt, base dédiée) au commit 124fc79, après les lots personas, modification en masse, documents semblables et droits à l'arrivée : garde-fous, unitaire (496 tests / 2890 assertions), contrat (toutes les routes), banc (découpe 53/53 exacts, 0 fausse coupe, F1 de bout en bout), écrans 74/74, personas (6 personas, tous les gestes trouvés), charge (10 utilisateurs, p95 lecture 843 ms, écriture 241 ms, 0 erreur), sécurité (aucun contournement), statique (PHPStan 0, `composer audit` propre). Première fois que les 9 couches sont vertes ensemble. Cette vérification est indépendante des harness des agents, dont les dossiers de travail partageaient `vendor` par une jonction jusqu'au 11-10 (lanceur corrigé : copie).
