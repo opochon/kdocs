@@ -166,6 +166,52 @@ seule** (`@return App<Psr\Container\ContainerInterface>`), aucune ligne de logiq
 Mesure : baseline **2 → 0 entrée** (`ignoreErrors: []`). PHPStan niveau 6 vert.
 PHPUnit : 462 tests, 2620 assertions, 1 ignoré.
 
-## Reste
+## Harness (avant `ETAT: fini`)
 
-- `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` avant `ETAT: fini`.
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` rejoué le
+2026-10-10 sur le commit `c696dbe` (durée 541 s) :
+
+| Couche | Verdict | Chiffres |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules présents, DB_NAME=gedv2_test |
+| 1-unitaire | VERT | 462 tests, 2620 assertions, 1 ignoré |
+| 3-banc | ROUGE | sautée (`-SansBanc`, attendu) |
+| 4-ecrans | ROUGE | **1 failed / 64 passed (3.0 m)** — voir ci-dessous |
+| 7-securite | VERT | sonde sécurité : aucun contournement accepté |
+| 2-contrat | VERT | contrats de service et HTTP : toutes les routes couvertes |
+| 6-charge | VERT | p95 lecture 695 ms, p95 écriture 239 ms, 0 erreur, 0 collision |
+| 8-statique | VERT | **phpstan : 0 erreur hors baseline** ; composer audit : aucune vulnérabilité |
+| 5-personas | ROUGE | « pas encore écrite » (couche non livrée, indépendante du lot) |
+
+**Échec 4-ecrans (pré-existant, hors lot).** Le test `tests/e2e/droits-b6.spec.ts`
+« B6 : trois comptes réels respectent les droits sur les dossiers A et B » attend que la
+Bibliothèque de l'utilisateur ne montre pas `ligne-<document B>` ; elle l'affiche
+(`toHaveCount(0)` reçu `1`). Le même test échoue **à l'identique sur le dépôt principal
+`C:\ged\GEDv2` au commit `16482d5` (v2), sans une seule de mes modifications** : le défaut
+de filtrage ACL de la Bibliothèque pré-existe au lot. Il n'est pas corrigé ici, car le lot
+est une réduction de baseline « sans changer le comportement ». Aucun test n'a été
+affaibli, aucune sonde retirée, aucune porte relevée.
+
+Les deux couches que ce lot touche réellement — 8-statique (PHPStan) et 1-unitaire — sont
+vertes.
+
+## Porte qualité
+
+1. **Analyse statique** : `php vendor\bin\phpstan analyse --memory-limit=2G` vert,
+   niveau 6, `reportUnmatchedIgnoredErrors: true`. Baseline **167 → 0** entrée
+   (`phpstan-baseline.neon` = `ignoreErrors: []`). Aucun `@phpstan-ignore` ajouté ;
+   la baseline n'a jamais grossi (régénérée à la baisse après chaque module).
+2. **Revue du diff** (grilles ECC php-reviewer / security-reviewer / silent-failure-hunter) :
+   aucun `catch (Throwable)` muet ajouté ; aucun SQL par concaténation d'entrée ; tous les
+   fichiers touchés portent `declare(strict_types=1)`. Les annotations ajoutées décrivent
+   les types réels (listes, shapes, `array<string, mixed>`) ; les garde-fous existants
+   (`is_array`, `isset`) ont été **conservés** en corrigeant l'annotation trop stricte qui
+   les rendait « toujours vrais ».
+3. **TDD** : l'unique défaut de comportement trouvé (`Ui\ATraiter` passait un `PDO` à
+   `Nomenclature`, `TypeError` avalé → nomenclature jamais lue) a reçu son oracle
+   `tests/php/Ui/ATraiterNomenclatureTest.php` : **rouge** avant correctif
+   (`Failed asserting that an array contains 'Devis'`), **vert** après. Aucun test existant
+   n'a été affaibli ; 4 constructions de `Recherche\Service` dans les tests ont suivi la
+   suppression du paramètre `$index` (aucune assertion changée).
+
+ETAT: fini
