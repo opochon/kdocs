@@ -129,7 +129,11 @@ test('la modification en masse annonce, traite, refuse, et la liste puis la fich
     await page.goto('/bibliotheque');
     await expect(page.getByTestId('barre-masse')).toBeVisible();
 
-    // 1. Cocher deux lignes : la confirmation ANNONCE le nombre de documents.
+    // 1. « Toute la page » coche les lignes, puis on affine à deux documents : la confirmation
+    //    ANNONCE le nombre de documents visés.
+    await page.getByTestId('coche-tout-page').check();
+    await expect(page.getByTestId('masse-confirmation')).toContainText('4 documents');
+    await page.getByTestId('coche-tout-page').uncheck();
     await page.getByTestId(`coche-doc-${modifiable}`).check();
     await page.getByTestId(`coche-doc-${prep.lecture}`).check();
     await expect(page.getByTestId('masse-confirmation')).toContainText('2 documents');
@@ -201,6 +205,15 @@ test('les écrans d’administration s’ouvrent par le menu, comme un utilisate
     await page.getByTestId('menu-metadonnees').click();
     await expect(page).toHaveURL(/\/metadonnees$/);
     await expect(page.getByTestId('ecran-metadonnees')).toBeVisible();
+
+    // Les droits d'un dossier s'ouvrent depuis la Bibliothèque (dossier actif), pas par URL nue.
+    await page.goto('/bibliotheque');
+    await page.getByTestId('dossier-parite-masse-Modifiable').click();
+    await expect(page).toHaveURL(/\/bibliotheque\?dossier=/);
+    await expect(page.getByTestId('lien-droits-dossier')).toBeVisible();
+    await page.getByTestId('lien-droits-dossier').click();
+    await expect(page).toHaveURL(/\/dossiers\/\d+\/droits$/);
+    await expect(page.getByTestId('droit-groupe')).toBeVisible();
 
     expect(erreurs, 'aucune erreur console').toEqual([]);
   } finally {

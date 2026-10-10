@@ -225,7 +225,10 @@ final class EcranBibliotheque
         }
         try {
             return (new ModificationMasse($this->config, $this->compte, $this->administrateur))->etat($id);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Un état illisible ne casse jamais la Bibliothèque, mais il n'est pas avalé en silence.
+            error_log(sprintf('état modification en masse %d indisponible : %s', $id, $e->getMessage()));
+
             return null;
         }
     }
