@@ -97,6 +97,18 @@ final class DroitsRoutes
         'DELETE /api/v1/appairage/moi' => 'publique:api-appairage-moi',
         'POST /api/v1/appairage/jeton' => 'publique:api-appairage',
         'GET /api/v1/dossiers' => 'publique:api-dossiers',
+        // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
+        // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
+        // récupère une copie de secours en nouvelle version.
+        'GET /api/v1/edition/documents/{id:[0-9]+}' => 'publique:api-edition',
+        'GET /api/v1/edition/documents/{id:[0-9]+}/fichier' => 'publique:api-edition',
+        'POST /api/v1/edition/documents/{id:[0-9]+}/versions' => 'publique:api-edition',
+        'POST /api/v1/edition/documents/{id:[0-9]+}/ouverture' => 'publique:api-edition',
+        'POST /api/v1/edition/documents/{id:[0-9]+}/signal' => 'publique:api-edition',
+        'POST /api/v1/edition/documents/{id:[0-9]+}/fermeture' => 'publique:api-edition',
+        'POST /api/v1/edition/documents/{id:[0-9]+}/secours' => 'publique:api-edition',
+        'GET /api/v1/edition/documents/{id:[0-9]+}/secours' => 'publique:api-edition',
+        'POST /documents/{id:[0-9]+}/secours/recuperer' => 'documents:modifier',
         'GET /appairage' => 'documents:traiter',
         'POST /appairage' => 'documents:traiter',
         // Jonctions V2-08c — la liaison part de la GED : Mon profil (adresse vérifiée, « Relier »,
@@ -202,6 +214,15 @@ final class DroitsRoutes
             if (preg_match('#^/application/appareils/[0-9]+/revoquer$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /application/appareils/{id:[0-9]+}/revoquer'];
             }
+        }
+
+        // API d'édition (F13) : identifiant numérique dans le chemin, route sous jeton d'appareil.
+        if (preg_match('#^/api/v1/edition/documents/[0-9]+(?:/(?:fichier|versions|ouverture|signal|fermeture|secours))?$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /api/v1/edition/documents/{id:[0-9]+}'];
+        }
+        // Récupération d'une copie de secours depuis la fiche (session + CSRF, droit modifier).
+        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/secours/recuperer$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /documents/{id:[0-9]+}/secours/recuperer'];
         }
 
         return null;
