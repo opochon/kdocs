@@ -9,6 +9,7 @@
       <span class="muted" data-testid="recherche-compte">{{ total }} résultat{{ total > 1 ? 's' : '' }}{% if q %} pour « {{ q }} »{% endif %} · {{ duree }} s{% if mode == 'like' %} · repli mot à mot{% endif %}</span>
     </div>
     <div class="actions">
+      {% if not (semblable is defined and semblables_actifs) %}
       <form class="filtres" data-testid="filtres" action="/recherche" method="get" role="search">
         <input type="hidden" name="q" value="{{ q }}">
         {# V2-10b : sur téléphone, les filtres vivent derrière un bouton « Filtres » qui ouvre un panneau
@@ -52,8 +53,22 @@
           <label for="nom-vue-recherche">Nom de la vue</label><input id="nom-vue-recherche" name="nom" required data-testid="nom-vue-recherche"><button class="btn primaire" type="submit" data-testid="action-creer-vue-recherche">Créer la vue</button>
         </form>
       </details>
+      {% endif %}
     </div>
   </div>
+
+  {% if semblable is defined and semblables_actifs %}
+    {% if semblable %}
+    <div class="carte" data-testid="recherche-semblables" style="padding:10px 16px;margin-bottom:12px">
+      <strong>Documents semblables</strong> à « <a href="/documents/{{ semblable.id }}" data-testid="semblables-source">{{ semblable.titre }}</a> »
+      <span class="muted">{{ total }} voisin{{ total > 1 ? 's' : '' }} · {{ duree }} s</span>
+    </div>
+    {% else %}
+    <div class="carte" data-testid="semblables-introuvable" style="border-color:var(--danger);padding:12px 16px;margin-bottom:12px">
+      <strong>Document introuvable</strong> — il n’existe pas dans le fonds, ou vous n’avez pas le droit de le lire.
+    </div>
+    {% endif %}
+  {% endif %}
 
   {% if erreur %}
   <div class="carte" data-testid="recherche-erreur" style="border-color:var(--danger);padding:12px 16px;margin-bottom:12px">
@@ -87,14 +102,16 @@
         </div>
         {% endif %}
         <div class="resultat-pied">
-          <a class="btn discret" href="/bibliotheque?doc={{ r.id }}" data-testid="semblables-{{ r.id }}">Documents semblables</a>
+          {% if r.id > 0 %}
+          <a class="btn discret" href="/recherche?semblable={{ r.id }}" data-testid="semblables-{{ r.id }}">Documents semblables</a>
+          {% endif %}
         </div>
       </article>
     {% else %}
       {% if not erreur %}
       <article class="resultat" data-testid="recherche-vide">
-        <strong>Aucun document ne correspond</strong>
-        <div class="muted">Élargissez la requête ou retirez un filtre : rien n’est masqué en silence.</div>
+        <strong>{% if semblable is defined and semblables_actifs %}Aucun document semblable{% else %}Aucun document ne correspond{% endif %}</strong>
+        <div class="muted">{% if semblable is defined and semblables_actifs %}Rien de comparable dans le fonds : la liste de voisins reste vide, sans être masquée en silence.{% else %}Élargissez la requête ou retirez un filtre : rien n’est masqué en silence.{% endif %}</div>
       </article>
       {% endif %}
     {% endfor %}
