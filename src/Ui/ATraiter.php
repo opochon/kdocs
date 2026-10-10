@@ -149,7 +149,7 @@ final class ATraiter
         $this->depot->mettreAJour($id, $meta, $auteur);
 
         $emetteur = (string) ($meta['emetteur'] ?? '');
-        $type = (string) ($meta['type'] ?? '');
+        $type = (string) $meta['type'];   // posé juste au-dessus (type requis vérifié) : toujours présent
         if ($this->habitudes !== null && $emetteur !== '' && $type !== '') {
             $this->habitudes->retenirChoix($emetteur, Habitudes::CHAMP_TYPE, $type, (string) $id);
         }
@@ -312,6 +312,7 @@ final class ATraiter
      */
     private function piecesDuLot(int $lot, array $file): array
     {
+        /** @var array<int, array<string, mixed>> $pieces clés = identifiants de documents, pas une liste */
         $pieces = $file;
         if ($this->pdo === null || $lot < 1) {
             return $pieces;
@@ -467,7 +468,7 @@ final class ATraiter
         $types = [];
         if ($this->pdo !== null) {
             try {
-                $types = (new Nomenclature($this->pdo))->types();
+                $types = (new Nomenclature($this->config))->types();
             } catch (Throwable) {
                 $types = [];
             }

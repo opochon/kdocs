@@ -132,12 +132,6 @@ final class ExtraitsLisibles
         'preambule', 'paragraphe', 'maintenance',
     ];
 
-    /**
-     * Signes isolés « forts » : leur présence seule, dans un jeton de ponctuation, signe un artefact
-     * (sauf signes typographiques légitimes, traités à part).
-     */
-    private const SIGNES_FORTS = ';=+*&~|\\/<>#@^_[]{}(`¤¬¦\'"';
-
     /** Signes isolés légitimes : un jeton d'un seul de ces signes ne coupe pas le texte. */
     private const SIGNES_BENINS = ['—', '–', ':', '°', '%', '«', '»', '…', '·', '•', '–'];
 
@@ -267,7 +261,7 @@ final class ExtraitsLisibles
      * affiché. Un extrait mixte est rogné au passage propre ; les marques de surlignage des segments
      * conservés sont préservées. V2-10e : la fenêtre retenue contient le premier terme trouvé.
      *
-     * @param list<list<array{t:string, hit:bool}>> $extraits
+     * @param list<list<mixed>> $extraits entrée tolérée mal formée : les segments non-tableaux sont ignorés
      * @return list<list<array{t:string, hit:bool}>>
      */
     public static function retenir(array $extraits, int $max = 3): array
@@ -462,19 +456,6 @@ final class ExtraitsLisibles
     private static function courtNonUsuel(array $jeton): bool
     {
         return $jeton['longueur'] <= 4 && !self::motUsuel($jeton['lettres']);
-    }
-
-    /** Nombre de jetons rejetés (fragments) avant l'indice donné. */
-    private static function bruitAvant(array $jetons, int $indice): int
-    {
-        $n = 0;
-        for ($k = 0; $k < $indice; $k++) {
-            if (!$jetons[$k]['acceptable']) {
-                $n++;
-            }
-        }
-
-        return $n;
     }
 
     /**
@@ -703,7 +684,8 @@ final class ExtraitsLisibles
         $melanges = preg_match_all('/\p{Ll}+\p{N}+\p{Lu}+/u', $texte, $trouvesMelanges, PREG_OFFSET_CAPTURE);
         $zonesMelangees = [];
         if ($melanges !== false) {
-            foreach ($trouvesMelanges[0] ?? [] as [$melange, $offset]) {
+            // preg_match_all pose toujours la clé 0 (au pire une liste vide) : le repli était mort.
+            foreach ($trouvesMelanges[0] as [$melange, $offset]) {
                 $zonesMelangees[] = [(int) $offset, (int) $offset + strlen($melange)];
             }
         }

@@ -181,12 +181,12 @@ final class Pilote
         // texte porte réellement le marqueur de page.
         $gagnante = [];
         foreach ($pieces as $index => $piece) {
-            foreach ((array) ($piece['pages'] ?? []) as $page) {
+            foreach ($piece['pages'] as $page) {
                 $page = (int) $page;
                 if ($page <= 0) {
                     continue;
                 }
-                $score = $this->scoreLecturePage((string) ($piece['texte'] ?? ''), $page);
+                $score = $this->scoreLecturePage((string) $piece['texte'], $page);
                 if (!isset($gagnante[$page]) || $score > $gagnante[$page]['score']) {
                     // À score égal, le premier rendu reste la solution déterministe de repli.
                     $gagnante[$page] = ['index' => $index, 'score' => $score];
@@ -197,7 +197,7 @@ final class Pilote
         $uniques = [];
         foreach ($pieces as $index => $piece) {
             $pages = [];
-            foreach ((array) ($piece['pages'] ?? []) as $page) {
+            foreach ($piece['pages'] as $page) {
                 $page = (int) $page;
                 if ($page > 0 && ($gagnante[$page]['index'] ?? null) === $index) {
                     $pages[] = $page;
@@ -226,7 +226,7 @@ final class Pilote
     {
         $brutes = [];
         foreach ($pieces as $piece) {
-            $brutes = array_merge($brutes, array_map('intval', (array) ($piece['pages'] ?? [])));
+            $brutes = array_merge($brutes, array_map('intval', $piece['pages']));
         }
         $brutes = array_values(array_filter($brutes, static fn (int $page): bool => $page > 0));
         $attendues = $this->compterPagesSource($fichierSource);

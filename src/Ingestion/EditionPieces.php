@@ -249,7 +249,8 @@ final class EditionPieces
         foreach (['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'raison'] as $cle) {
             $meta[$cle] = $proposition[$cle] ?? null;
         }
-        $meta['classement'] = ['source' => $proposition['source'] ?? 'regle', 'confiance' => $proposition['confiance'] ?? 0,
+        // Le contrat Classeur garantit `source` (string) et `confiance` (float) : aucun repli nécessaire.
+        $meta['classement'] = ['source' => $proposition['source'], 'confiance' => $proposition['confiance'],
             'preuve' => $proposition['preuve'] ?? null];
         $meta['statut'] = 'a_controler';
         $meta['origine'] = $origine;

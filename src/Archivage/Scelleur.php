@@ -77,7 +77,7 @@ final class Scelleur
         $tsaReelle = $this->horodateur instanceof TsaReelle ? $this->horodateur : null;
         $instant = $this->horloge->maintenant();
         $reference = $this->retention->reference($meta, $instant);
-        $type = isset($meta['type']) && $meta['type'] !== null ? (string) $meta['type'] : null;
+        $type = isset($meta['type']) ? (string) $meta['type'] : null;
 
         $donnees = [
             'version' => 1,

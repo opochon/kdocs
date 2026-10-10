@@ -355,9 +355,9 @@ final class DepotFichiers implements Depot
         // Pas de date crédible, pas d'année inventée : une pièce sans date attend sous Sans_date.
         $annee = isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])
             ? substr((string) $meta['date'], 0, 4) : 'Sans_date';
-        $segments = [$annee, isset($meta['type']) && $meta['type'] !== null && $meta['type'] !== ''
+        $segments = [$annee, isset($meta['type']) && $meta['type'] !== ''
             ? Fichiers::assainirSegment((string) $meta['type']) : Fichiers::assainirSegment('A classer')];
-        if (isset($meta['emetteur']) && $meta['emetteur'] !== null && $meta['emetteur'] !== ''
+        if (isset($meta['emetteur']) && $meta['emetteur'] !== ''
             && self::emetteurPeutCreerDossier($meta)) {
             $segments[] = Fichiers::assainirSegment((string) $meta['emetteur']);
         }

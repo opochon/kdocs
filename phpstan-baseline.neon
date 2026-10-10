@@ -25,12 +25,6 @@ parameters:
 			path: src/Archivage/Garde.php
 
 		-
-			message: '#^Ternary operator condition is always true\.$#'
-			identifier: ternary.alwaysTrue
-			count: 1
-			path: src/Archivage/HorlogeFigee.php
-
-		-
 			message: '#^Method Ged\\Archivage\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
 			identifier: missingType.generics
 			count: 1
@@ -91,20 +85,8 @@ parameters:
 			path: src/Archivage/Scellement.php
 
 		-
-			message: '#^Static method Ged\\Archivage\\Scellement\:\:descendre\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
-			count: 1
-			path: src/Archivage/Scellement.php
-
-		-
 			message: '#^Method Ged\\Archivage\\Scelleur\:\:archiverJustificatif\(\) has parameter \$existant with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Archivage/Scelleur.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: src/Archivage/Scelleur.php
 
@@ -113,30 +95,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Classement/ClasseurGed.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: src/Classement/ClasseurGed.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>etiquettes" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: src/Classement/ClasseurGed.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>montant" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: src/Classement/ClasseurGed.php
-
-		-
-			message: '#^Constant Ged\\Classement\\InfomaniakClient\:\:CHEMIN_V1 is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: src/Classement/InfomaniakClient.php
 
 		-
 			message: '#^Method Ged\\Classement\\Regles\:\:emetteurIaCredible\(\) has parameter \$destinatairesConnus with no value type specified in iterable type array\.$#'
@@ -155,12 +113,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Classement/Regles.php
-
-		-
-			message: '#^Offset ''exitcode'' on array\{command\: string, pid\: int, running\: false, signaled\: bool, stopped\: bool, exitcode\: int, termsig\: int, stopsig\: int\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ingestion/Cmd4Decoupeur.php
 
 		-
 			message: '#^Method Ged\\Ingestion\\EditeurPdf\:\:appel\(\) return type has no value type specified in iterable type array\.$#'
@@ -217,18 +169,6 @@ parameters:
 			path: src/Ingestion/EditionPieces.php
 
 		-
-			message: '#^Offset ''confiance'' on array\{titre\: string\|null, type\: string\|null, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, confiance\: float, source\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ingestion/EditionPieces.php
-
-		-
-			message: '#^Offset ''source'' on array\{titre\: string\|null, type\: string\|null, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, confiance\: float, source\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ingestion/EditionPieces.php
-
-		-
 			message: '#^Method Ged\\Ingestion\\Imap\\Boite\:\:nonLus\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -267,18 +207,6 @@ parameters:
 		-
 			message: '#^Method Ged\\Ingestion\\Pilote\:\:pieceQuiProlonge\(\) has parameter \$pieces with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Ingestion/Pilote.php
-
-		-
-			message: '#^Offset ''pages'' on array\{fichier\: string, pages\: list\<int\>, texte\: string, analyse\: array\<string, mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 3
-			path: src/Ingestion/Pilote.php
-
-		-
-			message: '#^Offset ''texte'' on array\{fichier\: string, pages\: list\<int\>, texte\: string, analyse\: array\<string, mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
 			count: 1
 			path: src/Ingestion/Pilote.php
 
@@ -331,12 +259,6 @@ parameters:
 			path: src/Jonctions/DepotApi.php
 
 		-
-			message: '#^Parameter \#3 \$donnees of method Ged\\Jonctions\\DepotApi\:\:json\(\) expects array\<string, mixed\>, list\<array\<string, bool\|string\>\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Jonctions/DepotApi.php
-
-		-
 			message: '#^Method Ged\\Jonctions\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
 			identifier: missingType.generics
 			count: 1
@@ -385,18 +307,6 @@ parameters:
 			path: src/Recherche/Service.php
 
 		-
-			message: '#^Property Ged\\Recherche\\Service\:\:\$index is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-list\<non\-falsy\-string\> and array\{\} will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: src/Recherche/Service.php
-
-		-
 			message: '#^Method Ged\\Recherche\\Termes\:\:__construct\(\) has parameter \$negatifs with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -417,12 +327,6 @@ parameters:
 		-
 			message: '#^Method Ged\\Securite\\RegistreSessions\:\:ouvrir\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Securite/RegistreSessions.php
-
-		-
-			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
 			count: 1
 			path: src/Securite/RegistreSessions.php
 
@@ -515,18 +419,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Socle/DepotFichiers.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 2
-			path: src/Socle/DepotFichiers.php
-
-		-
-			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:arbreVivant\(\) should return list\<array\{nom\: string, enfants\: list\<string\>\}\> but returns list\<array\{chemin\: non\-falsy\-string, nom\: string, profondeur\: int\<0, max\>, compte\: int\<1, max\>\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Socle/EcranBibliotheque.php
 
 		-
 			message: '#^Method Ged\\Socle\\EcranBibliotheque\:\:docParId\(\) return type has no value type specified in iterable type array\.$#'
@@ -673,12 +565,6 @@ parameters:
 			path: src/Socle/ReconstructionIndex.php
 
 		-
-			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Socle/Registre.php
-
-		-
 			message: '#^Method Ged\\Socle\\Registre\:\:lire\(\) has parameter \$defaut with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -745,24 +631,6 @@ parameters:
 			path: src/Ui/ATraiter.php
 
 		-
-			message: '#^Offset ''type'' on array\{titre\: string, type\: string, emetteur\: string\|null, date\: string\|null, montant\: float\|null, etiquettes\: list\<string\>, statut\: ''valide'', classement\: array\{source\: ''humain'', confiance\: 1\.0, preuve\: ''validation humaine'', auteur\: string, le\: non\-falsy\-string\}\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ui/ATraiter.php
-
-		-
-			message: '#^Parameter \#1 \$array \(list\<array\<string, mixed\>\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: src/Ui/ATraiter.php
-
-		-
-			message: '#^Parameter \#1 \$config of class Ged\\Socle\\Nomenclature constructor expects Ged\\Config, PDO given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Ui/ATraiter.php
-
-		-
 			message: '#^Method Ged\\Ui\\Document\:\:historique\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -779,24 +647,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Ui/Ecrans.php
-
-		-
-			message: '#^Call to function is_array\(\) with array\{t\: string, hit\: bool\} will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
-			message: '#^Constant Ged\\Ui\\ExtraitsLisibles\:\:SIGNES_FORTS is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
-			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:bruitAvant\(\) has parameter \$jetons with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
 
 		-
 			message: '#^Method Ged\\Ui\\ExtraitsLisibles\:\:courtNonUsuel\(\) has parameter \$jeton with no value type specified in iterable type array\.$#'
@@ -823,40 +673,10 @@ parameters:
 			path: src/Ui/ExtraitsLisibles.php
 
 		-
-			message: '#^Offset ''hit'' on array\{t\: string, hit\: bool\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
-			message: '#^Offset ''t'' on array\{t\: string, hit\: bool\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
-			message: '#^Offset 0 on array\{list\<array\{string, int\<\-1, max\>\}\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
-			message: '#^Static method Ged\\Ui\\ExtraitsLisibles\:\:bruitAvant\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: src/Ui/ExtraitsLisibles.php
-
-		-
 			message: '#^Method Ged\\Ui\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
 			identifier: missingType.generics
 			count: 1
 			path: src/Ui/Module.php
-
-		-
-			message: '#^Match arm comparison between ''action'' and ''action'' is always true\.$#'
-			identifier: match.alwaysTrue
-			count: 1
-			path: src/Workflows/AdaptateurGraphe.php
 
 		-
 			message: '#^Method Ged\\Workflows\\AdaptateurGraphe\:\:entreeEtat\(\) return type has no value type specified in iterable type array\.$#'
@@ -867,12 +687,6 @@ parameters:
 		-
 			message: '#^Method Ged\\Workflows\\AdaptateurGraphe\:\:entreeRegle\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Workflows/AdaptateurGraphe.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: src/Workflows/AdaptateurGraphe.php
 
@@ -937,12 +751,6 @@ parameters:
 			path: src/Workflows/Circuits.php
 
 		-
-			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Workflows/Conditions.php
-
-		-
 			message: '#^Method Ged\\Workflows\\Ecran\:\:catalogue\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -959,12 +767,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Workflows/Ecran.php
-
-		-
-			message: '#^Ternary operator condition is always true\.$#'
-			identifier: ternary.alwaysTrue
-			count: 1
-			path: src/Workflows/HorlogeFigee.php
 
 		-
 			message: '#^Method Ged\\Workflows\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'

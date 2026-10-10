@@ -18,7 +18,7 @@ final class Conditions
     public const OPERATEURS = ['egal', 'different', 'contient', 'superieur', 'superieur_ou_egal', 'inferieur', 'inferieur_ou_egal', 'dans', 'non_vide'];
 
     /**
-     * @param list<array<string, mixed>> $conditions
+     * @param list<mixed> $conditions entrée tolérée mal formée : une entrée non-tableau est ignorée
      * @param array<string, mixed>       $contexte
      */
     public static function satisfaites(array $conditions, array $contexte): bool

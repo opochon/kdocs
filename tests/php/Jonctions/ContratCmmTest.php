@@ -125,7 +125,7 @@ final class ContratCmmTest extends TestCase
         $absences = $this->pdo->query('SELECT cle, absent_le FROM recherche_textes')->fetchAll(\PDO::FETCH_KEY_PAIR);
         try {
             IndexPleinTexte::depuis($config, $this->pdo)->synchroniser(null);
-            $resultat = (new Service($this->pdo, IndexPleinTexte::depuis($config, $this->pdo)))->rechercher(new Requete($this->sel));
+            $resultat = (new Service($this->pdo))->rechercher(new Requete($this->sel));
             self::assertContains($document, array_map(static fn ($t): int => $t->id, $resultat->trouvailles), 'le .eml est indexé');
         } finally {
             $restauration = $this->pdo->prepare('UPDATE recherche_textes SET absent_le = ? WHERE cle = ?');

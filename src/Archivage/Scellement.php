@@ -111,7 +111,7 @@ final class Scellement
      */
     public static function parcourir(string $racine): array
     {
-        $trouves = self::descendre($racine, true);
+        $trouves = self::descendre($racine);
         sort($trouves);
 
         return $trouves;

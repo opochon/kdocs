@@ -21,7 +21,6 @@ use Ged\Config;
 final class InfomaniakClient implements ClientIa
 {
     private const CHEMIN_V2 = 'https://api.infomaniak.com/2/ai/%s/openai/v1/chat/completions';
-    private const CHEMIN_V1 = 'https://api.infomaniak.com/1/ai/%s/openai/chat/completions';
     private const DELAI_DEFAUT = 20;
     private const MODELE_DEFAUT = 'google/gemma-4-31B-it';
 

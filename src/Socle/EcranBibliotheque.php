@@ -6,7 +6,6 @@ namespace Ged\Socle;
 
 use Ged\Base;
 use Ged\Config;
-use Ged\Recherche\IndexPleinTexte;
 use Ged\Recherche\Requete as RequeteRecherche;
 use Ged\Recherche\Service as ServiceRecherche;
 use PDO;
@@ -39,7 +38,6 @@ final class EcranBibliotheque
     private const PREFIXE_CHEMIN = 700;
 
     private readonly PDO $pdo;
-    private readonly Config $config;
     private readonly Fonds $fonds;
     private readonly Vues $vues;
     private readonly Champs $champs;
@@ -51,7 +49,6 @@ final class EcranBibliotheque
 
     public function __construct(Config $config)
     {
-        $this->config = $config;
         $this->pdo = Base::pdo($config);
         $this->fonds = new Fonds($config);
         $this->vues = new Vues($config);
@@ -310,7 +307,7 @@ final class EcranBibliotheque
         if (isset($this->idsRecherche[$idVue])) {
             return $this->idsRecherche[$idVue];
         }
-        $moteur = new ServiceRecherche($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo));
+        $moteur = new ServiceRecherche($this->pdo);
         $resultat = $moteur->rechercher(RequeteRecherche::depuisParametres($this->vues->criteresRecherche($vue)));
         if ($resultat->erreur !== null) {
             $this->erreursRecherche[$idVue] = 'vue Recherche impossible : étape « ' . $resultat->erreur->etape
@@ -400,7 +397,7 @@ final class EcranBibliotheque
      * l'index `k_vivant` (pas de lecture de chaque ligne du fonds). Si un chemin atteint la longueur du
      * préfixe indexé, la valeur peut être tronquée : on retombe alors sur la lecture complète, correcte.
      *
-     * @return list<array{nom:string, enfants:list<string>}>
+     * @return list<array{chemin: string, nom: string, profondeur: int, compte: int}>
      */
     private function arbreVivant(): array
     {

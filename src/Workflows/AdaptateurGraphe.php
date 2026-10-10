@@ -68,7 +68,7 @@ final class AdaptateurGraphe
             }
         }
 
-        $gabarit = isset($graphe['gabarit']) && $graphe['gabarit'] !== null && $graphe['gabarit'] !== ''
+        $gabarit = isset($graphe['gabarit']) && $graphe['gabarit'] !== ''
             ? (string) $graphe['gabarit'] : null;
         foreach ($regles as $i => $regle) {
             $regles[$i]['gabarit'] = $gabarit;
@@ -358,11 +358,12 @@ final class AdaptateurGraphe
         if ($config === []) {
             throw new ErreurWorkflow('disposition incomplète pour le nœud « ' . (string) ($entree['id'] ?? '') . ' »');
         }
+        // Première correspondance ci-dessus : `default` lève pour tout rôle inconnu, donc $role ne peut
+        // valoir que l'un des trois ici — un `default` serait du code mort.
         $type = match ($role) {
             'declencheur' => 'declencheur',
             'condition' => 'condition_' . (string) ($config['champ'] ?? ''),
             'action' => 'action_' . (string) ($config['type'] ?? ''),
-            default => (string) ($entree['type'] ?? ''),
         };
 
         return ['id' => (string) $entree['id'], 'genre' => (string) ($entree['genre'] ?? ''),

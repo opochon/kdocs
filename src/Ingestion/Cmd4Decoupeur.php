@@ -50,8 +50,8 @@ final class Cmd4Decoupeur implements Decoupeur
             usleep(100_000);
         }
         fclose($tubes[1]);
-        $code = proc_close($proc);
-        $code = $etat['exitcode'] ?? $code;
+        proc_close($proc);   // libère le processus ; le code réel vient de l'état non « running » ci-dessus
+        $code = $etat['exitcode'];
         $stderr = (string) @file_get_contents($erreurs);
         @unlink($erreurs);
 

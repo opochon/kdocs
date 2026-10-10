@@ -13,7 +13,7 @@ use PDO;
  * texte : liste et total partagent donc exactement le même périmètre.
  *
  * L'index est bâti HORS requête par les jobs (`tools/indexer-recherche.php`, `tools/tache.php indexation`) :
- * une recherche ne relit jamais le fonds. `IndexPleinTexte` reste injecté pour ne pas changer le branchement.
+ * une recherche ne relit jamais le fonds.
  *
  * Le classement final se fait en PHP sur un nombre borné de candidats, pour départager titre et corps de
  * façon lisible (pertinence = 3 × occurrence dans le titre + occurrences du corps, plafonnées).
@@ -27,7 +27,6 @@ final class Service implements Moteur
 
     public function __construct(
         private readonly PDO $pdo,
-        private readonly IndexPleinTexte $index,
         private readonly ?int $compte = null,
         private readonly bool $administrateur = false,
     ) {
@@ -191,7 +190,8 @@ final class Service implements Moteur
             $parametres['filtre_montant_max'] = $requete->montantMax;
         }
 
-        return ['sql' => $morceaux === [] ? '1 = 1' : implode(' AND ', $morceaux), 'parametres' => $parametres];
+        // `t.absent_le IS NULL` est toujours posé : $morceaux n'est jamais vide.
+        return ['sql' => implode(' AND ', $morceaux), 'parametres' => $parametres];
     }
 
     /**
