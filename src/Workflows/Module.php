@@ -86,8 +86,17 @@ final class Module
         // --- L'éditeur graphique. ---
 
         // Catalogue servi par une route déclarée : uniquement les composants que le moteur exécute.
-        $app->get('/workflows/catalogue', function (Requete $req, Reponse $rep) use ($ecran): Reponse {
-            return self::json($rep, $ecran->catalogue());
+        // Un navigateur reçoit une page lisible (même route, contenu identique) ; le designer et l'API
+        // gardent le JSON. Le contrat de la route ne change pas pour ses appelants existants.
+        $app->get('/workflows/catalogue', function (Requete $req, Reponse $rep) use ($ecran, $vue): Reponse {
+            $donnees = $ecran->catalogue();
+            if (str_contains($req->getHeaderLine('Accept'), 'text/html')) {
+                $donnees['ecran'] = 'workflows';
+
+                return $vue->rendre($rep, 'ecrans/workflows-catalogue.twig', $donnees);
+            }
+
+            return self::json($rep, $donnees);
         });
 
         // Créer un circuit vide puis l'ouvrir dans l'éditeur.

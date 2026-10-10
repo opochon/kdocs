@@ -18,6 +18,8 @@ final class Vue
     /** Compte du rendu courant, pour le badge « À traiter » du rail ; posé par la garde avant chaque rendu. */
     private ?int $compteRail = null;
     private bool $administrateurRail = false;
+    /** @var list<string> Permissions du rendu courant : le rail n'affiche que les sections autorisées. */
+    private array $permissionsRail = [];
 
     public function __construct(string $dossierGabarits, ?string $cache = null)
     {
@@ -35,15 +37,21 @@ final class Vue
         // document hors de ses dossiers (F10).
         $racine = dirname($dossierGabarits);
         $this->twig->addFunction(new TwigFunction('rail', function () use ($racine): array {
-            return Rail::depuisRacine($racine, $this->compteRail, $this->administrateurRail)->donnees();
+            return Rail::depuisRacine($racine, $this->compteRail, $this->administrateurRail, $this->permissionsRail)->donnees();
         }));
     }
 
-    /** Le compte du rendu courant : le rail (menu) filtre ses compteurs comme les listes. */
-    public function definirContexteRail(?int $compte, bool $administrateur): void
+    /**
+     * Le compte et les permissions du rendu courant : le rail (menu) filtre ses compteurs comme les
+     * listes, et ne montre la section Administration qu'aux rôles qui y ont droit.
+     *
+     * @param array<array-key, string> $permissions
+     */
+    public function definirContexteRail(?int $compte, bool $administrateur, array $permissions = []): void
     {
         $this->compteRail = $compte !== null && $compte > 0 ? $compte : null;
         $this->administrateurRail = $administrateur;
+        $this->permissionsRail = array_values(array_map('strval', $permissions));
     }
 
     /** Expose le nonce CSP courant à tous les gabarits, y compris ceux qui étendent layout.twig. */

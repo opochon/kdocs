@@ -222,3 +222,17 @@ ETAT: fini
   - la section « Composants GEDv1 non portés » est une information de développeur affichée à l'utilisateur : à déplacer dans la fiche du secteur ;
   - accents manquants (« DECLENCHEURS »).
 - Verdict : **V2-06b franchi.**
+
+## Journal lot ged-parite-masse — catalogue par le menu (10-10)
+
+- `src/Workflows/Module.php` : la route `GET /workflows/catalogue` négocie le contenu. Un NAVIGATEUR
+  (`Accept: text/html`) reçoit une page lisible (`templates/ecrans/workflows-catalogue.twig`,
+  `data-testid="ecran-workflows-catalogue"`) ; le designer et l'API gardent exactement le MÊME JSON
+  qu'avant (aucun appelant modifié). Le catalogue n'affiche que ce que le moteur exécute (« à porter »
+  reste hors écran, décision V2-06b).
+- `templates/ecrans/workflows.twig` : lien « Catalogue des composants » (`data-testid="lien-catalogue"`)
+  dans la barre d'actions à gauche sous le titre. L'écran n'avait aucun lien d'accès (constat
+  docs/lots/ged-personas.md §2).
+- Oracle : `tests/php/Workflows/ModuleTest.php::testLeCatalogueSertUnePageLisibleAUnNavigateur` (le test
+  JSON existant reste inchangé) ; parcours E2E `tests/e2e/parite-masse.spec.ts` (menu Workflows → clic
+  sur le lien → écran visible).

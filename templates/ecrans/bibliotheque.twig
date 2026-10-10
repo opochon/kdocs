@@ -75,6 +75,79 @@
     </div>
   </div>
 
+  {# Modification en masse (lot ged-parite-masse) : barre d'actions à GAUCHE sous le titre. Les cases de la
+     liste sont rattachées à ce formulaire par `form="formulaire-masse"` (HTML5), ce qui évite d'imbriquer
+     un formulaire dans le tableau et de dupliquer les filtres. #}
+  <section class="carte barre-masse" data-testid="barre-masse" aria-label="Modification en masse">
+    <form id="formulaire-masse" method="post" action="/bibliotheque/masse" data-testid="formulaire-masse">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      {# Filtres COURANTS : « tout le résultat filtré » est résolu côté serveur avec exactement ces filtres. #}
+      <input type="hidden" name="vue" value="{{ vueActive ? vueActive.id : '' }}">
+      <input type="hidden" name="dossier" value="{{ dossierActif ?? '' }}">
+      <input type="hidden" name="type" value="{{ filtres.type ?? '' }}">
+      <input type="hidden" name="emetteur" value="{{ filtres.emetteur ?? '' }}">
+      <input type="hidden" name="de" value="{{ filtres.de ?? '' }}">
+      <input type="hidden" name="a" value="{{ filtres.a ?? '' }}">
+      <input type="hidden" name="etiquette" value="{{ filtres.etiquettes|join(', ') }}">
+      <input type="hidden" name="champ_cle" value="{{ filtres.champ ? filtres.champ.cle : '' }}">
+      <input type="hidden" name="champ_op" value="{{ filtres.champ ? filtres.champ.op : '' }}">
+      <input type="hidden" name="champ_valeur" value="{{ filtres.champ ? filtres.champ.valeur : '' }}">
+      <label class="coche"><input type="checkbox" data-testid="coche-tout-page"> <span>Toute la page</span></label>
+      <label class="coche"><input type="checkbox" name="tout_resultat" value="1" data-testid="coche-tout-resultat"
+        data-total="{{ totalFiltre }}"> <span>Tout le résultat filtré ({{ totalFiltre }})</span></label>
+      <label class="champ-inline">Action
+        <select name="action" data-testid="masse-action">
+          <option value="type">Changer le type</option>
+          <option value="etiquettes_ajouter">Ajouter des étiquettes</option>
+          <option value="etiquettes_retirer">Retirer des étiquettes</option>
+          <option value="emetteur">Changer l’émetteur</option>
+          <option value="dossier">Déplacer vers un dossier</option>
+          <option value="corbeille">Mettre en corbeille</option>
+        </select>
+      </label>
+      <label class="champ-inline">Type cible
+        <select name="masse_type" data-testid="masse-type">
+          {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="champ-inline">Étiquettes
+        <input name="masse_etiquettes" data-testid="masse-etiquettes" placeholder="Urgent, 2026" size="14">
+      </label>
+      <label class="champ-inline">Émetteur
+        <input name="masse_emetteur" data-testid="masse-emetteur" placeholder="Nom de l’émetteur" size="16">
+      </label>
+      <label class="champ-inline">Dossier
+        <input name="masse_dossier" data-testid="masse-dossier" placeholder="Année/Type/Émetteur" size="18">
+      </label>
+      <button class="btn primaire" type="submit" data-testid="action-appliquer-masse">Appliquer</button>
+      <p class="muted" data-testid="masse-confirmation" data-total="{{ totalFiltre }}">Sélectionnez des documents, puis une action : le nombre sera annoncé avant d’appliquer.</p>
+    </form>
+  </section>
+
+  {% if masse %}
+  <section class="carte" data-testid="masse-bilan" aria-label="Bilan de la modification en masse">
+    <div class="volet-tete">Modification en masse — {{ masse.action }}
+      <span class="chip {{ masse.etat == 'termine' ? 'ok' : 'warn' }}" data-testid="masse-etat">{{ masse.etat == 'termine' ? 'terminé' : masse.etat }}</span></div>
+    <div class="panneau">
+      <p data-testid="masse-bilan-chiffres">Traités : <strong>{{ masse.traites }}</strong> · Refusés : <strong>{{ masse.refuses|length }}</strong> · avancement {{ masse.traite }} / {{ masse.total }}</p>
+      {% if masse.erreur %}<p class="raison" data-testid="masse-erreur">{{ masse.erreur }}</p>{% endif %}
+      {% if masse.refuses %}
+      <ul class="liste" data-testid="masse-refus">
+        {% for refus in masse.refuses %}<li class="l2">document {{ refus.id }} — {{ refus.raison }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% if masse.etat == 'en_cours' %}
+      <form method="post" action="/bibliotheque/masse/{{ masse.id }}/tranche">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn" type="submit" data-testid="masse-continuer">Poursuivre ({{ masse.traite }} / {{ masse.total }})</button>
+      </form>
+      {% else %}
+      <p class="muted" data-testid="masse-termine">Aucun document n’est supprimé : une mise en corbeille reste réversible.</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
   {% if erreur %}<p class="raison" data-testid="erreur-bibliotheque">{{ erreur }}</p>{% endif %}
 
   <div class="volets biblio">
@@ -91,6 +164,7 @@
         <div class="titre-section">Dossiers du fonds</div>
         <details class="dossiers" data-testid="bloc-dossiers" open><summary data-testid="dossiers-repli">Dossiers{% if dossierActif %} · {{ dossierActif }}{% endif %}</summary>
           <ul class="arbre" data-testid="arbre-dossiers">{% for d in arbre %}<li style="padding-left: {{ d.profondeur * 12 }}px"><a href="/bibliotheque?dossier={{ d.chemin|url_encode }}" data-testid="dossier-{{ d.chemin|replace({'/':'-'}) }}" {% if dossierActif == d.chemin %}aria-current="true"{% endif %}>{{ d.nom }} <span class="compte">{{ d.compte }}</span></a></li>{% endfor %}</ul>
+          {% if dossierDroits %}<a class="btn discret" href="{{ dossierDroits.url }}" data-testid="lien-droits-dossier">Droits du dossier{{ ic.i('fleche') }}</a>{% endif %}
         </details>
       </div>
     </aside>
@@ -98,11 +172,14 @@
     <section class="carte volet" aria-label="Documents">
       <div class="volet-corps">
         <table class="table" data-testid="liste-documents">
-          <colgroup><col><col style="width:104px"><col style="width:24%"><col style="width:86px"><col style="width:84px"></colgroup>
-          <thead><tr><th>Titre</th><th>Type</th><th>Émetteur</th><th>Date</th><th class="num">Montant</th></tr></thead>
+          <colgroup><col style="width:30px"><col><col style="width:104px"><col style="width:24%"><col style="width:86px"><col style="width:84px"></colgroup>
+          <thead><tr>
+            <th><input type="checkbox" form="formulaire-masse" data-testid="coche-tout-page-entete" aria-label="Toute la page"></th>
+            <th>Titre</th><th>Type</th><th>Émetteur</th><th>Date</th><th class="num">Montant</th></tr></thead>
           <tbody>
           {% for d in docs %}
             <tr {% if apercu and apercu.id == d.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
+              <td><input type="checkbox" form="formulaire-masse" name="documents[]" value="{{ d.id }}" data-testid="coche-doc-{{ d.id }}" aria-label="Sélectionner {{ d.titre }}"></td>
               <td><a href="{{ d.lien ?? ('/bibliotheque?doc=' ~ d.id) }}">{{ d.titre }}</a></td>
               <td>{% if d.type %}<span class="chip">{{ d.type }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{{ d.emetteur ?? '—' }}</td>
@@ -110,7 +187,7 @@
               <td class="num">{{ d.montant is null ? '—' : d.montant|number_format(2, '.', '\'') }}</td>
             </tr>
           {% else %}
-            <tr><td colspan="5" class="muted">Aucun document ne satisfait ces filtres.</td></tr>
+            <tr><td colspan="6" class="muted">Aucun document ne satisfait ces filtres.</td></tr>
           {% endfor %}
           </tbody>
         </table>

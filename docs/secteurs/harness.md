@@ -151,6 +151,19 @@ déclarées, API conforme à `docs/api/depots.yaml`), 3 bancs, 6 charge (10 util
 Décision harness : deux budgets — ouverture à froid < 2 s, ouverture courante < 1 s (test modifié en conséquence).
 Couche 5 (personas) : seule couche encore non écrite.
 
+## Journal lot ged-parite-masse (10-10)
+
+- `tools/banc/sonde-securite.php` : 2 charges CSRF défensives pour les routes du lot
+  (`POST /bibliotheque/masse` avec `action=inconnue`, `POST /bibliotheque/masse/{id}/tranche` sans tâche).
+  La sonde valide que CSRF absent/rejoué est refusé et que la charge métier laisse le fonds intact ; elle
+  reste **VERTE**. Fichier partagé signalé aussi dans `docs/secteurs/droits-securite.md`.
+- Oracle E2E `tests/e2e/parite-masse.spec.ts` (5 parcours, serveur et fonds isolés) : modification en
+  masse par l'écran (cocher, choisir, confirmer, bilan, liste, fiche), sélection « tout le résultat
+  filtré » au-delà de la page, et parcours des 4 écrans jamais visités **par le menu** (groupes, rôles,
+  partagés avec moi, catalogue des workflows). Préparation : `tests/e2e/preparer-parite-masse.php`,
+  comptes documentés dans `tests/e2e/README.md`.
+- Le contrat HTTP (`tools/banc/contrat.php`) reste VERT : les deux nouvelles routes sont déclarées et
+  refusent nommément une charge invalide (pas de 500).
 ## Journal ged-personas — couche 5 « Personas » — 10-10-2026
 
 **Fait**

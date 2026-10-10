@@ -184,3 +184,47 @@ if (champFichier instanceof HTMLInputElement) {
     });
   }
 }
+
+// Modification en masse (Bibliothèque, lot ged-parite-masse) : « toute la page » coche les lignes, et
+// la confirmation ANNONCE le nombre de documents visés AVANT d'appliquer. Sans JS, le formulaire reste
+// utilisable (le serveur compte, exécute par paquets courts et nomme les refus).
+const formulaireMasse = document.querySelector('[data-testid="formulaire-masse"]');
+if (formulaireMasse) {
+  const toutPage = [...document.querySelectorAll('[data-testid="coche-tout-page"], [data-testid="coche-tout-page-entete"]')];
+  const toutResultat = document.querySelector('[data-testid="coche-tout-resultat"]');
+  const confirmation = formulaireMasse.querySelector('[data-testid="masse-confirmation"]');
+  const action = formulaireMasse.querySelector('[data-testid="masse-action"]');
+  const cases = () => [...document.querySelectorAll('[data-testid^="coche-doc-"]')];
+  const totalFiltre = Number(toutResultat?.dataset.total ?? confirmation?.dataset.total ?? '0');
+
+  const majConfirmation = () => {
+    if (!confirmation) return;
+    const n = toutResultat?.checked ? totalFiltre : cases().filter((c) => c.checked).length;
+    const libelle = action?.selectedOptions?.[0]?.textContent?.trim() || 'cette action';
+    confirmation.textContent = n > 0
+      ? `Confirmer : appliquer « ${libelle} » à ${n} document${n > 1 ? 's' : ''}.`
+      : 'Sélectionnez des documents, puis une action : le nombre sera annoncé avant d’appliquer.';
+    confirmation.dataset.selection = String(n);
+  };
+
+  const basculerPage = (coche) => {
+    if (!coche) return;
+    for (const c of cases()) c.checked = coche.checked;
+    for (const autre of toutPage) autre.checked = coche.checked;
+    majConfirmation();
+  };
+  for (const coche of toutPage) coche.addEventListener('change', () => basculerPage(coche));
+  toutResultat?.addEventListener('change', () => {
+    if (toutResultat.checked) basculerPage({ checked: false });
+    majConfirmation();
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target instanceof Element && e.target.matches('[data-testid^="coche-doc-"]')) {
+      if (!e.target.checked) for (const coche of toutPage) coche.checked = false;
+      majConfirmation();
+    }
+  });
+  action?.addEventListener('change', majConfirmation);
+  majConfirmation();
+}
+

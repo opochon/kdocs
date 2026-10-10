@@ -43,24 +43,30 @@ final class EcranBibliotheque
     private readonly Vues $vues;
     private readonly Champs $champs;
     private readonly Nomenclature $nomenclature;
+    private readonly DroitsDossiers $droits;
     /** Compte réel du lecteur (null = compte synthétique des oracles : aucun périmètre ACL à poser). */
     private readonly ?int $compte;
     /** Un administrateur (permission '*') voit tout : le périmètre ACL est alors neutre. */
     private readonly bool $administrateur;
+    /** @var list<string> Permissions de la session : décide du lien « droits du dossier ». */
+    private readonly array $permissions;
     /** @var array<int, list<int>> Résultats du moteur Recherche, mémorisés pendant ce rendu. */
     private array $idsRecherche = [];
     /** @var array<int, string> Erreurs nommées du moteur Recherche, par vue. */
     private array $erreursRecherche = [];
 
-    public function __construct(Config $config, ?int $compte = null, bool $administrateur = false)
+    /** @param array<array-key, string> $permissions */
+    public function __construct(private readonly Config $config, ?int $compte = null, bool $administrateur = false, array $permissions = [])
     {
         $this->compte = $compte !== null && $compte > 0 ? $compte : null;
         $this->administrateur = $administrateur;
+        $this->permissions = array_values(array_map('strval', $permissions));
         $this->pdo = Base::pdo($config);
         $this->fonds = new Fonds($config);
         $this->vues = new Vues($config);
         $this->champs = new Champs($config);
         $this->nomenclature = new Nomenclature($config);
+        $this->droits = new DroitsDossiers($this->pdo);
     }
 
     /**
@@ -72,38 +78,15 @@ final class EcranBibliotheque
      */
     public function donnees(array $parametres, string $csrf): array
     {
-        // Vue demandée par son numéro (liens du volet) : SES filtres compilés s'appliquent.
-        $vueActive = null;
-        $candidat = trim((string) ($parametres['vue'] ?? ''));
-        if ($candidat !== '') {
-            $vueActive = ctype_digit($candidat) ? $this->vues->lire((int) $candidat) : $this->vues->parSlug($candidat);
-        }
-
-        $filtres = null;
-        $erreur = null;
-        if ($vueActive !== null) {
-            $filtres = $vueActive['filtres'];
-        } else {
-            try {
-                $filtres = $this->vues->compiler($parametres);
-            } catch (RuntimeException $e) {
-                $erreur = $e->getMessage();   // filtre incohérent : nommé à l'écran, jamais un écran muet
-            }
-        }
-        $filtres ??= $this->filtresNeutres();
-
-        // Le fonds entier n'est jamais chargé : comptage indexé, page bornée, arbre d'un passage indexé.
+        $resolution = $this->resoudre($parametres);
+        $filtres = $resolution['filtres'];
+        $where = $resolution['where'];
+        $params = $resolution['params'];
+        $ordreRecherche = $resolution['ordre'];
+        $erreur = $resolution['erreur'];
+        $dossierActif = $resolution['dossierActif'];
+        $vueActive = $resolution['vueActive'];
         $total = $this->compterVivants();
-        $dossierActif = $this->dossierActif($parametres['dossier'] ?? null);
-        [$where, $params] = $this->wherePourFiltres($filtres, $dossierActif);
-        $ordreRecherche = null;
-        if ($vueActive !== null && $this->estVueRecherche($vueActive)) {
-            $ordreRecherche = $this->idsPourVueRecherche($vueActive);
-            if (isset($this->erreursRecherche[(int) $vueActive['id']])) {
-                $erreur = $this->erreursRecherche[(int) $vueActive['id']];
-            }
-            [$where, $params] = $this->restreindreAuxIds($where, $params, $ordreRecherche);
-        }
         $totalFiltre = $this->compterAvec($where, $params);
 
         $pages = max(1, (int) ceil($totalFiltre / self::PAGE_TAILLE));
@@ -138,14 +121,134 @@ final class EcranBibliotheque
             'vueActive' => $vueActive,
             'arbre' => $this->arbreVivant(),
             'dossierActif' => $dossierActif,
+            'dossierDroits' => $this->lienDroitsDossier($dossierActif),
             'types' => $this->typesSansEchec(),
             'tousChamps' => $this->champsSansEchec(),
             'operateurs' => Champs::operateurs(),
             'filtres' => $filtres,
             'erreur' => $erreur,
             'apercu' => $this->apercu($doc),
+            'masse' => $this->etatMasse($parametres),
             'csrf' => $csrf,
         ];
+    }
+
+    /**
+     * Résolution UNIQUE des filtres d'une requête : vue active, filtres compilés, clause SQL, ordre de
+     * recherche. La liste paginée ET la sélection « tout le résultat filtré » de la modification en masse
+     * partagent ce chemin : une seule sémantique de filtre dans l'application.
+     *
+     * @param array<string, mixed> $parametres
+     * @return array{
+     *   filtres:array<string, mixed>, where:string, params:list<mixed>, ordre:?list<int>,
+     *   erreur:?string, dossierActif:?string, vueActive:array<string, mixed>|null
+     * }
+     */
+    private function resoudre(array $parametres): array
+    {
+        // Vue demandée par son numéro (liens du volet) : SES filtres compilés s'appliquent.
+        $vueActive = null;
+        $candidat = trim((string) ($parametres['vue'] ?? ''));
+        if ($candidat !== '') {
+            $vueActive = ctype_digit($candidat) ? $this->vues->lire((int) $candidat) : $this->vues->parSlug($candidat);
+        }
+
+        $filtres = null;
+        $erreur = null;
+        if ($vueActive !== null) {
+            $filtres = $vueActive['filtres'];
+        } else {
+            try {
+                $filtres = $this->vues->compiler($parametres);
+            } catch (RuntimeException $e) {
+                $erreur = $e->getMessage();   // filtre incohérent : nommé à l'écran, jamais un écran muet
+            }
+        }
+        $filtres ??= $this->filtresNeutres();
+
+        $dossierActif = $this->dossierActif($parametres['dossier'] ?? null);
+        [$where, $params] = $this->wherePourFiltres($filtres, $dossierActif);
+        $ordreRecherche = null;
+        if ($vueActive !== null && $this->estVueRecherche($vueActive)) {
+            $ordreRecherche = $this->idsPourVueRecherche($vueActive);
+            if (isset($this->erreursRecherche[(int) $vueActive['id']])) {
+                $erreur = $this->erreursRecherche[(int) $vueActive['id']];
+            }
+            [$where, $params] = $this->restreindreAuxIds($where, $params, $ordreRecherche);
+        }
+
+        return ['filtres' => $filtres, 'where' => $where, 'params' => $params, 'ordre' => $ordreRecherche,
+            'erreur' => $erreur, 'dossierActif' => $dossierActif, 'vueActive' => $vueActive];
+    }
+
+    /**
+     * Les identifiants de TOUT le résultat filtré (pas seulement la page affichée), pour le geste
+     * « tout sélectionner » de la modification en masse. Borné : la modification s'exécute ensuite par
+     * paquets courts, jamais une liste infinie en mémoire.
+     *
+     * @param array<string, mixed> $parametres même forme que `donnees()`
+     * @return list<int>
+     */
+    public function idsFiltres(array $parametres, int $limite = 5000): array
+    {
+        $resolution = $this->resoudre($parametres);
+        if ($resolution['erreur'] !== null) {
+            throw new RuntimeException($resolution['erreur']);
+        }
+        $ordre = 'd.id DESC';
+        $params = $resolution['params'];
+        $ordreRecherche = $resolution['ordre'];
+        if ($ordreRecherche !== null && $ordreRecherche !== []) {
+            $ordre = 'FIELD(d.id, ' . implode(', ', array_fill(0, count($ordreRecherche), '?')) . ')';
+            $params = [...$params, ...$ordreRecherche];
+        }
+        $requete = $this->pdo->prepare('SELECT d.id FROM documents d WHERE ' . $resolution['where']
+            . ' ORDER BY ' . $ordre . ' LIMIT ' . max(1, min(10000, $limite)));
+        $requete->execute($params);
+
+        return array_map('intval', $requete->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * L'état publié d'une modification en masse (`?masse=<id>`) : la Bibliothèque affiche le bilan de ce
+     * qui a été traité et refusé, et propose de poursuivre les paquets. Une tâche inconnue ne casse jamais
+     * l'écran : elle est simplement absente.
+     *
+     * @param array<string, mixed> $parametres
+     * @return array<string, mixed>|null
+     */
+    private function etatMasse(array $parametres): ?array
+    {
+        $id = (int) ($parametres['masse'] ?? 0);
+        if ($id < 1) {
+            return null;
+        }
+        try {
+            return (new ModificationMasse($this->config, $this->compte, $this->administrateur))->etat($id);
+        } catch (\Throwable $e) {
+            // Un état illisible ne casse jamais la Bibliothèque, mais il n'est pas avalé en silence.
+            error_log(sprintf('état modification en masse %d indisponible : %s', $id, $e->getMessage()));
+
+            return null;
+        }
+    }
+
+    /**
+     * Lien « droits du dossier » du dossier actif, montré seulement au rôle qui peut les gérer et quand
+     * le dossier existe côté ACL. Le dossier fait foi : l'identifiant est résolu par le chemin, jamais
+     * par une valeur du navigateur.
+     *
+     * @return array{dossier:int, url:string}|null
+     */
+    private function lienDroitsDossier(?string $dossier): ?array
+    {
+        if ($dossier === null || !($this->administrateur || in_array('*', $this->permissions, true)
+            || in_array('dossiers:gerer', $this->permissions, true))) {
+            return null;
+        }
+        $id = $this->droits->dossierPourChemin($dossier);
+
+        return $id === null ? null : ['dossier' => $id, 'url' => '/dossiers/' . $id . '/droits'];
     }
 
     /**

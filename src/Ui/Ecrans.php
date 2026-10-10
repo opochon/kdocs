@@ -75,9 +75,10 @@ final class Ecrans
             try {
                 $session = $req->getAttribute('ged.session');
                 $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
-                $administrateur = is_array($session) && in_array('*', (array) ($session['permissions'] ?? []), true);
-                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)), $compte, $administrateur);
-                $donnees = $ecran->donnees($req->getQueryParams(), (string) ($req->getCookieParams()['gedv2_csrf'] ?? ''));
+                $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
+                $administrateur = in_array('*', $permissions, true);
+                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)), $compte, $administrateur, $permissions);
+                $donnees = $ecran->donnees($req->getQueryParams(), self::jetonCsrf($req));
 
                 return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $donnees);
             } catch (\PDOException) {

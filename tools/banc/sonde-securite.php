@@ -346,6 +346,9 @@ try {
         'POST /metadonnees/type' => 'action=inconnue',
         'POST /metadonnees/champ' => 'type=0&nom=',
         'POST /bibliotheque/vue' => 'nom=',
+        // Lot ged-parite-masse : action inconnue et tâche inconnue, refusées par le métier sans écrire.
+        'POST /bibliotheque/masse' => 'documents=&action=inconnue',
+        'POST /bibliotheque/masse/{id:[0-9]+}/tranche' => '',
         'POST /documents/champ' => 'doc=0',
         // Nouvelle version V2-11 : fichier absent, le métier refuse sans écrire ; la sonde couvre CSRF.
         'POST /documents/{id:[0-9]+}/versions' => 'fichier=',

@@ -82,6 +82,10 @@ final class DroitsRoutes
         'POST /metadonnees/type' => 'application:administrer',
         'POST /metadonnees/champ' => 'application:administrer',
         'POST /bibliotheque/vue' => 'documents:lire',
+        // Lot ged-parite-masse : modification en masse. La permission globale est vérifiée ici ; le
+        // niveau `modifier` sur CHAQUE dossier est vérifié par le service, document par document.
+        'POST /bibliotheque/masse' => 'documents:modifier',
+        'POST /bibliotheque/masse/{id:[0-9]+}/tranche' => 'documents:modifier',
         'POST /documents/champ' => 'documents:traiter',
         // API d'entrée sous jeton d'application (secteur Jonctions) : pas de session, donc « publique »
         // au sens de la garde ; la porte réelle est le jeton vérifié par le secteur (V2-08a, signalé).
@@ -162,6 +166,10 @@ final class DroitsRoutes
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
         if (strtoupper($methode) === 'POST') {
+            // Tranche d'une modification en masse (lot ged-parite-masse).
+            if (preg_match('#^/bibliotheque/masse/[0-9]+/tranche$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /bibliotheque/masse/{id:[0-9]+}/tranche'];
+            }
             if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /dossiers/{id:[0-9]+}/droits'];
             }

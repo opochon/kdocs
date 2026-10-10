@@ -68,6 +68,23 @@ final class ModuleTest extends TestCase
         self::assertNotContains('process_ocr', array_column($donnees['catalogue']['conditions'], 'type'));
     }
 
+    /**
+     * Lot ged-parite-masse : la MÊME route rend une page lisible à un navigateur (l'écran « catalogue »
+     * n'avait aucun parcours), tout en gardant le JSON pour le designer et l'API.
+     */
+    public function testLeCatalogueSertUnePageLisibleAUnNavigateur(): void
+    {
+        $requete = (new ServerRequestFactory())->createServerRequest('GET', '/workflows/catalogue')
+            ->withHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
+        $reponse = Kernel::creer(dirname(__DIR__, 3))->handle($requete);
+        $html = (string) $reponse->getBody();
+
+        self::assertSame(200, $reponse->getStatusCode());
+        self::assertStringContainsString('data-testid="ecran-workflows-catalogue"', $html);
+        self::assertStringContainsString('Déclencheurs', $html);
+        self::assertStringContainsString('data-testid="catalogue-', $html);
+    }
+
     public function testGabaritParRoutePuisEcranListe(): void
     {
         [$code] = $this->requete('POST', '/workflows/gabarits/' . Gabarits::FACTURE_A_SEUIL);

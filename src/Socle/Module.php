@@ -45,6 +45,51 @@ final class Module
             }
         });
 
+        // Modification en masse (lot ged-parite-masse) : la sélection vient de l'écran (cases cochées ou
+        // « tout le résultat filtré »). Chaque document passe ensuite par le service d'édition UNITAIRE ;
+        // l'ACL est vérifiée par document et le travail s'exécute par paquets courts et reprenables. Le
+        // premier paquet part sans attendre un second clic ; le reste avance à la demande, par tranche.
+        $app->post('/bibliotheque/masse', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $session = $req->getAttribute('ged.session');
+            $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+            $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
+            $administrateur = in_array('*', $permissions, true);
+            $action = (string) ($corps['action'] ?? '');
+            $valeur = match ($action) {
+                'type' => $corps['masse_type'] ?? null,
+                'emetteur' => $corps['masse_emetteur'] ?? null,
+                'dossier' => $corps['masse_dossier'] ?? null,
+                'etiquettes_ajouter', 'etiquettes_retirer' => $corps['masse_etiquettes'] ?? null,
+                default => null,
+            };
+            try {
+                $ecran = new EcranBibliotheque($config, $compte, $administrateur, $permissions);
+                $ids = (string) ($corps['tout_resultat'] ?? '') === '1'
+                    ? $ecran->idsFiltres($corps)
+                    : (array) ($corps['documents'] ?? []);
+                $service = new ModificationMasse($config, $compte, $administrateur);
+                $job = $service->lancer($ids, ['action' => $action, 'valeur' => $valeur], self::auteur($req));
+                $etat = $service->avancer((int) $job['id'], ModificationMasse::LOT_DEFAUT);
+
+                return $rep->withHeader('Location', '/bibliotheque?masse=' . (int) $etat['id'])->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /bibliotheque/masse', $e->getMessage());
+            }
+        });
+
+        // Tranche suivante d'une modification en masse : l'état vit dans le fonds, la tâche reste donc
+        // reprenable même servie par un autre processus. Aucune tranche ne dépasse « LOT_MAX ».
+        $app->post('/bibliotheque/masse/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            try {
+                $etat = (new ModificationMasse($config))->avancer((int) $args['id'], ModificationMasse::LOT_DEFAUT);
+
+                return $rep->withHeader('Location', '/bibliotheque?masse=' . (int) $etat['id'])->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /bibliotheque/masse/{id}/tranche', $e->getMessage());
+            }
+        });
+
         // Les vues de Recherche vivent dans le même `.ged/vues.json` et se voient ensuite dans le rail Bibliothèque.
         $app->post('/recherche/vue', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
             $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];

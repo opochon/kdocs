@@ -13,6 +13,18 @@ admin — la voie de l'installateur) : `recette-droits@gedv2.test` / `MotDePasse
 l'aperçu d'un document réellement ingéré par le Pilote, ce qui exige que le document rangé ait son
 dossier de droits. Aucune donnée réelle : les deux comptes sont fictifs et vivent dans `gedv2_test`.
 
+## Comptes réels du lot ged-parite-masse
+
+`tests/e2e/parite-masse.spec.ts` crée lui aussi ses comptes RÉELS (mot de passe haché) sur son propre
+fonds `var/oracles/parite-masse/documents` :
+
+- `parite-manager@gedv2.test` / `MotDePasse-Masse-2026!` — rôle Manager, dossier « Modifiable » en
+  lecture + dépôt + modification, dossier « Lecture » en lecture seule ;
+- `parite-admin@gedv2.test` / `MotDePasse-Masse-Admin-2026!` — rôle Administrateur, pour les écrans
+  d'administration atteints par le menu.
+
+Aucune donnée réelle, aucun nom de client.
+
 ## Comptes réels de la couche 5 (Personas)
 
 `tests/e2e/personas/` joue six personas (fiduciaire, secrétaire, comptable, administrateur, auditeur,

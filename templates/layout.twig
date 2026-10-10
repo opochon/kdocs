@@ -11,18 +11,12 @@
 </head>
 <body>
 <div class="app">
-  {# Une seule source d'entrées de menu. Le compteur et les vues viennent du rail réel (Ged\Ui\Rail). #}
+  {# Une seule source d'entrées de menu : `rail()` (Ged\Ui\Rail) porte les entrées principales, les vues
+     réelles, le compteur et la section Administration (visible seulement aux rôles qui y ont droit). #}
   {% set rail = rail() %}
-  {% set menu = [
-    {id: 'a-traiter', libelle: 'À traiter', icone: 'inbox', url: '/a-traiter', compte: rail.compte_a_traiter},
-    {id: 'bibliotheque', libelle: 'Bibliothèque', icone: 'biblio', url: '/bibliotheque', compte: null},
-    {id: 'recherche', libelle: 'Recherche', icone: 'loupe', url: '/recherche', compte: null},
-    {id: 'archives', libelle: 'Archives', icone: 'versions', url: '/archives', compte: null},
-    {id: 'workflows', libelle: 'Workflows', icone: 'flux', url: '/workflows', compte: null},
-  ] %}
   <nav class="rail" aria-label="Navigation principale" data-testid="menu">
     <div class="marque"><i>G</i>GED</div>
-    {% for m in menu %}
+    {% for m in rail.principales %}
       <a href="{{ m.url }}" data-testid="menu-{{ m.id }}" {% if ecran == m.id %}aria-current="page"{% endif %}>
         {{ ic.i(m.icone) }}{{ m.libelle }}{% if m.compte %}<span class="compte">{{ m.compte }}</span>{% endif %}
       </a>
@@ -33,6 +27,13 @@
     <a href="/bibliotheque?vue={{ v.id }}" data-testid="menu-vue-{{ v.slug ?: v.id }}">{{ ic.i('vue') }}{{ v.nom }}</a>
     {% else %}
     <span class="muted" style="padding:7px 10px" data-testid="menu-vues-vide">Aucune vue enregistrée</span>
+    {% endfor %}
+    {% for section in rail.sections %}
+    <div class="sep"></div>
+    <div class="titre-section" data-testid="menu-section-{{ section.titre|lower|replace({' ': '-'}) }}">{{ section.titre }}</div>
+    {% for m in section.entrees %}
+    <a href="{{ m.url }}" data-testid="menu-{{ m.id }}" {% if ecran == m.id %}aria-current="page"{% endif %}>{{ ic.i(m.icone) }}{{ m.libelle }}</a>
+    {% endfor %}
     {% endfor %}
     <div class="bas">
       <a href="/application" data-testid="menu-application" {% if ecran == 'application' %}aria-current="page"{% endif %}>{{ ic.i('reglages') }}Application</a>
