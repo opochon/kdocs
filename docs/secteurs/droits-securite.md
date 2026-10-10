@@ -434,3 +434,37 @@ Harness complet rejoué sur la machine 2 (base dédiée) au commit e037f8e, 21:1
 - Relu sur la copie du juge après fusion de v2 (journaux en conflit : les deux côtés gardés) : PHPStan niveau 6 sans erreur, PHPUnit 479 tests / 2758 assertions vert ; harness de l'agent : écrans 70/70 dont `parite-masse.spec.ts` 5/5.
 - `ModificationMasse` passe chaque document par le service unitaire (`mettreAJour`, `miseALaCorbeille` : zéro suppression), par paquets bornés et reprenables, avec le compte du lanceur mémorisé dans la tâche (la tranche suivante garde ses droits). Le menu a désormais une source unique (`Ui\Rail`) avec Administration et « Partagés avec moi ».
 - Défaut trouvé à la relecture, ANTÉRIEUR au lot mais amplifié par lui : `DepotFichiers::mettreAJour` recalcule le rangement depuis les métadonnées et déplace le fichier ; les droits sont vérifiés sur le dossier de départ (modifier), jamais sur le dossier d'arrivée. Changer le type ou l'émetteur peut faire entrer un document dans un dossier où le compte n'a aucun droit. Lot `ged-droits-deplacement` lancé en priorité : déposer exigé sur le dossier d'arrivée, contrôle unique dans le service.
+
+## Journal lot ged-droits-deplacement (10-10) — F10 : dépôt exigé sur le dossier d'arrivée
+
+Défaut renvoyé par le jugement de ged-parite-masse : `DepotFichiers::mettreAJour` recalcule le rangement
+depuis les métadonnées et déplace le fichier ; les droits sont vérifiés sur le dossier de DÉPART
+(`modifier`), jamais sur le dossier d'ARRIVÉE. Un manager avec `modifier` sur A pouvait faire entrer un
+document dans B (fiche/service, « À traiter », modification en masse, action de workflow) sans y avoir
+aucun droit ; la modification en masse amplifie le défaut.
+
+- Oracle d'abord : `tests/php/Securite/DeplacementDroitsTest.php` ROUGE (les 5 refus attendus ne
+  produisaient rien), puis VERT **9 tests / 82 assertions**. Il couvre le service (le chemin de la fiche),
+  la validation « À traiter » (unitaire et lot, refus compté avec sa raison), la modification en masse,
+  une action de workflow, la retouche de pages, et l'acceptation quand le manager a `deposer` sur
+  l'arrivée.
+- Fait — le contrôle vit à UN seul endroit, dans le service AVANT le déplacement :
+  `DepotFichiers::exigerDroitDeDepot()` résout le dossier d'arrivée par `DroitsDossiers::dossierPourChemin()`
+  puis `autorise($compte, $dossier, 'deposer')` (héritage du parent, refus explicite gagnant, refus par
+  défaut sans règle) ; administrateur (`*`) toujours permis ; compte nul = compte synthétique des oracles.
+  Le refus est nommé `Securite\RefusDepot` (dossier visé + niveau manquant) et, sur refus, fichier,
+  `.meta.json` et index restent intacts.
+- Le compte de l'appelant est passé explicitement : `Contrats\Depot::mettreAJour` (modification partagée
+  signalée), `Ui\ATraiter` (session → service ; le lot compte chaque refus avec sa raison),
+  `Socle\ModificationMasse`, `Workflows\Moteur`/`Ecouteur` (un événement système garde le compte nul),
+  `Ingestion\EditionPieces` (constructeur `compte`/`administrateur` ; le rangement est posé AVANT le
+  contenu, donc un refus ne remplace ni n'archive rien).
+- Tests adaptés sans affaiblissement : `DepotSimule` (double de contrat) suit la signature ;
+  `ModificationMasseTest` accorde `deposer` sur le dossier d'arrivée `Sans_date/…` (métadonnées de test
+  sans date) et nettoie ses règles par groupe.
+- Preuves : PHPUnit complet **488 tests / 2833 assertions / 1 skipped** vert ; PHPStan niveau 6
+  **0 erreur** (baseline vide) ; `composer audit` sans vulnérabilité ; `tests/e2e/droits-deplacement.spec.ts`
+  **2 parcours verts** (la masse affiche le refus pour le document concerné, puis aboutit quand le droit de
+  dépôt existe).
+- Commits : `9fd64e7` (cœur + oracles), `955dea6` (E2E), `4908fb9` (revue ECC). Tous portent
+  `Co-Authored-By: DeepCode <noreply@deepcode>`.
