@@ -428,3 +428,9 @@ ETAT: fini
 ### Fermeture V2-13 (juge, 10-10) — porte franchie
 
 Harness complet rejoué sur la machine 2 (base dédiée) au commit e037f8e, 21:10 : garde-fous, unitaire (471 tests / 2653 assertions), contrat (toutes les routes déclarées couvertes), banc (découpe 53/53, F1 de bout en bout 53/53, porte franchie), écrans 65/65 dont `droits-b6`, sécurité (aucun contournement accepté), charge (3 puis 10 utilisateurs, p95 lecture 763 ms, écriture 280 ms, 0 erreur), statique (PHPStan 0, `composer audit` propre). Seule couche rouge : personas, pas encore fusionnée à ce commit (lot ged-personas). F10 « 0 fuite » tenu sur liste, compteurs, vues, arbre, aperçu, À traiter, rail, partages, Recherche et API. V2-13 est clos.
+
+### Jugement lot ged-parite-masse (juge, 10-10) — fusionné, avec un défaut de droits renvoyé en lot
+
+- Relu sur la copie du juge après fusion de v2 (journaux en conflit : les deux côtés gardés) : PHPStan niveau 6 sans erreur, PHPUnit 479 tests / 2758 assertions vert ; harness de l'agent : écrans 70/70 dont `parite-masse.spec.ts` 5/5.
+- `ModificationMasse` passe chaque document par le service unitaire (`mettreAJour`, `miseALaCorbeille` : zéro suppression), par paquets bornés et reprenables, avec le compte du lanceur mémorisé dans la tâche (la tranche suivante garde ses droits). Le menu a désormais une source unique (`Ui\Rail`) avec Administration et « Partagés avec moi ».
+- Défaut trouvé à la relecture, ANTÉRIEUR au lot mais amplifié par lui : `DepotFichiers::mettreAJour` recalcule le rangement depuis les métadonnées et déplace le fichier ; les droits sont vérifiés sur le dossier de départ (modifier), jamais sur le dossier d'arrivée. Changer le type ou l'émetteur peut faire entrer un document dans un dossier où le compte n'a aucun droit. Lot `ged-droits-deplacement` lancé en priorité : déposer exigé sur le dossier d'arrivée, contrôle unique dans le service.
