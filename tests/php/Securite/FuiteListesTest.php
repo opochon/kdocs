@@ -167,6 +167,26 @@ final class FuiteListesTest extends TestCase
             'le filtre Type de la Recherche ne doit pas révéler un type porté par un document hors droits');
     }
 
+    public function testUnJokerDeLikeDansUnNomDeDossierNOuvrePasLeDossierVoisin(): void
+    {
+        // « _ » et « % » sont des jokers de LIKE : un droit sur « P_Q » ne doit jamais ouvrir le voisin « PZQ ».
+        [, $cheminJoker] = $this->creerDocument('P_Q');
+        [$documentVoisin, $cheminVoisin] = $this->creerDocument('PZQ');
+        $dossierJoker = (int) $this->droits->assurerDossierPourChemin($cheminJoker);
+        $this->droits->assurerDossierPourChemin($cheminVoisin);
+        $this->droits->poserRegle($dossierJoker, $this->groupe, 'lire', true);
+
+        $donnees = (new EcranBibliotheque($this->config, $this->compte))->donnees([], 'jeton');
+        $ids = array_map('intval', array_column($donnees['docs'], 'id'));
+        self::assertNotContains($documentVoisin, $ids, 'le droit sur « P_Q » ne doit pas ouvrir « PZQ » dans la liste de la Bibliothèque');
+
+        $types = \Ged\Recherche\Ecran::depuisRacine($this->config->racine(), $this->compte)->donnees([], 'jeton')['types_filtre'];
+        self::assertNotContains('Type-PZQ-' . $this->suffixe, $types, 'le droit sur « P_Q » ne doit pas révéler un type de « PZQ » dans la Recherche');
+
+        $dossierVoisin = $this->droits->dossierPourChemin($cheminVoisin);
+        self::assertNotSame($dossierJoker, $dossierVoisin, 'le dossier ACL du document voisin est le sien, jamais « P_Q »');
+        self::assertFalse($this->droits->autorise($this->compte, (int) $dossierVoisin, 'lire'), 'le contrôle unitaire refuse la lecture sur « PZQ »');
+    }
     /** @return array{0:int, 1:string} */
     private function creerDocument(string $dossier): array
     {

@@ -115,7 +115,7 @@ final class DroitsDossiers
             . '  INNER JOIN securite_groupes_comptes membre ON membre.groupe_id = droit.groupe_id' . "\n"
             . '  INNER JOIN securite_dossiers dossier ON dossier.id = droit.dossier_id' . "\n"
             . "  WHERE membre.compte_id = ?\n"
-            . "    AND ($chemin = dossier.chemin_relatif OR $chemin LIKE CONCAT(dossier.chemin_relatif, '/%'))\n"
+            . "    AND ($chemin = dossier.chemin_relatif OR LEFT($chemin, CHAR_LENGTH(dossier.chemin_relatif) + 1) = CONCAT(dossier.chemin_relatif, '/'))\n"
             . "    AND droit.action_code IN ('lire', 'deposer', 'modifier', 'gerer') AND droit.autorise = 1\n"
             . '    AND NOT EXISTS (' . "\n"
             . '      SELECT 1 FROM securite_dossiers_droits refus' . "\n"
@@ -127,7 +127,7 @@ final class DroitsDossiers
             . '      INNER JOIN securite_groupes_comptes membre_proche ON membre_proche.groupe_id = plus_proche.groupe_id' . "\n"
             . '      INNER JOIN securite_dossiers dossier_proche ON dossier_proche.id = plus_proche.dossier_id' . "\n"
             . "      WHERE membre_proche.compte_id = ?\n"
-            . "        AND ($chemin = dossier_proche.chemin_relatif OR $chemin LIKE CONCAT(dossier_proche.chemin_relatif, '/%'))\n"
+            . "        AND ($chemin = dossier_proche.chemin_relatif OR LEFT($chemin, CHAR_LENGTH(dossier_proche.chemin_relatif) + 1) = CONCAT(dossier_proche.chemin_relatif, '/'))\n"
             . "        AND (plus_proche.autorise = 1 OR plus_proche.action_code = 'lire')\n"
             . '        AND CHAR_LENGTH(dossier_proche.chemin_relatif) > CHAR_LENGTH(dossier.chemin_relatif))' . "\n"
             . ')';
@@ -139,7 +139,7 @@ final class DroitsDossiers
     public function dossierPourChemin(string $chemin): ?int
     {
         $chemin = trim(str_replace('\\', '/', $chemin), '/');
-        $stmt = $this->pdo->prepare('SELECT id FROM securite_dossiers WHERE ? = chemin_relatif OR ? LIKE CONCAT(chemin_relatif, \'/%\') '
+        $stmt = $this->pdo->prepare('SELECT id FROM securite_dossiers WHERE ? = chemin_relatif OR LEFT(?, CHAR_LENGTH(chemin_relatif) + 1) = CONCAT(chemin_relatif, \'/\') '
             . 'ORDER BY CHAR_LENGTH(chemin_relatif) DESC LIMIT 1');
         $stmt->execute([$chemin, $chemin]);
         $id = $stmt->fetchColumn();
