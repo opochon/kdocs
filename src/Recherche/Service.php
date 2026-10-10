@@ -22,8 +22,6 @@ final class Service implements Moteur
 {
     /** Candidats ramenés de la base avant reclassement ; borne mémoire et temps. */
     private const CANDIDATS_MAX = 500;
-    /** Le comptage de pertinence ne lit que le début d'un texte très long. */
-    private const PERTINENCE_MAX = 20000;
 
     public function __construct(
         private readonly PDO $pdo,
@@ -225,7 +223,7 @@ final class Service implements Moteur
                 $ligne['emetteur'] === null ? null : (string) $ligne['emetteur'],
                 $ligne['date_document'] === null ? null : substr((string) $ligne['date_document'], 0, 10),
                 $ligne['montant'] === null ? null : (float) $ligne['montant'],
-                $this->pertinence($titre, $contenu, $termesRecherches),
+                Pertinence::calculer($titre, $contenu, $termesRecherches),
                 Extraits::segments($titre, $termesRecherches),
                 Extraits::extraire($contenu, $termesRecherches),
             );
@@ -235,27 +233,6 @@ final class Service implements Moteur
             <=> [$a->pertinence, $a->date ?? '', $a->id]);
 
         return array_slice($trouvailles, 0, $limite);
-    }
-
-    /** @param list<string> $termes */
-    private function pertinence(string $titre, string $contenu, array $termes): float
-    {
-        if ($termes === []) {
-            return 0.0;
-        }
-        $titreBas = mb_strtolower($titre);
-        $corpsBas = mb_strtolower(mb_substr($contenu, 0, self::PERTINENCE_MAX));
-        $score = 0.0;
-        foreach ($termes as $terme) {
-            $terme = mb_strtolower($terme);
-            if ($terme === '') {
-                continue;
-            }
-            $score += 3.0 * min(substr_count($titreBas, $terme), 3);
-            $score += (float) min(substr_count($corpsBas, $terme), 5);
-        }
-
-        return $score;
     }
 
     /**

@@ -1,0 +1,58 @@
+{
+    "lot": "ged-semblables",
+    "description": "Documents semblables (parité Paperless « more like this ») : trois factures d'un même émetteur et une lettre sans rapport. Aucune donnée réelle, aucun nom de client.",
+    "corpus": [
+        {
+            "ref": "facture-1001",
+            "titre": "Facture F-1001 — Atelier Horizon",
+            "type": "Facture",
+            "emetteur": "Atelier Horizon SA",
+            "date": "2026-03-04",
+            "montant": 1240.00,
+            "texte": "Facture F-1001. Prestations de maintenance des postes de travail du site principal. Total TTC 1 240.00 CHF. Échéance à trente jours."
+        },
+        {
+            "ref": "facture-1002",
+            "titre": "Facture F-1002 — Atelier Horizon",
+            "type": "Facture",
+            "emetteur": "Atelier Horizon SA",
+            "date": "2026-04-08",
+            "montant": 980.00,
+            "texte": "Facture F-1002. Maintenance annuelle des postes de travail. Total TTC 980.00 CHF."
+        },
+        {
+            "ref": "facture-1003",
+            "titre": "Facture F-1003 — Atelier Horizon",
+            "type": "Facture",
+            "emetteur": "Atelier Horizon SA",
+            "date": "2026-05-12",
+            "montant": 1500.00,
+            "texte": "Facture F-1003. Remplacement de pièces et intervention corrective sur les postes de travail. Total TTC 1 500.00 CHF."
+        },
+        {
+            "ref": "lettre-commune",
+            "titre": "Convocation du conseil communal",
+            "type": "Lettre",
+            "emetteur": "Commune de Modelleville",
+            "date": "2026-02-01",
+            "montant": null,
+            "texte": "Madame, Monsieur, vous êtes conviés à la séance du conseil communal. Ordre du jour : budget communal et urbanisme. Veuillez confirmer votre présence."
+        }
+    ],
+    "cas": [
+        {
+            "source": "facture-1001",
+            "attendu": ["facture-1002", "facture-1003"],
+            "exclus": ["lettre-commune"],
+            "commentaire": "Les deux autres factures du même émetteur passent devant ; la lettre sans rapport n'entre pas dans la liste.",
+            "max_ms": 1000
+        },
+        {
+            "source": "lettre-commune",
+            "attendu": [],
+            "exclus": ["facture-1001", "facture-1002", "facture-1003"],
+            "commentaire": "La lettre ne « ressemble » à aucune facture : aucun faux voisin.",
+            "max_ms": 1000
+        }
+    ]
+}

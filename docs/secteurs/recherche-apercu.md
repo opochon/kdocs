@@ -233,3 +233,33 @@ ETAT: fini
 - Harness complet : 0, 1 (237 tests), 2, 3 (53/53, F1 franchie), 4 (32/32), 6 (p95 lecture 657 ms) et 7 verts, alors que la machine portait d'autres chantiers.
 - Verdict : **PERF-2 franchi.**
 - Incident signalé par l'agent : un `rm -rf` sur son worktree temporaire a suivi une jonction et vidé `node_modules` de l'arbre principal ; restauré par `npm ci`. Contrôle du juge : `vendor` intact (2 693 fichiers, autoload OK), aucun fichier suivi supprimé. Règle pour tous : jamais de jonction vers l'arbre principal dans un worktree, et jamais de `rm -rf` qui traverse une jonction.
+
+## Journal ged-semblables (10-10-2026, DeepCode) — vrais documents semblables
+
+Constat du juge : le lien « Documents semblables » ouvrait la fiche (`/bibliotheque?doc=<id>`), pas une
+liste de voisins.
+
+**Fait**
+- `src/Recherche/Semblables.php` : depuis un document de l'index `recherche_textes`, extrait ses termes
+  significatifs (`TermesSemblables`, titre pondéré, longueur ≥ 4, mots vides filtrés) et interroge le MÊME
+  index FULLTEXT (`ft_recherche`) en BOOLEAN MODE ; document source exclu par sa clé ; émetteur en bonus,
+  petit bonus de type ; partage minimal de deux termes. Les droits de lecture sont posés DANS la requête
+  (`DroitsDossiers::predicatLecture`) pour la source et les candidats.
+- `TermesSemblables`, `Pertinence` (barème extrait de `Service`, un seul barème partagé).
+- Écran : `Ged\Recherche\Ecran::donnees()` accepte `?semblable=<id>` et rend la liste dans le gabarit de
+  résultats existant ; aucune route nouvelle.
+
+**Preuves**
+- Oracle d'abord : `tests/oracles/recherche/semblables.json` + `SemblablesTest` vus ROUGE (classe absente),
+  puis vert. PHPUnit : 479 tests / 2 691 assertions verts (dont 4 moteur, 3 écran, 1 volume).
+- Budget : 10 000 documents en 88–115 ms (seuil 1 s) ; écran `/recherche?semblable=206` 227 ms
+  (projet `budgets`).
+- E2E : clic réel sur `semblables-206` → liste sans le document source, `resultat-208` visible.
+- Harness `-SansBanc` commit `163f3c4`, 702 s : toutes les couches vertes sauf `3-banc` sautée.
+
+**Demande / modification hors secteur (signalée)**
+- **Interface** : `templates/ecrans/recherche.twig` — le lien pointe vers la liste et un en-tête nomme le
+  document source. Modification minimale demandée par la mission (constat du juge) ; mêmes classes et
+  `data-testid`, repli maquette conservé (variables absentes gérées par `is defined`).
+
+ETAT: fini

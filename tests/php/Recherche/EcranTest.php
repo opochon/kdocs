@@ -75,6 +75,43 @@ final class EcranTest extends TestCase
         self::assertStringContainsString('&lt;script&gt;', $html);
     }
 
+    public function testLeLienSemblablesMeneALaListeEtPasALaFiche(): void
+    {
+        $donnees = (new Ecran($this->moteur(), $this->pdo))->donnees(['q' => 'maintenance']);
+        $html = $this->rendre($donnees);
+        $id = (int) $donnees['resultats'][0]['id'];
+
+        self::assertStringContainsString('href="/recherche?semblable=' . $id . '"', $html, 'le lien mène à la liste de semblables');
+        self::assertStringNotContainsString('href="/bibliotheque?doc=' . $id . '"', $html, 'le lien n’ouvre plus la simple fiche');
+    }
+
+    public function testLesSemblablesSeRendentDansLaListeSansLeDocumentSource(): void
+    {
+        $deposes = $this->deposerCorpus($this->corpusOracle());
+        $id = (int) $deposes['contrat-maintenance']['id'];
+        $donnees = (new Ecran(new MoteurEnPanne(), $this->pdo))->donnees(['semblable' => (string) $id]);
+        $html = $this->rendre($donnees);
+
+        self::assertNull($donnees['erreur']);
+        self::assertSame($id, $donnees['semblable']['id']);
+        self::assertSame('semblable', $donnees['mode']);
+        self::assertStringContainsString('data-testid="recherche-semblables"', $html);
+        self::assertStringContainsString('data-testid="semblables-source"', $html);
+        self::assertStringNotContainsString('data-testid="resultat-' . $id . '"', $html, 'le document source est exclu');
+        self::assertStringNotContainsString('data-testid="filtres"', $html, 'les filtres de recherche n’ont pas de sens ici');
+    }
+
+    public function testUneSourceInconnueSeDitIntrouvableSansErreurDeBase(): void
+    {
+        $donnees = (new Ecran($this->moteur(), $this->pdo))->donnees(['semblable' => '999999']);
+        $html = $this->rendre($donnees);
+
+        self::assertNull($donnees['erreur']);
+        self::assertNull($donnees['semblable']);
+        self::assertStringContainsString('data-testid="semblables-introuvable"', $html);
+        self::assertStringNotContainsString('data-testid="recherche-erreur"', $html);
+    }
+
     /** @param array<string, mixed> $donnees */
     private function rendre(array $donnees): string
     {

@@ -51,5 +51,19 @@ test('recherche : une absence se nomme, jamais un écran muet', async ({ page })
   await expect(page.getByTestId('recherche-erreur')).toHaveCount(0);
 });
 
+test('recherche : le clic sur « Documents semblables » ouvre une vraie liste de semblables', async ({ page }) => {
+  await page.goto('/recherche?q=facture');
+  await expect(page.getByTestId('resultat-206')).toBeVisible();
+
+  await page.getByTestId('semblables-206').click();
+
+  // L'URL de la liste, l'en-tête qui nomme le document source, et une liste SANS le document lui-même.
+  await expect(page).toHaveURL(/\/recherche\?semblable=206/);
+  await expect(page.getByTestId('recherche-semblables')).toBeVisible();
+  await expect(page.getByTestId('recherche-semblables')).toContainText('Facture PS-2026-102');
+  await expect(page.getByTestId('resultat-208')).toBeVisible();
+  await expect(page.getByTestId('resultat-206')).toHaveCount(0);
+});
+
 // Le budget « écran < 1 s » vit dans `budget-recherche.spec.ts` (projet « budgets », serveur dédié) :
 // mesuré dans la file du serveur mono-processus partagé par les workers, il tombait au hasard (PERF-2).

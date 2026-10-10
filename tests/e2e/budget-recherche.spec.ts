@@ -27,3 +27,14 @@ test('recherche : l’écran répond en moins d’une seconde', async ({ page })
 
   expect(mesure, 'écran de recherche sous 1 s').toBeLessThan(1000);
 });
+
+test('semblables : l’écran répond en moins d’une seconde', async ({ page }) => {
+  const debut = Date.now();
+  await page.goto('/recherche?semblable=206');
+  await expect(page.getByTestId('resultat-208')).toBeVisible();
+  const mesure = Date.now() - debut;
+
+  test.info().annotations.push({ type: 'budget', description: `écran /recherche?semblable : ${mesure} ms (< 1 000)` });
+
+  expect(mesure, 'écran de semblables sous 1 s').toBeLessThan(1000);
+});
