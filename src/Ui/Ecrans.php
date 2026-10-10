@@ -70,7 +70,10 @@ final class Ecrans
         // pour /recherche et /workflows ; repli de maquette si la base n'est pas encore là.
         if (class_exists(\Ged\Socle\EcranBibliotheque::class)) {
             try {
-                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)));
+                $session = $req->getAttribute('ged.session');
+                $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
+                $administrateur = is_array($session) && in_array('*', (array) ($session['permissions'] ?? []), true);
+                $ecran = new \Ged\Socle\EcranBibliotheque(new \Ged\Config(dirname(__DIR__, 2)), $compte, $administrateur);
                 $donnees = $ecran->donnees($req->getQueryParams(), (string) ($req->getCookieParams()['gedv2_csrf'] ?? ''));
 
                 return $this->vue->rendre($rep, 'ecrans/bibliotheque.twig', $donnees);

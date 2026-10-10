@@ -95,6 +95,46 @@ final class DroitsDossiers
         return true;
     }
 
+    /**
+     * Fragment SQL (EXISTS) qui applique la MÊME décision que `autorise($compte, $dossier, 'lire')` :
+     * le dossier ACL le plus précis du compte décide, un refus explicite de lecture l’emporte, et sans
+     * règle le refus est par défaut (héritage du parent compris). À joindre DANS la requête d’une liste
+     * (V2-13, point B3), jamais un filtrage après coup : l’appelant qualifie la colonne de chemin du
+     * document par `$aliasDocument` (alias interne au code, jamais une entrée utilisateur).
+     *
+     * Le fragment porte TROIS marqueurs positionnels, tous à lier à l’identifiant du compte, dans cet
+     * ordre : la règle candidate, le refus explicite, le dossier plus proche.
+     *
+     * @return array{0:string, 1:list<int>} fragment SQL et les trois valeurs à lier
+     */
+    public static function predicatLecture(string $aliasDocument, int $compte): array
+    {
+        $chemin = $aliasDocument . '.chemin_relatif';
+        $sql = 'EXISTS (' . "\n"
+            . '  SELECT 1 FROM securite_dossiers_droits droit' . "\n"
+            . '  INNER JOIN securite_groupes_comptes membre ON membre.groupe_id = droit.groupe_id' . "\n"
+            . '  INNER JOIN securite_dossiers dossier ON dossier.id = droit.dossier_id' . "\n"
+            . "  WHERE membre.compte_id = ?\n"
+            . "    AND ($chemin = dossier.chemin_relatif OR $chemin LIKE CONCAT(dossier.chemin_relatif, '/%'))\n"
+            . "    AND droit.action_code IN ('lire', 'deposer', 'modifier', 'gerer') AND droit.autorise = 1\n"
+            . '    AND NOT EXISTS (' . "\n"
+            . '      SELECT 1 FROM securite_dossiers_droits refus' . "\n"
+            . '      INNER JOIN securite_groupes_comptes membre_refus ON membre_refus.groupe_id = refus.groupe_id' . "\n"
+            . "      WHERE refus.dossier_id = droit.dossier_id AND membre_refus.compte_id = ?\n"
+            . "        AND refus.action_code = 'lire' AND refus.autorise = 0)\n"
+            . '    AND NOT EXISTS (' . "\n"
+            . '      SELECT 1 FROM securite_dossiers_droits plus_proche' . "\n"
+            . '      INNER JOIN securite_groupes_comptes membre_proche ON membre_proche.groupe_id = plus_proche.groupe_id' . "\n"
+            . '      INNER JOIN securite_dossiers dossier_proche ON dossier_proche.id = plus_proche.dossier_id' . "\n"
+            . "      WHERE membre_proche.compte_id = ?\n"
+            . "        AND ($chemin = dossier_proche.chemin_relatif OR $chemin LIKE CONCAT(dossier_proche.chemin_relatif, '/%'))\n"
+            . "        AND (plus_proche.autorise = 1 OR plus_proche.action_code = 'lire')\n"
+            . '        AND CHAR_LENGTH(dossier_proche.chemin_relatif) > CHAR_LENGTH(dossier.chemin_relatif))' . "\n"
+            . ')';
+
+        return [$sql, [$compte, $compte, $compte]];
+    }
+
     /** Retourne le dossier ACL le plus précis couvrant le chemin d’un document, ou null. */
     public function dossierPourChemin(string $chemin): ?int
     {
