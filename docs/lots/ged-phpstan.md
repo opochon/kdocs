@@ -104,6 +104,13 @@ Aucun changement de comportement ; un `array_values()` devenu neutre retiré.
 
 Mesure : baseline **76 → 56 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Classement (niveau 6)
+
+`ClasseurGed::dateFacture`, `Regles` (lireEmetteur, emetteurIaCredible, estDestinataire :
+`list<string>`). Aucun changement de comportement.
+
+Mesure : baseline **56 → 52 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),

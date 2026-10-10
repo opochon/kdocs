@@ -91,30 +91,6 @@ parameters:
 			path: src/Archivage/Scelleur.php
 
 		-
-			message: '#^Method Ged\\Classement\\ClasseurGed\:\:dateFacture\(\) has parameter \$analyse with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Classement/ClasseurGed.php
-
-		-
-			message: '#^Method Ged\\Classement\\Regles\:\:emetteurIaCredible\(\) has parameter \$destinatairesConnus with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Classement/Regles.php
-
-		-
-			message: '#^Method Ged\\Classement\\Regles\:\:estDestinataire\(\) has parameter \$destinataires with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Classement/Regles.php
-
-		-
-			message: '#^Method Ged\\Classement\\Regles\:\:lireEmetteur\(\) has parameter \$destinatairesConnus with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Classement/Regles.php
-
-		-
 			message: '#^Method Ged\\Jonctions\\AppairageApi\:\:champs\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

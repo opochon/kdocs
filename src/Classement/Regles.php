@@ -166,6 +166,8 @@ final class Regles
      * L'émetteur lu dans les zones textuelles de la pièce : titre puis lignes. Une ligne ne suffit pas
      * si elle n'a pas les marqueurs d'une organisation. Cela laisse remonter un logo/pied de page lu par
      * OCR, mais écarte « KKK KK », « Adresse principal: » et les phrases de corps.
+     *
+     * @param list<string> $destinatairesConnus
      */
     public static function lireEmetteur(string $texte, string $proprietaire = '', array $destinatairesConnus = []): ?string
     {
@@ -267,7 +269,11 @@ final class Regles
         return $a ?? $b;
     }
 
-    /** Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation. */
+    /**
+     * Une proposition IA est crédible seulement si son nom est lisible et ressemble à une organisation.
+     *
+     * @param list<string> $destinatairesConnus
+     */
     public static function emetteurIaCredible(string $texte, ?string $nom, string $proprietaire = '', array $destinatairesConnus = []): ?string
     {
         if ($nom === null) {
@@ -281,7 +287,11 @@ final class Regles
             && self::candidatEmetteur($candidat, $proprietaire) && self::nomSeLit($texte, $candidat) ? $candidat : null;
     }
 
-    /** Destinataire connu : OCR toléré à deux lettres, préfixes postaux sans valeur métier ignorés. */
+    /**
+     * Destinataire connu : OCR toléré à deux lettres, préfixes postaux sans valeur métier ignorés.
+     *
+     * @param list<string> $destinataires
+     */
     private static function estDestinataire(string $candidat, array $destinataires): bool
     {
         $normalise = static function (string $nom): string {

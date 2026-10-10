@@ -222,7 +222,11 @@ final class ClasseurGed implements Classeur
         ];
     }
 
-    /** Date de facture lue par le moteur d'ingestion (invoice_date, due_date). @param array<string, mixed> $analyse */
+    /**
+     * Date de facture lue par le moteur d'ingestion (invoice_date, due_date).
+     *
+     * @param array<string, mixed> $analyse
+     */
     private function dateFacture(array $analyse): ?string
     {
         $facture = $analyse['facture'] ?? [];
