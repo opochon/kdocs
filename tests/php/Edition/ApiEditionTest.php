@@ -222,8 +222,10 @@ final class ApiEditionTest extends TestCase
         self::assertCount(1, $copies);
         self::assertSame($this->poste, $copies[0]['appareil']);
         self::assertSame($copieV1, file_get_contents($secours->racine() . '/' . $this->document . '/' . $copies[0]['id'] . '/' . $copies[0]['fichier']));
-        self::assertStringStartsWith($this->secours, $secours->racine(), 'l’espace de secours est hors du fonds');
-        self::assertStringNotContainsString($this->fonds, $secours->racine());
+        // Séparateurs normalisés : sys_get_temp_dir() rend des « \ » sous Windows, la racine configurée des « / ».
+        $racineSecours = str_replace('\\', '/', $secours->racine());
+        self::assertStringStartsWith(str_replace('\\', '/', $this->secours), $racineSecours, 'l’espace de secours est hors du fonds');
+        self::assertStringNotContainsString(str_replace('\\', '/', $this->fonds), $racineSecours);
 
         // Une seconde copie du MÊME appareil remplace la précédente : une seule par document et par appareil.
         $copieV2 = "secours-plus-recent-$this->sel";
