@@ -40,12 +40,12 @@ trouvés / total, temps médian) alimente le registre.
 
 | Persona | Rôle | Gestes trouvés / total | Temps médian |
 | --- | --- | --- | --- |
-| fiduciaire | manager (Dépôt) | 4 / 4 | 515 ms |
-| secretaire | manager (Modification) | 3 / 3 | 584 ms |
-| comptable | manager (Gestion) | 4 / 4 | 564 ms |
-| administrateur | administrateur | 4 / 4 | 724 ms |
-| auditeur | manager (Lecture) | 4 / 4 | 428 ms |
-| debutant | manager (Dépôt) | 4 / 4 | 399 ms |
+| fiduciaire | manager (Dépôt) | 4 / 4 | 465 ms |
+| secretaire | manager (Modification) | 3 / 3 | 612 ms |
+| comptable | manager (Gestion) | 4 / 4 | 518 ms |
+| administrateur | administrateur | 4 / 4 | 720 ms |
+| auditeur | manager (Lecture) | 4 / 4 | 581 ms |
+| debutant | manager (Dépôt) | 4 / 4 | 436 ms |
 
 Couverture des fonctions : F1 (bilan / repérage), F2 (dépôt écran), F3 (connecteurs), F4 (validation à la
 main), F5 (recherche + filtres), F6 (fiche + version / téléchargement), F7 (arbre des dossiers), F8
@@ -58,17 +58,17 @@ archives), F12 (réglages et reconstruction de l'index).
 `recette/registre.json`, commit de base `6cc5b60`) :
 
 - **VERT** : `0-garde-fous`, `1-unitaire` (462 tests, 2620 assertions, 1 skip), `2-contrat`, `6-charge`
-  (p95 lecture 743 ms, p95 écriture 242 ms, 0 erreur, 0 collision, ingestion finie), `7-securite`,
+  (p95 lecture 769 ms, p95 écriture 238 ms, 0 erreur, 0 collision, ingestion finie), `7-securite`,
   `8-statique` (PHPStan niveau 6 : 0 erreur hors baseline, baseline vide ; `composer audit` : aucune
   vulnérabilité).
-- **VERT — `5-personas`** : administrateur 4/4 (médiane 663 ms) | auditeur 4/4 (médiane 627 ms) |
-  comptable 4/4 (médiane 685 ms) | debutant 4/4 (médiane 474 ms) | fiduciaire 4/4 (médiane 560 ms) |
-  secretaire 3/3 (médiane 597 ms).
+- **VERT — `5-personas`** : administrateur 4/4 (médiane 720 ms) | auditeur 4/4 (médiane 581 ms) |
+  comptable 4/4 (médiane 518 ms) | debutant 4/4 (médiane 436 ms) | fiduciaire 4/4 (médiane 465 ms) |
+  secretaire 3/3 (médiane 612 ms).
 - **ROUGE** `3-banc` : sautée par `-SansBanc` (rouge attendu).
-- **ROUGE** `4-ecrans` : un échec **pré-existant sur la base de ce lot**, `tests/e2e/droits-b6.spec.ts`
-  (« ligne-B » de la Bibliothèque visible pour un compte de rôle Utilisateur, ligne 34). Le filtrage des
-  listes par ACL est apporté par la branche `ged-fuite-bibliotheque`/`v2` ; il est VERT sur `v2`. Ce lot
-  ne touche aucun fichier de `src/`. Rejoué seul : 1 échec stable (`droits-b6`), 64 parcours verts.
+- **ROUGE** `4-ecrans` : **1 échec / 64 parcours verts**, échec **pré-existant sur la base de ce lot**,
+  `tests/e2e/droits-b6.spec.ts` (« ligne-B » de la Bibliothèque visible pour un compte de rôle
+  Utilisateur, ligne 34). Le filtrage des listes par ACL est apporté par la branche
+  `ged-fuite-bibliotheque`/`v2` ; il est VERT sur `v2`. Ce lot ne touche aucun fichier de `src/`.
 
 ### Note d'environnement (importante pour rejouer ce lot)
 

@@ -169,9 +169,9 @@ Couche 5 (personas) : seule couche encore non écrite.
   rejoué en `--project=parcours --project=budgets` (modifications minimales signalées).
 
 **Mesures** — 6 personas, 23 gestes, **23/23 trouvés** (couverture F1–F12). Couche 5 **VERTE** au rejeu
-complet `harness.ps1 -SansBanc` : administrateur 4/4 (médiane 663 ms) | auditeur 4/4 (627) | comptable
-4/4 (685) | debutant 4/4 (474) | fiduciaire 4/4 (560) | secretaire 3/3 (597). Le reste du harness est
-vert ; `3-banc` est sautée (`-SansBanc`).
+complet `harness.ps1 -SansBanc` : administrateur 4/4 (médiane 720 ms) | auditeur 4/4 (581) | comptable
+4/4 (518) | debutant 4/4 (436) | fiduciaire 4/4 (465) | secretaire 3/3 (612). Le reste du harness est
+vert (`4-ecrans` : 1 échec pré-existant `droits-b6`, corrigé sur `v2` ; `3-banc` sautée par `-SansBanc`).
 
 **Note d'environnement** — le `vendor` du worktree est une jonction vers `/c/ged/GEDv2/vendor` :
 l'autoloader y résout `Ged\` vers `/c/ged/GEDv2/src`, donc le harness charge le code de `v2`, pas celui
