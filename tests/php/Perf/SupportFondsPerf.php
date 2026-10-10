@@ -99,7 +99,7 @@ trait SupportFondsPerf
     /** Valeur cumulée d'un compteur d'accès du serveur (delta entre deux relevés = travail réel). */
     protected function compteurAcces(string $nom): int
     {
-        $ligne = $this->pdo->query('SHOW GLOBAL STATUS LIKE ' . $this->pdo->quote($nom))->fetch(PDO::FETCH_ASSOC);
+        $ligne = $this->pdo->query('SHOW SESSION STATUS LIKE ' . $this->pdo->quote($nom))->fetch(PDO::FETCH_ASSOC);
 
         return (int) ($ligne['Value'] ?? -1);
     }
