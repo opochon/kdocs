@@ -16,23 +16,46 @@ est passé explicitement. Un refus est nommé (dossier visé, niveau manquant) e
 
 ## Fait (commits)
 
-- (en cours) Oracle d'abord :
-  `tests/php/Securite/DeplacementDroitsTest.php` écrit ROUGE (5 refus attendus non produits, 3 acceptations
-  déjà vertes par absence de contrôle), puis implémentation, puis **VERT (9 tests, 82 assertions)**.
+- `9fd64e7` — **cœur + oracles** : oracle rouge d'abord
+  (`tests/php/Securite/DeplacementDroitsTest.php`, 5 refus attendus non produits), puis
+  `DepotFichiers::mettreAJour` exige `deposer` sur le dossier d'arrivée via `exigerDroitDeDepot` (héritage,
+  refus par défaut, administrateur permis, compte nul = oracles), refus nommé `Securite\RefusDepot`
+  (dossier visé + niveau). Le compte de l'appelant est passé explicitement par `ATraiter` (unitaire et lot,
+  refus compté avec sa raison), `ModificationMasse`, `Workflows\Moteur`/`Ecouteur` et `EditionPieces`.
+  `EditionPieces` pose le rangement AVANT le contenu : un refus ne remplace rien et n'archive pas.
+  Signature étendue dans `Contrats\Depot` (modification partagée signalée).
+- (commit E2E) `tests/e2e/droits-deplacement.spec.ts` + `preparer-droits-deplacement.php` : par l'écran,
+  la modification en masse affiche le refus d'arrivée pour le document concerné, et aboutit quand le droit
+  de dépôt existe.
 
-## En cours
+## Modifications minimales hors secteur (règle « un agent = un secteur »)
 
-- Suite PHPUnit complète + PHPStan + E2E ; journal et commits d'étape.
+Le contrôle devait vivre dans le service partagé ; les appelants portent le compte de l'appelant.
+
+- `src/Contrats/Depot.php` (contrat partagé, d'ordinaire réservé à la vue d'ensemble) : `mettreAJour`
+  reçoit `?int $compte = null, bool $administrateur = false`. Signalé au journal du secteur.
+- `src/Socle/DepotFichiers.php`, `src/Socle/ModificationMasse.php` : contrôle unique et passage du compte.
+- `src/Ui/ATraiter.php`, `src/Ui/Module.php` : session → service (`compte`, `administrateur`).
+- `src/Workflows/Moteur.php`, `Ecouteur.php`, `Module.php` : le compte suit jusqu'au service ; un événement
+  système garde le compte nul.
+- `src/Ingestion/EditionPieces.php` : constructeur `compte`/`administrateur` ; `appliquer()` et `annuler()`
+  posent le rangement avant le contenu. Signalé dans `docs/secteurs/ingestion.md` (journal).
+- `tests/php/Ingestion/PiloteTest.php` : le double `DepotSimule` suit la signature du contrat (aucune
+  assertion touchée).
+- `tests/php/Socle/ModificationMasseTest.php` : le contrôle d'arrivée exige `deposer` sur le dossier
+  d'arrivée `Sans_date/…` (métadonnées de test sans date) ; le setup accorde ce droit et le nettoyage
+  retire les règles par groupe. Aucune assertion affaiblie.
 
 ## Reste
 
-- E2E Playwright : la modification en masse affiche le refus d'arrivée pour le document concerné.
-- Porte qualité (PHPStan, revue ECC) et `harness.ps1 -SansBanc` vert sur les couches touchées.
-- Commits par étape verte, jamais `git add -A`.
+- Porte qualité ECC et `harness.ps1 -SansBanc` vert sur les couches touchées.
+- Journal du secteur `docs/secteurs/droits-securite.md` à compléter (fait au moment du lot).
 
-## Mesures exactes (au fil de l'eau)
+## Mesures exactes
 
-- PHPStan niveau 6 : 0 erreur (baseline vide).
-- `DeplacementDroitsTest` : 9 tests, 82 assertions, vert.
-- `EditionPiecesTest` (comportement réordonné) : 1 test, 19 assertions, vert.
-- `ModificationMasseTest` (setup adapté au contrôle d'arrivée) : 4 tests, 90 assertions, vert.
+- Oracle rouge d'abord : 5 refus sur 8 tests, puis **`DeplacementDroitsTest` VERT : 9 tests, 82 assertions**.
+- PHPUnit complet : **488 tests / 2833 assertions / 1 skipped**, vert.
+- PHPStan niveau 6 : **0 erreur**, baseline vide inchangée.
+- `tests/e2e/droits-deplacement.spec.ts` : **2 parcours verts** (21,5 s).
+- `EditionPiecesTest` : 1 test / 19 assertions, vert après réordonnancement.
+- `ModificationMasseTest` : 4 tests / 90 assertions, vert après adaptation du jeu de droits.
