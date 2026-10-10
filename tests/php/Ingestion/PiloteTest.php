@@ -365,7 +365,7 @@ final class DepotSimule implements Depot
         return count($this->deposes);
     }
 
-    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void
+    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur, ?int $compte = null, bool $administrateur = false): void
     {
     }
 

@@ -57,14 +57,16 @@ final class Moteur
 
     /**
      * EXÉCUTION RÉELLE : même plan que l'essai à blanc, puis application. Rend le plan et le nombre d'écritures.
+     * Le compte de l'appelant est transmis au service : une action « poser » qui change le rangement
+     * exige le niveau `deposer` sur le dossier d'ARRIVÉE (F10) ; compte `null` = moteur système.
      *
      * @param array<string, mixed> $fiche
      * @return array<string, mixed>
      */
-    public function executer(string $evenement, array $fiche, string $auteur = 'systeme'): array
+    public function executer(string $evenement, array $fiche, string $auteur = 'systeme', ?int $compte = null, bool $administrateur = false): array
     {
         $plan = $this->planifier($evenement, $fiche, false);
-        $application = $this->appliquer($plan, $fiche, $auteur);
+        $application = $this->appliquer($plan, $fiche, $auteur, $compte, $administrateur);
         $plan['erreurs'] = array_merge($plan['erreurs'], $application['erreurs']);
         $plan['ecritures'] = $application['ecritures'];
 
@@ -320,7 +322,7 @@ final class Moteur
      * @param array<string, mixed> $fiche
      * @return array{ecritures:int, erreurs:list<array{regle_id:?int, regle:string, cause:string}>}
      */
-    private function appliquer(array $plan, array $fiche, string $auteur): array
+    private function appliquer(array $plan, array $fiche, string $auteur, ?int $compte = null, bool $administrateur = false): array
     {
         $ecritures = 0;
         $erreurs = [];
@@ -333,7 +335,7 @@ final class Moteur
 
         foreach ($plan['etapes'] as $etape) {
             try {
-                $this->appliquerEtape($etape, $fiche, $auteur);
+                $this->appliquerEtape($etape, $fiche, $auteur, $compte, $administrateur);
                 $ecritures++;
             } catch (\Throwable $e) {
                 $erreurs[] = ['regle_id' => $etape['regle_id'] ?? null, 'regle' => (string) ($etape['regle'] ?? '(moteur)'),
@@ -352,14 +354,14 @@ final class Moteur
      * @param array<string, mixed> $etape
      * @param array<string, mixed> $fiche
      */
-    private function appliquerEtape(array $etape, array $fiche, string $auteur): void
+    private function appliquerEtape(array $etape, array $fiche, string $auteur, ?int $compte = null, bool $administrateur = false): void
     {
         $documentId = (int) ($fiche['id'] ?? 0);
         $details = ['regle_id' => $etape['regle_id'] ?? null, 'regle' => $etape['regle'] ?? null];
 
         switch ($etape['type']) {
             case 'poser':
-                $this->depotObligatoire()->mettreAJour($documentId, [(string) $etape['champ'] => $etape['valeur']], $auteur);
+                $this->depotObligatoire()->mettreAJour($documentId, [(string) $etape['champ'] => $etape['valeur']], $auteur, $compte, $administrateur);
                 $this->journaliser(['document_id' => $documentId, 'genre' => 'regle',
                     'details' => $details + ['action' => 'poser', 'champ' => $etape['champ'], 'valeur' => $etape['valeur']]]);
                 break;
@@ -368,7 +370,7 @@ final class Moteur
                 $etiquettes = array_values((array) ($fiche['etiquettes'] ?? []));
                 if (!in_array($etape['etiquette'], $etiquettes, true)) {
                     $etiquettes[] = (string) $etape['etiquette'];
-                    $this->depotObligatoire()->mettreAJour($documentId, ['etiquettes' => $etiquettes], $auteur);
+                    $this->depotObligatoire()->mettreAJour($documentId, ['etiquettes' => $etiquettes], $auteur, $compte, $administrateur);
                 }
                 $this->journaliser(['document_id' => $documentId, 'genre' => 'regle',
                     'details' => $details + ['action' => 'etiqueter', 'etiquette' => $etape['etiquette']]]);

@@ -205,7 +205,10 @@ final class ModificationMasse
             if (($operation['action'] ?? '') === 'corbeille') {
                 $this->depot->miseALaCorbeille($idDocument, $auteur);
             } else {
-                $this->depot->mettreAJour($idDocument, $this->metaPour($fiche, $operation), $auteur);
+                // Le compte du lanceur est passé explicitement : le service vérifie le niveau `deposer`
+                // sur le dossier d'ARRIVÉE (F10) avant de déplacer. Le contrôle de départ (`modifier`) est
+                // fait juste au-dessus ; aucun contrôle dupliqué route par route.
+                $this->depot->mettreAJour($idDocument, $this->metaPour($fiche, $operation), $auteur, $compte, $administrateur);
             }
         } catch (Throwable $e) {
             return ['id' => $idDocument, 'ok' => false, 'raison' => mb_substr($e->getMessage(), 0, 512)];

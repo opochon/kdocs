@@ -100,7 +100,7 @@ final class DepotFichiers implements Depot
             ->execute([$idDocument, $numero, $nomArchive, Fichiers::empreinte($absoluArchive), (int) filesize($absoluArchive)]);
     }
 
-    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur): void
+    public function mettreAJour(int $idDocument, array $metadonnees, string $auteur, ?int $compte = null, bool $administrateur = false): void
     {
         $ligne = $this->fiche($idDocument);
         if ($ligne === null) {
@@ -123,6 +123,9 @@ final class DepotFichiers implements Depot
         $nouveauRel = $this->cheminRangement($meta) . '/' . basename($ancienRel);
 
         if ($nouveauRel !== $ancienRel) {
+            // F10 : le contrôle vit ICI, dans le service, AVANT le premier octet déplacé. Un changement de
+            // chemin exige `deposer` sur le dossier de droits d'ARRIVÉE, avec le compte de l'appelant.
+            $this->exigerDroitDeDepot($nouveauRel, $compte, $administrateur);
             $absolu = Fichiers::deplacerAvecAnnexes($this->cheminAbsolu($ancienRel), $this->cheminAbsolu($nouveauRel));
             $nouveauRel = substr($absolu, strlen($this->racine) + 1);
             $this->tracer($idDocument, $ancienRel, $nouveauRel, 'mise_a_jour', $auteur);
@@ -135,6 +138,46 @@ final class DepotFichiers implements Depot
             ->execute([$nouveauRel, basename($nouveauRel), Fichiers::json($meta), ...$valeurs, $idDocument]);
         // Le rangement a pu changer : le nouveau chemin doit avoir son dossier de droits.
         $this->rattacherDossierDeDroits($nouveauRel);
+    }
+
+    /**
+     * F10 — toute écriture qui change le CHEMIN du document exige le niveau `deposer` sur le dossier de
+     * droits d'ARRIVÉE, héritage du parent compris, refus par défaut sans règle ; administrateur
+     * (permission `*`) toujours permis. Le compte vient de l'appelant, explicitement ; `null`/`< 1` reste
+     * le compte synthétique des oracles, sans ACL à opposer.
+     *
+     * Le refus est nommé (dossier visé, niveau manquant) : `Securite\RefusDepot`. Il est levé AVANT le
+     * déplacement, donc le fichier, son `.meta.json` et l'index restent intacts.
+     */
+    private function exigerDroitDeDepot(string $cheminArrivee, ?int $compte, bool $administrateur): void
+    {
+        if ($administrateur || $compte === null || $compte < 1) {
+            return;
+        }
+        if (!class_exists(\Ged\Securite\DroitsDossiers::class)) {
+            return;
+        }
+        $dossierVise = dirname(str_replace('\\', '/', $cheminArrivee));
+        try {
+            $droits = new \Ged\Securite\DroitsDossiers($this->pdo);
+            $dossier = $droits->dossierPourChemin($cheminArrivee);
+            if ($dossier !== null && $droits->autorise($compte, $dossier, 'deposer')) {
+                return;
+            }
+        } catch (\PDOException $e) {
+            // Schéma d'ACL absent ou illisible : on NE laisse PAS passer (la garde refuse déjà tout dans
+            // ce cas). Le refus est nommé ; la cause technique part au journal, jamais à l'écran.
+            error_log('F10 : contrôle des droits d’arrivée indisponible — ' . $e->getMessage());
+            throw new \Ged\Securite\RefusDepot(sprintf(
+                'droits insuffisants : le dossier « %s » exige le niveau « deposer » à l’arrivée (contrôle des droits indisponible)',
+                $dossierVise
+            ), 0, $e);
+        }
+
+        throw new \Ged\Securite\RefusDepot(sprintf(
+            'droits insuffisants : le dépôt dans le dossier « %s » exige le niveau « deposer » à l’arrivée',
+            $dossierVise
+        ));
     }
 
     /**

@@ -149,7 +149,7 @@ final class ATraiter
             'statut' => 'valide',
             'classement' => ['source' => 'humain', 'confiance' => 1.0, 'preuve' => 'validation humaine', 'auteur' => $auteur, 'le' => date('c')],
         ];
-        $this->depot->mettreAJour($id, $meta, $auteur);
+        $this->depot->mettreAJour($id, $meta, $auteur, $this->compte, $this->administrateur);
 
         $emetteur = (string) ($meta['emetteur'] ?? '');
         $type = (string) $meta['type'];   // posé juste au-dessus (type requis vérifié) : toujours présent
@@ -160,6 +160,8 @@ final class ATraiter
 
     /**
      * Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire.
+     * Un refus (proposition incomplète, droits de dépôt manquants sur l'arrivée) est COMPTÉ dans les
+     * refus avec sa raison, jamais un abandon muet du lot.
      *
      * @param array<mixed> $ids identifiants demandés (coercés en int)
      * @return array{valides: list<int>, refuses: array<int, string>}
@@ -180,8 +182,15 @@ final class ATraiter
             if (trim((string) $piece['emetteur']) === '') $manques[] = 'émetteur';
             if ($this->dateIso($piece['date']) === null) $manques[] = 'date';
             if ($manques !== []) { $refuses[$id] = 'proposition incomplète : ' . implode(', ', $manques); continue; }
-            $this->valider($id, ['type' => $piece['type'], 'emetteur' => $piece['emetteur'], 'titre' => $piece['titre'],
-                'date' => $piece['date'], 'montant' => $piece['montant'], 'etiquettes' => $piece['etiquettes']], $auteur);
+            try {
+                $this->valider($id, ['type' => $piece['type'], 'emetteur' => $piece['emetteur'], 'titre' => $piece['titre'],
+                    'date' => $piece['date'], 'montant' => $piece['montant'], 'etiquettes' => $piece['etiquettes']], $auteur);
+            } catch (\RuntimeException $e) {
+                // Refus métier (proposition invalide, droits de dépôt manquants sur l'arrivée) : le document
+                // est compté avec sa raison, le lot continue. Une erreur de programmation, elle, remonte.
+                $refuses[$id] = mb_substr($e->getMessage(), 0, 512);
+                continue;
+            }
             $valides[] = $id;
         }
 

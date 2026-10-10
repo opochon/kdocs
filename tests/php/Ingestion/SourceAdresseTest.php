@@ -131,14 +131,18 @@ final class SourceAdresseTest extends TestCase
     /** @return array{0: resource, 1: int} */
     private function serveur(string $option): array
     {
-        $port = random_int(20000, 40000);
-        $cmd = [PHP_BINARY, dirname(__DIR__, 2) . '/outils/faux-imap.php', (string) $port, $this->tmp . '/boite'];
+        // Port 0 : le système choisit un port libre (un port tiré au hasard pouvait être déjà pris sur le poste).
+        $cmd = [PHP_BINARY, dirname(__DIR__, 2) . '/outils/faux-imap.php', '0', $this->tmp . '/boite'];
         if ($option !== '') {
             $cmd[] = $option;
         }
         $proc = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $tuyaux);
         self::assertIsResource($proc);
-        self::assertSame("pret\n", fgets($tuyaux[1]), 'faux serveur IMAP démarré');
+        $ligne = (string) fgets($tuyaux[1]);
+        if (preg_match('/^pret (\d+)\n$/', $ligne) !== 1) {
+            self::fail('faux serveur IMAP non démarré : ' . trim((string) stream_get_contents($tuyaux[2])));
+        }
+        $port = (int) substr(trim($ligne), 5);
 
         return [$proc, $port];
     }
