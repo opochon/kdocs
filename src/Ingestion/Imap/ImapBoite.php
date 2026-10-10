@@ -57,6 +57,7 @@ final class ImapBoite implements Boite
         return strtolower($this->utilisateur . '@' . $this->hote);
     }
 
+    /** @return list<int> */
     public function nonLus(): array
     {
         $uids = [];

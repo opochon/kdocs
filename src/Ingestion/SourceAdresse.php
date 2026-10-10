@@ -37,6 +37,7 @@ final class SourceAdresse implements Source
     ) {
     }
 
+    /** @return list<Entree> */
     public function relever(): array
     {
         $entrees = [];

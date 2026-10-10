@@ -94,6 +94,16 @@ fragmentDeBord, courtNonUsuel, implausible, jetonDepuisMot), `Ui\Module::enregis
 
 Mesure : baseline **87 → 76 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Ingestion (niveau 6)
+
+`EditeurPdf` (appel, executer), `EditionPieces` (pages, appliquer, metaEditee, verifierPages,
+instantane, finir — plusieurs `@return` inline non lus), `Imap\Boite` (interface),
+`Imap\ConnexionDifferee`, `Imap\ImapBoite`, `Pilote` (decouper, origineCourriel,
+pieceQuiProlonge), `Source` (interface), `SourceAdresse`, `Travaux` (ajouterPiece, plages).
+Aucun changement de comportement ; un `array_values()` devenu neutre retiré.
+
+Mesure : baseline **76 → 56 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),

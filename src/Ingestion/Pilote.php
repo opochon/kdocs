@@ -75,8 +75,10 @@ final class Pilote
         return $compte;
     }
 
-    /** @param array<string, mixed> $lot */
-    /** @return list<string> alertes d'invariant réparé */
+    /**
+     * @param array<string, mixed> $lot
+     * @return list<string> alertes d'invariant réparé
+     */
     private function decouper(array $lot): array
     {
         $sortie = $this->zoneTravail . '/pieces/' . $lot['id'];
@@ -105,7 +107,12 @@ final class Pilote
         return $normalisee['alertes'];
     }
 
-    /** Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null. @param array<string, mixed> $lot */
+    /**
+     * Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null.
+     *
+     * @param array<string, mixed> $lot
+     * @return array<string, mixed>|null
+     */
     private function origineCourriel(array $lot): ?array
     {
         $fichier = (string) ($lot['chemin'] ?? '') . '.depot.json';
@@ -296,7 +303,11 @@ final class Pilote
         return null;
     }
 
-    /** La page absente prolonge la séquence gauche ; sans gauche, la droite. */
+    /**
+     * La page absente prolonge la séquence gauche ; sans gauche, la droite.
+     *
+     * @param list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}> $pieces
+     */
     private function pieceQuiProlonge(array $pieces, int $page): ?int
     {
         foreach ($pieces as $index => $piece) {

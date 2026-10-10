@@ -207,7 +207,10 @@ final class EditionPieces
         return $this->depot->cheminAbsolu((string) $piece['chemin_relatif']);
     }
 
-    /** @param array<string, mixed> $meta @return list<int> */
+    /**
+     * @param array<string, mixed> $meta
+     * @return list<int>
+     */
     private function pages(array $meta): array
     {
         $liste = $meta['origine']['pages_liste'] ?? null;
@@ -232,18 +235,25 @@ final class EditionPieces
         return $pages;
     }
 
-    /** @param array<string, mixed> $piece @param list<int> $pages */
+    /**
+     * @param array<string, mixed> $piece
+     * @param list<int> $pages
+     */
     private function appliquer(array $piece, string $fichier, array $pages, string $operation, string $auteur, string $detail): void
     {
         $this->depot->remplacerContenu((int) $piece['id'], $fichier, $auteur);
         $this->depot->mettreAJour((int) $piece['id'], $this->metaEditee($piece['meta'], $pages, $operation, $auteur, $detail), $auteur);
     }
 
-    /** @param array<string, mixed> $meta @param list<int> $pages @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $meta
+     * @param list<int> $pages
+     * @return array<string, mixed>
+     */
     private function metaEditee(array $meta, array $pages, string $operation, string $auteur, string $detail): array
     {
         $origine = is_array($meta['origine'] ?? null) ? $meta['origine'] : [];
-        $origine['pages_liste'] = array_values($pages);
+        $origine['pages_liste'] = $pages;   // déjà une list<int> (paramètre annoté) : array_values était neutre
         $origine['pages'] = Travaux::plages($pages);
         $proposition = $this->classeur->proposer((string) ($meta['texte'] ?? ''), [], (string) ($meta['titre'] ?? 'piece.pdf'));
         foreach (['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'raison'] as $cle) {
@@ -265,7 +275,10 @@ final class EditionPieces
         return ['operation' => $operation, 'le' => date('c'), 'auteur' => $auteur, 'detail' => $detail];
     }
 
-    /** @param list<int> $attendues @param list<int> $obtenues */
+    /**
+     * @param list<int> $attendues
+     * @param list<int> $obtenues
+     */
     private function verifierPages(array $attendues, array $obtenues): void
     {
         sort($attendues);
@@ -275,7 +288,10 @@ final class EditionPieces
         }
     }
 
-    /** @param list<array<string, mixed>> $pieces @return array<string, mixed> */
+    /**
+     * @param list<array<string, mixed>> $pieces
+     * @return array<string, mixed>
+     */
     private function instantane(int $id, array $pieces): array
     {
         $dossier = $this->dossier($id) . '/' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
@@ -294,7 +310,10 @@ final class EditionPieces
         return ['documents' => $documents];
     }
 
-    /** @param array<string, mixed> $instantane @param list<int> $crees */
+    /**
+     * @param array<string, mixed> $instantane
+     * @param list<int> $crees
+     */
     private function finir(int $id, array $instantane, string $type, array $crees): void
     {
         $pile = $this->lirePile($id);
