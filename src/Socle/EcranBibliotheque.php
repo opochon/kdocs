@@ -6,7 +6,6 @@ namespace Ged\Socle;
 
 use Ged\Base;
 use Ged\Config;
-use Ged\Recherche\IndexPleinTexte;
 use Ged\Securite\DroitsDossiers;
 use Ged\Recherche\Requete as RequeteRecherche;
 use Ged\Recherche\Service as ServiceRecherche;
@@ -40,7 +39,6 @@ final class EcranBibliotheque
     private const PREFIXE_CHEMIN = 700;
 
     private readonly PDO $pdo;
-    private readonly Config $config;
     private readonly Fonds $fonds;
     private readonly Vues $vues;
     private readonly Champs $champs;
@@ -56,7 +54,6 @@ final class EcranBibliotheque
 
     public function __construct(Config $config, ?int $compte = null, bool $administrateur = false)
     {
-        $this->config = $config;
         $this->compte = $compte !== null && $compte > 0 ? $compte : null;
         $this->administrateur = $administrateur;
         $this->pdo = Base::pdo($config);
@@ -328,7 +325,11 @@ final class EcranBibliotheque
         return (int) $requete->fetchColumn();
     }
 
-    /** Une vue Recherche garde un tableau non vide dans le registre ; une vue Bibliothèque reste inchangée. */
+    /**
+     * Une vue Recherche garde un tableau non vide dans le registre ; une vue Bibliothèque reste inchangée.
+     *
+     * @param array<string, mixed> $vue
+     */
     private function estVueRecherche(array $vue): bool
     {
         return isset($vue['recherche']) && is_array($vue['recherche']) && $vue['recherche'] !== [];
@@ -347,7 +348,7 @@ final class EcranBibliotheque
         if (isset($this->idsRecherche[$idVue])) {
             return $this->idsRecherche[$idVue];
         }
-        $moteur = new ServiceRecherche($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo), $this->compte, $this->administrateur);
+        $moteur = new ServiceRecherche($this->pdo, $this->compte, $this->administrateur);
         $resultat = $moteur->rechercher(RequeteRecherche::depuisParametres($this->vues->criteresRecherche($vue)));
         if ($resultat->erreur !== null) {
             $this->erreursRecherche[$idVue] = 'vue Recherche impossible : étape « ' . $resultat->erreur->etape
@@ -360,7 +361,13 @@ final class EcranBibliotheque
         )));
     }
 
-    /** Ajoute la liste issue du moteur Recherche à la clause de la Bibliothèque, sans second moteur. */
+    /**
+     * Ajoute la liste issue du moteur Recherche à la clause de la Bibliothèque, sans second moteur.
+     *
+     * @param list<mixed> $params
+     * @param list<int>   $ids
+     * @return array{0: string, 1: list<mixed>}
+     */
     private function restreindreAuxIds(string $where, array $params, array $ids): array
     {
         if ($ids === []) {
@@ -376,6 +383,7 @@ final class EcranBibliotheque
      * relit, lui, son fichier.
      *
      * @param list<mixed> $params
+     * @param list<int>|null $ordreRecherche
      * @return list<array<string, mixed>>
      */
     private function lirePage(string $where, array $params, int $page, ?array $ordreRecherche = null): array
@@ -394,7 +402,11 @@ final class EcranBibliotheque
         return array_map([$this, 'ligne'], $requete->fetchAll());
     }
 
-    /** Le document retenu, résolu par son identifiant ET le périmètre ACL (une ligne, jamais un balayage). */
+    /**
+     * Le document retenu, résolu par son identifiant ET le périmètre ACL : une ligne, jamais un balayage du fonds.
+     *
+     * @return array<string, mixed>|null
+     */
     private function docParId(int $id): ?array
     {
         $where = 'd.id = ? AND d.supprime_le IS NULL AND d.absent_depuis IS NULL';
@@ -444,7 +456,7 @@ final class EcranBibliotheque
      * l'index `k_vivant` (pas de lecture de chaque ligne du fonds). Si un chemin atteint la longueur du
      * préfixe indexé, la valeur peut être tronquée : on retombe alors sur la lecture complète, correcte.
      *
-     * @return list<array{nom:string, enfants:list<string>}>
+     * @return list<array{chemin: string, nom: string, profondeur: int, compte: int}>
      */
     private function arbreVivant(): array
     {
@@ -546,13 +558,21 @@ final class EcranBibliotheque
         ];
     }
 
-    /** Filtres neutres (aucune contrainte) : la forme compilée vide, pour le gabarit toujours fournie. */
+    /**
+     * Filtres neutres (aucune contrainte) : la forme compilée vide, pour le gabarit toujours fournie.
+     *
+     * @return array{type: null, emetteur: null, de: null, a: null, etiquettes: list<string>, champ: null}
+     */
     private function filtresNeutres(): array
     {
         return ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null];
     }
 
-    /** Lien vers une page du même écran, en gardant les filtres, la vue et le document demandé. */
+    /**
+     * Lien vers une page du même écran, en gardant les filtres, la vue et le document demandé.
+     *
+     * @param array<string, mixed> $parametres
+     */
     private function lienPage(array $parametres, int $page): string
     {
         $parametres['page'] = $page;
@@ -560,7 +580,11 @@ final class EcranBibliotheque
         return '/bibliotheque?' . http_build_query($parametres);
     }
 
-    /** Un document ouvert conserve le dossier et les filtres : retour arrière et partage restent cohérents. */
+    /**
+     * Un document ouvert conserve le dossier et les filtres : retour arrière et partage restent cohérents.
+     *
+     * @param array<string, mixed> $parametres
+     */
     private function lienDocument(array $parametres, int $id): string
     {
         $parametres['doc'] = $id;

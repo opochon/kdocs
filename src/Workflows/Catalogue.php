@@ -142,7 +142,10 @@ final class Catalogue
         ];
     }
 
-    /** @param list<string> $operateurs @return array<string, string> */
+    /**
+     * @param list<string> $operateurs
+     * @return array<string, string>
+     */
     private static function operateurs(array $operateurs): array
     {
         $libelles = [

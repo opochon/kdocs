@@ -13,7 +13,10 @@ use PHPMailer\PHPMailer\PHPMailer;
  */
 trait MessagePhpMailer
 {
-    /** @param list<array{nom:string, type:string, contenu:string}> $pieces @param array<string, string> $entetes */
+    /**
+     * @param list<array{nom:string, type:string, contenu:string}> $pieces
+     * @param array<string, string> $entetes
+     */
     private function message(string $destinataire, string $objet, string $texte, array $pieces, array $entetes): PHPMailer
     {
         try {

@@ -160,7 +160,9 @@ final class ClasseurGed implements Classeur
         // elles rendent cet émetteur crédible et autorisent la quatrième pièce même hors-ligne ou sans
         // date OCR. Le tri automatique, lui, n'appelle jamais retenirChoix().
         if ($validationParHabitude) {
-            $emetteurCorrobore = $emetteur !== null;
+            // validationParHabitude n'est vrai que si $habitude existe, et $habitude n'existe que si
+            // $emetteur !== null (voir plus haut) : l'émetteur est donc toujours renseigné ici.
+            $emetteurCorrobore = true;
             $dateCorroboree = true;
         }
 
@@ -209,8 +211,9 @@ final class ClasseurGed implements Classeur
             'type' => $type,
             'emetteur' => $emetteur,
             'date' => $dateDocument,
-            'montant' => $reponseIa?->montant ?? $this->montantAnalyse($analyse),
-            'etiquettes' => $reponseIa?->etiquettes ?? ($emetteur !== null ? $this->etiquettesHabitude($emetteur) : []),
+            // `??` traite déjà le récepteur null comme une valeur absente : le `?->` était superflu.
+            'montant' => $reponseIa->montant ?? $this->montantAnalyse($analyse),
+            'etiquettes' => $reponseIa->etiquettes ?? ($emetteur !== null ? $this->etiquettesHabitude($emetteur) : []),
             'confiance' => round($confiance, 2),
             'source' => $source,
             'preuve' => $preuve,
@@ -219,7 +222,11 @@ final class ClasseurGed implements Classeur
         ];
     }
 
-    /** Date de facture lue par le moteur d'ingestion (invoice_date, due_date). @param array<string, mixed> $analyse */
+    /**
+     * Date de facture lue par le moteur d'ingestion (invoice_date, due_date).
+     *
+     * @param array<string, mixed> $analyse
+     */
     private function dateFacture(array $analyse): ?string
     {
         $facture = $analyse['facture'] ?? [];

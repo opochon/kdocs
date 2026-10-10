@@ -115,7 +115,11 @@ final class Document
         return is_array($donnees) ? $donnees : [];
     }
 
-    /** Versions réellement archivées dans `.versions/` (lues de l'index, jamais inventées). @return list<array<string, mixed>> */
+    /**
+     * Versions réellement archivées dans `.versions/` (lues de l'index, jamais inventées).
+     *
+     * @return list<array<string, mixed>>
+     */
     private function versions(?PDO $pdo, int $id): array
     {
         if ($pdo === null) {
@@ -140,7 +144,11 @@ final class Document
         ], $lignes);
     }
 
-    /** Événements réels du Socle : versions archivées et déplacements, jamais une note inventée. @return list<array{quand:string, quoi:string}> */
+    /**
+     * Événements réels du Socle : versions archivées et déplacements, jamais une note inventée.
+     *
+     * @return list<array{quand:string, quoi:string}>
+     */
     private function historique(?PDO $pdo, int $id): array
     {
         if ($pdo === null) {

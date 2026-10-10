@@ -83,6 +83,8 @@ final class Fonds
     /**
      * Le document de ce numéro (identifiant de l'index ou du `.meta.json`), ou null. Par l'index
      * d'abord — une ligne ; le dossier ne sert que si l'index n'existe pas encore.
+     *
+     * @return array<string, mixed>|null
      */
     public function parId(int $id, ?PDO $pdo = null): ?array
     {
@@ -165,7 +167,11 @@ final class Fonds
         ];
     }
 
-    /** Chemins relatifs (séparateurs /) de tous les documents du fonds, triés. @return list<string> */
+    /**
+     * Chemins relatifs (séparateurs /) de tous les documents du fonds, triés.
+     *
+     * @return list<string>
+     */
     private function fichiers(): array
     {
         if (!is_dir($this->racine)) {
@@ -193,7 +199,11 @@ final class Fonds
         return $fichiers;
     }
 
-    /** Identifiants stables de l'index, par chemin ; muette si l'index n'existe pas encore. @return array<string, int> */
+    /**
+     * Identifiants stables de l'index, par chemin ; muette si l'index n'existe pas encore.
+     *
+     * @return array<string, int>
+     */
     private function idsParChemin(PDO $pdo): array
     {
         try {

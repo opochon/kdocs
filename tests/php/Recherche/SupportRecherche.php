@@ -76,7 +76,7 @@ trait SupportRecherche
     /** Un moteur branché sur le fonds du test ; le schéma vient exclusivement de l'amorce. */
     private function moteur(): Service
     {
-        return new Service($this->pdo, IndexPleinTexte::depuis($this->config, $this->pdo));
+        return new Service($this->pdo);
     }
 
     /**

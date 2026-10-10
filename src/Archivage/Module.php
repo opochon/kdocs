@@ -18,6 +18,7 @@ use Throwable;
 /** Routes de l'archivage : mutations courtes, liste du fonds et vérification reprise. */
 final class Module
 {
+    /** @param App<\Psr\Container\ContainerInterface> $app */
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
         $app->get('/archives', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
@@ -69,7 +70,10 @@ final class Module
         });
     }
 
-    /** @param array<string,mixed> $donnees @return array<string,mixed> */
+    /**
+     * @param array<string,mixed> $donnees
+     * @return array<string,mixed>
+     */
     private static function filtrerParDroits(array $donnees, Requete $req, Config $config): array
     {
         $session = $req->getAttribute('ged.session');

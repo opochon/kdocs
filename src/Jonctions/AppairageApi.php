@@ -100,7 +100,11 @@ final class AppairageApi
         return $ligne;
     }
 
-    /** Corps de la requête : formulaire, multipart, ou JSON brut (CMM peut envoyer `{code}`). @return array<string, mixed> */
+    /**
+     * Corps de la requête : formulaire, multipart, ou JSON brut (CMM peut envoyer `{code}`).
+     *
+     * @return array<string, mixed>
+     */
     private function champs(Requete $requete): array
     {
         $corps = $requete->getParsedBody();

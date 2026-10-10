@@ -22,6 +22,7 @@ final class ConnexionDifferee implements Boite
         return $this->nom;
     }
 
+    /** @return list<int> */
     public function nonLus(): array
     {
         return $this->boite()->nonLus();

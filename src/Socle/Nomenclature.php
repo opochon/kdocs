@@ -177,7 +177,7 @@ final class Nomenclature
      * Réécrit la nomenclature au complet sous verrou, depuis une transformation de son contenu
      * normalisé. Rend l'état final — Champs y lit l'id qui vient d'être attribué.
      *
-     * @param callable(array{types:list<array<string, mixed>>, champs:list<array<string, mixed>>}): array $transformation
+     * @param callable(array{types:list<array<string, mixed>>, champs:list<array<string, mixed>>}): array<string, mixed> $transformation
      * @return array{types:list<array<string, mixed>>, champs:list<array<string, mixed>>}
      */
     public function transformer(callable $transformation): array
@@ -185,7 +185,11 @@ final class Nomenclature
         return $this->registre->modifier(self::FICHIER, static fn (array $etat): array => $transformation($etat === [] ? ['types' => [], 'champs' => []] : $etat));
     }
 
-    /** Le prochain identifiant libre d'une liste : un de plus que le plus grand posé. */
+    /**
+     * Le prochain identifiant libre d'une liste : un de plus que le plus grand posé.
+     *
+     * @param list<array<string, mixed>> $entrees
+     */
     private static function prochainId(array $entrees): int
     {
         $max = 0;

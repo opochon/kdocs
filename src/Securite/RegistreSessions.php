@@ -22,7 +22,10 @@ final class RegistreSessions
         }
     }
 
-    /** @param list<string> $permissions @return array{id:string,csrf:string} */
+    /**
+     * @param list<string> $permissions
+     * @return array{id:string,csrf:string}
+     */
     public function ouvrir(string $utilisateur, array $permissions, ?int $maintenant = null, ?int $compte = null): array
     {
         $maintenant ??= time();
@@ -31,7 +34,7 @@ final class RegistreSessions
         $this->ecrire($id, [
             'utilisateur' => $utilisateur,
             'compte' => $compte,
-            'permissions' => array_values($permissions),
+            'permissions' => $permissions,   // déjà une list<string> (docblock) : array_values était neutre
             'csrf' => $csrf,
             'cree_le' => $maintenant,
             'expire_le' => min($maintenant + $this->dureeInactivite, $maintenant + $this->dureeMaximale),

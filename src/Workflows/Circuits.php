@@ -42,7 +42,11 @@ final class Circuits
         return $this->chercher('gabarit', $gabarit);
     }
 
-    /** Crée un circuit : nom, etats[], transitions[], gabarit?, actif?, graphe? (disposition du designer). */
+    /**
+     * Crée un circuit : nom, etats[], transitions[], gabarit?, actif?, graphe? (disposition du designer).
+     *
+     * @param array<string, mixed> $circuit
+     */
     public function creer(array $circuit): int
     {
         $corps = json_encode([
@@ -66,6 +70,8 @@ final class Circuits
     /**
      * Met à jour un circuit existant (jamais de suppression) : nom, gabarit, actif, états, transitions,
      * disposition du designer. L'identifiant et l'historique des instances restent intacts.
+     *
+     * @param array<string, mixed> $circuit
      */
     public function mettreAJour(int $id, array $circuit): void
     {
@@ -85,7 +91,11 @@ final class Circuits
             ]);
     }
 
-    /** L'instance d'un document dans un circuit, ou null. @return array<string, mixed>|null */
+    /**
+     * L'instance d'un document dans un circuit, ou null.
+     *
+     * @return array<string, mixed>|null
+     */
     public function instance(int $definitionId, int $documentId): ?array
     {
         $requete = $this->pdo->prepare('SELECT * FROM workflow_instances WHERE definition_id = ? AND document_id = ?');
@@ -95,7 +105,11 @@ final class Circuits
         return $ligne === false ? null : $this->decoderInstance($ligne);
     }
 
-    /** Toutes les instances d'un document, avec leur circuit décodé. @return list<array<string, mixed>> */
+    /**
+     * Toutes les instances d'un document, avec leur circuit décodé.
+     *
+     * @return list<array<string, mixed>>
+     */
     public function instancesDocument(int $documentId): array
     {
         $requete = $this->pdo->prepare('SELECT i.*, d.nom AS circuit_nom, d.gabarit AS circuit_gabarit, d.corps AS circuit_corps,'
@@ -142,7 +156,11 @@ final class Circuits
         $this->pdo->prepare('UPDATE workflow_instances SET etat = ? WHERE id = ?')->execute([$etat, $instanceId]);
     }
 
-    /** La transition `de → vers` d'un circuit, ou null. @return array<string, mixed>|null */
+    /**
+     * La transition `de → vers` d'un circuit, ou null.
+     *
+     * @return array<string, mixed>|null
+     */
     public function transition(int $definitionId, string $de, string $vers): ?array
     {
         $circuit = $this->parId($definitionId);
@@ -158,7 +176,11 @@ final class Circuits
         return null;
     }
 
-    /** L'état de départ d'un circuit, ou null. */
+    /**
+     * L'état de départ d'un circuit, ou null.
+     *
+     * @param array<string, mixed> $circuit
+     */
     public static function etatInitial(array $circuit): ?string
     {
         foreach ((array) ($circuit['etats'] ?? []) as $etat) {
@@ -170,7 +192,11 @@ final class Circuits
         return null;
     }
 
-    /** Le circuit connaît-il cet état ? */
+    /**
+     * Le circuit connaît-il cet état ?
+     *
+     * @param array<string, mixed> $circuit
+     */
     public function aEtat(array $circuit, string $nom): bool
     {
         foreach ((array) ($circuit['etats'] ?? []) as $etat) {
@@ -192,7 +218,10 @@ final class Circuits
         return $ligne === false ? null : $this->decoder($ligne);
     }
 
-    /** @param array<string, mixed> $ligne @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $ligne
+     * @return array<string, mixed>
+     */
     private function decoder(array $ligne): array
     {
         $corps = json_decode((string) ($ligne['corps'] ?? '{}'), true);
@@ -209,7 +238,10 @@ final class Circuits
         ];
     }
 
-    /** @param array<string, mixed> $ligne @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $ligne
+     * @return array<string, mixed>
+     */
     private function decoderInstance(array $ligne): array
     {
         return [

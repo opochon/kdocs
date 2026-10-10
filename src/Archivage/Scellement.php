@@ -42,7 +42,11 @@ final class Scellement
         return self::dossier($absoluDocument) . '/' . basename($absoluDocument) . '.tsa-chain.pem';
     }
 
-    /** Écrit le jeton puis le justificatif (le JSON en dernier : sa présence dit le scellement complet). */
+    /**
+     * Écrit le jeton puis le justificatif (le JSON en dernier : sa présence dit le scellement complet).
+     *
+     * @param array<string, mixed> $donnees
+     */
     public static function ecrire(string $absoluDocument, array $donnees, string $jeton, ?string $requete = null, ?string $chaine = null): void
     {
         $dossier = self::dossier($absoluDocument);
@@ -89,7 +93,11 @@ final class Scellement
         return null;
     }
 
-    /** Le justificatif décodé d'un document, ou null s'il n'est pas scellé. */
+    /**
+     * Le justificatif décodé d'un document, ou null s'il n'est pas scellé.
+     *
+     * @return array<string, mixed>|null
+     */
     public static function lire(string $absoluDocument, ?int $idDocument = null): ?array
     {
         $chemin = self::localiser($absoluDocument, $idDocument);
@@ -97,7 +105,11 @@ final class Scellement
         return $chemin === null ? null : self::decoder((string) file_get_contents($chemin));
     }
 
-    /** Un scellement est actif tant qu'aucune levée humaine n'a été tracée. */
+    /**
+     * Un scellement est actif tant qu'aucune levée humaine n'a été tracée.
+     *
+     * @param array<string, mixed>|null $scellement
+     */
     public static function estActif(?array $scellement): bool
     {
         return $scellement !== null && empty($scellement['leve_le']);
@@ -111,7 +123,7 @@ final class Scellement
      */
     public static function parcourir(string $racine): array
     {
-        $trouves = self::descendre($racine, true);
+        $trouves = self::descendre($racine);
         sort($trouves);
 
         return $trouves;

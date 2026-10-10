@@ -88,7 +88,11 @@ final class Reconstructeur
         return [$id, $posees];
     }
 
-    /** Les fichiers documents d'une racine (règles de l'indexeur : internes et `.meta.json` exclus). */
+    /**
+     * Les fichiers documents d'une racine (règles de l'indexeur : internes et `.meta.json` exclus).
+     *
+     * @return array<string, string> chemin relatif => chemin absolu
+     */
     private function lireFonds(string $racine): array
     {
         $fichiers = [];

@@ -13,7 +13,10 @@ final class EcranArchives
     {
     }
 
-    /** @return array{documents:list<array<string,mixed>>,a_echeance:list<array<string,mixed>>,types:list<string>,filtres:array<string,string>} */
+    /**
+     * @param array<string, mixed> $query
+     * @return array{documents:list<array<string,mixed>>,a_echeance:list<array<string,mixed>>,types:list<string>,filtres:array<string,string>}
+     */
     public function donnees(array $query = []): array
     {
         $racine = rtrim(str_replace('\\', '/', $this->config->chemin('STORAGE_ROOT', 'storage/documents')), '/');

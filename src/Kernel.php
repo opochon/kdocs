@@ -17,6 +17,7 @@ use Throwable;
  */
 final class Kernel
 {
+    /** @return App<\Psr\Container\ContainerInterface> */
     public static function creer(string $racine): App
     {
         $config = new Config($racine);

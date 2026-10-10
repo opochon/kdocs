@@ -33,7 +33,7 @@ final class RechercheHorsRequeteTest extends TestCase
     {
         $index = IndexPleinTexte::depuis($this->config(), $this->pdo());
         self::assertGreaterThan(0, $index->synchroniser(null), 'l’index est bâti hors requête (job)');
-        $moteur = new Service($this->pdo(), $index);
+        $moteur = new Service($this->pdo());
 
         $this->eloignerFonds(true);
         try {

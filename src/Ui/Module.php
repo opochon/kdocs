@@ -18,6 +18,7 @@ use Throwable;
  */
 final class Module
 {
+    /** @param App<\Psr\Container\ContainerInterface> $app */
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
         // Nouvelle version : le fichier est remplacé par le Socle, qui archive systématiquement chaque

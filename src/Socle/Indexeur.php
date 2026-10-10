@@ -190,7 +190,11 @@ final class Indexeur
         return [$vus, $stables];
     }
 
-    /** Le `.meta.json` d'un fichier, s'il existe et se décode ; null sinon. */
+    /**
+     * Le `.meta.json` d'un fichier, s'il existe et se décode ; null sinon.
+     *
+     * @return array<string, mixed>|null
+     */
     private function lireMeta(string $absolu): ?array
     {
         if (!is_file("$absolu.meta.json")) {
@@ -201,7 +205,11 @@ final class Indexeur
         return is_array($decode) ? $decode : null;
     }
 
-    /** Les noms d'archives déjà présentes dans `.versions/<fichier>/` (sans les lignes d'index). */
+    /**
+     * Les noms d'archives déjà présentes dans `.versions/<fichier>/` (sans les lignes d'index).
+     *
+     * @return list<string>
+     */
     private function versions(string $absoluDocument): array
     {
         return array_values(array_filter(glob(Fichiers::dossierVersions($absoluDocument) . '/*') ?: [],

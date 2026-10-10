@@ -152,13 +152,18 @@ final class ATraiter
         $this->depot->mettreAJour($id, $meta, $auteur);
 
         $emetteur = (string) ($meta['emetteur'] ?? '');
-        $type = (string) ($meta['type'] ?? '');
+        $type = (string) $meta['type'];   // posé juste au-dessus (type requis vérifié) : toujours présent
         if ($this->habitudes !== null && $emetteur !== '' && $type !== '') {
             $this->habitudes->retenirChoix($emetteur, Habitudes::CHAMP_TYPE, $type, (string) $id);
         }
     }
 
-    /** Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire. */
+    /**
+     * Validation de lot : les pièces complètes empruntent le même chemin que la validation unitaire.
+     *
+     * @param array<mixed> $ids identifiants demandés (coercés en int)
+     * @return array{valides: list<int>, refuses: array<int, string>}
+     */
     public function validerPropositions(array $ids, string $auteur): array
     {
         $parId = [];
@@ -354,6 +359,7 @@ final class ATraiter
      */
     private function piecesDuLot(int $lot, array $file): array
     {
+        /** @var array<int, array<string, mixed>> $pieces clés = identifiants de documents, pas une liste */
         $pieces = $file;
         if ($this->pdo === null || $lot < 1) {
             return $pieces;
@@ -384,7 +390,10 @@ final class ATraiter
         return array_values($pieces);
     }
 
-    /** @return array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}|null */
+    /**
+     * @param array<string, mixed> $ligne
+     * @return array{id:int, absolu:string, ligne:array<string, mixed>, meta:array<string, mixed>}|null
+     */
     private function documentDepuisLigne(array $ligne): ?array
     {
         if ($this->depot === null) {
@@ -526,7 +535,7 @@ final class ATraiter
         $types = [];
         if ($this->pdo !== null) {
             try {
-                $types = (new Nomenclature($this->pdo))->types();
+                $types = (new Nomenclature($this->config))->types();
             } catch (Throwable) {
                 $types = [];
             }

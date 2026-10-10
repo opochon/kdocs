@@ -110,7 +110,11 @@ final class Fichiers
             || str_ends_with(strtolower($nom), '.tmp') || str_ends_with(strtolower($nom), '.part');
     }
 
-    /** JSON canonique : lisible (indenté) pour un fichier à côté du document, compact pour l'index. */
+    /**
+     * JSON canonique : lisible (indenté) pour un fichier à côté du document, compact pour l'index.
+     *
+     * @param array<mixed> $valeurs
+     */
     public static function json(array $valeurs, bool $fichier = false): string
     {
         return json_encode($valeurs, self::DRAPEAUX_JSON | ($fichier ? JSON_PRETTY_PRINT : 0));
@@ -119,6 +123,9 @@ final class Fichiers
     /**
      * Colonnes de l'index dérivées des métadonnées : [entêtes, valeurs] prêtes au INSERT/UPDATE.
      * La date qui ne dit pas Y-m-d n'entre pas dans la colonne DATE (elle reste dans le .meta.json).
+     *
+     * @param array<string, mixed> $meta
+     * @return array{0: list<string>, 1: list<mixed>}
      */
     public static function colonnesIndex(array $meta): array
     {
@@ -135,7 +142,11 @@ final class Fichiers
         ];
     }
 
-    /** Métadonnées minimales d'un fichier posé à la main, sans `.meta.json` : son nom lui sert de titre. */
+    /**
+     * Métadonnées minimales d'un fichier posé à la main, sans `.meta.json` : son nom lui sert de titre.
+     *
+     * @return array{titre: string}
+     */
     public static function metaMinimale(string $nomFichier): array
     {
         return ['titre' => pathinfo($nomFichier, PATHINFO_FILENAME)];

@@ -22,6 +22,7 @@ use Slim\App;
  */
 final class Module
 {
+    /** @param App<\Psr\Container\ContainerInterface> $app */
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
         // Le schéma est exclusivement posé par tools/installer.php, les outils CLI et les amorces

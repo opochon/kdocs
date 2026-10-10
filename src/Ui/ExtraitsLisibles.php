@@ -132,12 +132,6 @@ final class ExtraitsLisibles
         'preambule', 'paragraphe', 'maintenance',
     ];
 
-    /**
-     * Signes isolés « forts » : leur présence seule, dans un jeton de ponctuation, signe un artefact
-     * (sauf signes typographiques légitimes, traités à part).
-     */
-    private const SIGNES_FORTS = ';=+*&~|\\/<>#@^_[]{}(`¤¬¦\'"';
-
     /** Signes isolés légitimes : un jeton d'un seul de ces signes ne coupe pas le texte. */
     private const SIGNES_BENINS = ['—', '–', ':', '°', '%', '«', '»', '…', '·', '•', '–'];
 
@@ -267,7 +261,7 @@ final class ExtraitsLisibles
      * affiché. Un extrait mixte est rogné au passage propre ; les marques de surlignage des segments
      * conservés sont préservées. V2-10e : la fenêtre retenue contient le premier terme trouvé.
      *
-     * @param list<list<array{t:string, hit:bool}>> $extraits
+     * @param list<list<mixed>> $extraits entrée tolérée mal formée : les segments non-tableaux sont ignorés
      * @return list<list<array{t:string, hit:bool}>>
      */
     public static function retenir(array $extraits, int $max = 3): array
@@ -444,7 +438,11 @@ final class ExtraitsLisibles
         return [$a, $b, $rogneTete, $rogneQueue];
     }
 
-    /** V2-10f — un fragment de 1–2 lettres ne reste en bord que s'il est vraiment usuel dans une phrase. */
+    /**
+     * V2-10f — un fragment de 1–2 lettres ne reste en bord que s'il est vraiment usuel dans une phrase.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool} $jeton
+     */
     private static function fragmentDeBord(array $jeton): bool
     {
         if ($jeton['longueur'] > 2) {
@@ -458,23 +456,14 @@ final class ExtraitsLisibles
         ], true);
     }
 
-    /** V2-10f — un mot court non usuel accompagne volontiers un bruit déjà trouvé en bord. */
+    /**
+     * V2-10f — un mot court non usuel accompagne volontiers un bruit déjà trouvé en bord.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool} $jeton
+     */
     private static function courtNonUsuel(array $jeton): bool
     {
         return $jeton['longueur'] <= 4 && !self::motUsuel($jeton['lettres']);
-    }
-
-    /** Nombre de jetons rejetés (fragments) avant l'indice donné. */
-    private static function bruitAvant(array $jetons, int $indice): int
-    {
-        $n = 0;
-        for ($k = 0; $k < $indice; $k++) {
-            if (!$jetons[$k]['acceptable']) {
-                $n++;
-            }
-        }
-
-        return $n;
     }
 
     /**
@@ -515,7 +504,11 @@ final class ExtraitsLisibles
         return $plausibles * 2 <= $n;
     }
 
-    /** Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité. */
+    /**
+     * Construit un jeton minimal à partir d'un mot, pour les jugements de plausibilité.
+     *
+     * @return array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool}
+     */
     private static function jetonDepuisMot(string $mot): array
     {
         $lettres = (string) preg_replace('/[^\p{L}]/u', '', $mot);
@@ -534,6 +527,8 @@ final class ExtraitsLisibles
     /**
      * V2-10f — vrai si le mot est manifestement un artefact : fragment, tout en majuscules non usuel,
      * majuscule interne, amas de voyelles ou mot sans voyelle.
+     *
+     * @param array{t:string, lettres:string, debut:int, fin:int, longueur:int, acceptable:bool, bruitMele?:bool} $jeton
      */
     private static function implausible(array $jeton): bool
     {
@@ -703,7 +698,8 @@ final class ExtraitsLisibles
         $melanges = preg_match_all('/\p{Ll}+\p{N}+\p{Lu}+/u', $texte, $trouvesMelanges, PREG_OFFSET_CAPTURE);
         $zonesMelangees = [];
         if ($melanges !== false) {
-            foreach ($trouvesMelanges[0] ?? [] as [$melange, $offset]) {
+            // preg_match_all pose toujours la clé 0 (au pire une liste vide) : le repli était mort.
+            foreach ($trouvesMelanges[0] as [$melange, $offset]) {
                 $zonesMelangees[] = [(int) $offset, (int) $offset + strlen($melange)];
             }
         }

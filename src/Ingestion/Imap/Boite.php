@@ -10,7 +10,11 @@ interface Boite
     /** Identifiant stable de la boîte (utilisateur@serveur), pour l'idempotence. */
     public function nom(): string;
 
-    /** UID des messages non lus de la boîte de réception. @return list<int> */
+    /**
+     * UID des messages non lus de la boîte de réception.
+     *
+     * @return list<int>
+     */
     public function nonLus(): array;
 
     /** Message brut (RFC 822), lu sans le marquer comme lu. */

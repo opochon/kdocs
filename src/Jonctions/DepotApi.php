@@ -252,7 +252,11 @@ final class DepotApi
         return $meta;
     }
 
-    /** @param array<string, mixed> $corps @return array<string, mixed>|null @throws ErreurApi */
+    /**
+     * @param array<string, mixed> $corps
+     * @return array<string, mixed>|null
+     * @throws ErreurApi
+     */
     private function origine(array $corps, string $etape): ?array
     {
         $brut = trim((string) ($corps['origine'] ?? ''));
@@ -283,7 +287,7 @@ final class DepotApi
         return $ligne === false ? null : $ligne;
     }
 
-    /** @param array<string, mixed> $donnees */
+    /** @param array<mixed> $donnees tableau JSON : liste d'objets (dossiers) ou map (état, réponses) */
     private function json(Reponse $reponse, int $code, array $donnees): Reponse
     {
         $reponse->getBody()->write(json_encode($donnees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

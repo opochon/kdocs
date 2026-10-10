@@ -130,7 +130,11 @@ final class Vues
         return $id;
     }
 
-    /** Une recherche est rangée dans le même registre de vues que la Bibliothèque, sans perdre son texte. */
+    /**
+     * Une recherche est rangée dans le même registre de vues que la Bibliothèque, sans perdre son texte.
+     *
+     * @param array<string, mixed> $brut
+     */
     public function enregistrerRecherche(string $nom, array $brut, string $auteur): int
     {
         $nom = trim($nom);
@@ -171,7 +175,11 @@ final class Vues
         return null;
     }
 
-    /** La vue désignée par le slug de son nom (liens du gabarit), ou null. */
+    /**
+     * La vue désignée par le slug de son nom (liens du gabarit), ou null.
+     *
+     * @return array<string, mixed>|null
+     */
     public function parSlug(string $slug): ?array
     {
         foreach ($this->lister() as $vue) {
@@ -235,6 +243,10 @@ final class Vues
         return array_values(array_filter($docs, static fn (array $d): bool => self::satisfaitTout($d, $filtres)));
     }
 
+    /**
+     * @param array<string, mixed> $d
+     * @param array<string, mixed> $filtres
+     */
     private static function satisfaitTout(array $d, array $filtres): bool
     {
         if (($filtres['type'] ?? null) !== null && (string) ($d['type'] ?? '') !== (string) $filtres['type']) {
@@ -337,7 +349,11 @@ final class Vues
         return $valeur;
     }
 
-    /** Le prochain identifiant libre des vues : un de plus que le plus grand posé. */
+    /**
+     * Le prochain identifiant libre des vues : un de plus que le plus grand posé.
+     *
+     * @param array<mixed> $vues liste de vues (id lu si présent) ; tolère un tableau générique du registre
+     */
     private static function prochainId(array $vues): int
     {
         $max = 0;

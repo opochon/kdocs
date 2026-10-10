@@ -24,7 +24,10 @@ final class Travaux
         return $st->rowCount() === 1 ? (int) $this->pdo->lastInsertId() : null;
     }
 
-    /** @param array<string, mixed> $analyse */
+    /**
+     * @param list<int> $pages
+     * @param array<string, mixed> $analyse
+     */
     public function ajouterPiece(int $lotId, string $chemin, string $nomOrigine, string $source, array $pages, string $texte, array $analyse): ?int
     {
         $empreinte = (string) hash_file('sha256', $chemin);
@@ -98,7 +101,11 @@ final class Travaux
         return ['en_cours' => (int) ($r['en_cours'] ?? 0), 'erreurs' => (int) ($r['erreurs'] ?? 0), 'lots' => (int) ($r['lots'] ?? 0)];
     }
 
-    /** [25,26,27,28,30] → "25-28,30" */
+    /**
+     * [25,26,27,28,30] → "25-28,30"
+     *
+     * @param list<int> $pages
+     */
     public static function plages(array $pages): string
     {
         sort($pages);

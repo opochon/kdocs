@@ -13,7 +13,7 @@ use PDO;
  * texte : liste et total partagent donc exactement le même périmètre.
  *
  * L'index est bâti HORS requête par les jobs (`tools/indexer-recherche.php`, `tools/tache.php indexation`) :
- * une recherche ne relit jamais le fonds. `IndexPleinTexte` reste injecté pour ne pas changer le branchement.
+ * une recherche ne relit jamais le fonds.
  *
  * Le classement final se fait en PHP sur un nombre borné de candidats, pour départager titre et corps de
  * façon lisible (pertinence = 3 × occurrence dans le titre + occurrences du corps, plafonnées).
@@ -27,7 +27,6 @@ final class Service implements Moteur
 
     public function __construct(
         private readonly PDO $pdo,
-        private readonly IndexPleinTexte $index,
         private readonly ?int $compte = null,
         private readonly bool $administrateur = false,
     ) {
@@ -63,7 +62,11 @@ final class Service implements Moteur
         }
     }
 
-    /** Recherche FULLTEXT booléenne, classée par pertinence de la base puis reclassée. */
+    /**
+     * Recherche FULLTEXT booléenne, classée par pertinence de la base puis reclassée.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function chercherPleinTexte(Requete $requete, Termes $termes): array
     {
         $conditions = $this->conditions($requete, $termes, 'fulltext');
@@ -78,7 +81,11 @@ final class Service implements Moteur
         return $this->executer($sql, $parametres);
     }
 
-    /** Repli mot à mot : chaque terme positif doit apparaître (titre ou corps), les exclus sont écartés. */
+    /**
+     * Repli mot à mot : chaque terme positif doit apparaître (titre ou corps), les exclus sont écartés.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function chercherLike(Requete $requete, Termes $termes): array
     {
         $conditions = $this->conditions($requete, $termes, 'like');
@@ -89,7 +96,11 @@ final class Service implements Moteur
         return $this->executer($sql, $conditions['parametres']);
     }
 
-    /** Sans terme (filtres seuls, écran vierge) : le fonds filtré, du plus récent au plus ancien. */
+    /**
+     * Sans terme (filtres seuls, écran vierge) : le fonds filtré, du plus récent au plus ancien.
+     *
+     * @return list<array<string, mixed>>
+     */
     private function lister(Requete $requete): array
     {
         $conditions = $this->conditions($requete, Termes::depuis(''), 'liste');
@@ -191,7 +202,8 @@ final class Service implements Moteur
             $parametres['filtre_montant_max'] = $requete->montantMax;
         }
 
-        return ['sql' => $morceaux === [] ? '1 = 1' : implode(' AND ', $morceaux), 'parametres' => $parametres];
+        // `t.absent_le IS NULL` est toujours posé : $morceaux n'est jamais vide.
+        return ['sql' => implode(' AND ', $morceaux), 'parametres' => $parametres];
     }
 
     /**
@@ -246,7 +258,10 @@ final class Service implements Moteur
         return $score;
     }
 
-    /** @param array<string, mixed> $parametres @return list<array<string, mixed>> */
+    /**
+     * @param array<string, mixed> $parametres
+     * @return list<array<string, mixed>>
+     */
     private function executer(string $sql, array $parametres): array
     {
         $stmt = $this->pdo->prepare($sql);

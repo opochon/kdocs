@@ -119,7 +119,11 @@ final class Ecran
         ];
     }
 
-    /** Le catalogue seul, pour la route JSON (aucun nœud que le moteur n'exécute). @return array<string, mixed> */
+    /**
+     * Le catalogue seul, pour la route JSON (aucun nœud que le moteur n'exécute).
+     *
+     * @return array<string, mixed>
+     */
     public function catalogue(): array
     {
         return ['catalogue' => Catalogue::tout(), 'a_porter' => Catalogue::aPorter(),
@@ -177,14 +181,21 @@ final class Ecran
         ], $fonds->toutes());
     }
 
-    /** JSON sûr à encastrer dans une balise script (les chevrons et guillemets sont échappés). */
+    /**
+     * JSON sûr à encastrer dans une balise script (les chevrons et guillemets sont échappés).
+     *
+     * @param array<mixed> $donnees
+     */
     private static function jsonSur(array $donnees): string
     {
         return (string) json_encode($donnees,
             JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     }
 
-    /** @param array<string, mixed> $entree @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $entree
+     * @return array<string, mixed>
+     */
     private function entreeJournal(array $entree): array
     {
         return [

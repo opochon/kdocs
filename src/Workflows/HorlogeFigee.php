@@ -27,7 +27,9 @@ final class HorlogeFigee implements Horloge
     /** Avance l'instant d'un modificateur relatif (« +90 days »). */
     public function avancer(string $modificateur): void
     {
-        $this->instant = $this->instant->modify($modificateur) ?: $this->instant;
+        // Depuis PHP 8.3, un modificateur invalide lève DateMalformedStringException : modify() ne rend
+        // jamais false, le repli historique `?: $this->instant` était du code mort.
+        $this->instant = $this->instant->modify($modificateur);
     }
 
     /** Fixe l'instant à une date absolue. */

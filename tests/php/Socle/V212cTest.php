@@ -73,7 +73,7 @@ final class V212cTest extends TestCase
         $index->synchroniser(null); // le job hors requête alimente l'index de la recherche réelle
 
         $criteres = ['q' => 'énergie', 'type' => 'Facture', 'emetteur' => 'Atelier Fictif SA'];
-        $recherche = (new ServiceRecherche($this->pdo, $index))->rechercher(RequeteRecherche::depuisParametres($criteres));
+        $recherche = (new ServiceRecherche($this->pdo))->rechercher(RequeteRecherche::depuisParametres($criteres));
         $id = (new Vues($this->config))->enregistrerRecherche('Factures de recherche', [
             ...$criteres, 'date_debut' => '2026-01-01',
         ], 'recette');

@@ -30,7 +30,7 @@ final class Ecran
         $config = new Config($racine ?? dirname(__DIR__, 2));
         $pdo = Base::pdo($config);
 
-        return new self(new Service($pdo, IndexPleinTexte::depuis($config, $pdo), $compte, $administrateur), $pdo, $compte, $administrateur);
+        return new self(new Service($pdo, $compte, $administrateur), $pdo, $compte, $administrateur);
     }
 
     /**

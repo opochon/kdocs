@@ -86,7 +86,10 @@ final class EditeurPdf
         return 'La retouche de page a échoué.';
     }
 
-    /** @param array<string, mixed> $commande @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $commande
+     * @return array<string, mixed>
+     */
     public function executer(array $commande): array
     {
         return $this->appel($commande);
@@ -108,7 +111,10 @@ final class EditeurPdf
         return (int) $resultat[$cle];
     }
 
-    /** @param array<string, mixed> $commande @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $commande
+     * @return array<string, mixed>
+     */
     private function appel(array $commande): array
     {
         if (!is_file($this->script)) {

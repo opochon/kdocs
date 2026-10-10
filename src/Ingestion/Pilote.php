@@ -75,8 +75,10 @@ final class Pilote
         return $compte;
     }
 
-    /** @param array<string, mixed> $lot */
-    /** @return list<string> alertes d'invariant réparé */
+    /**
+     * @param array<string, mixed> $lot
+     * @return list<string> alertes d'invariant réparé
+     */
     private function decouper(array $lot): array
     {
         $sortie = $this->zoneTravail . '/pieces/' . $lot['id'];
@@ -105,7 +107,12 @@ final class Pilote
         return $normalisee['alertes'];
     }
 
-    /** Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null. @param array<string, mixed> $lot */
+    /**
+     * Origine CMM accompagnant la copie de travail (`<fichier>.depot.json`), ou null.
+     *
+     * @param array<string, mixed> $lot
+     * @return array<string, mixed>|null
+     */
     private function origineCourriel(array $lot): ?array
     {
         $fichier = (string) ($lot['chemin'] ?? '') . '.depot.json';
@@ -181,12 +188,12 @@ final class Pilote
         // texte porte réellement le marqueur de page.
         $gagnante = [];
         foreach ($pieces as $index => $piece) {
-            foreach ((array) ($piece['pages'] ?? []) as $page) {
+            foreach ($piece['pages'] as $page) {
                 $page = (int) $page;
                 if ($page <= 0) {
                     continue;
                 }
-                $score = $this->scoreLecturePage((string) ($piece['texte'] ?? ''), $page);
+                $score = $this->scoreLecturePage((string) $piece['texte'], $page);
                 if (!isset($gagnante[$page]) || $score > $gagnante[$page]['score']) {
                     // À score égal, le premier rendu reste la solution déterministe de repli.
                     $gagnante[$page] = ['index' => $index, 'score' => $score];
@@ -197,7 +204,7 @@ final class Pilote
         $uniques = [];
         foreach ($pieces as $index => $piece) {
             $pages = [];
-            foreach ((array) ($piece['pages'] ?? []) as $page) {
+            foreach ($piece['pages'] as $page) {
                 $page = (int) $page;
                 if ($page > 0 && ($gagnante[$page]['index'] ?? null) === $index) {
                     $pages[] = $page;
@@ -226,7 +233,7 @@ final class Pilote
     {
         $brutes = [];
         foreach ($pieces as $piece) {
-            $brutes = array_merge($brutes, array_map('intval', (array) ($piece['pages'] ?? [])));
+            $brutes = array_merge($brutes, array_map('intval', $piece['pages']));
         }
         $brutes = array_values(array_filter($brutes, static fn (int $page): bool => $page > 0));
         $attendues = $this->compterPagesSource($fichierSource);
@@ -296,7 +303,11 @@ final class Pilote
         return null;
     }
 
-    /** La page absente prolonge la séquence gauche ; sans gauche, la droite. */
+    /**
+     * La page absente prolonge la séquence gauche ; sans gauche, la droite.
+     *
+     * @param list<array{fichier:string, pages:list<int>, texte:string, analyse:array<string,mixed>}> $pieces
+     */
     private function pieceQuiProlonge(array $pieces, int $page): ?int
     {
         foreach ($pieces as $index => $piece) {
