@@ -69,11 +69,13 @@ function preparer(): Preparation {
 async function pageConnectee(browser: Browser, identifiant: string, motDePasse: string): Promise<{ page: Page; fermer: () => Promise<void> }> {
   const contexte = await browser.newContext({ baseURL: base, viewport: { width: 1440, height: 900 }, locale: 'fr-CH' });
   const page = await contexte.newPage();
-  await page.goto('/connexion');
-  await page.getByTestId('identifiant-connexion').fill(identifiant);
-  await page.getByTestId('mot-de-passe-connexion').fill(motDePasse);
-  await page.getByTestId('action-connexion').click();
-  await expect(page).toHaveURL(/\/a-traiter$/);
+  // Budgets d'action explicites, comme `tests/e2e/connexion.ts` : sous la charge du harness complet,
+  // le serveur `php -S` mono-processus fait la queue devant la mesure et 5 s ne suffisent pas.
+  await page.goto('/connexion', { timeout: 15_000 });
+  await page.getByTestId('identifiant-connexion').fill(identifiant, { timeout: 15_000 });
+  await page.getByTestId('mot-de-passe-connexion').fill(motDePasse, { timeout: 15_000 });
+  await page.getByTestId('action-connexion').click({ timeout: 15_000 });
+  await expect(page).toHaveURL(/\/a-traiter$/, { timeout: 15_000 });
 
   return { page, fermer: () => contexte.close() };
 }
