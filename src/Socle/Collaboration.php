@@ -167,6 +167,7 @@ final class Collaboration
     /** @return list<array{quand:string,quoi:string}> */
     public function historique(int $document): array { $s=$this->pdo->prepare("SELECT cree_le quand, CONCAT(UCASE(LEFT(action, 1)), SUBSTRING(action, 2), ' par ', auteur) quoi FROM document_collaboration WHERE document_id=? AND type='evenement' UNION ALL SELECT cree_le, CONCAT('Partage ',type_partage,' créé') FROM document_collaboration WHERE document_id=? AND type='partage' ORDER BY quand DESC"); $s->execute([$document,$document]); return $s->fetchAll(PDO::FETCH_ASSOC); }
 
+    /** @return array<string, mixed>|null */
     public function cheminDocument(int $document): ?array { $s=$this->pdo->prepare('SELECT chemin_relatif,nom,mime,titre FROM documents WHERE id=? AND supprime_le IS NULL AND absent_depuis IS NULL');$s->execute([$document]);$r=$s->fetch(PDO::FETCH_ASSOC);return is_array($r)?$r:null; }
 
     private function exigerDocument(int $id): void { if ($this->cheminDocument($id)===null) throw new RuntimeException('document introuvable dans le fonds'); }

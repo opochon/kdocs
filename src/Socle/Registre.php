@@ -42,7 +42,12 @@ final class Registre
         $this->dossier = $racine . '/' . self::DOSSIER;
     }
 
-    /** Le contenu d'un registre, ou le défaut s'il n'existe pas encore (la lecture n'écrit jamais). */
+    /**
+     * Le contenu d'un registre, ou le défaut s'il n'existe pas encore (la lecture n'écrit jamais).
+     *
+     * @param array<string, mixed> $defaut
+     * @return array<string, mixed>
+     */
     public function lire(string $nom, array $defaut = []): array
     {
         $fichier = $this->chemin($nom);
@@ -64,6 +69,7 @@ final class Registre
      * @param callable(array<string, mixed>): mixed $transformation reçoit l'état frais, rend l'état nouveau
      *        (PHP n'impose pas le type de retour d'un callable : le `is_array` ci-dessous est un vrai
      *        garde-fou, pas une redondance)
+     * @param array<string, mixed> $defaut
      * @return array<string, mixed> l'état final, tel qu'écrit
      */
     public function modifier(string $nom, callable $transformation, array $defaut = []): array

@@ -72,6 +72,8 @@ final class DepotFichiers implements Depot
      * Insère la ligne d'index d'un document DÉJÀ rangé dans le fonds (dépôt, indexeur d'un fichier posé à la
      * main, reconstruction). L'empreinte, la taille et le MIME sont lus du fichier : le dossier fait foi.
      * Le fichier peut vivre ailleurs que sous son chemin du fonds (corbeille, reconstruction) : passer $absolu.
+     *
+     * @param array<string, mixed> $meta
      */
     public function enregistrer(string $cheminRelatif, array $meta, ?string $absolu = null): int
     {
@@ -139,6 +141,8 @@ final class DepotFichiers implements Depot
      * Reporte dans l'index un `.meta.json` déjà écrit à côté du fichier (champs personnalisés, V2-04) :
      * la colonne `meta` recopie le dossier — sans déplacer la pièce ni toucher au rangement. Ligne
      * vivante seulement : un document à la corbeille ou disparu ne change pas.
+     *
+     * @param array<string, mixed> $meta
      */
     public function rapporterMeta(string $cheminRelatif, array $meta): void
     {
@@ -343,6 +347,7 @@ final class DepotFichiers implements Depot
     /**
      * Chemin de rangement `année/type[/émetteur]` ; sans type connu : `année/À classer`.
      * Un `dossier` explicite (dépôt direct par l'API dans un dossier autorisé) l'emporte, tel quel.
+     * @param array<string, mixed> $meta
      */
     private function cheminRangement(array $meta): string
     {
@@ -369,6 +374,7 @@ final class DepotFichiers implements Depot
      * Défense en profondeur au dépôt : une proposition automatique ne peut pas transformer une phrase
      * OCR en dossier. Un émetteur enregistré par la validation humaine reste, lui, une source crédible.
      * Le filtre détaillé vit dans Classement ; ce garde-fou protège aussi les pièces à contrôler.
+     * @param array<string, mixed> $meta
      */
     private static function emetteurPeutCreerDossier(array $meta): bool
     {
@@ -393,6 +399,9 @@ final class DepotFichiers implements Depot
     /**
      * Métadonnées canoniques du dépôt : clés connues dans l'ordre (titre par défaut = nom d'origine),
      * puis les clés des secteurs appelants (origine, classement, texte…), telles quelles.
+     *
+     * @param array<string, mixed> $metadonnees
+     * @return array<string, mixed>
      */
     private function metaDeDepot(array $metadonnees, string $source): array
     {
@@ -401,7 +410,13 @@ final class DepotFichiers implements Depot
         return $this->fusionner([], $metadonnees);
     }
 
-    /** Fusion : chaque clé connue présente remplace (null l'efface) ; les autres clés passent après. */
+    /**
+     * Fusion : chaque clé connue présente remplace (null l'efface) ; les autres clés passent après.
+     *
+     * @param array<string, mixed> $actuel
+     * @param array<string, mixed> $nouvelles
+     * @return array<string, mixed>
+     */
     private function fusionner(array $actuel, array $nouvelles): array
     {
         $meta = $actuel;

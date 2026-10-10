@@ -71,7 +71,19 @@ vert, aucune erreur nouvelle hors baseline.
 
 ## En cours
 
-- PHPUnit complet après la phase 1.
+- Niveau 6, module par module.
+
+### Commit phase 1
+
+`cea063d` — baseline 167 → 134 ; PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
+### Module Socle (niveau 6)
+
+Annotations de types de valeur sur 13 fichiers (`@param`/`@return` `array<...>`,
+`list<...>`, `array{...}`), plus `@param App<Psr\Container\ContainerInterface>` sur
+`Socle\Module::enregistrer`. Aucun changement de comportement.
+
+Mesure : baseline **134 → 87 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
 ## Reste
 

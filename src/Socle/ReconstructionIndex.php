@@ -21,7 +21,11 @@ final class ReconstructionIndex
         $this->registre = new Registre($config);
     }
 
-    /** Refuse sous verrou un second lancement ; le fichier atomique survit à une coupure. */
+    /**
+     * Refuse sous verrou un second lancement ; le fichier atomique survit à une coupure.
+     *
+     * @return array<string, mixed>
+     */
     public function lancer(string $auteur): array
     {
         return $this->registre->modifier('reconstruction-index', function (array $etat) use ($auteur): array {
@@ -33,7 +37,11 @@ final class ReconstructionIndex
         });
     }
 
-    /** Une tranche reste bornée à 100 ; l'état est relu et publié sous le verrou du Registre. */
+    /**
+     * Une tranche reste bornée à 100 ; l'état est relu et publié sous le verrou du Registre.
+     *
+     * @return array<string, mixed>
+     */
     public function avancer(int $id, int $lot = 25): array
     {
         try {

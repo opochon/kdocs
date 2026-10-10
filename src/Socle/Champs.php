@@ -118,7 +118,10 @@ final class Champs
         return array_values(array_filter($this->defs(), static fn (array $d): bool => $d['type'] === $type));
     }
 
-    /** Toutes les définitions portant cette clé, tous types confondus (une vue filtre par clé). */
+    /** Toutes les définitions portant cette clé, tous types confondus (une vue filtre par clé).
+     *
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>}>
+     */
     public function parCle(string $cle): array
     {
         return array_values(array_filter($this->defs(), static fn (array $d): bool => $d['cle'] === $cle));
@@ -186,6 +189,8 @@ final class Champs
     /**
      * Valide une saisie selon la nature du champ et rend la valeur typée telle qu'elle vit dans le
      * `.meta.json` (chaîne, nombre, booléen). Toute entrée récalcitrante est une erreur nommée.
+     *
+     * @param list<string> $options
      */
     public function valider(string $nature, array $options, string $brute): mixed
     {
@@ -227,7 +232,11 @@ final class Champs
         throw new RuntimeException("champ : nature inconnue « $nature »");
     }
 
-    /** Opérateurs de comparaison qu'une vue peut appliquer à chaque nature. */
+    /**
+     * Opérateurs de comparaison qu'une vue peut appliquer à chaque nature.
+     *
+     * @return array<string, list<array{v:string, l:string}>>
+     */
     public static function operateurs(): array
     {
         return [
@@ -278,7 +287,10 @@ final class Champs
         return null;
     }
 
-    /** @param list<string> $options @return list<string> */
+    /**
+     * @param list<string> $options
+     * @return list<string>
+     */
     private static function nettoyerOptions(array $options): array
     {
         $nettes = [];
@@ -292,7 +304,11 @@ final class Champs
         return $nettes;
     }
 
-    /** Le prochain identifiant libre d'une liste : un de plus que le plus grand posé. */
+    /**
+     * Le prochain identifiant libre d'une liste : un de plus que le plus grand posé.
+     *
+     * @param list<array<string, mixed>> $entrees
+     */
     private static function prochainId(array $entrees): int
     {
         $max = 0;
