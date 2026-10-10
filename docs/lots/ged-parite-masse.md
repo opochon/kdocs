@@ -33,6 +33,28 @@ GEDv2 couvre ~80 % des fonctions de Paperless-ngx 2.20 ; la modification en mass
 et 4 écrans n'ont aucun test E2E. Cible de la ligne de matrice : « Modification en masse (type,
 étiquettes, émetteur, dossier, corbeille) — niveau 9, droits respectés ».
 
+## Doc Paperless-ngx (rubrique Usage, bulk editing) et adaptation GEDv2
+
+Source : `docs.paperless-ngx.com/usage/#bulk-editing` (2.20). Paperless sélectionne des documents par
+cases ; la case d'en-tête sélectionne la PAGE, puis « Select all matching » sélectionne tout le
+RÉSULTAT FILTRÉ. La barre d'actions propose Edit / Delete / Download / Reprocess / Merge ; le dialogue
+d'édition porte : set correspondent, set document type, set storage path, add/remove/set tags,
+set permissions, set owner, modify custom fields. En 2.20, la suppression part à la **corbeille**
+(Trash), pas d'effacement immédiat. Les droits exigés sont *change* pour éditer et *delete* pour
+supprimer, sur les documents accessibles.
+
+Adaptation au modèle GEDv2 (le dossier fait foi, `.meta.json` à côté, zéro suppression) :
+
+| Paperless | GEDv2 (ce lot) |
+| --- | --- |
+| case page + « Select all matching » | `coche-tout-page` + `coche-tout-resultat` (« tout le résultat filtré ») |
+| set document type | changer le type (`documents:modifier`) |
+| add tags / remove tags | ajouter / retirer des étiquettes |
+| set correspondent | changer l'émetteur |
+| set storage path | déplacer vers un dossier |
+| Delete → Trash | mettre en corbeille (fichier sous `.corbeille/`, ligne drapeautée, réversible) |
+| set permissions / owner / custom fields, Download, Reprocess, Merge | hors de ce lot (droits par dossier, champs et édition de pièces vivent déjà dans leurs écrans) |
+
 ## Avancement
 
 ### Fait (commits)
@@ -48,19 +70,65 @@ et 4 écrans n'ont aucun test E2E. Cible de la ligne de matrice : « Modificatio
   depuis le dossier actif ; charges CSRF de la sonde (`tools/banc/sonde-securite.php`, fichier partagé
   signalé) ; filtres de la sélection résolus par la MÊME méthode que la liste paginée
   (`EcranBibliotheque::resoudre`/`idsFiltres`).
-- (commit suivant) — E2E `tests/e2e/parite-masse.spec.ts` (5 parcours) + préparation
+- `d75e3b8` — E2E `tests/e2e/parite-masse.spec.ts` (5 parcours) + préparation
   `tests/e2e/preparer-parite-masse.php` : en masse par l'écran (cocher, choisir, confirmer, bilan,
   liste, fiche), « tout le résultat filtré » au-delà de la page, et les 4 écrans jamais parcourus via
   le menu (groupes, rôles, partagés avec moi, catalogue).
+- `37985ac` — journalisation d'un état de masse illisible (`error_log`), E2E : « toute la page »,
+  « droits du dossier » depuis la Bibliothèque.
+- `b64c59d` — budgets d'action de la connexion du parcours (15 s, comme `tests/e2e/connexion.ts`) : un
+  `fill` à 5 s expirait sous la charge du harness complet (défaut de test, pas de produit).
 
 ### En cours
-- Harness `-SansBanc` complet + porte qualité ECC.
+- (aucun)
 
 ### Reste
-- Rien d'autre que la porte qualité et le rejeu du harness.
+- (aucun ; voir le harness final et la porte qualité ci-dessous.)
 
 ## Porte qualité (ECC)
 
-- (à compléter)
+- **Analyse statique** : `php vendor\bin\phpstan analyse --memory-limit=2G` → **0 erreur hors baseline**
+  (`phpstan-baseline.neon` reste **vide**, jamais grossie). `composer audit --locked` → **aucune
+  vulnérabilité**. Couche `8-statique` du harness : **VERT**.
+- **TDD** : oracle d'abord — `tests/php/Socle/ModificationMasseTest.php` a d'abord échoué (`Class
+  "Ged\Socle\ModificationMasse" not found`), puis le service l'a fait passer **4 tests / 86 assertions**.
+  Aucun test existant affaibli : le test JSON du catalogue et le contrat de `ModuleTest` restent
+  inchangés ; `maquettes`, `bibliotheque`, `actions-v2-12c` rejoués verts.
+- **Revue du diff** contre les grilles `php-reviewer`, `security-reviewer`, `silent-failure-hunter` :
+  - SQL entièrement statique et paramétré (`?`) ; `idsFiltres` lie les identifiants de recherche
+    (`FIELD(d.id, ?…)`) et borne `LIMIT` par un entier local ; aucun fragment construit à partir d'une
+    entrée utilisateur. L'alias de table est une constante du code.
+  - Droits : la garde vérifie la permission globale `documents:modifier` et le CSRF ; le service vérifie
+    le niveau `modifier` **par document** (`DroitsDossiers::autorise`). « Tout le résultat filtré »
+    applique la MÊME clause ACL que la liste : un document non modifiable n'est jamais modifié et le
+    refus est compté avec sa raison.
+  - Chemins : `dossier` refuse `..` et `/` ; `DepotFichiers::cheminAbsolu` garde la racine du fonds.
+  - XSS : aucun `|raw` ajouté, Twig échappe tout ; les `data-testid` sont des constantes.
+  - Erreurs : aucun `catch` vide ajouté ; un refus est nommé et compté, un audit illisible et un état de
+    tâche illisible sont tracés (`error_log`) ; l'échec imprévu d'une tranche marque la tâche `echec`
+    avec sa cause et lève une `RuntimeException` nommée (422 à l'écran, jamais un 500 muet).
+  - Constats MEDIUM assumés : la borne de sélection (5000) est un garde-fou local documenté dans
+    `idsFiltres`, pas un jeton métier ; `EcranBibliotheque::donnees()` reste une méthode de rendu
+    (construction du tableau vue), la logique de sélection vivant dans `resoudre`/`idsFiltres`. Aucun
+    constat CRITIQUE ou ÉLEVÉ.
 
-ETAT: en cours
+## Mesures exactes — harness final `-SansBanc`
+
+Commande : `powershell -ExecutionPolicy Bypass -File tools/harness.ps1 -SansBanc`
+(arbre commité `b64c59d`, 11 min 49 s).
+
+- `0-garde-fous` **VERT** (vendor/node_modules présents, `DB_NAME=gedv2_test` imposé).
+- `1-unitaire` **VERT** : **479 tests, 2747 assertions, 1 skip, 0 échec**
+  (dont `ModificationMasseTest` 4/86, `RailMenuTest` 3, catalogue HTML +1).
+- `2-contrat` **VERT** : toutes les routes déclarées sont couvertes (dont les 2 du lot).
+- `4-ecrans` **VERT** : **70 passed** (dont `parite-masse.spec.ts` 5/5).
+- `6-charge` **VERT** : p95 lecture **655 ms**, p95 écriture **241 ms**, 0 erreur, 0 collision, ingestion
+  finie.
+- `7-securite` **VERT** : sonde offensive, aucun contournement accepté (CSRF absent/rejoué refusé sur les
+  2 nouvelles mutations).
+- `8-statique` **VERT** : PHPStan 0 erreur hors baseline ; `composer audit` : aucune vulnérabilité.
+- Rouges attendus par construction : `3-banc` (sautée par `-SansBanc`) et `5-personas` (couche non
+  écrite, hors lot). **Aucun rouge fonctionnel dû au lot.**
+- `tests/corpus/` reste intact ; le fonds d'oracle vit sous `var/oracles/parite-masse/`.
+
+ETAT: fini
