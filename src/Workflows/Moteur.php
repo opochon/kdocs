@@ -254,7 +254,10 @@ final class Moteur
             'instance_id' => $instance['id'], 'assigne' => $role];
     }
 
-    /** @param array<string, mixed> $fiche @param array<string, mixed> $contexte */
+    /**
+     * @param array<string, mixed> $fiche
+     * @param array<string, mixed> $contexte
+     */
     private function substituer(string $message, array $fiche, array $contexte): string
     {
         $montant = $fiche['montant'] ?? null;
@@ -345,7 +348,10 @@ final class Moteur
         return ['ecritures' => $ecritures, 'erreurs' => $erreurs];
     }
 
-    /** @param array<string, mixed> $etape @param array<string, mixed> $fiche */
+    /**
+     * @param array<string, mixed> $etape
+     * @param array<string, mixed> $fiche
+     */
     private function appliquerEtape(array $etape, array $fiche, string $auteur): void
     {
         $documentId = (int) ($fiche['id'] ?? 0);

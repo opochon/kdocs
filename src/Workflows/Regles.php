@@ -43,6 +43,8 @@ final class Regles
 
     /**
      * Crée une règle. `$regle` : nom, declencheur, conditions[], actions[], gabarit?, actif?, circuit_id?.
+     *
+     * @param array<string, mixed> $regle
      */
     public function creer(array $regle): int
     {
@@ -64,6 +66,8 @@ final class Regles
     /**
      * Met à jour une règle existante (jamais de suppression) : nom, déclencheur, conditions, actions,
      * gabarit, circuit d'origine. L'identifiant reste stable, le journal n'est pas touché.
+     *
+     * @param array<string, mixed> $regle
      */
     public function mettreAJour(int $id, array $regle): void
     {
@@ -102,7 +106,10 @@ final class Regles
         return $corps;
     }
 
-    /** @param array<string, mixed> $ligne @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $ligne
+     * @return array<string, mixed>
+     */
     private function decoder(array $ligne): array
     {
         $corps = json_decode((string) ($ligne['corps'] ?? '{}'), true);

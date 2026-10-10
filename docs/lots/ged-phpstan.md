@@ -119,6 +119,17 @@ ligne n'étaient pas lus : scindés. Aucun changement de comportement.
 
 Mesure : baseline **52 → 47 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Workflows (niveau 6)
+
+`AdaptateurGraphe` (entreeEtat, entreeRegle), `Catalogue::operateurs`, `Circuits` (creer,
+mettreAJour, instance, instancesDocument, transition, etatInitial, aEtat, decoder,
+decoderInstance), `Ecran` (catalogue, jsonSur, entreeJournal), `Moteur` (appliquerEtape,
+substituer), `Regles` (creer, mettreAJour, decoder) et `Workflows\Module::enregistrer`
+(App générique). Plusieurs docblocks multi-tags sur une seule ligne n'étaient pas lus.
+Aucun changement de comportement.
+
+Mesure : baseline **47 → 26 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),

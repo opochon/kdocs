@@ -294,7 +294,10 @@ final class AdaptateurGraphe
         return [$regle, $infos];
     }
 
-    /** @param array<string, mixed> $noeud @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $noeud
+     * @return array<string, mixed>
+     */
     private static function entreeEtat(array $noeud): array
     {
         $config = (array) ($noeud['config'] ?? []);
@@ -304,7 +307,10 @@ final class AdaptateurGraphe
             'x' => (int) ($noeud['x'] ?? 0), 'y' => (int) ($noeud['y'] ?? 0)];
     }
 
-    /** @param array<string, mixed> $noeud @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $noeud
+     * @return array<string, mixed>
+     */
     private static function entreeRegle(array $noeud, int $regle, string $role, int $rang): array
     {
         return ['id' => (string) $noeud['id'], 'genre' => (string) $noeud['genre'], 'type' => (string) $noeud['type'],
