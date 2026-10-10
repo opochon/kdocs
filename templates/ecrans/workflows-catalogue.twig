@@ -1,0 +1,50 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Catalogue des workflows{% endblock %}
+{% block contenu %}
+{# Catalogue des composants du designer, servi pour un utilisateur : uniquement ce que le moteur exécute.
+   La même route rend le JSON du designer quand le client ne demande pas de HTML (Accept: application/json). #}
+<div class="page" data-testid="ecran-workflows-catalogue">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Catalogue des composants</h1>
+      <span class="muted">Ce que le moteur de workflows exécute réellement : déclencheurs, conditions, actions, états.</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/workflows" data-testid="catalogue-retour">{{ ic.i('fleche') }}Retour aux workflows</a>
+    </div>
+  </div>
+
+  <section class="carte" data-testid="catalogue-declencheurs">
+    <div class="volet-tete">{{ ic.i('flux') }}Déclencheurs <span class="muted">— ce qui fait réagir une règle</span></div>
+    <div class="panneau">
+      <ul class="liste">
+        {% for entree in catalogue.declencheurs ?? [] %}
+        <li class="l2" data-testid="catalogue-{{ entree.type }}">
+          <strong>{{ entree.libelle }}</strong> <span class="muted">{{ entree.description }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="muted">Événements : {% for cle, libelle in declencheurs %}<span class="chip">{{ libelle }}</span> {% endfor %}</p>
+    </div>
+  </section>
+
+  {% for famille, entrees in catalogue %}
+    {% if famille != 'declencheurs' %}
+    <section class="carte" data-testid="catalogue-famille-{{ famille }}">
+      <div class="volet-tete">{{ ic.i('vue') }}{{ famille|capitalize }} <span class="muted">— {{ entrees|length }} composant{{ entrees|length > 1 ? 's' }}</span></div>
+      <div class="panneau">
+        <ul class="liste">
+          {% for entree in entrees %}
+          <li class="l2" data-testid="catalogue-{{ entree.type }}">
+            <strong>{{ entree.libelle }}</strong> <span class="chip">{{ entree.genre }}</span>
+            <div class="muted">{{ entree.description }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}
