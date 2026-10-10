@@ -22,7 +22,10 @@ final class RegistreSessions
         }
     }
 
-    /** @param list<string> $permissions @return array{id:string,csrf:string} */
+    /**
+     * @param list<string> $permissions
+     * @return array{id:string,csrf:string}
+     */
     public function ouvrir(string $utilisateur, array $permissions, ?int $maintenant = null, ?int $compte = null): array
     {
         $maintenant ??= time();

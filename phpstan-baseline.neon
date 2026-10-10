@@ -53,21 +53,3 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: src/Kernel.php
-
-		-
-			message: '#^Method Ged\\Securite\\DroitsDossiers\:\:regleDuDossier\(\) has parameter \$groupes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Securite/DroitsDossiers.php
-
-		-
-			message: '#^Method Ged\\Securite\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Securite/Module.php
-
-		-
-			message: '#^Method Ged\\Securite\\RegistreSessions\:\:ouvrir\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Securite/RegistreSessions.php

@@ -14,6 +14,7 @@ use Slim\App;
 /** Point d'entrée autonome du secteur, appelé automatiquement par Kernel. */
 final class Module
 {
+    /** @param App<\Psr\Container\ContainerInterface> $app */
     public static function enregistrer(App $app, Config $config, Vue $vue): void
     {
         $dossier = $config->chemin('SECURITE_DOSSIER', 'var/securite');

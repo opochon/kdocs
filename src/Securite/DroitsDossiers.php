@@ -189,7 +189,11 @@ final class DroitsDossiers
         return null;
     }
 
-    /** null signifie héritage ; un refus explicite du niveau demandé gagne au dossier courant. */
+    /**
+     * null signifie héritage ; un refus explicite du niveau demandé gagne au dossier courant.
+     *
+     * @param list<int> $groupes
+     */
     private function regleDuDossier(int $dossier, array $groupes, string $action): ?bool
     {
         $marqueurs = implode(',', array_fill(0, count($groupes), '?'));

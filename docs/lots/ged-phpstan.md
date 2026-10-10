@@ -139,6 +139,14 @@ de comportement.
 
 Mesure : baseline **26 → 12 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Securite (niveau 6)
+
+`DroitsDossiers::regleDuDossier` (`list<int>`), `Securite\Module::enregistrer` (App
+générique), `RegistreSessions::ouvrir` (@return inline non lu). Aucun changement de
+comportement.
+
+Mesure : baseline **12 → 9 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),
