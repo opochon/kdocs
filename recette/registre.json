@@ -1,36 +1,40 @@
 ﻿{
-    "date":  "2026-10-01T19:19:23",
-    "duree_s":  514,
-    "commit":  "fd58681",
+    "date":  "2026-10-10T19:27:55",
+    "duree_s":  543,
+    "commit":  "b8b768d",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules présents ; DB_NAME=gedv2_test imposé",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "OK (342 tests, 1784 assertions)",
+                                       "detail":  "\u001b[30;42mTests: 469\u001b[0m\u001b[30;42m, Assertions: 2636\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
                                        "ok":  true
                                    },
                     "3-banc":  {
-                                   "detail":  "decoupe : avec-vision : 77 s — 53 documents pour 53 ; exacts 53/53 ; frontières 53/53, 0 fausses ; perdues 0 ; porte FRANCHIE | classement : sans-ia : 0.02 s — 53 documents, 0 validés seuls (0.0 %), types faux 0, émetteurs faux 0, dates fausses 0, titres invalides 0, « Autre » validé 0 ; porte FRANCHIE | bout-en-bout : F1 sans IA : 78.5 s — 53/53 documents dans le fonds, 53 indexés, 0 pages perdues, 0 erreurs, redépôt mis de côté ; porte FRANCHIE",
-                                   "ok":  true
+                                   "detail":  "sautée (-SansBanc)",
+                                   "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  46 passed (19.2s)",
+                                     "detail":  "  65 passed (3.0m)",
                                      "ok":  true
                                  },
                     "7-securite":  {
-                                       "detail":  "OK: sonde sécurité — aucun contournement accepté",
+                                       "detail":  "OK: sonde s├®curit├® ÔÇö aucun contournement accept├®",
                                        "ok":  true
                                    },
                     "2-contrat":  {
-                                      "detail":  "OK: contrats de service et HTTP — toutes les routes déclarées sont couvertes",
+                                      "detail":  "OK: contrats de service et HTTP ÔÇö toutes les routes d├®clar├®es sont couvertes",
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge — 3 puis 10 utilisateurs, p95 lecture 458 ms, p95 écriture 141 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 644 ms, p95 ├®criture 254 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
                                      "ok":  true
                                  },
+                    "8-statique":  {
+                                       "detail":  "phpstan : 0 erreur(s) hors baseline | audit : \u001b[32mNo security vulnerability advisories found.\u001b[39m",
+                                       "ok":  true
+                                   },
                     "5-personas":  {
                                        "detail":  "pas encore écrite",
                                        "ok":  false

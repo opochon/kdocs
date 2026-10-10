@@ -371,3 +371,33 @@ Demande d'Olivier : un manager peut classer, créer des règles, etc. ; un utili
   rendus en 503 nommée, sans repli silencieux. Aucun constat critique ou élevé.
 
 ETAT: bloqué — lanceurs de recette externes suspendus/expirés (Playwright et harness), sans bilan final ni registre nouveau.
+
+## Journal lot ged-fuite-bibliotheque (10-10) — F10 : 0 fuite sur les listes
+
+Correctif prioritaire demandé par le juge : la Bibliothèque montrait la ligne d'un document hors droits
+(`droits-b6.spec.ts:34`, constat du 10.10 sur `16482d5`). La recherche, l'aperçu et le fichier refusaient
+déjà ; le filtrage V2-13 (point B3 : dans la requête, jamais après coup) manquait sur la Bibliothèque.
+
+- Fait : `DroitsDossiers::predicatLecture()` est le prédicat SQL unique (héritage du parent, refus
+  explicite de lecture gagnant, refus par défaut, administrateur `*` = tout, compte synthétique des
+  oracles inchangé). Il entre DANS les requêtes de : liste Bibliothèque (paginée), `total`, compteurs de
+  vues, arborescence des dossiers, panneau `?doc=`, file « À traiter » et son bilan, pièces sœurs d'un
+  lot, compteur du rail, suggestions de type de la Recherche, « Partagés avec moi ».
+- Preuves : `tests/php/Securite/FuiteListesTest.php` (**8 tests, 18 assertions**) écrit rouge d'abord
+  (`80884e3`) puis vert ; `droits-b6.spec.ts` vert **3 fois de suite seul** (7,9 / 7,8 / 7,7 s) ;
+  suite entière **469 tests / 2636 assertions / 1 skipped**.
+- Harness `-SansBanc` (registre du 10-10 19:27, commit `b8b768d`, 543 s) : `0`, `1`, `4` (**65 passed**),
+  `7`, `2`, `6` (p95 lecture **644 ms**, écriture **254 ms**) et `8` verts ; rouges admis `3-banc`
+  (sautée) et `5-personas` (pas encore écrite).
+- Porte qualité : PHPStan niveau 6 **0 erreur** hors baseline (baseline inchangée) ; `composer audit`
+  sans vulnérabilité ; revue du diff contre php-reviewer / security-reviewer / silent-failure-hunter :
+  SQL statique paramétré, alias du prédicat constant, aucune entrée utilisateur concaténée, aucun
+  `catch` avalé ajouté, aucun secret. Aucun constat critique ou élevé.
+- Commits : `80884e3`, `92f3332`, `419fb08`, `5c4634a`, `e4f36f3`, `159da61`, `b8b768d` (+ doc).
+  Tous portent `Co-Authored-By: DeepCode <noreply@deepcode>`.
+- Modifications minimales signalées hors secteur (le correctif ne pouvait pas rester dans `src/Securite/`,
+  le prédicat est partagé mais les requêtes vivent chez les appelants) : `src/Socle/EcranBibliotheque.php`,
+  `src/Socle/Collaboration.php`, `src/Recherche/Ecran.php`, `src/Ui/ATraiter.php`, `src/Ui/Ecrans.php`,
+  `src/Ui/Rail.php`, `src/Ui/Vue.php`.
+
+ETAT: fini
