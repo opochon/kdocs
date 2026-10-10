@@ -107,6 +107,7 @@ final class Ecrans
             'apercu' => [
                 'id' => $doc['id'], 'titre' => $doc['titre'], 'type' => $doc['type'], 'emetteur' => $doc['emetteur'],
                 'date' => $doc['date'], 'chemin' => $doc['dossier'] . '/' . $doc['fichier'], 'champs' => [],
+                'ouverture' => null, 'ouvrir' => null,
                 'rendu' => ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $doc['titre'],
                     'message' => 'Aucun aperçu pour ce format.'],
             ],
@@ -162,6 +163,8 @@ final class Ecrans
         // classes et data-testid, seul l'aperçu passe de la page de papier à la vraie visionneuse. Un
         // identifiant inconnu retombe sur la maquette : jamais un écran muet ni un 500.
         $id = (int) ($args['id'] ?? 0);
+        $compte = null;
+        $reel = null;
         try {
             $session = $req->getAttribute('ged.session');
             $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
@@ -173,19 +176,30 @@ final class Ecrans
         // La fiche fait partie du périmètre mobile (V2-10b) : pas d'avis « écran conçu pour l'ordinateur »,
         // tout en gardant Bibliothèque comme entrée de rail courante.
         $doc = $reel ?? Maquette::document($id);
-        $doc += ['statut' => '', 'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
+        $doc += ['statut' => '', 'ouverture' => null, 'secours' => [],
+            'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
         $session = $req->getAttribute('ged.session');
-        $permissions = is_array($session) ? (array) ($session['permissions'] ?? []) : [];
+        $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
         $peutSceller = in_array('*', $permissions, true) || in_array('archivage:sceller', $permissions, true);
         $config = new \Ged\Config(dirname(__DIR__, 2));
 
+        // Édition depuis le poste (F13) : « Ouvrir dans … » n'apparaît qu'à qui peut MODIFIER le document.
+        $peutModifier = $reel !== null
+            && \Ged\Edition\Droits::peutModifier($config, $compte, $permissions, (int) ($reel['id'] ?? 0));
+        $libelleOuverture = \Ged\Edition\Pieces::libelleOuverture((string) ($doc['fichier'] ?? ''));
+
         return $this->vue->rendre($rep, 'ecrans/document.twig', $this->commun('bibliotheque') + [
             'avis_ordinateur' => false, 'doc' => $doc, 'csrf' => self::jetonCsrf($req),
+            'peut_modifier' => $peutModifier,
+            'libelle_ouverture' => $libelleOuverture,
+            'lien_ouverture' => $peutModifier ? \Ged\Edition\Pieces::lien((int) ($doc['id'] ?? 0)) : '',
             'peut_sceller' => $peutSceller, 'tsa_configuree' => trim($config->get('TSA_URL')) !== '' || $config->get('APP_ENV') === 'test',
             'archivage_erreur' => (string) ($req->getQueryParams()['archivage_erreur'] ?? ''),
             'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',
             'version_succes' => (int) ($req->getQueryParams()['version_succes'] ?? 0),
             'version_erreur' => (string) ($req->getQueryParams()['version_erreur'] ?? ''),
+            'secours_succes' => (int) ($req->getQueryParams()['secours_succes'] ?? 0),
+            'secours_erreur' => (string) ($req->getQueryParams()['secours_erreur'] ?? ''),
             // Le secret ne transite jamais dans l'URL : le flash serveur est consommé à ce seul rendu.
             'partage_lien' => ($jeton = (new \Ged\Socle\JetonPartageSession($config))->consommer(
                 (string) ($req->getCookieParams()['gedv2_session'] ?? '')

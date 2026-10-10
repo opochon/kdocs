@@ -180,7 +180,7 @@
           {% for d in docs %}
             <tr {% if apercu and apercu.id == d.id %}aria-selected="true"{% endif %} data-testid="ligne-{{ d.id }}">
               <td><input type="checkbox" form="formulaire-masse" name="documents[]" value="{{ d.id }}" data-testid="coche-doc-{{ d.id }}" aria-label="Sélectionner {{ d.titre }}"></td>
-              <td><a href="{{ d.lien ?? ('/bibliotheque?doc=' ~ d.id) }}">{{ d.titre }}</a></td>
+              <td><a href="{{ d.lien ?? ('/bibliotheque?doc=' ~ d.id) }}">{{ d.titre }}</a>{% if d.ouverture is defined and d.ouverture %}<span class="chip{% if d.ouverture.abandonnee %} warn{% endif %}" data-testid="ouvert-{{ d.id }}">{% if d.ouverture.abandonnee %}Peut-être abandonné — {% endif %}Ouvert par {{ d.ouverture.auteur }} sur {{ d.ouverture.poste }} depuis {{ d.ouverture.depuis|date('H:i') }}</span>{% endif %}</td>
               <td>{% if d.type %}<span class="chip">{{ d.type }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
               <td>{{ d.emetteur ?? '—' }}</td>
               <td>{{ d.date ? d.date|date('d.m.Y') : '—' }}</td>
@@ -203,8 +203,10 @@
     <section class="carte volet" aria-label="Aperçu">
       {% if apercu %}
       <div class="volet-tete"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ apercu.titre }}</span>
+        {% if apercu.ouvrir is defined and apercu.ouvrir %}<a class="btn primaire" href="{{ apercu.ouvrir.url }}" data-testid="apercu-ouvrir-poste">{{ ic.i('fichier') }}{{ apercu.ouvrir.libelle }}</a>{% endif %}
         <a class="btn discret" style="margin-left:auto" href="/documents/{{ apercu.id }}" data-testid="ouvrir-fiche">Ouvrir{{ ic.i('fleche') }}</a></div>
       {{ visionneuse.moteur(apercu.rendu, 'apercu-visionneuse') }}
+      {% if apercu.ouverture is defined and apercu.ouverture %}<p class="alerte{% if apercu.ouverture.abandonnee %} warn{% endif %}" data-testid="apercu-ouverture">{% if apercu.ouverture.abandonnee %}Peut-être abandonné — {% endif %}Ouvert par {{ apercu.ouverture.auteur }} sur {{ apercu.ouverture.poste }} depuis {{ apercu.ouverture.depuis|date('H:i') }}</p>{% endif %}
       <div class="panneau" data-testid="panneau-champs">
         <dl class="meta" data-testid="apercu-meta">
           <dt>Type</dt><dd>{{ apercu.type ?? '—' }}</dd>

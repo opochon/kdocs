@@ -92,8 +92,11 @@ final class EcranBibliotheque
         $pages = max(1, (int) ceil($totalFiltre / self::PAGE_TAILLE));
         $page = max(1, min($pages, (int) ($parametres['page'] ?? 1)));
         $docs = $this->lirePage($where, $params, $page, $ordreRecherche);
+        // Édition depuis le poste (F13) : l'ouverture informative de la page, en UNE requête.
+        $ouvertures = $this->ouverturesPour(array_map(static fn (array $d): int => (int) $d['id'], $docs));
         foreach ($docs as &$doc) {
             $doc['lien'] = $this->lienDocument($parametres, (int) $doc['id']);
+            $doc['ouverture'] = $ouvertures[(int) $doc['id']] ?? null;
         }
         unset($doc);
 
@@ -653,12 +656,43 @@ final class EcranBibliotheque
         return [
             'id' => $doc['id'], 'titre' => $doc['titre'], 'type' => $doc['type'], 'emetteur' => $doc['emetteur'],
             'date' => $doc['date'], 'chemin' => $doc['chemin'], 'champs' => $champs,
+            'ouverture' => $this->ouverturePour((int) $doc['id']),
+            // Édition depuis le poste (F13) : « Ouvrir dans … » seulement pour qui peut MODIFIER.
+            'ouvrir' => $doc['id'] > 0 && \Ged\Edition\Droits::peutModifier(
+                $this->config, $this->compte, $this->permissions, (int) $doc['id'])
+                ? ['url' => \Ged\Edition\Pieces::lien((int) $doc['id']),
+                    'libelle' => \Ged\Edition\Pieces::libelleOuverture((string) $doc['nom'])]
+                : null,
             'rendu' => $rendable
                 ? ['url' => '/documents/' . $doc['id'] . '/apercu/fichier', 'categorie' => $extension === 'pdf' ? 'pdf' : 'image',
                     'pages' => 1, 'titre' => $doc['titre'], 'message' => '']
                 : ['url' => '', 'categorie' => 'inconnu', 'pages' => 0, 'titre' => $doc['titre'],
                     'message' => $doc['id'] > 0 ? 'Aucun aperçu pour ce format.' : 'Document non indexé : aucun aperçu.'],
         ];
+    }
+
+    /**
+     * Les ouvertures informatives (F13) de plusieurs documents, en UNE requête. Une base sans la table
+     * de collaboration (amorçage) ne casse jamais la liste : elle n'affiche simplement pas d'ouverture.
+     *
+     * @param list<int> $documents
+     * @return array<int, array{id:int, auteur:string, poste:string, depuis:string, abandonnee:bool}>
+     */
+    private function ouverturesPour(array $documents): array
+    {
+        try {
+            return (new \Ged\Edition\Ouvertures($this->pdo))->pourDocuments($documents);
+        } catch (\Throwable $e) {
+            error_log(sprintf('[GEDv2 edition] ouvertures illisibles en Bibliothèque : %s', $e->getMessage()));
+
+            return [];
+        }
+    }
+
+    /** @return array{id:int, auteur:string, poste:string, depuis:string, abandonnee:bool}|null */
+    private function ouverturePour(int $document): ?array
+    {
+        return $this->ouverturesPour([$document])[$document] ?? null;
     }
 
     /**

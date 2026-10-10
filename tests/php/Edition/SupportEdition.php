@@ -8,6 +8,7 @@ use Ged\Base;
 use Ged\Config;
 use Ged\Jonctions\Jetons;
 use Ged\Jonctions\Schema as SchemaJonctions;
+use Ged\Recherche\Schema as SchemaRecherche;
 use Ged\Securite\DroitsDossiers;
 use Ged\Securite\Schema as SchemaSecurite;
 use Ged\Socle\DepotFichiers;
@@ -54,6 +55,8 @@ trait SupportEdition
         SchemaSocle::installer($this->pdo);
         SchemaSecurite::installer($this->pdo);
         SchemaJonctions::installer($this->pdo);
+        // L'index de recherche est touché par le nettoyage des dépôts : on garantit sa présence.
+        SchemaRecherche::installer($this->pdo);
 
         $this->sel = bin2hex(random_bytes(5));
         $this->racine = sys_get_temp_dir() . '/gedv2-edition-' . $this->sel;

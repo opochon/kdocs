@@ -20,6 +20,9 @@
         {% endif %}
       </form>
       {% endif %}
+      {% if peut_modifier %}
+      <a class="btn primaire" href="{{ lien_ouverture }}" data-testid="action-ouvrir-poste">{{ ic.i('fichier') }}{{ libelle_ouverture }}</a>
+      {% endif %}
       <a class="btn" href="/documents/{{ doc.id }}/fichier" data-testid="action-telecharger">{{ ic.i('telecharger') }}Télécharger</a>
       {% if not doc.archivage.scelle %}
       <form method="post" enctype="multipart/form-data" action="/documents/{{ doc.id }}/versions" data-testid="document-nouvelle-version">
@@ -36,6 +39,11 @@
   {% if archivage_erreur %}<p class="alerte erreur" data-testid="archivage-erreur">Scellement refusé : {{ archivage_erreur }}</p>{% endif %}
   {% if version_succes %}<p class="alerte ok" data-testid="version-succes">Nouvelle version v{{ version_succes }} enregistrée.</p>{% endif %}
   {% if version_erreur %}<p class="alerte erreur" data-testid="version-erreur">Nouvelle version refusée : {{ version_erreur }}</p>{% endif %}
+  {% if secours_succes %}<p class="alerte ok" data-testid="secours-succes">Copie de secours récupérée : nouvelle version v{{ secours_succes }} créée.</p>{% endif %}
+  {% if secours_erreur %}<p class="alerte erreur" data-testid="secours-erreur">Récupération refusée : {{ secours_erreur }}</p>{% endif %}
+  {% if doc.ouverture %}
+  <p class="alerte{% if doc.ouverture.abandonnee %} warn{% endif %}" data-testid="document-ouverture">{% if doc.ouverture.abandonnee %}Peut-être abandonné — {% endif %}Ouvert par {{ doc.ouverture.auteur }} sur {{ doc.ouverture.poste }} depuis {{ doc.ouverture.depuis|date('H:i') }}</p>
+  {% endif %}
   <section class="archivage-etat carte" data-testid="archivage-etat">
     {% if doc.archivage.scelle %}
     <strong>Scellé le {{ doc.archivage.scelle_le|date('d.m.Y à H:i') }}</strong><span>TSA publique non qualifiée : <span class="mono">{{ doc.archivage.tsa_url }}</span></span><span>Jeton TSA : <span class="mono">{{ doc.archivage.tsa_jeton }}</span></span><span>Rétention jusqu’au {{ doc.archivage.echeance }}</span>
@@ -71,6 +79,25 @@
         <div class="panneau" id="p-2" role="tabpanel" hidden>
           <ul class="chrono" data-testid="panneau-versions">
             {% for v in doc.versions %}<li><span class="mono">v{{ v.n }} · {{ v.quand }}</span><span>{{ v.quoi }} <span class="muted">— {{ v.qui }}, {{ v.taille }}</span></span>{% if not doc.archivage.scelle %}<form method="post" action="/documents/{{ doc.id }}/versions/{{ v.n }}/restaurer"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="restaurer-version-{{ v.n }}">Restaurer v{{ v.n }}</button></form>{% endif %}</li>{% else %}<li class="muted">Aucune version archivée.</li>{% endfor %}
+          </ul>
+          <div class="titre-section" data-testid="secours-titre">Copies de secours</div>
+          <ul class="chrono" data-testid="panneau-secours">
+            {% for c in doc.secours %}
+            <li data-testid="secours-copie">
+              <span class="mono">{{ c.quand }}</span>
+              <span>{{ c.nom }} <span class="muted">— {{ c.appareil }}, {{ c.taille_lisible }}, empreinte {{ c.empreinte|slice(0, 8) }}</span></span>
+              {% if peut_modifier and not doc.archivage.scelle %}
+              <form method="post" action="/documents/{{ doc.id }}/secours/recuperer" data-testid="secours-recuperer-form">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="copie" value="{{ c.id }}">
+                <label><input type="checkbox" required data-testid="secours-confirmer"> Je confirme : une nouvelle version sera créée à partir de cette copie.</label>
+                <button class="btn discret" type="submit" data-testid="secours-recuperer">Récupérer la copie</button>
+              </form>
+              {% endif %}
+            </li>
+            {% else %}
+            <li class="muted">Aucune copie de secours.</li>
+            {% endfor %}
           </ul>
         </div>
         <div class="panneau" id="p-3" role="tabpanel" hidden>

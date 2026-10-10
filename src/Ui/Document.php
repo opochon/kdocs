@@ -61,6 +61,22 @@ final class Document
         $collaboration = null;
         try { $collaboration = new \Ged\Socle\Collaboration($this->config); } catch (Throwable) { /* base en amorçage */ }
 
+        // Édition depuis le poste (F13) : ouverture informative affichée et copies de secours disponibles.
+        $ouverture = null;
+        $secours = [];
+        if ($pdo !== null) {
+            try {
+                $ouverture = (new \Ged\Edition\Ouvertures($pdo))->active((int) $doc['id']);
+            } catch (Throwable $e) {
+                error_log(sprintf('[GEDv2 edition] ouverture illisible pour le document %d : %s', (int) $doc['id'], $e->getMessage()));
+            }
+            try {
+                $secours = (new \Ged\Edition\Secours($this->config))->lister((int) $doc['id']);
+            } catch (Throwable $e) {
+                error_log(sprintf('[GEDv2 edition] copies de secours illisibles pour le document %d : %s', (int) $doc['id'], $e->getMessage()));
+            }
+        }
+
         return [
             'id' => (int) $doc['id'],
             'titre' => (string) $doc['titre'],
@@ -77,6 +93,8 @@ final class Document
             'notes' => $collaboration?->notes((int) $doc['id']) ?? [],
             'liens' => $collaboration?->liens((int) $doc['id'], $compte) ?? [],
             'partages' => $collaboration?->partages((int) $doc['id']) ?? [],
+            'ouverture' => $ouverture,
+            'secours' => $secours,
             'statut' => $statut,
             'archivage' => [
                 'scelle' => Scellement::estActif($scellement),
