@@ -6,6 +6,7 @@ namespace Ged\Tests\Securite;
 
 use Ged\Base;
 use Ged\Config;
+use Ged\Recherche\Schema as SchemaRecherche;
 use Ged\Securite\DroitsDossiers;
 use Ged\Securite\Schema as SchemaSecurite;
 use Ged\Socle\EcranBibliotheque;
@@ -46,6 +47,7 @@ final class FuiteListesTest extends TestCase
         $this->pdo = Base::pdo($this->config);
         SchemaSocle::installer($this->pdo);
         SchemaSecurite::installer($this->pdo);
+        SchemaRecherche::installer($this->pdo);
         $this->droits = new DroitsDossiers($this->pdo);
 
         // Fonds documentaire de test isolé : les preuves « fichier présent » lisent ICI, jamais le dépôt.
@@ -75,6 +77,7 @@ final class FuiteListesTest extends TestCase
             ->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM securite_dossiers WHERE chemin_relatif LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM documents WHERE chemin_relatif LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
+        $this->pdo->prepare('DELETE FROM recherche_textes WHERE chemin LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM securite_groupes_comptes WHERE compte_id = ?')->execute([$this->compte]);
         $this->pdo->prepare('DELETE FROM securite_groupes WHERE id = ?')->execute([$this->groupe]);
         $this->pdo->prepare('DELETE FROM comptes WHERE id = ?')->execute([$this->compte]);
@@ -127,6 +130,15 @@ final class FuiteListesTest extends TestCase
         self::assertSame(1, $donnees['compte_a_traiter'], 'le badge « À traiter » du menu ne compte que les documents lisibles');
     }
 
+    public function testLesSuggestionsDeTypeDeLaRechercheNeFuitentPasHorsDroits(): void
+    {
+        $donnees = \Ged\Recherche\Ecran::depuisRacine($this->config->racine(), $this->compte)->donnees([], 'jeton');
+
+        self::assertContains('Type-A-' . $this->suffixe, $donnees['types_filtre'], 'un type lisible reste proposé');
+        self::assertNotContains('Type-B-' . $this->suffixe, $donnees['types_filtre'],
+            'le filtre Type de la Recherche ne doit pas révéler un type porté par un document hors droits');
+    }
+
     /** @return array{0:int, 1:string} */
     private function creerDocument(string $dossier): array
     {
@@ -135,6 +147,11 @@ final class FuiteListesTest extends TestCase
             . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([$chemin, "document-$dossier.pdf", "Fuite $dossier {$this->suffixe}", "Type-$dossier-{$this->suffixe}",
                 hash('sha256', $chemin), 1, 'application/pdf', '{}', 'a_controler']);
+        $document = (int) $this->pdo->lastInsertId();
+        $this->pdo->prepare('INSERT INTO recherche_textes (cle, chemin, document_id, titre, type, contenu, signature)'
+            . ' VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([hash('sha256', $chemin), $chemin, $document, "Fuite $dossier {$this->suffixe}",
+                "Type-$dossier-{$this->suffixe}", 'contenu synthetique', hash('sha256', $chemin)]);
         $absolu = $this->bac . '/fonds/' . $chemin;
         if (!is_dir(dirname($absolu)) && !mkdir(dirname($absolu), 0775, true) && !is_dir(dirname($absolu))) {
             self::fail('fonds de test : création du rangement impossible');
@@ -142,7 +159,7 @@ final class FuiteListesTest extends TestCase
         file_put_contents($absolu, "%PDF-1.4\n% fuite synthetique\n");
         file_put_contents($absolu . '.meta.json', '{"titre":"Fuite ' . $dossier . '","type":"Type-' . $dossier . '-' . $this->suffixe . '"}');
 
-        return [(int) $this->pdo->lastInsertId(), $chemin];
+        return [$document, $chemin];
     }
 
     private function supprimerRecursif(string $chemin): void

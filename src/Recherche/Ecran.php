@@ -6,6 +6,7 @@ namespace Ged\Recherche;
 
 use Ged\Base;
 use Ged\Config;
+use Ged\Securite\DroitsDossiers;
 use PDO;
 
 /**
@@ -18,6 +19,8 @@ final class Ecran
     public function __construct(
         private readonly Moteur $moteur,
         private readonly ?PDO $pdo = null,
+        private readonly ?int $compte = null,
+        private readonly bool $administrateur = false,
     ) {
     }
 
@@ -27,7 +30,7 @@ final class Ecran
         $config = new Config($racine ?? dirname(__DIR__, 2));
         $pdo = Base::pdo($config);
 
-        return new self(new Service($pdo, IndexPleinTexte::depuis($config, $pdo), $compte, $administrateur), $pdo);
+        return new self(new Service($pdo, IndexPleinTexte::depuis($config, $pdo), $compte, $administrateur), $pdo, $compte, $administrateur);
     }
 
     /**
@@ -82,15 +85,27 @@ final class Ecran
         ];
     }
 
-    /** @return list<string> types présents dans l'index, pour le filtre ; vide si la base ne répond pas */
+    /** @return list<string> types présents dans l'index LISIBLE par le compte, pour le filtre ; vide si erreur */
     private function typesFiltre(): array
     {
         if ($this->pdo === null) {
             return [];
         }
         try {
-            $types = $this->pdo->query("SELECT DISTINCT type FROM recherche_textes WHERE type IS NOT NULL AND type <> ''"
-                . ' ORDER BY type')->fetchAll(PDO::FETCH_COLUMN);
+            $where = "t.type IS NOT NULL AND t.type <> ''";
+            $params = [];
+            $jointure = '';
+            if ($this->compte !== null && !$this->administrateur) {
+                // Le filtre Type ne révèle un type que si un document lisible le porte (V2-13, point B3).
+                $jointure = ' INNER JOIN documents d ON d.id = t.document_id';
+                [$predicat, $aclParams] = DroitsDossiers::predicatLecture('d', $this->compte);
+                $where .= ' AND ' . $predicat;
+                $params = $aclParams;
+            }
+            $requete = $this->pdo->prepare('SELECT DISTINCT t.type FROM recherche_textes t' . $jointure
+                . ' WHERE ' . $where . ' ORDER BY t.type');
+            $requete->execute($params);
+            $types = $requete->fetchAll(PDO::FETCH_COLUMN);
         } catch (\PDOException) {
             return [];
         }
