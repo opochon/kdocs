@@ -83,3 +83,47 @@ F13 — Éditer depuis le poste sans rien perdre. Porte : sur un poste avec Offi
   espace de secours, boutons ; tests E2E par l'écran.
 - `ged-agent-poste` : l'agent C#, ses tests unitaires et le parcours F13 avec Word réel.
 - Plus tard (après 100 % opérationnel) : explorateur « fichiers à la demande » (API Windows Cloud Files).
+
+## Chemins
+
+Chemins que l'agent du lot `ged-edition-serveur` est autorisé à modifier (un agent = un secteur) :
+
+- `src/Edition/` — **nouveau secteur** : service d'édition, API jeton d'appareil, espace de secours,
+  ouvertures informatives, `Module`.
+- `src/Kernel.php` — une ligne : le secteur `Edition` rejoint la liste des modules (aucune autre
+  modification ; même geste minimal que l'ajout de `Ui`, signalé ici).
+- `src/Securite/DroitsRoutes.php` — déclaration des routes du lot (toute route doit y figurer) :
+  API sous jeton (`publique:api-edition`) et route de session « Récupérer une copie de secours ».
+- `src/Ui/Document.php`, `src/Ui/Ecrans.php`, `templates/ecrans/document.twig` — bouton
+  « Ouvrir dans Word/Excel/PowerPoint/le poste », « ouvert par … », liste des copies de secours.
+- `src/Socle/EcranBibliotheque.php`, `templates/ecrans/bibliotheque.twig` — « ouvert par … » dans la
+  liste et l'aperçu.
+- `docs/secteurs/edition-poste.md`, `docs/lots/ged-edition-serveur.md`, `.env.example` (SECOURS_ROOT).
+- `tests/php/Edition/`, `tests/e2e/edition-serveur.spec.ts`, `tests/e2e/preparer-edition-serveur.php`,
+  `tests/e2e/README.md`.
+
+Le stockage de secours de l'application vit hors du fonds (`SECOURS_ROOT`, défaut `var/secours`) et
+n'est jamais une version : aucune ligne de `document_versions`, aucun déplacement, aucune nouvelle table
+(plafond 21 tables inchangé).
+
+## Demandes
+
+- **ged-agent-poste** : le contrat HTTP attendu par l'agent (jeton d'appareil `Authorization: Bearer …`,
+  portée `depot`, lié à un compte réel) est :
+
+  | Geste | Route | Corps | Réponse |
+  | --- | --- | --- | --- |
+  | Télécharger | `GET /api/v1/edition/documents/{id}/fichier` | — | le fichier, en-têtes `X-Ged-Empreinte`, `X-Ged-Version` |
+  | État | `GET /api/v1/edition/documents/{id}` | — | `{document, nom, mime, taille, empreinte, version}` |
+  | Nouvelle version | `POST …/{id}/versions` | multipart `fichier` + `version_base` | `{version, empreinte, conflit, version_avant, deja}` |
+  | Ouverture | `POST …/{id}/ouverture` | — | `{ouverture:{id, auteur, poste, depuis}}` |
+  | Signal | `POST …/{id}/signal` | — | `{prolonge:true}` (faux si aucune ouverture active) |
+  | Fermeture | `POST …/{id}/fermeture` | — | `{ferme:true}` |
+  | Copie de secours | `POST …/{id}/secours` | multipart `fichier` | `{appareil, quand, empreinte, taille, nom}` |
+  | Copies disponibles | `GET …/{id}/secours` | — | `{copies:[…]}` |
+
+  Le poste est celui du jeton (`jonctions_jetons.appareil`), jamais une valeur du corps. Un jeton
+  révoqué, inconnu ou lié à un autre dossier est refusé (401/403 nommés).
+- **Vue d'ensemble** : aucune modification de contrat n'est demandée ; `Edition` utilise les contrats
+  existants (`Socle\DepotFichiers`, `Jonctions\Jetons`, `Securite\DroitsDossiers`) et la table
+  `document_collaboration` (aucune DDL, plafond 21 inchangé).
