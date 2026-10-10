@@ -122,16 +122,25 @@ final class Collaboration
         $this->audit->ajouter('partage_interne_cree',$auteur,['partage'=>$id,'document'=>$document,'cible_type'=>$type,'cible'=>$cible]); return $id;
     }
 
-    /** @return list<array{id:int,document:int,titre:string,auteur:string,cree_le:string}> */
+    /**
+     * Partages internes destinés à ce compte, RESTREINTS dans la requête aux documents qu'il peut lire
+     * (V2-13, point B3) : un partage ne révèle jamais un document hors de ses dossiers.
+     *
+     * @return list<array{id:int,document:int,titre:string,auteur:string,cree_le:string}>
+     */
     public function partagesAvecMoi(int $compte): array
     {
+        [$predicat, $aclParams] = DroitsDossiers::predicatLecture('d', $compte);
         $sql = "SELECT p.id, p.document_id document, p.auteur, p.cree_le, d.titre FROM document_collaboration p"
             . " INNER JOIN documents d ON d.id = p.document_id WHERE p.type = 'partage' AND p.type_partage = 'interne'"
             . " AND p.revoque_le IS NULL AND ((p.cible_type = 'compte' AND p.cible_id = ?)"
             . " OR (p.cible_type = 'groupe' AND p.cible_id IN (SELECT groupe_id FROM securite_groupes_comptes WHERE compte_id = ?)))"
+            . ' AND ' . $predicat
             . ' ORDER BY p.cree_le DESC';
-        $s = $this->pdo->prepare($sql); $s->execute([$compte, $compte]);
-        return array_values(array_filter($s->fetchAll(PDO::FETCH_ASSOC), fn (array $partage): bool => $this->peutLire($compte, (int) $partage['document'])));
+        $s = $this->pdo->prepare($sql);
+        $s->execute([$compte, $compte, ...$aclParams]);
+
+        return $s->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function revoquerPartage(int $partage, string $auteur): void

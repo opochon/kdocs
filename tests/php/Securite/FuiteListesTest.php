@@ -76,6 +76,8 @@ final class FuiteListesTest extends TestCase
         $this->pdo->prepare('DELETE FROM securite_dossiers_droits WHERE dossier_id IN (SELECT id FROM securite_dossiers WHERE chemin_relatif LIKE ?)')
             ->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM securite_dossiers WHERE chemin_relatif LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
+        $this->pdo->prepare('DELETE FROM document_collaboration WHERE document_id IN (SELECT id FROM documents WHERE chemin_relatif LIKE ?)')
+            ->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM documents WHERE chemin_relatif LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM recherche_textes WHERE chemin LIKE ?')->execute(['fuite-' . $this->suffixe . '%']);
         $this->pdo->prepare('DELETE FROM securite_groupes_comptes WHERE compte_id = ?')->execute([$this->compte]);
@@ -130,6 +132,18 @@ final class FuiteListesTest extends TestCase
         self::assertSame(1, $donnees['compte_a_traiter'], 'le badge « À traiter » du menu ne compte que les documents lisibles');
     }
 
+    public function testPartagesAvecMoiNeMontrePasUnDocumentHorsDroits(): void
+    {
+        $this->insererPartageInterne($this->documentA);
+        $this->insererPartageInterne($this->documentB);
+        $partages = (new \Ged\Socle\Collaboration($this->config))->partagesAvecMoi($this->compte);
+        $documents = array_map('intval', array_column($partages, 'document'));
+
+        self::assertContains($this->documentA, $documents, 'un partage interne d’un document lisible reste visible');
+        self::assertNotContains($this->documentB, $documents,
+            '« Partagés avec moi » ne doit pas révéler un document dont le compte n’a pas la lecture');
+    }
+
     public function testLesSuggestionsDeTypeDeLaRechercheNeFuitentPasHorsDroits(): void
     {
         $donnees = \Ged\Recherche\Ecran::depuisRacine($this->config->racine(), $this->compte)->donnees([], 'jeton');
@@ -160,6 +174,14 @@ final class FuiteListesTest extends TestCase
         file_put_contents($absolu . '.meta.json', '{"titre":"Fuite ' . $dossier . '","type":"Type-' . $dossier . '-' . $this->suffixe . '"}');
 
         return [$document, $chemin];
+    }
+
+    /** Partage interne direct vers le compte de test : le service de partage refuserait un document non lisible. */
+    private function insererPartageInterne(int $document): void
+    {
+        $this->pdo->prepare("INSERT INTO document_collaboration (document_id, type, type_partage, cible_type, cible_id, auteur)"
+            . " VALUES (?, 'partage', 'interne', 'compte', ?, 'test')")
+            ->execute([$document, $this->compte]);
     }
 
     private function supprimerRecursif(string $chemin): void
