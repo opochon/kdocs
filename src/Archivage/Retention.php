@@ -31,7 +31,11 @@ final class Retention
     {
     }
 
-    /** La table des durées effective : les valeurs du dossier par-dessus les valeurs livrées. */
+    /**
+     * La table des durées effective : les valeurs du dossier par-dessus les valeurs livrées.
+     *
+     * @return array<string, int>
+     */
     public function durees(): array
     {
         $fichier = $this->racineFonds . '/' . self::DOSSIER . '/durees.json';
@@ -40,7 +44,12 @@ final class Retention
         return array_merge(self::DUREES_PAR_DEFAUT, array_map('intval', $perso));
     }
 
-    /** Modifie la table des durées (acte d'administration tracé par le journal). */
+    /**
+     * Modifie la table des durées (acte d'administration tracé par le journal).
+     *
+     * @param array<string, int> $durees
+     * @return array<string, int>
+     */
     public function enregistrerDurees(array $durees): array
     {
         $table = array_merge($this->durees(), array_map('intval', $durees));
@@ -62,7 +71,11 @@ final class Retention
         return max(1, $durees[$cle] ?? self::DUREES_PAR_DEFAUT['facture']);
     }
 
-    /** Date de départ de la rétention : la date du document si elle est propre, sinon l'instant du scellement. */
+    /**
+     * Date de départ de la rétention : la date du document si elle est propre, sinon l'instant du scellement.
+     *
+     * @param array<string, mixed> $meta
+     */
     public function reference(array $meta, ?\DateTimeImmutable $scelleLe = null): string
     {
         $date = $meta['date'] ?? null;
@@ -144,7 +157,11 @@ final class Retention
         return $scellement;
     }
 
-    /** Journal du secteur, en ajout seul, dans le dossier (`<fonds>/.archivage/journal.ndjson`). */
+    /**
+     * Journal du secteur, en ajout seul, dans le dossier (`<fonds>/.archivage/journal.ndjson`).
+     *
+     * @param array<string, mixed> $entree
+     */
     public function journaliser(array $entree): void
     {
         $dossier = $this->racineFonds . '/' . self::DOSSIER;

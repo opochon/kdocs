@@ -123,7 +123,11 @@ final class Scelleur
         return Scellement::estActif(Scellement::lire($this->depot->cheminAbsolu((string) $fiche['chemin_relatif']), $idDocument));
     }
 
-    /** Copie le justificatif d'un scellement levé dans `.scellement/historique/` (zéro suppression). */
+    /**
+     * Copie le justificatif d'un scellement levé dans `.scellement/historique/` (zéro suppression).
+     *
+     * @param array<string, mixed> $existant
+     */
     private function archiverJustificatif(string $absolu, array $existant): void
     {
         $dossier = Scellement::dossier($absolu) . '/historique';

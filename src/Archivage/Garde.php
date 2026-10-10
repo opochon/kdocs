@@ -14,7 +14,11 @@ namespace Ged\Archivage;
  */
 final class Garde
 {
-    /** Le scellement actif d'un document, ou null (non scellé, ou scellement levé par un humain). */
+    /**
+     * Le scellement actif d'un document, ou null (non scellé, ou scellement levé par un humain).
+     *
+     * @return array<string, mixed>|null
+     */
     public static function estScelle(string $absoluDocument, ?int $idDocument = null): ?array
     {
         $scellement = Scellement::lire($absoluDocument, $idDocument);
@@ -65,7 +69,11 @@ final class Garde
         return $alerte;
     }
 
-    /** Ajoute l'alerte au journal du dossier (une seule fois tant que le même contenu altéré est observé). */
+    /**
+     * Ajoute l'alerte au journal du dossier (une seule fois tant que le même contenu altéré est observé).
+     *
+     * @param array<string, mixed> $alerte
+     */
     private static function journaliserAlerte(string $absoluDocument, array $alerte): void
     {
         $dossier = Scellement::dossier($absoluDocument);

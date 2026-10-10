@@ -130,6 +130,15 @@ Aucun changement de comportement.
 
 Mesure : baseline **47 → 26 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Archivage (niveau 6)
+
+`EcranArchives::donnees`, `Garde` (estScelle, journaliserAlerte), `Module` (enregistrer,
+filtrerParDroits), `Retention` (durees, enregistrerDurees, reference, journaliser),
+`Scellement` (ecrire, estActif, lire), `Scelleur::archiverJustificatif`. Aucun changement
+de comportement.
+
+Mesure : baseline **26 → 12 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
 ## Reste
 
 - Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),
