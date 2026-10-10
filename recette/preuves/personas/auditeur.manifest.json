@@ -1,0 +1,11 @@
+{
+  "persona": "auditeur",
+  "role": "manager",
+  "compte": "persona-auditeur@gedv2.test",
+  "gestes": [
+    "arbre-dossiers",
+    "mon-dossier-seulement",
+    "rechercher",
+    "ouvrir-fiche"
+  ]
+}

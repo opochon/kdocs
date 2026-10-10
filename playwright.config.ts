@@ -41,8 +41,9 @@ export default defineConfig({
     },
   ],
   projects: [
-    // Les parcours d'écran, en parallèle : c'est le pool normal de la suite.
-    { name: 'parcours', testIgnore: /budget-.*\.spec\.ts$/ },
+    // Les parcours d'écran, en parallèle : c'est le pool normal de la suite. La couche 5 (personas) a son
+    // propre projet (couche 5 du harness) : elle démarre son serveur et son fonds, et se rejoue seule.
+    { name: 'parcours', testIgnore: [/budget-.*\.spec\.ts$/, /personas[\\/][^\\/]*\.spec\.ts$/] },
     // Les budgets de temps (PERF-2), isolés : un serveur à eux et un seul worker, donc des mesures qui ne
     // tombent plus au hasard selon qui occupait le serveur mono-processus au même moment.
     {
@@ -50,6 +51,13 @@ export default defineConfig({
       testMatch: /budget-.*\.spec\.ts$/,
       workers: 1,
       use: { baseURL: `http://127.0.0.1:${portBudgets}` },
+    },
+    // Couche 5 du harness (Personas) : chaque persona joue ses gestes depuis l'accueil, serveur et fonds
+    // dédiés. Un seul worker : le fonds de test `gedv2_test` reste cohérent entre la préparation et l'écran.
+    {
+      name: 'personas',
+      testMatch: /personas[\\/][^\\/]*\.spec\.ts$/,
+      workers: 1,
     },
   ],
 });

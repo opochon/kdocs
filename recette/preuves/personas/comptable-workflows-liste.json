@@ -1,0 +1,9 @@
+{
+  "nom": "workflows-liste",
+  "fonction": "F8",
+  "libelle": "Trouver les circuits et règles de workflow par le menu",
+  "trouve": true,
+  "temps_ms": 214,
+  "ecran": "http://127.0.0.1:57120/workflows — Workflows",
+  "erreur": ""
+}

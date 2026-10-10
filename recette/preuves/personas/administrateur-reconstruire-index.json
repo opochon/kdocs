@@ -1,0 +1,9 @@
+{
+  "nom": "reconstruire-index",
+  "fonction": "F12",
+  "libelle": "Lancer la reconstruction de l’index depuis le dossier et la voir finir",
+  "trouve": true,
+  "temps_ms": 2546,
+  "ecran": "http://127.0.0.1:63970/application?reconstruction=1 — Application",
+  "erreur": ""
+}

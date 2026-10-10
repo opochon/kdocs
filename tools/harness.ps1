@@ -33,8 +33,9 @@ if ($SansBanc) {
   $couches['3-banc'] = @{ ok = $ok; detail = ($details -join ' | ') }
 }
 
-# 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright
-$sortie = & npx.cmd playwright test --reporter=line 2>&1
+# 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright. Le projet « personas »
+#    est exclu : la couche 5 a son propre projet et se joue plus bas, seule.
+$sortie = & npx.cmd playwright test --project=parcours --project=budgets --reporter=line 2>&1
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }
 
 # 7. Sécurité : sonde offensive HTTP, serveur et sessions de test isolés.
@@ -66,10 +67,39 @@ $stan = & php vendor\bin\phpstan analyse --no-progress --memory-limit=2G --error
 $nbStan = ($stan | Select-String ':\d+:').Count
 $audit = & php tools\composer.phar audit --locked --no-interaction 2>&1; $okAudit = ($LASTEXITCODE -eq 0)
 $couches['8-statique'] = @{ ok = ($okStan -and $okAudit); detail = ("phpstan : $nbStan erreur(s) hors baseline | audit : " + (($audit | Select-Object -Last 1) -join ''))}
-# Couches à venir : elles comptent ROUGE tant qu'elles n'existent pas (règle anti-mensonge).
-foreach ($c in '5-personas') {
-  $couches[$c] = @{ ok = $false; detail = 'pas encore écrite' }
+# 5. Personas : chaque persona joue ses gestes F1–F12 depuis l'écran d'accueil (menus et libellés
+#    visibles, jamais d'URL directe sauf la connexion). Un geste non trouvé en 30 s est un ÉCHEC NOMMÉ,
+#    jamais un test sauté. La couche est VERTE seulement si tous les personas trouvent tout ; le détail
+#    (persona, gestes trouvés / total, temps médian) vient des preuves recette\preuves\personas\.
+$dossierPersonas = 'recette\preuves\personas'
+Get-ChildItem "$dossierPersonas\*.json" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$dossierPersonas\*.png" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+$sortie = & npx.cmd playwright test --project=personas --reporter=line 2>&1
+$okPersonas = ($LASTEXITCODE -eq 0)
+$detailsPersonas = @()
+$manifests = Get-ChildItem "$dossierPersonas\*.manifest.json" -ErrorAction SilentlyContinue | Sort-Object Name
+foreach ($manifeste in $manifests) {
+  $m = Get-Content $manifeste.FullName -Raw | ConvertFrom-Json
+  $trouves = 0; $temps = @()
+  foreach ($nomGeste in $m.gestes) {
+    $fichier = Join-Path $dossierPersonas ("{0}-{1}.json" -f $m.persona, $nomGeste)
+    if (Test-Path $fichier) {
+      $geste = Get-Content $fichier -Raw | ConvertFrom-Json
+      if ($geste.trouve) { $trouves++; $temps += [int]$geste.temps_ms }
+    }
+  }
+  $total = @($m.gestes).Count
+  $median = 0
+  if ($temps.Count -gt 0) {
+    $trie = @($temps | Sort-Object)
+    $milieu = [math]::Floor($trie.Count / 2)
+    if ($trie.Count % 2 -eq 0) { $median = [int](($trie[$milieu - 1] + $trie[$milieu]) / 2) } else { $median = [int]$trie[$milieu] }
+  }
+  if ($trouves -ne $total) { $okPersonas = $false }
+  $detailsPersonas += ("{0}: {1}/{2} (médiane {3} ms)" -f $m.persona, $trouves, $total, $median)
 }
+if ($detailsPersonas.Count -eq 0) { $okPersonas = $false; $detailsPersonas += 'aucun persona joué' }
+$couches['5-personas'] = @{ ok = $okPersonas; detail = ($detailsPersonas -join ' | ') }
 
 $registre = [ordered]@{
   date = (Get-Date).ToString('s'); duree_s = [int]((Get-Date) - $debut).TotalSeconds

@@ -1,0 +1,9 @@
+{
+  "nom": "ouvrir-fiche",
+  "fonction": "F6",
+  "libelle": "Ouvrir la fiche du document trouvé par la recherche",
+  "trouve": true,
+  "temps_ms": 567,
+  "ecran": "http://127.0.0.1:59886/documents/10077 — Note Debutant ORACLE",
+  "erreur": ""
+}

@@ -1,0 +1,9 @@
+{
+  "nom": "archives-liste",
+  "fonction": "F11",
+  "libelle": "Trouver la liste des documents scellés par le menu Archives",
+  "trouve": true,
+  "temps_ms": 342,
+  "ecran": "http://127.0.0.1:57120/archives — Archives",
+  "erreur": ""
+}

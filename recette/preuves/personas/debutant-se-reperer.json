@@ -1,0 +1,9 @@
+{
+  "nom": "se-reperer",
+  "fonction": "F1",
+  "libelle": "Se repérer dans les entrées de menu depuis l’écran d’accueil",
+  "trouve": true,
+  "temps_ms": 133,
+  "ecran": "http://127.0.0.1:59886/a-traiter — À traiter",
+  "erreur": ""
+}

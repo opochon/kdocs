@@ -1,0 +1,11 @@
+{
+  "persona": "comptable",
+  "role": "manager",
+  "compte": "persona-comptable@gedv2.test",
+  "gestes": [
+    "workflows-liste",
+    "contrat-echeance",
+    "sceller-document",
+    "archives-liste"
+  ]
+}
