@@ -147,10 +147,17 @@ comportement.
 
 Mesure : baseline **12 → 9 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
 
+### Module Jonctions (niveau 6)
+
+`AppairageApi::champs`, `Courriel::rendu`, `DepotApi::origine`, `Module::enregistrer`
+(App générique), et le trait `MessagePhpMailer::message` (corrige d'un coup
+`TransportFichier::message` et `TransportSmtp::message`). Aucun changement de comportement.
+
+Mesure : baseline **9 → 2 entrées**. PHPStan niveau 6 vert ; PHPUnit 462 tests verts.
+
+Reste alors `Apercu\Module::enregistrer` et `Kernel::creer` (hors liste des 9 modules).
+
 ## Reste
 
-- Niveau 6 par module (un commit par module) : Socle (47), Ui (12), Ingestion (20), Classement (4),
-  Recherche (5), Workflows (21), Archivage (14), Securite (3), Jonctions (7) — plus `Apercu` (1) et
-  `Kernel.php` (1) hors liste.
-- Régénérer la baseline à la baisse après chaque module, PHPStan + PHPUnit verts.
+- Corriger `Apercu\Module::enregistrer` et `Kernel::creer` (App générique), régénérer à zéro.
 - `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` avant `ETAT: fini`.

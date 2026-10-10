@@ -73,7 +73,12 @@ final class Courriel
         ];
     }
 
-    /** HTML nettoyé prêt à afficher : en-têtes lisibles, corps sans script ni ressource, pièces listées. */
+    /**
+     * HTML nettoyé prêt à afficher : en-têtes lisibles, corps sans script ni ressource, pièces listées.
+     *
+     * @param array{de:string, a:string, objet:string, date:string, message_id:string} $entetes
+     * @param list<array{nom:string, type:string}> $pieces
+     */
     private static function rendu(array $entetes, string $corpsTexte, ?string $corpsHtml, array $pieces): string
     {
         $lignes = '';

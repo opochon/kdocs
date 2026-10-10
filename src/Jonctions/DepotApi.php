@@ -252,7 +252,11 @@ final class DepotApi
         return $meta;
     }
 
-    /** @param array<string, mixed> $corps @return array<string, mixed>|null @throws ErreurApi */
+    /**
+     * @param array<string, mixed> $corps
+     * @return array<string, mixed>|null
+     * @throws ErreurApi
+     */
     private function origine(array $corps, string $etape): ?array
     {
         $brut = trim((string) ($corps['origine'] ?? ''));

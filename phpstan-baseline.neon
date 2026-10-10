@@ -7,48 +7,6 @@ parameters:
 			path: src/Apercu/Module.php
 
 		-
-			message: '#^Method Ged\\Jonctions\\AppairageApi\:\:champs\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/AppairageApi.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\Courriel\:\:rendu\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/Courriel.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\Courriel\:\:rendu\(\) has parameter \$pieces with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/Courriel.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\DepotApi\:\:origine\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/DepotApi.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\Module\:\:enregistrer\(\) has parameter \$app with generic class Slim\\App but does not specify its types\: TContainerInterface$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Jonctions/Module.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\TransportFichier\:\:message\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/TransportFichier.php
-
-		-
-			message: '#^Method Ged\\Jonctions\\TransportSmtp\:\:message\(\) has parameter \$entetes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Jonctions/TransportSmtp.php
-
-		-
 			message: '#^Method Ged\\Kernel\:\:creer\(\) return type with generic class Slim\\App does not specify its types\: TContainerInterface$#'
 			identifier: missingType.generics
 			count: 1
