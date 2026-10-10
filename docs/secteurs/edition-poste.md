@@ -130,3 +130,9 @@ n'est jamais une version : aucune ligne de `document_versions`, aucun déplaceme
 - **Vue d'ensemble** : aucune modification de contrat n'est demandée ; `Edition` utilise les contrats
   existants (`Socle\DepotFichiers`, `Jonctions\Jetons`, `Securite\DroitsDossiers`) et la table
   `document_collaboration` (aucune DDL, plafond 21 inchangé).
+## Jugement lot ged-edition-serveur (juge, 11-10) — fusionné
+
+- Relu sur la copie du juge après fusion de v2 (fusion sans conflit) : PHPStan niveau 6 sans erreur ; PHPUnit 509 tests, un échec de test corrigé par le juge (séparateurs de chemin Windows dans l'assertion « secours hors du fonds »), puis vert.
+- API du poste (`src/Edition`) : authentifiée par le jeton d'appareil (`Jonctions\Jetons`, portée dépôt, compte appairé obligatoire), jamais par la session web ; droits vérifiés par document (`lire` pour télécharger, `modifier` pour ouvrir, signaler, déposer une version ou une copie de secours). Le dépôt de version garde le même chemin (aucun déplacement, donc pas de contrôle d'arrivée en jeu) ; le contenu courant est archivé avant remplacement ; une base périmée crée une version parallèle tracée, rien n'est perdu.
+- Ouvertures informatives dans `document_collaboration` ; copies de secours sous `SECOURS_ROOT`, hors du fonds, une par document et par appareil, sans table. Aucune nouvelle table, aucun DDL hors installateur.
+- Reste : l'agent du poste (lot ged-agent-poste) et le parcours F13 complet avec Word réel.
