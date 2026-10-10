@@ -150,3 +150,40 @@ déclarées, API conforme à `docs/api/depots.yaml`), 3 bancs, 6 charge (10 util
 Écrans 28/29 : le seul rouge restant était « première page PDF < 1 s » (1,1 s), mesuré à froid sur une machine chargée.
 Décision harness : deux budgets — ouverture à froid < 2 s, ouverture courante < 1 s (test modifié en conséquence).
 Couche 5 (personas) : seule couche encore non écrite.
+
+## Journal ged-personas — couche 5 « Personas » — 10-10-2026
+
+**Fait**
+
+- `tests/e2e/personas/` : six personas (fiduciaire, secrétaire, comptable, administrateur, auditeur,
+  débutant), un fichier par persona. Chacun part de l'écran d'accueil et cherche la fonction par les
+  menus et libellés visibles ; un geste non trouvé en 30 s est un **échec nommé** (persona, fonction,
+  écran), jamais un test sauté. Verdict + temps + capture `recette/preuves/personas/<persona>-<geste>.png`.
+- `tests/e2e/personas/preparer-personas.php` : comptes RÉELS (mot de passe haché), droits de dossier
+  conformes au modèle du 2026-10-03, fonds synthétique déposé par le VRAI `DepotFichiers`, champ
+  « Échéance » (F9 sous horloge figée), index plein texte hors requête, remise à zéro sous le verrou.
+- `tools/harness.ps1` : la couche `5-personas` remplace « pas encore écrite ». Elle rejoue
+  `--project=personas` et n'est **verte que si tous les personas trouvent tout** ; le détail (persona,
+  trouvés / total, temps médian) est lu dans les manifestes et les verdicts des preuves.
+- `playwright.config.ts` : projet `personas` (workers 1) isolé du projet `parcours` ; `4-ecrans` est
+  rejoué en `--project=parcours --project=budgets` (modifications minimales signalées).
+
+**Mesures** — 6 personas, 23 gestes, **23/23 trouvés** (couverture F1–F12). Couche 5 **VERTE** au rejeu
+complet `harness.ps1 -SansBanc` : administrateur 4/4 (médiane 663 ms) | auditeur 4/4 (627) | comptable
+4/4 (685) | debutant 4/4 (474) | fiduciaire 4/4 (560) | secretaire 3/3 (597). Le reste du harness est
+vert ; `3-banc` est sautée (`-SansBanc`).
+
+**Note d'environnement** — le `vendor` du worktree est une jonction vers `/c/ged/GEDv2/vendor` :
+l'autoloader y résout `Ged\` vers `/c/ged/GEDv2/src`, donc le harness charge le code de `v2`, pas celui
+du worktree. La procédure correcte (celle du juge) est de **copier** `vendor` dans le worktree ; le
+chemin relatif de `autoload_static.php` repointe alors vers le `src/` du worktree. Sans cette copie,
+`ecrans-reels` et `mobile` échouent à tort (racine `Config` prise dans le dépôt principal).
+
+**Constats à traiter en ergonomie (non corrigés ici)** : (1) un compte de rôle `Utilisateur` est renvoyé
+vers `/a-traiter` après connexion, qui exige `documents:traiter` → 403 sans point d'entrée ; (2)
+`/metadonnees`, `/administration/*` et `/dossiers/{id}/droits` n'ont aucun lien visible (desktop) ; (3)
+`ReconstructionIndex::lancer()` compte tous les documents vivants alors que `synchroniser()` ne relit que
+le fonds courant (une tranche de plus peut être nécessaire).
+
+ETAT: fini
+
