@@ -91,6 +91,13 @@ final class ReconstructionIndex
                 $traite = min((int) $etat['total'], (int) $etat['traite'] + $faits);
                 $etat['traite'] = $traite;
                 $etat['etat'] = $traite >= (int) $etat['total'] ? 'termine' : 'en_cours';
+                // Une tranche qui ne relit plus rien alors que le total n'est pas atteint : des fichiers du
+                // périmètre ont disparu depuis le lancement. On termine et on compte l'écart, jamais une tâche
+                // « en cours » pour toujours (constat du juge, 11-10).
+                if ($faits === 0 && $etat['etat'] === 'en_cours') {
+                    $etat['etat'] = 'termine';
+                    $etat['ecart'] = (int) $etat['total'] - $traite;
+                }
                 return $etat;
             });
         } catch (RuntimeException $e) { throw $e; }
@@ -103,7 +110,7 @@ final class ReconstructionIndex
         }
     }
 
-    /** @return array{id:int,etat:string,total:int,traite:int,auteur:string,erreur:?string,absents:int,absents_noms:list<string>}|null */
+    /** @return array{id:int,etat:string,total:int,traite:int,auteur:string,erreur:?string,absents:int,ecart:int,absents_noms:list<string>}|null */
     public function etat(?int $id = null): ?array
     {
         $etat = $this->registre->lire('reconstruction-index');
@@ -111,7 +118,7 @@ final class ReconstructionIndex
         return ['id' => (int) $etat['id'], 'etat' => (string) $etat['etat'], 'total' => (int) $etat['total'],
             'traite' => (int) $etat['traite'], 'auteur' => (string) $etat['auteur'],
             'erreur' => $etat['erreur'] === null ? null : (string) $etat['erreur'],
-            'absents' => (int) ($etat['absents'] ?? 0),
+            'absents' => (int) ($etat['absents'] ?? 0), 'ecart' => (int) ($etat['ecart'] ?? 0),
             'absents_noms' => array_values(array_map('strval', (array) ($etat['absents_noms'] ?? [])))];
     }
 }

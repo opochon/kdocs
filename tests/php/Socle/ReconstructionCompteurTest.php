@@ -96,4 +96,29 @@ final class ReconstructionCompteurTest extends TestCase
         self::assertSame((int) ceil($fonds['total'] / $lot), $tranches,
             'une tranche par paquet du périmètre, aucune tranche supplémentaire pour un reste inexistant');
     }
+
+    public function testUnFichierQuiDisparaitPendantLaReconstructionNeLaBloquePas(): void
+    {
+        // Constat du juge (11-10) : si un fichier du périmètre disparaît APRÈS le lancement, plus aucune
+        // tranche ne relit rien et la tâche restait « en cours » pour toujours. Elle doit se terminer et
+        // nommer l'écart.
+        $this->fondsAvecUnAbsent(5);
+        $job = new ReconstructionIndex($this->config);
+        $lance = $job->lancer('admin@exemple.test');
+        $index = IndexPleinTexte::depuis($this->config, $this->pdo);
+        $premier = $index->aRelire()[0]->chemin;
+        unlink($this->racine . '/fonds/' . $premier);
+
+        $etat = $lance;
+        $tranches = 0;
+        while (($etat['etat'] ?? '') === 'en_cours') {
+            $etat = $job->avancer((int) $lance['id'], 2);
+            $tranches++;
+            self::assertLessThan(10, $tranches, 'la reconstruction ne doit jamais rester bloquée en cours');
+        }
+
+        self::assertSame('termine', $etat['etat']);
+        self::assertSame((int) $lance['total'] - 1, (int) $etat['traite'], 'les documents encore présents sont tous relus');
+        self::assertSame(1, (int) $etat['ecart'], 'le document disparu en cours de route est compté');
+    }
 }
