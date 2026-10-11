@@ -81,6 +81,8 @@ php vendor/bin/phpunit tests/php/Ingestion/EditeurPdfTest.php tests/php/Ingestio
 #   6 tests, 46 assertions, vert (33,1 s)
 php vendor/bin/phpunit          # 600 tests, 3422 assertions, 1 sauté, 0 échec (8 min 29 s)
 php vendor/bin/phpstan analyse --memory-limit=2G   # 0 erreur, niveau 6, baseline vide
+CMD4_VISION_ENABLED=false php tools/banc/mesurer-decoupe.php courrier-100p
+#   53 documents / 53 attendus ; 51 exacts, 1 frontière manquée (page 29) → porte NON FRANCHIE (161 s)
 ```
 
 Bilan : les 13 rouges d'environnement de M3 (`Socle\InstallateurTest`, `Ingestion\EditeurPdfTest`,
@@ -94,6 +96,11 @@ l'erreur en cascade `InstallateurTest::testRemplacerFaitUnDumpDabordPuisReposeLe
   refaire ces gestes à la main sur un nouveau poste. Non réalisé ici : hors périmètre de ce secteur.
 - **À ClearMyDocs (amont)** : déclarer `zxing-cpp` dans `v4/product/requirements.txt`, et penser le
   produit comme un ensemble `product/` + `cmd4/` (les profils ne sont pas dans `product/`).
+- **À l'Ingestion (GEDv2)** : `Cmd4Decoupeur` lance `cmd4_ingest` sans transmettre `CMD4_VISION_ENABLED`
+  ni `INFOMANIAK_AI_API_KEY` / `INFOMANIAK_AI_API_SECRET` ; le moteur les lit dans `os.environ`, donc la
+  vision reste inerte via `.env` seul. Sur `courrier-100p`, la frontière page 29 n'est pas arbitrée et la
+  porte V2-02 tombe à 51/53 (contre 53/53 dans la preuve M2). Demande : transmettre l'environnement
+  vision au sous-processus, ou fournir le commit exact du moteur utilisé sur M2.
 
 ## Journal cmd4-m3-1 — 11-10-2026
 
@@ -106,5 +113,8 @@ l'erreur en cascade `InstallateurTest::testRemplacerFaitUnDumpDabordPuisReposeLe
 - Vert : tests ciblés 6/6 ; suite 600/600 (1 sauté) ; PHPStan 0 erreur, baseline vide.
 - Porte qualité (ECC) : analyse statique 0 erreur ; diff = documentation seule (aucun code PHP/SQL,
   aucun `catch (Throwable)`) ; oracle rouge d'environnement → vert ; chiffres au journal du lot.
+- Réserve : porte V2-02 sur `courrier-100p` = 53 documents, 51/53 exacts (frontière page 29), 0 page
+  perdue, 0 doublon → NON FRANCHIE, avec et sans vision (`split` rend `vision_calls=0`). Pièces de banc
+  retirées (`var/banc/`, ignoré) pour que la suite reste verte ; preuves versionnées restaurées.
 
 ETAT: fini
