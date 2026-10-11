@@ -204,3 +204,24 @@ ETAT: fini
 ## Harness complet vert, toutes couches (juge, 11-10 01:43, machine 2)
 
 Rejoué sur `C:\ged\GEDv2` (vendor propre au dépôt, base dédiée) au commit 124fc79, après les lots personas, modification en masse, documents semblables et droits à l'arrivée : garde-fous, unitaire (496 tests / 2890 assertions), contrat (toutes les routes), banc (découpe 53/53 exacts, 0 fausse coupe, F1 de bout en bout), écrans 74/74, personas (6 personas, tous les gestes trouvés), charge (10 utilisateurs, p95 lecture 843 ms, écriture 241 ms, 0 erreur), sécurité (aucun contournement), statique (PHPStan 0, `composer audit` propre). Première fois que les 9 couches sont vertes ensemble. Cette vérification est indépendante des harness des agents, dont les dossiers de travail partageaient `vendor` par une jonction jusqu'au 11-10 (lanceur corrigé : copie).
+### Rejeu du juge sur bd9b529 (2026-10-11, machine 2 chargée)
+
+Machine 2 occupée par six lots K-Time en parallèle pendant tout le rejeu (CPU ~60 %).
+- **Vertes** : 0-garde-fous, 1-unitaire (581 tests / 3290 assertions), 2-contrat, 3-banc (découpe 53/53,
+  classement et bout-en-bout : porte franchie), 5-personas (tous les gestes), 7-sécurité, 8-statique
+  (PHPStan 0, audit sans vulnérabilité).
+- **4-écrans ROUGE, 1 failed / 77 passed** — écran enfin nommé grâce à `var/harness/4-ecrans.txt` :
+  `[budgets] budget-apercu.spec.ts:33` « aperçu PDF : première page en moins d'une seconde »,
+  **1089 ms pour 1000 ms**. C'est un budget de temps, pas une assertion fonctionnelle ; il était vert
+  chez l'agent sur machine libre. L'échec isolé « non nommé » des rejeux précédents est très
+  probablement le même budget (à confirmer au rejeu calme).
+- **6-charge ROUGE** : p95 lecture 3440 ms (porte 1500 ms), écriture 1081 ms, 0 erreur, 0 collision —
+  même cause : temps mesurés sur une machine saturée.
+
+Conclusion du juge : aucune régression fonctionnelle ; les deux couches de mesure de temps ne sont pas
+jugeables sous charge étrangère. Tâche `GED\harness-calme` (machine 2) : attend qu'aucun lot GED ni
+K-Time ne tourne, puis rejoue le harness complet sur v2 — c'est ce rejeu qui fait foi pour 4 et 6.
+Incident du juge, même matinée : la suppression manuelle du worktree `ged-agent-poste` a traversé sa
+jonction `node_modules` et vidé celui du clone principal (`npm ci` l'a rétabli) ; le harness restait
+alors bloqué sur `npx` — corrigé par `--no-install` (`81a8047`). Règle : toujours `rmdir` la
+jonction avant de supprimer un worktree.
