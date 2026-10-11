@@ -10,4 +10,6 @@
 /.phpunit.result.cache
 # Captures d'écran des rejeux : jamais dans git (décision du 10-10), elles vivent dans var/captures/
 /recette/preuves/**/*.png
+# Rapport de parite genere par la couche 9 du harness (le livrable versionne est docs/parite/PARITE-PAPERLESS.md)
+/recette/parite-paperless.json
 __pycache__/

@@ -1,0 +1,4457 @@
+{
+    "version": 1,
+    "reference": {
+        "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+        "commit_court": "d1aa76e",
+        "tag": "v2.20.5"
+    },
+    "total": 780,
+    "elements": {
+        "api:action:DocumentViewSet.download": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents/{id:[0-9]+}/fichier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testPaginationBorneeEtVersionTelechargeable"
+            }
+        },
+        "api:action:DocumentViewSet.email_document": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:DocumentViewSet.email_documents": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:DocumentViewSet.history": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Registre"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RegistreTest::testÉcritPuisRelitDepuisUneAutreInstance"
+            },
+            "note": "GEDv2 : journal (AuditLog) par le Registre."
+        },
+        "api:action:DocumentViewSet.metadata": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:DocumentViewSet.notes": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/documents/{id:[0-9]+}/notes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "api:action:DocumentViewSet.preview": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/documents/{id:[0-9]+}/apercu"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\ModuleTest::testPageApercuPdfSeDesigne"
+            }
+        },
+        "api:action:DocumentViewSet.share_links": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/documents/{id:[0-9]+}/partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "api:action:DocumentViewSet.suggestions": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\ClasseurGed"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\ClasseurGedTest::testSansIndiceDuToutLeRepliCourrierEstProposeSansValidation"
+            },
+            "note": "GEDv2 : propositions du classeur affichees dans A traiter."
+        },
+        "api:action:DocumentViewSet.thumb": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/documents/{id:[0-9]+}/miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\ModuleTest::testMiniatureServieEnPng"
+            }
+        },
+        "api:action:MailAccountViewSet.process": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:MailAccountViewSet.test": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:ProcessedMailViewSet.bulk_delete": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:StoragePathViewSet.test": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:TasksViewSet.acknowledge": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "api:action:TasksViewSet.run": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "api:action:UnifiedSearchViewSet.next_asn": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:action:UserViewSet.deactivate_totp": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:CorrespondentFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:CorrespondentFilterSet.name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:CustomFieldFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:CustomFieldFilterSet.name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.added": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.archive_serial_number": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.checksum": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.content": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.correspondent": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.correspondent__id": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre"
+            }
+        },
+        "api:filtre:DocumentFilterSet.correspondent__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.correspondent__name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.created": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.created__date__gt": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.created__date__gte": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Perf\\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp"
+            }
+        },
+        "api:filtre:DocumentFilterSet.created__date__lt": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.created__date__lte": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Perf\\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp"
+            }
+        },
+        "api:filtre:DocumentFilterSet.custom_field_query": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.custom_fields": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.custom_fields__icontains": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.custom_fields__id__all": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.custom_fields__id__in": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.custom_fields__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.document_type": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.document_type__id": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre"
+            }
+        },
+        "api:filtre:DocumentFilterSet.document_type__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.document_type__name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.has_custom_fields": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.is_in_inbox": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.is_tagged": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.mime_type": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.modified": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.original_filename": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.owner": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.owner__id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.owner__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.storage_path": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.storage_path__id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.storage_path__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.storage_path__name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.tags__id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.tags__id__all": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre"
+            }
+        },
+        "api:filtre:DocumentFilterSet.tags__id__in": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/recherche/vue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre"
+            }
+        },
+        "api:filtre:DocumentFilterSet.tags__id__none": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.tags__name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.title": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentFilterSet.title_content": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/recherche"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Perf\\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp"
+            }
+        },
+        "api:filtre:DocumentTypeFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:DocumentTypeFilterSet.name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:PaperlessTaskFilterSet.acknowledged": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:PaperlessTaskFilterSet.status": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:PaperlessTaskFilterSet.task_name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:PaperlessTaskFilterSet.type": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:ProcessedMailFilterSet.rule": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:ProcessedMailFilterSet.status": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:ShareLinkFilterSet.created": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:ShareLinkFilterSet.expiration": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:StoragePathFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:StoragePathFilterSet.name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:StoragePathFilterSet.path": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:TagFilterSet.id": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:TagFilterSet.is_root": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:filtre:TagFilterSet.name": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:account_confirm_email": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_inactive": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_login": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_logout": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_reset_password": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_reset_password_done": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_reset_password_from_key": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_reset_password_from_key_done": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:account_signup": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:accounts-3rdparty-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:accounts-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:accounts-password-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:admin-admin-site-urls": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-auth-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-documents-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:anon:api-profile-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:anon:api-redirectview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-schema-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-search-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:api-token-paperlessobtainauthtokenview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:assets-path-path-redirectview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:fetch-doc-p-pk-d-redirectview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:fetch-include": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:fetch-preview-p-pk-d-redirectview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:fetch-thumb-p-pk-d-redirectview-as-view": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:anon:share-p-slug-w-sharedlinkview-as-view": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/partages/{jeton:[A-Za-z0-9_-]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois"
+            }
+        },
+        "api:route:anon:ws-status-statusconsumer-as-asgi": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "api:route:app_logo": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:autocomplete": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:base": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:bulk_download": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Export"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ReconstructionTest::testLaBaseVideePuisReconstruiteRendLeMemeContenu"
+            },
+            "note": "GEDv2 : export par service, pas de route HTTP dediee."
+        },
+        "api:route:bulk_edit": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/bibliotheque/masse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "api:route:bulk_edit_objects": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:config": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:correspondents": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/emetteurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:route:custom-fields": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/metadonnees/champ"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug"
+            }
+        },
+        "api:route:document-types": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:route:documents": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesNouvellesRoutesSontDeclareesHorsSession"
+            }
+        },
+        "api:route:favicon": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:global_search": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/recherche"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\EcranTest::testLesVraisResultatsArriventDansLeGabarit"
+            }
+        },
+        "api:route:groups": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/administration/groupes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit"
+            }
+        },
+        "api:route:logs": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:mail-accounts": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:mail-rules": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:mfa_authenticate": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:oauth_callback": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:post_document": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent"
+            }
+        },
+        "api:route:processed-mail": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:profile_view": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/profil"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel"
+            }
+        },
+        "api:route:remoteversion": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:saved-views": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:route:schema": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:selection_data": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:share-links": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/documents/{id:[0-9]+}/partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "api:route:socialaccount_login_cancelled": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:socialaccount_login_error": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:socialaccount_signup": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:statistics": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:storage-paths": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:swagger-ui": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:route:system_status": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:tags": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:route:tasks": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "api:route:totp_view": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:trash": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien"
+            },
+            "note": "GEDv2 : corbeille par service (mise en corbeille depuis la bibliotheque), pas de route dediee."
+        },
+        "api:route:ui_settings": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:route:users": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/administration/comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit"
+            }
+        },
+        "api:route:workflow-actions": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/workflows/transitions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat"
+            }
+        },
+        "api:route:workflow-triggers": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/workflows/evenements"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+            }
+        },
+        "api:route:workflows": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/workflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEcranRepondMemeSansTablesDuSecteur"
+            }
+        },
+        "api:verbe:ApplicationConfigurationViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ApplicationConfigurationViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ApplicationConfigurationViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ApplicationConfigurationViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ApplicationConfigurationViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ApplicationConfigurationViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:BulkDownloadView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:BulkEditObjectsView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:BulkEditView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CorrespondentViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CorrespondentViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CorrespondentViewSet.list": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/emetteurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:verbe:CorrespondentViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CorrespondentViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CorrespondentViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:CustomFieldViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DisconnectSocialAccountView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DocumentTypeViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DocumentTypeViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DocumentTypeViewSet.list": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:verbe:DocumentTypeViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DocumentTypeViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:DocumentTypeViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:FaviconView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GenerateAuthTokenView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GlobalSearchView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:GroupViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailAccountViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:MailRuleViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:OauthCallbackView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:PostDocumentView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ProcessedMailViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ProcessedMailViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ProfileView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ProfileView.patch": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:RemoteVersionView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SavedViewViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SavedViewViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SavedViewViewSet.list": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:verbe:SavedViewViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SavedViewViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SavedViewViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SearchAutoCompleteView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SelectionDataView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:ShareLinkViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SharedLinkView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SocialAccountProvidersView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StatisticsView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:StoragePathViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:SystemStatusView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TOTPView.delete": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TOTPView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TOTPView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TagViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TagViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TagViewSet.list": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:verbe:TagViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TagViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TagViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TasksViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TasksViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TrashView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:TrashView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UiSettingsView.get": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UiSettingsView.post": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:UserViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowActionViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowTriggerViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.create": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.destroy": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.list": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.partial_update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.retrieve": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:verbe:WorkflowViewSet.update": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:ApplicationConfigurationViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:BulkDownloadView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:BulkEditObjectsView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:BulkEditView": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/bibliotheque/masse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "api:vue:CorrespondentViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/emetteurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:vue:CustomFieldViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:DisconnectSocialAccountView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:DocumentTypeViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:vue:DocumentViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesNouvellesRoutesSontDeclareesHorsSession"
+            }
+        },
+        "api:vue:FaviconView": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:vue:GenerateAuthTokenView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:GlobalSearchView": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/recherche"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\EcranTest::testLesVraisResultatsArriventDansLeGabarit"
+            }
+        },
+        "api:vue:GroupViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:IndexView": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:vue:LogViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:MailAccountViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:MailRuleViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:OauthCallbackView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:PaperlessObtainAuthTokenView": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:vue:PassUserMixin": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:vue:PostDocumentView": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent"
+            }
+        },
+        "api:vue:ProcessedMailViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:ProfileView": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/profil"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel"
+            }
+        },
+        "api:vue:RemoteVersionView": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "api:vue:SavedViewViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:vue:SearchAutoCompleteView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:SelectionDataView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:ShareLinkViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/documents/{id:[0-9]+}/partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "api:vue:SharedLinkView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:SocialAccountProvidersView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:StatisticsView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:StoragePathViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:SystemStatusView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:TOTPView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:TagViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLesReferentielsSontExposes"
+            }
+        },
+        "api:vue:TasksViewSet": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "api:vue:TrashView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:UiSettingsView": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:UnifiedSearchViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:UserViewSet": {
+            "statut": "absent",
+            "lot": "V2-05"
+        },
+        "api:vue:WorkflowActionViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/workflows/transitions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat"
+            }
+        },
+        "api:vue:WorkflowTriggerViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/workflows/evenements"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+            }
+        },
+        "api:vue:WorkflowViewSet": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/workflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEcranRepondMemeSansTablesDuSecteur"
+            }
+        },
+        "chaine:classe:ConsumerError": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:classe:ConsumerPlugin": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            }
+        },
+        "chaine:classe:ConsumerPluginMixin": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:classe:ConsumerPreflightPlugin": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:classe:ConsumerStatusShortMessage": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:codebarres:Barcode": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:codebarres:Barcode.is_asn": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:codebarres:Barcode.is_separator": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:codebarres:BarcodePlugin": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:codebarres:BarcodePlugin.run": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:doublon:pre_check_duplicate": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois"
+            }
+        },
+        "chaine:etape:ConsumerPlugin._parse_title_placeholders": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:etape:ConsumerPlugin._store": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "chaine:etape:ConsumerPlugin._write": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "chaine:etape:ConsumerPlugin.apply_overrides": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:etape:ConsumerPlugin.run": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            }
+        },
+        "chaine:etape:ConsumerPreflightPlugin.pre_check_asn_value": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:etape:ConsumerPreflightPlugin.pre_check_directories": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testMemoireDEtatDansUnDossierQuiNExistePasEncore"
+            }
+        },
+        "chaine:etape:ConsumerPreflightPlugin.pre_check_duplicate": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois"
+            }
+        },
+        "chaine:etape:ConsumerPreflightPlugin.pre_check_file_exists": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois"
+            }
+        },
+        "chaine:etape:ConsumerPreflightPlugin.run": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:_is_safe_relative_path": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:create_dummy_document": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:get_added_date_context": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:get_basic_metadata_context": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Fichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "chaine:nom-fichier:get_creation_date_context": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:get_custom_fields_context": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:get_tags_context": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:nom-fichier:validate_filepath_template_and_render": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:DocumentParser.extract_metadata": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:DocumentParser.get_date": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\ReglesTest::testDateEnTete"
+            }
+        },
+        "chaine:parseur:DocumentParser.get_page_count": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:DocumentParser.get_text": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:DocumentParser.get_thumbnail": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Apercu\\Miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\MiniatureTest::testGenereUneVignetteDepuisUnPdf"
+            }
+        },
+        "chaine:parseur:DocumentParser.parse": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:MailDocumentParser.extract_metadata": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:MailDocumentParser.get_thumbnail": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:MailDocumentParser.parse": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:RasterisedDocumentParser.extract_metadata": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:RasterisedDocumentParser.extract_text": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:RasterisedDocumentParser.get_page_count": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:RasterisedDocumentParser.get_thumbnail": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:RasterisedDocumentParser.parse": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:TextDocumentParser.get_thumbnail": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:TextDocumentParser.parse": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:TikaDocumentParser.extract_metadata": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:TikaDocumentParser.get_thumbnail": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:TikaDocumentParser.parse": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.get_default_file_extension": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.get_default_thumbnail": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.get_parser_class_for_mime_type": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.get_supported_file_extensions": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.is_file_ext_supported": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.is_mime_type_supported": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.make_thumbnail_from_pdf": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Apercu\\Miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\MiniatureTest::testGenereUneVignetteDepuisUnPdf"
+            }
+        },
+        "chaine:parseur:documents.make_thumbnail_from_pdf_gs_fallback": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Apercu\\Miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\MiniatureTest::testLaVignetteDuRepliGhostscriptRespecteLaTaille"
+            }
+        },
+        "chaine:parseur:documents.parse_date": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\ReglesTest::testDateEnTete"
+            }
+        },
+        "chaine:parseur:documents.parse_date_generator": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:documents.run_convert": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "chaine:parseur:paperless_tesseract.post_process_text": {
+            "statut": "absent",
+            "lot": "V2-02"
+        },
+        "commande:documents:convert_mariadb_uuid": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "commande:documents:decrypt_documents": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:documents:document_archiver": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CopieArchivage"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve"
+            }
+        },
+        "commande:documents:document_consumer": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            }
+        },
+        "commande:documents:document_create_classifier": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Habitudes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\HabitudesTest::testTroisChoixIdentiquesFontUneHabitude"
+            }
+        },
+        "commande:documents:document_exporter": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:documents:document_fuzzy_match": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:documents:document_importer": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:documents:document_index": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ReconstructionIndex"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ReconstructionTest::testLaCommandeReconstruireIndexRendLeMemeHash"
+            }
+        },
+        "commande:documents:document_renamer": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Fichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testMiseAJourDeplaceFichierMetaVersionsEtTrace"
+            }
+        },
+        "commande:documents:document_retagger": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:documents:document_sanity_checker": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Archivage\\Verificateur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Archivage\\VerificateurTest::testFondsSainRendZeroEcart"
+            }
+        },
+        "commande:documents:document_thumbnails": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Apercu\\Miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\MiniatureTest::testGenereUneVignetteDepuisUnPdf"
+            }
+        },
+        "commande:documents:loaddata_stdin": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "commande:documents:manage_superuser": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Schema"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\InstallateurTest::testPoseUnSchemaNeufAvecCompteAdmin"
+            }
+        },
+        "commande:documents:prune_audit_logs": {
+            "statut": "absent",
+            "lot": "V2-00"
+        },
+        "commande:paperless_mail:mail_fetcher": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "correspondance:algo:MATCH_ALL": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:algo:MATCH_ANY": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:algo:MATCH_AUTO": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:algo:MATCH_FUZZY": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\ReglesTest::testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative"
+            }
+        },
+        "correspondance:algo:MATCH_LITERAL": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\ReglesTest::testIndicesMetierPriorisentCourrierContratEtFacture"
+            }
+        },
+        "correspondance:algo:MATCH_NONE": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:algo:MATCH_REGEX": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:_split_match": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:match_correspondents": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:match_document_types": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:match_storage_paths": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:match_tags": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "correspondance:fonction:matches": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:reglage:general": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:reglage:notifications": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:reglage:permissions": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:reglage:savedviews": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:404": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/erreur.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\EcransTest::testPageInconnueEstNommee"
+            }
+        },
+        "ecran:route:asn-id": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:config": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:correspondents": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/metadonnees.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds"
+            }
+        },
+        "ecran:route:customfields": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/metadonnees.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds"
+            }
+        },
+        "ecran:route:dashboard": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:documents": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/bibliotheque.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\EcransTest::testEcranRepondEtSeDesigne"
+            }
+        },
+        "ecran:route:documents-id": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/document.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\EcransTest::testEcranRepondEtSeDesigne"
+            }
+        },
+        "ecran:route:documents-id-section": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/document.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\EcransTest::testEcranRepondEtSeDesigne"
+            }
+        },
+        "ecran:route:documenttypes": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/metadonnees.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds"
+            }
+        },
+        "ecran:route:logs": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:mail": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:savedviews": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:settings": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:settings-mail": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:settings-savedviews": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:settings-section": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:settings-usersgroups": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:storagepaths": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:tags": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/metadonnees.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds"
+            }
+        },
+        "ecran:route:tasks": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:trash": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:usersgroups": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "ecran:route:vide": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-django"
+        },
+        "ecran:route:view-id": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/bibliotheque.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier"
+            }
+        },
+        "ecran:route:workflows": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/workflows.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEcranRepondMemeSansTablesDuSecteur"
+            }
+        },
+        "masse:fonction:add_tag": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:delete": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLaCorbeilleEstUneMiseEnCorbeilleJamaisUneSuppression"
+            }
+        },
+        "masse:fonction:delete_pages": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EditeurPdf"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides"
+            }
+        },
+        "masse:fonction:edit_pdf": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EditeurPdf"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides"
+            }
+        },
+        "masse:fonction:merge": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EditeurPdf"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides"
+            }
+        },
+        "masse:fonction:modify_custom_fields": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:modify_tags": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:reflect_doclinks": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "masse:fonction:remove_doclink": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteRetireeSortDeLIndexEtUnLienEstVisibleDesDeuxCotes"
+            }
+        },
+        "masse:fonction:remove_tag": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:reprocess": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "masse:fonction:rotate": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EditeurPdf"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides"
+            }
+        },
+        "masse:fonction:set_correspondent": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:set_document_type": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:set_permissions": {
+            "statut": "absent",
+            "lot": "V2-03"
+        },
+        "masse:fonction:set_storage_path": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\ModificationMasse"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire"
+            }
+        },
+        "masse:fonction:split": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EditeurPdf"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides"
+            }
+        },
+        "modele:champ:CustomField.created": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:champ:CustomField.data_type": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:champ:CustomField.extra_data": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:champ:CustomField.name": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:champ:CustomFieldInstance.created": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:CustomFieldInstance.document": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.field": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_bool": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_date": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_document_ids": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:CustomFieldInstance.value_float": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_int": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_long_text": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_monetary": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_monetary_amount": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:CustomFieldInstance.value_select": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_text": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:champ:CustomFieldInstance.value_url": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.added": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.archive_checksum": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.archive_filename": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.archive_serial_number": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.checksum": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.content": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.correspondent": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.created": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.document_type": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.filename": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.mime_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.modified": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.original_filename": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.page_count": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.storage_path": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.storage_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Document.tags": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:Document.title": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:champ:MailAccount.account_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.character_set": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.expiration": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.imap_port": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.imap_security": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.imap_server": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.is_token": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.password": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.refresh_token": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailAccount.username": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.account": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.action": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.action_parameter": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_correspondent": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_correspondent_from": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_document_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_owner_from_rule": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.assign_title_from": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.attachment_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.consumption_scope": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.enabled": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_attachment_filename_exclude": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_attachment_filename_include": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_body": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_from": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_subject": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.filter_to": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.folder": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.maximum_age": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.order": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MailRule.pdf_layout": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MatchingModel.is_insensitive": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MatchingModel.match": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MatchingModel.matching_algorithm": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:MatchingModel.name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ModelWithOwner.owner": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Note.created": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "modele:champ:Note.document": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "modele:champ:Note.note": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "modele:champ:Note.user": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "modele:champ:PaperlessTask.acknowledged": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.date_created": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.date_done": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.date_started": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.result": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.status": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.task_file_name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.task_id": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.task_name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:PaperlessTask.type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.error": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.folder": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.processed": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.received": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.rule": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.status": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.subject": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ProcessedMail.uid": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.display_fields": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.display_mode": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.name": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier"
+            }
+        },
+        "modele:champ:SavedView.page_size": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.show_in_sidebar": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.show_on_dashboard": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.sort_field": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedView.sort_reverse": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:SavedViewFilterRule.rule_type": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testCompilerDesFiltresTypés"
+            }
+        },
+        "modele:champ:SavedViewFilterRule.saved_view": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testCompilerDesFiltresTypés"
+            }
+        },
+        "modele:champ:SavedViewFilterRule.value": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testCompilerDesFiltresTypés"
+            }
+        },
+        "modele:champ:ShareLink.created": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:champ:ShareLink.document": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:champ:ShareLink.expiration": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:champ:ShareLink.file_version": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:ShareLink.owner": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:champ:ShareLink.slug": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:champ:StoragePath.path": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLesTypesLivresSontLisiblesDansLOrdreDuPlan"
+            }
+        },
+        "modele:champ:Tag.color": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Tag.is_inbox_tag": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:UiSettings.settings": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:UiSettings.user": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Workflow.actions": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Workflow.enabled": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Workflow.name": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Workflow.order": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:Workflow.triggers": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_change_groups": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_change_users": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_correspondent": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_custom_fields": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_custom_fields_values": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_document_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_owner": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_storage_path": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_title": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_view_groups": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.assign_view_users": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.email": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.order": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_correspondents": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_custom_fields": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_document_types": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_owners": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_permissions": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_storage_paths": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_all_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_change_groups": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_change_users": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_correspondents": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_custom_fields": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_document_types": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_owners": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_storage_paths": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_view_groups": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.remove_view_users": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowAction.webhook": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionEmail.body": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionEmail.include_document": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionEmail.subject": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionEmail.to": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.as_json": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.body": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.headers": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.include_document": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.params": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.url": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowActionWebhook.use_params": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowRun.document": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowRun.run_at": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowRun.type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowRun.workflow": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_custom_field_query": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_filename": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_all_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_correspondent": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_document_type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_not_correspondents": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_not_document_types": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_not_storage_paths": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_not_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_storage_path": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_has_tags": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_mailrule": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.filter_path": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.is_insensitive": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.match": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.matching_algorithm": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.schedule_date_custom_field": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.schedule_date_field": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.schedule_is_recurring": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.schedule_offset_days": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.schedule_recurring_interval_days": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:champ:WorkflowTrigger.type": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:Correspondent": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            }
+        },
+        "modele:classe:CustomField": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:classe:CustomFieldInstance": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex"
+            }
+        },
+        "modele:classe:Document": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:classe:DocumentType": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            }
+        },
+        "modele:classe:MailAccount": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "modele:classe:MailRule": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:MatchingModel": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:ModelWithOwner": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:Note": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "modele:classe:PaperlessTask": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "modele:classe:ProcessedMail": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:SavedView": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier"
+            }
+        },
+        "modele:classe:SavedViewFilterRule": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testCompilerDesFiltresTypés"
+            }
+        },
+        "modele:classe:ShareLink": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        },
+        "modele:classe:StoragePath": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Fichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            }
+        },
+        "modele:classe:Tag": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            }
+        },
+        "modele:classe:UiSettings": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:classe:Workflow": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testConditionsEvalueesSurFiche"
+            }
+        },
+        "modele:classe:WorkflowAction": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan"
+            }
+        },
+        "modele:classe:WorkflowActionEmail": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+            }
+        },
+        "modele:classe:WorkflowActionWebhook": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+            }
+        },
+        "modele:classe:WorkflowRun": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testHorlogeFigeeInjecteeHorodateLeJournal"
+            }
+        },
+        "modele:classe:WorkflowTrigger": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+            }
+        },
+        "modele:customfield-type:BOOL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:DATE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:DOCUMENTLINK": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:FLOAT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:INT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:LONG_TEXT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:MONETARY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:SELECT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:STRING": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:customfield-type:URL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:AttachmentProcessing.ATTACHMENTS_ONLY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:AttachmentProcessing.EVERYTHING": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ConsumptionScope.ATTACHMENTS_ONLY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ConsumptionScope.EML_ONLY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ConsumptionScope.EVERYTHING": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:CorrespondentSource.FROM_CUSTOM": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:CorrespondentSource.FROM_EMAIL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:CorrespondentSource.FROM_NAME": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:CorrespondentSource.FROM_NOTHING": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.ADDED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.ASN": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.CORRESPONDENT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.CREATED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.CUSTOM_FIELD": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.DOCUMENT_TYPE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.NOTES": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.OWNER": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.PAGE_COUNT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.SHARED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.STORAGE_PATH": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.TAGS": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayFields.TITLE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayMode.LARGE_CARDS": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayMode.SMALL_CARDS": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DisplayMode.TABLE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:DocumentSourceChoices.API_UPLOAD": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/depots"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DepotApiTest::testTroisFichiersPoussesDeuxFoisDonnentTroisTravauxSansDoublon"
+            }
+        },
+        "modele:type:DocumentSourceChoices.CONSUME_FOLDER": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            }
+        },
+        "modele:type:DocumentSourceChoices.MAIL_FETCH": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "modele:type:DocumentSourceChoices.WEB_UI": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/deposer"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ui\\ATraiterNomenclatureTest::testUnTypeAjouteAuFondsApparaitDansLesChoixDeLEcran"
+            }
+        },
+        "modele:type:FieldDataType.BOOL": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.DATE": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.DOCUMENTLINK": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:FieldDataType.FLOAT": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.INT": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.LONG_TEXT": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.MONETARY": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.SELECT": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.STRING": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut"
+            }
+        },
+        "modele:type:FieldDataType.URL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:FileVersion.ARCHIVE": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CopieArchivage"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve"
+            }
+        },
+        "modele:type:FileVersion.ORIGINAL": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu"
+            }
+        },
+        "modele:type:ImapSecurity.NONE": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "modele:type:ImapSecurity.SSL": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "modele:type:ImapSecurity.STARTTLS": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+            }
+        },
+        "modele:type:MailAccountType.GMAIL_OAUTH": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAccountType.IMAP": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAccountType.OUTLOOK_OAUTH": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAction.DELETE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAction.FLAG": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAction.MARK_READ": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAction.MOVE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:MailAction.TAG": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:PdfLayout.DEFAULT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:PdfLayout.HTML_ONLY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:PdfLayout.HTML_TEXT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:PdfLayout.TEXT_HTML": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:PdfLayout.TEXT_ONLY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ScheduleDateField.ADDED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ScheduleDateField.CREATED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:ScheduleDateField.CUSTOM_FIELD": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90"
+            }
+        },
+        "modele:type:ScheduleDateField.MODIFIED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskName.CHECK_SANITY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskName.CONSUME_FILE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskName.INDEX_OPTIMIZE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskName.TRAIN_CLASSIFIER": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskType.AUTO": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskType.MANUAL_TASK": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TaskType.SCHEDULED_TASK": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TitleSource.FROM_FILENAME": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TitleSource.FROM_SUBJECT": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:TitleSource.NONE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowActionType.ASSIGNMENT": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+            }
+        },
+        "modele:type:WorkflowActionType.EMAIL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowActionType.REMOVAL": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+            }
+        },
+        "modele:type:WorkflowActionType.WEBHOOK": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.ALL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.ANY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.FUZZY": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.LITERAL": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.NONE": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerMatching.REGEX": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerType.CONSUMPTION": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+            }
+        },
+        "modele:type:WorkflowTriggerType.DOCUMENT_ADDED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerType.DOCUMENT_UPDATED": {
+            "statut": "absent",
+            "lot": "V2-04"
+        },
+        "modele:type:WorkflowTriggerType.SCHEDULED": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Catalogue"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90"
+            }
+        },
+        "permissions:classe:AcknowledgeTasksPermissions": {
+            "statut": "exclu",
+            "exclusion": "infrastructure-celery-redis"
+        },
+        "permissions:classe:PaperlessAdminPermissions": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Securite\\DroitsDossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\V213DroitsRolesTest::testMatriceCanoniqueSuitLaDecisionEtCouvreLesRoutes"
+            }
+        },
+        "permissions:classe:PaperlessNotePermissions": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            }
+        },
+        "permissions:classe:PaperlessObjectPermissions": {
+            "statut": "absent",
+            "lot": "V2-07"
+        },
+        "permissions:classe:ViewDocumentsPermissions": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Securite\\DroitsDossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces"
+            }
+        },
+        "permissions:fonction:get_document_count_filter_for_user": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Securite\\DroitsDossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Recherche\\SemblablesTest::testLesDroitsDeDossierSontAppliquesDansLaRequete"
+            }
+        },
+        "permissions:fonction:get_groups_with_only_permission": {
+            "statut": "absent",
+            "lot": "V2-07"
+        },
+        "permissions:fonction:get_objects_for_user_owner_aware": {
+            "statut": "absent",
+            "lot": "V2-07"
+        },
+        "permissions:fonction:has_perms_owner_aware": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Securite\\DroitsDossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\DroitsBaseTest::testHeritageEtRefusExpliciteSontPlusFortsQueLaPermissionDuRole"
+            }
+        },
+        "permissions:fonction:set_permissions_for_object": {
+            "statut": "absent",
+            "lot": "V2-07"
+        },
+        "permissions:proprietaire:ModelWithOwner": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Securite\\DroitsDossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Securite\\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces"
+            }
+        },
+        "permissions:proprietaire:ShareLink": {
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
+            }
+        }
+    }
+}
