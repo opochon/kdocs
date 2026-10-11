@@ -80,6 +80,25 @@ cd C:/ged/cmd4/product && ./.venv/Scripts/python.exe -X utf8 -m cmd4_ingest --he
 - `php vendor/bin/phpunit` (suite complète) : **600 tests, 3422 assertions, 1 sauté, 0 échec**
   (8 min 29 s) — les 13 rouges d'environnement sont revenus verts.
 - `php vendor/bin/phpstan analyse --memory-limit=2G` : **0 erreur**, niveau 6, `phpstan-baseline.neon` vide.
+- Banc V2-02 sur le corpus réel : voir la réserve ci-dessous (53 documents, 51/53 exacts → porte NON FRANCHIE).
+
+## Réserve — porte V2-02 « découpe 100 pages » sur M3
+
+- `CMD4_VISION_ENABLED=false php tools/banc/mesurer-decoupe.php courrier-100p` : **53 documents / 53
+  attendus, 51 exacts, 1 frontière manquée** (page 29 : le Reçu tombe dans le Contrat), 0 page perdue,
+  0 doublon → **porte NON FRANCHIE** (161 s). Même mesure en mode configuré (`CMD4_VISION_ENABLED=1`).
+- `cmd4_ingest split` sur ce corpus rend `vision_calls=0` : la vision n'arbitre aucune frontière, elle ne
+  peut donc pas corriger la page 29. Par ailleurs `cmd4_ingest` lit ses clés vision dans `os.environ`
+  (pas dans `.env`) et `Cmd4Decoupeur` ne les transmet pas au sous-processus — la vision est inerte via
+  `.env` seul (demande à l'Ingestion ci-dessous). Hors périmètre de ce lot.
+- Conséquence si l'on produit les pièces : `tests/php/Classement/OracleCourrier100pTest.php` passe de
+  « sauté » à **rouge** (1 type faux, dû à la frontière page 29). Les pièces générées (`var/banc/`,
+  ignoré par git) ont donc été retirées : la suite reste **600 tests, 0 échec, 1 sauté**.
+- La preuve versionnée M2 (`recette/preuves/ingestion/courrier-100p-decoupe.{json,md}`, 01-10) est
+  **53/53 avec vision** ; elle a été restaurée telle quelle (le rejeu M3 ne l'écrase pas dans le dépôt).
+- Aucune ref du dépôt ne porte un `cmd4_ingest` plus récent que `feature/gouvernance-cmd4` `2aff63f`
+  (`cmdv4/cmdv4-reseau-1`, 11-10, n'en a pas). À trancher par le juge : le commit exact du moteur de M2
+  (qui donnait 53/53) reste à fournir, ou la porte V2-02 doit être rejouée sur le poste principal.
 
 ## Porte qualité (ECC)
 
