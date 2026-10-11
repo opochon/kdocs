@@ -296,3 +296,10 @@ Note de lot : `docs/lots/ged-api-documents.md`.
   `depot`) sur la lecture comme sur l'écriture ; installe le schéma Jonctions et nettoie son jeton éphémère.
 
 ETAT: fini
+
+### Jugement lot ged-api-documents (juge, 11-10) — fusionné
+
+- Copie du juge après fusion de v2 : PHPStan 0, PHPUnit **579 tests / 3273 assertions** vert ; contrat et sonde de sécurité étendus aux nouvelles routes par l'agent.
+- API REST `/api/v1/documents` (contrat `docs/api/documents.yaml`) : liste filtrée et paginée (100 au plus), recherche, fiche, téléchargement du courant et des versions, modification des métadonnées, dépôt, listes de types, étiquettes, émetteurs et vues.
+- Sécurité relue : jeton obligatoirement lié à un compte (sinon 403), jamais la session web ; droits DANS les requêtes (`predicatLecture`) pour liste, recherche, étiquettes, émetteurs ; `lire` / `modifier` vérifiés par document pour fiche, téléchargement et écriture ; `mettreAJour` reçoit le compte (contrôle d'arrivée) ; dépôt dans un dossier : chemin normalisé, `..` refusé, `deposer` exigé ; débit borné par jeton (429), panne du compteur = exception et non faux 429. Aucune table, aucun DDL.
+- C'est la base des liaisons ClearMyMails et K-Time.
