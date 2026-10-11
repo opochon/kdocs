@@ -132,6 +132,9 @@ public sealed class AgentPosteApplication : ApplicationContext
             return;
         }
 
+        // Même verrou que la passe périodique : deux fichiers modifiés en même temps ne doivent pas
+        // traiter la même file en parallèle (double envoi).
+        await _verrouFile.WaitAsync().ConfigureAwait(false);
         try
         {
             await _coordinateur.TraiterFichierAsync(chemin).ConfigureAwait(false);
@@ -140,6 +143,10 @@ public sealed class AgentPosteApplication : ApplicationContext
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             _journal.Erreur("surveillance", $"traitement de {chemin} impossible", exception);
+        }
+        finally
+        {
+            _verrouFile.Release();
         }
     }
 
