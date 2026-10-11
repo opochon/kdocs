@@ -107,6 +107,7 @@ try {
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);
         $chemin = str_replace(['/{id:[0-9]+}', '/{nom}', '/{jeton:[A-Za-z0-9_-]+}'], ['/999999999', '/contrat_synthetique', '/jeton_faux_contrat_0000000000000000'], $chemin);
+        $chemin = str_replace('/{numero:[0-9]+}', '/1', $chemin);
         $mutation = $methode === 'POST';
         $corps = $mutation ? http_build_query(['nom' => '', 'action_type' => '', 'document_id' => 0, 'actif' => 0, 'vers' => 'invalide']) : null;
         $entetes = $mutation ? ['Content-Type: application/x-www-form-urlencoded'] : [];
@@ -120,6 +121,12 @@ try {
                 // d'appairage manquant est un 400 nommé, un jeton absent un 401).
                 'POST /api/v1/appairage/jeton' => 400,
                 'GET /api/v1/appairage/moi', 'DELETE /api/v1/appairage/moi', 'GET /api/v1/dossiers' => 401,
+                // API REST des documents (lot ged-api-documents) : sans jeton, tout refuse 401 nommé.
+                'GET /api/v1/documents', 'POST /api/v1/documents',
+                'GET /api/v1/documents/{id:[0-9]+}', 'POST /api/v1/documents/{id:[0-9]+}',
+                'GET /api/v1/documents/{id:[0-9]+}/fichier',
+                'GET /api/v1/documents/{id:[0-9]+}/versions/{numero:[0-9]+}/fichier',
+                'GET /api/v1/types', 'GET /api/v1/etiquettes', 'GET /api/v1/emetteurs', 'GET /api/v1/vues' => 401,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.

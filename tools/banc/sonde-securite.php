@@ -7,6 +7,8 @@ use Ged\Securite\DroitsDossiers;
 use Ged\Securite\RegistreSessions;
 use Ged\Securite\Schema as SchemaSecurite;
 use Ged\Socle\Schema as SchemaSocle;
+use Ged\Jonctions\Jetons;
+use Ged\Jonctions\Schema as SchemaJonctions;
 use Ged\Base;
 use Ged\Config;
 
@@ -245,6 +247,7 @@ try {
     $pdo = Base::pdo($config);
     SchemaSocle::installer($pdo);
     SchemaSecurite::installer($pdo);
+    SchemaJonctions::installer($pdo);
     // Marqueur réservé aux données éphémères de sonde, supprimées dans le finally sous ce même verrou.
     $identifiantUtilisateur = 'sonde-utilisateur-' . bin2hex(random_bytes(5)) . '@gedv2.test';
     $pdo->prepare('INSERT INTO comptes (identifiant, empreinte, role) VALUES (?, ?, ?)')
@@ -272,6 +275,21 @@ try {
         $refus = requete($base, $methode, $chemin, $entetes, $mutation ? 'sonde=1' : null);
         $verifier($refus['code'] === 403, "B7 utilisateur réel accepté sur $definition");
     }
+
+    // Lot ged-api-documents : la porte des routes documents est un jeton LIÉ À UN COMPTE, de portée
+    // documents_lecture / documents_ecriture. Sans jeton : 401 nommé ; jeton d'appairage (portée depot) : 403.
+    foreach ([['GET', '/api/v1/documents'], ['GET', '/api/v1/types'], ['GET', '/api/v1/documents/204'],
+        ['GET', '/api/v1/documents/204/fichier'], ['GET', '/api/v1/documents/204/versions/1/fichier'],
+        ['POST', '/api/v1/documents'], ['POST', '/api/v1/documents/204']] as [$methodeDocuments, $cheminDocuments]) {
+        $entetesDocuments = $methodeDocuments === 'POST' ? ['Content-Type: application/x-www-form-urlencoded'] : [];
+        $sansJeton = requete($base, $methodeDocuments, $cheminDocuments, $entetesDocuments, $methodeDocuments === 'POST' ? 'sonde=1' : null);
+        $verifier($sansJeton['code'] === 401, "$methodeDocuments $cheminDocuments accessible sans jeton de documents");
+    }
+    $jetonSondeDepot = (new Jetons($pdo))->creerAppairage('sonde-documents', 'poste-sonde', $compteUtilisateur, $identifiantUtilisateur);
+    $mauvaisePortee = requete($base, 'GET', '/api/v1/documents', ['Authorization: Bearer ' . $jetonSondeDepot]);
+    $verifier($mauvaisePortee['code'] === 403, 'un jeton de portée depot lit les documents');
+    $ecritureSonde = requete($base, 'POST', '/api/v1/documents/204', ['Authorization: Bearer ' . $jetonSondeDepot, 'Content-Type: application/x-www-form-urlencoded'], 'titre=sonde');
+    $verifier($ecritureSonde['code'] === 403, 'un jeton de portée depot modifie un document');
 
     // Injections SQL/XSS : elles ne doivent ni exécuter une requête ni ressortir dans le HTML brut.
     $legitime = $sessions->ouvrir('sonde-lecture@gedv2.test', ['documents:lire', 'recherche:lire']);
@@ -439,6 +457,14 @@ try {
             $pdo->prepare('DELETE FROM comptes WHERE id = ?')->execute([$compteUtilisateur]);
         } catch (Throwable $erreur) {
             $defauts[] = 'suppression du compte éphémère impossible : ' . $erreur->getMessage();
+        }
+    }
+    if ($pdo instanceof PDO && isset($jetonSondeDepot) && is_string($jetonSondeDepot)) {
+        // Le jeton de sonde (portée depot) ne doit pas survivre à la passe : il vit dans gedv2_test seul.
+        try {
+            $pdo->exec("DELETE FROM jonctions_jetons WHERE application = 'sonde-documents'");
+        } catch (Throwable $erreur) {
+            error_log('sonde sécurité : nettoyage du jeton de sonde impossible : ' . $erreur->getMessage());
         }
     }
     if (is_dir($dossier)) {
