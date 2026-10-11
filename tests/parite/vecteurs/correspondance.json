@@ -1,0 +1,1382 @@
+{
+  "version": 1,
+  "categorie": "correspondance",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 137,
+  "vecteurs": [
+    {
+      "id": "correspondance:001",
+      "entree": {
+        "match_texte": "",
+        "algorithme": "MATCH_NONE",
+        "doc_texte": "no"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:52"
+    },
+    {
+      "id": "correspondance:002",
+      "entree": {
+        "match_texte": "",
+        "algorithme": "MATCH_NONE",
+        "doc_texte": "match"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:52"
+    },
+    {
+      "id": "correspondance:003",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:004",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:005",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have charlie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:006",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:007",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha and charlie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:008",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alphas, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:009",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alphas in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:010",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have bravo in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:63"
+    },
+    {
+      "id": "correspondance:011",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 12 34, and 56 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:012",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 12 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:013",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 34 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:014",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 56 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:015",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 12 and 34 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:016",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 120, 34, and 56 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:017",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 123456 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:018",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have 01234567 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:78"
+    },
+    {
+      "id": "correspondance:019",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy dogs"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:020",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy  dogs"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:021",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick fox jumped over the lazy dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:022",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown wolf jumped over the lazy dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:023",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the fat dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:024",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy... dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:93"
+    },
+    {
+      "id": "correspondance:025",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:026",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:027",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:028",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:029",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha and charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:030",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alphas in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:031",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have bravo in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:109"
+    },
+    {
+      "id": "correspondance:032",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 12 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:033",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 34 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:034",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 56 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:035",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 12 and 34 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:036",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 12, 34, and 56 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:037",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 120, 34, and 56 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:038",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 123456 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:039",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have 01234567 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:125"
+    },
+    {
+      "id": "correspondance:040",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "the quick brown fox"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:142"
+    },
+    {
+      "id": "correspondance:041",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "jumped over the lazy  dogs."
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:142"
+    },
+    {
+      "id": "correspondance:042",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "the lazy fox jumped over the brown dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:142"
+    },
+    {
+      "id": "correspondance:043",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha charlie gamma' in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:044",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:045",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have charlie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:046",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:047",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have alpha and charlie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:048",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:049",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have alphas, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:050",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have alphas in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:051",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have bravo in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:153"
+    },
+    {
+      "id": "correspondance:052",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 12 34 56 in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:053",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 12 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:054",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 34 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:055",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 56 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:056",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 12 and 34 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:057",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 12 34, and 56 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:058",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 120, 34, and 560 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:059",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 120, 340, and 560 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:060",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 123456 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:061",
+      "entree": {
+        "match_texte": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 01234567 in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:169"
+    },
+    {
+      "id": "correspondance:062",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:063",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alphas_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:064",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:065",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:066",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha and charlie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:067",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha,and,gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:068",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:069",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:070",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alphas, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:071",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alphas in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:187"
+    },
+    {
+      "id": "correspondance:072",
+      "entree": {
+        "match_texte": "[",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "Don't match this"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:207"
+    },
+    {
+      "id": "correspondance:073",
+      "entree": {
+        "match_texte": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "doc_texte": "1220 Main Street, Springf eld, Miss."
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:226"
+    },
+    {
+      "id": "correspondance:074",
+      "entree": {
+        "match_texte": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "doc_texte": "1220 Main Street, Spring field, Miss."
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:226"
+    },
+    {
+      "id": "correspondance:075",
+      "entree": {
+        "match_texte": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "doc_texte": "1220 Main Street, Springfeld, Miss."
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:226"
+    },
+    {
+      "id": "correspondance:076",
+      "entree": {
+        "match_texte": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "doc_texte": "1220 Main Street Springfield Miss"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:226"
+    },
+    {
+      "id": "correspondance:077",
+      "entree": {
+        "match_texte": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "doc_texte": "1220 Main Street, Springfield, Mich."
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:226"
+    },
+    {
+      "id": "correspondance:078",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:079",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have gamma, charlie, and alpha in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:080",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have Alpha, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:081",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have gamma, Charlie, and alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:082",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha, charlie, and Gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:083",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have gamma, charlie, and ALPHA in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:241"
+    },
+    {
+      "id": "correspondance:084",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have Alpha, charlie, and Gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:085",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have Gamma, charlie, and Alpha in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:086",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have Alpha, charlie, and gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:087",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have gamma, charlie, and alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:088",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have alpha, charlie, and Gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:089",
+      "entree": {
+        "match_texte": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "I have Gamma, Charlie, and ALPHA in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:257"
+    },
+    {
+      "id": "correspondance:090",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy dogs"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:091",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy  dogs"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:092",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick Brown fox jumped over the lazy dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:093",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown Fox jumped over the lazy  dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:094",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the Lazy dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:095",
+      "entree": {
+        "match_texte": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "doc_texte": "the quick brown fox jumped over the lazy  Dogs"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:273"
+    },
+    {
+      "id": "correspondance:096",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:097",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:098",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:099",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha, charlie, and gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:100",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha and charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:101",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:102",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have chaRLie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:103",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have gamMA in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:104",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have aLPha, cHArlie, and gAMma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:105",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have AlphA and CharlIe in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:290"
+    },
+    {
+      "id": "correspondance:106",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Alpha in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:107",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:108",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:109",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Alpha, Charlie, and Gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:110",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have Alpha and Charlie in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:111",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have alpha in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:112",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have ChaRLie in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:113",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have GamMA in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:114",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have ALPha, CHArlie, and GAMma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:115",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "I have AlphA and CharlIe in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:310"
+    },
+    {
+      "id": "correspondance:116",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "the quick brown fox"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:330"
+    },
+    {
+      "id": "correspondance:117",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "jumped over the lazy  dogs."
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:330"
+    },
+    {
+      "id": "correspondance:118",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "the quick Brown fox"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:330"
+    },
+    {
+      "id": "correspondance:119",
+      "entree": {
+        "match_texte": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "doc_texte": "jumped over the lazy  Dogs."
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:330"
+    },
+    {
+      "id": "correspondance:120",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha charlie gamma' in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:345"
+    },
+    {
+      "id": "correspondance:121",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'Alpha charlie gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:345"
+    },
+    {
+      "id": "correspondance:122",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha Charlie gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:345"
+    },
+    {
+      "id": "correspondance:123",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha charlie Gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:345"
+    },
+    {
+      "id": "correspondance:124",
+      "entree": {
+        "match_texte": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'Alpha Charlie Gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:345"
+    },
+    {
+      "id": "correspondance:125",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'Alpha Charlie Gamma' in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:358"
+    },
+    {
+      "id": "correspondance:126",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'Alpha charlie gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:358"
+    },
+    {
+      "id": "correspondance:127",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha Charlie gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:358"
+    },
+    {
+      "id": "correspondance:128",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha charlie Gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:358"
+    },
+    {
+      "id": "correspondance:129",
+      "entree": {
+        "match_texte": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "doc_texte": "I have 'alpha charlie gamma' in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:358"
+    },
+    {
+      "id": "correspondance:130",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpha_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:372"
+    },
+    {
+      "id": "correspondance:131",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alphas_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:372"
+    },
+    {
+      "id": "correspondance:132",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have Alpha_and_Gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:372"
+    },
+    {
+      "id": "correspondance:133",
+      "entree": {
+        "match_texte": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alpHAs_and_gaMMa in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:372"
+    },
+    {
+      "id": "correspondance:134",
+      "entree": {
+        "match_texte": "Alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have Alpha_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:386"
+    },
+    {
+      "id": "correspondance:135",
+      "entree": {
+        "match_texte": "Alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have Alphas_and_gamma in me"
+      },
+      "sortie": true,
+      "reference": "src/documents/tests/test_matchables.py:386"
+    },
+    {
+      "id": "correspondance:136",
+      "entree": {
+        "match_texte": "Alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have Alpha_and_Gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:386"
+    },
+    {
+      "id": "correspondance:137",
+      "entree": {
+        "match_texte": "Alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "doc_texte": "I have alphas_and_gamma in me"
+      },
+      "sortie": false,
+      "reference": "src/documents/tests/test_matchables.py:386"
+    }
+  ]
+}

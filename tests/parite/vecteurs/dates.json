@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "categorie": "dates",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 25,
+  "vecteurs": [
+    {
+      "id": "dates:test_date_format_1",
+      "entree": {
+        "texte": "lorem ipsum 130218 lorem ipsum",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:13"
+    },
+    {
+      "id": "dates:test_date_format_2",
+      "entree": {
+        "texte": "lorem ipsum 2018 lorem ipsum",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:17"
+    },
+    {
+      "id": "dates:test_date_format_3",
+      "entree": {
+        "texte": "lorem ipsum 20180213 lorem ipsum",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:21"
+    },
+    {
+      "id": "dates:test_date_format_6",
+      "entree": {
+        "texte": "lorem ipsum\nWohnort\n3100\nIBAN\nAT87 4534\n1234\n1234 5678\nBIC\nlorem ipsum",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:35"
+    },
+    {
+      "id": "dates:test_date_format_8",
+      "entree": {
+        "texte": "lorem ipsum\nWohnort\n3100\nIBAN\nAT87 4534\n1234\n1234 5678\nBIC\nlorem ipsum\nMärz 2020",
+        "langues": [
+          "de"
+        ]
+      },
+      "sortie": "2020-03-01",
+      "reference": "src/documents/tests/test_date_parsing.py:59"
+    },
+    {
+      "id": "dates:test_date_format_9",
+      "entree": {
+        "texte": "lorem ipsum\n27. Nullmonth 2020\nMärz 2020\nlorem ipsum",
+        "langues": [
+          "de"
+        ]
+      },
+      "sortie": "2020-03-01",
+      "reference": "src/documents/tests/test_date_parsing.py:86"
+    },
+    {
+      "id": "dates:test_date_format_10",
+      "entree": {
+        "texte": "Customer Number Currency 22-MAR-2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:102"
+    },
+    {
+      "id": "dates:test_date_format_11",
+      "entree": {
+        "texte": "Customer Number Currency 22 MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:113"
+    },
+    {
+      "id": "dates:test_date_format_12",
+      "entree": {
+        "texte": "Customer Number Currency 22/MAR/2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:124"
+    },
+    {
+      "id": "dates:test_date_format_13",
+      "entree": {
+        "texte": "Customer Number Currency 22.MAR.2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:135"
+    },
+    {
+      "id": "dates:test_date_format_14",
+      "entree": {
+        "texte": "Customer Number Currency 22.MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:146"
+    },
+    {
+      "id": "dates:test_date_format_15",
+      "entree": {
+        "texte": "Customer Number Currency 22.MAR.22 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:157"
+    },
+    {
+      "id": "dates:test_date_format_16",
+      "entree": {
+        "texte": "Customer Number Currency 22.MAR,22 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:161"
+    },
+    {
+      "id": "dates:test_date_format_17",
+      "entree": {
+        "texte": "Customer Number Currency 22,MAR,2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:165"
+    },
+    {
+      "id": "dates:test_date_format_18",
+      "entree": {
+        "texte": "Customer Number Currency 22 MAR,2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": null,
+      "reference": "src/documents/tests/test_date_parsing.py:169"
+    },
+    {
+      "id": "dates:test_date_format_19",
+      "entree": {
+        "texte": "Customer Number Currency 21st MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-21",
+      "reference": "src/documents/tests/test_date_parsing.py:173"
+    },
+    {
+      "id": "dates:test_date_format_20",
+      "entree": {
+        "texte": "Customer Number Currency 22nd March 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-22",
+      "reference": "src/documents/tests/test_date_parsing.py:184"
+    },
+    {
+      "id": "dates:test_date_format_21",
+      "entree": {
+        "texte": "Customer Number Currency 2nd MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-02",
+      "reference": "src/documents/tests/test_date_parsing.py:195"
+    },
+    {
+      "id": "dates:test_date_format_22",
+      "entree": {
+        "texte": "Customer Number Currency 23rd MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-23",
+      "reference": "src/documents/tests/test_date_parsing.py:206"
+    },
+    {
+      "id": "dates:test_date_format_23",
+      "entree": {
+        "texte": "Customer Number Currency 24th MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-24",
+      "reference": "src/documents/tests/test_date_parsing.py:217"
+    },
+    {
+      "id": "dates:test_date_format_24",
+      "entree": {
+        "texte": "Customer Number Currency 21-MAR-2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-21",
+      "reference": "src/documents/tests/test_date_parsing.py:228"
+    },
+    {
+      "id": "dates:test_date_format_25",
+      "entree": {
+        "texte": "Customer Number Currency 25TH MAR 2022 Credit Card 1934829304",
+        "langues": []
+      },
+      "sortie": "2022-03-25",
+      "reference": "src/documents/tests/test_date_parsing.py:239"
+    },
+    {
+      "id": "dates:test_date_format_26",
+      "entree": {
+        "texte": "CHASE 0 September 25, 2019 JPMorgan Chase Bank, NA. P0 Box 182051",
+        "langues": []
+      },
+      "sortie": "2019-09-25",
+      "reference": "src/documents/tests/test_date_parsing.py:250"
+    },
+    {
+      "id": "dates:test_ignored_dates_default_order",
+      "entree": {
+        "texte": "lorem ipsum 110319, 20200117 and lorem 13.02.2018 lorem ipsum",
+        "langues": []
+      },
+      "sortie": "2018-02-13",
+      "reference": "src/documents/tests/test_date_parsing.py:485"
+    },
+    {
+      "id": "dates:test_ignored_dates_order_ymd",
+      "entree": {
+        "texte": "lorem ipsum 190311, 20200117 and lorem 13.02.2018 lorem ipsum",
+        "langues": []
+      },
+      "sortie": "2018-02-13",
+      "reference": "src/documents/tests/test_date_parsing.py:510"
+    }
+  ]
+}
