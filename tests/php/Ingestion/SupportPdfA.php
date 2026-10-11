@@ -34,12 +34,16 @@ trait SupportPdfA
         Base::assurerBase($this->config);
         $this->pdo = Base::pdo($this->config);
         \Ged\Socle\Schema::installer($this->pdo);
+        // Tables du SECTEUR Ingestion : remises à neuf comme le fait déjà PiloteTest, pour qu'un reste d'un
+        // run précédent (empreinte identique) ne fasse pas passer un fichier neuf pour un doublon.
+        $this->pdo->exec('DROP TABLE IF EXISTS ingestion_travaux, ingestion_messages');
         \Ged\Ingestion\Schema::installer($this->pdo);
 
         $this->storageRootAvant = getenv('STORAGE_ROOT');
         $this->bac = sys_get_temp_dir() . '/gedv2-pdfa-' . bin2hex(random_bytes(4));
         $this->racine = $this->bac . '/fonds';
         mkdir($this->bac . '/depots', 0775, true);
+        mkdir($this->bac . '/entree', 0775, true);
         putenv('STORAGE_ROOT=' . $this->racine);
     }
 
@@ -110,6 +114,17 @@ trait SupportPdfA
     protected function identifiantsPosesPdfA(): array
     {
         return $this->documentsPoses;
+    }
+
+    protected function pdoPdfA(): PDO
+    {
+        return $this->pdo;
+    }
+
+    /** Retient un document rangé par un autre chemin que `deposerPdfA` (ex. le Pilote) pour le nettoyage. */
+    protected function retenirDocumentPdfA(int $idDocument): void
+    {
+        $this->documentsPoses[] = $idDocument;
     }
 
     protected function ghostscriptPdfA(): ?string

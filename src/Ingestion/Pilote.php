@@ -158,8 +158,35 @@ final class Pilote
         if ($this->config !== null && $id !== null && class_exists(\Ged\Workflows\Ecouteur::class)) {
             \Ged\Workflows\Ecouteur::prevenir($this->config, 'document_depose', $id, $meta);
         }
+        // Copie d'archivage PDF/A-2b à côté du document rangé (lot ged-pdfa-1) : un plus pour la
+        // consultation longue durée, jamais une condition du dépôt. Appel d'une ligne signalé.
+        if ($id !== null) {
+            $this->copieArchivage($id);
+        }
         if ((int) $piece['parent_id'] > 0) {
             $this->travaux->clore((int) $piece['parent_id']);
+        }
+    }
+
+    /**
+     * Produit la copie d'archivage PDF/A-2b du document qui vient d'être rangé. Un échec est enregistré
+     * dans le `.meta.json` (statut « echec » et raison) et tracé, jamais propagé : le document est déjà
+     * ingéré et le reste. Sans configuration (oracles), la copie est laissée au rattrapage.
+     */
+    private function copieArchivage(int $idDocument): void
+    {
+        if ($this->config === null || $this->depot === null) {
+            return;
+        }
+        try {
+            $fiche = $this->depot->fiche($idDocument);
+            $relatif = is_array($fiche) ? (string) ($fiche['chemin_relatif'] ?? '') : '';
+            if ($relatif === '') {
+                return;
+            }
+            CopieArchivage::depuis($this->config)->pour($this->depot->cheminAbsolu($relatif), $relatif, $idDocument);
+        } catch (\Throwable $e) {
+            error_log(sprintf('[GEDv2 pdfa] document %d : copie non produite — %s', $idDocument, $e->getMessage()));
         }
     }
 
