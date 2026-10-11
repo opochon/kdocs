@@ -253,3 +253,33 @@ ETAT: fini
 
 ETAT: fini
 
+## Journal pdfa-rattrapage-1 — relance des échecs PDF/A — 11-10-2026
+
+**Constat (juge)**
+- `CopieArchivage::pour()` rendait un échec déjà persisté sans jamais le rejouer tant que l'empreinte de
+  l'original ne changeait pas : Ghostscript installé après coup, ou cause passagère, laissait le document
+  bloqué à vie. Un échec d'outil se distinguait mal d'un échec de document.
+
+**Oracle d'abord**
+- `tests/php/Ingestion/RelancePdfATest.php` (3 tests) vu rouge : champ `reprise` absent, compteur
+  `reprises` absent ; puis échec « Ghostscript absent » repris (explicite puis par le rattrapage), original
+  intact (hash) ; PDF corrompu jamais relancé ; rattrapage idempotent (0 doublon).
+
+**Fait**
+- `ConversionPdfA::reprise()` classe chaque raison (`auto` = environnement / `jamais` = document) ; le PDF
+  corrompu est nommé `MSG_CORROMPU` (le chiffré garde `MSG_CHIFFRE`).
+- `CopieArchivage::pour(..., forcer: true)` = relance explicite ; le bloc `echec` porte `reprise` ; un ancien
+  échec sans champ est classé à la lecture ; `etat()` expose `reprise`, `aReprendre()` décide.
+- `RattrapagePdfA` relance D'ELLE-MÊME les seuls échecs `auto`, laisse les définitifs, publie `reprises`
+  (copies effectivement retrouvées, pas des tentatives) ; conversion injectable pour les oracles.
+- Écrans : `pdfa-reprenable` / `pdfa-definitif` sur la fiche, `pdfa-reprises` sur l'écran Application.
+  Chemins hors secteur touchés au minimum (UI, gabarits), signalés comme pour ged-pdfa-1.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Ingestion tests/php/Ui/PdfaEcranTest.php --no-coverage` : 49 tests verts.
+- Suite complète : **606 tests / 3 471 assertions / 1 sauté**, vert ; PHPStan niveau 6 : **0 erreur**,
+  baseline vide.
+- Fiche détaillée (causes classées, commandes, porte ECC) : `docs/lots/pdfa-rattrapage-1.md`.
+
+ETAT: fini
+
