@@ -25,6 +25,7 @@ public sealed class SaveCopyAsOracleTests
 
         dynamic? excel = null;
         dynamic? classeur = null;
+        var excelDejaOuvert = SessionSta.OfficeDejaOuvert("Excel");
         using (var session = new SessionSta(
             pret =>
             {
@@ -45,7 +46,10 @@ public sealed class SaveCopyAsOracleTests
                 }
                 finally
                 {
-                    excel?.Quit();
+                    if (!excelDejaOuvert)
+                    {
+                        excel?.Quit();
+                    }
                 }
             }))
         {
@@ -89,6 +93,7 @@ public sealed class SaveCopyAsOracleTests
 
         dynamic? powerpoint = null;
         dynamic? presentation = null;
+        var powerpointDejaOuvert = SessionSta.OfficeDejaOuvert("PowerPoint");
         using (var session = new SessionSta(
             pret =>
             {
@@ -108,7 +113,10 @@ public sealed class SaveCopyAsOracleTests
                 }
                 finally
                 {
-                    powerpoint?.Quit();
+                    if (!powerpointDejaOuvert)
+                    {
+                        powerpoint?.Quit();
+                    }
                 }
             }))
         {

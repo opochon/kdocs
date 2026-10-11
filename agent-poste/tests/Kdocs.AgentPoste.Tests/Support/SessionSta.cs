@@ -67,4 +67,34 @@ public sealed class SessionSta : IDisposable
 
         return Activator.CreateInstance(type)!;
     }
+
+    /// <summary>
+    /// Une application Office du nom donné est-elle DÉJÀ ouverte dans la session ? Sert à ne jamais
+    /// quitter une instance de l'utilisateur : on ne ferme que ce qu'on a ouvert soi-même.
+    /// </summary>
+    public static bool OfficeDejaOuvert(string nom)
+    {
+        var present = false;
+        Kdocs.AgentPoste.Com.DemarrageSta.Executer(() =>
+        {
+            foreach (var objet in Kdocs.AgentPoste.Com.Rot.ObjetsActifs())
+            {
+                try
+                {
+                    dynamic application = objet;
+                    if (((string)application.Name).Contains(nom, StringComparison.OrdinalIgnoreCase))
+                    {
+                        present = true;
+
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+        });
+
+        return present;
+    }
 }

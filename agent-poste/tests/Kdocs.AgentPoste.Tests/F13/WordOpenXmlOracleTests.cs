@@ -1,6 +1,7 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Kdocs.AgentPoste.Com;
 using Kdocs.AgentPoste.Secours;
 using Kdocs.AgentPoste.Tests.Support;
 
@@ -18,7 +19,8 @@ public sealed class CollectionOffice
 /// On prouve sur un VRAI document Word, avec en-tête, pied de page, commentaire et image, que RIEN ne
 /// manque dans la copie, et que le document de l'utilisateur n'est pas enregistré au passage.
 ///
-/// Ce test exige Word installé (Microsoft 365, Office 16) : c'est un oracle de poste, pas un test unitaire.
+/// Le document est ouvert par l'association Windows (comme le fait l'agent), donc dans la session Word
+/// exposée par la table des objets : aucune instance parallèle invisible.
 /// </summary>
 [Collection("Office")]
 [Trait("Categorie", "Office")]
@@ -38,118 +40,132 @@ public sealed class WordOpenXmlOracleTests
         var png = dossier.CheminDe("image.png");
         File.WriteAllBytes(png, Convert.FromBase64String(PngUnPixel));
 
-        using var word = new SessionWord(cheminTravail, png);
-        var automate = new OfficeComAutomate(new JournalMemoire());
+        WordReel.NettoyerTemporaires();
+        CreerDocumentWord(cheminTravail, png);
+        Assert.True(File.Exists(cheminTravail));
 
-        var documents = automate.Lister();
-        var ouvert = documents.SingleOrDefault(d => string.Equals(d.Chemin, cheminTravail, StringComparison.OrdinalIgnoreCase));
-        Assert.NotNull(ouvert);
-        Assert.Equal(TypeOffice.Word, ouvert!.Type);
-        Assert.False(ouvert.Enregistre, "le document doit être modifié sans enregistrement");
+        try
+        {
+            // Ouverture par l'association Windows : le document vit dans la session Word de l'utilisateur.
+            Process.Start(new ProcessStartInfo(cheminTravail) { UseShellExecute = true });
+            Assert.True(
+                Attendre(() => WordReel.EstOuvert(cheminTravail), TimeSpan.FromSeconds(30)),
+                "Word doit avoir ouvert le document de l'oracle");
+            WordReel.Modifier(cheminTravail, document => ((dynamic)document).Content.InsertAfter(" MODIF NON ENREGISTREE"));
+            Assert.False(WordReel.EstEnregistre(cheminTravail), "le document doit être modifié sans enregistrement");
 
-        var destination = dossier.CheminDe("secours", "copie.docx");
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-        automate.EcrireCopieSecours(ouvert, destination);
+            var automate = new OfficeComAutomate(new JournalMemoire());
+            var ouvert = AttendreDocument(automate, cheminTravail);
+            Assert.NotNull(ouvert);
+            Assert.Equal(TypeOffice.Word, ouvert!.Type);
+            Assert.False(ouvert.Enregistre);
 
-        Assert.True(File.Exists(destination));
-        using var docx = WordprocessingDocument.Open(destination, false);
-        var principal = docx.MainDocumentPart!;
-        Assert.NotEmpty(principal.HeaderParts);
-        Assert.NotEmpty(principal.FooterParts);
-        Assert.NotNull(principal.WordprocessingCommentsPart);
-        Assert.NotEmpty(principal.ImageParts);
+            var destination = dossier.CheminDe("secours", "copie.docx");
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            automate.EcrireCopieSecours(ouvert, destination);
 
-        Assert.Contains("CORPS ORACLE", principal.Document!.InnerText, StringComparison.Ordinal);
-        Assert.Contains("MODIF NON ENREGISTREE", principal.Document.InnerText, StringComparison.Ordinal);
-        Assert.Contains(
-            principal.HeaderParts.SelectMany(p => p.Header!.Descendants<Text>()).Select(t => t.Text),
-            texte => texte.Contains("EN-TETE ORACLE", StringComparison.Ordinal));
-        Assert.Contains(
-            principal.FooterParts.SelectMany(p => p.Footer!.Descendants<Text>()).Select(t => t.Text),
-            texte => texte.Contains("PIED ORACLE", StringComparison.Ordinal));
-        Assert.Contains(
-            principal.WordprocessingCommentsPart!.Comments!.Descendants<Text>().Select(t => t.Text),
-            texte => texte.Contains("COMMENTAIRE ORACLE", StringComparison.Ordinal));
+            Assert.True(File.Exists(destination));
+            using var docx = WordprocessingDocument.Open(destination, false);
+            var principal = docx.MainDocumentPart!;
+            Assert.NotEmpty(principal.HeaderParts);
+            Assert.NotEmpty(principal.FooterParts);
+            Assert.NotNull(principal.WordprocessingCommentsPart);
+            Assert.NotEmpty(principal.ImageParts);
 
-        // Le document de l'utilisateur n'a PAS été enregistré par la copie de secours.
-        var apres = automate.Lister().Single(d => string.Equals(d.Chemin, cheminTravail, StringComparison.OrdinalIgnoreCase));
-        Assert.False(apres.Enregistre, "lire WordOpenXML ne doit jamais enregistrer le document");
+            Assert.Contains("CORPS ORACLE", principal.Document!.InnerText, StringComparison.Ordinal);
+            Assert.Contains("MODIF NON ENREGISTREE", principal.Document.InnerText, StringComparison.Ordinal);
+            Assert.Contains(
+                principal.HeaderParts.SelectMany(p => p.Header!.Descendants<Text>()).Select(t => t.Text),
+                texte => texte.Contains("EN-TETE ORACLE", StringComparison.Ordinal));
+            Assert.Contains(
+                principal.FooterParts.SelectMany(p => p.Footer!.Descendants<Text>()).Select(t => t.Text),
+                texte => texte.Contains("PIED ORACLE", StringComparison.Ordinal));
+            Assert.Contains(
+                principal.WordprocessingCommentsPart!.Comments!.Descendants<Text>().Select(t => t.Text),
+                texte => texte.Contains("COMMENTAIRE ORACLE", StringComparison.Ordinal));
+
+            Assert.False(WordReel.EstEnregistre(cheminTravail), "lire WordOpenXML ne doit jamais enregistrer le document");
+        }
+        finally
+        {
+            if (WordReel.EstOuvert(cheminTravail))
+            {
+                WordReel.Fermer(cheminTravail);
+            }
+        }
     }
 
-    /// <summary>Word réel : crée le document piégé, le rouvre, le modifie sans enregistrer, et le tient ouvert.</summary>
-    private sealed class SessionWord : IDisposable
+    /// <summary>Crée le document de l'oracle (en-tête, pied, commentaire, image) dans une instance dédiée, puis la ferme.</summary>
+    private static void CreerDocumentWord(string chemin, string image)
     {
-        private readonly ManualResetEventSlim _pret = new(false);
-        private readonly ManualResetEventSlim _fermer = new(false);
-        private readonly Thread _fil;
-        private Exception? _erreur;
-
-        public SessionWord(string cheminTravail, string image)
+        using var session = new SessionSta(pret =>
         {
-            _fil = new Thread(() => Derouler(cheminTravail, image));
-            _fil.SetApartmentState(ApartmentState.STA);
-            _fil.IsBackground = true;
-            _fil.Start();
-            _pret.Wait(TimeSpan.FromMinutes(2));
-            if (_erreur is not null)
-            {
-                throw new InvalidOperationException("session Word impossible", _erreur);
-            }
-        }
-
-        public void Dispose()
-        {
-            _fermer.Set();
-            _fil.Join(TimeSpan.FromMinutes(1));
-        }
-
-        private void Derouler(string cheminTravail, string image)
-        {
+            dynamic word = SessionSta.CreerApplication("Word.Application");
+            word.Visible = false;
+            word.DisplayAlerts = 0;
             try
             {
-                var type = Type.GetTypeFromProgID("Word.Application")
-                    ?? throw new InvalidOperationException("Word n’est pas installé sur ce poste");
-                dynamic word = Activator.CreateInstance(type)!;
-                word.Visible = false;
-                word.DisplayAlerts = 0;
+                dynamic document = word.Documents.Add();
+                document.Content.Text = "CORPS ORACLE";
+                document.Sections.Item(1).Headers.Item(1).Range.Text = "EN-TETE ORACLE";
+                document.Sections.Item(1).Footers.Item(1).Range.Text = "PIED ORACLE";
+                document.Comments.Add(document.Range(0, 0), "COMMENTAIRE ORACLE");
+                document.InlineShapes.AddPicture(image, false, true);
                 try
                 {
-                    dynamic document = word.Documents.Add();
-                    document.Content.Text = "CORPS ORACLE";
-                    document.Sections.Item(1).Headers.Item(1).Range.Text = "EN-TETE ORACLE";
-                    document.Sections.Item(1).Footers.Item(1).Range.Text = "PIED ORACLE";
-                    document.Comments.Add(document.Range(0, 0), "COMMENTAIRE ORACLE");
-                    document.InlineShapes.AddPicture(image, false, true);
-                    try
-                    {
-                        document.SaveAs2(cheminTravail, 16);   // wdFormatDocumentDefault
-                    }
-                    catch (System.Runtime.InteropServices.COMException)
-                    {
-                        // Word 16 lève parfois une exception de convertisseur tout en écrivant le fichier.
-                        if (!File.Exists(cheminTravail))
-                        {
-                            throw;
-                        }
-                    }
-                    document.Close(0);
-
-                    dynamic rouvert = word.Documents.Open(cheminTravail);
-                    rouvert.Content.InsertAfter(" MODIF NON ENREGISTREE");
-                    _pret.Set();
-                    _fermer.Wait(TimeSpan.FromMinutes(5));
-                    rouvert.Close(0);
+                    document.SaveAs2(chemin, 16);   // wdFormatDocumentDefault
                 }
-                finally
+                catch (COMException)
                 {
-                    word.Quit();
+                    // Word 16 lève parfois une exception de convertisseur tout en écrivant le fichier.
+                    if (!File.Exists(chemin))
+                    {
+                        throw;
+                    }
                 }
+                document.Close(0);
             }
-            catch (Exception exception)
+            finally
             {
-                _erreur = exception;
-                _pret.Set();
+                word.Quit();
             }
+            pret();
+        });
+        session.Verifier();
+    }
+
+    private static DocumentOffice? AttendreDocument(OfficeComAutomate automate, string chemin)
+    {
+        var fin = DateTime.UtcNow + TimeSpan.FromSeconds(20);
+        do
+        {
+            var document = automate.Lister()
+                .FirstOrDefault(d => string.Equals(d.Chemin, chemin, StringComparison.OrdinalIgnoreCase));
+            if (document is not null)
+            {
+                return document;
+            }
+
+            Thread.Sleep(500);
         }
+        while (DateTime.UtcNow < fin);
+
+        return null;
+    }
+
+    private static bool Attendre(Func<bool> condition, TimeSpan delai)
+    {
+        var fin = DateTime.UtcNow + delai;
+        while (DateTime.UtcNow < fin)
+        {
+            if (condition())
+            {
+                return true;
+            }
+
+            Thread.Sleep(500);
+        }
+
+        return condition();
     }
 }
