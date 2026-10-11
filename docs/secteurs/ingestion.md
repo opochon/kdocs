@@ -247,4 +247,9 @@ ETAT: fini
 - `phpstan analyse` niveau 6 : 0 erreur ; baseline inchangée (vide).
 - E2E : `npx playwright test tests/e2e/pdfa.spec.ts --project=parcours` → **2/2** (attente → rattrapage
   par l'écran → PDF/A 2b ok → copie téléchargée et contrôlée ; `.txt` « sans objet »).
+- Harness `-SansBanc` (commit `8a032c5`) : couches 0, 1 (598 tests / 3 406 assertions), 2, 5, 6, 7, 8
+  vertes ; 3 rouge par `-SansBanc` ; couche 4 : `pdfa` 2/2 et 79/80, seul le budget d'aperçu sous charge
+  échoue (1 048 ms > 1 000 ms), la couche rejouée seule est 80/80.
+
+ETAT: fini
 
