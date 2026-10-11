@@ -23,7 +23,8 @@ use RuntimeException;
  *  - rejouer une passe ne refait aucune copie déjà juste (le service est idempotent) : 0 doublon ;
  *  - les échecs dont la cause est d'environnement (`reprise: auto`, ex. Ghostscript installé après coup) sont
  *    relancés d'eux-mêmes, sans toucher à l'original ; les échecs définitifs (document chiffré ou corrompu)
- *    sont laissés tels quels. Le compteur `reprises` dit combien de documents ont été relancés.
+ *    sont laissés tels quels. Le compteur `reprises` dit combien de copies ont été EFFECTIVEMENT reprises
+ *    (échec d'environnement devenu copie juste), jamais un nombre de tentatives supposé.
  *
  * L'état vit dans le registre `.ged/pdfa-rattrapage.json` du fonds (le dossier fait foi, comme la
  * reconstruction) ; aucun démon, aucun appel long : chaque tranche est bornée.
@@ -100,10 +101,10 @@ final class RattrapagePdfA
                         $idDocument = $this->idDocument($relatif);
                         // Une cause d'environnement est rejouée D'ELLE-MÊME ; un échec définitif est laissé tel quel.
                         $forcer = $service->aReprendre($absolu, $idDocument);
-                        if ($forcer) {
-                            $reprises++;
+                        $bloc = $service->pour($absolu, $relatif, $idDocument, $forcer);
+                        if ($forcer && ($bloc['statut'] ?? '') === 'ok') {
+                            $reprises++;   // échec d'environnement effectivement devenu copie : compté, jamais supposé
                         }
-                        $service->pour($absolu, $relatif, $idDocument, $forcer);
                     } catch (\Throwable $e) {
                         // Un document récalcitrant ne doit pas arrêter le fonds : il est tracé et la tranche continue.
                         error_log('pdfa : copie non produite pour ' . $relatif . ' — ' . $e->getMessage());
