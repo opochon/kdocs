@@ -64,6 +64,13 @@
               <span class="muted">· non relus : leurs fichiers ne sont pas dans ce fonds</span>
             </span>
           {% endif %}
+          {# Le bilan nomme aussi les documents du périmètre disparus EN COURS de reconstruction (ecart). #}
+          {% if reconstruction and reconstruction.ecart > 0 %}
+            <span data-testid="reconstruction-ecart">
+              <span class="chip warn">{{ reconstruction.ecart }} document(s) du périmètre disparu(s) pendant la reconstruction</span>
+              <span class="muted">· annoncés au lancement, retirés du fonds en cours de route : non relus</span>
+            </span>
+          {% endif %}
         </span></div>
       </section>
       <section class="carte section-reglage" id="s-3" data-testid="reglage-ia"><h2>Intelligence artificielle</h2>
