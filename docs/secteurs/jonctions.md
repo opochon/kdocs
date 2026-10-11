@@ -276,9 +276,11 @@ Note de lot : `docs/lots/ged-api-documents.md`.
   authentifie par jeton porteur hors session, borne page (≤ 100) et débit par jeton (`Debit`, état hors
   requête sous verrou). `Module` enregistre les routes ; le Kernel n'est pas modifié. Aucune nouvelle table.
 - Preuves : `tests\php\Jonctions` 33 tests, 304 assertions verts (dont 13 documents, 112 assertions) ;
-  `phpstan` niveau 6 : 0 erreur ; `tools\banc\contrat.php` et `tools\banc\sonde-securite.php` verts ;
-  harness `-SansBanc` (chiffres dans la note de lot).
-- Commits : `e326828`, `c8f1e69`.
+  suite complète 576 tests / 3 230 assertions / 1 sauté verts ; `phpstan` niveau 6 : 0 erreur ;
+  `tools\banc\contrat.php` et `tools\banc\sonde-securite.php` verts ; harness `-SansBanc` sur `fb4f554`
+  (1 650 s) : couches **0, 1, 2, 7, 8 VERTES** ; 3 sautée ; 4/5/6 rouges sur des budgets de temps et des
+  gestes d'écrans HORS secteur (détail et chiffres dans la note de lot).
+- Commits : `e326828`, `c8f1e69`, `2121f9c`, `fb4f554`.
 
 ### Modifications hors secteur signalées (à valider par le juge)
 - `src/Securite/DroitsRoutes.php` — 10 lignes ajoutées (registre `PERMISSIONS`) et reconnaissance des
@@ -293,4 +295,4 @@ Note de lot : `docs/lots/ged-api-documents.md`.
 - `tools/banc/sonde-securite.php` — vérifie 401 sans jeton et 403 pour un jeton d'appairage (portée
   `depot`) sur la lecture comme sur l'écriture ; installe le schéma Jonctions et nettoie son jeton éphémère.
 
-ETAT: en cours
+ETAT: fini

@@ -28,20 +28,42 @@ droits posés **dans** les requêtes (`DroitsDossiers::predicatLecture`). Aucune
 - [x] Bancs : `tools/banc/contrat.php` (statuts des routes publiques, n° de version substitué) et
   `tools/banc/sonde-securite.php` (401 sans jeton, 403 pour un jeton de portée `depot`).
 
-Commits : `e326828` (contrat + service + porte + tests), `c8f1e69` (bancs).
-
-## En cours
-- Porte qualité (PHPStan, revue ECC), harness `-SansBanc`, note de secteur.
+Commits : `e326828` (contrat + service + porte + tests), `c8f1e69` (bancs), `2121f9c` (revue ECC),
+`fb4f554` (note de lot et fiche secteur).
 
 ## Reste
-- Rien de fonctionnel : le lot est complet une fois la porte qualité et le harness passés.
+- Rien de fonctionnel : le lot est complet.
 
 ## Mesures exactes
 - `vendor\bin\phpunit tests\php\Jonctions` : **33 tests, 304 assertions verts** (dont 13 nouveaux
   documents, 112 assertions).
+- Suite complète : **576 tests, 3 230 assertions, 1 sauté, vert** (563 avant le lot, +13).
 - `php vendor\bin\phpstan analyse --level 6` : **0 erreur hors baseline** (baseline vide).
 - `php tools\banc\contrat.php` : vert. `php tools\banc\sonde-securite.php` : vert.
-- Harness (à compléter après la passe complète).
+
+## Harness — `powershell -File tools\harness.ps1 -SansBanc` sur `fb4f554` (1 650 s)
+Couches que le lot touche :
+- **0-garde-fous : VERT**.
+- **1-unitaire : VERT** — 576 tests, 3 230 assertions, 1 sauté.
+- **2-contrat : VERT** — toutes les routes déclarées sont couvertes (dont les 10 nouvelles, 401 sans jeton).
+- **7-securite : VERT** — aucune prise (401 sans jeton, 403 portée `depot` sur lecture et écriture).
+- **8-statique : VERT** — PHPStan niveau 6 : 0 erreur hors baseline ; `composer audit` : aucune
+  vulnérabilité. (`tools\composer.phar` est ignoré par git et manquait dans ce worktree ; restauré depuis
+  l'arbre principal avant la mesure — la seule cause du premier échec de cette couche.)
+
+Couches hors secteur (aucune route ni aucun écran du lot n'y participe ; défauts déjà consignés) :
+- **4-écrans** : 1 échec sur 76 pendant la passe complète ; rejeu isolé de la couche : **74 passés,
+  2 échoués**, tous deux des budgets de TEMPS sous machine chargée —
+  `maquettes.spec.ts` « écran application » 2 369 ms pour un seuil de 1 500 ms (secteur Interface) et
+  `budget-apercu.spec.ts` première page PDF 1 154 ms pour un seuil de 1 000 ms (secteur Aperçu). Le lot
+  n'ajoute aucun écran et ne touche ni `maquettes.spec.ts` ni `budget-apercu.spec.ts`.
+- **5-personas** : secrétaire 2/3 (geste F4 « valider-piece » sur le document 10085, qui appartenait au
+  fonds du banc de charge laissé dans `gedv2_test` — défaut d'hygiène H-6 consigné) ; les 5 autres
+  personas sont à 4/4. Aucun geste ne passe par l'API documents.
+- **6-charge** : p95 lecture **1 528 ms** pour un seuil de 1 500 ms (0 erreur, 0 collision, ingestion
+  finie) ; l'écart de 2 % est du bruit machine, la table par écran de `recette/preuves/charge/charge.md`
+  ne désigne aucune route du lot.
+- **3-banc** : sautée (`-SansBanc`), comme demandé.
 
 ## Décisions et points de contrat
 - **Portée** : `documents_lecture` (lire) et `documents_ecriture` (lire + écrire) ; `*` couvre les deux.
@@ -67,4 +89,4 @@ Commits : `e326828` (contrat + service + porte + tests), `c8f1e69` (bancs).
   panne du compteur de débit = exception, jamais un faux 429).
 - TDD : oracles vus ROUGE (13 erreurs / 2 échecs, classes et routes absentes) puis verts.
 
-ETAT: en cours
+ETAT: fini
