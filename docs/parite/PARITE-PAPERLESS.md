@@ -10,19 +10,19 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 182 | 550 | 0 | 48 | 23,33 % | 24,86 % |
+| 780 | 180 | 552 | 0 | 48 | 23,08 % | 24,59 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 50 | 225 | 0 | 43 | 15,72 % | 18,18 % |
+| api | 318 | 49 | 226 | 0 | 43 | 15,41 % | 17,82 % |
 | chaine | 60 | 14 | 46 | 0 | 0 | 23,33 % | 23,33 % |
 | commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
 | correspondance | 13 | 2 | 11 | 0 | 0 | 15,38 % | 15,38 % |
 | ecran | 30 | 10 | 19 | 0 | 1 | 33,33 % | 34,48 % |
 | masse | 17 | 14 | 3 | 0 | 0 | 82,35 % | 82,35 % |
-| modele | 313 | 76 | 236 | 0 | 1 | 24,28 % | 24,36 % |
+| modele | 313 | 75 | 237 | 0 | 1 | 23,96 % | 24,04 % |
 | permissions | 12 | 7 | 4 | 0 | 1 | 58,33 % | 63,64 % |
 
 ## Comportement (phase 2)
@@ -160,7 +160,7 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 | re_path ^logo(?:/(?P<filename>.+))?/?$ -> app_logo [serve_logo] | src/paperless/urls.py:270 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^search/^autocomplete/ -> autocomplete [SearchAutoCompleteView.as_view] | src/paperless/urls.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | re_path .* -> base [login_required] | src/paperless/urls.py:353 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view] | src/paperless/urls.py:132 | couvert-autrement | service Ged\Socle\Export | phpunit Ged\Tests\Socle\ReconstructionTest::testLaBaseVideePuisReconstruiteRendLeMemeContenu (couche 1) |  |
+| re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view] | src/paperless/urls.py:132 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | re_path ^api/^documents/^bulk_edit/ -> bulk_edit [BulkEditView.as_view] | src/paperless/urls.py:127 | couvert-autrement | route POST /bibliotheque/masse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | re_path ^api/^bulk_edit_objects/ -> bulk_edit_objects [BulkEditObjectsView.as_view] | src/paperless/urls.py:145 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | router /api/config/ -> ApplicationConfigurationViewSet | src/paperless/urls.py:80 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -197,7 +197,7 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 | re_path ^api/^trash/ -> trash [TrashView.as_view] | src/paperless/urls.py:198 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien (couche 1) |  |
 | re_path ^api/^ui_settings/ -> ui_settings [UiSettingsView.as_view] | src/paperless/urls.py:155 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | router /api/users/ -> UserViewSet | src/paperless/urls.py:71 | couvert-autrement | route GET /administration/comptes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
-| router /api/workflow_actions/ -> WorkflowActionViewSet | src/paperless/urls.py:77 | couvert-autrement | route POST /workflows/transitions | phpunit Ged\Tests\Workflows\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat (couche 1) |  |
+| router /api/workflow_actions/ -> WorkflowActionViewSet | src/paperless/urls.py:77 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
 | router /api/workflow_triggers/ -> WorkflowTriggerViewSet | src/paperless/urls.py:76 | couvert-autrement | route POST /workflows/evenements | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
 | router /api/workflows/ -> WorkflowViewSet | src/paperless/urls.py:78 | couvert-autrement | route GET /workflows | phpunit Ged\Tests\Workflows\ModuleTest::testEcranRepondMemeSansTablesDuSecteur (couche 1) |  |
 | ApplicationConfigurationViewSet.create (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -359,7 +359,7 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 | classe UiSettingsView(GenericAPIView) | src/documents/views.py:2361 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | classe UnifiedSearchViewSet(DocumentViewSet) | src/documents/views.py:1289 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | classe UserViewSet(ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe WorkflowActionViewSet(ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | route POST /workflows/transitions | phpunit Ged\Tests\Workflows\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat (couche 1) |  |
+| classe WorkflowActionViewSet(ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
 | classe WorkflowTriggerViewSet(ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | route POST /workflows/evenements | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
 | classe WorkflowViewSet(ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | route GET /workflows | phpunit Ged\Tests\Workflows\ModuleTest::testEcranRepondMemeSansTablesDuSecteur (couche 1) |  |
 
@@ -800,7 +800,7 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 | FileVersion.ORIGINAL | src/documents/models.py:723 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu (couche 1) |  |
 | ImapSecurity.NONE | src/paperless_mail/models.py:14 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
 | ImapSecurity.SSL | src/paperless_mail/models.py:15 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
-| ImapSecurity.STARTTLS | src/paperless_mail/models.py:16 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
+| ImapSecurity.STARTTLS | src/paperless_mail/models.py:16 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | MailAccountType.GMAIL_OAUTH | src/paperless_mail/models.py:20 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | MailAccountType.IMAP | src/paperless_mail/models.py:19 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | MailAccountType.OUTLOOK_OAUTH | src/paperless_mail/models.py:21 | absent (ecart assume, lot a creer) | - | - | V2-04 |
@@ -967,6 +967,7 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:app_logo | api | src/paperless/urls.py:270 | exclu | infrastructure-django |  |
 | api:route:autocomplete | api | src/paperless/urls.py:105 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:base | api | src/paperless/urls.py:353 | exclu | infrastructure-django |  |
+| api:route:bulk_download | api | src/paperless/urls.py:132 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:bulk_edit_objects | api | src/paperless/urls.py:145 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:config | api | src/paperless/urls.py:80 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:favicon | api | src/paperless/urls.py:234 | exclu | infrastructure-django |  |
@@ -1423,6 +1424,7 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:type:DisplayMode.TABLE | modele | src/documents/models.py:437 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:FieldDataType.DOCUMENTLINK | modele | src/documents/models.py:793 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:FieldDataType.URL | modele | src/documents/models.py:787 | absent | ecart assume, lot a creer | V2-04 |
+| modele:type:ImapSecurity.STARTTLS | modele | src/paperless_mail/models.py:16 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:MailAccountType.GMAIL_OAUTH | modele | src/paperless_mail/models.py:20 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:MailAccountType.IMAP | modele | src/paperless_mail/models.py:19 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:MailAccountType.OUTLOOK_OAUTH | modele | src/paperless_mail/models.py:21 | absent | ecart assume, lot a creer | V2-04 |

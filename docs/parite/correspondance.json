@@ -592,16 +592,8 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:bulk_download": {
-            "statut": "couvert-autrement",
-            "gedv2": {
-                "type": "service",
-                "classe": "Ged\\Socle\\Export"
-            },
-            "preuve": {
-                "type": "phpunit",
-                "cible": "Ged\\Tests\\Socle\\ReconstructionTest::testLaBaseVideePuisReconstruiteRendLeMemeContenu"
-            },
-            "note": "GEDv2 : export par service, pas de route HTTP dediee."
+            "statut": "absent",
+            "lot": "V2-05"
         },
         "api:route:bulk_edit": {
             "statut": "couvert-autrement",
@@ -862,13 +854,12 @@
         "api:route:workflow-actions": {
             "statut": "couvert-autrement",
             "gedv2": {
-                "type": "route",
-                "methode": "POST",
-                "chemin": "/workflows/transitions"
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat"
+                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan"
             }
         },
         "api:route:workflow-triggers": {
@@ -1646,13 +1637,12 @@
         "api:vue:WorkflowActionViewSet": {
             "statut": "couvert-autrement",
             "gedv2": {
-                "type": "route",
-                "methode": "POST",
-                "chemin": "/workflows/transitions"
+                "type": "service",
+                "classe": "Ged\\Workflows\\Moteur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat"
+                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan"
             }
         },
         "api:vue:WorkflowTriggerViewSet": {
@@ -4147,15 +4137,8 @@
             }
         },
         "modele:type:ImapSecurity.STARTTLS": {
-            "statut": "couvert-autrement",
-            "gedv2": {
-                "type": "service",
-                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
-            },
-            "preuve": {
-                "type": "phpunit",
-                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
-            }
+            "statut": "absent",
+            "lot": "V2-04"
         },
         "modele:type:MailAccountType.GMAIL_OAUTH": {
             "statut": "absent",

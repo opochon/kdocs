@@ -95,13 +95,12 @@ poser($elements, 'api:route:share-links', $A, route('POST', '/documents/{id:[0-9
 poser($elements, 'api:route:anon:share-p-slug-w-sharedlinkview-as-view', $A, route('GET', '/partages/{jeton:[A-Za-z0-9_-]+}'), p('Ged\\Tests\\Socle\\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois'));
 poser($elements, 'api:route:workflows', $A, route('GET', '/workflows'), p('Ged\\Tests\\Workflows\\ModuleTest::testEcranRepondMemeSansTablesDuSecteur'));
 poser($elements, 'api:route:workflow-triggers', $A, route('POST', '/workflows/evenements'), p('Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction'));
-poser($elements, 'api:route:workflow-actions', $A, route('POST', '/workflows/transitions'), p('Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat'));
+poser($elements, 'api:route:workflow-actions', $A, service('Ged\\Workflows\\Moteur'), p('Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan'));
 poser($elements, 'api:route:custom-fields', $A, route('POST', '/metadonnees/champ'), p('Ged\\Tests\\Socle\\ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug'));
 poser($elements, 'api:route:profile_view', $A, route('GET', '/profil'), p('Ged\\Tests\\Jonctions\\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel'));
 poser($elements, 'api:route:users', $A, route('GET', '/administration/comptes'), p('Ged\\Tests\\Securite\\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit'));
 poser($elements, 'api:route:groups', $A, route('GET', '/administration/groupes'), p('Ged\\Tests\\Securite\\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit'));
 poser($elements, 'api:route:trash', $A, service('Ged\\Socle\\DepotFichiers'), p('Ged\\Tests\\Socle\\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien'), 'GEDv2 : corbeille par service (mise en corbeille depuis la bibliotheque), pas de route dediee.');
-poser($elements, 'api:route:bulk_download', $A, service('Ged\\Socle\\Export'), p('Ged\\Tests\\Socle\\ReconstructionTest::testLaBaseVideePuisReconstruiteRendLeMemeContenu'), 'GEDv2 : export par service, pas de route HTTP dediee.');
 poser($elements, 'api:action:DocumentViewSet.download', $A, route('GET', '/api/v1/documents/{id:[0-9]+}/fichier'), p('Ged\\Tests\\Jonctions\\DocumentsApiTest::testPaginationBorneeEtVersionTelechargeable'));
 poser($elements, 'api:action:DocumentViewSet.preview', $A, route('GET', '/documents/{id:[0-9]+}/apercu'), p('Ged\\Tests\\Apercu\\ModuleTest::testPageApercuPdfSeDesigne'));
 poser($elements, 'api:action:DocumentViewSet.thumb', $A, route('GET', '/documents/{id:[0-9]+}/miniature'), p('Ged\\Tests\\Apercu\\ModuleTest::testMiniatureServieEnPng'));
@@ -122,7 +121,7 @@ poser($elements, 'api:vue:SavedViewViewSet', $A, route('GET', '/api/v1/vues'), p
 poser($elements, 'api:vue:ShareLinkViewSet', $A, route('POST', '/documents/{id:[0-9]+}/partages'), p('Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair'));
 poser($elements, 'api:vue:WorkflowViewSet', $A, route('GET', '/workflows'), p('Ged\\Tests\\Workflows\\ModuleTest::testEcranRepondMemeSansTablesDuSecteur'));
 poser($elements, 'api:vue:WorkflowTriggerViewSet', $A, route('POST', '/workflows/evenements'), p('Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction'));
-poser($elements, 'api:vue:WorkflowActionViewSet', $A, route('POST', '/workflows/transitions'), p('Ged\\Tests\\Workflows\\TransitionsTest::testTransitionAutoriseeTraceQuiQuandEtDepuisQuelEtat'));
+poser($elements, 'api:vue:WorkflowActionViewSet', $A, service('Ged\\Workflows\\Moteur'), p('Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan'));
 
 foreach ([
     'CorrespondentViewSet' => ['GET', '/api/v1/emetteurs'],
@@ -280,7 +279,8 @@ poser($elements, 'modele:type:DocumentSourceChoices.MAIL_FETCH', $A, service('Ge
 poser($elements, 'modele:type:DocumentSourceChoices.WEB_UI', $A, route('POST', '/deposer'), p('Ged\\Tests\\Ui\\ATraiterNomenclatureTest::testUnTypeAjouteAuFondsApparaitDansLesChoixDeLEcran'));
 poser($elements, 'modele:type:FileVersion.ORIGINAL', $A, service('Ged\\Socle\\DepotFichiers'), p('Ged\\Tests\\Socle\\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu'));
 poser($elements, 'modele:type:FileVersion.ARCHIVE', $A, service('Ged\\Ingestion\\CopieArchivage'), p('Ged\\Tests\\Ingestion\\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve'));
-foreach (['modele:type:ImapSecurity.NONE', 'modele:type:ImapSecurity.SSL', 'modele:type:ImapSecurity.STARTTLS'] as $id) {
+// GEDv2 connait ssl (993) et tcp (non chiffre, tests locaux) ; STARTTLS n'est pas porte.
+foreach (['modele:type:ImapSecurity.NONE', 'modele:type:ImapSecurity.SSL'] as $id) {
     poser($elements, $id, $A, service('Ged\\Ingestion\\Imap\\ImapBoite'), p('Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal'));
 }
 poser($elements, 'modele:type:ScheduleDateField.CUSTOM_FIELD', $A, service('Ged\\Workflows\\Catalogue'), p('Ged\\Tests\\Workflows\\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90'));
