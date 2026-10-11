@@ -1,9 +1,9 @@
 {
-    "date": "2026-10-11T01:03:34+00:00",
-    "commit": "b470f1e",
-    "duree_s": 209.3,
+    "date": "2026-10-11T05:52:49+00:00",
+    "commit": "554cbfa",
+    "duree_s": 190,
     "documents": 10000,
-    "fonds": "C:\\ged\\wt\\ged-agent-poste/var/charge/fonds/documents",
+    "fonds": "C:\\ged\\wt\\ged-finitions-1/var/charge/fonds/documents",
     "seuils": {
         "lecture_p95_ms": 1500,
         "ecriture_p95_ms": 3000
@@ -14,37 +14,37 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 9,
-                    "p50_ms": 243,
-                    "p95_ms": 328,
-                    "max_ms": 328
+                    "p50_ms": 294,
+                    "p95_ms": 516,
+                    "max_ms": 516
                 },
                 "recherche": {
                     "n": 9,
-                    "p50_ms": 309,
-                    "p95_ms": 597,
-                    "max_ms": 597
+                    "p50_ms": 312,
+                    "p95_ms": 653,
+                    "max_ms": 653
                 },
                 "a-traiter": {
                     "n": 9,
-                    "p50_ms": 237,
-                    "p95_ms": 320,
-                    "max_ms": 320
+                    "p50_ms": 253,
+                    "p95_ms": 512,
+                    "max_ms": 512
                 },
                 "apercu": {
                     "n": 9,
-                    "p50_ms": 218,
-                    "p95_ms": 328,
-                    "max_ms": 328
+                    "p50_ms": 212,
+                    "p95_ms": 273,
+                    "max_ms": 273
                 },
                 "validation": {
                     "n": 40,
-                    "p50_ms": 228,
-                    "p95_ms": 246,
-                    "max_ms": 257
+                    "p50_ms": 235,
+                    "p95_ms": 262,
+                    "max_ms": 328
                 }
             },
-            "lecture_p95_ms": 597,
-            "ecriture_p95_ms": 246,
+            "lecture_p95_ms": 653,
+            "ecriture_p95_ms": 262,
             "ecriture_n": 40,
             "requetes": 76,
             "erreurs": 0,
@@ -55,37 +55,37 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 30,
-                    "p50_ms": 340,
-                    "p95_ms": 396,
-                    "max_ms": 437
+                    "p50_ms": 333,
+                    "p95_ms": 618,
+                    "max_ms": 618
                 },
                 "recherche": {
                     "n": 30,
-                    "p50_ms": 378,
-                    "p95_ms": 743,
-                    "max_ms": 797
+                    "p50_ms": 358,
+                    "p95_ms": 718,
+                    "max_ms": 763
                 },
                 "a-traiter": {
                     "n": 30,
-                    "p50_ms": 280,
-                    "p95_ms": 341,
-                    "max_ms": 371
+                    "p50_ms": 298,
+                    "p95_ms": 352,
+                    "max_ms": 360
                 },
                 "apercu": {
                     "n": 30,
-                    "p50_ms": 160,
-                    "p95_ms": 308,
-                    "max_ms": 323
+                    "p50_ms": 188,
+                    "p95_ms": 266,
+                    "max_ms": 325
                 },
                 "validation": {
                     "n": 60,
-                    "p50_ms": 139,
-                    "p95_ms": 226,
-                    "max_ms": 232
+                    "p50_ms": 184,
+                    "p95_ms": 244,
+                    "max_ms": 521
                 }
             },
-            "lecture_p95_ms": 743,
-            "ecriture_p95_ms": 226,
+            "lecture_p95_ms": 718,
+            "ecriture_p95_ms": 244,
             "ecriture_n": 60,
             "requetes": 180,
             "erreurs": 0,
@@ -104,7 +104,7 @@
     "ingestion": {
         "finie": true,
         "detail": "53 pièces rangées, 0 travail restant",
-        "duree_s": 140.1,
+        "duree_s": 128.7,
         "documents_ajoutes": 53,
         "travaux_restants": 0,
         "erreurs": 0,

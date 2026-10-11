@@ -67,8 +67,14 @@ try {
     unlink($racineDemandee . '/' . $absent);
     if (is_file($racineDemandee . '/' . $absent)) throw new RuntimeException('le fichier absent devait disparaître');
 
+    // Un document PRÉSENT du périmètre, que le geste E2E fera disparaître PENDANT la reconstruction :
+    // il est annoncé au lancement, puis retiré du disque avant la tranche qui devait le relire.
+    $disparaitEnCours = (string) $depot->fiche($identifiants[0])['chemin_relatif'];
+    if (!is_file($racineDemandee . '/' . $disparaitEnCours)) throw new RuntimeException('le document à faire disparaître doit être présent');
+
     echo json_encode(['compte' => $identifiant, 'mot_de_passe' => $motDePasse,
-        'total' => 26, 'absents' => 1, 'nom_absent' => $absent], JSON_UNESCAPED_SLASHES), PHP_EOL;
+        'total' => 26, 'absents' => 1, 'nom_absent' => $absent,
+        'disparait_en_cours' => $disparaitEnCours], JSON_UNESCAPED_SLASHES), PHP_EOL;
 } catch (Throwable $e) {
     fwrite(STDERR, 'préparation reconstruction-index : ' . $e->getMessage() . PHP_EOL); exit(1);
 } finally {

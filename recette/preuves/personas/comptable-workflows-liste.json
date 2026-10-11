@@ -3,7 +3,7 @@
   "fonction": "F8",
   "libelle": "Trouver les circuits et règles de workflow par le menu",
   "trouve": true,
-  "temps_ms": 219,
-  "ecran": "http://127.0.0.1:54558/workflows — Workflows",
+  "temps_ms": 251,
+  "ecran": "http://127.0.0.1:62555/workflows — Workflows",
   "erreur": ""
 }

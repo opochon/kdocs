@@ -1268,3 +1268,22 @@ n'avaient aucun lien visible.
   le droit, présente avec `application:administrer` (et avec `*`).
 - `tests/e2e/parite-masse.spec.ts` : 5 parcours verts (dont les 4 écrans jamais visités, atteints par le
   menu) ; `maquettes.spec.ts`, `bibliotheque.spec.ts`, `actions-v2-12c.spec.ts` rejoués verts (19/19).
+
+## Journal finition ged-finitions-1 (11-10) — l'écart de reconstruction au bilan
+
+Constat du juge : `ReconstructionIndex::avancer` posait bien un champ `ecart` (documents du périmètre
+disparus PENDANT la reconstruction) mais le bilan de l'écran Application ne l'affichait pas.
+
+**Fait**
+- `templates/ecrans/application.twig` : le bilan rend `reconstruction-ecart` quand `reconstruction.ecart`
+  est non nul, à côté de `reconstruction-absents` ; `src/Ui/Application.php` déclare `ecart` sur l'état.
+- `tests/php/Ui/ApplicationReconstructionEcartTest.php` (nouveau, 2 tests) : l'écran est rendu par la route
+  réelle `/application` après une reconstruction où un fichier du périmètre disparaît ; l'écart non nul
+  est affiché avec son compte, un écart nul n'affiche rien.
+- `tests/e2e/reconstruction-index.spec.ts` (2e parcours) : le fonds annonce 26 documents, un document
+  présent est retiré du disque après le lancement, la reconstruction se termine à `25 / 26` et le bilan
+  affiche l'écart ; le parcours 26 / 26 sans écart reste vert.
+
+**Preuves** : PHPUnit ciblé rouge avant code (1 échec / 2) puis 2 tests / 17 assertions verts ; E2E
+2 passed (35,9 s puis 37,0 s), **1 failed** sous mutation du bloc de gabarit ; voisins Socle/Ecrans
+28 tests / 141 assertions verts. Commits `7872788`, `ee5ab1b`.

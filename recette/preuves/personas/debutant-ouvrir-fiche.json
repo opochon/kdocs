@@ -3,7 +3,7 @@
   "fonction": "F6",
   "libelle": "Ouvrir la fiche du document trouvé par la recherche",
   "trouve": true,
-  "temps_ms": 570,
-  "ecran": "http://127.0.0.1:62468/documents/10077 — Note Debutant ORACLE",
+  "temps_ms": 753,
+  "ecran": "http://127.0.0.1:60190/documents/10077 — Note Debutant ORACLE",
   "erreur": ""
 }

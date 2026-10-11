@@ -100,6 +100,10 @@ public sealed class ParcoursF13Tests
         var executable = Path.Combine(AppContext.BaseDirectory, "Kdocs.AgentPoste.exe");
         Assert.True(File.Exists(executable), $"exécutable de l’agent attendu : {executable}");
 
+        // Ce test écrit dans la VRAIE ruche : il rend l'état HKCU qu'il a trouvé, même s'il échoue
+        // (libération sur exception), comme `tester-installateur.ps1` le fait côté PowerShell.
+        using var sauvegarde = new SauvegardeHkcu(ProtocoleKdocs.Cle);
+
         var protocole = new ProtocoleKdocs(new RegistreHkcu());
         protocole.Enregistrer(executable);
 
@@ -116,6 +120,11 @@ public sealed class ParcoursF13Tests
             Assert.NotNull(commandeCle);
             Assert.Equal($"\"{executable}\" \"%1\"", commandeCle!.GetValue(string.Empty) as string);
         }
+
+        // Oracle de l'hygiène : la clé est redevenue EXACTEMENT celle trouvée avant le test (l'absence
+        // d'écriture silencieuse serait une fuite laissée sur le poste — défaut relevé par le juge).
+        sauvegarde.Restaurer();
+        Assert.True(sauvegarde.EstIdentique(), "le test doit rendre l'état HKCU trouvé");
     }
 
     [Fact]

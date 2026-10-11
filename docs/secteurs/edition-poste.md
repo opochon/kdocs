@@ -175,3 +175,29 @@ Chemins du lot `ged-agent-durcissement` (même secteur, durcissement bloquant du
 ### Hygiène des tests de l'agent (juge, 11-10)
 
 Après `dotnet test`, la clé `HKCU\Software\Classes\kdocs` reste enregistrée et pointe vers l'exécutable de test (`…\bin\Debug\Kdocs.AgentPoste.exe`) de la copie qui a joué les tests. Sans danger sur une machine de développement, mais un test doit rendre l'état HKCU qu'il a trouvé (comme `tester-installateur.ps1` le fait déjà). À corriger au prochain lot de l'agent.
+### Journal finition ged-finitions-1 (11-10) — le parcours F13 rend l'état HKCU
+
+Défaut ci-dessus **corrigé** :
+
+- `SauvegardeHkcu` (tests, `Support/`) photographie récursivement une clé HKCU (sous-clés, valeurs,
+  genres), la restitue à l'identique par `Dispose` — donc même en cas d'échec — et compare l'état vivant à
+  la photographie ; `SauvegardeHkcuTests` prouve le round-trip sur une clé jetable.
+- `ParcoursF13Tests.Point2` sauvegarde la clé avant d'enregistrer `kdocs://`, assène sur les valeurs
+  écrites, restitue puis assène que la clé est redevenue celle trouvée ; la fixture de collection
+  sauvegarde/restaure aussi l'état à sa fermeture (filet d'hygiène).
+- `tools/verifier.ps1` exporte `HKCU\Software\Classes\kdocs` avant la suite, le compare après, restaure
+  l'état d'avant et échoue si la clé a changé — c'est l'oracle « après la suite complète ».
+
+**Preuves** : `dotnet test` complet **222 tests, 0 échec, 0 avertissement** (32 s), clé absente avant et
+après ; garde `verifier.ps1` **VERTE**. Mutation (`Restaurer` neutralisé) : Point2 rouge, **1 échec / 9**,
+garde **ROUGE**, état HKCU restauré. Commits `52569cc`, `cf978b6`.
+### Jugement ged-finitions-1 (juge, 2026-10-11) — accepté
+
+Rejoué par le juge, branche fusionnée avec `v2` (`dc96aa4`) : PHPStan niveau 6 **0 erreur**, PHPUnit
+**581 tests / 3290 assertions OK** (copie du juge) ; `dotnet test` sur la copie indépendante de la machine 2
+**222 / 222** (5 min 56, Word réel). Clé `HKCU\Software\Classes\kdocs` **absente avant et absente après**
+la suite : le défaut « la suite laisse kdocs enregistré » est levé. Aucun Word laissé ouvert par ce rejeu ;
+deux Word orphelins d'un rejeu F13 de 02:27 (ancien code, document de test temporaire) ont été fermés à la
+main. Revue : l'écran Application lit `ecart` depuis `ReconstructionIndex::etat()`, aucune sonde affaiblie.
+Reste ouvert : l'échec isolé de la couche 4 (1 failed / 77) n'est toujours pas nommé ; le harness
+automatique qui suit la fusion conserve désormais la sortie complète dans `var/harness/4-ecrans.txt`.
