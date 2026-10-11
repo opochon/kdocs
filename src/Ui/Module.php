@@ -227,6 +227,10 @@ final class Module
         });
         $app->post('/application/reconstruction-index', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index',$e->getMessage());} });
         $app->post('/application/reconstruction-index/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Socle\ReconstructionIndex($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?reconstruction='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/reconstruction-index/{id}/tranche',$e->getMessage());} });
+        // Lot ged-pdfa-1 : rattrapage des copies d'archivage PDF/A du fonds déjà présent, borné et reprenable
+        // comme la reconstruction. Lignes signalées hors secteur (Interface), commitées avec le lot.
+        $app->post('/application/pdfa-rattrapage', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage',$e->getMessage());} });
+        $app->post('/application/pdfa-rattrapage/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage/{id}/tranche',$e->getMessage());} });
     }
 
     /** @param array<string, string> $args */

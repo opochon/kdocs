@@ -123,15 +123,16 @@ final class CopieArchivage
             return $vierge;
         }
         $statut = (string) ($bloc['statut'] ?? 'en_attente');
-        if ($statut === 'ok' && !$this->copieValide($absoluDocument, $bloc)) {
-            return ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '',
-                'raison' => 'copie absente ou altérée', 'empreinte_sha256' => ''];
-        }
-        $cheminAbsolu = self::cheminCopie($absoluDocument);
-        if (($bloc['chemin'] ?? '') !== $this->cheminRelatif($cheminAbsolu)) {
-            // Le document a été déplacé : la copie doit être refaite à sa nouvelle place (le rattrapage s'en charge).
-            return ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '',
-                'raison' => 'copie à refaire après déplacement', 'empreinte_sha256' => ''];
+        if ($statut === 'ok') {
+            if (!$this->copieValide($absoluDocument, $bloc)) {
+                return ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '',
+                    'raison' => 'copie absente ou altérée', 'empreinte_sha256' => ''];
+            }
+            if (($bloc['chemin'] ?? '') !== $this->cheminRelatif(self::cheminCopie($absoluDocument))) {
+                // Le document a été déplacé : la copie doit être refaite à sa nouvelle place (le rattrapage s'en charge).
+                return ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '',
+                    'raison' => 'copie à refaire après déplacement', 'empreinte_sha256' => ''];
+            }
         }
 
         return ['statut' => $statut, 'niveau' => (string) ($bloc['niveau'] ?? '2b'),

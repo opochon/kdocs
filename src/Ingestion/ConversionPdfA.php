@@ -184,10 +184,10 @@ final class ConversionPdfA
         fclose($tuyaux[2]);
         $code = proc_close($processus);
 
-        if (preg_match('/requires a password|Couldn.t initialise file/i', $diagnostic) === 1) {
+        if (preg_match('/requires a password/i', $diagnostic) === 1) {
             return self::MSG_CHIFFRE;
         }
-        if ($code !== 0 || preg_match('/Unrecoverable error|No pages will be processed/i', $diagnostic) === 1) {
+        if ($code !== 0 || preg_match('/Unrecoverable error|No pages will be processed|Couldn.t initialise file/i', $diagnostic) === 1) {
             return 'conversion PDF/A refusée : ' . self::resume($diagnostic);
         }
         if (!is_file($sortie) || filesize($sortie) === 0) {

@@ -58,6 +58,7 @@ final class Document
         $meta['titre'] ??= (string) $doc['titre'];
         $scellement = Scellement::lire($absolu, (int) $doc['id']);
         $statut = $this->statut($pdo, (int) $doc['id']);
+        $pdfa = $this->pdfa($absolu, (int) $doc['id']);
         $collaboration = null;
         try { $collaboration = new \Ged\Socle\Collaboration($this->config); } catch (Throwable) { /* base en amorçage */ }
 
@@ -96,6 +97,7 @@ final class Document
             'ouverture' => $ouverture,
             'secours' => $secours,
             'statut' => $statut,
+            'pdfa' => $pdfa,
             'archivage' => [
                 'scelle' => Scellement::estActif($scellement),
                 'scelle_le' => (string) ($scellement['scelle_le'] ?? ''),
@@ -104,6 +106,26 @@ final class Document
                 'tsa_url' => (string) ($scellement['tsa_url'] ?? ''),
             ],
         ];
+    }
+
+    /**
+     * État réel de la copie d'archivage PDF/A-2b (lot ged-pdfa-1), lu du `.meta.json` ou du flanc
+     * `.pdfa/<fichier>.pdfa.json` d'un document scellé. Toute panne rend un état neutre : l'écran n'est
+     * jamais muet ni en erreur 500.
+     *
+     * @return array<string, mixed>
+     */
+    private function pdfa(string $absolu, int $idDocument): array
+    {
+        $neutre = ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false,
+            'chemin' => '', 'raison' => '', 'empreinte_sha256' => ''];
+        try {
+            return (new \Ged\Ingestion\CopieArchivage($this->config, \Ged\Ingestion\ConversionPdfA::depuis()))->etat($absolu, $idDocument);
+        } catch (Throwable $e) {
+            error_log(sprintf('[GEDv2 pdfa] état illisible pour le document %d : %s', $idDocument, $e->getMessage()));
+
+            return $neutre;
+        }
     }
 
     private function statut(?PDO $pdo, int $id): string

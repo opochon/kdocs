@@ -51,6 +51,22 @@
     <strong>Non scellé</strong><span>Ce document n’est pas encore archivé légalement.</span>
     {% endif %}
   </section>
+  <section class="archivage-etat carte" data-testid="pdfa-etat">
+    {% if doc.pdfa.statut == 'ok' %}
+    <strong data-testid="pdfa-statut-ok">Copie d’archivage PDF/A-2b disponible</strong>
+    <span class="mono" data-testid="pdfa-chemin">{{ doc.pdfa.chemin }}</span>
+    <a class="btn discret" href="/documents/{{ doc.id }}/pdfa" data-testid="pdfa-telecharger">Télécharger la copie PDF/A</a>
+    {% elseif doc.pdfa.statut == 'echec' %}
+    <strong data-testid="pdfa-statut-echec">Copie d’archivage PDF/A en échec</strong>
+    <span data-testid="pdfa-raison">{{ doc.pdfa.raison }}</span>
+    {% elseif doc.pdfa.statut == 'en_attente' %}
+    <strong data-testid="pdfa-statut-attente">Copie d’archivage PDF/A en attente</strong>
+    <span class="muted">Le rattrapage la produira depuis l’écran Application.</span>
+    {% else %}
+    <strong data-testid="pdfa-statut-sans-objet">Copie d’archivage PDF/A sans objet</strong>
+    <span class="muted">Seuls les PDF et les images ont une copie d’archivage.</span>
+    {% endif %}
+  </section>
   <div class="volets fiche">
     <section class="carte volet volet-apercu" aria-label="Aperçu">
       {% if doc.rendu is defined %}
