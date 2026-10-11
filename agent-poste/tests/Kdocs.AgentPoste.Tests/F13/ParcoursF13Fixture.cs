@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Kdocs.AgentPoste.Configuration;
+using Kdocs.AgentPoste.Protocole;
 using Kdocs.AgentPoste.Serveur;
 using Kdocs.AgentPoste.Tests.Support;
 
@@ -24,6 +25,9 @@ public sealed class ParcoursF13Fixture : IDisposable
     public const int Port = 8873;
 
     private readonly Process _serveur;
+
+    /// <summary>L'état HKCU trouvé à l'ouverture de la collection, restitué à sa fermeture (hygiène).</summary>
+    private readonly SauvegardeHkcu _sauvegardeHkcu = new(ProtocoleKdocs.Cle);
 
     public ParcoursF13Fixture()
     {
@@ -151,6 +155,12 @@ public sealed class ParcoursF13Fixture : IDisposable
         _serveur.Dispose();
         Http.Dispose();
         RacineEnrolement.Dispose();
+
+        // Filet d'hygiène de toute la collection : le parcours F13 écrit dans la VRAIE ruche, donc il
+        // restitue ici l'état HKCU trouvé à l'ouverture, même si un test a échoué (Dispose est toujours
+        // appelé). L'oracle dur est double : l'assertion de Point2 (la clé est identique après
+        // enregistrement) et la garde avant/après de `agent-poste/tools/verifier.ps1` (suite complète).
+        _sauvegardeHkcu.Dispose();
     }
 
     private static string TrouverRacineDepot()
