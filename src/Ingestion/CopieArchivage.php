@@ -63,9 +63,10 @@ final class CopieArchivage
     /**
      * Produit (ou retrouve) la copie d'archivage et rend le bloc `pdfa` persisté.
      *
-     * `$forcer` est la relance EXPLICITE : elle ne rejoue QUE les échecs dont la cause est d'environnement
-     * (`reprise: auto`). Un échec définitif (document chiffré ou corrompu) reste tel quel : le rejouer
-     * donnerait le même résultat, et le produit ne doit pas boucler dessus.
+     * `$forcer` est la relance EXPLICITE demandée par un humain : la conversion est refaite même après un
+     * échec déjà persisté. Sans elle, cet échec est rendu tel quel (aucune reprise silencieuse). Le champ
+     * `reprise` (`auto` | `jamais`) est ce qui autorise le RATTRAPAGE à relancer tout seul les seules causes
+     * d'environnement : un échec définitif (chiffré, corrompu) n'est jamais repris automatiquement.
      *
      * @return array<string, mixed>
      */
@@ -84,9 +85,11 @@ final class CopieArchivage
         if ($existant !== null && ($existant['empreinte_origine'] ?? null) === $empreinteOrigine) {
             $statut = (string) ($existant['statut'] ?? '');
             if ($statut === 'echec') {
-                if (!$forcer || $this->reprise($existant) !== ConversionPdfA::REPRISE_AUTO) {
-                    return $existant;   // échec définitif, ou relance non demandée : jamais rejoué en boucle
+                if (!$forcer) {
+                    return $existant;   // pas de relance demandée : l'échec est rendu tel quel
                 }
+                // Relance explicite : la conversion est refaite. C'est le rattrapage qui décide, lui, de ne
+                // relancer D'ELLE-MÊME que les causes d'environnement (`reprise: auto`, via `aReprendre()`).
             } elseif ($statut === 'ok' && $this->copieValide($absoluDocument, $existant)) {
                 return $existant;
             }
@@ -119,10 +122,10 @@ final class CopieArchivage
         $vierge = ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '',
             'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''];
         if (!is_file($absoluDocument)) {
-            return $vierge + ['statut' => 'absent', 'raison' => 'document introuvable'];
+            return array_merge($vierge, ['statut' => 'absent', 'raison' => 'document introuvable']);
         }
         if (!self::estEligible($absoluDocument)) {
-            return $vierge + ['statut' => 'non_applicable', 'raison' => 'ni PDF ni image'];
+            return array_merge($vierge, ['statut' => 'non_applicable', 'raison' => 'ni PDF ni image']);
         }
         $bloc = $this->blocPersiste($absoluDocument);
         if ($bloc === null) {
@@ -130,11 +133,11 @@ final class CopieArchivage
         }
         $statut = (string) ($bloc['statut'] ?? 'en_attente');
         if ($statut === 'ok' && !$this->copieValide($absoluDocument, $bloc)) {
-            return $vierge + ['raison' => 'copie absente ou altérée'];
+            return array_merge($vierge, ['raison' => 'copie absente ou altérée']);
         }
         if ($statut === 'ok' && ($bloc['chemin'] ?? '') !== $this->cheminRelatif(self::cheminCopie($absoluDocument))) {
             // Le document a été déplacé : la copie doit être refaite à sa nouvelle place (le rattrapage s'en charge).
-            return $vierge + ['raison' => 'copie à refaire après déplacement'];
+            return array_merge($vierge, ['raison' => 'copie à refaire après déplacement']);
         }
 
         return ['statut' => $statut, 'niveau' => (string) ($bloc['niveau'] ?? '2b'),
