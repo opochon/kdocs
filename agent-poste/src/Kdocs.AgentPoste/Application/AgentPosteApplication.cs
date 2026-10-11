@@ -54,8 +54,8 @@ public sealed class AgentPosteApplication : ApplicationContext
             journal.Avertissement("démarrage", "poste non enrôlé : ouvrir les liens et la file restent indisponibles");
         }
 
-        var fiches = new DepotFichesDisque(racine);
-        var depotFile = new DepotFileDisque(racine.DossierFile);
+        var fiches = new DepotFichesDisque(racine, journal);
+        var depotFile = new DepotFileDisque(racine.DossierFile, journal);
         _documents = new ServiceDocumentsEnCours(fiches, depotFile, racine);
         _recuperation = new ServiceRecuperation(_documents, fiches, new OuvreurShell(), journal);
         _office = new OfficeComAutomate(journal);

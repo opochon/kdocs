@@ -11,8 +11,13 @@ public sealed class DepotFichesDisque : IDepotFiches
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
     private readonly RacineAgent _racine;
+    private readonly IJournal? _journal;
 
-    public DepotFichesDisque(RacineAgent racine) => _racine = racine;
+    public DepotFichesDisque(RacineAgent racine, IJournal? journal = null)
+    {
+        _racine = racine;
+        _journal = journal;
+    }
 
     public FicheDocumentTravail? Lire(int document)
     {
@@ -55,7 +60,7 @@ public sealed class DepotFichesDisque : IDepotFiches
         File.Move(temporaire, cheminFiche, overwrite: true);
     }
 
-    private static FicheDocumentTravail? LireFichier(string cheminFiche)
+    private FicheDocumentTravail? LireFichier(string cheminFiche)
     {
         if (!File.Exists(cheminFiche))
         {
@@ -66,12 +71,20 @@ public sealed class DepotFichesDisque : IDepotFiches
         {
             return JsonSerializer.Deserialize<FicheDocumentTravail>(File.ReadAllText(cheminFiche));
         }
-        catch (JsonException)
+        catch (JsonException exception)
         {
+            _journal?.Avertissement(
+                "travail",
+                $"fiche illisible ignorée ({Path.GetFileName(cheminFiche)}) : {exception.Message}");
+
             return null;
         }
-        catch (IOException)
+        catch (IOException exception)
         {
+            _journal?.Avertissement(
+                "travail",
+                $"fiche non lue ({Path.GetFileName(cheminFiche)}) : {exception.Message}");
+
             return null;
         }
     }

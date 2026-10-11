@@ -109,6 +109,15 @@ Le stockage de secours de l'application vit hors du fonds (`SECOURS_ROOT`, défa
 n'est jamais une version : aucune ligne de `document_versions`, aucun déplacement, aucune nouvelle table
 (plafond 21 tables inchangé).
 
+Chemins du lot `ged-agent-poste` (agent C# côté poste, même secteur) :
+
+- `agent-poste/` — solution .NET 10 : projet agent (`src/Kdocs.AgentPoste`, `net10.0-windows`) et projet
+  de tests xUnit (`tests/Kdocs.AgentPoste.Tests`). Parcours F13 : `tests/parcours/preparer-f13.php`,
+  `tools/verifier.ps1`.
+- `docs/lots/ged-agent-poste.md` — note d'avancement du lot.
+- Rien d'autre : ni `src/` PHP, ni `templates/`, ni `tools/banc/` (le contrat HTTP du serveur est
+  consommé tel quel, aucune modification n'est demandée).
+
 ## Demandes
 
 - **ged-agent-poste** : le contrat HTTP attendu par l'agent (jeton d'appareil `Authorization: Bearer …`,

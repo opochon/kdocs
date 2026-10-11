@@ -24,8 +24,13 @@ public sealed class DepotFileDisque : IDepotFile
     };
 
     private readonly string _dossier;
+    private readonly IJournal? _journal;
 
-    public DepotFileDisque(string dossierFile) => _dossier = dossierFile;
+    public DepotFileDisque(string dossierFile, IJournal? journal = null)
+    {
+        _dossier = dossierFile;
+        _journal = journal;
+    }
 
     public static string DossierInstantanes(string dossierFile) => Path.Combine(dossierFile, "instantanes");
 
@@ -47,12 +52,18 @@ public sealed class DepotFileDisque : IDepotFile
                     entrees.Add(entree);
                 }
             }
-            catch (JsonException)
+            catch (JsonException exception)
             {
-                // Entrée illisible : ignorée, jamais un crash de l'agent.
+                // Entrée illisible : jamais un crash, mais JAMAIS muette non plus (l'instantané, lui, reste).
+                _journal?.Avertissement(
+                    "file d’envoi",
+                    $"entrée illisible ignorée ({Path.GetFileName(fichier)}) : {exception.Message}");
             }
-            catch (IOException)
+            catch (IOException exception)
             {
+                _journal?.Avertissement(
+                    "file d’envoi",
+                    $"entrée non lue ({Path.GetFileName(fichier)}) : {exception.Message}");
             }
         }
 
