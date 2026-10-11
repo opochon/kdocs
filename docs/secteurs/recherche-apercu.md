@@ -263,3 +263,26 @@ liste de voisins.
   `data-testid`, repli maquette conservé (variables absentes gérées par `is defined`).
 
 ETAT: fini
+
+## Journal miniature-1 (11-10-2026, DeepCode) — la vignette PDF respecte la taille voulue
+
+Constat du juge : sur M2 (poste sans poppler), `MiniatureTest::testGenereUneVignetteDepuisUnPdf` rouge — la
+vignette d'une A4 sort à **1240 px** de large pour une limite de **420**.
+
+**Cause mesurée** — `Outils::pdfVersPng()` a deux branches : `pdftoppm -scale-to` respecte la taille demandée,
+mais le repli **Ghostscript** figeait `-r150` et **ignorait `$largeur`** → A4 rendue 1240 × 1754. Reproduit en
+forçant le repli (oracle rouge). Hypothèse « cache » écartée : le test écrit dans un dossier temporaire neuf et
+les `.apercu/*.vignette.png` commités font déjà 283 × 400.
+
+**Correction** — `Outils::bornerDimension()` ramène le PNG dans la boîte demandée (GD, proportions conservées)
+sur les DEUX branches, échec → message nommé ; `-dPDFFitPage` retiré (il redressait une page paysage sur le
+format par défaut du device). Limite de test **420 px inchangée** ; `imageVersPng` (images/TIFF) non touché et
+le chemin poppler conforme ressort sans réencodage.
+
+**Preuves** — matrice 4 PDF × 2 moteurs identique (201 et 204 → 283 × 400 ; paysage 842 × 595 → 400 × 283 ;
+carré 200 × 200 → 400 × 400) ; PHPUnit Aperçu **24 tests verts** ; suite complète **600 tests / 3 359
+assertions**, **0 nouvel échec** par rapport à la base (598 tests) — les 13 rouges sont environnementaux et
+identiques (moteur Python `C:\ged\cmd4` absent) ; PHPStan niveau 6 **0 erreur**, baseline vide. Détail et
+commandes : `docs/lots/miniature-1.md`.
+
+ETAT: fini
