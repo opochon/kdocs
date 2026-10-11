@@ -97,6 +97,19 @@ final class DroitsRoutes
         'DELETE /api/v1/appairage/moi' => 'publique:api-appairage-moi',
         'POST /api/v1/appairage/jeton' => 'publique:api-appairage',
         'GET /api/v1/dossiers' => 'publique:api-dossiers',
+        // API REST des documents (lot ged-api-documents, secteur Jonctions) : jetons LIÉS À UN COMPTE,
+        // portées `documents_lecture` / `documents_ecriture` ; la porte réelle est le jeton vérifié par
+        // le secteur. Lignes signalées hors secteur, à commiter par le juge.
+        'GET /api/v1/documents' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents' => 'publique:api-documents-ecriture',
+        'GET /api/v1/documents/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/documents/{id:[0-9]+}/fichier' => 'publique:api-documents-lecture',
+        'GET /api/v1/documents/{id:[0-9]+}/versions/{numero:[0-9]+}/fichier' => 'publique:api-documents-lecture',
+        'GET /api/v1/types' => 'publique:api-documents-lecture',
+        'GET /api/v1/etiquettes' => 'publique:api-documents-lecture',
+        'GET /api/v1/emetteurs' => 'publique:api-documents-lecture',
+        'GET /api/v1/vues' => 'publique:api-documents-lecture',
         // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
         // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
         // récupère une copie de secours en nouvelle version.
@@ -223,6 +236,22 @@ final class DroitsRoutes
         // Récupération d'une copie de secours depuis la fiche (session + CSRF, droit modifier).
         if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/secours/recuperer$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/secours/recuperer'];
+        }
+
+        // API REST des documents (lot ged-api-documents) : identifiant (et numéro de version) dans le chemin.
+        if (strtoupper($methode) === 'GET') {
+            if (preg_match('#^/api/v1/documents/[0-9]+/versions/[0-9]+/fichier$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/versions/{numero:[0-9]+}/fichier'];
+            }
+            if (preg_match('#^/api/v1/documents/[0-9]+/fichier$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/fichier'];
+            }
+            if (preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}'];
+            }
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}'];
         }
 
         return null;

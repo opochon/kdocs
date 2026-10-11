@@ -14,7 +14,8 @@ final class ErreurApi extends \RuntimeException
         public readonly int $statut,
         public readonly string $cause,
         public readonly string $etape,
+        ?\Throwable $precedente = null,
     ) {
-        parent::__construct($cause);
+        parent::__construct($cause, 0, $precedente);
     }
 }

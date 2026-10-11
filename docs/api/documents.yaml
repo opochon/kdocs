@@ -1,0 +1,345 @@
+openapi: 3.1.0
+info:
+  title: GEDv2 — API REST des documents
+  version: 1.0.0
+  description: |
+    Parité fonctionnelle avec l'API REST de Paperless-ngx 2.20 (fonctions seulement, aucune ligne de code
+    reprise) : lister et filtrer des documents, chercher en plein texte, lire une fiche, télécharger le
+    fichier courant et une version, modifier les métadonnées, déposer un document vers l'ingestion, et
+    lister les référentiels (types, étiquettes, émetteurs, vues enregistrées).
+
+    **Authentification** : jeton porteur (`Authorization: Bearer <jeton>`), jamais la session web — l'API
+    ne lit aucun cookie et ne dépend donc pas du CSRF. Deux portées dédiées :
+    `documents_lecture` (lire) et `documents_ecriture` (lire + écrire) ; la portée `*` couvre les deux.
+    Un jeton **sans compte** est refusé : les droits de dossier (ACL) s'appliquent au compte du jeton,
+    **dans** chaque requête, jamais par un filtrage après coup.
+
+    **Erreurs nommées** : toute erreur est un JSON `{"erreur":{"etape","cause","reference"}}` ; jamais un
+    500 muet. Les refus reprennent le statut HTTP adéquat (401 jeton, 403 droit ou portée, 404 introuvable,
+    405 méthode, 409 écriture refusée, 413 taille, 415 type, 429 débit).
+
+    **Bornes** : page ≤ 100 lignes (défaut 25), profondeur de recherche bornée, débit par jeton borné
+    (`API_DEBIT_MAX` par fenêtre `API_DEBIT_FENETRE`).
+servers:
+  - url: http://127.0.0.1:8870
+    description: Développement local
+tags:
+  - name: documents
+    description: Liste, recherche, fiche, fichiers et métadonnées
+  - name: depots
+    description: Dépôt d'un fichier vers l'ingestion
+  - name: referentiels
+    description: Types, étiquettes, émetteurs et vues enregistrées
+security:
+  - jetonDocuments: []
+paths:
+  /api/v1/documents:
+    get:
+      tags: [documents]
+      summary: Lister ou chercher des documents (filtres + pagination)
+      description: |
+        Les documents hors des dossiers du compte n'apparaissent **jamais** : le périmètre ACL est posé
+        dans la requête (`DroitsDossiers::predicatLecture`). Le paramètre `q` active la recherche plein
+        texte (index FULLTEXT, repli mot à mot) ; les filtres s'appliquent au même périmètre.
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: Texte recherché (titre + corps) }
+        - { name: type, in: query, schema: { type: string } }
+        - { name: emetteur, in: query, schema: { type: string } }
+        - { name: etiquette, in: query, schema: { type: array, items: { type: string } }, description: Répétable ; toutes les étiquettes demandées doivent être présentes }
+        - { name: date_debut, in: query, schema: { type: string, format: date } }
+        - { name: date_fin, in: query, schema: { type: string, format: date } }
+        - { name: dossier, in: query, schema: { type: string }, description: Préfixe de dossier du fonds }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: taille, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+      responses:
+        '200':
+          description: Page de résultats ; `total` compte tout le périmètre filtré
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageDocuments' }
+        '400':
+          description: Filtre incohérent (date invalide, page hors bornes)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '403':
+          description: Portée insuffisante ou jeton non lié à un compte
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '429':
+          description: Débit dépassé pour ce jeton
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+    post:
+      tags: [depots]
+      summary: Déposer un fichier (vers l'ingestion)
+      description: |
+        Chaîne d'ingestion identique au dossier surveillé (même dédoublonnage par empreinte sha256). Un
+        `dossier` explicite range directement dans ce dossier du fonds, et exige alors le niveau ACL
+        `deposer` sur ce dossier. Idempotent : même contenu = même travail, jamais de doublon.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [fichier]
+              properties:
+                fichier:
+                  type: string
+                  format: binary
+                  description: 'Types acceptés : pdf, png, jpg, jpeg, tif, tiff, docx, doc, xlsx, xls, odt, ods, rtf, txt, eml, msg ; maximum `API_DEPOT_MAX_OCTETS` (25 Mio par défaut).'
+                metadonnees:
+                  type: string
+                  description: 'Métadonnées JSON facultatives, objet. Exemple : {"titre":"Facture 123","type":"Facture"}.'
+                dossier:
+                  type: string
+                  description: Dossier du fonds (facultatif) ; le niveau `deposer` y est exigé.
+      responses:
+        '202':
+          description: Dépôt accepté (travail d'ingestion créé ou déjà connu)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DepotResume' }
+        '400':
+          description: Fichier absent ou transfert incomplet
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '401':
+          description: Jeton absent, inconnu ou révoqué
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '403':
+          description: Portée ou droit d'écriture insuffisant
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '413':
+          description: Fichier trop gros
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '415':
+          description: Type de fichier refusé
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+        '429':
+          description: Débit dépassé pour ce jeton
+          content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+  /api/v1/documents/{id}:
+    get:
+      tags: [documents]
+      summary: Lire la fiche d'un document
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Fiche du document
+          content: { application/json: { schema: { $ref: '#/components/schemas/DocumentDetail' } } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, ou droit de lecture insuffisant, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '404': { description: Document introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+    post:
+      tags: [documents]
+      summary: Modifier les métadonnées d'un document
+      description: |
+        Réécrit le `.meta.json` à côté du fichier ; un changement de rangement (type, émetteur, date,
+        dossier) exige le niveau ACL `deposer` sur le dossier d'ARRIVÉE et est refusé avant le premier
+        octet déplacé. Un document scellé refuse toute écriture.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Metadonnees' }
+          application/x-www-form-urlencoded:
+            schema: { $ref: '#/components/schemas/Metadonnees' }
+      responses:
+        '200':
+          description: Fiche après modification
+          content: { application/json: { schema: { $ref: '#/components/schemas/DocumentDetail' } } }
+        '400': { description: Métadonnée invalide, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Portée, droit de modification ou droit de déplacement insuffisant, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '404': { description: Document introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '409': { description: Écriture refusée (document scellé), content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '429': { description: Débit dépassé pour ce jeton, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/documents/{id}/fichier:
+    get:
+      tags: [documents]
+      summary: Télécharger le fichier courant
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Fichier courant, jamais transformé
+          headers:
+            X-Ged-Empreinte: { schema: { type: string }, description: sha256 du contenu servi }
+            X-Ged-Version: { schema: { type: integer }, description: Numéro de la version courante }
+          content:
+            application/octet-stream: { schema: { type: string, format: binary } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, ou droit de lecture insuffisant, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '404': { description: Document ou fichier introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/documents/{id}/versions/{numero}/fichier:
+    get:
+      tags: [documents]
+      summary: Télécharger une version archivée
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: numero, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Contenu de la version demandée
+          headers:
+            X-Ged-Empreinte: { schema: { type: string } }
+            X-Ged-Version: { schema: { type: integer } }
+          content:
+            application/octet-stream: { schema: { type: string, format: binary } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, ou droit de lecture insuffisant, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '404': { description: Document ou version introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/types:
+    get:
+      tags: [referentiels]
+      summary: Lister les types de documents
+      responses:
+        '200':
+          description: Types de la nomenclature (nom, identifiant, actif)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TypeDocument' }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/etiquettes:
+    get:
+      tags: [referentiels]
+      summary: Lister les étiquettes distinctes
+      responses:
+        '200':
+          description: Étiquettes lisibles par ce compte
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/emetteurs:
+    get:
+      tags: [referentiels]
+      summary: Lister les émetteurs distincts
+      responses:
+        '200':
+          description: Émetteurs lisibles par ce compte
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+  /api/v1/vues:
+    get:
+      tags: [referentiels]
+      summary: Lister les vues enregistrées
+      responses:
+        '200':
+          description: Vues du fonds (identifiant, nom)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Vue' }
+        '401': { description: Jeton absent, inconnu ou révoqué, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+        '403': { description: Jeton non lié à un compte, content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } } }
+components:
+  securitySchemes:
+    jetonDocuments:
+      type: http
+      scheme: bearer
+      description: |
+        Jeton créé par la GED pour une application (ClearMyMails, K-Time…), haché sha256 en base, jamais en
+        clair, **lié à un compte**. Portée `documents_lecture` ou `documents_ecriture` (ou `*`).
+  schemas:
+    PageDocuments:
+      type: object
+      required: [total, page, taille, pages, documents]
+      properties:
+        total: { type: integer, description: Nombre de documents du périmètre filtré, droits compris }
+        page: { type: integer }
+        taille: { type: integer }
+        pages: { type: integer }
+        documents:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentResume' }
+    DocumentResume:
+      type: object
+      required: [id, titre, nom, droits]
+      properties:
+        id: { type: integer }
+        titre: { type: string }
+        nom: { type: string, description: Nom du fichier dans le fonds }
+        type: { type: [string, 'null'] }
+        emetteur: { type: [string, 'null'] }
+        date: { type: [string, 'null'], description: AAAA-MM-JJ }
+        montant: { type: [number, 'null'] }
+        etiquettes: { type: array, items: { type: string } }
+        mime: { type: string }
+        taille: { type: integer }
+        droits: { type: string, enum: [lire, ecrire], description: Niveau effectif du compte sur le dossier du document }
+    DocumentDetail:
+      allOf:
+        - $ref: '#/components/schemas/DocumentResume'
+        - type: object
+          required: [dossier, statut, empreinte, version, versions]
+          properties:
+            dossier: { type: string }
+            statut: { type: string, example: a_controler }
+            empreinte: { type: string }
+            version: { type: integer, description: Numéro de la version courante }
+            versions:
+              type: array
+              items:
+                type: object
+                properties:
+                  numero: { type: integer }
+                  empreinte: { type: string }
+                  taille: { type: integer }
+                  cree_le: { type: string }
+    Metadonnees:
+      type: object
+      description: Toutes les clés sont facultatives ; une clé absente ne change rien.
+      properties:
+        titre: { type: string, maxLength: 512 }
+        type: { type: [string, 'null'] }
+        emetteur: { type: [string, 'null'] }
+        date: { type: [string, 'null'], description: AAAA-MM-JJ }
+        montant: { type: [number, 'null'] }
+        etiquettes: { type: array, items: { type: string } }
+        dossier: { type: string, description: Rangement explicite (niveau `deposer` exigé) }
+      additionalProperties: false
+    DepotResume:
+      type: object
+      required: [etat]
+      properties:
+        travail: { type: integer, description: Présent pour un dépôt vers l'ingestion }
+        document: { type: integer, description: Présent pour un dépôt dans un dossier du fonds }
+        empreinte: { type: string }
+        etat: { type: string, example: recu }
+        suivi: { type: string, example: /api/v1/depots/42 }
+    TypeDocument:
+      type: object
+      required: [id, nom, actif]
+      properties:
+        id: { type: integer }
+        nom: { type: string }
+        actif: { type: boolean }
+    Vue:
+      type: object
+      required: [id, nom]
+      properties:
+        id: { type: integer }
+        nom: { type: string }
+    Erreur:
+      type: object
+      required: [erreur]
+      properties:
+        erreur:
+          type: object
+          required: [etape, cause, reference]
+          properties:
+            etape: { type: string, example: 'GET /api/v1/documents' }
+            cause: { type: string, example: "portée insuffisante : « documents_lecture » ou « documents_ecriture » requise" }
+            reference: { type: string, example: 6f2a1c9d0b }

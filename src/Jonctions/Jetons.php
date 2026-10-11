@@ -19,6 +19,11 @@ final class Jetons
 {
     public const PORTEE_DEPOT = 'depot';
 
+    /** Portée de LECTURE de l'API REST des documents (lot ged-api-documents). */
+    public const PORTEE_LECTURE = 'documents_lecture';
+    /** Portée d'ÉCRITURE de l'API REST des documents : couvre aussi la lecture. */
+    public const PORTEE_ECRITURE = 'documents_ecriture';
+
     public function __construct(private readonly PDO $pdo)
     {
     }
@@ -30,16 +35,51 @@ final class Jetons
         if ($application === '' || mb_strlen($application) > 100) {
             throw new \InvalidArgumentException('application requise (1 à 100 caractères)');
         }
-        $portee = trim($portee);
-        if ($portee !== '*' && preg_match('/^[a-z][a-z0-9_-]{0,19}$/', $portee) !== 1) {
-            throw new \InvalidArgumentException("portée invalide : $portee");
-        }
+        $portee = $this->validerPortee($portee);
 
         $jeton = bin2hex(random_bytes(32));
         $this->pdo->prepare('INSERT INTO jonctions_jetons (nature, application, empreinte, portee) VALUES (?, ?, ?, ?)')
             ->execute([Schema::NATURE_APPLICATION, $application, hash('sha256', $jeton), $portee]);
 
         return $jeton;
+    }
+
+    /**
+     * Crée un jeton d'application LIÉ À UN COMPTE, pour l'API REST des documents : les droits de dossier
+     * s'appliquent à ce compte, et un jeton sans compte est inutilisable (refus 403 nommé).
+     * La valeur en clair n'est rendue qu'une fois ; seule l'empreinte sha256 est en base.
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function creerPourCompte(string $application, string $portee, ?int $compteId, string $compteIdentifiant): string
+    {
+        $application = trim($application);
+        if ($application === '' || mb_strlen($application) > 100) {
+            throw new \InvalidArgumentException('application requise (1 à 100 caractères)');
+        }
+        $portee = $this->validerPortee($portee);
+        $compteIdentifiant = trim($compteIdentifiant);
+        if ($compteIdentifiant === '' || mb_strlen($compteIdentifiant) > 255) {
+            throw new \InvalidArgumentException('compte requis pour un jeton d’API documents');
+        }
+
+        $jeton = bin2hex(random_bytes(32));
+        $this->pdo->prepare('INSERT INTO jonctions_jetons (nature, application, empreinte, portee, compte_id, compte_identifiant)'
+            . ' VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([Schema::NATURE_APPLICATION, $application, hash('sha256', $jeton), $portee, $compteId, $compteIdentifiant]);
+
+        return $jeton;
+    }
+
+    /** @throws \InvalidArgumentException */
+    private function validerPortee(string $portee): string
+    {
+        $portee = trim($portee);
+        if ($portee !== '*' && preg_match('/^[a-z][a-z0-9_-]{0,19}$/', $portee) !== 1) {
+            throw new \InvalidArgumentException("portée invalide : $portee");
+        }
+
+        return $portee;
     }
 
     /**

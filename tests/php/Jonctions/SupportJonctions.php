@@ -41,6 +41,7 @@ trait SupportJonctions
     private string|false $travailAvant;
     private string|false $mailsAvant;
     private string|false $transportAvant;
+    private string|false $debitAvant;
 
     protected function setUpJonctions(): void
     {
@@ -77,10 +78,13 @@ trait SupportJonctions
         $this->travailAvant = getenv('INGESTION_TRAVAIL');
         $this->mailsAvant = getenv('GED_MAIL_DOSSIER');
         $this->transportAvant = getenv('GED_MAIL_TRANSPORT');
+        $this->debitAvant = getenv('API_DEBIT_DOSSIER');
         putenv('STORAGE_ROOT=' . $this->fonds);
         putenv('INGESTION_TRAVAIL=' . $this->travail);
         putenv('GED_MAIL_DOSSIER=' . $this->mailsDir);
         putenv('GED_MAIL_TRANSPORT=fichier');
+        // Le compteur de débit de l'API documents vit dans le dossier éphémère du test, jamais dans var/.
+        putenv('API_DEBIT_DOSSIER=' . $this->racine . '/debit');
     }
 
     protected function tearDownJonctions(): void
@@ -89,6 +93,7 @@ trait SupportJonctions
         $this->travailAvant === false ? putenv('INGESTION_TRAVAIL') : putenv('INGESTION_TRAVAIL=' . $this->travailAvant);
         $this->mailsAvant === false ? putenv('GED_MAIL_DOSSIER') : putenv('GED_MAIL_DOSSIER=' . $this->mailsAvant);
         $this->transportAvant === false ? putenv('GED_MAIL_TRANSPORT') : putenv('GED_MAIL_TRANSPORT=' . $this->transportAvant);
+        $this->debitAvant === false ? putenv('API_DEBIT_DOSSIER') : putenv('API_DEBIT_DOSSIER=' . $this->debitAvant);
 
         $this->pdo->exec('DELETE FROM jonctions_jetons');
         $this->pdo->prepare('DELETE FROM ingestion_travaux WHERE chemin LIKE ?')->execute([$this->racine . '%']);
@@ -180,6 +185,15 @@ trait SupportJonctions
     protected function jetonAppairage(int $compte, string $identifiant, string $poste = 'poste-test'): string
     {
         return (new Jetons($this->pdo))->creerAppairage('cmm', $poste, $compte, $identifiant);
+    }
+
+    /**
+     * Jeton de l'API documents (lot ged-api-documents) : LIÉ À UN COMPTE, portée lecture ou écriture.
+     * Valeur en clair rendue une seule fois.
+     */
+    protected function jetonDocuments(int $compte, string $identifiant, string $portee = 'documents_lecture'): string
+    {
+        return (new Jetons($this->pdo))->creerPourCompte('api-documents', $portee, $compte, $identifiant);
     }
 
     /**
