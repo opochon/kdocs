@@ -55,11 +55,11 @@ async function connecter(page: Page, prep: Prep): Promise<void> {
 
 /** Ouvre la fiche d'un document par le menu Bibliothèque, en cliquant la ligne puis « Ouvrir la fiche ». */
 async function ouvrirFiche(page: Page, id: number): Promise<void> {
-  await page.getByTestId('menu-bibliotheque').click();
+  await page.getByTestId('menu-bibliotheque').click({ timeout: 20_000 });
   await expect(page.getByTestId('ecran-bibliotheque')).toBeVisible();
-  await page.getByTestId(`ligne-${id}`).getByRole('link').click();
+  await page.getByTestId(`ligne-${id}`).getByRole('link').click({ timeout: 20_000 });
   await expect(page.getByTestId('ouvrir-fiche')).toBeVisible();
-  await page.getByTestId('ouvrir-fiche').click({ timeout: 15_000 });
+  await page.getByTestId('ouvrir-fiche').click({ timeout: 20_000 });
   await expect(page.getByTestId('ecran-document')).toBeVisible();
 }
 
@@ -67,8 +67,9 @@ async function ouvrirFiche(page: Page, id: number): Promise<void> {
 async function traiterJusquaLaFin(page: Page): Promise<void> {
   for (let tranche = 0; tranche < 8; tranche++) {
     if (await page.getByTestId('pdfa-terminee').isVisible().catch(() => false)) return;
-    await page.getByTestId('pdfa-tranche').click();
-    await page.waitForLoadState('load');
+    // Le POST lance la conversion Ghostscript d'une tranche : délai explicite (serveur php -S mono-processus).
+    await page.getByTestId('pdfa-tranche').click({ timeout: 30_000 });
+    await page.waitForLoadState('load', { timeout: 30_000 });
   }
   await expect(page.getByTestId('pdfa-terminee')).toBeVisible();
 }
@@ -103,7 +104,9 @@ async function jouer(browser: Browser, corps: (page: Page, prep: Prep) => Promis
   }
 }
 
-test.describe.configure({ mode: 'serial' });
+// Le parcours prépare un fonds isolé et lance une vraie conversion Ghostscript : le délai par défaut (20 s)
+// est trop court quand la machine est chargée. On borne plus large, sans changer ce qui est vérifié.
+test.describe.configure({ mode: 'serial', timeout: 90_000 });
 
 test('Fiche : PDF/A en attente, rattrapage par l’écran, puis PDF/A 2b ok et copie téléchargeable', async ({ browser }) => {
   await jouer(browser, async (page, prep) => {

@@ -382,6 +382,11 @@ try {
         'POST /documents/{id:[0-9]+}/partages/externe' => 'expiration=',
         'POST /application/reconstruction-index' => 'confirmation=',
         'POST /application/reconstruction-index/{id:[0-9]+}/tranche' => '',
+        // Lot ged-pdfa-1 : le lancement du rattrapage PDF/A ouvre une tâche sur le fonds de test (comme
+        // la reconstruction) ; la tranche d'une tâche inexistante est refusée par le métier. La sonde ne
+        // vérifie ici que l'absence et le rejeu du jeton CSRF.
+        'POST /application/pdfa-rattrapage' => 'confirmation=',
+        'POST /application/pdfa-rattrapage/{id:[0-9]+}/tranche' => '',
         // Archivage V2-09b : identifiant inexistant, aucun scellement ne peut être écrit ; la sonde
         // n'exerce ici que l'absence et le rejeu CSRF de la route irréversible.
         'POST /documents/{id:[0-9]+}/sceller' => 'confirmation=1',
