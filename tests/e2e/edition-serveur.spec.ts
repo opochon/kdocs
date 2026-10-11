@@ -31,6 +31,8 @@ type Preparation = {
   mot_de_passe_lecteur: string;
   docx: number;
   xlsx: number;
+  exe: number;
+  docm: number;
   jeton: string;
   poste: string;
 };
@@ -139,6 +141,14 @@ test('le manager ouvre Word depuis l’écran, la GED le montre « ouvert par �
     await page.goto(`/documents/${prep.xlsx}`);
     await expect(page.getByTestId('action-ouvrir-poste')).toContainText('Excel');
     await expect(page.getByTestId('action-ouvrir-poste')).toHaveAttribute('href', `kdocs://ouvrir/${prep.xlsx}`);
+
+    // Aucun bouton ni lien kdocs:// pour un exécutable ni pour un document à macros Office : l'écran ne
+    // propose l'ouverture sur le poste que pour les formats éditables de la liste blanche.
+    for (const document of [prep.exe, prep.docm]) {
+      await ouvrirFicheParEcran(page, document);
+      await expect(page.getByTestId('action-ouvrir-poste')).toHaveCount(0);
+      await expect(page.locator('a[href^="kdocs://"]')).toHaveCount(0);
+    }
 
     // 2. L'AGENT ouvre le document (vrai HTTP, jeton d'appareil : aucun écran ne produit ce geste).
     const ouverture = await page.request.post(`/api/v1/edition/documents/${prep.docx}/ouverture`, {

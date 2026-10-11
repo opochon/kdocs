@@ -108,6 +108,18 @@ try {
         ['titre' => 'Tableau edition E2E', 'type' => 'Tableau', 'date' => '2026-10-02',
             'dossier' => 'edition-serveur/Documents', 'statut' => 'valide']);
 
+    // Formats HORS liste blanche, dans le même dossier : l'écran ne doit proposer AUCUN bouton d'ouverture.
+    $sourceExe = $bac . '/source/facture.pdf.exe';
+    file_put_contents($sourceExe, 'exécutable synthétique E2E');
+    $exe = $depot->deposer($sourceExe,
+        ['titre' => 'Executable E2E', 'type' => 'Rapport', 'date' => '2026-10-03',
+            'dossier' => 'edition-serveur/Documents', 'statut' => 'valide']);
+    $sourceDocm = $bac . '/source/courrier.docm';
+    file_put_contents($sourceDocm, 'document à macros synthétique E2E');
+    $docm = $depot->deposer($sourceDocm,
+        ['titre' => 'Macros E2E', 'type' => 'Rapport', 'date' => '2026-10-03',
+            'dossier' => 'edition-serveur/Documents', 'statut' => 'valide']);
+
     $dossier = $droits->dossierPourDocument($docx);
     if ($dossier === null) {
         throw new RuntimeException('dossier de droits introuvable après dépôt');
@@ -123,7 +135,7 @@ try {
     echo json_encode([
         'manager' => $manager, 'mot_de_passe_manager' => $motDePasseManager,
         'lecteur' => $lecteur, 'mot_de_passe_lecteur' => $motDePasseLecteur,
-        'docx' => $docx, 'xlsx' => $xlsx, 'jeton' => $jeton, 'poste' => $poste,
+        'docx' => $docx, 'xlsx' => $xlsx, 'exe' => $exe, 'docm' => $docm, 'jeton' => $jeton, 'poste' => $poste,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), PHP_EOL;
     exit(0);
 } catch (Throwable $e) {
