@@ -71,20 +71,24 @@ enrôlement (point 1), enregistrement HKCU du protocole et lien `kdocs://` → W
 version (3), deux enregistrements hors ligne repris dans l'ordre (3), copie de secours non enregistrée (4),
 base périmée → version parallèle (5), lien piégé et document sans droit (6), appareil révoqué (7).
 Les oracles Word (en-tête/pied/commentaire/image) et Excel/PowerPoint ont été réécrits pour ouvrir le
-document **par l'association Windows** (session exposée par la ROT), comme le fait l'agent. 128 tests.
+document **par l'association Windows** (session exposée par la ROT), comme le fait l'agent (130 tests au total).
 
 ### Durcissement (revue ECC)
 
 - `DepotFileDisque` et `DepotFichesDisque` : une entrée/fiche JSON illisible n'est plus ignorée
-  silencieusement — elle est **tracée** (jamais un crash), l'instantané restant sur le disque.
+  silencieusement — elle est **tracée** (jamais un crash), l'instantané restant sur le disque ;
+  2 oracles ajoutés (`DepotsDisqueTests`).
+- La surveillance partage le verrou de la file d'envoi : deux fichiers modifiés en même temps ne peuvent
+  plus traiter la même file en parallèle (pas de double envoi).
 
 ## Mesures
 
 - Machine : .NET SDK **10.0.401**, Office 16 (Word/Excel/PowerPoint), MariaDB de test `gedv2_test`
   (127.0.0.1:3308).
-- `dotnet test agent-poste/AgentPoste.slnx` : **128 tests, 0 échec, 0 ignoré, ~30 s** — dont
-  **116 unitaires**, **3 oracles Office réels** (Word/Excel/PowerPoint) et **9 tests du parcours F13**.
-- Analyse statique C# : compilation `TreatWarningsAsErrors` + nullable, **0 avertissement, 0 erreur**.
+- `dotnet test agent-poste/AgentPoste.slnx` : **130 tests, 0 échec, 0 ignoré, 27 s** — dont
+  **118 unitaires**, **3 oracles Office réels** (Word/Excel/PowerPoint) et **9 tests du parcours F13**.
+- Analyse statique C# : compilation `TreatWarningsAsErrors` + nullable en Debug **et** en Release,
+  **0 avertissement, 0 erreur**.
 - Parcours F13, point par point :
   1. **Enrôlement** : `POST /api/v1/appairage/jeton` (appairage existant) → jeton rangé chiffré (DPAPI) ;
      `GET /api/v1/appairage/moi` rend le compte du manager ; adresse du serveur inscrite en configuration.
@@ -99,10 +103,27 @@ document **par l'association Windows** (session exposée par la ROT), comme le f
   6. **Lien piégé** : refusé et journalisé ; document sans droit → **403** tracé, aucune version créée.
   7. **Appareil révoqué** : `DELETE /api/v1/appairage/moi` puis dépôt → **401**, instantané local conservé,
      version serveur inchangée.
-- Harness PHP (`tools\harness.ps1 -SansBanc`) : voir la rubrique « Harness » ci-dessous (chiffres exacts
-  rejoués avant `ETAT: fini`).
 
-## Porte qualité
+## Harness (avant `ETAT: fini`)
+
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc`, rejoué le **2026-10-11** sur le
+commit **b470f1e** (`recette/registre.json`, durée **886 s**) :
+
+| Couche | Verdict | Chiffres |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules présents, DB_NAME=gedv2_test imposé |
+| 1-unitaire (PHP) | VERT | **509 tests, 3 006 assertions, 1 ignoré** |
+| 3-banc | ROUGE | sautée (`-SansBanc`, attendu) |
+| 4-ecrans | VERT | **76 passed (4,5 m)** |
+| 7-securite | VERT | sonde sécurité : aucun contournement accepté |
+| 2-contrat | VERT | toutes les routes déclarées couvertes |
+| 6-charge | VERT | p95 lecture **743 ms**, p95 écriture **246 ms**, 0 erreur, 0 collision |
+| 8-statique | VERT | **phpstan : 0 erreur hors baseline** ; `composer audit` : aucune vulnérabilité |
+| 5-personas | VERT | 6 personas, tous les gestes trouvés (médianes 406–808 ms) |
+
+Note d'environnement : `tools/composer.phar` est gitignoré et manquait dans ce worktree (premier rejeu :
+couche 8 ROUGE, `Could not open input file`). Le phar local du dépôt principal a été recopié dans
+`tools/` (artefact non versionné) ; le rejeu propre ci-dessus est vert.
 
 1. **Analyse statique** : `dotnet build` avec `TreatWarningsAsErrors` sur le projet agent → 0 avertissement,
    0 erreur ; `nullable enable` partout. Aucun `#pragma` ni `SuppressMessage`.
@@ -134,3 +155,5 @@ document **par l'association Windows** (session exposée par la ROT), comme le f
   ne pas apparaître dans la ROT (constat sur Word) — l'oracle Word, lui, passe par l'association Windows.
 - `--enrolement` et l'agent d'icône sont fournis ; l'installeur PowerShell « sans droits admin » évoqué au
   cahier des charges n'est pas livré par ce lot (le protocole s'enregistre au démarrage, HKCU).
+
+ETAT: fini
