@@ -79,9 +79,10 @@ final class ConversionPdfA
         if (!is_dir(dirname($temporaire)) && !mkdir(dirname($temporaire), 0775, true) && !is_dir(dirname($temporaire))) {
             return 'copie d’archivage impossible : dossier de destination non créé';
         }
-        $definition = $this->definitionAdaptee($source);
+        $definition = null;
 
         try {
+            $definition = $this->definitionAdaptee($source);
             $raison = $this->executer($entree, $temporaire, $definition);
             if ($raison !== null) {
                 return $raison;
@@ -93,6 +94,8 @@ final class ConversionPdfA
             if (!@rename($temporaire, $sortie)) {
                 return 'copie d’archivage impossible : publication du fichier refusée';
             }
+        } catch (\Throwable $e) {
+            return 'copie d’archivage impossible : ' . mb_substr($e->getMessage(), 0, 200);
         } finally {
             if (is_file($temporaire)) {
                 @unlink($temporaire);
@@ -100,7 +103,7 @@ final class ConversionPdfA
             if ($entree !== $source && is_file($entree)) {
                 @unlink($entree);
             }
-            if ($definition !== $this->definition && is_file($definition)) {
+            if (is_string($definition) && $definition !== $this->definition && is_file($definition)) {
                 @unlink($definition);
             }
         }
@@ -122,7 +125,9 @@ final class ConversionPdfA
         if ($image === null) {
             return null;
         }
-        $temporaire = dirname($source) . '/' . bin2hex(random_bytes(6)) . '-image.pdf';
+        // L'enveloppe d'une image va dans le dossier TEMPORAIRE du système, jamais dans le fonds : une
+        // coupure entre l'écriture et le nettoyage ne laisse pas un faux PDF dans l'arborescence.
+        $temporaire = sys_get_temp_dir() . '/gedv2-pdfa-image-' . bin2hex(random_bytes(6)) . '.pdf';
         if (file_put_contents($temporaire, $image) === false) {
             return null;
         }
