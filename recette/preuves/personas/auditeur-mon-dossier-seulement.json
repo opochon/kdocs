@@ -3,7 +3,7 @@
   "fonction": "F10",
   "libelle": "Se restreindre à son dossier et n’y voir que ses pièces",
   "trouve": true,
-  "temps_ms": 578,
-  "ecran": "http://127.0.0.1:63575/bibliotheque?dossier=personas%2Fauditeur — Bibliothèque",
+  "temps_ms": 607,
+  "ecran": "http://127.0.0.1:60436/bibliotheque?dossier=personas%2Fauditeur — Bibliothèque",
   "erreur": ""
 }
