@@ -70,20 +70,55 @@ final class Outils
             $base = preg_replace('/\.png$/i', '', $png) ?? $png;
             self::executer([$pdftoppm, '-png', '-f', '1', '-l', '1', '-singlefile', '-scale-to', (string) $largeur, $pdf, $base]);
             if (is_file($png)) {
-                return null;
+                return self::bornerDimension($png, $largeur) ? null : self::MSG_CONVERSION;
             }
         }
 
         $gs = self::ghostscript();
         if ($gs !== null) {
+            // -r150 ne dépend PAS de la taille voulue : une A4 sortirait à 1240 px de large. On borne
+            // le résultat juste après, quel que soit le côté du document et la version de Ghostscript.
+            // Surtout pas -dPDFFitPage : il plaque la page sur le format par défaut du device (A4/letter)
+            // et redresse une page paysage ; sans lui, Ghostscript rend le MediaBox de la page.
             self::executer([$gs, '-dNOPAUSE', '-dBATCH', '-sDEVICE=png16m', '-dFirstPage=1', '-dLastPage=1',
-                '-dPDFFitPage', '-r150', '-sOutputFile=' . $png, $pdf]);
+                '-r150', '-sOutputFile=' . $png, $pdf]);
             if (is_file($png)) {
-                return null;
+                return self::bornerDimension($png, $largeur) ? null : self::MSG_CONVERSION;
             }
         }
 
         return $gs === null && $pdftoppm === null ? self::MSG_RENDU : self::MSG_CONVERSION;
+    }
+
+    /**
+     * Ramène un PNG dans la boîte `max` × `max` quand le rendu l'a dépassée, et renvoie false si le
+     * fichier est illisible. C'est la garantie que la vignette PDF respecte la taille voulue même
+     * quand l'outil de rendu l'ignore (`-r150` de Ghostscript : A4 portrait à 1240 × 1754).
+     */
+    private static function bornerDimension(string $png, int $max): bool
+    {
+        $taille = @getimagesize($png);
+        if ($taille === false) {
+            return false;
+        }
+        if ($taille[0] <= $max && $taille[1] <= $max) {
+            return true;
+        }
+        $source = @imagecreatefrompng($png);
+        if (!$source instanceof \GdImage) {
+            return false;
+        }
+        $facteur = $max / max($taille[0], $taille[1]);
+        $largeur = max(1, (int) round($taille[0] * $facteur));
+        $hauteur = max(1, (int) round($taille[1] * $facteur));
+        $cible = imagecreatetruecolor($largeur, $hauteur);
+        imagefill($cible, 0, 0, imagecolorallocate($cible, 255, 255, 255));
+        $ok = imagecopyresampled($cible, $source, 0, 0, 0, 0, $largeur, $hauteur, $taille[0], $taille[1])
+            && imagepng($cible, $png);
+        imagedestroy($cible);
+        imagedestroy($source);
+
+        return $ok;
     }
 
     /** Convertit une image (y compris TIFF, non lisible par GD) en PNG. */
