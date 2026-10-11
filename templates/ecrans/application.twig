@@ -90,6 +90,9 @@
           {% if pdfa and pdfa.ecart > 0 %}
             <span data-testid="pdfa-ecart"><span class="chip warn">{{ pdfa.ecart }} document(s) disparu(s) pendant le rattrapage</span></span>
           {% endif %}
+          {% if pdfa and pdfa.reprises > 0 %}
+            <span data-testid="pdfa-reprises"><span class="chip ok">{{ pdfa.reprises }} copie(s) reprise(s) sans toucher aux originaux</span></span>
+          {% endif %}
         </span></div>
       </section>
       <section class="carte section-reglage" id="s-3" data-testid="reglage-ia"><h2>Intelligence artificielle</h2>
