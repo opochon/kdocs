@@ -115,6 +115,14 @@ $rejeux = @(Get-ChildItem $dossierCaptures -Directory -ErrorAction SilentlyConti
 $rejeux | Select-Object -Skip 5 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item Env:\GED_CAPTURES_RUN -ErrorAction SilentlyContinue
 
+# 9. Parite Paperless-ngx : regenere l'inventaire depuis les sources de reference, le compare au
+#    fichier versionne, verifie que chaque « couvert » a un equivalent GEDv2 et une preuve passee au
+#    dernier rejeu, puis ecrit recette\parite-paperless.json et docs\parite\PARITE-PAPERLESS.md.
+#    Le pourcentage n'est pas un critere : la couche est verte si l'inventaire est complet et rejoue a l'identique.
+$sortie = & php tools\parite\juge.php 2>&1
+New-Item -ItemType Directory -Force var\harness | Out-Null; $sortie | Out-File var\harness\9-parite.txt -Encoding utf8
+$couches['9-parite'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match '^parite' } | Select-Object -Last 1) -join '' }
+
 $registre = [ordered]@{
   date = (Get-Date).ToString('s'); duree_s = [int]((Get-Date) - $debut).TotalSeconds
   commit = (git rev-parse --short HEAD 2>$null); couches = $couches

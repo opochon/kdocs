@@ -1,0 +1,5502 @@
+{
+  "version": 1,
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 780,
+  "comptage": {
+    "par_categorie": {
+      "api": 318,
+      "chaine": 60,
+      "commande": 17,
+      "correspondance": 13,
+      "ecran": 30,
+      "masse": 17,
+      "modele": 313,
+      "permissions": 12
+    },
+    "total": 780
+  },
+  "comptage_independant": {
+    "modeles_classes": 24,
+    "api_routes_nommees": 32,
+    "api_actions": 18,
+    "masse_fonctions": 17,
+    "ecran_routes_ui": 28,
+    "commandes": 17,
+    "par_categorie": {
+      "api": 318,
+      "chaine": 60,
+      "commande": 17,
+      "correspondance": 13,
+      "ecran": 30,
+      "masse": 17,
+      "modele": 313,
+      "permissions": 12
+    }
+  },
+  "elements": [
+    {
+      "id": "api:action:DocumentViewSet.download",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.download [GET] detail",
+      "reference": "src/documents/views.py:970"
+    },
+    {
+      "id": "api:action:DocumentViewSet.email_document",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.email_document [POST] detail",
+      "reference": "src/documents/views.py:1187"
+    },
+    {
+      "id": "api:action:DocumentViewSet.email_documents",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.email_documents [POST] liste",
+      "reference": "src/documents/views.py:1199"
+    },
+    {
+      "id": "api:action:DocumentViewSet.history",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.history [GET] detail",
+      "reference": "src/documents/views.py:1120"
+    },
+    {
+      "id": "api:action:DocumentViewSet.metadata",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.metadata [GET] detail",
+      "reference": "src/documents/views.py:830"
+    },
+    {
+      "id": "api:action:DocumentViewSet.notes",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.notes [GET/POST/DELETE] detail",
+      "reference": "src/documents/views.py:982"
+    },
+    {
+      "id": "api:action:DocumentViewSet.preview",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.preview [GET] detail",
+      "reference": "src/documents/views.py:941"
+    },
+    {
+      "id": "api:action:DocumentViewSet.share_links",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.share_links [GET] detail",
+      "reference": "src/documents/views.py:1093"
+    },
+    {
+      "id": "api:action:DocumentViewSet.suggestions",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.suggestions [GET] detail",
+      "reference": "src/documents/views.py:893"
+    },
+    {
+      "id": "api:action:DocumentViewSet.thumb",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action DocumentViewSet.thumb [GET] detail",
+      "reference": "src/documents/views.py:951"
+    },
+    {
+      "id": "api:action:MailAccountViewSet.process",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action MailAccountViewSet.process [POST] detail",
+      "reference": "src/paperless_mail/views.py:130"
+    },
+    {
+      "id": "api:action:MailAccountViewSet.test",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action MailAccountViewSet.test [POST] liste",
+      "reference": "src/paperless_mail/views.py:84"
+    },
+    {
+      "id": "api:action:ProcessedMailViewSet.bulk_delete",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action ProcessedMailViewSet.bulk_delete [POST] liste",
+      "reference": "src/paperless_mail/views.py:151"
+    },
+    {
+      "id": "api:action:StoragePathViewSet.test",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action StoragePathViewSet.test [POST] liste",
+      "reference": "src/documents/views.py:2347"
+    },
+    {
+      "id": "api:action:TasksViewSet.acknowledge",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action TasksViewSet.acknowledge [POST] liste",
+      "reference": "src/documents/views.py:2566"
+    },
+    {
+      "id": "api:action:TasksViewSet.run",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action TasksViewSet.run [POST] liste",
+      "reference": "src/documents/views.py:2583"
+    },
+    {
+      "id": "api:action:UnifiedSearchViewSet.next_asn",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action UnifiedSearchViewSet.next_asn [GET] liste",
+      "reference": "src/documents/views.py:1359"
+    },
+    {
+      "id": "api:action:UserViewSet.deactivate_totp",
+      "categorie": "api",
+      "type": "action",
+      "libelle": "@action UserViewSet.deactivate_totp [POST] detail",
+      "reference": "src/paperless/views.py:150"
+    },
+    {
+      "id": "api:filtre:CorrespondentFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "CorrespondentFilterSet.id",
+      "reference": "src/documents/filters.py:81"
+    },
+    {
+      "id": "api:filtre:CorrespondentFilterSet.name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "CorrespondentFilterSet.name",
+      "reference": "src/documents/filters.py:81"
+    },
+    {
+      "id": "api:filtre:CustomFieldFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "CustomFieldFilterSet.id",
+      "reference": "src/documents/filters.py:209"
+    },
+    {
+      "id": "api:filtre:CustomFieldFilterSet.name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "CustomFieldFilterSet.name",
+      "reference": "src/documents/filters.py:209"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.added",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.added",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.archive_serial_number",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.archive_serial_number",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.checksum",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.checksum",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.content",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.content",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.correspondent",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.correspondent",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.correspondent__id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.correspondent__id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.correspondent__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.correspondent__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:716"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.correspondent__name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.correspondent__name",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.created",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.created",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.created__date__gt",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.created__date__gt (DateFilter)",
+      "reference": "src/documents/filters.py:756"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.created__date__gte",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.created__date__gte (DateFilter)",
+      "reference": "src/documents/filters.py:757"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.created__date__lt",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.created__date__lt (DateFilter)",
+      "reference": "src/documents/filters.py:758"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.created__date__lte",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.created__date__lte (DateFilter)",
+      "reference": "src/documents/filters.py:759"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_field_query",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_field_query (CustomFieldQueryFilter)",
+      "reference": "src/documents/filters.py:749"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_fields",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_fields",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_fields__icontains",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_fields__icontains (CustomFieldsFilter)",
+      "reference": "src/documents/filters.py:728"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_fields__id__all",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_fields__id__all (ObjectFilter)",
+      "reference": "src/documents/filters.py:730"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_fields__id__in",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_fields__id__in (ObjectFilter)",
+      "reference": "src/documents/filters.py:737"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.custom_fields__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.custom_fields__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:732"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.document_type",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.document_type",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.document_type__id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.document_type__id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.document_type__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.document_type__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:718"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.document_type__name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.document_type__name",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.has_custom_fields",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.has_custom_fields (BooleanFilter)",
+      "reference": "src/documents/filters.py:742"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.is_in_inbox",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.is_in_inbox (InboxFilter)",
+      "reference": "src/documents/filters.py:722"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.is_tagged",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.is_tagged (BooleanFilter)",
+      "reference": "src/documents/filters.py:703"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.mime_type",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.mime_type (MimeTypeFilter)",
+      "reference": "src/documents/filters.py:753"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.modified",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.modified",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.original_filename",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.original_filename",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.owner",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.owner",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.owner__id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.owner__id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.owner__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.owner__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:726"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.storage_path",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.storage_path",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.storage_path__id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.storage_path__id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.storage_path__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.storage_path__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:720"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.storage_path__name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.storage_path__name",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.tags__id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.tags__id",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.tags__id__all",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.tags__id__all (ObjectFilter)",
+      "reference": "src/documents/filters.py:710"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.tags__id__in",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.tags__id__in (ObjectFilter)",
+      "reference": "src/documents/filters.py:714"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.tags__id__none",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.tags__id__none (ObjectFilter)",
+      "reference": "src/documents/filters.py:712"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.tags__name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.tags__name",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.title",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.title",
+      "reference": "src/documents/filters.py:763"
+    },
+    {
+      "id": "api:filtre:DocumentFilterSet.title_content",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentFilterSet.title_content (TitleContentFilter)",
+      "reference": "src/documents/filters.py:724"
+    },
+    {
+      "id": "api:filtre:DocumentTypeFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentTypeFilterSet.id",
+      "reference": "src/documents/filters.py:105"
+    },
+    {
+      "id": "api:filtre:DocumentTypeFilterSet.name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "DocumentTypeFilterSet.name",
+      "reference": "src/documents/filters.py:105"
+    },
+    {
+      "id": "api:filtre:PaperlessTaskFilterSet.acknowledged",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "PaperlessTaskFilterSet.acknowledged (BooleanFilter)",
+      "reference": "src/documents/filters.py:800"
+    },
+    {
+      "id": "api:filtre:PaperlessTaskFilterSet.status",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "PaperlessTaskFilterSet.status",
+      "reference": "src/documents/filters.py:807"
+    },
+    {
+      "id": "api:filtre:PaperlessTaskFilterSet.task_name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "PaperlessTaskFilterSet.task_name",
+      "reference": "src/documents/filters.py:807"
+    },
+    {
+      "id": "api:filtre:PaperlessTaskFilterSet.type",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "PaperlessTaskFilterSet.type",
+      "reference": "src/documents/filters.py:807"
+    },
+    {
+      "id": "api:filtre:ProcessedMailFilterSet.rule",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "ProcessedMailFilterSet.rule",
+      "reference": "src/paperless_mail/filters.py:9"
+    },
+    {
+      "id": "api:filtre:ProcessedMailFilterSet.status",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "ProcessedMailFilterSet.status",
+      "reference": "src/paperless_mail/filters.py:9"
+    },
+    {
+      "id": "api:filtre:ShareLinkFilterSet.created",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "ShareLinkFilterSet.created",
+      "reference": "src/documents/filters.py:793"
+    },
+    {
+      "id": "api:filtre:ShareLinkFilterSet.expiration",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "ShareLinkFilterSet.expiration",
+      "reference": "src/documents/filters.py:793"
+    },
+    {
+      "id": "api:filtre:StoragePathFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "StoragePathFilterSet.id",
+      "reference": "src/documents/filters.py:114"
+    },
+    {
+      "id": "api:filtre:StoragePathFilterSet.name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "StoragePathFilterSet.name",
+      "reference": "src/documents/filters.py:114"
+    },
+    {
+      "id": "api:filtre:StoragePathFilterSet.path",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "StoragePathFilterSet.path",
+      "reference": "src/documents/filters.py:114"
+    },
+    {
+      "id": "api:filtre:TagFilterSet.id",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "TagFilterSet.id",
+      "reference": "src/documents/filters.py:90"
+    },
+    {
+      "id": "api:filtre:TagFilterSet.is_root",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "TagFilterSet.is_root (BooleanFilter)",
+      "reference": "src/documents/filters.py:95"
+    },
+    {
+      "id": "api:filtre:TagFilterSet.name",
+      "categorie": "api",
+      "type": "filtre",
+      "libelle": "TagFilterSet.name",
+      "reference": "src/documents/filters.py:90"
+    },
+    {
+      "id": "api:route:account_confirm_email",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path accounts/^confirm-email/(?P<key>[-:\\w]+)/$ -> account_confirm_email [allauth_account_views.ConfirmEmailView.as_view]",
+      "reference": "src/paperless/urls.py:309"
+    },
+    {
+      "id": "api:route:account_inactive",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/account_inactive/ -> account_inactive [allauth_account_views.account_inactive]",
+      "reference": "src/paperless/urls.py:281"
+    },
+    {
+      "id": "api:route:account_login",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/login/ -> account_login [allauth_account_views.login]",
+      "reference": "src/paperless/urls.py:278"
+    },
+    {
+      "id": "api:route:account_logout",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/logout/ -> account_logout [allauth_account_views.logout]",
+      "reference": "src/paperless/urls.py:279"
+    },
+    {
+      "id": "api:route:account_reset_password",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/password/reset/ -> account_reset_password [allauth_account_views.password_reset]",
+      "reference": "src/paperless/urls.py:291"
+    },
+    {
+      "id": "api:route:account_reset_password_done",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/password/reset/done/ -> account_reset_password_done [allauth_account_views.password_reset_done]",
+      "reference": "src/paperless/urls.py:296"
+    },
+    {
+      "id": "api:route:account_reset_password_from_key",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path accounts/^password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$ -> account_reset_password_from_key [allauth_account_views.password_reset_from_key]",
+      "reference": "src/paperless/urls.py:314"
+    },
+    {
+      "id": "api:route:account_reset_password_from_key_done",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/password/reset/key/done/ -> account_reset_password_from_key_done [allauth_account_views.password_reset_from_key_done]",
+      "reference": "src/paperless/urls.py:301"
+    },
+    {
+      "id": "api:route:account_signup",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/signup/ -> account_signup [allauth_account_views.signup]",
+      "reference": "src/paperless/urls.py:280"
+    },
+    {
+      "id": "api:route:anon:accounts-3rdparty-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/3rdparty/ [include]",
+      "reference": "src/paperless/urls.py:320"
+    },
+    {
+      "id": "api:route:anon:accounts-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/ [include]",
+      "reference": "src/paperless/urls.py:272"
+    },
+    {
+      "id": "api:route:anon:accounts-password-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/password/ [include]",
+      "reference": "src/paperless/urls.py:287"
+    },
+    {
+      "id": "api:route:anon:admin-admin-site-urls",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path admin/ [admin.site.urls]",
+      "reference": "src/paperless/urls.py:235"
+    },
+    {
+      "id": "api:route:anon:api-auth-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^auth/ [include]",
+      "reference": "src/paperless/urls.py:89"
+    },
+    {
+      "id": "api:route:anon:api-documents-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^documents/ [include]",
+      "reference": "src/paperless/urls.py:118"
+    },
+    {
+      "id": "api:route:anon:api-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/ [include]",
+      "reference": "src/paperless/urls.py:85"
+    },
+    {
+      "id": "api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ^api/^profile/disconnect_social_account/ [DisconnectSocialAccountView.as_view]",
+      "reference": "src/paperless/urls.py:177"
+    },
+    {
+      "id": "api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ^api/^profile/generate_auth_token/ [GenerateAuthTokenView.as_view]",
+      "reference": "src/paperless/urls.py:173"
+    },
+    {
+      "id": "api:route:anon:api-profile-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^profile/ [include]",
+      "reference": "src/paperless/urls.py:164"
+    },
+    {
+      "id": "api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ^api/^profile/social_account_providers/ [SocialAccountProvidersView.as_view]",
+      "reference": "src/paperless/urls.py:181"
+    },
+    {
+      "id": "api:route:anon:api-redirectview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^$ [RedirectView.as_view]",
+      "reference": "src/paperless/urls.py:225"
+    },
+    {
+      "id": "api:route:anon:api-schema-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^schema/ [include]",
+      "reference": "src/paperless/urls.py:208"
+    },
+    {
+      "id": "api:route:anon:api-search-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^search/ [include]",
+      "reference": "src/paperless/urls.py:96"
+    },
+    {
+      "id": "api:route:anon:api-token-paperlessobtainauthtokenview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ^api/token/ [PaperlessObtainAuthTokenView.as_view]",
+      "reference": "src/paperless/urls.py:160"
+    },
+    {
+      "id": "api:route:anon:assets-path-path-redirectview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path assets/<path:path> [RedirectView.as_view]",
+      "reference": "src/paperless/urls.py:262"
+    },
+    {
+      "id": "api:route:anon:fetch-doc-p-pk-d-redirectview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^fetch/^doc/(?P<pk>\\d+)$ [RedirectView.as_view]",
+      "reference": "src/paperless/urls.py:240"
+    },
+    {
+      "id": "api:route:anon:fetch-include",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^fetch/ [include]",
+      "reference": "src/paperless/urls.py:236"
+    },
+    {
+      "id": "api:route:anon:fetch-preview-p-pk-d-redirectview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^fetch/^preview/(?P<pk>\\d+)$ [RedirectView.as_view]",
+      "reference": "src/paperless/urls.py:252"
+    },
+    {
+      "id": "api:route:anon:fetch-thumb-p-pk-d-redirectview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^fetch/^thumb/(?P<pk>\\d+)$ [RedirectView.as_view]",
+      "reference": "src/paperless/urls.py:246"
+    },
+    {
+      "id": "api:route:anon:share-p-slug-w-sharedlinkview-as-view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path share/(?P<slug>\\w+)/?$ [SharedLinkView.as_view]",
+      "reference": "src/paperless/urls.py:233"
+    },
+    {
+      "id": "api:route:anon:ws-status-statusconsumer-as-asgi",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ws/status/ [StatusConsumer.as_asgi]",
+      "reference": "src/paperless/urls.py:362"
+    },
+    {
+      "id": "api:route:app_logo",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^logo(?:/(?P<filename>.+))?/?$ -> app_logo [serve_logo]",
+      "reference": "src/paperless/urls.py:270"
+    },
+    {
+      "id": "api:route:autocomplete",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^search/^autocomplete/ -> autocomplete [SearchAutoCompleteView.as_view]",
+      "reference": "src/paperless/urls.py:105"
+    },
+    {
+      "id": "api:route:base",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path .* -> base [login_required]",
+      "reference": "src/paperless/urls.py:353"
+    },
+    {
+      "id": "api:route:bulk_download",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view]",
+      "reference": "src/paperless/urls.py:132"
+    },
+    {
+      "id": "api:route:bulk_edit",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^documents/^bulk_edit/ -> bulk_edit [BulkEditView.as_view]",
+      "reference": "src/paperless/urls.py:127"
+    },
+    {
+      "id": "api:route:bulk_edit_objects",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^bulk_edit_objects/ -> bulk_edit_objects [BulkEditObjectsView.as_view]",
+      "reference": "src/paperless/urls.py:145"
+    },
+    {
+      "id": "api:route:config",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/config/ -> ApplicationConfigurationViewSet",
+      "reference": "src/paperless/urls.py:80"
+    },
+    {
+      "id": "api:route:correspondents",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/correspondents/ -> CorrespondentViewSet",
+      "reference": "src/paperless/urls.py:63"
+    },
+    {
+      "id": "api:route:custom-fields",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/custom_fields/ -> CustomFieldViewSet",
+      "reference": "src/paperless/urls.py:79"
+    },
+    {
+      "id": "api:route:document-types",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/document_types/ -> DocumentTypeViewSet",
+      "reference": "src/paperless/urls.py:64"
+    },
+    {
+      "id": "api:route:documents",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/documents/ -> UnifiedSearchViewSet",
+      "reference": "src/paperless/urls.py:65"
+    },
+    {
+      "id": "api:route:favicon",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^favicon.ico$ -> favicon [FaviconView.as_view]",
+      "reference": "src/paperless/urls.py:234"
+    },
+    {
+      "id": "api:route:global_search",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^search/^$ -> global_search [GlobalSearchView.as_view]",
+      "reference": "src/paperless/urls.py:100"
+    },
+    {
+      "id": "api:route:groups",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/groups/ -> GroupViewSet",
+      "reference": "src/paperless/urls.py:72"
+    },
+    {
+      "id": "api:route:logs",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/logs/ -> LogViewSet",
+      "reference": "src/paperless/urls.py:66"
+    },
+    {
+      "id": "api:route:mail-accounts",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/mail_accounts/ -> MailAccountViewSet",
+      "reference": "src/paperless/urls.py:73"
+    },
+    {
+      "id": "api:route:mail-rules",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/mail_rules/ -> MailRuleViewSet",
+      "reference": "src/paperless/urls.py:74"
+    },
+    {
+      "id": "api:route:mfa_authenticate",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/2fa/authenticate/ -> mfa_authenticate [allauth_mfa_views.authenticate]",
+      "reference": "src/paperless/urls.py:344"
+    },
+    {
+      "id": "api:route:oauth_callback",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view]",
+      "reference": "src/paperless/urls.py:203"
+    },
+    {
+      "id": "api:route:post_document",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^documents/^post_document/ -> post_document [PostDocumentView.as_view]",
+      "reference": "src/paperless/urls.py:122"
+    },
+    {
+      "id": "api:route:processed-mail",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/processed_mail/ -> ProcessedMailViewSet",
+      "reference": "src/paperless/urls.py:81"
+    },
+    {
+      "id": "api:route:profile_view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^profile/^$ -> profile_view [ProfileView.as_view]",
+      "reference": "src/paperless/urls.py:168"
+    },
+    {
+      "id": "api:route:remoteversion",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^remote_version/ -> remoteversion [RemoteVersionView.as_view]",
+      "reference": "src/paperless/urls.py:150"
+    },
+    {
+      "id": "api:route:saved-views",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/saved_views/ -> SavedViewViewSet",
+      "reference": "src/paperless/urls.py:68"
+    },
+    {
+      "id": "api:route:schema",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^schema/^$ -> schema [SpectacularAPIView.as_view]",
+      "reference": "src/paperless/urls.py:212"
+    },
+    {
+      "id": "api:route:selection_data",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^documents/^selection_data/ -> selection_data [SelectionDataView.as_view]",
+      "reference": "src/paperless/urls.py:137"
+    },
+    {
+      "id": "api:route:share-links",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/share_links/ -> ShareLinkViewSet",
+      "reference": "src/paperless/urls.py:75"
+    },
+    {
+      "id": "api:route:socialaccount_login_cancelled",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/3rdparty/login/cancelled/ -> socialaccount_login_cancelled [allauth_social_account_views.login_cancelled]",
+      "reference": "src/paperless/urls.py:324"
+    },
+    {
+      "id": "api:route:socialaccount_login_error",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/3rdparty/login/error/ -> socialaccount_login_error [allauth_social_account_views.login_error]",
+      "reference": "src/paperless/urls.py:329"
+    },
+    {
+      "id": "api:route:socialaccount_signup",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path accounts/3rdparty/signup/ -> socialaccount_signup [allauth_social_account_views.signup]",
+      "reference": "src/paperless/urls.py:334"
+    },
+    {
+      "id": "api:route:statistics",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^statistics/ -> statistics [StatisticsView.as_view]",
+      "reference": "src/paperless/urls.py:113"
+    },
+    {
+      "id": "api:route:storage-paths",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/storage_paths/ -> StoragePathViewSet",
+      "reference": "src/paperless/urls.py:69"
+    },
+    {
+      "id": "api:route:swagger-ui",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^schema/^view/ -> swagger-ui [SpectacularSwaggerView.as_view]",
+      "reference": "src/paperless/urls.py:217"
+    },
+    {
+      "id": "api:route:system_status",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^status/ -> system_status [SystemStatusView.as_view]",
+      "reference": "src/paperless/urls.py:193"
+    },
+    {
+      "id": "api:route:tags",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/tags/ -> TagViewSet",
+      "reference": "src/paperless/urls.py:67"
+    },
+    {
+      "id": "api:route:tasks",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/tasks/ -> TasksViewSet",
+      "reference": "src/paperless/urls.py:70"
+    },
+    {
+      "id": "api:route:totp_view",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "path ^api/^profile/totp/ -> totp_view [TOTPView.as_view]",
+      "reference": "src/paperless/urls.py:185"
+    },
+    {
+      "id": "api:route:trash",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^trash/ -> trash [TrashView.as_view]",
+      "reference": "src/paperless/urls.py:198"
+    },
+    {
+      "id": "api:route:ui_settings",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "re_path ^api/^ui_settings/ -> ui_settings [UiSettingsView.as_view]",
+      "reference": "src/paperless/urls.py:155"
+    },
+    {
+      "id": "api:route:users",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/users/ -> UserViewSet",
+      "reference": "src/paperless/urls.py:71"
+    },
+    {
+      "id": "api:route:workflow-actions",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/workflow_actions/ -> WorkflowActionViewSet",
+      "reference": "src/paperless/urls.py:77"
+    },
+    {
+      "id": "api:route:workflow-triggers",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/workflow_triggers/ -> WorkflowTriggerViewSet",
+      "reference": "src/paperless/urls.py:76"
+    },
+    {
+      "id": "api:route:workflows",
+      "categorie": "api",
+      "type": "route",
+      "libelle": "router /api/workflows/ -> WorkflowViewSet",
+      "reference": "src/paperless/urls.py:78"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.create (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.list (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:ApplicationConfigurationViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ApplicationConfigurationViewSet.update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:verbe:BulkDownloadView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "BulkDownloadView.post",
+      "reference": "src/documents/views.py:2261"
+    },
+    {
+      "id": "api:verbe:BulkEditObjectsView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "BulkEditObjectsView.post",
+      "reference": "src/documents/views.py:2698"
+    },
+    {
+      "id": "api:verbe:BulkEditView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "BulkEditView.post",
+      "reference": "src/documents/views.py:1513"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CorrespondentViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CorrespondentViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:CustomFieldViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "CustomFieldViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:verbe:DisconnectSocialAccountView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DisconnectSocialAccountView.post",
+      "reference": "src/paperless/views.py:386"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:DocumentTypeViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "DocumentTypeViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:verbe:FaviconView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "FaviconView.get",
+      "reference": "src/paperless/views.py:97"
+    },
+    {
+      "id": "api:verbe:GenerateAuthTokenView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GenerateAuthTokenView.post",
+      "reference": "src/paperless/views.py:328"
+    },
+    {
+      "id": "api:verbe:GlobalSearchView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GlobalSearchView.get",
+      "reference": "src/documents/views.py:1952"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.create (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.list (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:GroupViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "GroupViewSet.update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.create (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.list (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailAccountViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailAccountViewSet.update (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.create (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.list (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:MailRuleViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "MailRuleViewSet.update (DRF ModelViewSet)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:verbe:OauthCallbackView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "OauthCallbackView.get",
+      "reference": "src/paperless_mail/views.py:184"
+    },
+    {
+      "id": "api:verbe:PostDocumentView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "PostDocumentView.post",
+      "reference": "src/documents/views.py:1666"
+    },
+    {
+      "id": "api:verbe:ProcessedMailViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ProcessedMailViewSet.list (DRF ReadOnlyModelViewSet)",
+      "reference": "src/paperless_mail/views.py:137"
+    },
+    {
+      "id": "api:verbe:ProcessedMailViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ProcessedMailViewSet.retrieve (DRF ReadOnlyModelViewSet)",
+      "reference": "src/paperless_mail/views.py:137"
+    },
+    {
+      "id": "api:verbe:ProfileView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ProfileView.get",
+      "reference": "src/paperless/views.py:189"
+    },
+    {
+      "id": "api:verbe:ProfileView.patch",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ProfileView.patch",
+      "reference": "src/paperless/views.py:195"
+    },
+    {
+      "id": "api:verbe:RemoteVersionView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "RemoteVersionView.get",
+      "reference": "src/documents/views.py:2458"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SavedViewViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SavedViewViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:verbe:SearchAutoCompleteView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SearchAutoCompleteView.get",
+      "reference": "src/documents/views.py:1880"
+    },
+    {
+      "id": "api:verbe:SelectionDataView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SelectionDataView.post",
+      "reference": "src/documents/views.py:1785"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:ShareLinkViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "ShareLinkViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:verbe:SharedLinkView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SharedLinkView.get",
+      "reference": "src/documents/views.py:2623"
+    },
+    {
+      "id": "api:verbe:SocialAccountProvidersView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SocialAccountProvidersView.get",
+      "reference": "src/paperless/views.py:412"
+    },
+    {
+      "id": "api:verbe:StatisticsView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StatisticsView.get",
+      "reference": "src/documents/views.py:2154"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:StoragePathViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "StoragePathViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:verbe:SystemStatusView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "SystemStatusView.get",
+      "reference": "src/documents/views.py:2941"
+    },
+    {
+      "id": "api:verbe:TOTPView.delete",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TOTPView.delete",
+      "reference": "src/paperless/views.py:294"
+    },
+    {
+      "id": "api:verbe:TOTPView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TOTPView.get",
+      "reference": "src/paperless/views.py:247"
+    },
+    {
+      "id": "api:verbe:TOTPView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TOTPView.post",
+      "reference": "src/paperless/views.py:264"
+    },
+    {
+      "id": "api:verbe:TagViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TagViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TagViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TagViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TagViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TagViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TagViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:verbe:TasksViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TasksViewSet.list (DRF ReadOnlyModelViewSet)",
+      "reference": "src/documents/views.py:2532"
+    },
+    {
+      "id": "api:verbe:TasksViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TasksViewSet.retrieve (DRF ReadOnlyModelViewSet)",
+      "reference": "src/documents/views.py:2532"
+    },
+    {
+      "id": "api:verbe:TrashView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TrashView.get",
+      "reference": "src/documents/views.py:3123"
+    },
+    {
+      "id": "api:verbe:TrashView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "TrashView.post",
+      "reference": "src/documents/views.py:3127"
+    },
+    {
+      "id": "api:verbe:UiSettingsView.get",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UiSettingsView.get",
+      "reference": "src/documents/views.py:2366"
+    },
+    {
+      "id": "api:verbe:UiSettingsView.post",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UiSettingsView.post",
+      "reference": "src/documents/views.py:2434"
+    },
+    {
+      "id": "api:verbe:UserViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.create (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:UserViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:UserViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.list (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:UserViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:UserViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:UserViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "UserViewSet.update (DRF ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowActionViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowActionViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowTriggerViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowTriggerViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.create",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.create (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.destroy",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.destroy (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.list",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.list (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.partial_update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.partial_update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.retrieve",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.retrieve (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:verbe:WorkflowViewSet.update",
+      "categorie": "api",
+      "type": "verbe",
+      "libelle": "WorkflowViewSet.update (DRF ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "api:vue:ApplicationConfigurationViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe ApplicationConfigurationViewSet(ModelViewSet)",
+      "reference": "src/paperless/views.py:349"
+    },
+    {
+      "id": "api:vue:BulkDownloadView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe BulkDownloadView(GenericAPIView)",
+      "reference": "src/documents/views.py:2256"
+    },
+    {
+      "id": "api:vue:BulkEditObjectsView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe BulkEditObjectsView(PassUserMixin)",
+      "reference": "src/documents/views.py:2693"
+    },
+    {
+      "id": "api:vue:BulkEditView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe BulkEditView(PassUserMixin)",
+      "reference": "src/documents/views.py:1490"
+    },
+    {
+      "id": "api:vue:CorrespondentViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe CorrespondentViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin)",
+      "reference": "src/documents/views.py:388"
+    },
+    {
+      "id": "api:vue:CustomFieldViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe CustomFieldViewSet(ModelViewSet)",
+      "reference": "src/documents/views.py:2823"
+    },
+    {
+      "id": "api:vue:DisconnectSocialAccountView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe DisconnectSocialAccountView(GenericAPIView)",
+      "reference": "src/paperless/views.py:379"
+    },
+    {
+      "id": "api:vue:DocumentTypeViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe DocumentTypeViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin)",
+      "reference": "src/documents/views.py:462"
+    },
+    {
+      "id": "api:vue:DocumentViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe DocumentViewSet(PassUserMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet)",
+      "reference": "src/documents/views.py:685"
+    },
+    {
+      "id": "api:vue:FaviconView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe FaviconView(View)",
+      "reference": "src/paperless/views.py:96"
+    },
+    {
+      "id": "api:vue:GenerateAuthTokenView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe GenerateAuthTokenView(GenericAPIView)",
+      "reference": "src/paperless/views.py:320"
+    },
+    {
+      "id": "api:vue:GlobalSearchView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe GlobalSearchView(PassUserMixin)",
+      "reference": "src/documents/views.py:1948"
+    },
+    {
+      "id": "api:vue:GroupViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe GroupViewSet(ModelViewSet)",
+      "reference": "src/paperless/views.py:168"
+    },
+    {
+      "id": "api:vue:IndexView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe IndexView(TemplateView)",
+      "reference": "src/documents/views.py:209"
+    },
+    {
+      "id": "api:vue:LogViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe LogViewSet(ViewSet)",
+      "reference": "src/documents/views.py:1402"
+    },
+    {
+      "id": "api:vue:MailAccountViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe MailAccountViewSet(ModelViewSet, PassUserMixin)",
+      "reference": "src/paperless_mail/views.py:68"
+    },
+    {
+      "id": "api:vue:MailRuleViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe MailRuleViewSet(ModelViewSet, PassUserMixin)",
+      "reference": "src/paperless_mail/views.py:165"
+    },
+    {
+      "id": "api:vue:OauthCallbackView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe OauthCallbackView(GenericAPIView)",
+      "reference": "src/paperless_mail/views.py:181"
+    },
+    {
+      "id": "api:vue:PaperlessObtainAuthTokenView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe PaperlessObtainAuthTokenView(ObtainAuthToken)",
+      "reference": "src/paperless/views.py:48"
+    },
+    {
+      "id": "api:vue:PassUserMixin",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe PassUserMixin(GenericAPIView)",
+      "reference": "src/documents/views.py:251"
+    },
+    {
+      "id": "api:vue:PostDocumentView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe PostDocumentView(GenericAPIView)",
+      "reference": "src/documents/views.py:1661"
+    },
+    {
+      "id": "api:vue:ProcessedMailViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe ProcessedMailViewSet(ReadOnlyModelViewSet, PassUserMixin)",
+      "reference": "src/paperless_mail/views.py:137"
+    },
+    {
+      "id": "api:vue:ProfileView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe ProfileView(GenericAPIView)",
+      "reference": "src/paperless/views.py:181"
+    },
+    {
+      "id": "api:vue:RemoteVersionView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe RemoteVersionView(GenericAPIView)",
+      "reference": "src/documents/views.py:2455"
+    },
+    {
+      "id": "api:vue:SavedViewViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SavedViewViewSet(ModelViewSet, PassUserMixin)",
+      "reference": "src/documents/views.py:1452"
+    },
+    {
+      "id": "api:vue:SearchAutoCompleteView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SearchAutoCompleteView(GenericAPIView)",
+      "reference": "src/documents/views.py:1877"
+    },
+    {
+      "id": "api:vue:SelectionDataView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SelectionDataView(GenericAPIView)",
+      "reference": "src/documents/views.py:1780"
+    },
+    {
+      "id": "api:vue:ShareLinkViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe ShareLinkViewSet(ModelViewSet, PassUserMixin)",
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "api:vue:SharedLinkView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SharedLinkView(View)",
+      "reference": "src/documents/views.py:2619"
+    },
+    {
+      "id": "api:vue:SocialAccountProvidersView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SocialAccountProvidersView(GenericAPIView)",
+      "reference": "src/paperless/views.py:405"
+    },
+    {
+      "id": "api:vue:StatisticsView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe StatisticsView(GenericAPIView)",
+      "reference": "src/documents/views.py:2151"
+    },
+    {
+      "id": "api:vue:StoragePathViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe StoragePathViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin)",
+      "reference": "src/documents/views.py:2306"
+    },
+    {
+      "id": "api:vue:SystemStatusView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe SystemStatusView(PassUserMixin)",
+      "reference": "src/documents/views.py:2938"
+    },
+    {
+      "id": "api:vue:TOTPView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe TOTPView(GenericAPIView)",
+      "reference": "src/paperless/views.py:240"
+    },
+    {
+      "id": "api:vue:TagViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe TagViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin)",
+      "reference": "src/documents/views.py:425"
+    },
+    {
+      "id": "api:vue:TasksViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe TasksViewSet(ReadOnlyModelViewSet)",
+      "reference": "src/documents/views.py:2532"
+    },
+    {
+      "id": "api:vue:TrashView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe TrashView(ListModelMixin, PassUserMixin)",
+      "reference": "src/documents/views.py:3113"
+    },
+    {
+      "id": "api:vue:UiSettingsView",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe UiSettingsView(GenericAPIView)",
+      "reference": "src/documents/views.py:2361"
+    },
+    {
+      "id": "api:vue:UnifiedSearchViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe UnifiedSearchViewSet(DocumentViewSet)",
+      "reference": "src/documents/views.py:1289"
+    },
+    {
+      "id": "api:vue:UserViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe UserViewSet(ModelViewSet)",
+      "reference": "src/paperless/views.py:105"
+    },
+    {
+      "id": "api:vue:WorkflowActionViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe WorkflowActionViewSet(ModelViewSet)",
+      "reference": "src/documents/views.py:2780"
+    },
+    {
+      "id": "api:vue:WorkflowTriggerViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe WorkflowTriggerViewSet(ModelViewSet)",
+      "reference": "src/documents/views.py:2762"
+    },
+    {
+      "id": "api:vue:WorkflowViewSet",
+      "categorie": "api",
+      "type": "vue",
+      "libelle": "classe WorkflowViewSet(ModelViewSet)",
+      "reference": "src/documents/views.py:2805"
+    },
+    {
+      "id": "chaine:classe:ConsumerError",
+      "categorie": "chaine",
+      "type": "classe",
+      "libelle": "consumer.ConsumerError",
+      "reference": "src/documents/consumer.py:76"
+    },
+    {
+      "id": "chaine:classe:ConsumerPlugin",
+      "categorie": "chaine",
+      "type": "classe",
+      "libelle": "consumer.ConsumerPlugin",
+      "reference": "src/documents/consumer.py:151"
+    },
+    {
+      "id": "chaine:classe:ConsumerPluginMixin",
+      "categorie": "chaine",
+      "type": "classe",
+      "libelle": "consumer.ConsumerPluginMixin",
+      "reference": "src/documents/consumer.py:101"
+    },
+    {
+      "id": "chaine:classe:ConsumerPreflightPlugin",
+      "categorie": "chaine",
+      "type": "classe",
+      "libelle": "consumer.ConsumerPreflightPlugin",
+      "reference": "src/documents/consumer.py:753"
+    },
+    {
+      "id": "chaine:classe:ConsumerStatusShortMessage",
+      "categorie": "chaine",
+      "type": "classe",
+      "libelle": "consumer.ConsumerStatusShortMessage",
+      "reference": "src/documents/consumer.py:80"
+    },
+    {
+      "id": "chaine:codebarres:Barcode",
+      "categorie": "chaine",
+      "type": "codebarres",
+      "libelle": "barcodes.Barcode",
+      "reference": "src/documents/barcodes.py:38"
+    },
+    {
+      "id": "chaine:codebarres:Barcode.is_asn",
+      "categorie": "chaine",
+      "type": "codebarres",
+      "libelle": "Barcode.is_asn",
+      "reference": "src/documents/barcodes.py:56"
+    },
+    {
+      "id": "chaine:codebarres:Barcode.is_separator",
+      "categorie": "chaine",
+      "type": "codebarres",
+      "libelle": "Barcode.is_separator",
+      "reference": "src/documents/barcodes.py:48"
+    },
+    {
+      "id": "chaine:codebarres:BarcodePlugin",
+      "categorie": "chaine",
+      "type": "codebarres",
+      "libelle": "barcodes.BarcodePlugin",
+      "reference": "src/documents/barcodes.py:64"
+    },
+    {
+      "id": "chaine:codebarres:BarcodePlugin.run",
+      "categorie": "chaine",
+      "type": "codebarres",
+      "libelle": "BarcodePlugin.run",
+      "reference": "src/documents/barcodes.py:118"
+    },
+    {
+      "id": "chaine:doublon:pre_check_duplicate",
+      "categorie": "chaine",
+      "type": "doublon",
+      "libelle": "ConsumerPreflightPlugin.pre_check_duplicate",
+      "reference": "src/documents/consumer.py:778"
+    },
+    {
+      "id": "chaine:etape:ConsumerPlugin._parse_title_placeholders",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPlugin._parse_title_placeholders",
+      "reference": "src/documents/consumer.py:585"
+    },
+    {
+      "id": "chaine:etape:ConsumerPlugin._store",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPlugin._store",
+      "reference": "src/documents/consumer.py:614"
+    },
+    {
+      "id": "chaine:etape:ConsumerPlugin._write",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPlugin._write",
+      "reference": "src/documents/consumer.py:739"
+    },
+    {
+      "id": "chaine:etape:ConsumerPlugin.apply_overrides",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPlugin.apply_overrides",
+      "reference": "src/documents/consumer.py:679"
+    },
+    {
+      "id": "chaine:etape:ConsumerPlugin.run",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPlugin.run",
+      "reference": "src/documents/consumer.py:281"
+    },
+    {
+      "id": "chaine:etape:ConsumerPreflightPlugin.pre_check_asn_value",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPreflightPlugin.pre_check_asn_value",
+      "reference": "src/documents/consumer.py:811"
+    },
+    {
+      "id": "chaine:etape:ConsumerPreflightPlugin.pre_check_directories",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPreflightPlugin.pre_check_directories",
+      "reference": "src/documents/consumer.py:802"
+    },
+    {
+      "id": "chaine:etape:ConsumerPreflightPlugin.pre_check_duplicate",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPreflightPlugin.pre_check_duplicate",
+      "reference": "src/documents/consumer.py:778"
+    },
+    {
+      "id": "chaine:etape:ConsumerPreflightPlugin.pre_check_file_exists",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPreflightPlugin.pre_check_file_exists",
+      "reference": "src/documents/consumer.py:764"
+    },
+    {
+      "id": "chaine:etape:ConsumerPreflightPlugin.run",
+      "categorie": "chaine",
+      "type": "etape",
+      "libelle": "ConsumerPreflightPlugin.run",
+      "reference": "src/documents/consumer.py:847"
+    },
+    {
+      "id": "chaine:nom-fichier:_is_safe_relative_path",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath._is_safe_relative_path",
+      "reference": "src/documents/templating/filepath.py:265"
+    },
+    {
+      "id": "chaine:nom-fichier:create_dummy_document",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.create_dummy_document",
+      "reference": "src/documents/templating/filepath.py:93"
+    },
+    {
+      "id": "chaine:nom-fichier:get_added_date_context",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.get_added_date_context",
+      "reference": "src/documents/templating/filepath.py:137"
+    },
+    {
+      "id": "chaine:nom-fichier:get_basic_metadata_context",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.get_basic_metadata_context",
+      "reference": "src/documents/templating/filepath.py:155"
+    },
+    {
+      "id": "chaine:nom-fichier:get_creation_date_context",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.get_creation_date_context",
+      "reference": "src/documents/templating/filepath.py:121"
+    },
+    {
+      "id": "chaine:nom-fichier:get_custom_fields_context",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.get_custom_fields_context",
+      "reference": "src/documents/templating/filepath.py:212"
+    },
+    {
+      "id": "chaine:nom-fichier:get_tags_context",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.get_tags_context",
+      "reference": "src/documents/templating/filepath.py:196"
+    },
+    {
+      "id": "chaine:nom-fichier:validate_filepath_template_and_render",
+      "categorie": "chaine",
+      "type": "nom-fichier",
+      "libelle": "filepath.validate_filepath_template_and_render",
+      "reference": "src/documents/templating/filepath.py:276"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.extract_metadata",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.extract_metadata",
+      "reference": "src/documents/parsers.py:380"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.get_date",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.get_date",
+      "reference": "src/documents/parsers.py:401"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.get_page_count",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.get_page_count",
+      "reference": "src/documents/parsers.py:383"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.get_text",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.get_text",
+      "reference": "src/documents/parsers.py:398"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.get_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.get_thumbnail",
+      "reference": "src/documents/parsers.py:392"
+    },
+    {
+      "id": "chaine:parseur:DocumentParser.parse",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "DocumentParser.parse",
+      "reference": "src/documents/parsers.py:386"
+    },
+    {
+      "id": "chaine:parseur:MailDocumentParser.extract_metadata",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "MailDocumentParser.extract_metadata",
+      "reference": "src/paperless_mail/parsers.py:72"
+    },
+    {
+      "id": "chaine:parseur:MailDocumentParser.get_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "MailDocumentParser.get_thumbnail",
+      "reference": "src/paperless_mail/parsers.py:55"
+    },
+    {
+      "id": "chaine:parseur:MailDocumentParser.parse",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "MailDocumentParser.parse",
+      "reference": "src/paperless_mail/parsers.py:125"
+    },
+    {
+      "id": "chaine:parseur:RasterisedDocumentParser.extract_metadata",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "RasterisedDocumentParser.extract_metadata",
+      "reference": "src/paperless_tesseract/parsers.py:57"
+    },
+    {
+      "id": "chaine:parseur:RasterisedDocumentParser.extract_text",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "RasterisedDocumentParser.extract_text",
+      "reference": "src/paperless_tesseract/parsers.py:154"
+    },
+    {
+      "id": "chaine:parseur:RasterisedDocumentParser.get_page_count",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "RasterisedDocumentParser.get_page_count",
+      "reference": "src/paperless_tesseract/parsers.py:43"
+    },
+    {
+      "id": "chaine:parseur:RasterisedDocumentParser.get_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "RasterisedDocumentParser.get_thumbnail",
+      "reference": "src/paperless_tesseract/parsers.py:96"
+    },
+    {
+      "id": "chaine:parseur:RasterisedDocumentParser.parse",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "RasterisedDocumentParser.parse",
+      "reference": "src/paperless_tesseract/parsers.py:333"
+    },
+    {
+      "id": "chaine:parseur:TextDocumentParser.get_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "TextDocumentParser.get_thumbnail",
+      "reference": "src/paperless_text/parsers.py:18"
+    },
+    {
+      "id": "chaine:parseur:TextDocumentParser.parse",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "TextDocumentParser.parse",
+      "reference": "src/paperless_text/parsers.py:43"
+    },
+    {
+      "id": "chaine:parseur:TikaDocumentParser.extract_metadata",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "TikaDocumentParser.extract_metadata",
+      "reference": "src/paperless_tika/parsers.py:34"
+    },
+    {
+      "id": "chaine:parseur:TikaDocumentParser.get_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "TikaDocumentParser.get_thumbnail",
+      "reference": "src/paperless_tika/parsers.py:24"
+    },
+    {
+      "id": "chaine:parseur:TikaDocumentParser.parse",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "TikaDocumentParser.parse",
+      "reference": "src/paperless_tika/parsers.py:56"
+    },
+    {
+      "id": "chaine:parseur:documents.get_default_file_extension",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "get_default_file_extension",
+      "reference": "src/documents/parsers.py:69"
+    },
+    {
+      "id": "chaine:parseur:documents.get_default_thumbnail",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "get_default_thumbnail",
+      "reference": "src/documents/parsers.py:184"
+    },
+    {
+      "id": "chaine:parseur:documents.get_parser_class_for_mime_type",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "get_parser_class_for_mime_type",
+      "reference": "src/documents/parsers.py:116"
+    },
+    {
+      "id": "chaine:parseur:documents.get_supported_file_extensions",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "get_supported_file_extensions",
+      "reference": "src/documents/parsers.py:100"
+    },
+    {
+      "id": "chaine:parseur:documents.is_file_ext_supported",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "is_file_ext_supported",
+      "reference": "src/documents/parsers.py:89"
+    },
+    {
+      "id": "chaine:parseur:documents.is_mime_type_supported",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "is_mime_type_supported",
+      "reference": "src/documents/parsers.py:61"
+    },
+    {
+      "id": "chaine:parseur:documents.make_thumbnail_from_pdf",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "make_thumbnail_from_pdf",
+      "reference": "src/documents/parsers.py:235"
+    },
+    {
+      "id": "chaine:parseur:documents.make_thumbnail_from_pdf_gs_fallback",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "make_thumbnail_from_pdf_gs_fallback",
+      "reference": "src/documents/parsers.py:191"
+    },
+    {
+      "id": "chaine:parseur:documents.parse_date",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "parse_date",
+      "reference": "src/documents/parsers.py:262"
+    },
+    {
+      "id": "chaine:parseur:documents.parse_date_generator",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "parse_date_generator",
+      "reference": "src/documents/parsers.py:266"
+    },
+    {
+      "id": "chaine:parseur:documents.run_convert",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "run_convert",
+      "reference": "src/documents/parsers.py:140"
+    },
+    {
+      "id": "chaine:parseur:paperless_tesseract.post_process_text",
+      "categorie": "chaine",
+      "type": "parseur",
+      "libelle": "post_process_text",
+      "reference": "src/paperless_tesseract/parsers.py:461"
+    },
+    {
+      "id": "commande:documents:convert_mariadb_uuid",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py convert_mariadb_uuid",
+      "reference": "src/documents/management/commands/convert_mariadb_uuid.py:1"
+    },
+    {
+      "id": "commande:documents:decrypt_documents",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py decrypt_documents",
+      "reference": "src/documents/management/commands/decrypt_documents.py:1"
+    },
+    {
+      "id": "commande:documents:document_archiver",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_archiver",
+      "reference": "src/documents/management/commands/document_archiver.py:1"
+    },
+    {
+      "id": "commande:documents:document_consumer",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_consumer",
+      "reference": "src/documents/management/commands/document_consumer.py:1"
+    },
+    {
+      "id": "commande:documents:document_create_classifier",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_create_classifier",
+      "reference": "src/documents/management/commands/document_create_classifier.py:1"
+    },
+    {
+      "id": "commande:documents:document_exporter",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_exporter",
+      "reference": "src/documents/management/commands/document_exporter.py:1"
+    },
+    {
+      "id": "commande:documents:document_fuzzy_match",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_fuzzy_match",
+      "reference": "src/documents/management/commands/document_fuzzy_match.py:1"
+    },
+    {
+      "id": "commande:documents:document_importer",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_importer",
+      "reference": "src/documents/management/commands/document_importer.py:1"
+    },
+    {
+      "id": "commande:documents:document_index",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_index",
+      "reference": "src/documents/management/commands/document_index.py:1"
+    },
+    {
+      "id": "commande:documents:document_renamer",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_renamer",
+      "reference": "src/documents/management/commands/document_renamer.py:1"
+    },
+    {
+      "id": "commande:documents:document_retagger",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_retagger",
+      "reference": "src/documents/management/commands/document_retagger.py:1"
+    },
+    {
+      "id": "commande:documents:document_sanity_checker",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_sanity_checker",
+      "reference": "src/documents/management/commands/document_sanity_checker.py:1"
+    },
+    {
+      "id": "commande:documents:document_thumbnails",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py document_thumbnails",
+      "reference": "src/documents/management/commands/document_thumbnails.py:1"
+    },
+    {
+      "id": "commande:documents:loaddata_stdin",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py loaddata_stdin",
+      "reference": "src/documents/management/commands/loaddata_stdin.py:1"
+    },
+    {
+      "id": "commande:documents:manage_superuser",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py manage_superuser",
+      "reference": "src/documents/management/commands/manage_superuser.py:1"
+    },
+    {
+      "id": "commande:documents:prune_audit_logs",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "documents manage.py prune_audit_logs",
+      "reference": "src/documents/management/commands/prune_audit_logs.py:1"
+    },
+    {
+      "id": "commande:paperless_mail:mail_fetcher",
+      "categorie": "commande",
+      "type": "commande",
+      "libelle": "paperless_mail manage.py mail_fetcher",
+      "reference": "src/paperless_mail/management/commands/mail_fetcher.py:1"
+    },
+    {
+      "id": "correspondance:algo:MATCH_ALL",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_ALL",
+      "reference": "src/documents/models.py:48"
+    },
+    {
+      "id": "correspondance:algo:MATCH_ANY",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_ANY",
+      "reference": "src/documents/models.py:47"
+    },
+    {
+      "id": "correspondance:algo:MATCH_AUTO",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_AUTO",
+      "reference": "src/documents/models.py:52"
+    },
+    {
+      "id": "correspondance:algo:MATCH_FUZZY",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_FUZZY",
+      "reference": "src/documents/models.py:51"
+    },
+    {
+      "id": "correspondance:algo:MATCH_LITERAL",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_LITERAL",
+      "reference": "src/documents/models.py:49"
+    },
+    {
+      "id": "correspondance:algo:MATCH_NONE",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_NONE",
+      "reference": "src/documents/models.py:46"
+    },
+    {
+      "id": "correspondance:algo:MATCH_REGEX",
+      "categorie": "correspondance",
+      "type": "algo",
+      "libelle": "MATCH_REGEX",
+      "reference": "src/documents/models.py:50"
+    },
+    {
+      "id": "correspondance:fonction:_split_match",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching._split_match",
+      "reference": "src/documents/matching.py:252"
+    },
+    {
+      "id": "correspondance:fonction:match_correspondents",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching.match_correspondents",
+      "reference": "src/documents/matching.py:47"
+    },
+    {
+      "id": "correspondance:fonction:match_document_types",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching.match_document_types",
+      "reference": "src/documents/matching.py:75"
+    },
+    {
+      "id": "correspondance:fonction:match_storage_paths",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching.match_storage_paths",
+      "reference": "src/documents/matching.py:127"
+    },
+    {
+      "id": "correspondance:fonction:match_tags",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching.match_tags",
+      "reference": "src/documents/matching.py:102"
+    },
+    {
+      "id": "correspondance:fonction:matches",
+      "categorie": "correspondance",
+      "type": "fonction",
+      "libelle": "matching.matches",
+      "reference": "src/documents/matching.py:155"
+    },
+    {
+      "id": "ecran:reglage:general",
+      "categorie": "ecran",
+      "type": "reglage",
+      "libelle": "reglages/General",
+      "reference": "src-ui/src/app/components/admin/settings/settings.component.ts:72"
+    },
+    {
+      "id": "ecran:reglage:notifications",
+      "categorie": "ecran",
+      "type": "reglage",
+      "libelle": "reglages/Notifications",
+      "reference": "src-ui/src/app/components/admin/settings/settings.component.ts:74"
+    },
+    {
+      "id": "ecran:reglage:permissions",
+      "categorie": "ecran",
+      "type": "reglage",
+      "libelle": "reglages/Permissions",
+      "reference": "src-ui/src/app/components/admin/settings/settings.component.ts:73"
+    },
+    {
+      "id": "ecran:reglage:savedviews",
+      "categorie": "ecran",
+      "type": "reglage",
+      "libelle": "reglages/SavedViews",
+      "reference": "src-ui/src/app/components/admin/settings/settings.component.ts:75"
+    },
+    {
+      "id": "ecran:route:404",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI '404' -> NotFoundComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:303"
+    },
+    {
+      "id": "ecran:route:asn-id",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'asn/:id' -> DocumentAsnComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:97"
+    },
+    {
+      "id": "ecran:route:config",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'config' -> ConfigComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:217"
+    },
+    {
+      "id": "ecran:route:correspondents",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'correspondents' -> CorrespondentListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:133"
+    },
+    {
+      "id": "ecran:route:customfields",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'customfields' -> CustomFieldsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:241"
+    },
+    {
+      "id": "ecran:route:dashboard",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'dashboard' -> DashboardComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:40"
+    },
+    {
+      "id": "ecran:route:documents",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'documents' -> DocumentListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:47"
+    },
+    {
+      "id": "ecran:route:documents-id",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'documents/:id' -> DocumentDetailComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:73"
+    },
+    {
+      "id": "ecran:route:documents-id-section",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'documents/:id/:section' -> DocumentDetailComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:85"
+    },
+    {
+      "id": "ecran:route:documenttypes",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'documenttypes' -> DocumentTypeListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:121"
+    },
+    {
+      "id": "ecran:route:logs",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'logs' -> LogsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:157"
+    },
+    {
+      "id": "ecran:route:mail",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'mail' -> MailComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:265"
+    },
+    {
+      "id": "ecran:route:savedviews",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'savedviews' -> SavedViewsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:289"
+    },
+    {
+      "id": "ecran:route:settings",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'settings' -> SettingsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:191"
+    },
+    {
+      "id": "ecran:route:settings-mail",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'settings/mail' -> SettingsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:179"
+    },
+    {
+      "id": "ecran:route:settings-savedviews",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'settings/savedviews' -> SettingsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:187"
+    },
+    {
+      "id": "ecran:route:settings-section",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'settings/:section' -> SettingsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:204"
+    },
+    {
+      "id": "ecran:route:settings-usersgroups",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'settings/usersgroups' -> SettingsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:183"
+    },
+    {
+      "id": "ecran:route:storagepaths",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'storagepaths' -> StoragePathListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:145"
+    },
+    {
+      "id": "ecran:route:tags",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'tags' -> TagListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:109"
+    },
+    {
+      "id": "ecran:route:tasks",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'tasks' -> TasksComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:229"
+    },
+    {
+      "id": "ecran:route:trash",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'trash' -> TrashComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:166"
+    },
+    {
+      "id": "ecran:route:usersgroups",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'usersgroups' -> UsersAndGroupsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:277"
+    },
+    {
+      "id": "ecran:route:vide",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI '' -> AppFrameComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:33"
+    },
+    {
+      "id": "ecran:route:view-id",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'view/:id' -> DocumentListComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:60"
+    },
+    {
+      "id": "ecran:route:workflows",
+      "categorie": "ecran",
+      "type": "route",
+      "libelle": "route UI 'workflows' -> WorkflowsComponent",
+      "reference": "src-ui/src/app/app-routing.module.ts:253"
+    },
+    {
+      "id": "masse:fonction:add_tag",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.add_tag",
+      "reference": "src/documents/bulk_edit.py:99"
+    },
+    {
+      "id": "masse:fonction:delete",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.delete",
+      "reference": "src/documents/bulk_edit.py:275"
+    },
+    {
+      "id": "masse:fonction:delete_pages",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.delete_pages",
+      "reference": "src/documents/bulk_edit.py:522"
+    },
+    {
+      "id": "masse:fonction:edit_pdf",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.edit_pdf",
+      "reference": "src/documents/bulk_edit.py:550"
+    },
+    {
+      "id": "masse:fonction:merge",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.merge",
+      "reference": "src/documents/bulk_edit.py:372"
+    },
+    {
+      "id": "masse:fonction:modify_custom_fields",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.modify_custom_fields",
+      "reference": "src/documents/bulk_edit.py:205"
+    },
+    {
+      "id": "masse:fonction:modify_tags",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.modify_tags",
+      "reference": "src/documents/bulk_edit.py:143"
+    },
+    {
+      "id": "masse:fonction:reflect_doclinks",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.reflect_doclinks",
+      "reference": "src/documents/bulk_edit.py:647"
+    },
+    {
+      "id": "masse:fonction:remove_doclink",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.remove_doclink",
+      "reference": "src/documents/bulk_edit.py:710"
+    },
+    {
+      "id": "masse:fonction:remove_tag",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.remove_tag",
+      "reference": "src/documents/bulk_edit.py:125"
+    },
+    {
+      "id": "masse:fonction:reprocess",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.reprocess",
+      "reference": "src/documents/bulk_edit.py:297"
+    },
+    {
+      "id": "masse:fonction:rotate",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.rotate",
+      "reference": "src/documents/bulk_edit.py:331"
+    },
+    {
+      "id": "masse:fonction:set_correspondent",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.set_correspondent",
+      "reference": "src/documents/bulk_edit.py:41"
+    },
+    {
+      "id": "masse:fonction:set_document_type",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.set_document_type",
+      "reference": "src/documents/bulk_edit.py:82"
+    },
+    {
+      "id": "masse:fonction:set_permissions",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.set_permissions",
+      "reference": "src/documents/bulk_edit.py:306"
+    },
+    {
+      "id": "masse:fonction:set_storage_path",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.set_storage_path",
+      "reference": "src/documents/bulk_edit.py:61"
+    },
+    {
+      "id": "masse:fonction:split",
+      "categorie": "masse",
+      "type": "fonction",
+      "libelle": "bulk_edit.split",
+      "reference": "src/documents/bulk_edit.py:458"
+    },
+    {
+      "id": "modele:champ:CustomField.created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomField.created",
+      "reference": "src/documents/models.py:797"
+    },
+    {
+      "id": "modele:champ:CustomField.data_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomField.data_type",
+      "reference": "src/documents/models.py:806"
+    },
+    {
+      "id": "modele:champ:CustomField.extra_data",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomField.extra_data",
+      "reference": "src/documents/models.py:813"
+    },
+    {
+      "id": "modele:champ:CustomField.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomField.name",
+      "reference": "src/documents/models.py:804"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.created",
+      "reference": "src/documents/models.py:856"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.document",
+      "reference": "src/documents/models.py:863"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.field",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.field",
+      "reference": "src/documents/models.py:872"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_bool",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_bool",
+      "reference": "src/documents/models.py:884"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_date",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_date",
+      "reference": "src/documents/models.py:888"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_document_ids",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_document_ids",
+      "reference": "src/documents/models.py:917"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_float",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_float",
+      "reference": "src/documents/models.py:892"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_int",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_int",
+      "reference": "src/documents/models.py:890"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_long_text",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_long_text",
+      "reference": "src/documents/models.py:921"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_monetary",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_monetary",
+      "reference": "src/documents/models.py:894"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_monetary_amount",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_monetary_amount",
+      "reference": "src/documents/models.py:896"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_select",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_select",
+      "reference": "src/documents/models.py:919"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_text",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_text",
+      "reference": "src/documents/models.py:882"
+    },
+    {
+      "id": "modele:champ:CustomFieldInstance.value_url",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "CustomFieldInstance.value_url",
+      "reference": "src/documents/models.py:886"
+    },
+    {
+      "id": "modele:champ:Document.added",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.added",
+      "reference": "src/documents/models.py:261"
+    },
+    {
+      "id": "modele:champ:Document.archive_checksum",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.archive_checksum",
+      "reference": "src/documents/models.py:219"
+    },
+    {
+      "id": "modele:champ:Document.archive_filename",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.archive_filename",
+      "reference": "src/documents/models.py:278"
+    },
+    {
+      "id": "modele:champ:Document.archive_serial_number",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.archive_serial_number",
+      "reference": "src/documents/models.py:301"
+    },
+    {
+      "id": "modele:champ:Document.checksum",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.checksum",
+      "reference": "src/documents/models.py:211"
+    },
+    {
+      "id": "modele:champ:Document.content",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.content",
+      "reference": "src/documents/models.py:193"
+    },
+    {
+      "id": "modele:champ:Document.correspondent",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.correspondent",
+      "reference": "src/documents/models.py:164"
+    },
+    {
+      "id": "modele:champ:Document.created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.created",
+      "reference": "src/documents/models.py:240"
+    },
+    {
+      "id": "modele:champ:Document.document_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.document_type",
+      "reference": "src/documents/models.py:184"
+    },
+    {
+      "id": "modele:champ:Document.filename",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.filename",
+      "reference": "src/documents/models.py:268"
+    },
+    {
+      "id": "modele:champ:Document.mime_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.mime_type",
+      "reference": "src/documents/models.py:202"
+    },
+    {
+      "id": "modele:champ:Document.modified",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.modified",
+      "reference": "src/documents/models.py:246"
+    },
+    {
+      "id": "modele:champ:Document.original_filename",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.original_filename",
+      "reference": "src/documents/models.py:288"
+    },
+    {
+      "id": "modele:champ:Document.page_count",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.page_count",
+      "reference": "src/documents/models.py:228"
+    },
+    {
+      "id": "modele:champ:Document.storage_path",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.storage_path",
+      "reference": "src/documents/models.py:173"
+    },
+    {
+      "id": "modele:champ:Document.storage_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.storage_type",
+      "reference": "src/documents/models.py:253"
+    },
+    {
+      "id": "modele:champ:Document.tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.tags",
+      "reference": "src/documents/models.py:204"
+    },
+    {
+      "id": "modele:champ:Document.title",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Document.title",
+      "reference": "src/documents/models.py:182"
+    },
+    {
+      "id": "modele:champ:MailAccount.account_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.account_type",
+      "reference": "src/paperless_mail/models.py:59"
+    },
+    {
+      "id": "modele:champ:MailAccount.character_set",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.character_set",
+      "reference": "src/paperless_mail/models.py:49"
+    },
+    {
+      "id": "modele:champ:MailAccount.expiration",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.expiration",
+      "reference": "src/paperless_mail/models.py:74"
+    },
+    {
+      "id": "modele:champ:MailAccount.imap_port",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.imap_port",
+      "reference": "src/paperless_mail/models.py:27"
+    },
+    {
+      "id": "modele:champ:MailAccount.imap_security",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.imap_security",
+      "reference": "src/paperless_mail/models.py:37"
+    },
+    {
+      "id": "modele:champ:MailAccount.imap_server",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.imap_server",
+      "reference": "src/paperless_mail/models.py:25"
+    },
+    {
+      "id": "modele:champ:MailAccount.is_token",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.is_token",
+      "reference": "src/paperless_mail/models.py:47"
+    },
+    {
+      "id": "modele:champ:MailAccount.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.name",
+      "reference": "src/paperless_mail/models.py:23"
+    },
+    {
+      "id": "modele:champ:MailAccount.password",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.password",
+      "reference": "src/paperless_mail/models.py:45"
+    },
+    {
+      "id": "modele:champ:MailAccount.refresh_token",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.refresh_token",
+      "reference": "src/paperless_mail/models.py:65"
+    },
+    {
+      "id": "modele:champ:MailAccount.username",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailAccount.username",
+      "reference": "src/paperless_mail/models.py:43"
+    },
+    {
+      "id": "modele:champ:MailRule.account",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.account",
+      "reference": "src/paperless_mail/models.py:147"
+    },
+    {
+      "id": "modele:champ:MailRule.action",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.action",
+      "reference": "src/paperless_mail/models.py:246"
+    },
+    {
+      "id": "modele:champ:MailRule.action_parameter",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.action_parameter",
+      "reference": "src/paperless_mail/models.py:252"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_correspondent",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_correspondent",
+      "reference": "src/paperless_mail/models.py:291"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_correspondent_from",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_correspondent_from",
+      "reference": "src/paperless_mail/models.py:285"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_document_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_document_type",
+      "reference": "src/paperless_mail/models.py:277"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_owner_from_rule",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_owner_from_rule",
+      "reference": "src/paperless_mail/models.py:299"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_tags",
+      "reference": "src/paperless_mail/models.py:271"
+    },
+    {
+      "id": "modele:champ:MailRule.assign_title_from",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.assign_title_from",
+      "reference": "src/paperless_mail/models.py:265"
+    },
+    {
+      "id": "modele:champ:MailRule.attachment_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.attachment_type",
+      "reference": "src/paperless_mail/models.py:224"
+    },
+    {
+      "id": "modele:champ:MailRule.consumption_scope",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.consumption_scope",
+      "reference": "src/paperless_mail/models.py:234"
+    },
+    {
+      "id": "modele:champ:MailRule.enabled",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.enabled",
+      "reference": "src/paperless_mail/models.py:154"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_attachment_filename_exclude",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_attachment_filename_exclude",
+      "reference": "src/paperless_mail/models.py:206"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_attachment_filename_include",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_attachment_filename_include",
+      "reference": "src/paperless_mail/models.py:194"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_body",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_body",
+      "reference": "src/paperless_mail/models.py:187"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_from",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_from",
+      "reference": "src/paperless_mail/models.py:166"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_subject",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_subject",
+      "reference": "src/paperless_mail/models.py:180"
+    },
+    {
+      "id": "modele:champ:MailRule.filter_to",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.filter_to",
+      "reference": "src/paperless_mail/models.py:173"
+    },
+    {
+      "id": "modele:champ:MailRule.folder",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.folder",
+      "reference": "src/paperless_mail/models.py:156"
+    },
+    {
+      "id": "modele:champ:MailRule.maximum_age",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.maximum_age",
+      "reference": "src/paperless_mail/models.py:218"
+    },
+    {
+      "id": "modele:champ:MailRule.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.name",
+      "reference": "src/paperless_mail/models.py:143"
+    },
+    {
+      "id": "modele:champ:MailRule.order",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.order",
+      "reference": "src/paperless_mail/models.py:145"
+    },
+    {
+      "id": "modele:champ:MailRule.pdf_layout",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MailRule.pdf_layout",
+      "reference": "src/paperless_mail/models.py:240"
+    },
+    {
+      "id": "modele:champ:MatchingModel.is_insensitive",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MatchingModel.is_insensitive",
+      "reference": "src/documents/models.py:74"
+    },
+    {
+      "id": "modele:champ:MatchingModel.match",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MatchingModel.match",
+      "reference": "src/documents/models.py:66"
+    },
+    {
+      "id": "modele:champ:MatchingModel.matching_algorithm",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MatchingModel.matching_algorithm",
+      "reference": "src/documents/models.py:68"
+    },
+    {
+      "id": "modele:champ:MatchingModel.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "MatchingModel.name",
+      "reference": "src/documents/models.py:64"
+    },
+    {
+      "id": "modele:champ:ModelWithOwner.owner",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ModelWithOwner.owner",
+      "reference": "src/documents/models.py:32"
+    },
+    {
+      "id": "modele:champ:Note.created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Note.created",
+      "reference": "src/documents/models.py:687"
+    },
+    {
+      "id": "modele:champ:Note.document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Note.document",
+      "reference": "src/documents/models.py:693"
+    },
+    {
+      "id": "modele:champ:Note.note",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Note.note",
+      "reference": "src/documents/models.py:681"
+    },
+    {
+      "id": "modele:champ:Note.user",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Note.user",
+      "reference": "src/documents/models.py:702"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.acknowledged",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.acknowledged",
+      "reference": "src/documents/models.py:609"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.date_created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.date_created",
+      "reference": "src/documents/models.py:638"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.date_done",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.date_done",
+      "reference": "src/documents/models.py:652"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.date_started",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.date_started",
+      "reference": "src/documents/models.py:645"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.result",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.result",
+      "reference": "src/documents/models.py:659"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.status",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.status",
+      "reference": "src/documents/models.py:630"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.task_file_name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.task_file_name",
+      "reference": "src/documents/models.py:615"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.task_id",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.task_id",
+      "reference": "src/documents/models.py:602"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.task_name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.task_name",
+      "reference": "src/documents/models.py:622"
+    },
+    {
+      "id": "modele:champ:PaperlessTask.type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "PaperlessTask.type",
+      "reference": "src/documents/models.py:668"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.error",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.error",
+      "reference": "src/paperless_mail/models.py:362"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.folder",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.folder",
+      "reference": "src/paperless_mail/models.py:317"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.processed",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.processed",
+      "reference": "src/paperless_mail/models.py:348"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.received",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.received",
+      "reference": "src/paperless_mail/models.py:341"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.rule",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.rule",
+      "reference": "src/paperless_mail/models.py:309"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.status",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.status",
+      "reference": "src/paperless_mail/models.py:354"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.subject",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.subject",
+      "reference": "src/paperless_mail/models.py:333"
+    },
+    {
+      "id": "modele:champ:ProcessedMail.uid",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ProcessedMail.uid",
+      "reference": "src/paperless_mail/models.py:325"
+    },
+    {
+      "id": "modele:champ:SavedView.display_fields",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.display_fields",
+      "reference": "src/documents/models.py:488"
+    },
+    {
+      "id": "modele:champ:SavedView.display_mode",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.display_mode",
+      "reference": "src/documents/models.py:480"
+    },
+    {
+      "id": "modele:champ:SavedView.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.name",
+      "reference": "src/documents/models.py:456"
+    },
+    {
+      "id": "modele:champ:SavedView.page_size",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.page_size",
+      "reference": "src/documents/models.py:473"
+    },
+    {
+      "id": "modele:champ:SavedView.show_in_sidebar",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.show_in_sidebar",
+      "reference": "src/documents/models.py:461"
+    },
+    {
+      "id": "modele:champ:SavedView.show_on_dashboard",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.show_on_dashboard",
+      "reference": "src/documents/models.py:458"
+    },
+    {
+      "id": "modele:champ:SavedView.sort_field",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.sort_field",
+      "reference": "src/documents/models.py:465"
+    },
+    {
+      "id": "modele:champ:SavedView.sort_reverse",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedView.sort_reverse",
+      "reference": "src/documents/models.py:471"
+    },
+    {
+      "id": "modele:champ:SavedViewFilterRule.rule_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedViewFilterRule.rule_type",
+      "reference": "src/documents/models.py:562"
+    },
+    {
+      "id": "modele:champ:SavedViewFilterRule.saved_view",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedViewFilterRule.saved_view",
+      "reference": "src/documents/models.py:555"
+    },
+    {
+      "id": "modele:champ:SavedViewFilterRule.value",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "SavedViewFilterRule.value",
+      "reference": "src/documents/models.py:564"
+    },
+    {
+      "id": "modele:champ:ShareLink.created",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.created",
+      "reference": "src/documents/models.py:725"
+    },
+    {
+      "id": "modele:champ:ShareLink.document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.document",
+      "reference": "src/documents/models.py:748"
+    },
+    {
+      "id": "modele:champ:ShareLink.expiration",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.expiration",
+      "reference": "src/documents/models.py:733"
+    },
+    {
+      "id": "modele:champ:ShareLink.file_version",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.file_version",
+      "reference": "src/documents/models.py:756"
+    },
+    {
+      "id": "modele:champ:ShareLink.owner",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.owner",
+      "reference": "src/documents/models.py:762"
+    },
+    {
+      "id": "modele:champ:ShareLink.slug",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "ShareLink.slug",
+      "reference": "src/documents/models.py:740"
+    },
+    {
+      "id": "modele:champ:StoragePath.path",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "StoragePath.path",
+      "reference": "src/documents/models.py:147"
+    },
+    {
+      "id": "modele:champ:Tag.color",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Tag.color",
+      "reference": "src/documents/models.py:102"
+    },
+    {
+      "id": "modele:champ:Tag.is_inbox_tag",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Tag.is_inbox_tag",
+      "reference": "src/documents/models.py:106"
+    },
+    {
+      "id": "modele:champ:UiSettings.settings",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "UiSettings.settings",
+      "reference": "src/documents/models.py:581"
+    },
+    {
+      "id": "modele:champ:UiSettings.user",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "UiSettings.user",
+      "reference": "src/documents/models.py:576"
+    },
+    {
+      "id": "modele:champ:Workflow.actions",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Workflow.actions",
+      "reference": "src/documents/models.py:1539"
+    },
+    {
+      "id": "modele:champ:Workflow.enabled",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Workflow.enabled",
+      "reference": "src/documents/models.py:1546"
+    },
+    {
+      "id": "modele:champ:Workflow.name",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Workflow.name",
+      "reference": "src/documents/models.py:1528"
+    },
+    {
+      "id": "modele:champ:Workflow.order",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Workflow.order",
+      "reference": "src/documents/models.py:1530"
+    },
+    {
+      "id": "modele:champ:Workflow.triggers",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "Workflow.triggers",
+      "reference": "src/documents/models.py:1532"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_change_groups",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_change_groups",
+      "reference": "src/documents/models.py:1372"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_change_users",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_change_users",
+      "reference": "src/documents/models.py:1365"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_correspondent",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_correspondent",
+      "reference": "src/documents/models.py:1324"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_custom_fields",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_custom_fields",
+      "reference": "src/documents/models.py:1379"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_custom_fields_values",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_custom_fields_values",
+      "reference": "src/documents/models.py:1386"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_document_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_document_type",
+      "reference": "src/documents/models.py:1315"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_owner",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_owner",
+      "reference": "src/documents/models.py:1342"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_storage_path",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_storage_path",
+      "reference": "src/documents/models.py:1333"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_tags",
+      "reference": "src/documents/models.py:1308"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_title",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_title",
+      "reference": "src/documents/models.py:1299"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_view_groups",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_view_groups",
+      "reference": "src/documents/models.py:1358"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.assign_view_users",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.assign_view_users",
+      "reference": "src/documents/models.py:1351"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.email",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.email",
+      "reference": "src/documents/models.py:1501"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.order",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.order",
+      "reference": "src/documents/models.py:1297"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_correspondents",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_correspondents",
+      "reference": "src/documents/models.py:1427"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_custom_fields",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_custom_fields",
+      "reference": "src/documents/models.py:1496"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_document_types",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_document_types",
+      "reference": "src/documents/models.py:1415"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_owners",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_owners",
+      "reference": "src/documents/models.py:1451"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_permissions",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_permissions",
+      "reference": "src/documents/models.py:1484"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_storage_paths",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_storage_paths",
+      "reference": "src/documents/models.py:1439"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_all_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_all_tags",
+      "reference": "src/documents/models.py:1403"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_change_groups",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_change_groups",
+      "reference": "src/documents/models.py:1477"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_change_users",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_change_users",
+      "reference": "src/documents/models.py:1470"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_correspondents",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_correspondents",
+      "reference": "src/documents/models.py:1420"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_custom_fields",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_custom_fields",
+      "reference": "src/documents/models.py:1489"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_document_types",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_document_types",
+      "reference": "src/documents/models.py:1408"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_owners",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_owners",
+      "reference": "src/documents/models.py:1444"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_storage_paths",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_storage_paths",
+      "reference": "src/documents/models.py:1432"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_tags",
+      "reference": "src/documents/models.py:1396"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_view_groups",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_view_groups",
+      "reference": "src/documents/models.py:1463"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.remove_view_users",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.remove_view_users",
+      "reference": "src/documents/models.py:1456"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.type",
+      "reference": "src/documents/models.py:1291"
+    },
+    {
+      "id": "modele:champ:WorkflowAction.webhook",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowAction.webhook",
+      "reference": "src/documents/models.py:1510"
+    },
+    {
+      "id": "modele:champ:WorkflowActionEmail.body",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionEmail.body",
+      "reference": "src/documents/models.py:1196"
+    },
+    {
+      "id": "modele:champ:WorkflowActionEmail.include_document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionEmail.include_document",
+      "reference": "src/documents/models.py:1213"
+    },
+    {
+      "id": "modele:champ:WorkflowActionEmail.subject",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionEmail.subject",
+      "reference": "src/documents/models.py:1186"
+    },
+    {
+      "id": "modele:champ:WorkflowActionEmail.to",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionEmail.to",
+      "reference": "src/documents/models.py:1205"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.as_json",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.as_json",
+      "reference": "src/documents/models.py:1237"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.body",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.body",
+      "reference": "src/documents/models.py:1249"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.headers",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.headers",
+      "reference": "src/documents/models.py:1256"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.include_document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.include_document",
+      "reference": "src/documents/models.py:1263"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.params",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.params",
+      "reference": "src/documents/models.py:1242"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.url",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.url",
+      "reference": "src/documents/models.py:1225"
+    },
+    {
+      "id": "modele:champ:WorkflowActionWebhook.use_params",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowActionWebhook.use_params",
+      "reference": "src/documents/models.py:1232"
+    },
+    {
+      "id": "modele:champ:WorkflowRun.document",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowRun.document",
+      "reference": "src/documents/models.py:1566"
+    },
+    {
+      "id": "modele:champ:WorkflowRun.run_at",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowRun.run_at",
+      "reference": "src/documents/models.py:1574"
+    },
+    {
+      "id": "modele:champ:WorkflowRun.type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowRun.type",
+      "reference": "src/documents/models.py:1560"
+    },
+    {
+      "id": "modele:champ:WorkflowRun.workflow",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowRun.workflow",
+      "reference": "src/documents/models.py:1553"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_custom_field_query",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_custom_field_query",
+      "reference": "src/documents/models.py:1127"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_filename",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_filename",
+      "reference": "src/documents/models.py:1032"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_all_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_all_tags",
+      "reference": "src/documents/models.py:1068"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_correspondent",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_correspondent",
+      "reference": "src/documents/models.py:1097"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_document_type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_document_type",
+      "reference": "src/documents/models.py:1082"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_not_correspondents",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_not_correspondents",
+      "reference": "src/documents/models.py:1105"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_not_document_types",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_not_document_types",
+      "reference": "src/documents/models.py:1090"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_not_storage_paths",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_not_storage_paths",
+      "reference": "src/documents/models.py:1120"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_not_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_not_tags",
+      "reference": "src/documents/models.py:1075"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_storage_path",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_storage_path",
+      "reference": "src/documents/models.py:1112"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_has_tags",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_has_tags",
+      "reference": "src/documents/models.py:1062"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_mailrule",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_mailrule",
+      "reference": "src/documents/models.py:1044"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.filter_path",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.filter_path",
+      "reference": "src/documents/models.py:1020"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.is_insensitive",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.is_insensitive",
+      "reference": "src/documents/models.py:1060"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.match",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.match",
+      "reference": "src/documents/models.py:1052"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.matching_algorithm",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.matching_algorithm",
+      "reference": "src/documents/models.py:1054"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.schedule_date_custom_field",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.schedule_date_custom_field",
+      "reference": "src/documents/models.py:1169"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.schedule_date_field",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.schedule_date_field",
+      "reference": "src/documents/models.py:1159"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.schedule_is_recurring",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.schedule_is_recurring",
+      "reference": "src/documents/models.py:1142"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.schedule_offset_days",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.schedule_offset_days",
+      "reference": "src/documents/models.py:1134"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.schedule_recurring_interval_days",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.schedule_recurring_interval_days",
+      "reference": "src/documents/models.py:1150"
+    },
+    {
+      "id": "modele:champ:WorkflowTrigger.type",
+      "categorie": "modele",
+      "type": "champ",
+      "libelle": "WorkflowTrigger.type",
+      "reference": "src/documents/models.py:1008"
+    },
+    {
+      "id": "modele:classe:Correspondent",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe Correspondent(MatchingModel)",
+      "reference": "src/documents/models.py:95"
+    },
+    {
+      "id": "modele:classe:CustomField",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe CustomField(models.Model)",
+      "reference": "src/documents/models.py:780"
+    },
+    {
+      "id": "modele:classe:CustomFieldInstance",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe CustomFieldInstance(SoftDeleteModel)",
+      "reference": "src/documents/models.py:837"
+    },
+    {
+      "id": "modele:classe:Document",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe Document(SoftDeleteModel, ModelWithOwner)",
+      "reference": "src/documents/models.py:156"
+    },
+    {
+      "id": "modele:classe:DocumentType",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe DocumentType(MatchingModel)",
+      "reference": "src/documents/models.py:140"
+    },
+    {
+      "id": "modele:classe:MailAccount",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe MailAccount(document_models.ModelWithOwner)",
+      "reference": "src/paperless_mail/models.py:8"
+    },
+    {
+      "id": "modele:classe:MailRule",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe MailRule(document_models.ModelWithOwner)",
+      "reference": "src/paperless_mail/models.py:87"
+    },
+    {
+      "id": "modele:classe:MatchingModel",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe MatchingModel(ModelWithOwner)",
+      "reference": "src/documents/models.py:45"
+    },
+    {
+      "id": "modele:classe:ModelWithOwner",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe ModelWithOwner(models.Model)",
+      "reference": "src/documents/models.py:31"
+    },
+    {
+      "id": "modele:classe:Note",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe Note(SoftDeleteModel)",
+      "reference": "src/documents/models.py:680"
+    },
+    {
+      "id": "modele:classe:PaperlessTask",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe PaperlessTask(ModelWithOwner)",
+      "reference": "src/documents/models.py:587"
+    },
+    {
+      "id": "modele:classe:ProcessedMail",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe ProcessedMail(document_models.ModelWithOwner)",
+      "reference": "src/paperless_mail/models.py:308"
+    },
+    {
+      "id": "modele:classe:SavedView",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe SavedView(ModelWithOwner)",
+      "reference": "src/documents/models.py:435"
+    },
+    {
+      "id": "modele:classe:SavedViewFilterRule",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe SavedViewFilterRule(models.Model)",
+      "reference": "src/documents/models.py:503"
+    },
+    {
+      "id": "modele:classe:ShareLink",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe ShareLink(SoftDeleteModel)",
+      "reference": "src/documents/models.py:720"
+    },
+    {
+      "id": "modele:classe:StoragePath",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe StoragePath(MatchingModel)",
+      "reference": "src/documents/models.py:146"
+    },
+    {
+      "id": "modele:classe:Tag",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe Tag(MatchingModel, TreeNodeModel)",
+      "reference": "src/documents/models.py:101"
+    },
+    {
+      "id": "modele:classe:UiSettings",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe UiSettings(models.Model)",
+      "reference": "src/documents/models.py:575"
+    },
+    {
+      "id": "modele:classe:Workflow",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe Workflow(models.Model)",
+      "reference": "src/documents/models.py:1527"
+    },
+    {
+      "id": "modele:classe:WorkflowAction",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe WorkflowAction(models.Model)",
+      "reference": "src/documents/models.py:1272"
+    },
+    {
+      "id": "modele:classe:WorkflowActionEmail",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe WorkflowActionEmail(models.Model)",
+      "reference": "src/documents/models.py:1185"
+    },
+    {
+      "id": "modele:classe:WorkflowActionWebhook",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe WorkflowActionWebhook(models.Model)",
+      "reference": "src/documents/models.py:1222"
+    },
+    {
+      "id": "modele:classe:WorkflowRun",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe WorkflowRun(SoftDeleteModel)",
+      "reference": "src/documents/models.py:1552"
+    },
+    {
+      "id": "modele:classe:WorkflowTrigger",
+      "categorie": "modele",
+      "type": "classe",
+      "libelle": "classe WorkflowTrigger(models.Model)",
+      "reference": "src/documents/models.py:980"
+    },
+    {
+      "id": "modele:customfield-type:BOOL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type BOOL",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:DATE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type DATE",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:DOCUMENTLINK",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type DOCUMENTLINK",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:FLOAT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type FLOAT",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:INT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type INT",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:LONG_TEXT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type LONG_TEXT",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:MONETARY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type MONETARY",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:SELECT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type SELECT",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:STRING",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type STRING",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:customfield-type:URL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CustomField type URL",
+      "reference": "src/documents/models.py:843"
+    },
+    {
+      "id": "modele:type:AttachmentProcessing.ATTACHMENTS_ONLY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "AttachmentProcessing.ATTACHMENTS_ONLY",
+      "reference": "src/paperless_mail/models.py:115"
+    },
+    {
+      "id": "modele:type:AttachmentProcessing.EVERYTHING",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "AttachmentProcessing.EVERYTHING",
+      "reference": "src/paperless_mail/models.py:116"
+    },
+    {
+      "id": "modele:type:ConsumptionScope.ATTACHMENTS_ONLY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ConsumptionScope.ATTACHMENTS_ONLY",
+      "reference": "src/paperless_mail/models.py:104"
+    },
+    {
+      "id": "modele:type:ConsumptionScope.EML_ONLY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ConsumptionScope.EML_ONLY",
+      "reference": "src/paperless_mail/models.py:105"
+    },
+    {
+      "id": "modele:type:ConsumptionScope.EVERYTHING",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ConsumptionScope.EVERYTHING",
+      "reference": "src/paperless_mail/models.py:106"
+    },
+    {
+      "id": "modele:type:CorrespondentSource.FROM_CUSTOM",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CorrespondentSource.FROM_CUSTOM",
+      "reference": "src/paperless_mail/models.py:141"
+    },
+    {
+      "id": "modele:type:CorrespondentSource.FROM_EMAIL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CorrespondentSource.FROM_EMAIL",
+      "reference": "src/paperless_mail/models.py:139"
+    },
+    {
+      "id": "modele:type:CorrespondentSource.FROM_NAME",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CorrespondentSource.FROM_NAME",
+      "reference": "src/paperless_mail/models.py:140"
+    },
+    {
+      "id": "modele:type:CorrespondentSource.FROM_NOTHING",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "CorrespondentSource.FROM_NOTHING",
+      "reference": "src/paperless_mail/models.py:138"
+    },
+    {
+      "id": "modele:type:DisplayFields.ADDED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.ADDED",
+      "reference": "src/documents/models.py:444"
+    },
+    {
+      "id": "modele:type:DisplayFields.ASN",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.ASN",
+      "reference": "src/documents/models.py:452"
+    },
+    {
+      "id": "modele:type:DisplayFields.CORRESPONDENT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.CORRESPONDENT",
+      "reference": "src/documents/models.py:446"
+    },
+    {
+      "id": "modele:type:DisplayFields.CREATED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.CREATED",
+      "reference": "src/documents/models.py:443"
+    },
+    {
+      "id": "modele:type:DisplayFields.CUSTOM_FIELD",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.CUSTOM_FIELD",
+      "reference": "src/documents/models.py:454"
+    },
+    {
+      "id": "modele:type:DisplayFields.DOCUMENT_TYPE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.DOCUMENT_TYPE",
+      "reference": "src/documents/models.py:447"
+    },
+    {
+      "id": "modele:type:DisplayFields.NOTES",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.NOTES",
+      "reference": "src/documents/models.py:449"
+    },
+    {
+      "id": "modele:type:DisplayFields.OWNER",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.OWNER",
+      "reference": "src/documents/models.py:450"
+    },
+    {
+      "id": "modele:type:DisplayFields.PAGE_COUNT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.PAGE_COUNT",
+      "reference": "src/documents/models.py:453"
+    },
+    {
+      "id": "modele:type:DisplayFields.SHARED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.SHARED",
+      "reference": "src/documents/models.py:451"
+    },
+    {
+      "id": "modele:type:DisplayFields.STORAGE_PATH",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.STORAGE_PATH",
+      "reference": "src/documents/models.py:448"
+    },
+    {
+      "id": "modele:type:DisplayFields.TAGS",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.TAGS",
+      "reference": "src/documents/models.py:445"
+    },
+    {
+      "id": "modele:type:DisplayFields.TITLE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayFields.TITLE",
+      "reference": "src/documents/models.py:442"
+    },
+    {
+      "id": "modele:type:DisplayMode.LARGE_CARDS",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayMode.LARGE_CARDS",
+      "reference": "src/documents/models.py:439"
+    },
+    {
+      "id": "modele:type:DisplayMode.SMALL_CARDS",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayMode.SMALL_CARDS",
+      "reference": "src/documents/models.py:438"
+    },
+    {
+      "id": "modele:type:DisplayMode.TABLE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DisplayMode.TABLE",
+      "reference": "src/documents/models.py:437"
+    },
+    {
+      "id": "modele:type:DocumentSourceChoices.API_UPLOAD",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DocumentSourceChoices.API_UPLOAD",
+      "reference": "src/documents/models.py:998"
+    },
+    {
+      "id": "modele:type:DocumentSourceChoices.CONSUME_FOLDER",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DocumentSourceChoices.CONSUME_FOLDER",
+      "reference": "src/documents/models.py:997"
+    },
+    {
+      "id": "modele:type:DocumentSourceChoices.MAIL_FETCH",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DocumentSourceChoices.MAIL_FETCH",
+      "reference": "src/documents/models.py:999"
+    },
+    {
+      "id": "modele:type:DocumentSourceChoices.WEB_UI",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "DocumentSourceChoices.WEB_UI",
+      "reference": "src/documents/models.py:1000"
+    },
+    {
+      "id": "modele:type:FieldDataType.BOOL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.BOOL",
+      "reference": "src/documents/models.py:789"
+    },
+    {
+      "id": "modele:type:FieldDataType.DATE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.DATE",
+      "reference": "src/documents/models.py:788"
+    },
+    {
+      "id": "modele:type:FieldDataType.DOCUMENTLINK",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.DOCUMENTLINK",
+      "reference": "src/documents/models.py:793"
+    },
+    {
+      "id": "modele:type:FieldDataType.FLOAT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.FLOAT",
+      "reference": "src/documents/models.py:791"
+    },
+    {
+      "id": "modele:type:FieldDataType.INT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.INT",
+      "reference": "src/documents/models.py:790"
+    },
+    {
+      "id": "modele:type:FieldDataType.LONG_TEXT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.LONG_TEXT",
+      "reference": "src/documents/models.py:795"
+    },
+    {
+      "id": "modele:type:FieldDataType.MONETARY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.MONETARY",
+      "reference": "src/documents/models.py:792"
+    },
+    {
+      "id": "modele:type:FieldDataType.SELECT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.SELECT",
+      "reference": "src/documents/models.py:794"
+    },
+    {
+      "id": "modele:type:FieldDataType.STRING",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.STRING",
+      "reference": "src/documents/models.py:786"
+    },
+    {
+      "id": "modele:type:FieldDataType.URL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FieldDataType.URL",
+      "reference": "src/documents/models.py:787"
+    },
+    {
+      "id": "modele:type:FileVersion.ARCHIVE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FileVersion.ARCHIVE",
+      "reference": "src/documents/models.py:722"
+    },
+    {
+      "id": "modele:type:FileVersion.ORIGINAL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "FileVersion.ORIGINAL",
+      "reference": "src/documents/models.py:723"
+    },
+    {
+      "id": "modele:type:ImapSecurity.NONE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ImapSecurity.NONE",
+      "reference": "src/paperless_mail/models.py:14"
+    },
+    {
+      "id": "modele:type:ImapSecurity.SSL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ImapSecurity.SSL",
+      "reference": "src/paperless_mail/models.py:15"
+    },
+    {
+      "id": "modele:type:ImapSecurity.STARTTLS",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ImapSecurity.STARTTLS",
+      "reference": "src/paperless_mail/models.py:16"
+    },
+    {
+      "id": "modele:type:MailAccountType.GMAIL_OAUTH",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAccountType.GMAIL_OAUTH",
+      "reference": "src/paperless_mail/models.py:20"
+    },
+    {
+      "id": "modele:type:MailAccountType.IMAP",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAccountType.IMAP",
+      "reference": "src/paperless_mail/models.py:19"
+    },
+    {
+      "id": "modele:type:MailAccountType.OUTLOOK_OAUTH",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAccountType.OUTLOOK_OAUTH",
+      "reference": "src/paperless_mail/models.py:21"
+    },
+    {
+      "id": "modele:type:MailAction.DELETE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAction.DELETE",
+      "reference": "src/paperless_mail/models.py:126"
+    },
+    {
+      "id": "modele:type:MailAction.FLAG",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAction.FLAG",
+      "reference": "src/paperless_mail/models.py:129"
+    },
+    {
+      "id": "modele:type:MailAction.MARK_READ",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAction.MARK_READ",
+      "reference": "src/paperless_mail/models.py:128"
+    },
+    {
+      "id": "modele:type:MailAction.MOVE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAction.MOVE",
+      "reference": "src/paperless_mail/models.py:127"
+    },
+    {
+      "id": "modele:type:MailAction.TAG",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "MailAction.TAG",
+      "reference": "src/paperless_mail/models.py:130"
+    },
+    {
+      "id": "modele:type:PdfLayout.DEFAULT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "PdfLayout.DEFAULT",
+      "reference": "src/paperless_mail/models.py:119"
+    },
+    {
+      "id": "modele:type:PdfLayout.HTML_ONLY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "PdfLayout.HTML_ONLY",
+      "reference": "src/paperless_mail/models.py:122"
+    },
+    {
+      "id": "modele:type:PdfLayout.HTML_TEXT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "PdfLayout.HTML_TEXT",
+      "reference": "src/paperless_mail/models.py:121"
+    },
+    {
+      "id": "modele:type:PdfLayout.TEXT_HTML",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "PdfLayout.TEXT_HTML",
+      "reference": "src/paperless_mail/models.py:120"
+    },
+    {
+      "id": "modele:type:PdfLayout.TEXT_ONLY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "PdfLayout.TEXT_ONLY",
+      "reference": "src/paperless_mail/models.py:123"
+    },
+    {
+      "id": "modele:type:ScheduleDateField.ADDED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ScheduleDateField.ADDED",
+      "reference": "src/documents/models.py:1003"
+    },
+    {
+      "id": "modele:type:ScheduleDateField.CREATED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ScheduleDateField.CREATED",
+      "reference": "src/documents/models.py:1004"
+    },
+    {
+      "id": "modele:type:ScheduleDateField.CUSTOM_FIELD",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ScheduleDateField.CUSTOM_FIELD",
+      "reference": "src/documents/models.py:1006"
+    },
+    {
+      "id": "modele:type:ScheduleDateField.MODIFIED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "ScheduleDateField.MODIFIED",
+      "reference": "src/documents/models.py:1005"
+    },
+    {
+      "id": "modele:type:TaskName.CHECK_SANITY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskName.CHECK_SANITY",
+      "reference": "src/documents/models.py:599"
+    },
+    {
+      "id": "modele:type:TaskName.CONSUME_FILE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskName.CONSUME_FILE",
+      "reference": "src/documents/models.py:597"
+    },
+    {
+      "id": "modele:type:TaskName.INDEX_OPTIMIZE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskName.INDEX_OPTIMIZE",
+      "reference": "src/documents/models.py:600"
+    },
+    {
+      "id": "modele:type:TaskName.TRAIN_CLASSIFIER",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskName.TRAIN_CLASSIFIER",
+      "reference": "src/documents/models.py:598"
+    },
+    {
+      "id": "modele:type:TaskType.AUTO",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskType.AUTO",
+      "reference": "src/documents/models.py:592"
+    },
+    {
+      "id": "modele:type:TaskType.MANUAL_TASK",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskType.MANUAL_TASK",
+      "reference": "src/documents/models.py:594"
+    },
+    {
+      "id": "modele:type:TaskType.SCHEDULED_TASK",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TaskType.SCHEDULED_TASK",
+      "reference": "src/documents/models.py:593"
+    },
+    {
+      "id": "modele:type:TitleSource.FROM_FILENAME",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TitleSource.FROM_FILENAME",
+      "reference": "src/paperless_mail/models.py:134"
+    },
+    {
+      "id": "modele:type:TitleSource.FROM_SUBJECT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TitleSource.FROM_SUBJECT",
+      "reference": "src/paperless_mail/models.py:133"
+    },
+    {
+      "id": "modele:type:TitleSource.NONE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "TitleSource.NONE",
+      "reference": "src/paperless_mail/models.py:135"
+    },
+    {
+      "id": "modele:type:WorkflowActionType.ASSIGNMENT",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowActionType.ASSIGNMENT",
+      "reference": "src/documents/models.py:1274"
+    },
+    {
+      "id": "modele:type:WorkflowActionType.EMAIL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowActionType.EMAIL",
+      "reference": "src/documents/models.py:1282"
+    },
+    {
+      "id": "modele:type:WorkflowActionType.REMOVAL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowActionType.REMOVAL",
+      "reference": "src/documents/models.py:1278"
+    },
+    {
+      "id": "modele:type:WorkflowActionType.WEBHOOK",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowActionType.WEBHOOK",
+      "reference": "src/documents/models.py:1286"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.ALL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.ALL",
+      "reference": "src/documents/models.py:985"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.ANY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.ANY",
+      "reference": "src/documents/models.py:984"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.FUZZY",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.FUZZY",
+      "reference": "src/documents/models.py:988"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.LITERAL",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.LITERAL",
+      "reference": "src/documents/models.py:986"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.NONE",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.NONE",
+      "reference": "src/documents/models.py:983"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerMatching.REGEX",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerMatching.REGEX",
+      "reference": "src/documents/models.py:987"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerType.CONSUMPTION",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerType.CONSUMPTION",
+      "reference": "src/documents/models.py:991"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerType.DOCUMENT_ADDED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerType.DOCUMENT_ADDED",
+      "reference": "src/documents/models.py:992"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerType.DOCUMENT_UPDATED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerType.DOCUMENT_UPDATED",
+      "reference": "src/documents/models.py:993"
+    },
+    {
+      "id": "modele:type:WorkflowTriggerType.SCHEDULED",
+      "categorie": "modele",
+      "type": "type",
+      "libelle": "WorkflowTriggerType.SCHEDULED",
+      "reference": "src/documents/models.py:994"
+    },
+    {
+      "id": "permissions:classe:AcknowledgeTasksPermissions",
+      "categorie": "permissions",
+      "type": "classe",
+      "libelle": "AcknowledgeTasksPermissions",
+      "reference": "src/documents/permissions.py:207"
+    },
+    {
+      "id": "permissions:classe:PaperlessAdminPermissions",
+      "categorie": "permissions",
+      "type": "classe",
+      "libelle": "PaperlessAdminPermissions",
+      "reference": "src/documents/permissions.py:45"
+    },
+    {
+      "id": "permissions:classe:PaperlessNotePermissions",
+      "categorie": "permissions",
+      "type": "classe",
+      "libelle": "PaperlessNotePermissions",
+      "reference": "src/documents/permissions.py:186"
+    },
+    {
+      "id": "permissions:classe:PaperlessObjectPermissions",
+      "categorie": "permissions",
+      "type": "classe",
+      "libelle": "PaperlessObjectPermissions",
+      "reference": "src/documents/permissions.py:19"
+    },
+    {
+      "id": "permissions:classe:ViewDocumentsPermissions",
+      "categorie": "permissions",
+      "type": "classe",
+      "libelle": "ViewDocumentsPermissions",
+      "reference": "src/documents/permissions.py:168"
+    },
+    {
+      "id": "permissions:fonction:get_document_count_filter_for_user",
+      "categorie": "permissions",
+      "type": "fonction",
+      "libelle": "get_document_count_filter_for_user",
+      "reference": "src/documents/permissions.py:132"
+    },
+    {
+      "id": "permissions:fonction:get_groups_with_only_permission",
+      "categorie": "permissions",
+      "type": "fonction",
+      "libelle": "get_groups_with_only_permission",
+      "reference": "src/documents/permissions.py:50"
+    },
+    {
+      "id": "permissions:fonction:get_objects_for_user_owner_aware",
+      "categorie": "permissions",
+      "type": "fonction",
+      "libelle": "get_objects_for_user_owner_aware",
+      "reference": "src/documents/permissions.py:151"
+    },
+    {
+      "id": "permissions:fonction:has_perms_owner_aware",
+      "categorie": "permissions",
+      "type": "fonction",
+      "libelle": "has_perms_owner_aware",
+      "reference": "src/documents/permissions.py:163"
+    },
+    {
+      "id": "permissions:fonction:set_permissions_for_object",
+      "categorie": "permissions",
+      "type": "fonction",
+      "libelle": "set_permissions_for_object",
+      "reference": "src/documents/permissions.py:64"
+    },
+    {
+      "id": "permissions:proprietaire:ModelWithOwner",
+      "categorie": "permissions",
+      "type": "proprietaire",
+      "libelle": "owner sur ModelWithOwner",
+      "reference": "src/documents/models.py:32"
+    },
+    {
+      "id": "permissions:proprietaire:ShareLink",
+      "categorie": "permissions",
+      "type": "proprietaire",
+      "libelle": "owner sur ShareLink",
+      "reference": "src/documents/models.py:762"
+    }
+  ]
+}
