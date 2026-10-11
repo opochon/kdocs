@@ -36,6 +36,8 @@ if ($SansBanc) {
 # 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright. Le projet « personas »
 #    est exclu : la couche 5 a son propre projet et se joue plus bas, seule.
 $sortie = & npx.cmd playwright test --project=parcours --project=budgets --reporter=line 2>&1
+# Sortie complète gardée hors dépôt : un écran rouge se nomme sans rejouer la couche (constat du juge, 11-10).
+New-Item -ItemType Directory -Force var\harness | Out-Null; $sortie | Out-File var\harness\4-ecrans.txt -Encoding utf8
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }
 
 # 7. Sécurité : sonde offensive HTTP, serveur et sessions de test isolés.
@@ -77,6 +79,7 @@ Get-ChildItem "$dossierPersonas\*.png" -ErrorAction SilentlyContinue | Remove-It
 # Captures HORS du dépôt : var\captures\personas\<rejeu>\ (décision d'Olivier, 10-10 : jamais de captures dans git).
 $env:GED_CAPTURES_RUN = Get-Date -Format 'yyyy-MM-dd_HHmmss'
 $sortie = & npx.cmd playwright test --project=personas --reporter=line 2>&1
+New-Item -ItemType Directory -Force var\harness | Out-Null; $sortie | Out-File var\harness\5-personas.txt -Encoding utf8
 $okPersonas = ($LASTEXITCODE -eq 0)
 $detailsPersonas = @()
 $manifests = Get-ChildItem "$dossierPersonas\*.manifest.json" -ErrorAction SilentlyContinue | Sort-Object Name
