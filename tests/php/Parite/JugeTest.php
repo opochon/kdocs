@@ -127,7 +127,7 @@ final class JugeTest extends TestCase
         $correspondance = [
             'api:route:documents' => ['statut' => 'couvert', 'gedv2' => ['type' => 'route', 'methode' => 'GET', 'chemin' => '/bibliotheque'], 'preuve' => ['type' => 'phpunit', 'cible' => 'Ged\\Tests\\Ui\\EcranTest::testListe']],
             'modele:classe:Document' => ['statut' => 'couvert-autrement', 'gedv2' => ['type' => 'service', 'classe' => 'Ged\\Socle\\ModificationMasse'], 'preuve' => ['type' => 'playwright', 'cible' => 'bibliotheque.spec.ts > modifie en masse']],
-            'masse:fonction:delete' => ['statut' => 'exclu', 'exclusion' => 'infrastructure-propre-django'],
+            'masse:fonction:delete' => ['statut' => 'exclu', 'exclusion' => 'infrastructure-django'],
             'commande:documents:document_index' => ['statut' => 'absent', 'lot' => 'V2-XX'],
         ];
 
@@ -161,6 +161,23 @@ final class JugeTest extends TestCase
 
         self::assertNotEmpty($rapport['erreurs']);
         self::assertStringContainsString('exclusion', implode("\n", $rapport['erreurs']));
+    }
+
+    public function testExclusionHorsListeFermeeEstRefuseeEtCompteeEcart(): void
+    {
+        $correspondance = [
+            'api:route:documents' => ['statut' => 'exclu', 'exclusion' => 'raison-inventee'],
+            'modele:classe:Document' => ['statut' => 'absent'],
+            'masse:fonction:delete' => ['statut' => 'absent'],
+            'commande:documents:document_index' => ['statut' => 'absent'],
+        ];
+
+        $rapport = (new Juge())->analyser($this->inventaire(), $correspondance, [], [], $this->connu());
+
+        self::assertNotEmpty($rapport['erreurs']);
+        self::assertStringContainsString('liste fermee', implode("\n", $rapport['erreurs']));
+        $ecart = $this->ecart($rapport, 'api:route:documents');
+        self::assertSame('absent', $ecart['statut'], 'une exclusion hors liste fermee compte comme un ecart');
     }
 
     /** @param array<string,mixed> $rapport @return array<string,mixed> */

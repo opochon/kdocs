@@ -27,6 +27,19 @@ final class Juge
     private const EFFECTIFS_COUVERTS = ['couvert', 'couvert-autrement'];
 
     /**
+     * Liste fermee des raisons d'exclusion admises (mission : une exclusion n'est jamais comptee
+     * comme couverte, et toute autre raison est un ecart).
+     *
+     * @var list<string>
+     */
+    public const EXCLUSIONS_AUTORISEES = [
+        'infrastructure-django',
+        'infrastructure-celery-redis',
+        'installation-docker',
+        'traductions-django',
+    ];
+
+    /**
      * @param list<array<string, mixed>> $inventaire
      * @param array<string, mixed> $correspondance
      * @param list<string> $preuvesReussies
@@ -80,19 +93,24 @@ final class Juge
                     $exclusion = $entree['exclusion'] ?? '';
                     if (!is_string($exclusion) || trim($exclusion) === '') {
                         $erreurs[] = 'exclusion sans raison pour : ' . $id;
-                        $raison = 'exclusion sans raison';
+                        $effectif = 'absent';
+                        $raison = 'exclusion sans raison (comptee comme ecart)';
+                    } elseif (!in_array($exclusion, self::EXCLUSIONS_AUTORISEES, true)) {
+                        $erreurs[] = 'exclusion hors liste fermee pour : ' . $id . ' (' . $exclusion . ')';
+                        $effectif = 'absent';
+                        $raison = 'exclusion hors liste fermee : ' . $exclusion;
                     } else {
+                        $effectif = 'exclu';
                         $raison = $exclusion;
+                        $exclusions[] = [
+                            'id' => $id,
+                            'categorie' => $categorie,
+                            'libelle' => (string) ($element['libelle'] ?? ''),
+                            'reference' => (string) ($element['reference'] ?? ''),
+                            'statut' => 'exclu',
+                            'exclusion' => $raison,
+                        ];
                     }
-                    $effectif = 'exclu';
-                    $exclusions[] = [
-                        'id' => $id,
-                        'categorie' => $categorie,
-                        'libelle' => (string) ($element['libelle'] ?? ''),
-                        'reference' => (string) ($element['reference'] ?? ''),
-                        'statut' => 'exclu',
-                        'exclusion' => $raison,
-                    ];
                 } else {
                     [$couvert, $raisonCouverture] = $this->verifierCouverture(
                         $entree,
