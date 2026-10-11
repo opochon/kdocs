@@ -1,6 +1,6 @@
 # Secteur JONCTIONS — K-Time, ClearMyMails, API d'entrée
 
-Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml, V2-08c appairage parti de la GED, V2-08d une seule table) · Juge : Claude Code · Lot en cours : V2-08d
+Agent : DeepCode (V2-08a API d'entrée, V2-08b appairage/destinations/.eml, V2-08c appairage parti de la GED, V2-08d une seule table, lot ged-api-documents) · Juge : Claude Code · Lot en cours : ged-api-documents
 
 ## Mission
 La GED ne refait pas ce que les produits voisins font déjà ; elle se branche proprement, par API, jamais par la base
@@ -260,3 +260,37 @@ ETAT: fini
 ### Décision d'Olivier (2026-10-03) — liaison CMM
 
 - **Jamais d'accès direct à une base** dans un sens ou dans l'autre : la GED expose son API ; elle interroge CMM par l'API de CMM. Les identifiants PostgreSQL de CMM ne sont donc plus demandés.
+
+## Journal ged-api-documents — API REST des documents (parité Paperless)
+
+Note de lot : `docs/lots/ged-api-documents.md`.
+
+- Contrat d'abord : `docs/api/documents.yaml` (OpenAPI 3.1) — liste/filtres/pagination, recherche plein
+  texte, fiche, fichier courant et version, modification des métadonnées, dépôt vers l'ingestion,
+  types/étiquettes/émetteurs/vues, erreurs nommées.
+- Fait : `Jetons` gagne les portées `documents_lecture` / `documents_ecriture` et `creerPourCompte()`
+  (jeton lié à un compte). `Catalogue` (service) applique les droits DANS la requête
+  (`DroitsDossiers::predicatLecture`) pour liste, recherche, étiquettes et émetteurs ; fiche/fichier/version
+  refusent 403 hors dossiers ; la modification exige `modifier` puis délègue au contrat `Depot` (contrôle
+  du niveau `deposer` à l'ARRIVÉE pour tout déplacement, garde d'archivage). `DocumentsApi` (porte HTTP)
+  authentifie par jeton porteur hors session, borne page (≤ 100) et débit par jeton (`Debit`, état hors
+  requête sous verrou). `Module` enregistre les routes ; le Kernel n'est pas modifié. Aucune nouvelle table.
+- Preuves : `tests\php\Jonctions` 33 tests, 304 assertions verts (dont 13 documents, 112 assertions) ;
+  `phpstan` niveau 6 : 0 erreur ; `tools\banc\contrat.php` et `tools\banc\sonde-securite.php` verts ;
+  harness `-SansBanc` (chiffres dans la note de lot).
+- Commits : `e326828`, `c8f1e69`.
+
+### Modifications hors secteur signalées (à valider par le juge)
+- `src/Securite/DroitsRoutes.php` — 10 lignes ajoutées (registre `PERMISSIONS`) et reconnaissance des
+  chemins paramétrés dans `permissionPour()` : `GET|POST /api/v1/documents`,
+  `GET|POST /api/v1/documents/{id}`, `GET /api/v1/documents/{id}/fichier`,
+  `GET /api/v1/documents/{id}/versions/{numero}/fichier`, `GET /api/v1/{types,etiquettes,emetteurs,vues}`
+  → permissions `publique:api-documents-lecture` / `publique:api-documents-ecriture` (la porte réelle est
+  le jeton vérifié par le secteur). Commitées dans ce lot car le fichier ne portait aucune modification
+  concurrente ; à confirmer par le juge.
+- `tools/banc/contrat.php` — statuts attendus (401 sans jeton) des nouvelles routes publiques, et
+  substitution du n° de version (`/{numero:[0-9]+}` → `/1`).
+- `tools/banc/sonde-securite.php` — vérifie 401 sans jeton et 403 pour un jeton d'appairage (portée
+  `depot`) sur la lecture comme sur l'écriture ; installe le schéma Jonctions et nettoie son jeton éphémère.
+
+ETAT: en cours
