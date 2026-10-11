@@ -309,3 +309,30 @@ ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’u
   effets unitaires, 500 docs en tranches de 50 avec service neuf à chaque tranche, corbeille) ;
   E2E `tests/e2e/parite-masse.spec.ts` (5 parcours). `tests/oracles/` et le contrat `Contrats\Depot`
   ne changent pas.
+
+## Journal lot ged-socle-reconstruction (11-10) — compteur cohérent de la reconstruction (constat personas)
+
+- `src/Socle/ReconstructionIndex.php` : le total de `lancer()` est désormais le périmètre réellement relu
+  (`IndexPleinTexte::aRelire()`), plus jamais le nombre de lignes `documents`. Les documents vivants hors
+  fonds sont comptés et nommés à part (`absents`, `absents_noms`) et remontés par `etat()`. La fin forcée
+  `faits === 0 ? total : 0` de `avancer()` disparaît : l'avancement se cumule, sans tranche fantôme.
+- Oracle : `tests/php/Socle/ReconstructionCompteurTest.php` (rouge avant code : total 7 au lieu de 6,
+  4 tranches au lieu de 3 ; vert après, 2 tests / 22 assertions). Oracle E2E par l'écran :
+  `tests/e2e/reconstruction-index.spec.ts` (+ `preparer-reconstruction-index.php`), fonds de 27 documents
+  dont un absent, mutation vérifiée.
+- **Fichiers hors du secteur strict, touchés par cette correction transversale** (mission du lot, tracés
+  ici plutôt qu'en Demandes) :
+  - `src/Recherche/IndexPleinTexte.php` — ajoute `aRelire()`, unique définition du périmètre partagée par
+    `synchroniser()` et la reconstruction. Aucun autre comportement de la synchronisation ne change ;
+  - `src/Ui/Application.php` + `templates/ecrans/application.twig` — exposent la barre/pourcentage et le
+    bilan des absents. À reprendre par le secteur Interface au prochain passage sur cet écran.
+- Preuves : PHPUnit complet 565 tests / 3131 assertions / 1 skip ; PHPStan niveau 6, 0 erreur, baseline
+  vide ; E2E ciblé vert (1 passed), rouge sous mutation. Détail : `docs/lots/ged-socle-reconstruction.md`.
+
+(fin du journal du lot ged-socle-reconstruction)
+
+
+### Jugement lot ged-socle-reconstruction (juge, 11-10) — fusionné
+
+- Copie du juge : PHPStan 0, PHPUnit 565 tests vert. Le total de la reconstruction est désormais le périmètre que `synchroniser()` relit (`IndexPleinTexte::aRelire`, définition unique), les documents vivants absents du fonds sont comptés et nommés à part.
+- Défaut trouvé à la relecture et corrigé par le juge, oracle d'abord : un fichier qui disparaît APRÈS le lancement laissait la tâche « en cours » pour toujours (plus aucune tranche ne relisait rien). Elle se termine désormais et compte l'`ecart`. Reste à l'afficher dans le bilan de l'écran Application (petit ajout, prochain lot Interface).

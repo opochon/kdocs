@@ -63,7 +63,7 @@ final class Application
         ];
     }
 
-    /** @return array{id:int,etat:string,total:int,traite:int,erreur:?string}|null */
+    /** @return array{id:int,etat:string,total:int,traite:int,erreur:?string,absents:int,absents_noms:list<string>}|null */
     private function reconstruction(): ?array
     {
         if ($this->pdo === null) return null;

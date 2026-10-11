@@ -42,14 +42,27 @@
         <div class="ligne-reglage"><span>Rangement</span><span class="mono" data-testid="reglage-rangement">{{ stockage.rangement }} <span class="muted">· sans type : {{ stockage.sans_type }}</span></span></div>
         <div class="ligne-reglage" data-testid="reconstruction-index"><span>Reconstruire l’index depuis le dossier</span><span>
           {% if reconstruction and reconstruction.etat == 'en_cours' %}
-            <strong data-testid="reconstruction-progression">{{ reconstruction.traite }} / {{ reconstruction.total }}</strong> <span class="muted">· reprise possible après une coupure</span>
+            <progress data-testid="reconstruction-barre" value="{{ reconstruction.traite }}" max="{{ reconstruction.total > 0 ? reconstruction.total : 1 }}" style="width:180px;height:8px;vertical-align:middle"></progress>
+            <strong data-testid="reconstruction-progression">{{ reconstruction.traite }} / {{ reconstruction.total }}</strong>
+            <strong data-testid="reconstruction-pourcentage">{{ reconstruction.total > 0 ? (reconstruction.traite * 100 // reconstruction.total) : 0 }} %</strong> <span class="muted">· reprise possible après une coupure</span>
             <form method="post" action="/application/reconstruction-index/{{ reconstruction.id }}/tranche" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="reconstruction-tranche">Traiter la tranche suivante</button></form>
           {% elseif reconstruction and reconstruction.etat == 'termine' %}
-            <span class="chip ok" data-testid="reconstruction-terminee">terminée</span> <span class="muted">{{ reconstruction.traite }} documents indexés</span>
+            <progress data-testid="reconstruction-barre" value="{{ reconstruction.total > 0 ? reconstruction.total : 1 }}" max="{{ reconstruction.total > 0 ? reconstruction.total : 1 }}" style="width:180px;height:8px;vertical-align:middle"></progress>
+            <span class="chip ok" data-testid="reconstruction-terminee">terminée</span>
+            <strong data-testid="reconstruction-progression">{{ reconstruction.traite }} / {{ reconstruction.total }}</strong>
+            <strong data-testid="reconstruction-pourcentage">100 %</strong> <span class="muted">{{ reconstruction.traite }} documents indexés</span>
             <form method="post" action="/application/reconstruction-index" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn discret" type="submit" data-testid="reconstruction-lancer">Relancer</button></form>
           {% else %}
             <form method="post" action="/application/reconstruction-index" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn" type="submit" data-testid="reconstruction-lancer">Lancer la reconstruction</button></form>
             {% if reconstruction and reconstruction.erreur %}<span class="muted">Échec : {{ reconstruction.erreur }}</span>{% endif %}
+          {% endif %}
+          {# Le bilan nomme les documents vivants absents du fonds : jamais fondus dans le pourcentage. #}
+          {% if reconstruction and reconstruction.absents > 0 %}
+            <span data-testid="reconstruction-absents">
+              <span class="chip warn">{{ reconstruction.absents }} document(s) vivant(s) absent(s) du fonds</span>
+              <span class="mono">{{ reconstruction.absents_noms|join(', ') }}{% if reconstruction.absents > reconstruction.absents_noms|length %} …{% endif %}</span>
+              <span class="muted">· non relus : leurs fichiers ne sont pas dans ce fonds</span>
+            </span>
           {% endif %}
         </span></div>
       </section>
