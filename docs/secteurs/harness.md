@@ -225,3 +225,13 @@ Incident du juge, même matinée : la suppression manuelle du worktree `ged-agen
 jonction `node_modules` et vidé celui du clone principal (`npm ci` l'a rétabli) ; le harness restait
 alors bloqué sur `npx` — corrigé par `--no-install` (`81a8047`). Règle : toujours `rmdir` la
 jonction avant de supprimer un worktree.
+
+### Rejeu sur machine calme (2026-10-11, 09:42–10:07 heure M2, v2 `37e3b09`) — **9/9 VERT**
+
+Tâche `GED\harness-calme` : départ quand aucun lot GED ni K-Time ne tournait (CPU 6 %).
+0-garde-fous, 1-unitaire (581 / 3290), 2-contrat, 3-banc (découpe 53/53, portes franchies),
+**4-écrans 78 passed** (`budget-apercu.spec.ts:33` compris), 5-personas (tous les gestes),
+**6-charge p95 lecture 825 ms / écriture 316 ms**, 0 erreur, 0 collision, 7-sécurité, 8-statique.
+Verdict du juge : les deux rouges du rejeu précédent étaient dus à la charge étrangère, pas au code.
+Règle retenue : les couches 4 (projet `budgets`) et 6 ne font foi que sur machine calme ; un rouge de
+budget mesuré pendant des lots concurrents se rejoue par `GED\harness-calme` avant d'être jugé.
