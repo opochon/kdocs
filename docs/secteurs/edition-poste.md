@@ -118,6 +118,21 @@ Chemins du lot `ged-agent-poste` (agent C# côté poste, même secteur) :
 - Rien d'autre : ni `src/` PHP, ni `templates/`, ni `tools/banc/` (le contrat HTTP du serveur est
   consommé tel quel, aucune modification n'est demandée).
 
+Chemins du lot `ged-agent-durcissement` (même secteur, durcissement bloquant du constat du juge) :
+
+- `agent-poste/` — liste blanche d'extensions (`ExtensionsEditables`), refus tracé et visible
+  (`RefusOuverture`, `GestionnaireTravail`, `ServiceDocumentsEnCours`, tray), tests xUnit, et
+  installateur PowerShell sans droits administrateur (`agent-poste/tools/installer-agent.ps1`,
+  `agent-poste/tools/tester-installateur.ps1`).
+- `src/Edition/Formats.php` — **nouveau** : la liste blanche côté serveur, en un seul endroit
+  (sections Word/Excel/PowerPoint) ; `src/Edition/Pieces.php` et `src/Edition/Api.php` s'y adossent
+  (bouton et API d'ouverture/version : 403 nommé hors liste).
+- `src/Ui/Ecrans.php`, `templates/ecrans/document.twig` — le bouton « Ouvrir dans … » n'apparaît que
+  pour un format éditable (`peut_ouvrir_poste`).
+- `src/Socle/EcranBibliotheque.php` — même règle pour l'aperçu de la Bibliothèque.
+- `tests/php/Edition/`, `tests/e2e/edition-serveur.spec.ts`, `tests/e2e/preparer-edition-serveur.php`.
+- `docs/secteurs/edition-poste.md`, `docs/lots/ged-agent-durcissement.md`.
+
 ## Demandes
 
 - **ged-agent-poste** : le contrat HTTP attendu par l'agent (jeton d'appareil `Authorization: Bearer …`,

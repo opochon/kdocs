@@ -39,34 +39,58 @@ public sealed class DepotRefusDisque : IDepotRefus
 
     public void Enregistrer(RefusOuverture refus)
     {
-        var dossier = _racine.DossierRefus;
-        Directory.CreateDirectory(dossier);
-        var nom = $"refus-{refus.Document.ToString(System.Globalization.CultureInfo.InvariantCulture)}-"
-            + refus.QuandUtc.UtcTicks.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            + "-" + Guid.NewGuid().ToString("N")[..8] + ".json";
-        var chemin = Path.Combine(dossier, nom);
-        var temporaire = chemin + ".tmp";
-        File.WriteAllText(temporaire, JsonSerializer.Serialize(refus, Options));
-        File.Move(temporaire, chemin, overwrite: true);
+        // Conservation au mieux : si le disque refuse l'écriture, le refus reste TRACÉ et l'appelant lève
+        // quand même son erreur nommée (le refus d'ouverture ne dépend jamais de cette écriture).
+        try
+        {
+            var dossier = _racine.DossierRefus;
+            Directory.CreateDirectory(dossier);
+            var nom = $"refus-{refus.Document.ToString(System.Globalization.CultureInfo.InvariantCulture)}-"
+                + refus.QuandUtc.UtcTicks.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + "-" + Guid.NewGuid().ToString("N")[..8] + ".json";
+            var chemin = Path.Combine(dossier, nom);
+            var temporaire = chemin + ".tmp";
+            File.WriteAllText(temporaire, JsonSerializer.Serialize(refus, Options));
+            File.Move(temporaire, chemin, overwrite: true);
 
-        Purger(dossier);
+            Purger(dossier);
+        }
+        catch (IOException exception)
+        {
+            _journal?.Avertissement("refus", $"refus non conservé ({refus.Nom}) : {exception.Message}");
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            _journal?.Avertissement("refus", $"refus non conservé ({refus.Nom}) : {exception.Message}");
+        }
     }
 
     public IReadOnlyList<RefusOuverture> Lister()
     {
         var refus = new List<RefusOuverture>();
-        if (!Directory.Exists(_racine.DossierRefus))
+        try
         {
-            return refus;
-        }
-
-        foreach (var fichier in Directory.EnumerateFiles(_racine.DossierRefus, "refus-*.json"))
-        {
-            var lu = LireFichier(fichier);
-            if (lu is not null)
+            if (!Directory.Exists(_racine.DossierRefus))
             {
-                refus.Add(lu);
+                return refus;
             }
+
+            foreach (var fichier in Directory.EnumerateFiles(_racine.DossierRefus, "refus-*.json"))
+            {
+                var lu = LireFichier(fichier);
+                if (lu is not null)
+                {
+                    refus.Add(lu);
+                }
+            }
+        }
+        catch (IOException exception)
+        {
+            _journal?.Avertissement("refus", $"refus illisibles : {exception.Message}");
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            _journal?.Avertissement("refus", $"refus illisibles : {exception.Message}");
         }
 
         return refus.OrderByDescending(r => r.QuandUtc).ThenByDescending(r => r.Document).ToList();
@@ -86,6 +110,13 @@ public sealed class DepotRefusDisque : IDepotRefus
             return null;
         }
         catch (IOException exception)
+        {
+            _journal?.Avertissement(
+                "refus", $"refus non lu ({Path.GetFileName(chemin)}) : {exception.Message}");
+
+            return null;
+        }
+        catch (UnauthorizedAccessException exception)
         {
             _journal?.Avertissement(
                 "refus", $"refus non lu ({Path.GetFileName(chemin)}) : {exception.Message}");
