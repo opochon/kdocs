@@ -103,8 +103,33 @@ Deux constats du juge restés ouverts après les lots précédents :
 
 ## Rejeu du harness
 
-(en cours — `powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc`)
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc`, sur ce worktree (registre :
+`recette/registre.json`, commit `554cbfa`, durée **925 s**) :
+
+| Couche | Verdict | Chiffres |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules présents ; DB_NAME=gedv2_test imposé |
+| 1-unitaire | VERT | **581 tests, 3 279 assertions, 1 ignoré** |
+| 2-contrat | VERT | toutes les routes déclarées couvertes |
+| 3-banc | ROUGE attendu | sautée (`-SansBanc`) |
+| 4-ecrans | VERT | **78 passed (5,3 min)** |
+| 5-personas | VERT | administrateur 4/4 (860 ms) · auditeur 4/4 (446 ms) · comptable 4/4 (636 ms) · debutant 4/4 (549 ms) · fiduciaire 4/4 (626 ms) · secretaire 3/3 (764 ms) |
+| 6-charge | VERT | p95 lecture 718 ms, p95 écriture 262 ms, 0 erreur, 0 collision |
+| 7-securite | VERT | aucun contournement accepté |
+| 8-statique | VERT | PHPStan niveau 6, **0 erreur** hors baseline (baseline vide) ; `composer audit` : aucune vulnérabilité |
+
+Transparence : un premier rejeu complet a rendu `4-ecrans` ROUGE sur **1 failed / 77 passed** — un échec
+d'écran non nommé par le résumé du harness, **non reproduit** : la couche 4 rejouée seule est verte
+(**78 passed, 5,2 min**) et le rejeu complet ci-dessus est vert (78 passed). Aucune assertion n'a été
+touchée entre les deux rejeux : l'échec isolé est une instabilité de la couche, pas une régression du
+diff. Chiffres du premier rejeu conservés dans `var/lot/harness-run1.log` (non versionné).
+
+Note d'environnement : `tools/composer.phar` est gitignoré et absent d'un worktree neuf ; copié depuis le
+dépôt principal (artefact non versionné) pour que la couche 8 (audit) puisse tourner, comme aux lots
+précédents.
 
 ## Reste
 
-- (en cours) — voir « Rejeu du harness ».
+- (aucun) — voir « Fait », « Mesures exactes », « Porte qualité » et « Rejeu du harness ».
+
+ETAT: fini

@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-11T03:04:41",
-    "duree_s":  886,
-    "commit":  "b470f1e",
+    "date":  "2026-10-11T07:54:07",
+    "duree_s":  925,
+    "commit":  "554cbfa",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[30;42mTests: 509\u001b[0m\u001b[30;42m, Assertions: 3006\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
+                                       "detail":  "\u001b[30;42mTests: 581\u001b[0m\u001b[30;42m, Assertions: 3279\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
                                        "ok":  true
                                    },
                     "3-banc":  {
@@ -16,7 +16,7 @@
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  76 passed (4.5m)",
+                                     "detail":  "  78 passed (5.3m)",
                                      "ok":  true
                                  },
                     "7-securite":  {
@@ -28,7 +28,7 @@
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 743 ms, p95 ├®criture 246 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 718 ms, p95 ├®criture 262 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
                                      "ok":  true
                                  },
                     "8-statique":  {
@@ -36,7 +36,7 @@
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 808 ms) | auditeur: 4/4 (mÃ©diane 518 ms) | comptable: 4/4 (mÃ©diane 634 ms) | debutant: 4/4 (mÃ©diane 406 ms) | fiduciaire: 4/4 (mÃ©diane 458 ms) | secretaire: 3/3 (mÃ©diane 566 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 860 ms) | auditeur: 4/4 (mÃ©diane 446 ms) | comptable: 4/4 (mÃ©diane 636 ms) | debutant: 4/4 (mÃ©diane 549 ms) | fiduciaire: 4/4 (mÃ©diane 626 ms) | secretaire: 3/3 (mÃ©diane 764 ms)",
                                        "ok":  true
                                    }
                 }
