@@ -27,12 +27,25 @@ final class IndexPleinTexte
     }
 
     /**
+     * L'UNIQUE définition du périmètre de synchronisation : les documents réellement présents dans le
+     * fonds courant (fichier + `.meta.json` lisibles), dans l'ordre de la source. `synchroniser()` la
+     * parcourt ; la reconstruction en tire le total EXACT de ce qu'elle va relire, jamais un compte
+     * d'index plus large (lot ged-socle-reconstruction, constat du lot ged-personas).
+     *
+     * @return list<DocumentFonds>
+     */
+    public function aRelire(): array
+    {
+        return $this->source->documents();
+    }
+
+    /**
      * @param int|null $limite nombre maximal de documents (re)indexés par appel ; null = tout
      * @return int nombre de documents (re)posés
      */
     public function synchroniser(?int $limite = null): int
     {
-        $documents = $this->source->documents();
+        $documents = $this->aRelire();
         $signatures = $this->signatures();
         $identifiants = $this->identifiantsDocuments();
         $vus = [];
