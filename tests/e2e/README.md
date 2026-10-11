@@ -67,3 +67,16 @@ fonction par les menus et libellés visibles (jamais une URL directe, sauf la co
 capture dans `recette/preuves/personas/<persona>-<geste>.png`. Les verdicts et les temps sont lus par
 la couche 5 de `tools/harness.ps1`.
 
+## Compte réel du lot ged-socle-reconstruction
+
+`tests/e2e/reconstruction-index.spec.ts` (constat du lot ged-personas) démarre son propre serveur et son
+propre fonds `var/oracles/reconstruction-index/documents`, préparés par
+`tests/e2e/preparer-reconstruction-index.php` (mot de passe haché, la voie de l'installateur) :
+
+- `reconstruction-admin@exemple.test` / `MotDePasse-Reconstruction-2026!` — rôle Administrateur.
+
+Le fonds compte 27 documents synthétiques dont UN a son fichier retiré du disque (métadonnées et ligne
+d'index conservées) : le total relisible attendu est 26, le document absent est compté et nommé à part.
+Aucune donnée réelle, aucun nom de client.
+
+
