@@ -45,6 +45,15 @@ final class EcranEditionTest extends TestCase
         self::assertStringNotContainsString('action-ouvrir-poste', $lecteur, 'sans droit de modification, aucun bouton d’ouverture');
     }
 
+    public function testLeBoutonOuvrirNAPasPourUnFormatNonEditable(): void
+    {
+        foreach ([$this->documentExecutable, $this->documentDocm] as $document) {
+            $html = $this->fiche(['documents:lire', 'documents:modifier'], $document);
+            self::assertStringNotContainsString('action-ouvrir-poste', $html, "aucun bouton pour le document $document");
+            self::assertStringNotContainsString('kdocs://ouvrir/', $html, "aucun lien kdocs:// pour le document $document");
+        }
+    }
+
     public function testLaFicheEtLaBibliothequeAffichentOuvertParSurLePoste(): void
     {
         (new Ouvertures($this->pdo))->ouvrir($this->document, $this->identifiant, 'POSTE-03');
@@ -78,12 +87,13 @@ final class EcranEditionTest extends TestCase
     }
 
     /** @param list<string> $permissions */
-    private function fiche(array $permissions): string
+    private function fiche(array $permissions, ?int $document = null): string
     {
-        $requete = (new ServerRequestFactory())->createServerRequest('GET', '/documents/' . $this->document)
+        $document ??= $this->document;
+        $requete = (new ServerRequestFactory())->createServerRequest('GET', '/documents/' . $document)
             ->withAttribute('ged.session', ['utilisateur' => $this->identifiant, 'compte' => $this->compteId, 'permissions' => $permissions]);
 
         return (string) (new Ecrans(new Vue(dirname(__DIR__, 3) . '/templates')))
-            ->document($requete, new Response(), ['id' => (string) $this->document])->getBody();
+            ->document($requete, new Response(), ['id' => (string) $document])->getBody();
     }
 }

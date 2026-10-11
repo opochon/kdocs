@@ -20,7 +20,7 @@
         {% endif %}
       </form>
       {% endif %}
-      {% if peut_modifier %}
+      {% if peut_ouvrir_poste %}
       <a class="btn primaire" href="{{ lien_ouverture }}" data-testid="action-ouvrir-poste">{{ ic.i('fichier') }}{{ libelle_ouverture }}</a>
       {% endif %}
       <a class="btn" href="/documents/{{ doc.id }}/fichier" data-testid="action-telecharger">{{ ic.i('telecharger') }}Télécharger</a>

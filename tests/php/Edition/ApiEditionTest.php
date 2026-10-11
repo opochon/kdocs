@@ -246,6 +246,40 @@ final class ApiEditionTest extends TestCase
         self::assertSame([1 => hash('sha256', $this->contenuV1), 2 => hash('sha256', $copieV2)], $this->empreintes($this->document));
     }
 
+    public function testOuvertureEtDepotRefusesPourUnFormatNonEditable(): void
+    {
+        foreach ([$this->documentExecutable, $this->documentDocm] as $document) {
+            [$code, , $corps] = $this->appel('POST', '/api/v1/edition/documents/' . $document . '/ouverture', $this->jeton);
+            self::assertSame(403, $code, $corps);
+            self::assertStringContainsString('format', $corps);
+            self::assertStringContainsString('etape', $corps, 'le refus est nommé');
+
+            // Aucune ouverture n'a été tracée : le refus précède tout effet de bord.
+            $trace = $this->pdo->prepare("SELECT COUNT(*) FROM document_collaboration WHERE document_id = ? AND type = 'evenement' AND action = 'ouverture'");
+            $trace->execute([$document]);
+            self::assertSame(0, (int) $trace->fetchColumn());
+        }
+
+        // Le dépôt de version refuse aussi un document non éditable (403 nommé), sans rien créer.
+        $fichier = new UploadedFile($this->piece('facture.pdf.exe', 'charge'), 'facture.pdf.exe', 'application/octet-stream', 6);
+        [$code, , $corps] = $this->appel('POST', '/api/v1/edition/documents/' . $this->documentExecutable . '/versions', $this->jeton,
+            ['version_base' => '1'], ['fichier' => $fichier]);
+        self::assertSame(403, $code, $corps);
+        self::assertStringContainsString('format', $corps);
+        self::assertSame([1 => hash('sha256', "executable-$this->sel")], $this->empreintes($this->documentExecutable));
+    }
+
+    public function testDepotRefuseUnFichierTéléverséHorsListeBlancheMemePourUnDocumentEditable(): void
+    {
+        // Le document rangé est un .docx (éditable), mais le fichier envoyé est un exécutable : refus.
+        $fichier = new UploadedFile($this->piece('charge.exe', 'contenu-executable'), 'charge.exe', 'application/octet-stream', 18);
+        [$code, , $corps] = $this->appel('POST', '/api/v1/edition/documents/' . $this->document . '/versions', $this->jeton,
+            ['version_base' => '1'], ['fichier' => $fichier]);
+        self::assertSame(403, $code, $corps);
+        self::assertStringContainsString('format', $corps);
+        self::assertSame([1 => hash('sha256', $this->contenuV1)], $this->empreintes($this->document));
+    }
+
     public function testLesRoutesDuLotSontDeclarees(): void
     {
         self::assertSame('publique:api-edition', DroitsRoutes::permissionPour('GET', '/api/v1/edition/documents/204/fichier'));

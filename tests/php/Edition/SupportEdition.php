@@ -43,6 +43,10 @@ trait SupportEdition
     private int $document;
     /** Document hors droits du compte (dossier sans règle : refus par défaut). */
     private int $documentInterdit;
+    /** Document autorisé mais d'un format NON éditable : exécutable (jamais téléchargé ni ouvert). */
+    private int $documentExecutable;
+    /** Document autorisé mais d'un format à macros Office Open XML : refusé. */
+    private int $documentDocm;
     private string $dossierAutorise;
     private string $contenuV1;
 
@@ -88,6 +92,18 @@ trait SupportEdition
                 'dossier' => 'Confidentiel-' . $this->sel, 'statut' => 'valide'],
         );
 
+        // Formats hors liste blanche, DANS le dossier autorisé : seul le format doit faire refuser.
+        $this->documentExecutable = $depot->deposer(
+            $this->piece('facture.pdf.exe', "executable-$this->sel"),
+            ['titre' => 'Executable ' . $this->sel, 'type' => 'Rapport', 'date' => '2026-10-01',
+                'dossier' => $this->dossierAutorise, 'statut' => 'valide'],
+        );
+        $this->documentDocm = $depot->deposer(
+            $this->piece('courrier.docm', "macros-$this->sel"),
+            ['titre' => 'Macros ' . $this->sel, 'type' => 'Rapport', 'date' => '2026-10-01',
+                'dossier' => $this->dossierAutorise, 'statut' => 'valide'],
+        );
+
         // Le compte est membre d'un groupe manager, avec lire + déposer + modifier sur le dossier autorisé ;
         // le dossier « Confidentiel » n'a aucune règle : le refus est par défaut.
         $droits = new DroitsDossiers($this->pdo);
@@ -109,7 +125,7 @@ trait SupportEdition
         putenv('STORAGE_ROOT');
         putenv('SECOURS_ROOT');
 
-        $ids = [$this->document, $this->documentInterdit];
+        $ids = [$this->document, $this->documentInterdit, $this->documentExecutable, $this->documentDocm];
         $marques = implode(',', array_fill(0, count($ids), '?'));
         foreach (['document_collaboration', 'document_versions', 'document_deplacements', 'recherche_textes'] as $table) {
             $this->pdo->prepare("DELETE FROM `$table` WHERE document_id IN ($marques)")->execute($ids);

@@ -657,9 +657,12 @@ final class EcranBibliotheque
             'id' => $doc['id'], 'titre' => $doc['titre'], 'type' => $doc['type'], 'emetteur' => $doc['emetteur'],
             'date' => $doc['date'], 'chemin' => $doc['chemin'], 'champs' => $champs,
             'ouverture' => $this->ouverturePour((int) $doc['id']),
-            // Édition depuis le poste (F13) : « Ouvrir dans … » seulement pour qui peut MODIFIER.
-            'ouvrir' => $doc['id'] > 0 && \Ged\Edition\Droits::peutModifier(
-                $this->config, $this->compte, $this->permissions, (int) $doc['id'])
+            // Édition depuis le poste (F13) : « Ouvrir dans … » seulement pour qui peut MODIFIER et pour
+            // un format éditable de la liste blanche (pas de bouton pour un .exe ni un .docm).
+            'ouvrir' => $doc['id'] > 0
+                && \Ged\Edition\Formats::editable((string) $doc['nom'])
+                && \Ged\Edition\Droits::peutModifier(
+                    $this->config, $this->compte, $this->permissions, (int) $doc['id'])
                 ? ['url' => \Ged\Edition\Pieces::lien((int) $doc['id']),
                     'libelle' => \Ged\Edition\Pieces::libelleOuverture((string) $doc['nom'])]
                 : null,

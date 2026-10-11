@@ -183,16 +183,19 @@ final class Ecrans
         $peutSceller = in_array('*', $permissions, true) || in_array('archivage:sceller', $permissions, true);
         $config = new \Ged\Config(dirname(__DIR__, 2));
 
-        // Édition depuis le poste (F13) : « Ouvrir dans … » n'apparaît qu'à qui peut MODIFIER le document.
+        // Édition depuis le poste (F13) : « Ouvrir dans … » n'apparaît qu'à qui peut MODIFIER le document
+        // ET pour un format éditable (liste blanche) — un .exe ou un .docm n'a pas de bouton.
         $peutModifier = $reel !== null
             && \Ged\Edition\Droits::peutModifier($config, $compte, $permissions, (int) ($reel['id'] ?? 0));
+        $peutOuvrirPoste = $peutModifier && \Ged\Edition\Formats::editable((string) ($doc['fichier'] ?? ''));
         $libelleOuverture = \Ged\Edition\Pieces::libelleOuverture((string) ($doc['fichier'] ?? ''));
 
         return $this->vue->rendre($rep, 'ecrans/document.twig', $this->commun('bibliotheque') + [
             'avis_ordinateur' => false, 'doc' => $doc, 'csrf' => self::jetonCsrf($req),
             'peut_modifier' => $peutModifier,
+            'peut_ouvrir_poste' => $peutOuvrirPoste,
             'libelle_ouverture' => $libelleOuverture,
-            'lien_ouverture' => $peutModifier ? \Ged\Edition\Pieces::lien((int) ($doc['id'] ?? 0)) : '',
+            'lien_ouverture' => $peutOuvrirPoste ? \Ged\Edition\Pieces::lien((int) ($doc['id'] ?? 0)) : '',
             'peut_sceller' => $peutSceller, 'tsa_configuree' => trim($config->get('TSA_URL')) !== '' || $config->get('APP_ENV') === 'test',
             'archivage_erreur' => (string) ($req->getQueryParams()['archivage_erreur'] ?? ''),
             'archivage_succes' => (string) ($req->getQueryParams()['archivage_succes'] ?? '') === '1',

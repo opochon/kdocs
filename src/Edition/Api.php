@@ -108,8 +108,9 @@ final class Api
         try {
             $jeton = $this->authentifier($requete, $etape);
             $editeur = new Editeur($this->config);
-            $this->exigerDocument($editeur, $id, $etape);
+            $doc = $this->exigerDocument($editeur, $id, $etape);
             $this->exigerDroit($jeton, $id, 'modifier', $etape);
+            $this->exigerFormatEditable((string) $doc['nom'], $etape);
 
             $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
             $brut = $corps['version_base'] ?? '';
@@ -143,8 +144,9 @@ final class Api
         $etape = 'POST /api/v1/edition/documents/' . $id . '/ouverture';
         try {
             $jeton = $this->authentifier($requete, $etape);
-            $this->exigerDocument(new Editeur($this->config), $id, $etape);
+            $doc = $this->exigerDocument(new Editeur($this->config), $id, $etape);
             $this->exigerDroit($jeton, $id, 'modifier', $etape);
+            $this->exigerFormatEditable((string) $doc['nom'], $etape);
             $ouverture = (new Ouvertures($this->pdo()))->ouvrir($id, (string) $jeton['compte_identifiant'], (string) $jeton['appareil']);
 
             return $this->json($reponse, 200, ['ouverture' => $ouverture]);
@@ -318,6 +320,19 @@ final class Api
     }
 
     /**
+     * Refuse tout format hors liste blanche (403 nommé) : le bouton et l'API ne doivent jamais laisser
+     * passer un exécutable, un script ou un format à macros.
+     *
+     * @throws ErreurApi
+     */
+    private function exigerFormatEditable(string $nom, string $etape): void
+    {
+        if (!Formats::editable($nom)) {
+            throw new ErreurApi(403, Formats::motif($nom), $etape);
+        }
+    }
+
+    /**
      * @return array{id:int, nom:string, chemin:string, mime:string, taille:int, empreinte:string, version:int}
      * @throws ErreurApi
      */
@@ -345,6 +360,9 @@ final class Api
         if ($fichier->getError() !== UPLOAD_ERR_OK) {
             throw new ErreurApi(400, 'transfert du fichier incomplet (code ' . $fichier->getError() . ')', $etape);
         }
+        // Liste blanche : le fichier déposé doit lui aussi être d'un format éditable (jamais un exécutable
+        // glissé sous une extension autorisée).
+        $this->exigerFormatEditable((string) $fichier->getClientFilename(), $etape);
         $extension = strtolower((string) pathinfo((string) $fichier->getClientFilename(), PATHINFO_EXTENSION));
         if (preg_match('/^[a-z0-9]{1,10}$/', $extension) !== 1) {
             $extension = '';
