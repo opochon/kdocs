@@ -175,3 +175,19 @@ Chemins du lot `ged-agent-durcissement` (même secteur, durcissement bloquant du
 ### Hygiène des tests de l'agent (juge, 11-10)
 
 Après `dotnet test`, la clé `HKCU\Software\Classes\kdocs` reste enregistrée et pointe vers l'exécutable de test (`…\bin\Debug\Kdocs.AgentPoste.exe`) de la copie qui a joué les tests. Sans danger sur une machine de développement, mais un test doit rendre l'état HKCU qu'il a trouvé (comme `tester-installateur.ps1` le fait déjà). À corriger au prochain lot de l'agent.
+### Journal finition ged-finitions-1 (11-10) — le parcours F13 rend l'état HKCU
+
+Défaut ci-dessus **corrigé** :
+
+- `SauvegardeHkcu` (tests, `Support/`) photographie récursivement une clé HKCU (sous-clés, valeurs,
+  genres), la restitue à l'identique par `Dispose` — donc même en cas d'échec — et compare l'état vivant à
+  la photographie ; `SauvegardeHkcuTests` prouve le round-trip sur une clé jetable.
+- `ParcoursF13Tests.Point2` sauvegarde la clé avant d'enregistrer `kdocs://`, assène sur les valeurs
+  écrites, restitue puis assène que la clé est redevenue celle trouvée ; la fixture de collection
+  sauvegarde/restaure aussi l'état à sa fermeture (filet d'hygiène).
+- `tools/verifier.ps1` exporte `HKCU\Software\Classes\kdocs` avant la suite, le compare après, restaure
+  l'état d'avant et échoue si la clé a changé — c'est l'oracle « après la suite complète ».
+
+**Preuves** : `dotnet test` complet **222 tests, 0 échec, 0 avertissement** (32 s), clé absente avant et
+après ; garde `verifier.ps1` **VERTE**. Mutation (`Restaurer` neutralisé) : Point2 rouge, **1 échec / 9**,
+garde **ROUGE**, état HKCU restauré. Commits `52569cc`, `cf978b6`.
