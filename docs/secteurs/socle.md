@@ -331,3 +331,8 @@ ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’u
 
 (fin du journal du lot ged-socle-reconstruction)
 
+
+### Jugement lot ged-socle-reconstruction (juge, 11-10) — fusionné
+
+- Copie du juge : PHPStan 0, PHPUnit 565 tests vert. Le total de la reconstruction est désormais le périmètre que `synchroniser()` relit (`IndexPleinTexte::aRelire`, définition unique), les documents vivants absents du fonds sont comptés et nommés à part.
+- Défaut trouvé à la relecture et corrigé par le juge, oracle d'abord : un fichier qui disparaît APRÈS le lancement laissait la tâche « en cours » pour toujours (plus aucune tranche ne relisait rien). Elle se termine désormais et compte l'`ecart`. Reste à l'afficher dans le bilan de l'écran Application (petit ajout, prochain lot Interface).
