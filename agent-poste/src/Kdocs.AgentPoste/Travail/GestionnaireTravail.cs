@@ -28,6 +28,7 @@ public sealed class GestionnaireTravail : IOuvertureDocument
     private readonly IOuvreurFichier _ouvreur;
     private readonly IHorloge _horloge;
     private readonly IJournal _journal;
+    private readonly IDepotRefus? _refus;
 
     public GestionnaireTravail(
         RacineAgent racine,
@@ -35,7 +36,8 @@ public sealed class GestionnaireTravail : IOuvertureDocument
         IDepotFiches fiches,
         IOuvreurFichier ouvreur,
         IHorloge horloge,
-        IJournal journal)
+        IJournal journal,
+        IDepotRefus? refus = null)
     {
         _racine = racine;
         _client = client;
@@ -43,12 +45,25 @@ public sealed class GestionnaireTravail : IOuvertureDocument
         _ouvreur = ouvreur;
         _horloge = horloge;
         _journal = journal;
+        _refus = refus;
     }
 
     public async Task<FicheDocumentTravail> OuvrirAsync(int document, CancellationToken annulation = default)
     {
         const string etape = "ouverture depuis la GED";
         var etat = await _client.EtatAsync(document, annulation).ConfigureAwait(false);
+
+        // Liste BLANCHE : un format hors des extensions éditables n'est jamais téléchargé ni passé au
+        // shell. Le refus est tracé, conservé et expliqué dans « Mes documents en cours ».
+        if (!ExtensionsEditables.Autorisee(etat.Nom))
+        {
+            var cause = ExtensionsEditables.CauseRefus(etat.Nom);
+            _refus?.Enregistrer(new RefusOuverture(document, etat.Nom, cause, _horloge.MaintenantUtc));
+            _journal.Avertissement(etape, $"document {document} non ouvert : {cause} (nom « {etat.Nom} »)");
+
+            throw new ErreurAgent(etape, cause);
+        }
+
         var chemin = _racine.CheminTravail(document, etat.Nom);
         var telecharge = await _client.TelechargerAsync(document, chemin, annulation).ConfigureAwait(false);
 

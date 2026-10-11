@@ -25,7 +25,7 @@ public sealed class FenetreDocuments : Form
         _dossierTravail = dossierTravail;
 
         Text = "K-Docs — Mes documents en cours";
-        Width = 820;
+        Width = 980;
         Height = 440;
         StartPosition = FormStartPosition.CenterScreen;
         MinimizeBox = false;
@@ -40,10 +40,11 @@ public sealed class FenetreDocuments : Form
             AccessibleName = "documents-en-cours",
         };
         _liste.Columns.Add("Document", 70);
-        _liste.Columns.Add("Nom", 260);
-        _liste.Columns.Add("État", 110);
-        _liste.Columns.Add("Conflit", 80);
-        _liste.Columns.Add("Copie de secours", 160);
+        _liste.Columns.Add("Nom", 220);
+        _liste.Columns.Add("État", 90);
+        _liste.Columns.Add("Conflit", 60);
+        _liste.Columns.Add("Copie de secours", 130);
+        _liste.Columns.Add("Motif", 340);
 
         var boutons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 52, Padding = new Padding(8) };
         var recuperer = new Button { Text = "Récupérer la copie de secours", AutoSize = true, AccessibleName = "recuperer-copie" };
@@ -78,6 +79,7 @@ public sealed class FenetreDocuments : Form
             ligne.SubItems.Add(document.Etat);
             ligne.SubItems.Add(document.Conflit ? "oui" : "non");
             ligne.SubItems.Add(document.CopieSecoursLeUtc is null ? "aucune" : document.CopieSecoursLeUtc.Value.ToString("HH:mm"));
+            ligne.SubItems.Add(document.Refus ?? string.Empty);
             _liste.Items.Add(ligne);
         }
 

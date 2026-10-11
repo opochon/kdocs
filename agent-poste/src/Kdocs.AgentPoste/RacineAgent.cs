@@ -28,6 +28,9 @@ public sealed class RacineAgent
 
     public string DossierJournal => Path.Combine(Racine, "journal");
 
+    /// <summary>Refus d'ouverture conservés (formats hors liste blanche), expliqués dans « Mes documents en cours ».</summary>
+    public string DossierRefus => Path.Combine(Racine, "refus");
+
     public string FichierConfiguration => Path.Combine(Racine, "config.json");
 
     public string FichierJeton => Path.Combine(Racine, "jeton.dpapi");
@@ -89,6 +92,7 @@ public sealed class RacineAgent
         Directory.CreateDirectory(DossierSecours);
         Directory.CreateDirectory(DossierFile);
         Directory.CreateDirectory(DossierJournal);
+        Directory.CreateDirectory(DossierRefus);
     }
 
     /// <summary>

@@ -56,13 +56,14 @@ public sealed class AgentPosteApplication : ApplicationContext
 
         var fiches = new DepotFichesDisque(racine, journal);
         var depotFile = new DepotFileDisque(racine.DossierFile, journal);
-        _documents = new ServiceDocumentsEnCours(fiches, depotFile, racine);
+        var refus = new DepotRefusDisque(racine, journal);
+        _documents = new ServiceDocumentsEnCours(fiches, depotFile, racine, refus);
         _recuperation = new ServiceRecuperation(_documents, fiches, new OuvreurShell(), journal);
         _office = new OfficeComAutomate(journal);
 
         if (_client is not null)
         {
-            var travail = new GestionnaireTravail(racine, _client, fiches, new OuvreurShell(), HorlogeSysteme.Instance, journal);
+            var travail = new GestionnaireTravail(racine, _client, fiches, new OuvreurShell(), HorlogeSysteme.Instance, journal, refus);
             _gestionnaireUrl = new GestionnaireUrl(travail, journal);
             var file = new GestionnaireFileEnvoi(
                 _client, depotFile, racine, new FichierStableDisque(), HorlogeSysteme.Instance, journal);
