@@ -45,6 +45,17 @@ public sealed class ServiceRecuperation
             return null;
         }
 
+        // Liste blanche : une fiche héritée d'un format non éditable (installée avant le durcissement)
+        // ne doit pas rouvrir un exécutable ou un script par le shell.
+        if (!ExtensionsEditables.Autorisee(fiche.Chemin))
+        {
+            _journal.Avertissement(
+                "récupération",
+                $"document {document} : format non éditable, copie de secours non ouverte ({Path.GetFileName(fiche.Chemin)})");
+
+            return null;
+        }
+
         var dossier = Path.GetDirectoryName(fiche.Chemin);
         if (!string.IsNullOrEmpty(dossier))
         {

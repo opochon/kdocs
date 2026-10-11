@@ -108,6 +108,40 @@ public sealed class ServicesBarreTachesTests
     }
 
     [Fact]
+    public void La_recuperation_n_ouvre_jamais_un_format_non_editable()
+    {
+        using var dossier = new DossierTemporaire();
+        var racine = new Kdocs.AgentPoste.RacineAgent(dossier.Chemin);
+        racine.Preparer();
+        var fiches = new DepotFichesDisque(racine);
+        // Fiche héritée d'avant le durcissement : le nom de travail est un exécutable.
+        var cheminExe = racine.CheminTravail(7, "facture.pdf.exe");
+        Directory.CreateDirectory(Path.GetDirectoryName(cheminExe)!);
+        File.WriteAllText(cheminExe, "faux exécutable");
+        fiches.Ecrire(new FicheDocumentTravail
+        {
+            Document = 7,
+            Nom = "facture.pdf.exe",
+            Chemin = cheminExe,
+            EmpreinteServeur = "base",
+            DerniereEmpreinteConnue = "base",
+            VersionServeur = 1,
+            DerniereVersionConnue = 1,
+            OuvertLeUtc = DateTimeOffset.UnixEpoch,
+        });
+        var dossierSecours = racine.DossierSecoursDe(7);
+        Directory.CreateDirectory(dossierSecours);
+        File.WriteAllText(Path.Combine(dossierSecours, "20261011-1432.docx"), "copie de secours");
+        var ouvreur = new FauxOuvreur();
+        var service = new ServiceDocumentsEnCours(fiches, new DepotFileDisque(racine.DossierFile), racine);
+        var recuperation = new ServiceRecuperation(service, fiches, ouvreur, new JournalMemoire());
+
+        Assert.Null(recuperation.Recuperer(7));
+        Assert.Empty(ouvreur.Ouverts);
+        Assert.Equal("faux exécutable", File.ReadAllText(cheminExe));
+    }
+
+    [Fact]
     public async Task Le_verrou_informatif_s_ouvre_se_prolonge_et_se_leve()
     {
         using var dossier = new DossierTemporaire();
