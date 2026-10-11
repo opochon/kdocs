@@ -20,7 +20,7 @@ public sealed class OuvreurShell : IOuvreurFichier
 /// (empreinte de base) puis ouvre le fichier local comme un double-clic. Word n'ouvre jamais qu'un
 /// fichier local : aucune session web, aucun lien qui expire.
 /// </summary>
-public sealed class GestionnaireTravail
+public sealed class GestionnaireTravail : IOuvertureDocument
 {
     private readonly RacineAgent _racine;
     private readonly IClientEdition _client;
