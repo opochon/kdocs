@@ -47,6 +47,41 @@ public sealed class RacineAgent
 
     public string CheminFiche(int document, string nom) => CheminTravail(document, nom) + ExtensionFiche;
 
+    /// <summary>
+    /// Identifiant du document si le chemin est bien un document de NOTRE dossier de travail
+    /// (<c>Travail\&lt;id&gt;\…</c>), sinon null. Sert aux copies de secours : on ne sauvegarde jamais un
+    /// document hors de ce dossier, ni un chemin piégé.
+    /// </summary>
+    public int? DocumentDansTravail(string? chemin)
+    {
+        if (string.IsNullOrWhiteSpace(chemin))
+        {
+            return null;
+        }
+
+        try
+        {
+            var complet = Path.GetFullPath(chemin);
+            var racineTravail = Path.GetFullPath(DossierTravail) + Path.DirectorySeparatorChar;
+            if (!complet.StartsWith(racineTravail, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var relatif = complet[racineTravail.Length..];
+            var separateur = relatif.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
+            var premier = separateur < 0 ? relatif : relatif[..separateur];
+
+            return int.TryParse(premier, NumberStyles.None, CultureInfo.InvariantCulture, out var document) && document > 0
+                ? document
+                : null;
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Crée l'arborescence de l'agent si besoin (idempotent).</summary>
     public void Preparer()
     {
