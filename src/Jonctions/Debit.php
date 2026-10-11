@@ -10,10 +10,11 @@ use Ged\Config;
  * Limiteur de débit de l'API REST des documents, par jeton : une fenêtre glissante simple, tenue dans un
  * fichier d'état hors requête (aucune table, aucun démon — compatible hébergement mutualisé).
  *
- * La décision est prise SOUS VERROU exclusif : deux requêtes simultanées du même jeton ne peuvent pas
- * dépasser le plafond. Le compteur n'est jamais une donnée utilisateur : un fichier par empreinte de clé,
- * remis à zéro à l'expiration de la fenêtre. Si l'état est illisible, on REFUSE (fail-closed) : la cause
- * est nommée côté appelant, jamais un 500 muet.
+ * La décision est prise SOUS VERROU exclusif (un fichier `.lock` dédié) : deux requêtes simultanées du
+ * même jeton ne peuvent pas dépasser le plafond. Le compteur n'est jamais une donnée utilisateur : un
+ * fichier d'état par empreinte de clé, remis à zéro à l'expiration de la fenêtre. Un état INUTILISABLE
+ * lève une exception (jamais un faux 429 « débit dépassé » qui masquerait une panne de disque) :
+ * l'appelant la nomme et la trace.
  */
 final class Debit
 {
@@ -28,22 +29,28 @@ final class Debit
         $this->fenetre = max(1, (int) $config->get('API_DEBIT_FENETRE', '60'));
     }
 
-    /** Une requête de plus est-elle permise pour cette clé dans la fenêtre courante ? */
+    /**
+     * Une requête de plus est-elle permise pour cette clé dans la fenêtre courante ?
+     *
+     * @throws \RuntimeException si le compteur ne peut pas être tenu (disque, verrou) — jamais confondu
+     *                           avec un dépassement de débit.
+     */
     public function autoriser(string $cle): bool
     {
         if (!is_dir($this->dossier) && !mkdir($this->dossier, 0775, true) && !is_dir($this->dossier)) {
-            return false;   // état indisponible : on n'ouvre pas la porte
+            throw new \RuntimeException('compteur de débit inutilisable : dossier ' . $this->dossier);
         }
-        $poignee = fopen($this->dossier . '/' . hash('sha256', $cle) . '.json', 'c+');
-        if ($poignee === false) {
-            return false;
+        $empreinte = hash('sha256', $cle);
+        $verrou = fopen($this->dossier . '/' . $empreinte . '.lock', 'c');
+        if ($verrou === false) {
+            throw new \RuntimeException('compteur de débit inutilisable : verrou non ouvrable');
         }
 
         try {
-            if (!flock($poignee, LOCK_EX)) {
-                return false;
+            if (!flock($verrou, LOCK_EX)) {
+                throw new \RuntimeException('compteur de débit inutilisable : verrou impossible');
             }
-            $etat = json_decode((string) stream_get_contents($poignee), true);
+            $etat = json_decode((string) @file_get_contents($this->dossier . '/' . $empreinte . '.json'), true);
             $maintenant = time();
             if (!is_array($etat) || $maintenant - (int) ($etat['debut'] ?? 0) >= $this->fenetre) {
                 $etat = ['debut' => $maintenant, 'requetes' => 0];
@@ -52,15 +59,14 @@ final class Debit
                 return false;
             }
             $etat['requetes'] = (int) $etat['requetes'] + 1;
-            ftruncate($poignee, 0);
-            rewind($poignee);
-            fwrite($poignee, (string) json_encode($etat));
-            fflush($poignee);
+            if (file_put_contents($this->dossier . '/' . $empreinte . '.json', (string) json_encode($etat)) === false) {
+                throw new \RuntimeException('compteur de débit inutilisable : état non écrit');
+            }
 
             return true;
         } finally {
-            flock($poignee, LOCK_UN);
-            fclose($poignee);
+            flock($verrou, LOCK_UN);
+            fclose($verrou);
         }
     }
 }

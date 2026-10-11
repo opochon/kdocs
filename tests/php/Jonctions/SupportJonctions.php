@@ -102,10 +102,16 @@ trait SupportJonctions
         $prefixe = 'Clients-' . $this->sel . '%';
         $ids = $this->pdo->prepare('SELECT id FROM documents WHERE chemin_relatif LIKE ? OR chemin_relatif LIKE ?');
         $ids->execute([$prefixe, 'Confidentiel-' . $this->sel . '%']);
+        // L'index plein texte est un cache dérivé : il peut ne pas exister (test Jonctions seul, avant
+        // toute installation Recherche). Son absence n'est jamais un échec de nettoyage.
+        $recherchePresente = (int) $this->pdo->query("SELECT COUNT(*) FROM information_schema.TABLES"
+            . " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'recherche_textes'")->fetchColumn() > 0;
         foreach ($ids->fetchAll(PDO::FETCH_COLUMN) as $id) {
             $this->pdo->exec('DELETE FROM document_versions WHERE document_id = ' . (int) $id);
             $this->pdo->exec('DELETE FROM document_deplacements WHERE document_id = ' . (int) $id);
-            $this->pdo->exec('DELETE FROM recherche_textes WHERE document_id = ' . (int) $id);
+            if ($recherchePresente) {
+                $this->pdo->exec('DELETE FROM recherche_textes WHERE document_id = ' . (int) $id);
+            }
         }
         $this->pdo->prepare('DELETE FROM documents WHERE chemin_relatif LIKE ? OR chemin_relatif LIKE ?')
             ->execute([$prefixe, 'Confidentiel-' . $this->sel . '%']);

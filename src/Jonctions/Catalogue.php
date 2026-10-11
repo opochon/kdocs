@@ -36,6 +36,7 @@ final class Catalogue
     private const RECHERCHE_MAX = 1000;
     private const TERMES_MAX = 8;
     private const ETIQUETTES_SCAN_MAX = 5000;
+    private const EMETTEURS_MAX = 1000;
 
     /** Clés de métadonnées que l'API accepte de modifier. */
     private const METADONNEES = ['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'dossier'];
@@ -201,8 +202,10 @@ final class Catalogue
             if ($types !== []) {
                 return $types;
             }
-        } catch (\RuntimeException) {
-            // Nomenclature illisible : on rend la liste livrée par défaut, jamais une liste vide muette.
+        } catch (\RuntimeException $e) {
+            // Nomenclature illisible : on rend la liste livrée par défaut, jamais une liste vide muette,
+            // et la cause technique part au journal.
+            error_log('API documents : nomenclature illisible — ' . $e->getMessage());
         }
         $defauts = [];
         foreach (Nomenclature::TYPES_DEFAUT as $i => $nom) {
@@ -237,7 +240,7 @@ final class Catalogue
     {
         [$where, $params] = $this->wherePourFiltres($this->filtresVides());
         $requete = $this->pdo->prepare("SELECT DISTINCT d.emetteur FROM documents d WHERE $where"
-            . " AND d.emetteur IS NOT NULL AND d.emetteur <> '' ORDER BY d.emetteur LIMIT 1000");
+            . " AND d.emetteur IS NOT NULL AND d.emetteur <> '' ORDER BY d.emetteur LIMIT " . self::EMETTEURS_MAX);
         $requete->execute($params);
 
         return array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
@@ -263,7 +266,9 @@ final class Catalogue
             }
 
             return $vues;
-        } catch (\RuntimeException) {
+        } catch (\RuntimeException $e) {
+            error_log('API documents : registre des vues illisible — ' . $e->getMessage());
+
             return [];
         }
     }
@@ -386,8 +391,10 @@ final class Catalogue
                 if ($ids !== []) {
                     return $ids;
                 }
-            } catch (PDOException) {
-                // Index absent ou illisible : le repli LIKE ci-dessous répond, au même périmètre.
+            } catch (PDOException $e) {
+                // Index absent ou illisible : le repli LIKE ci-dessous répond, au même périmètre ; la
+                // cause technique part au journal (repli documenté, jamais un échec muet).
+                error_log('API documents : index plein texte indisponible — ' . $e->getMessage());
             }
         }
 

@@ -80,7 +80,7 @@ final class DocumentsApi
         try {
             $session = $this->authentifier($requete, $etape, false);
 
-            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, null, $etape));
+            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, null, $etape), $etape);
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -97,7 +97,7 @@ final class DocumentsApi
         try {
             $session = $this->authentifier($requete, $etape, false);
 
-            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, $numero, $etape));
+            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, $numero, $etape), $etape);
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -302,11 +302,11 @@ final class DocumentsApi
     }
 
     /** @param array{document:int, chemin:string, nom:string, mime:string, empreinte:string, version:int} $fichier */
-    private function servirFichier(Reponse $reponse, array $fichier): Reponse
+    private function servirFichier(Reponse $reponse, array $fichier, string $etape): Reponse
     {
         $contenu = file_get_contents($fichier['chemin']);
         if ($contenu === false) {
-            throw new ErreurApi(404, 'le fichier a disparu du fonds', 'GET /api/v1/documents/fichier');
+            throw new ErreurApi(404, 'le fichier a disparu du fonds', $etape);
         }
         $reponse->getBody()->write($contenu);
 
