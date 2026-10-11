@@ -77,6 +77,9 @@ propre fonds `var/oracles/reconstruction-index/documents`, préparés par
 
 Le fonds compte 27 documents synthétiques dont UN a son fichier retiré du disque (métadonnées et ligne
 d'index conservées) : le total relisible attendu est 26, le document absent est compté et nommé à part.
+Deux gestes sont joués par l'écran : la reconstruction va à 100 % sans tranche fantôme ; et, dans un
+second parcours, un document PRÉSENT du périmètre disparaît du fonds PENDANT la reconstruction — elle se
+termine et le bilan affiche l'écart (finition ged-finitions-1, 11-10) en plus des absents nommés.
 Aucune donnée réelle, aucun nom de client.
 
 
