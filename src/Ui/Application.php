@@ -60,7 +60,15 @@ final class Application
                 'cmm' => $this->connecteur(self::CLEARMYMAILS),
             ],
             'reconstruction' => $this->reconstruction(),
+            'pdfa' => $this->pdfa(),
         ];
+    }
+
+    /** @return array<string, mixed>|null avancement du rattrapage des copies PDF/A (lot ged-pdfa-1) */
+    private function pdfa(): ?array
+    {
+        if ($this->pdo === null) return null;
+        try { return (new \Ged\Ingestion\RattrapagePdfA($this->config))->etat(); } catch (Throwable) { return null; }
     }
 
     /** @return array{id:int,etat:string,total:int,traite:int,erreur:?string,absents:int,ecart:int,absents_noms:list<string>}|null */

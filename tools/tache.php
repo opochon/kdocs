@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  *   php tools/tache.php ingestion [--budget=20] [--tours=1] [--limite=200]
  *   php tools/tache.php indexation [--limite=200]
+ *   php tools/tache.php pdfa [--lot=25] [--tours=1]      (copies d'archivage PDF/A-2b du fonds, reprenable)
  *
  * Un seul exécutant à la fois (verrou fichier non bloquant : un second appel sort aussitôt).
  * Sortie : une ligne JSON par tour (reçus, doublons, découpés, rangés, erreurs, alertes) ; l'indexation
@@ -29,8 +30,8 @@ foreach (array_slice($argv, 1) as $arg) {
         $tache = $arg;
     }
 }
-if (!in_array($tache, ['ingestion', 'indexation'], true)) {
-    fwrite(STDERR, "Usage : php tools/tache.php ingestion|indexation [--budget=20] [--tours=1] [--limite=200]\n");
+if (!in_array($tache, ['ingestion', 'indexation', 'pdfa'], true)) {
+    fwrite(STDERR, "Usage : php tools/tache.php ingestion|indexation|pdfa [--budget=20] [--tours=1] [--limite=200] [--lot=25]\n");
     exit(64);
 }
 $budget = max(1, (int) ($options['budget'] ?? 20));
@@ -49,6 +50,32 @@ if ($verrou === false || !flock($verrou, LOCK_EX | LOCK_NB)) {
 
 $pdo = Base::pdo($config);
 Schema::installer($pdo);
+
+// Copies d'archivage PDF/A-2b du fonds déjà présent (lot ged-pdfa-1) : reprend une tâche en cours, sinon
+// en ouvre une, puis avance par tranches bornées. Idempotent : relancer ne refait aucune copie déjà juste.
+if ($tache === 'pdfa') {
+    try {
+        $service = new \Ged\Ingestion\RattrapagePdfA($config);
+        $lot = max(1, (int) ($options['lot'] ?? 25));
+        $etat = $service->etat();
+        if ($etat === null || $etat['etat'] !== 'en_cours') {
+            $etat = $service->lancer('tache.php');
+            echo json_encode(['tache' => 'pdfa', 'lance' => $etat], JSON_UNESCAPED_UNICODE), "\n";
+        }
+        for ($i = 1; $i <= $tours && $etat['etat'] === 'en_cours'; $i++) {
+            $etat = $service->avancer((int) $etat['id'], $lot);
+            echo json_encode(['tache' => 'pdfa', 'tour' => $i] + $etat, JSON_UNESCAPED_UNICODE), "\n";
+        }
+    } catch (\Throwable $e) {
+        fwrite(STDERR, 'pdfa : ' . $e->getMessage() . "\n");
+        flock($verrou, LOCK_UN);
+        fclose($verrou);
+        exit(1);
+    }
+    flock($verrou, LOCK_UN);
+    fclose($verrou);
+    exit(0);
+}
 
 // Indexation plein texte : lot court et reprenable, HORS requête web (jamais dans un écran).
 if ($tache === 'indexation') {

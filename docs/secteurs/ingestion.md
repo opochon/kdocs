@@ -11,6 +11,10 @@ secteur Socle (rangement). Le dossier d'ingestion n'est jamais montré aux utili
 ## Chemins
 `src/Ingestion/`, `agent/` (agent d'ingestion Python, appel sortant), `tests/php/Ingestion/`, `tests/corpus/`, `tools/banc/`
 
+Lot ged-pdfa-1 : pour porter la copie d'archivage jusqu'à l'écran et le rattrapage, ce lot touche aussi
+`src/Ui/` (données et routes), `templates/ecrans/`, `src/Apercu/Module.php` (téléchargement), `src/Securite/DroitsRoutes.php`
+(permissions), `tools/tache.php` et `tests/e2e/` — ajouts minimaux signalés dans le journal du lot.
+
 ## Lot V2-02 — porte
 1. Lot `courrier-100p` (repris de GEDv1 avec sa vérité) : 53/53 exacts, 0 page perdue, 0 doublon.
 2. Chaque nouveau lot du corpus (photos, 90°/180°, versos blancs, QR multipages, DE/IT/EN, pages mélangées, bureautique,
@@ -175,3 +179,77 @@ ETAT: fini
   (p95 lecture 2 119 ms) est verte seule à 794 ms, écriture 269 ms, 0 erreur, 0 collision.
 
 ETAT: fini
+
+## Journal ged-pdfa-1 — copie d'archivage PDF/A-2b — 11-10-2026
+
+**Oracle d'abord**
+- `tests/php/Ingestion/CopieArchivageTest.php` (11 tests, 81 assertions) a d'abord échoué « Class
+  Ged\Ingestion\CopieArchivage not found », puis prouve : PDF texte → copie 2b avec XMP, OutputIntent et
+  texte conservé ; image JPEG ; PDF scanné sans texte ; PDF corrompu → échec propre ; PDF chiffré → échec
+  nommé ; idempotence (deux passes = même résultat, 0 doublon) ; document scellé (copie permise, sceau
+  intact) ; format non applicable ; rattrapage reprenable et écart.
+- `PilotePdfATest` (2 tests) : branchement réel sur `DepotFichiers` (une pièce rangée reçoit sa copie ;
+  une copie en échec laisse le document ingéré) ; `TachePdfATest` (1 test) : `tools/tache.php pdfa`
+  idempotent ; `PdfaEcranTest` (3 tests) : fiche (ok / échec) et écran Application (rattrapage terminé).
+
+**Mécanisme natif retenu (Ghostscript 10.02.1)**
+- Doc officielle `C:\Program Files\gs\gs10.02.1\doc\Ghostscript.pdf`, **§ 14.7 « Creating a PDF/A document »,
+  p. 315-316** (pages physiques 319-320) : `-dPDFA=2`, `-sColorConversionStrategy=RGB`, un *PDF/A
+  definition file* (`lib/PDFA_def.ps`) portant l'`ICCProfile` de l'OutputIntent (`iccprofiles/srgb.icc`),
+  et `PDFACompatibilityPolicy` (1 = l'opération non conforme est ignorée, la sortie reste conforme).
+- Commande : `gs -dPDFA=2 -dBATCH -dNOPAUSE -dNOOUTERSAVE -sColorConversionStrategy=RGB -sDEVICE=pdfwrite
+  -dPDFACompatibilityPolicy=1 -sOutputFile=<copie> --permit-file-read=<srgb.icc> -f <PDFA_def.ps modifié>
+  <source>`. Le `PDFA_def.ps` livré est relu puis réécrit avec le chemin ABSOLU du profil (dépend du
+  répertoire courant sinon), et le titre est adapté. Aucune ligne Ghostscript n'est recopiée dans le dépôt.
+  `--permit-file-read=<icc>` est requis par le mode SAFER de Ghostscript 10.
+
+**Convention de la copie (à côté de l'original, jamais modifié)**
+- `<dossier>/.pdfa/<fichier>` quand l'original est un PDF, `<dossier>/.pdfa/<fichier>.pdf` sinon
+  (`photo.jpg` → `.pdfa/photo.jpg.pdf`). Dossier en point : l'indexeur et le reconstructeur l'ignorent,
+  la copie ne devient jamais un faux document. L'original n'est ni modifié ni remplacé (empreinte
+  inchangée).
+- État dans le `.meta.json` : `pdfa: { statut, niveau: "2b", chemin, empreinte_sha256, taille,
+  empreinte_origine, le, raison }`. Pour un document **scellé**, le `.meta.json` fait partie du sceau : il
+  n'est PAS réécrit, l'état identique vit dans `.pdfa/<fichier>.pdfa.json` (Garde d'archivage vérifiée par
+  oracle). Un échec de conversion donne `statut: echec` + `raison` ; le document reste ingéré.
+- Conversion via `Ged\Apercu\Outils::ghostscript()` (jamais un autre chemin). Un échec (chiffré, corrompu,
+  ICC/`PDFA_def.ps` absent) est nommé, aucune copie partielle n'est publiée (temporaire puis renommage).
+  Les images sont enveloppées en PDF d'une page (JPEG en `DCTDecode`, autres bitmaps via GD).
+
+**Contrôle partiel (veraPDF absent, pas de Java)**
+- `ControlePdfA` lit la copie en PHP : XMP `pdfaid:part = 2` et `pdfaid:conformance = B`, OutputIntent
+  (`/OutputIntent`, `/GTS_PDFA1`, `/DestOutputProfile`), absence de chiffrement (`/Encrypt`), polices
+  incorporées (`/FontFile` dès qu'une `/BaseFont` est déclarée). C'est un contrôle de SURFACE (aucun flux
+  d'objets compressé lu, aucune règle fine) : **veraPDF reste la validation de recette**, à rejouer sur les
+  copies d'un vrai fonds.
+
+**Écrans (E2E par l'écran)**
+- Fiche document : `data-testid="pdfa-etat"` → `pdfa-statut-ok` / `pdfa-statut-attente` /
+  `pdfa-statut-echec` (+ `pdfa-raison`) / `pdfa-statut-sans-objet`, et `pdfa-telecharger` →
+  `GET /documents/{id}/pdfa` (droit `document.voir`, 404 nommé sans copie).
+- Écran Application : `data-testid="pdfa-rattrapage"` (lancer, tranche, progression, terminée, écart),
+  routes `POST /application/pdfa-rattrapage[/{id}/tranche]` (droit `application:administrer`).
+  Ces lignes UI/permissions sont HORS secteur Ingestion : ajout minimal signalé, commité avec le lot.
+
+**Rattrapage du fonds déjà présent**
+- `Ged\Ingestion\RattrapagePdfA` (registre `.ged/pdfa-rattrapage.json`) : périmètre figé au lancement,
+  `traite` = point de reprise, `ecart` = documents disparus en cours de route, borné à 100 par tranche,
+  idempotent (rejouer ne refait aucune copie juste). Aussi `php tools/tache.php pdfa [--lot=N] [--tours=N]`
+  : reprend une tâche en cours, sinon en ouvre une.
+
+**Budget mesuré (poste, Ghostscript 10.02.1)**
+- PDF texte 10 pages A4 → copie produite en **0,297 s**, soit **0,030 s/page** (~30 ms), copie 8,6 Ko.
+- Image JPEG 793×1123 (1 page) → **0,302 s**, copie 37,8 Ko. Le test borne à 30 s pour 5 pages (garde-fou
+  grossier) : la mesure réelle est ~100× sous la borne.
+
+**Preuves**
+- `php vendor/bin/phpunit tests/php/Ingestion tests/php/Ui tests/php/Securite` : vert.
+- `phpstan analyse` niveau 6 : 0 erreur ; baseline inchangée (vide).
+- E2E : `npx playwright test tests/e2e/pdfa.spec.ts --project=parcours` → **2/2** (attente → rattrapage
+  par l'écran → PDF/A 2b ok → copie téléchargée et contrôlée ; `.txt` « sans objet »).
+- Harness `-SansBanc` (commit `8a032c5`) : couches 0, 1 (598 tests / 3 406 assertions), 2, 5, 6, 7, 8
+  vertes ; 3 rouge par `-SansBanc` ; couche 4 : `pdfa` 2/2 et 79/80, seul le budget d'aperçu sous charge
+  échoue (1 048 ms > 1 000 ms), la couche rejouée seule est 80/80.
+
+ETAT: fini
+

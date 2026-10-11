@@ -48,11 +48,16 @@ final class DroitsRoutes
         'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 'publique:partage-externe',
         'POST /application/reconstruction-index' => 'application:administrer',
         'POST /application/reconstruction-index/{id:[0-9]+}/tranche' => 'application:administrer',
+        // Lot ged-pdfa-1 : rattrapage des copies d'archivage PDF/A du fonds (même droit que la reconstruction).
+        'POST /application/pdfa-rattrapage' => 'application:administrer',
+        'POST /application/pdfa-rattrapage/{id:[0-9]+}/tranche' => 'application:administrer',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
         'GET /documents/{id:[0-9]+}/apercu/fichier' => 'document.voir',
         'GET /documents/{id:[0-9]+}/fichier' => 'document.voir',
+        // Copie d'archivage PDF/A-2b (lot ged-pdfa-1) : même droit de lecture que le document.
+        'GET /documents/{id:[0-9]+}/pdfa' => 'document.voir',
         'GET /documents/{id:[0-9]+}/miniature' => 'document.voir',
         'GET /workflows' => 'workflows:lire',
         // Workflows V2-06b : catalogue, éditeur graphique et enregistrement du dessin (lignes signalées
@@ -168,6 +173,9 @@ final class DroitsRoutes
         if (strtoupper($methode) === 'POST' && preg_match('#^/application/reconstruction-index/[0-9]+/tranche$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /application/reconstruction-index/{id:[0-9]+}/tranche'];
         }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/application/pdfa-rattrapage/[0-9]+/tranche$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /application/pdfa-rattrapage/{id:[0-9]+}/tranche'];
+        }
 
         // Suivi d'un travail de l'API d'entrée (identifiant numérique, route sous jeton).
         if (strtoupper($methode) === 'GET' && preg_match('#^/api/v1/depots/[0-9]+$#', $chemin) === 1) {
@@ -178,7 +186,7 @@ final class DroitsRoutes
             if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /dossiers/{id:[0-9]+}/droits'];
             }
-            foreach (['/apercu', '/apercu/fichier', '/fichier', '/miniature'] as $suffixe) {
+            foreach (['/apercu', '/apercu/fichier', '/fichier', '/pdfa', '/miniature'] as $suffixe) {
                 if (preg_match('#^/documents/[0-9]+' . preg_quote($suffixe, '#') . '$#', $chemin) === 1) {
                     return self::PERMISSIONS['GET /documents/{id:[0-9]+}' . $suffixe];
                 }

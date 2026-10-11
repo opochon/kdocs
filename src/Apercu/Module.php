@@ -48,6 +48,23 @@ final class Module
             return self::servir($rep, $piece->chemin, self::mime($piece), 'attachment; filename="' . addslashes($piece->nom()) . '"');
         })->add(new Permission());
 
+        // Copie d'archivage PDF/A-2b (lot ged-pdfa-1) : la copie normalisée pour la consultation longue
+        // durée, jamais l'original. Un document sans copie prête le dit en 404 nommé, pas un 500.
+        $app->get('/documents/{id:[0-9]+}/pdfa', function (Requete $req, Reponse $rep, array $args) use ($source, $config): Reponse {
+            $piece = self::piece($req, $source, $args);
+            $copie = null;
+            try {
+                $copie = \Ged\Ingestion\CopieArchivage::depuis($config)->telechargeable($piece->chemin, $piece->id);
+            } catch (\Throwable $e) {
+                error_log(sprintf('[GEDv2 pdfa] téléchargement impossible pour le document %d : %s', $piece->id, $e->getMessage()));
+            }
+            if ($copie === null || !is_file($copie)) {
+                return self::erreur($rep, 404, 'copie d’archivage PDF/A indisponible');
+            }
+
+            return self::servir($rep, $copie, 'application/pdf', 'attachment; filename="' . addslashes(basename($copie)) . '"');
+        })->add(new Permission());
+
         // Vignette de première page : servie telle quelle, jamais générée dans la requête.
         $app->get('/documents/{id:[0-9]+}/miniature', function (Requete $req, Reponse $rep, array $args) use ($source, $cache): Reponse {
             $piece = self::piece($req, $source, $args);
