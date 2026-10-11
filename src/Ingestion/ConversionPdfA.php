@@ -30,6 +30,17 @@ final class ConversionPdfA
     public const MSG_DEF = 'copie d’archivage indisponible : PDFA_def.ps introuvable';
     public const MSG_SORTIE = 'conversion PDF/A refusée : aucune sortie exploitable';
     public const MSG_CHIFFRE = 'conversion PDF/A refusée : le PDF source est chiffré (mot de passe requis)';
+    public const MSG_CORROMPU = 'conversion PDF/A refusée : PDF corrompu ou illisible';
+    public const MSG_SOURCE = 'copie d’archivage impossible : fichier source introuvable';
+    public const MSG_DOSSIER = 'copie d’archivage impossible : dossier de destination non créé';
+    public const MSG_PUBLICATION = 'copie d’archivage impossible : publication du fichier refusée';
+    public const MSG_DEMARRAGE = 'conversion PDF/A refusée : Ghostscript n’a pas pu démarrer';
+
+    /** Cause d'échec rejouable sans rien changer au document (outil, profil, chemin). */
+    public const REPRISE_AUTO = 'auto';
+
+    /** Cause d'échec attachée au document : la rejouer donnera le même résultat. */
+    public const REPRISE_JAMAIS = 'jamais';
 
     private readonly ?string $ghostscript;
     private readonly ?string $profilIcc;
@@ -53,6 +64,22 @@ final class ConversionPdfA
     }
 
     /**
+     * Classe une raison d'échec : `auto` (cause d'environnement : outil absent, profil ou définition
+     * introuvable, chemin non constructible — rejouable après réparation) ou `jamais` (cause attachée au
+     * document : chiffré, corrompu, format, autre refus — la rejouer donnerait le même résultat).
+     * Un échec `jamais` n'est jamais relancé par le produit, même par le rattrapage.
+     */
+    public static function reprise(string $raison): string
+    {
+        $environnement = [
+            self::MSG_ABSENT, self::MSG_ICC, self::MSG_DEF, self::MSG_SORTIE, self::MSG_SOURCE,
+            self::MSG_DOSSIER, self::MSG_PUBLICATION, self::MSG_DEMARRAGE,
+        ];
+
+        return in_array($raison, $environnement, true) ? self::REPRISE_AUTO : self::REPRISE_JAMAIS;
+    }
+
+    /**
      * Produit la copie PDF/A-2b de `$source` en `$sortie`. Rend null si la copie est conforme au contrôle
      * partiel, sinon une raison nommée. N'écrit jamais `$sortie` en cas d'échec.
      */
@@ -62,7 +89,7 @@ final class ConversionPdfA
             return self::MSG_ABSENT;
         }
         if (!is_file($source)) {
-            return 'copie d’archivage impossible : fichier source introuvable';
+            return self::MSG_SOURCE;
         }
         if ($this->profilIcc === null) {
             return self::MSG_ICC;
@@ -77,7 +104,7 @@ final class ConversionPdfA
 
         $temporaire = $sortie . '.' . bin2hex(random_bytes(6)) . '.tmp';
         if (!is_dir(dirname($temporaire)) && !mkdir(dirname($temporaire), 0775, true) && !is_dir(dirname($temporaire))) {
-            return 'copie d’archivage impossible : dossier de destination non créé';
+            return self::MSG_DOSSIER;
         }
         $definition = null;
 
@@ -92,7 +119,7 @@ final class ConversionPdfA
                 return 'conversion PDF/A refusée : ' . $controle['raison'];
             }
             if (!@rename($temporaire, $sortie)) {
-                return 'copie d’archivage impossible : publication du fichier refusée';
+                return self::MSG_PUBLICATION;
             }
         } catch (\Throwable $e) {
             return 'copie d’archivage impossible : ' . mb_substr($e->getMessage(), 0, 200);
@@ -182,7 +209,7 @@ final class ConversionPdfA
         $descripteurs = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
         $processus = proc_open($commande, $descripteurs, $tuyaux);
         if (!is_resource($processus)) {
-            return 'conversion PDF/A refusée : Ghostscript n’a pas pu démarrer';
+            return self::MSG_DEMARRAGE;
         }
         $diagnostic = (string) stream_get_contents($tuyaux[1]) . (string) stream_get_contents($tuyaux[2]);
         fclose($tuyaux[1]);
@@ -192,7 +219,11 @@ final class ConversionPdfA
         if (preg_match('/requires a password/i', $diagnostic) === 1) {
             return self::MSG_CHIFFRE;
         }
-        if ($code !== 0 || preg_match('/Unrecoverable error|No pages will be processed|Couldn.t initialise file/i', $diagnostic) === 1) {
+        // Un fichier corrompu est une cause définitive, nommée comme telle : jamais relancé en boucle.
+        if (preg_match('/Unrecoverable error|No pages will be processed|Couldn.t initialise file/i', $diagnostic) === 1) {
+            return self::MSG_CORROMPU;
+        }
+        if ($code !== 0) {
             return 'conversion PDF/A refusée : ' . self::resume($diagnostic);
         }
         if (!is_file($sortie) || filesize($sortie) === 0) {
