@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ged\Tests\Ui;
 
+use Ged\Ingestion\ConversionPdfA;
 use Ged\Ingestion\CopieArchivage;
 use Ged\Ingestion\RattrapagePdfA;
 use Ged\Kernel;
@@ -58,6 +59,21 @@ final class PdfaEcranTest extends TestCase
         self::assertSame(200, $code, $html);
         self::assertStringContainsString('data-testid="pdfa-statut-echec"', $html);
         self::assertStringContainsString('data-testid="pdfa-raison"', $html);
+        self::assertStringContainsString('data-testid="pdfa-definitif"', $html, 'un PDF corrompu n’est pas annoncé reprenable');
+    }
+
+    public function testLaFicheDocumentDitQuUnEchecDEnvironnementEstReprenable(): void
+    {
+        $this->ghostscriptPdfA();
+        $id = $this->deposerPdfA('sans-outil.pdf', $this->pdfContenu('ENVIRONNEMENT'));
+        (new CopieArchivage($this->configPdfA(), new ConversionPdfA(null)))
+            ->pour($this->absoluPdfA($id), $this->relatifPdfA($id), $id);
+
+        [$code, $html] = $this->rendre('/documents/' . $id);
+
+        self::assertSame(200, $code, $html);
+        self::assertStringContainsString('data-testid="pdfa-statut-echec"', $html);
+        self::assertStringContainsString('data-testid="pdfa-reprenable"', $html, 'un outil absent est annoncé reprenable');
     }
 
     public function testLEcranApplicationMontreLeRattrapageTermine(): void
@@ -78,6 +94,26 @@ final class PdfaEcranTest extends TestCase
         self::assertStringContainsString('data-testid="pdfa-progression"', $html);
         self::assertMatchesRegularExpression('/data-testid="pdfa-progression"[^>]*>\s*1\s*\/\s*1/s', $html,
             'l’avancement affiché porte son compte (1 sur 1)');
+    }
+
+    public function testLEcranApplicationMontreLesCopiesReprisesSansToucherAuxOriginaux(): void
+    {
+        $gs = $this->ghostscriptPdfA();
+        $id = $this->deposerPdfA('reprise.pdf', $this->pdfContenu('ECRAN REPRISE'));
+        $absolu = $this->absoluPdfA($id);
+        $empreinteAvant = (string) hash_file('sha256', $absolu);
+        (new CopieArchivage($this->configPdfA(), new ConversionPdfA(null)))
+            ->pour($absolu, $this->relatifPdfA($id), $id);
+
+        $job = new RattrapagePdfA($this->configPdfA(), new ConversionPdfA($gs));
+        $lance = $job->lancer('administrateur');
+        self::assertSame(1, $job->avancer((int) $lance['id'], 500)['reprises']);
+
+        [$code, $html] = $this->rendre('/application');
+
+        self::assertSame(200, $code, $html);
+        self::assertStringContainsString('data-testid="pdfa-reprises"', $html);
+        self::assertSame($empreinteAvant, (string) hash_file('sha256', $absolu), 'l’original n’est jamais touché');
     }
 
     /** @return array{0:int, 1:string} */

@@ -177,7 +177,7 @@ final class Ecrans
         // tout en gardant Bibliothèque comme entrée de rail courante.
         $doc = $reel ?? Maquette::document($id);
         $doc += ['statut' => '', 'ouverture' => null, 'secours' => [],
-            'pdfa' => ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '', 'raison' => '', 'empreinte_sha256' => ''],
+            'pdfa' => ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '', 'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''],
             'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
         $session = $req->getAttribute('ged.session');
         $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];

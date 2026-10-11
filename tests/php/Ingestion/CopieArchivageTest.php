@@ -261,6 +261,19 @@ final class CopieArchivageTest extends TestCase
         self::assertLessThan(30.0, $secondes, 'budget : moins de 30 s pour 5 pages (soit < 6 s/page)');
     }
 
+    public function testLEtatDUneCopieSansDocumentResteneutreSansInvention(): void
+    {
+        $service = CopieArchivage::depuis($this->configPdfA());
+
+        $absent = $service->etat($this->fondsPdfA() . '/inconnu.pdf');
+
+        self::assertSame('absent', $absent['statut']);
+        self::assertSame('document introuvable', $absent['raison']);
+        self::assertSame('', $absent['reprise']);
+        self::assertFalse($absent['telechargeable']);
+        self::assertFalse($service->aReprendre($this->fondsPdfA() . '/inconnu.pdf'));
+    }
+
     private function pdfTexteContenu(string $marqueur): string
     {
         $fichier = $this->bacPdfA() . '/depots/' . bin2hex(random_bytes(4)) . '.pdf';

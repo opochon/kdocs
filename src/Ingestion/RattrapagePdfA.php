@@ -20,7 +20,11 @@ use RuntimeException;
  *    au même document après une coupure ;
  *  - `traite` est le point de reprise ; `ecart` compte les documents disparus du fonds en cours de route
  *    (jamais tus) ; la tâche se termine d'elle-même, elle ne reste pas « en cours » pour toujours ;
- *  - rejouer une passe ne refait aucune copie déjà juste (le service est idempotent) : 0 doublon.
+ *  - rejouer une passe ne refait aucune copie déjà juste (le service est idempotent) : 0 doublon ;
+ *  - les échecs dont la cause est d'environnement (`reprise: auto`, ex. Ghostscript installé après coup) sont
+ *    relancés d'eux-mêmes, sans toucher à l'original ; les échecs définitifs (document chiffré ou corrompu)
+ *    sont laissés tels quels. Le compteur `reprises` dit combien de copies ont été EFFECTIVEMENT reprises
+ *    (échec d'environnement devenu copie juste), jamais un nombre de tentatives supposé.
  *
  * L'état vit dans le registre `.ged/pdfa-rattrapage.json` du fonds (le dossier fait foi, comme la
  * reconstruction) ; aucun démon, aucun appel long : chaque tranche est bornée.
@@ -32,7 +36,7 @@ final class RattrapagePdfA
 
     private readonly Registre $registre;
 
-    public function __construct(private readonly Config $config)
+    public function __construct(private readonly Config $config, private readonly ?ConversionPdfA $conversion = null)
     {
         $this->registre = new Registre($config);
     }
@@ -51,7 +55,7 @@ final class RattrapagePdfA
             $perimetre = $this->perimetre();
 
             return ['id' => (int) ($etat['id'] ?? 0) + 1, 'etat' => 'en_cours', 'total' => count($perimetre),
-                'traite' => 0, 'ecart' => 0, 'auteur' => $auteur, 'erreur' => null, 'perimetre' => $perimetre];
+                'traite' => 0, 'ecart' => 0, 'reprises' => 0, 'auteur' => $auteur, 'erreur' => null, 'perimetre' => $perimetre];
         });
     }
 
@@ -74,7 +78,8 @@ final class RattrapagePdfA
                 $total = (int) ($etat['total'] ?? count($perimetre));
                 $traite = (int) ($etat['traite'] ?? 0);
                 $ecart = (int) ($etat['ecart'] ?? 0);
-                $service = CopieArchivage::depuis($this->config);
+                $reprises = (int) ($etat['reprises'] ?? 0);
+                $service = $this->copie();
                 $racine = rtrim(str_replace('\\', '/', $this->config->chemin('STORAGE_ROOT', 'storage/documents')), '/');
                 $borne = max(1, min(self::TRANCHE_MAX, $lot));
                 $faits = 0;
@@ -93,7 +98,13 @@ final class RattrapagePdfA
                         continue;
                     }
                     try {
-                        $service->pour($absolu, $relatif, $this->idDocument($relatif));
+                        $idDocument = $this->idDocument($relatif);
+                        // Une cause d'environnement est rejouée D'ELLE-MÊME ; un échec définitif est laissé tel quel.
+                        $forcer = $service->aReprendre($absolu, $idDocument);
+                        $bloc = $service->pour($absolu, $relatif, $idDocument, $forcer);
+                        if ($forcer && ($bloc['statut'] ?? '') === 'ok') {
+                            $reprises++;   // échec d'environnement effectivement devenu copie : compté, jamais supposé
+                        }
                     } catch (\Throwable $e) {
                         // Un document récalcitrant ne doit pas arrêter le fonds : il est tracé et la tranche continue.
                         error_log('pdfa : copie non produite pour ' . $relatif . ' — ' . $e->getMessage());
@@ -102,6 +113,7 @@ final class RattrapagePdfA
 
                 $etat['traite'] = $traite;
                 $etat['ecart'] = $ecart;
+                $etat['reprises'] = $reprises;
                 $etat['etat'] = $traite >= $total ? 'termine' : 'en_cours';
 
                 return $etat;
@@ -123,7 +135,7 @@ final class RattrapagePdfA
     }
 
     /**
-     * @return array{id:int, etat:string, total:int, traite:int, auteur:string, erreur:?string, ecart:int}|null
+     * @return array{id:int, etat:string, total:int, traite:int, auteur:string, erreur:?string, ecart:int, reprises:int}|null
      */
     public function etat(?int $id = null): ?array
     {
@@ -135,7 +147,16 @@ final class RattrapagePdfA
         return ['id' => (int) $etat['id'], 'etat' => (string) $etat['etat'], 'total' => (int) $etat['total'],
             'traite' => (int) $etat['traite'], 'auteur' => (string) ($etat['auteur'] ?? ''),
             'erreur' => ($etat['erreur'] ?? null) === null ? null : (string) $etat['erreur'],
-            'ecart' => (int) ($etat['ecart'] ?? 0)];
+            'ecart' => (int) ($etat['ecart'] ?? 0), 'reprises' => (int) ($etat['reprises'] ?? 0)];
+    }
+
+    /**
+     * Le service de copie de cette instance : la conversion injectée (oracles, poste de recette) ou la
+     * détection réelle du poste. Point de couture unique, pour que production et test suivent le même chemin.
+     */
+    private function copie(): CopieArchivage
+    {
+        return new CopieArchivage($this->config, $this->conversion ?? ConversionPdfA::depuis());
     }
 
     /** @return list<string> chemins relatifs des documents éligibles, ordre stable */

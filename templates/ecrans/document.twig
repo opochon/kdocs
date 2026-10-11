@@ -59,6 +59,11 @@
     {% elseif doc.pdfa.statut == 'echec' %}
     <strong data-testid="pdfa-statut-echec">Copie d’archivage PDF/A en échec</strong>
     <span data-testid="pdfa-raison">{{ doc.pdfa.raison }}</span>
+    {% if doc.pdfa.reprise == 'auto' %}
+    <span class="muted" data-testid="pdfa-reprenable">Cause d’environnement : le rattrapage la reprendra sans toucher à l’original.</span>
+    {% else %}
+    <span class="muted" data-testid="pdfa-definitif">Cause attachée au document : aucune relance automatique.</span>
+    {% endif %}
     {% elseif doc.pdfa.statut == 'en_attente' %}
     <strong data-testid="pdfa-statut-attente">Copie d’archivage PDF/A en attente</strong>
     <span class="muted">Le rattrapage la produira depuis l’écran Application.</span>

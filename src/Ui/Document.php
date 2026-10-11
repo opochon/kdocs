@@ -118,7 +118,7 @@ final class Document
     private function pdfa(string $absolu, int $idDocument): array
     {
         $neutre = ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false,
-            'chemin' => '', 'raison' => '', 'empreinte_sha256' => ''];
+            'chemin' => '', 'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''];
         try {
             return (new \Ged\Ingestion\CopieArchivage($this->config, \Ged\Ingestion\ConversionPdfA::depuis()))->etat($absolu, $idDocument);
         } catch (Throwable $e) {
