@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "categorie": "masse",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 2,
+  "vecteurs": [
+    {
+      "id": "masse:test_download_default:001",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/documents/bulk_download/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_bulk_download.py:89"
+    },
+    {
+      "id": "masse:test_download_insufficient_permissions:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/documents/bulk_download/"
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_bulk_download.py:338"
+    }
+  ],
+  "non_rejouables": []
+}

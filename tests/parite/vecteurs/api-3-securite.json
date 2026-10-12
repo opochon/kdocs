@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "categorie": "securite",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "securite:test_api_get_ui_settings:007",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/ui_settings/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_uisettings.py:26"
+    },
+    {
+      "id": "securite:test_api_set_ui_settings:008",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/ui_settings/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_uisettings.py:70"
+    },
+    {
+      "id": "securite:test_settings_must_be_dict:009",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/ui_settings/"
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_uisettings.py:140"
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "securite:test_get_profile:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/profile/"
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:87"
+    },
+    {
+      "id": "securite:test_update_profile:002",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/profile/"
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:187"
+    },
+    {
+      "id": "securite:test_update_auth_token:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/generate_auth_token/"
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:267"
+    },
+    {
+      "id": "securite:test_update_auth_token:004",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/generate_auth_token/"
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:272"
+    },
+    {
+      "id": "securite:test_get_totp:005",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/profile/totp/"
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:416"
+    },
+    {
+      "id": "securite:test_activate_totp:006",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/totp/",
+        "corps": {
+          "secret": "123",
+          "code": "456"
+        }
+      },
+      "raison": "MFA TOTP (django-allauth / django-otp) : modele GEDv2 absent, voir note de lot.",
+      "reference": "src/documents/tests/test_api_profile.py:440"
+    },
+    {
+      "id": "securite:test_system_status:010",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/status/"
+      },
+      "raison": "vue d'infrastructure Django (system status, version distante) : hors modele GEDv2.",
+      "reference": "src/documents/tests/test_api_status.py:34"
+    }
+  ]
+}

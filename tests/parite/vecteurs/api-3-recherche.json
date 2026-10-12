@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "categorie": "recherche",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 7,
+  "vecteurs": [
+    {
+      "id": "recherche:test_get_tasks:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/tasks/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:46"
+    },
+    {
+      "id": "recherche:test_api_trash:002",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/trash/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_trash.py:49"
+    },
+    {
+      "id": "recherche:test_api_trash:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/trash/",
+        "corps": {
+          "action": "restore",
+          "documents": [
+            "{document.pk}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_trash.py:56"
+    },
+    {
+      "id": "recherche:test_api_trash:004",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/trash/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_trash.py:60"
+    },
+    {
+      "id": "recherche:test_api_trash:005",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/trash/",
+        "corps": {
+          "action": "empty",
+          "documents": [
+            "{document.pk}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_trash.py:68"
+    },
+    {
+      "id": "recherche:test_trash_api_empty_all:006",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/trash/",
+        "corps": {
+          "action": "empty",
+          "documents": []
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_trash.py:101"
+    },
+    {
+      "id": "recherche:test_api_trash_invalid_params:007",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/trash/",
+        "corps": {
+          "action": "restore",
+          "documents": [
+            "{document.pk}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_trash.py:207"
+    }
+  ],
+  "non_rejouables": []
+}

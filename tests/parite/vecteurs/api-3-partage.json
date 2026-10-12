@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "categorie": "partage",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 7,
+  "vecteurs": [
+    {
+      "id": "partage:test_create_share_links:001",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/share_links/",
+        "corps": {
+          "document": "{doc.pk}"
+        }
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2809"
+    },
+    {
+      "id": "partage:test_create_share_links:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/share_links/",
+        "corps": {
+          "expiration": "{isoformat}",
+          "document": "{doc.pk}",
+          "file_version": "original"
+        }
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2819"
+    },
+    {
+      "id": "partage:test_create_share_links:003",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/documents/{doc}/share_links/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2826"
+    },
+    {
+      "id": "partage:test_create_share_links:004",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/documents/{doc}/share_links/"
+      },
+      "sortie": {
+        "statut": 405
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2847"
+    },
+    {
+      "id": "partage:test_create_share_links:005",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/documents/99/share_links/"
+      },
+      "sortie": {
+        "statut": 404
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2854"
+    },
+    {
+      "id": "partage:test_share_links_permissions_aware:006",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/documents/{doc}/share_links/"
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2887"
+    },
+    {
+      "id": "partage:test_share_links_permissions_aware:007",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/documents/{doc}/share_links/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2895"
+    }
+  ],
+  "non_rejouables": []
+}
