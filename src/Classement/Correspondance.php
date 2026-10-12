@@ -57,6 +57,7 @@ final class Correspondance
         return match ($algorithme) {
             self::TOUS => self::tousLesMots($motif, $texte, $drapeaux),
             self::UN => self::unMot($motif, $texte, $drapeaux),
+            self::LITTERAL => self::litteral($motif, $texte, $drapeaux),
             self::REGEX => self::expressionReguliere($motif, $texte, $drapeaux),
             default => false,
         };
@@ -88,6 +89,12 @@ final class Correspondance
         }
 
         return false;
+    }
+
+    /** Le motif entier est présent, encadré de limites de mot ; les espaces restent littéraux. */
+    private static function litteral(string $motif, string $texte, string $drapeaux): bool
+    {
+        return preg_match('/\b' . preg_quote($motif, '/') . '\b/' . $drapeaux, $texte) === 1;
     }
 
     /** Le motif est une expression régulière ; un motif invalide ou non compilable ne correspond pas. */
