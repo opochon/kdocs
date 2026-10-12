@@ -1032,9 +1032,9 @@
             "note": "La confirmation d’adresse django-allauth correspond à la vérification d’adresse GEDv2 : le lien à usage unique arrive sur `/profil/mail/verifier`."
         },
         "api:route:account_inactive": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Pas de notion de compte « inactif » dans GEDv2 : un compte est créé/supprimé de la matrice des rôles, la connexion échoue par un refus nommé. Évolution : colonne `comptes.actif` + écran d’administration + refus de connexion nommé, flux F10. Référence src/paperless/urls.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_login": {
             "statut": "couvert-autrement",
@@ -1050,34 +1050,34 @@
             "note": "L’écran de connexion GEDv2 remplace la page django-allauth `account_login`."
         },
         "api:route:account_logout": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "La déconnexion existe (`POST /deconnexion`) mais sa preuve de bout en bout passe par un parcours navigateur avec session : proposé au juge plutôt que couvert par un test de session synthétique. Référence src/paperless/urls.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_reset_password": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_reset_password_done": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_reset_password_from_key": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_reset_password_from_key_done": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:account_signup": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "GEDv2 n’ouvre pas d’inscription libre : un administrateur crée les comptes (`/administration/comptes`). Porter `account_signup` supposerait une politique d’inscription (invitation, validation) + écran + courriel, flux F10. Proposition au juge. Référence src/paperless/urls.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:anon:accounts-3rdparty-include": {
             "statut": "exclu",
@@ -1108,9 +1108,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view": {
             "statut": "couvert-autrement",
@@ -1130,9 +1130,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:anon:api-redirectview-as-view": {
             "statut": "exclu",
@@ -1415,9 +1415,9 @@
             "note": "La porte MFA est portée par la connexion GEDv2 : quand le TOTP est actif, un code est exigé avant l’ouverture de session."
         },
         "api:route:oauth_callback": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:post_document": {
             "statut": "couvert-autrement",
@@ -1508,19 +1508,19 @@
             }
         },
         "api:route:socialaccount_login_cancelled": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:socialaccount_login_error": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:socialaccount_signup": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:route:statistics": {
             "statut": "couvert",
@@ -1939,9 +1939,9 @@
             }
         },
         "api:verbe:DisconnectSocialAccountView.post": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:verbe:DocumentTypeViewSet.create": {
             "statut": "couvert",
@@ -2270,9 +2270,9 @@
             }
         },
         "api:verbe:OauthCallbackView.get": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:verbe:PostDocumentView.post": {
             "statut": "couvert-autrement",
@@ -2532,9 +2532,9 @@
             "note": "Lien de partage public : GET /partages/{jeton} consomme le jeton de session, jamais le document hors droits."
         },
         "api:verbe:SocialAccountProvidersView.get": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:verbe:StatisticsView.get": {
             "statut": "couvert-autrement",
@@ -3184,9 +3184,9 @@
             }
         },
         "api:vue:DisconnectSocialAccountView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:vue:DocumentTypeViewSet": {
             "statut": "couvert-autrement",
@@ -3305,9 +3305,9 @@
             }
         },
         "api:vue:OauthCallbackView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:vue:PaperlessObtainAuthTokenView": {
             "statut": "couvert",
@@ -3435,9 +3435,9 @@
             "note": "Lien de partage : GEDv2 le gère PAR DOCUMENT (Socle\\Collaboration), expire, révocable, jamais en clair."
         },
         "api:vue:SocialAccountProvidersView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
+            "statut": "exclu",
+            "exclusion": "infrastructure-django",
+            "note": "django-allauth : authentification/SSO/gestion de compte, infrastructure Django propre a Paperless, hors perimetre GED (decision Olivier 12.10.2026)."
         },
         "api:vue:StatisticsView": {
             "statut": "couvert",
