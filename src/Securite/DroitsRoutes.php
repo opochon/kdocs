@@ -253,6 +253,12 @@ final class DroitsRoutes
         // État système (administrateur) et version installée (tout jeton) — lot ged-parite-api-4.
         'GET /api/v1/statut' => 'publique:api-documents-lecture',
         'GET /api/v1/version' => 'publique:api-documents-lecture',
+        // Configuration applicative (lecture) et logo/favicon (publics) — lot ged-parite-api-4.
+        'GET /api/v1/configuration' => 'publique:api-documents-lecture',
+        'POST /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'GET /favicon' => 'publique:favicon',
+        'GET /logo' => 'publique:app-logo',
     ];
 
     /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */

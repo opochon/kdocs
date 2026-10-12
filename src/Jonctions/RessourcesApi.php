@@ -1327,6 +1327,80 @@ final class RessourcesApi
     }
 
     // -----------------------------------------------------------------------
+    // Configuration applicative (ApplicationConfigurationViewSet), logo et favicon
+    // -----------------------------------------------------------------------
+
+    /**
+     * `GET /api/v1/configuration` : configuration applicative EN LECTURE (le `.env` fait foi). Réservé à
+     * l'administrateur, comme la vue Paperless.
+     */
+    public function configurationLire(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/configuration', function (): array {
+            return [
+                'id' => 1,
+                'app_title' => $this->config->get('GED_NOM', 'GEDv2'),
+                'app_logo' => '/logo',
+                'language' => $this->config->get('GED_LANGUE', 'fr'),
+                'version' => $this->versionGed(),
+                'source' => 'env',
+            ];
+        }, true);
+    }
+
+    /** `ApplicationConfigurationViewSet.create` : la création est interdite (405), comme Paperless. */
+    public function configurationCreer(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/configuration';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            throw new ErreurApi(405, 'la configuration GEDv2 ne se crée pas par l’API : elle vient du fichier .env', $etape);
+        }, 405, true);
+    }
+
+    /**
+     * `ApplicationConfigurationViewSet.update` / `partial_update` : GEDv2 refuse l'écriture — la
+     * configuration vient du `.env` (lecture seule), un registre inscriptible supposerait un schéma, un
+     * écran et un audit. Refus nommé 409, jamais un 500 muet.
+     */
+    public function configurationModifier(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'PATCH /api/v1/configuration';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            throw new ErreurApi(409, 'la configuration GEDv2 est en lecture seule (fichier .env) : aucune écriture par l’API', $etape);
+        }, 200, true);
+    }
+
+    /** `FaviconView.get` : le favicon GEDv2, servi sans jeton (comme la vue Paperless). */
+    public function favicon(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->fichierStatique($reponse, $this->config->racine() . '/public/favicon.svg', 'image/svg+xml');
+    }
+
+    /** `app_logo` : le logo de l'application (fichier `GED_LOGO` s'il est posé, sinon le favicon). */
+    public function logo(Requete $requete, Reponse $reponse): Reponse
+    {
+        $choisi = $this->config->get('GED_LOGO', '');
+        $chemin = $choisi !== '' ? $this->config->chemin('GED_LOGO', 'public/favicon.svg')
+            : $this->config->racine() . '/public/favicon.svg';
+
+        return $this->fichierStatique($reponse, $chemin, 'image/svg+xml');
+    }
+
+    private function fichierStatique(Reponse $reponse, string $chemin, string $mime): Reponse
+    {
+        if (!is_file($chemin) || !is_readable($chemin)) {
+            return $this->json($reponse, 404, ['erreur' => [
+                'etape' => 'GET logo/favicon', 'cause' => 'fichier absent : ' . basename($chemin), 'reference' => '',
+            ]]);
+        }
+        $reponse->getBody()->write((string) file_get_contents($chemin));
+
+        return $reponse->withHeader('Content-Type', $mime)->withStatus(200);
+    }
+
+    // -----------------------------------------------------------------------
     // Porte commune des routes (jeton lié à un compte) et enveloppes JSON.
     // -----------------------------------------------------------------------
 

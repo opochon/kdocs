@@ -140,6 +140,12 @@ final class Module
         // État système et version installée (lot ged-parite-api-4), même porte jeton.
         $app->get('/api/v1/statut', [$ressources, 'statutSysteme']);
         $app->get('/api/v1/version', [$ressources, 'versionDistante']);
+        // Configuration applicative (lecture), logo et favicon (lot ged-parite-api-4).
+        $app->get('/api/v1/configuration', [$ressources, 'configurationLire']);
+        $app->post('/api/v1/configuration', [$ressources, 'configurationCreer']);
+        $app->patch('/api/v1/configuration', [$ressources, 'configurationModifier']);
+        $app->get('/favicon', [$ressources, 'favicon']);
+        $app->get('/logo', [$ressources, 'logo']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);
