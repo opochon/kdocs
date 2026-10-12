@@ -10,13 +10,13 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 599 | 116 | 0 | 65 | 76,79 % | 83,78 % |
+| 780 | 668 | 47 | 0 | 65 | 85,64 % | 93,43 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 149 | 108 | 0 | 61 | 46,86 % | 57,98 % |
+| api | 318 | 218 | 39 | 0 | 61 | 68,55 % | 84,82 % |
 | chaine | 60 | 57 | 3 | 0 | 0 | 95,00 % | 95,00 % |
 | commande | 17 | 13 | 2 | 0 | 2 | 76,47 % | 86,67 % |
 | correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
@@ -63,6 +63,12 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | --- | --- | ---: | ---: | ---: | ---: |
 | 2-filtres-documents | tests/parite/vecteurs/api-2-filtres-documents.json | 15 | 15 | 24 | 100,00 % |
 | 2-filtres-ressources | tests/parite/vecteurs/api-2-filtres-ressources.json | 3 | 3 | 0 | 100,00 % |
+| 3-administration | tests/parite/vecteurs/api-3-administration.json | 7 | 7 | 0 | 100,00 % |
+| 3-masse | tests/parite/vecteurs/api-3-masse.json | 2 | 2 | 0 | 100,00 % |
+| 3-partage | tests/parite/vecteurs/api-3-partage.json | 6 | 7 | 0 | 85,71 % |
+| 3-recherche | tests/parite/vecteurs/api-3-recherche.json | 5 | 7 | 0 | 71,43 % |
+| 3-ressources-classement | tests/parite/vecteurs/api-3-ressources-classement.json | 11 | 11 | 4 | 100,00 % |
+| 3-securite | tests/parite/vecteurs/api-3-securite.json | 3 | 3 | 7 | 100,00 % |
 | filtres-documents | tests/parite/vecteurs/api-filtres-documents.json | 18 | 18 | 2 | 100,00 % |
 
 ## Modele — workflows (phase 5)
@@ -282,43 +288,43 @@ listes `non_rejouables` avec leur raison.
 | router /api/workflow_actions/ -> WorkflowActionViewSet | src/paperless/urls.py:77 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
 | router /api/workflow_triggers/ -> WorkflowTriggerViewSet | src/paperless/urls.py:76 | couvert-autrement | route POST /workflows/evenements | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
 | router /api/workflows/ -> WorkflowViewSet | src/paperless/urls.py:78 | couvert-autrement | route GET /workflows | phpunit Ged\Tests\Workflows\ModuleTest::testEcranRepondMemeSansTablesDuSecteur (couche 1) |  |
-| ApplicationConfigurationViewSet.create (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ApplicationConfigurationViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ApplicationConfigurationViewSet.list (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ApplicationConfigurationViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ApplicationConfigurationViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ApplicationConfigurationViewSet.update (DRF ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| BulkDownloadView.post | src/documents/views.py:2261 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| BulkEditObjectsView.post | src/documents/views.py:2698 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| BulkEditView.post | src/documents/views.py:1513 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentViewSet.create (DRF ModelViewSet) | src/documents/views.py:388 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:388 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| ApplicationConfigurationViewSet.create (DRF ModelViewSet) | src/paperless/views.py:349 | absent (La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| ApplicationConfigurationViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:349 | absent (Aucune suppression de clé de configuration par le produit (zéro suppression). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| ApplicationConfigurationViewSet.list (DRF ModelViewSet) | src/paperless/views.py:349 | couvert-autrement | route GET /application | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
+| ApplicationConfigurationViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:349 | absent (La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| ApplicationConfigurationViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:349 | couvert-autrement | route GET /application | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
+| ApplicationConfigurationViewSet.update (DRF ModelViewSet) | src/paperless/views.py:349 | absent (La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| BulkDownloadView.post | src/documents/views.py:2261 | couvert-autrement | route POST /api/v1/documents/bulk_download | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| BulkEditObjectsView.post | src/documents/views.py:2698 | couvert-autrement | route POST /api/v1/documents/bulk_edit | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| BulkEditView.post | src/documents/views.py:1513 | couvert-autrement | route POST /api/v1/documents/bulk_edit | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| CorrespondentViewSet.create (DRF ModelViewSet) | src/documents/views.py:388 | absent (Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| CorrespondentViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:388 | absent (Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
 | CorrespondentViewSet.list (DRF ModelViewSet) | src/documents/views.py:388 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| CorrespondentViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:388 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:388 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentViewSet.update (DRF ModelViewSet) | src/documents/views.py:388 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.create (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.list (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldViewSet.update (DRF ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DisconnectSocialAccountView.post | src/paperless/views.py:386 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentTypeViewSet.create (DRF ModelViewSet) | src/documents/views.py:462 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentTypeViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:462 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| CorrespondentViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:388 | absent (Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| CorrespondentViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:388 | absent (Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| CorrespondentViewSet.update (DRF ModelViewSet) | src/documents/views.py:388 | absent (Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| CustomFieldViewSet.create (DRF ModelViewSet) | src/documents/views.py:2823 | couvert | route POST /api/v1/champs | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testRejoueLesVecteursDeClassement (couche 1) |  |
+| CustomFieldViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2823 | absent (GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| CustomFieldViewSet.list (DRF ModelViewSet) | src/documents/views.py:2823 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
+| CustomFieldViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2823 | couvert | route PATCH /api/v1/champs/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| CustomFieldViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2823 | couvert | route GET /api/v1/champs/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| CustomFieldViewSet.update (DRF ModelViewSet) | src/documents/views.py:2823 | couvert | route PUT /api/v1/champs/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| DisconnectSocialAccountView.post | src/paperless/views.py:386 | absent (Déconnexion d’un compte social django-allauth absente (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion.) | - | - | V2-05 |
+| DocumentTypeViewSet.create (DRF ModelViewSet) | src/documents/views.py:462 | couvert | route POST /api/v1/types | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| DocumentTypeViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:462 | absent (GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
 | DocumentTypeViewSet.list (DRF ModelViewSet) | src/documents/views.py:462 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| DocumentTypeViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:462 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentTypeViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:462 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentTypeViewSet.update (DRF ModelViewSet) | src/documents/views.py:462 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| FaviconView.get | src/paperless/views.py:97 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GenerateAuthTokenView.post | src/paperless/views.py:328 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GlobalSearchView.get | src/documents/views.py:1952 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.create (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.list (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| GroupViewSet.update (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentTypeViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:462 | couvert | route PATCH /api/v1/types/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| DocumentTypeViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:462 | couvert | route GET /api/v1/types/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| DocumentTypeViewSet.update (DRF ModelViewSet) | src/documents/views.py:462 | couvert | route PUT /api/v1/types/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| FaviconView.get | src/paperless/views.py:97 | absent (Pas de favicon configurable côté GEDv2 : l’icône est un asset statique, aucune route API. Le juge d’api-2 a exclu la route apparentée `api:route:favicon` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/urls.py.) | - | - | V2-05 |
+| GenerateAuthTokenView.post | src/paperless/views.py:328 | couvert | route POST /api/v1/jetons | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| GlobalSearchView.get | src/documents/views.py:1952 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLaRecherchePleinTexteRespecteLesDroits (couche 1) |  |
+| GroupViewSet.create (DRF ModelViewSet) | src/paperless/views.py:168 | couvert | route POST /api/v1/groupes | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration (couche 1) |  |
+| GroupViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:168 | absent (GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| GroupViewSet.list (DRF ModelViewSet) | src/paperless/views.py:168 | couvert | route GET /api/v1/groupes | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration (couche 1) |  |
+| GroupViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:168 | couvert | route PATCH /api/v1/groupes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
+| GroupViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:168 | couvert | route GET /api/v1/groupes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
+| GroupViewSet.update (DRF ModelViewSet) | src/paperless/views.py:168 | couvert | route PUT /api/v1/groupes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
 | MailAccountViewSet.create (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | MailAccountViewSet.destroy (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/basculer | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | MailAccountViewSet.list (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
@@ -331,76 +337,76 @@ listes `non_rejouables` avec leur raison.
 | MailRuleViewSet.partial_update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | MailRuleViewSet.retrieve (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | MailRuleViewSet.update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| OauthCallbackView.get | src/paperless_mail/views.py:184 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| PostDocumentView.post | src/documents/views.py:1666 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| OauthCallbackView.get | src/paperless_mail/views.py:184 | absent (Rappel OAuth du courrier (django-allauth) absent (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion.) | - | - | V2-05 |
+| PostDocumentView.post | src/documents/views.py:1666 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
 | ProcessedMailViewSet.list (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| ProcessedMailViewSet.retrieve (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ProfileView.get | src/paperless/views.py:189 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ProfileView.patch | src/paperless/views.py:195 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| RemoteVersionView.get | src/documents/views.py:2458 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SavedViewViewSet.create (DRF ModelViewSet) | src/documents/views.py:1452 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SavedViewViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:1452 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| ProcessedMailViewSet.retrieve (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | couvert | route GET /api/v1/courriers/traites/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| ProfileView.get | src/paperless/views.py:189 | couvert | route GET /api/v1/profil | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| ProfileView.patch | src/paperless/views.py:195 | couvert | route PATCH /api/v1/profil | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| RemoteVersionView.get | src/documents/views.py:2458 | absent (Aucun contrôle de version distante en GEDv2 (pas d’appel réseau sortant de mise à jour). Le juge d’api-2 a exclu `api:route:remoteversion` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/views.py.) | - | - | V2-05 |
+| SavedViewViewSet.create (DRF ModelViewSet) | src/documents/views.py:1452 | couvert | route POST /api/v1/vues | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testRejoueLesVecteursDeClassement (couche 1) |  |
+| SavedViewViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:1452 | absent (GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
 | SavedViewViewSet.list (DRF ModelViewSet) | src/documents/views.py:1452 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| SavedViewViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:1452 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SavedViewViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:1452 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SavedViewViewSet.update (DRF ModelViewSet) | src/documents/views.py:1452 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SearchAutoCompleteView.get | src/documents/views.py:1880 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SelectionDataView.post | src/documents/views.py:1785 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.create (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.list (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkViewSet.update (DRF ModelViewSet) | src/documents/views.py:2602 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SharedLinkView.get | src/documents/views.py:2623 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SocialAccountProvidersView.get | src/paperless/views.py:412 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StatisticsView.get | src/documents/views.py:2154 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.create (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.list (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathViewSet.update (DRF ModelViewSet) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| SystemStatusView.get | src/documents/views.py:2941 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TOTPView.delete | src/paperless/views.py:294 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TOTPView.get | src/paperless/views.py:247 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TOTPView.post | src/paperless/views.py:264 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagViewSet.create (DRF ModelViewSet) | src/documents/views.py:425 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:425 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| SavedViewViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:1452 | couvert | route PATCH /api/v1/vues/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| SavedViewViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:1452 | couvert | route GET /api/v1/vues/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| SavedViewViewSet.update (DRF ModelViewSet) | src/documents/views.py:1452 | couvert | route PUT /api/v1/vues/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| SearchAutoCompleteView.get | src/documents/views.py:1880 | couvert-autrement | route GET /api/v1/autocomplete | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| SelectionDataView.post | src/documents/views.py:1785 | couvert-autrement | route POST /api/v1/documents/selection_data | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| ShareLinkViewSet.create (DRF ModelViewSet) | src/documents/views.py:2602 | couvert | route POST /api/v1/partages | phpunit Ged\Tests\Parite\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage (couche 1) |  |
+| ShareLinkViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2602 | couvert | route DELETE /api/v1/partages/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage (couche 1) |  |
+| ShareLinkViewSet.list (DRF ModelViewSet) | src/documents/views.py:2602 | couvert | route GET /api/v1/partages | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testLesFiltresDesLiensDePartageRespectentLesDroits (couche 1) |  |
+| ShareLinkViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2602 | absent (L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| ShareLinkViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2602 | couvert | route GET /api/v1/partages/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage (couche 1) |  |
+| ShareLinkViewSet.update (DRF ModelViewSet) | src/documents/views.py:2602 | absent (L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| SharedLinkView.get | src/documents/views.py:2623 | couvert-autrement | route GET /partages/{jeton:[A-Za-z0-9_-]+} | phpunit Ged\Tests\Socle\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois (couche 1) |  |
+| SocialAccountProvidersView.get | src/paperless/views.py:412 | absent (Comptes sociaux django-allauth absents (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion.) | - | - | V2-05 |
+| StatisticsView.get | src/documents/views.py:2154 | couvert-autrement | route GET /api/v1/statistiques | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| StoragePathViewSet.create (DRF ModelViewSet) | src/documents/views.py:2306 | absent (Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| StoragePathViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2306 | absent (Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| StoragePathViewSet.list (DRF ModelViewSet) | src/documents/views.py:2306 | couvert | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
+| StoragePathViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2306 | absent (Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| StoragePathViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2306 | absent (Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| StoragePathViewSet.update (DRF ModelViewSet) | src/documents/views.py:2306 | absent (Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| SystemStatusView.get | src/documents/views.py:2941 | couvert-autrement | route GET /sante | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| TOTPView.delete | src/paperless/views.py:294 | absent (MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion.) | - | - | V2-05 |
+| TOTPView.get | src/paperless/views.py:247 | absent (MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion.) | - | - | V2-05 |
+| TOTPView.post | src/paperless/views.py:264 | absent (MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion.) | - | - | V2-05 |
+| TagViewSet.create (DRF ModelViewSet) | src/documents/views.py:425 | couvert | route POST /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| TagViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:425 | absent (GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
 | TagViewSet.list (DRF ModelViewSet) | src/documents/views.py:425 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| TagViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:425 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:425 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagViewSet.update (DRF ModelViewSet) | src/documents/views.py:425 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TasksViewSet.list (DRF ReadOnlyModelViewSet) | src/documents/views.py:2532 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TasksViewSet.retrieve (DRF ReadOnlyModelViewSet) | src/documents/views.py:2532 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TrashView.get | src/documents/views.py:3123 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TrashView.post | src/documents/views.py:3127 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UiSettingsView.get | src/documents/views.py:2366 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UiSettingsView.post | src/documents/views.py:2434 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.create (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.list (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| UserViewSet.update (DRF ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.create (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.list (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowActionViewSet.update (DRF ModelViewSet) | src/documents/views.py:2780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.create (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.list (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowTriggerViewSet.update (DRF ModelViewSet) | src/documents/views.py:2762 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.create (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.list (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| WorkflowViewSet.update (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| TagViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:425 | couvert | route PATCH /api/v1/etiquettes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| TagViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:425 | couvert | route GET /api/v1/etiquettes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| TagViewSet.update (DRF ModelViewSet) | src/documents/views.py:425 | couvert | route PUT /api/v1/etiquettes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds (couche 1) |  |
+| TasksViewSet.list (DRF ReadOnlyModelViewSet) | src/documents/views.py:2532 | couvert | route GET /api/v1/taches | phpunit Ged\Tests\Parite\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille (couche 1) |  |
+| TasksViewSet.retrieve (DRF ReadOnlyModelViewSet) | src/documents/views.py:2532 | couvert | route GET /api/v1/taches/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier (couche 1) |  |
+| TrashView.get | src/documents/views.py:3123 | couvert | route GET /api/v1/corbeille | phpunit Ged\Tests\Parite\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille (couche 1) |  |
+| TrashView.post | src/documents/views.py:3127 | couvert | route POST /api/v1/corbeille | phpunit Ged\Tests\Parite\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille (couche 1) |  |
+| UiSettingsView.get | src/documents/views.py:2366 | couvert | route GET /api/v1/preferences | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testRejoueLesVecteursDUiSettings (couche 1) |  |
+| UiSettingsView.post | src/documents/views.py:2434 | couvert | route POST /api/v1/preferences | phpunit Ged\Tests\Parite\ApiTroisSecuriteTest::testRejoueLesVecteursDUiSettings (couche 1) |  |
+| UserViewSet.create (DRF ModelViewSet) | src/paperless/views.py:105 | couvert | route POST /api/v1/comptes | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration (couche 1) |  |
+| UserViewSet.destroy (DRF ModelViewSet) | src/paperless/views.py:105 | absent (GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| UserViewSet.list (DRF ModelViewSet) | src/paperless/views.py:105 | couvert | route GET /api/v1/comptes | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration (couche 1) |  |
+| UserViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:105 | couvert | route PATCH /api/v1/comptes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
+| UserViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:105 | couvert | route GET /api/v1/comptes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
+| UserViewSet.update (DRF ModelViewSet) | src/paperless/views.py:105 | couvert | route PUT /api/v1/comptes/{id:[0-9]+} | phpunit Ged\Tests\Parite\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces (couche 1) |  |
+| WorkflowActionViewSet.create (DRF ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowActionViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2780 | absent (GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| WorkflowActionViewSet.list (DRF ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowActionViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowActionViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowActionViewSet.update (DRF ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowTriggerViewSet.create (DRF ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowTriggerViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2762 | absent (GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| WorkflowTriggerViewSet.list (DRF ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowTriggerViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowTriggerViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowTriggerViewSet.update (DRF ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowViewSet.create (DRF ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowViewSet.destroy (DRF ModelViewSet) | src/documents/views.py:2805 | absent (GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py.) | - | - | V2-05 |
+| WorkflowViewSet.list (DRF ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
+| WorkflowViewSet.update (DRF ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique (couche 1) |  |
 | classe ApplicationConfigurationViewSet(ModelViewSet) | src/paperless/views.py:349 | couvert-autrement | route GET /application | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
 | classe BulkDownloadView(GenericAPIView) | src/documents/views.py:2256 | couvert | route POST /api/v1/documents/bulk_download | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
 | classe BulkEditObjectsView(PassUserMixin) | src/documents/views.py:2693 | couvert | route POST /api/v1/documents/bulk_edit | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
@@ -1004,108 +1010,39 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:system_status | api | src/paperless/urls.py:193 | exclu | infrastructure-django |  |
 | api:route:tasks | api | src/paperless/urls.py:70 | exclu | infrastructure-celery-redis |  |
 | api:route:totp_view | api | src/paperless/urls.py:185 | exclu | infrastructure-django |  |
-| api:verbe:ApplicationConfigurationViewSet.create | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ApplicationConfigurationViewSet.destroy | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ApplicationConfigurationViewSet.list | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ApplicationConfigurationViewSet.partial_update | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ApplicationConfigurationViewSet.retrieve | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ApplicationConfigurationViewSet.update | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:BulkDownloadView.post | api | src/documents/views.py:2261 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:BulkEditObjectsView.post | api | src/documents/views.py:2698 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:BulkEditView.post | api | src/documents/views.py:1513 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CorrespondentViewSet.create | api | src/documents/views.py:388 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CorrespondentViewSet.destroy | api | src/documents/views.py:388 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CorrespondentViewSet.partial_update | api | src/documents/views.py:388 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CorrespondentViewSet.retrieve | api | src/documents/views.py:388 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CorrespondentViewSet.update | api | src/documents/views.py:388 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.create | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.destroy | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.list | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.partial_update | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.retrieve | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:CustomFieldViewSet.update | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DisconnectSocialAccountView.post | api | src/paperless/views.py:386 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DocumentTypeViewSet.create | api | src/documents/views.py:462 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DocumentTypeViewSet.destroy | api | src/documents/views.py:462 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DocumentTypeViewSet.partial_update | api | src/documents/views.py:462 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DocumentTypeViewSet.retrieve | api | src/documents/views.py:462 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:DocumentTypeViewSet.update | api | src/documents/views.py:462 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:FaviconView.get | api | src/paperless/views.py:97 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GenerateAuthTokenView.post | api | src/paperless/views.py:328 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GlobalSearchView.get | api | src/documents/views.py:1952 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.create | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.destroy | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.list | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.partial_update | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.retrieve | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:GroupViewSet.update | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:OauthCallbackView.get | api | src/paperless_mail/views.py:184 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:PostDocumentView.post | api | src/documents/views.py:1666 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ProcessedMailViewSet.retrieve | api | src/paperless_mail/views.py:137 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ProfileView.get | api | src/paperless/views.py:189 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ProfileView.patch | api | src/paperless/views.py:195 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:RemoteVersionView.get | api | src/documents/views.py:2458 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SavedViewViewSet.create | api | src/documents/views.py:1452 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SavedViewViewSet.destroy | api | src/documents/views.py:1452 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SavedViewViewSet.partial_update | api | src/documents/views.py:1452 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SavedViewViewSet.retrieve | api | src/documents/views.py:1452 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SavedViewViewSet.update | api | src/documents/views.py:1452 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SearchAutoCompleteView.get | api | src/documents/views.py:1880 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SelectionDataView.post | api | src/documents/views.py:1785 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.create | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.destroy | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.list | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.partial_update | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.retrieve | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ShareLinkViewSet.update | api | src/documents/views.py:2602 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SharedLinkView.get | api | src/documents/views.py:2623 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SocialAccountProvidersView.get | api | src/paperless/views.py:412 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StatisticsView.get | api | src/documents/views.py:2154 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.create | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.destroy | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.list | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.partial_update | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.retrieve | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:StoragePathViewSet.update | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:SystemStatusView.get | api | src/documents/views.py:2941 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TOTPView.delete | api | src/paperless/views.py:294 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TOTPView.get | api | src/paperless/views.py:247 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TOTPView.post | api | src/paperless/views.py:264 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TagViewSet.create | api | src/documents/views.py:425 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TagViewSet.destroy | api | src/documents/views.py:425 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TagViewSet.partial_update | api | src/documents/views.py:425 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TagViewSet.retrieve | api | src/documents/views.py:425 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TagViewSet.update | api | src/documents/views.py:425 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TasksViewSet.list | api | src/documents/views.py:2532 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TasksViewSet.retrieve | api | src/documents/views.py:2532 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TrashView.get | api | src/documents/views.py:3123 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:TrashView.post | api | src/documents/views.py:3127 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UiSettingsView.get | api | src/documents/views.py:2366 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UiSettingsView.post | api | src/documents/views.py:2434 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.create | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.destroy | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.list | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.partial_update | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.retrieve | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:UserViewSet.update | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.create | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.destroy | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.list | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.partial_update | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.retrieve | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowActionViewSet.update | api | src/documents/views.py:2780 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.create | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.destroy | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.list | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.partial_update | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.retrieve | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowTriggerViewSet.update | api | src/documents/views.py:2762 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.create | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.destroy | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.list | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.partial_update | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.retrieve | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:WorkflowViewSet.update | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
+| api:verbe:ApplicationConfigurationViewSet.create | api | src/paperless/views.py:349 | absent | La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:ApplicationConfigurationViewSet.destroy | api | src/paperless/views.py:349 | absent | Aucune suppression de clé de configuration par le produit (zéro suppression). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:ApplicationConfigurationViewSet.partial_update | api | src/paperless/views.py:349 | absent | La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:ApplicationConfigurationViewSet.update | api | src/paperless/views.py:349 | absent | La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CorrespondentViewSet.create | api | src/documents/views.py:388 | absent | Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CorrespondentViewSet.destroy | api | src/documents/views.py:388 | absent | Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CorrespondentViewSet.partial_update | api | src/documents/views.py:388 | absent | Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CorrespondentViewSet.retrieve | api | src/documents/views.py:388 | absent | Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CorrespondentViewSet.update | api | src/documents/views.py:388 | absent | Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:CustomFieldViewSet.destroy | api | src/documents/views.py:2823 | absent | GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:DisconnectSocialAccountView.post | api | src/paperless/views.py:386 | absent | Déconnexion d’un compte social django-allauth absente (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion. | V2-05 |
+| api:verbe:DocumentTypeViewSet.destroy | api | src/documents/views.py:462 | absent | GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:FaviconView.get | api | src/paperless/views.py:97 | absent | Pas de favicon configurable côté GEDv2 : l’icône est un asset statique, aucune route API. Le juge d’api-2 a exclu la route apparentée `api:route:favicon` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/urls.py. | V2-05 |
+| api:verbe:GroupViewSet.destroy | api | src/paperless/views.py:168 | absent | GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:OauthCallbackView.get | api | src/paperless_mail/views.py:184 | absent | Rappel OAuth du courrier (django-allauth) absent (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion. | V2-05 |
+| api:verbe:RemoteVersionView.get | api | src/documents/views.py:2458 | absent | Aucun contrôle de version distante en GEDv2 (pas d’appel réseau sortant de mise à jour). Le juge d’api-2 a exclu `api:route:remoteversion` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/views.py. | V2-05 |
+| api:verbe:SavedViewViewSet.destroy | api | src/documents/views.py:1452 | absent | GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:ShareLinkViewSet.partial_update | api | src/documents/views.py:2602 | absent | L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:ShareLinkViewSet.update | api | src/documents/views.py:2602 | absent | L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:SocialAccountProvidersView.get | api | src/paperless/views.py:412 | absent | Comptes sociaux django-allauth absents (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion. | V2-05 |
+| api:verbe:StoragePathViewSet.create | api | src/documents/views.py:2306 | absent | Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:StoragePathViewSet.destroy | api | src/documents/views.py:2306 | absent | Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:StoragePathViewSet.partial_update | api | src/documents/views.py:2306 | absent | Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:StoragePathViewSet.retrieve | api | src/documents/views.py:2306 | absent | Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:StoragePathViewSet.update | api | src/documents/views.py:2306 | absent | Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:TOTPView.delete | api | src/paperless/views.py:294 | absent | MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. | V2-05 |
+| api:verbe:TOTPView.get | api | src/paperless/views.py:247 | absent | MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. | V2-05 |
+| api:verbe:TOTPView.post | api | src/paperless/views.py:264 | absent | MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. | V2-05 |
+| api:verbe:TagViewSet.destroy | api | src/documents/views.py:425 | absent | GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:UserViewSet.destroy | api | src/paperless/views.py:105 | absent | GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:WorkflowActionViewSet.destroy | api | src/documents/views.py:2780 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:WorkflowTriggerViewSet.destroy | api | src/documents/views.py:2762 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
+| api:verbe:WorkflowViewSet.destroy | api | src/documents/views.py:2805 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
 | api:vue:DisconnectSocialAccountView | api | src/paperless/views.py:379 | exclu | infrastructure-django |  |
 | api:vue:FaviconView | api | src/paperless/views.py:96 | exclu | infrastructure-django |  |
 | api:vue:IndexView | api | src/documents/views.py:209 | exclu | infrastructure-django |  |
