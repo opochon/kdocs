@@ -312,6 +312,10 @@ final class Catalogue
             'modifie_annee' => null, 'modifie_mois' => null, 'modifie_jour' => null,
             'etiquettes_any' => [], 'sans_etiquettes' => [], 'etiquettes_presentes' => null,
             'a_traiter' => null, 'sans_emetteur' => null, 'sans_type' => null, 'sans_dossier' => null,
+            // Champs personnalises (DocumentFilterSet custom_fields* / has_custom_fields) : les valeurs
+            // vivent dans `meta.champs` du document, la cle est le slug de la definition (Socle\Champs).
+            'champs_presents' => null, 'champs_tous' => [], 'champs_any' => [], 'sans_champs' => [],
+            'champs_contient' => null,
         ];
     }
 
@@ -394,6 +398,13 @@ final class Catalogue
         foreach (['etiquettes_presentes', 'a_traiter', 'sans_emetteur', 'sans_type', 'sans_dossier'] as $cle) {
             $filtres[$cle] = $this->booleen($criteres[$cle] ?? null, $cle, $etape);
         }
+
+        // Champs personnalises : existence, liste d'appartenance (toutes/aucune) et contenu.
+        $filtres['champs_presents'] = $this->booleen($criteres['champs_presents'] ?? null, 'champs_presents', $etape);
+        foreach (['champs_tous', 'champs_any', 'sans_champs'] as $cle) {
+            $filtres[$cle] = $this->listeChaines($criteres[$cle] ?? null);
+        }
+        $filtres['champs_contient'] = $this->chaine($criteres['champs_contient'] ?? null);
 
         return $filtres;
     }
@@ -605,6 +616,10 @@ final class Catalogue
             $params[] = (string) json_encode($etiquette, JSON_UNESCAPED_UNICODE);
         }
 
+        [$clausesChamps, $paramsChamps] = $this->clausesChamps($filtres);
+        $clauses = [...$clauses, ...$clausesChamps];
+        $params = [...$params, ...$paramsChamps];
+
         $clauses = [...$clauses, ...$this->clausesBooleennes($filtres)];
 
         if (($filtres['dossier'] ?? null) !== null) {
@@ -653,6 +668,55 @@ final class Catalogue
         }
 
         return $clauses;
+    }
+
+    /**
+     * Filtres des champs personnalisés (DocumentFilterSet custom_fields* / has_custom_fields).
+     *
+     * Les valeurs vivent dans `meta.champs` (`.meta.json` : le dossier fait foi) ; la clé est celle de
+     * la définition (`Socle\Champs`). Aucune valeur n'est concaténée : les clés et les motifs passent
+     * par des marqueurs `?` (`JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(...)), ?)`).
+     *
+     * @param array<string, mixed> $filtres
+     * @return array{0:list<string>, 1:list<mixed>}
+     */
+    private function clausesChamps(array $filtres): array
+    {
+        $clauses = [];
+        $params = [];
+
+        if (($filtres['champs_contient'] ?? null) !== null) {
+            $clauses[] = "CAST(JSON_EXTRACT(d.meta, '$.champs') AS CHAR) LIKE ?";
+            $params[] = '%' . self::echapperLike((string) $filtres['champs_contient']) . '%';
+        }
+
+        if (($filtres['champs_presents'] ?? null) !== null) {
+            $presence = "COALESCE(JSON_LENGTH(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs'))), 0) > 0";
+            $clauses[] = $filtres['champs_presents'] ? $presence : 'NOT (' . $presence . ')';
+        }
+
+        $present = static function (string $cle) use (&$params): string {
+            $params[] = (string) json_encode($cle, JSON_UNESCAPED_UNICODE);
+
+            return "JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs')), ?)";
+        };
+
+        foreach ($filtres['champs_tous'] ?? [] as $cle) {
+            $clauses[] = $present($cle);
+        }
+        $any = [];
+        foreach ($filtres['champs_any'] ?? [] as $cle) {
+            $any[] = $present($cle);
+        }
+        if ($any !== []) {
+            $clauses[] = '(' . implode(' OR ', $any) . ')';
+        }
+        foreach ($filtres['sans_champs'] ?? [] as $cle) {
+            $params[] = (string) json_encode($cle, JSON_UNESCAPED_UNICODE);
+            $clauses[] = "COALESCE(JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs')), ?), 0) = 0";
+        }
+
+        return [$clauses, $params];
     }
 
     /** Sous-requête corrélée sur le contenu indexé (`recherche_textes`), au même document. */
