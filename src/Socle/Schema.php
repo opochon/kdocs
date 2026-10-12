@@ -13,6 +13,9 @@ final class Schema
     {
         self::assurerTablesBase($pdo);
         self::assurerColonneVersionPartage($pdo);
+        // Parité Paperless (lot ged-parite-final-1) : `UserViewSet.destroy` DÉSACTIVE un compte. La colonne
+        // n'est pas une table de plus (plafond V2-01 intact) et vaut 1 par défaut (aucun compte muet).
+        self::assurerColonneActif($pdo, 'comptes');
     }
 
     /**
@@ -97,6 +100,7 @@ final class Schema
               identifiant VARCHAR(64) NOT NULL,
               empreinte VARCHAR(255) NOT NULL COMMENT 'password_hash',
               role VARCHAR(20) NOT NULL DEFAULT 'admin',
+              actif TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'mise en veille (UserViewSet.destroy), zéro suppression',
               cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               UNIQUE KEY uq_identifiant (identifiant)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -168,6 +172,18 @@ final class Schema
         $requete->execute([$table, $colonne]);
 
         return (int) $requete->fetchColumn() > 0;
+    }
+
+    /**
+     * Pose la colonne `actif` (défaut 1) sur une table de référentiel/compte si elle manque : le retrait
+     * par l'API est une mise en veille, jamais une suppression (règle 4). Idempotent, rejouable.
+     */
+    private static function assurerColonneActif(PDO $pdo, string $table): void
+    {
+        if (self::colonneExiste($pdo, $table, 'actif')) {
+            return;
+        }
+        $pdo->exec("ALTER TABLE `$table` ADD COLUMN actif TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'mise en veille, zéro suppression'");
     }
 
     /**

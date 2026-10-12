@@ -90,6 +90,7 @@ final class Module
         $app->post('/api/v1/etiquettes', [$ressources, 'etiquetteCreer']);
         $app->put('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteRemplacer']);
         $app->patch('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteModifier']);
+        $app->delete('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteDesactiver']);
         $app->get('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeLire']);
         $app->post('/api/v1/types', [$ressources, 'typeCreer']);
         $app->put('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeRemplacer']);
@@ -99,20 +100,36 @@ final class Module
         $app->post('/api/v1/champs', [$ressources, 'champCreer']);
         $app->put('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champRemplacer']);
         $app->patch('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champModifier']);
+        $app->delete('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champDesactiver']);
         $app->get('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueLire']);
         $app->post('/api/v1/vues', [$ressources, 'vueCreer']);
         $app->put('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueRemplacer']);
         $app->patch('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueModifier']);
+        $app->delete('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueDesactiver']);
+        // Correspondants (registre des émetteurs) et emplacements de classement — lot ged-parite-final-1.
+        $app->get('/api/v1/emetteurs/{id:[0-9]+}', [$ressources, 'emetteurLire']);
+        $app->post('/api/v1/emetteurs', [$ressources, 'emetteurCreer']);
+        $app->put('/api/v1/emetteurs/{id:[0-9]+}', [$ressources, 'emetteurRemplacer']);
+        $app->patch('/api/v1/emetteurs/{id:[0-9]+}', [$ressources, 'emetteurModifier']);
+        $app->delete('/api/v1/emetteurs/{id:[0-9]+}', [$ressources, 'emetteurDesactiver']);
+        $app->get('/api/v1/emplacements', [$ressources, 'emplacementsLister']);
+        $app->get('/api/v1/emplacements/{id:[0-9]+}', [$ressources, 'emplacementLire']);
+        $app->post('/api/v1/emplacements', [$ressources, 'emplacementCreer']);
+        $app->put('/api/v1/emplacements/{id:[0-9]+}', [$ressources, 'emplacementRemplacer']);
+        $app->patch('/api/v1/emplacements/{id:[0-9]+}', [$ressources, 'emplacementModifier']);
+        $app->delete('/api/v1/emplacements/{id:[0-9]+}', [$ressources, 'emplacementDesactiver']);
         $app->get('/api/v1/comptes', [$ressources, 'comptesLister']);
         $app->post('/api/v1/comptes', [$ressources, 'compteCreer']);
         $app->get('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteLire']);
         $app->put('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteRemplacer']);
         $app->patch('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteModifier']);
+        $app->delete('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteDesactiver']);
         $app->get('/api/v1/groupes', [$ressources, 'groupesLister']);
         $app->post('/api/v1/groupes', [$ressources, 'groupeCreer']);
         $app->get('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeLire']);
         $app->put('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeRemplacer']);
         $app->patch('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeModifier']);
+        $app->delete('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeDesactiver']);
         $app->post('/api/v1/partages', [$ressources, 'partageCreer']);
         $app->get('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageLire']);
         $app->put('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageModifier']);
@@ -144,7 +161,9 @@ final class Module
         // Configuration applicative (lecture), logo et favicon (lot ged-parite-api-4).
         $app->get('/api/v1/configuration', [$ressources, 'configurationLire']);
         $app->post('/api/v1/configuration', [$ressources, 'configurationCreer']);
+        $app->put('/api/v1/configuration', [$ressources, 'configurationRemplacer']);
         $app->patch('/api/v1/configuration', [$ressources, 'configurationModifier']);
+        $app->delete('/api/v1/configuration', [$ressources, 'configurationSupprimer']);
         $app->get('/favicon', [$ressources, 'favicon']);
         $app->get('/logo', [$ressources, 'logo']);
 

@@ -160,6 +160,18 @@ try {
                 'GET /api/v1/preferences', 'POST /api/v1/preferences',
                 'GET /api/v1/profil/totp', 'POST /api/v1/profil/totp', 'DELETE /api/v1/profil/totp',
                 'POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp' => 401,
+                // Lot ged-parite-final-1 : retraits par mise en veille, correspondants, emplacements,
+                // configuration inscriptible — mêmes routes sous jeton (401 sans jeton).
+                'DELETE /api/v1/etiquettes/{id:[0-9]+}', 'DELETE /api/v1/champs/{id:[0-9]+}',
+                'DELETE /api/v1/vues/{id:[0-9]+}', 'DELETE /api/v1/comptes/{id:[0-9]+}',
+                'DELETE /api/v1/groupes/{id:[0-9]+}',
+                'GET /api/v1/emetteurs/{id:[0-9]+}', 'POST /api/v1/emetteurs',
+                'PUT /api/v1/emetteurs/{id:[0-9]+}', 'PATCH /api/v1/emetteurs/{id:[0-9]+}',
+                'DELETE /api/v1/emetteurs/{id:[0-9]+}',
+                'GET /api/v1/emplacements', 'GET /api/v1/emplacements/{id:[0-9]+}', 'POST /api/v1/emplacements',
+                'PUT /api/v1/emplacements/{id:[0-9]+}', 'PATCH /api/v1/emplacements/{id:[0-9]+}',
+                'DELETE /api/v1/emplacements/{id:[0-9]+}',
+                'PUT /api/v1/configuration', 'DELETE /api/v1/configuration' => 401,
                 // Obtention d'un jeton d'API : sans identifiants valides, refus 400 nommé (comme Paperless).
                 'POST /api/v1/token' => 400,
                 'GET /api/v1/statut', 'GET /api/v1/version' => 401,

@@ -202,6 +202,19 @@ final class DroitsRoutes
         'POST /api/v1/etiquettes' => 'publique:api-documents-ecriture',
         'PUT /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        // Correspondants (registre des émetteurs) et emplacements de classement — lot ged-parite-final-1.
+        'GET /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/emetteurs' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/emplacements' => 'publique:api-documents-lecture',
+        'GET /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/emplacements' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'POST /api/v1/types' => 'publique:api-documents-ecriture',
         'PUT /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
@@ -211,20 +224,24 @@ final class DroitsRoutes
         'POST /api/v1/champs' => 'publique:api-documents-ecriture',
         'PUT /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'POST /api/v1/vues' => 'publique:api-documents-ecriture',
         'PUT /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/comptes' => 'publique:api-documents-lecture',
         'POST /api/v1/comptes' => 'publique:api-documents-ecriture',
         'GET /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/groupes' => 'publique:api-documents-lecture',
         'POST /api/v1/groupes' => 'publique:api-documents-ecriture',
         'GET /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'POST /api/v1/partages' => 'publique:api-documents-ecriture',
         'GET /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
@@ -257,7 +274,9 @@ final class DroitsRoutes
         // Configuration applicative (lecture) et logo/favicon (publics) — lot ged-parite-api-4.
         'GET /api/v1/configuration' => 'publique:api-documents-lecture',
         'POST /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/configuration' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/configuration' => 'publique:api-documents-ecriture',
         'GET /favicon' => 'publique:favicon',
         'GET /logo' => 'publique:app-logo',
     ];
@@ -277,7 +296,7 @@ final class DroitsRoutes
 
         // Verbes REST des ressources (lot ged-parite-api-3) : identifiant concret dans le chemin. La
         // route est servie par `Ged\Jonctions\RessourcesApi`, la porte réelle étant le jeton.
-        if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes)/[0-9]+$#', $chemin, $ressource) === 1) {
+        if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes|emetteurs|emplacements)/[0-9]+$#', $chemin, $ressource) === 1) {
             return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/' . $ressource[1] . '/{id:[0-9]+}'] ?? null;
         }
         // Désactivation TOTP d'un compte (lot ged-parite-api-4) : identifiant concret dans le chemin.

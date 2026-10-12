@@ -12,10 +12,10 @@ use PHPUnit\Framework\TestCase;
  * Famille « configuration, logo, favicon » du lot ged-parite-api-4.
  *
  * Vecteurs extraits en LECTURE SEULE de `test_api_app_config.py` (Paperless-ngx v2.20.5) : lecture de la
- * configuration, mise à jour, création interdite (405), logo et favicon. Côté GEDv2, la configuration
- * vient du fichier `.env` (lecture seule via `GET /api/v1/configuration`) ; `POST` est interdit 405
- * comme Paperless, `PATCH` est un refus nommé 409 (écritures non portées, voir la note de lot). Le logo
- * et le favicon sont des ressources servies par `GET /logo` et `GET /favicon`.
+ * configuration, mise à jour, création interdite (405), logo et favicon. Depuis le lot ged-parite-final-1,
+ * la configuration GEDv2 est INSCRIPTIBLE (surcharge du fonds, `.ged/configuration.json`) : `PATCH` rend
+ * 200 comme Paperless (l'écart assumé du lot api-4 est fermé). Le logo, lui, reste toujours servi par
+ * GEDv2 là où Paperless rend 404 tant qu'aucun logo n'a été téléversé : écart assumé restant.
  */
 final class ApiQuatreAppConfigTest extends TestCase
 {
@@ -39,10 +39,9 @@ final class ApiQuatreAppConfigTest extends TestCase
         $admin = $this->compteApi4();
         $jeton = $this->jetonDocuments($admin['compte'], $admin['identifiant'], 'documents_ecriture');
 
-        // Deux écarts ASSUMÉS, mesurés : GEDv2 refuse l'écriture de la configuration (409 nommé) et son
-        // logo est TOUJOURS servi (Paperless rend 404 tant qu'aucun logo n'a été téléversé).
+        // Un seul écart ASSUMÉ restant : le logo de GEDv2 est TOUJOURS servi (Paperless rend 404 tant
+        // qu'aucun logo n'a été téléversé). La mise à jour de la configuration, elle, est désormais portée.
         $divergences = [
-            'app-config:test_api_update_config:002' => 409,
             'app-config:test_api_replace_app_logo:004' => 200,
         ];
 
@@ -75,7 +74,7 @@ final class ApiQuatreAppConfigTest extends TestCase
             'non_rejouables' => count($donnees['non_rejouables'] ?? []),
         ]);
         self::assertSame([], $echecs, "vecteurs d'app-config en écart :\n" . implode("\n", $echecs));
-        self::assertSame(2, $assumes, 'écriture refusée et logo toujours servi : écarts assumés');
+        self::assertSame(1, $assumes, 'seul le logo toujours servi reste un écart assumé');
 
         // Le favicon est servi, sans jeton.
         $requete = (new \Slim\Psr7\Factory\ServerRequestFactory())->createServerRequest('GET', '/favicon');
@@ -83,10 +82,17 @@ final class ApiQuatreAppConfigTest extends TestCase
         self::assertSame(200, $reponse->getStatusCode());
         self::assertStringContainsString('image/svg+xml', $reponse->getHeaderLine('Content-Type'));
 
-        // La configuration est bien en lecture seule : l'écriture est refusée et NOMMÉE.
-        [$statut, $corps] = $this->appel($app, 'PATCH', '/api/v1/configuration', $jeton, ['language' => 'en']);
-        self::assertSame(409, $statut);
-        self::assertStringContainsString('lecture seule', (string) ($corps['erreur']['cause'] ?? ''));
+        // La configuration est INSCRIPTIBLE (lot ged-parite-final-1) : le titre change, se relit, puis se
+        // réinitialise aux valeurs du `.env` (DELETE = retrait de la surcharge, zéro suppression).
+        [$statut, $corps] = $this->appel($app, 'PATCH', '/api/v1/configuration', $jeton, ['app_title' => 'GED de test finale']);
+        self::assertSame(200, $statut);
+        self::assertSame('GED de test finale', $corps['app_title'] ?? null);
+        self::assertSame('fonds', $corps['source'] ?? null);
+        [$relu] = [$this->appel($app, 'GET', '/api/v1/configuration', $jeton)[1]];
+        self::assertSame('GED de test finale', $relu['app_title'] ?? null);
+        [$reinit, $defaut] = $this->appel($app, 'DELETE', '/api/v1/configuration', $jeton);
+        self::assertSame(200, $reinit);
+        self::assertSame('env', $defaut['source'] ?? null);
 
         // Non-accès : sans jeton, la configuration refuse et se nomme.
         self::assertSame(401, $this->appel($app, 'GET', '/api/v1/configuration')[0]);

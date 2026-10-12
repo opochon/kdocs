@@ -39,13 +39,18 @@ final class Authentification
         }
 
         try {
-            $requete = $this->pdo->prepare('SELECT id, identifiant, empreinte FROM comptes WHERE LOWER(identifiant) = ? LIMIT 1');
+            $requete = $this->pdo->prepare('SELECT id, identifiant, empreinte, actif FROM comptes WHERE LOWER(identifiant) = ? LIMIT 1');
             $requete->execute([$identifiant]);
             $compte = $requete->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException) {
             return null;
         }
         if ($compte === false || !password_verify($motDePasse, (string) $compte['empreinte'])) {
+            return null;
+        }
+        // Un compte mis en veille (`UserViewSet.destroy`) ne peut plus se connecter : la ligne reste
+        // (zéro suppression), la porte est fermée.
+        if ((int) ($compte['actif'] ?? 1) !== 1) {
             return null;
         }
 

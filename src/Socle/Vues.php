@@ -235,7 +235,7 @@ final class Vues
     /** @return array{id:int, nom:string, filtres:array<string, mixed>, auteur:string}|null */
     public function lire(int $id): ?array
     {
-        foreach ($this->lister() as $vue) {
+        foreach ($this->lister(false) as $vue) {
             if ($vue['id'] === $id) {
                 return $vue;
             }
@@ -251,7 +251,7 @@ final class Vues
      */
     public function parSlug(string $slug): ?array
     {
-        foreach ($this->lister() as $vue) {
+        foreach ($this->lister(false) as $vue) {
             if (Fichiers::slug($vue['nom']) === $slug) {
                 return $vue;
             }
@@ -260,8 +260,30 @@ final class Vues
         return null;
     }
 
-    /** @return list<array{id:int, nom:string, filtres:array<string, mixed>, reglages:array<string, mixed>, auteur:string}> */
-    public function lister(): array
+    /**
+     * Met une vue en veille (`actif = false`, modèle Paperless : une vue retirée n'est plus proposée dans
+     * la barre latérale ni par l'API, elle reste lisible). Idempotent ; aucune donnée n'est supprimée.
+     */
+    public function definirActif(int $id, bool $actif): void
+    {
+        if ($this->lire($id) === null) {
+            throw new RuntimeException("vue : aucune vue nº $id");
+        }
+        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($id, $actif): array {
+            foreach ($etat as &$vue) {
+                /** @var array<string, mixed> $vue */
+                $vue = (array) $vue;
+                if ((int) ($vue['id'] ?? 0) === $id) {
+                    $vue['actif'] = $actif;
+                }
+            }
+
+            return $etat;
+        });
+    }
+
+    /** @return list<array{id:int, nom:string, filtres:array<string, mixed>, reglages:array<string, mixed>, auteur:string, actif:bool}> */
+    public function lister(bool $actifsSeuls = true): array
     {
         $vues = [];
         foreach ($this->registre->lire(self::FICHIER) as $v) {
@@ -270,10 +292,11 @@ final class Vues
             $filtres += ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null];
             $vues[] = ['id' => (int) $v['id'], 'nom' => (string) $v['nom'], 'filtres' => $filtres,
                 'reglages' => self::normaliserReglages((array) ($v['reglages'] ?? [])),
-                'recherche' => (array) ($v['recherche'] ?? []), 'auteur' => (string) ($v['auteur'] ?? '')];
+                'recherche' => (array) ($v['recherche'] ?? []), 'auteur' => (string) ($v['auteur'] ?? ''),
+                'actif' => (bool) ($v['actif'] ?? true)];
         }
 
-        return $vues;
+        return $actifsSeuls ? array_values(array_filter($vues, static fn (array $v): bool => $v['actif'])) : $vues;
     }
 
     /**
