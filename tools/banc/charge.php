@@ -292,8 +292,8 @@ function preparerFonds(PDO $pdo, string $fonds, string $entree, string $travail,
     $previews = [];
 
     $insertion = $pdo->prepare('INSERT INTO documents (id, chemin_relatif, nom, empreinte, taille, mime, meta, '
-        . 'titre, type, emetteur, date_document, montant, etiquettes, statut, source) '
-        . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        . 'titre, type, emetteur, date_document, montant, etiquettes, statut, source, proprietaire_id) '
+        . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
     $pdo->beginTransaction();
     try {

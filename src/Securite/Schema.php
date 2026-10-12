@@ -44,10 +44,12 @@ final class Schema
               id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
               nom VARCHAR(128) NOT NULL,
               role_code VARCHAR(64) NOT NULL,
+              actif TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'mise en veille (GroupViewSet.destroy), zéro suppression',
               cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               UNIQUE KEY uq_securite_groupe_nom (nom)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+        self::assurerColonneActifGroupe($pdo);
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS securite_groupes_comptes (
               groupe_id INT UNSIGNED NOT NULL,
@@ -171,6 +173,19 @@ final class Schema
             if ((int) $stmt->fetchColumn() === 0) {
                 $pdo->exec("ALTER TABLE securite_roles ADD COLUMN $colonne $definition");
             }
+        }
+    }
+
+    /**
+     * Pose `securite_groupes.actif` si elle manque (table d'une version antérieure) : le retrait d'un
+     * groupe par l'API est une mise en veille, jamais une suppression (règle 4). Idempotent, rejouable.
+     */
+    private static function assurerColonneActifGroupe(PDO $pdo): void
+    {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?');
+        $stmt->execute(['securite_groupes', 'actif']);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec("ALTER TABLE securite_groupes ADD COLUMN actif TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'mise en veille, zéro suppression'");
         }
     }
 

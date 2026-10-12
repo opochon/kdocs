@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "categorie": "verbes",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 16,
+  "vecteurs": [
+    {
+      "id": "verbes:correspondent_list:001",
+      "entree": { "methode": "GET", "chemin": "/api/correspondents/" },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (TestApiObjects, ModelViewSet list)"
+    },
+    {
+      "id": "verbes:correspondent_create:002",
+      "entree": { "methode": "POST", "chemin": "/api/correspondents/", "corps": { "name": "ACME Correspondent" } },
+      "sortie": { "statut": 201 },
+      "reference": "src/documents/tests/test_api_objects.py (TestApiObjects, create)"
+    },
+    {
+      "id": "verbes:correspondent_retrieve:003",
+      "entree": { "methode": "GET", "chemin": "/api/correspondents/{id}/" },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py:137 (detail)"
+    },
+    {
+      "id": "verbes:correspondent_update:004",
+      "entree": { "methode": "PUT", "chemin": "/api/correspondents/{id}/", "corps": { "name": "ACME Correspondent renomme" } },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet update)"
+    },
+    {
+      "id": "verbes:correspondent_partial_update:005",
+      "entree": { "methode": "PATCH", "chemin": "/api/correspondents/{id}/", "corps": { "match": "ACME" } },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet partial_update)"
+    },
+    {
+      "id": "verbes:correspondent_destroy:006",
+      "entree": { "methode": "DELETE", "chemin": "/api/correspondents/{id}/" },
+      "sortie": { "statut": 204 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet destroy)"
+    },
+    {
+      "id": "verbes:storage_path_list:001",
+      "entree": { "methode": "GET", "chemin": "/api/storage_paths/" },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py:161 (TestApiStoragePaths.test_api_get_storage_path)"
+    },
+    {
+      "id": "verbes:storage_path_create:002",
+      "entree": { "methode": "POST", "chemin": "/api/storage_paths/", "corps": { "name": "A storage path", "path": "Somewhere/{asn}" } },
+      "sortie": { "statut": 201 },
+      "reference": "src/documents/tests/test_api_objects.py:178 (test_api_create_storage_path)"
+    },
+    {
+      "id": "verbes:storage_path_invalid_placeholder:003",
+      "entree": { "methode": "POST", "chemin": "/api/storage_paths/", "corps": { "name": "Another storage path", "path": "Somewhere/{correspdent}" } },
+      "sortie": { "statut": 400 },
+      "reference": "src/documents/tests/test_api_objects.py:200 (test_api_create_invalid_storage_path)"
+    },
+    {
+      "id": "verbes:storage_path_traversal:004",
+      "entree": { "methode": "POST", "chemin": "/api/storage_paths/", "corps": { "name": "Traversal path", "path": "../../../../../tmp/proof" } },
+      "sortie": { "statut": 400 },
+      "reference": "src/documents/tests/test_api_objects.py:222 (test_api_create_storage_path_rejects_traversal)"
+    },
+    {
+      "id": "verbes:storage_path_retrieve:005",
+      "entree": { "methode": "GET", "chemin": "/api/storage_paths/{id}/" },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet retrieve)"
+    },
+    {
+      "id": "verbes:storage_path_update:006",
+      "entree": { "methode": "PUT", "chemin": "/api/storage_paths/{id}/", "corps": { "name": "sp renomme", "path": "Autre/{title}" } },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet update)"
+    },
+    {
+      "id": "verbes:storage_path_partial_update:007",
+      "entree": { "methode": "PATCH", "chemin": "/api/storage_paths/{id}/", "corps": { "name": "sp affiné" } },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet partial_update)"
+    },
+    {
+      "id": "verbes:storage_path_destroy:008",
+      "entree": { "methode": "DELETE", "chemin": "/api/storage_paths/{id}/" },
+      "sortie": { "statut": 204 },
+      "reference": "src/documents/tests/test_api_objects.py (ModelViewSet destroy)"
+    },
+    {
+      "id": "verbes:app_config_update:001",
+      "entree": { "methode": "PUT", "chemin": "/api/config/1/", "corps": { "app_title": "GED configurée" } },
+      "sortie": { "statut": 200 },
+      "reference": "src/documents/tests/test_api_app_config.py:114 (test_api_update_config, DRF update)"
+    },
+    {
+      "id": "verbes:app_config_destroy:002",
+      "entree": { "methode": "DELETE", "chemin": "/api/config/{id}/" },
+      "sortie": { "statut": 204 },
+      "reference": "src/documents/tests/test_api_app_config.py (ApplicationConfigurationViewSet destroy)"
+    }
+  ],
+  "non_rejouables": []
+}

@@ -95,6 +95,12 @@
             <dt>Montant</dt><dd class="num" style="text-align:left">{{ doc.montant is null ? '—' : 'CHF ' ~ doc.montant|number_format(2, '.', '\'') }}</dd>
             <dt>Dossier</dt><dd class="mono">{{ doc.dossier }}/</dd><dt>Fichier</dt><dd class="mono">{{ doc.fichier }}</dd>
             <dt>Métadonnées</dt><dd class="mono">{{ doc.fichier }}.meta.json</dd>
+            {# Lot ged-parite-final-1 : champs Paperless du Document, tels que la fiche les connaît. #}
+            <dt>Propriétaire</dt><dd data-testid="document-proprietaire">{{ doc.proprietaire ?: '—' }}</dd>
+            <dt>Nom d’origine</dt><dd class="mono" data-testid="document-nom-origine">{{ doc.nom_origine ?: '—' }}</dd>
+            <dt>Pages</dt><dd class="num" style="text-align:left" data-testid="document-pages">{{ doc.pages > 0 ? doc.pages : '—' }}</dd>
+            <dt>N° d’archive</dt><dd class="mono" data-testid="document-asn">{{ doc.asn ?: '—' }}</dd>
+            <dt>Type de stockage</dt><dd class="mono" data-testid="document-storage-type">{{ doc.storage_type }}</dd>
           </dl>
         </div>
         <div class="panneau" id="p-2" role="tabpanel" hidden>

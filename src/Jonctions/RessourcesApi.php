@@ -9,10 +9,14 @@ use Ged\Config;
 use Ged\Ingestion\Courrier\Traites;
 use Ged\Securite\Authentification;
 use Ged\Securite\DroitsDossiers;
+use Ged\Securite\PermissionsTaches;
 use Ged\Securite\Totp;
 use Ged\Socle\Champs;
 use Ged\Socle\Collaboration;
+use Ged\Socle\ConfigurationApp;
 use Ged\Socle\DepotFichiers;
+use Ged\Socle\Emetteurs;
+use Ged\Socle\Emplacements;
 use Ged\Socle\Etiquettes;
 use Ged\Socle\Nomenclature;
 use Ged\Socle\Preferences;
@@ -88,11 +92,22 @@ final class RessourcesApi
                     $this->texteRequis($corps, ['name', 'nom'], 'name', $etape),
                     $this->texteOptionnel($corps, ['color', 'couleur'], Etiquettes::COULEUR_DEFAUT),
                     $this->booleen($corps, ['is_inbox_tag', 'boite_reception']),
+                    $this->parentEtiquette($corps),
                 )['id'], $etape);
             } catch (\RuntimeException $e) {
                 throw new ErreurApi(400, $e->getMessage(), $etape, $e);
             }
         }, 201);
+    }
+
+    /** @param array<string, mixed> $corps */
+    private function parentEtiquette(array $corps): ?int
+    {
+        if (!array_key_exists('parent', $corps)) {
+            return null;
+        }
+
+        return is_numeric($corps['parent']) ? (int) $corps['parent'] : null;
     }
 
     /** @param array<string, string> $args */
@@ -127,6 +142,9 @@ final class RessourcesApi
                 if (array_key_exists('is_inbox_tag', $corps) || array_key_exists('boite_reception', $corps)) {
                     $service->definirBoiteReception($id, $this->booleen($corps, ['is_inbox_tag', 'boite_reception']));
                 }
+                if (array_key_exists('parent', $corps)) {
+                    $service->definirParent($id, $this->parentEtiquette($corps));
+                }
             } catch (\RuntimeException $e) {
                 throw new ErreurApi(400, $e->getMessage(), $etape, $e);
             }
@@ -135,7 +153,31 @@ final class RessourcesApi
         });
     }
 
-    /** @return array{id:int, name:string, color:string, is_inbox_tag:bool} @throws ErreurApi */
+    /**
+     * `TagViewSet.destroy` : GEDv2 ne supprime jamais un référentiel (règle 4). Le retrait est une mise
+     * en veille tracée (`Socle\Etiquettes::definirActif(false)`) : l'étiquette reste lisible pour les
+     * documents qui la portent, elle n'est plus proposée.
+     *
+     * @param array<string, string> $args
+     */
+    public function etiquetteDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/etiquettes/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->etiquetteOuRefus($id, $etape);
+            try {
+                (new Etiquettes($this->config))->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->etiquetteOuRefus($id, $etape);
+        });
+    }
+
+    /** @return array{id:int, name:string, color:string, is_inbox_tag:bool, parent:?int, active:bool} @throws ErreurApi */
     private function etiquetteOuRefus(int $id, string $etape): array
     {
         $etiquette = (new Etiquettes($this->config))->lire($id);
@@ -144,7 +186,7 @@ final class RessourcesApi
         }
 
         return ['id' => $etiquette['id'], 'name' => $etiquette['nom'], 'color' => $etiquette['couleur'],
-            'is_inbox_tag' => $etiquette['boite_reception']];
+            'is_inbox_tag' => $etiquette['boite_reception'], 'parent' => $etiquette['parent'], 'active' => $etiquette['actif']];
     }
 
     // -----------------------------------------------------------------------
@@ -342,16 +384,39 @@ final class RessourcesApi
         return array_values(array_filter($options, static fn (string $o): bool => $o !== ''));
     }
 
-    /** @return array{id:int, name:string, cle:string, nature:string, select_options:list<string>} @throws ErreurApi */
+    /** @return array{id:int, name:string, cle:string, nature:string, select_options:list<string>, active:bool} @throws ErreurApi */
     private function champOuRefus(int $id, string $etape): array
     {
-        foreach ((new Champs($this->config))->tous() as $champ) {
+        foreach ((new Champs($this->config))->tousInclusifs() as $champ) {
             if ($champ['id'] === $id) {
                 return ['id' => $champ['id'], 'name' => $champ['nom'], 'cle' => $champ['cle'],
-                    'nature' => $champ['nature'], 'select_options' => $champ['options']];
+                    'nature' => $champ['nature'], 'select_options' => $champ['options'], 'active' => $champ['actif']];
             }
         }
         throw new ErreurApi(404, "champ introuvable : $id", $etape);
+    }
+
+    /**
+     * `CustomFieldViewSet.destroy` : mise en veille d'un champ (`actif = false`). Les valeurs restent
+     * lisibles dans les `.meta.json` (règle 4 : zéro suppression), le champ n'est plus proposé.
+     *
+     * @param array<string, string> $args
+     */
+    public function champDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/champs/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->champOuRefus($id, $etape);
+            try {
+                (new Champs($this->config))->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->champOuRefus($id, $etape);
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -462,14 +527,253 @@ final class RessourcesApi
     /** @return array<string, mixed> @throws ErreurApi */
     private function vueOuRefus(int $id, string $etape): array
     {
-        foreach ((new Vues($this->config))->lister() as $vue) {
+        foreach ((new Vues($this->config))->lister(false) as $vue) {
             if ($vue['id'] === $id) {
                 return ['id' => $vue['id'], 'name' => $vue['nom'], 'filtres' => $vue['filtres'],
-                    'reglages' => $vue['reglages'], 'filter_rules' => []];
+                    'reglages' => $vue['reglages'], 'filter_rules' => [], 'active' => $vue['actif']];
             }
         }
 
         throw new ErreurApi(404, "vue introuvable : $id", $etape);
+    }
+
+    /**
+     * `SavedViewViewSet.destroy` : mise en veille d'une vue (`actif = false`). Elle disparaît de la barre
+     * latérale et de l'API, reste lisible et réactivable (règle 4 : zéro suppression).
+     *
+     * @param array<string, string> $args
+     */
+    public function vueDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/vues/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->vueOuRefus($id, $etape);
+            try {
+                (new Vues($this->config))->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->vueOuRefus($id, $etape);
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // Correspondants (Paperless CorrespondentViewSet) : registre des émetteurs.
+    // -----------------------------------------------------------------------
+
+    /** @param array<string, string> $args */
+    public function emetteurLire(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+
+        return $this->lireRessource($requete, $reponse, "GET /api/v1/emetteurs/$id",
+            fn (): array => $this->emetteurOuRefus($id, "GET /api/v1/emetteurs/$id"));
+    }
+
+    public function emetteurCreer(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/emetteurs';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            try {
+                return $this->emetteurOuRefus((new Emetteurs($this->config))->ajouter(
+                    $this->texteRequis($corps, ['name', 'nom'], 'name', $etape),
+                    $this->texteOptionnel($corps, ['matching_algorithm', 'algo'], 'aucun'),
+                    $this->texteOptionnel($corps, ['match', 'motif'], ''),
+                    !array_key_exists('is_insensitive', $corps) || (bool) $corps['is_insensitive'],
+                )['id'], $etape);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+        }, 201);
+    }
+
+    /** @param array<string, string> $args */
+    public function emetteurRemplacer(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        return $this->ecrireEmetteur($requete, $reponse, (int) ($args['id'] ?? 0), true);
+    }
+
+    /** @param array<string, string> $args */
+    public function emetteurModifier(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        return $this->ecrireEmetteur($requete, $reponse, (int) ($args['id'] ?? 0), false);
+    }
+
+    private function ecrireEmetteur(Requete $requete, Reponse $reponse, int $id, bool $complet): Reponse
+    {
+        $etape = ($complet ? 'PUT' : 'PATCH') . " /api/v1/emetteurs/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($id, $etape, $complet): array {
+            $this->emetteurOuRefus($id, $etape);
+            $service = new Emetteurs($this->config);
+            try {
+                $nom = $complet ? $this->texteRequis($corps, ['name', 'nom'], 'name', $etape)
+                    : $this->texteOptionnel($corps, ['name', 'nom'], '');
+                if ($nom !== '') {
+                    $service->renommer($id, $nom);
+                }
+                if (array_key_exists('matching_algorithm', $corps) || array_key_exists('algo', $corps)
+                    || array_key_exists('match', $corps) || array_key_exists('motif', $corps)
+                    || array_key_exists('is_insensitive', $corps)) {
+                    $actuel = $this->emetteurOuRefus($id, $etape);
+                    $service->definirRegle(
+                        $id,
+                        $this->texteOptionnel($corps, ['matching_algorithm', 'algo'], (string) $actuel['matching_algorithm']),
+                        $this->texteOptionnel($corps, ['match', 'motif'], (string) $actuel['match']),
+                        array_key_exists('is_insensitive', $corps) ? (bool) $corps['is_insensitive'] : (bool) $actuel['is_insensitive'],
+                    );
+                }
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->emetteurOuRefus($id, $etape);
+        });
+    }
+
+    /** @param array<string, string> $args */
+    public function emetteurDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/emetteurs/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->emetteurOuRefus($id, $etape);
+            try {
+                (new Emetteurs($this->config))->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->emetteurOuRefus($id, $etape);
+        });
+    }
+
+    /** @return array<string, mixed> @throws ErreurApi */
+    private function emetteurOuRefus(int $id, string $etape): array
+    {
+        $emetteur = (new Emetteurs($this->config))->lire($id);
+        if ($emetteur === null) {
+            throw new ErreurApi(404, "émetteur introuvable : $id", $etape);
+        }
+
+        return ['id' => $emetteur['id'], 'name' => $emetteur['nom'], 'nom' => $emetteur['nom'],
+            'match' => $emetteur['motif'], 'matching_algorithm' => $emetteur['algo'],
+            'is_insensitive' => $emetteur['insensible'], 'active' => $emetteur['actif']];
+    }
+
+    // -----------------------------------------------------------------------
+    // Emplacements de classement (Paperless StoragePathViewSet).
+    // -----------------------------------------------------------------------
+
+    /** @param array<string, string> $args */
+    public function emplacementLire(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+
+        return $this->lireRessource($requete, $reponse, "GET /api/v1/emplacements/$id",
+            fn (): array => $this->emplacementOuRefus($id, "GET /api/v1/emplacements/$id"));
+    }
+
+    public function emplacementsLister(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/emplacements', function (): array {
+            $emplacements = [];
+            foreach ((new Emplacements($this->config))->lister(false) as $e) {
+                $emplacements[] = ['id' => $e['id'], 'name' => $e['nom'], 'nom' => $e['nom'],
+                    'path' => $e['chemin'], 'chemin' => $e['chemin'], 'active' => $e['actif']];
+            }
+
+            return ['count' => count($emplacements), 'results' => $emplacements];
+        });
+    }
+
+    public function emplacementCreer(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/emplacements';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            try {
+                return $this->emplacementOuRefus((new Emplacements($this->config))->ajouter(
+                    $this->texteRequis($corps, ['name', 'nom'], 'name', $etape),
+                    $this->texteRequis($corps, ['path', 'chemin'], 'path', $etape),
+                )['id'], $etape);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+        }, 201);
+    }
+
+    /** @param array<string, string> $args */
+    public function emplacementRemplacer(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        return $this->ecrireEmplacement($requete, $reponse, (int) ($args['id'] ?? 0), true);
+    }
+
+    /** @param array<string, string> $args */
+    public function emplacementModifier(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        return $this->ecrireEmplacement($requete, $reponse, (int) ($args['id'] ?? 0), false);
+    }
+
+    private function ecrireEmplacement(Requete $requete, Reponse $reponse, int $id, bool $complet): Reponse
+    {
+        $etape = ($complet ? 'PUT' : 'PATCH') . " /api/v1/emplacements/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($id, $etape, $complet): array {
+            $this->emplacementOuRefus($id, $etape);
+            $service = new Emplacements($this->config);
+            try {
+                $nom = $complet ? $this->texteRequis($corps, ['name', 'nom'], 'name', $etape)
+                    : $this->texteOptionnel($corps, ['name', 'nom'], '');
+                if ($nom !== '') {
+                    $service->renommer($id, $nom);
+                }
+                $chemin = $complet ? $this->texteRequis($corps, ['path', 'chemin'], 'path', $etape)
+                    : $this->texteOptionnel($corps, ['path', 'chemin'], '');
+                if ($chemin !== '') {
+                    $service->definirChemin($id, $chemin);
+                }
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->emplacementOuRefus($id, $etape);
+        });
+    }
+
+    /** @param array<string, string> $args */
+    public function emplacementDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/emplacements/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->emplacementOuRefus($id, $etape);
+            try {
+                (new Emplacements($this->config))->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->emplacementOuRefus($id, $etape);
+        });
+    }
+
+    /** @return array<string, mixed> @throws ErreurApi */
+    private function emplacementOuRefus(int $id, string $etape): array
+    {
+        $emplacement = (new Emplacements($this->config))->lire($id);
+        if ($emplacement === null) {
+            throw new ErreurApi(404, "emplacement introuvable : $id", $etape);
+        }
+
+        return ['id' => $emplacement['id'], 'name' => $emplacement['nom'], 'nom' => $emplacement['nom'],
+            'path' => $emplacement['chemin'], 'chemin' => $emplacement['chemin'], 'active' => $emplacement['actif']];
     }
 
     // -----------------------------------------------------------------------
@@ -479,7 +783,7 @@ final class RessourcesApi
     public function comptesLister(Requete $requete, Reponse $reponse): Reponse
     {
         return $this->lireRessource($requete, $reponse, 'GET /api/v1/comptes', function (): array {
-            $requete = $this->pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant');
+            $requete = $this->pdo->query('SELECT id, identifiant, role, actif FROM comptes ORDER BY identifiant');
 
             return ['count' => $this->compterLignes('comptes'),
                 'results' => array_map(fn (array $c): array => $this->compteResume($c),
@@ -569,7 +873,7 @@ final class RessourcesApi
     /** @return array<string, mixed> @throws ErreurApi */
     private function compteOuRefus(int $id, string $etape): array
     {
-        $requete = $this->pdo->prepare('SELECT id, identifiant, role FROM comptes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, identifiant, role, actif FROM comptes WHERE id = ?');
         $requete->execute([$id]);
         $compte = $requete->fetch(PDO::FETCH_ASSOC);
         if ($compte === false) {
@@ -589,13 +893,38 @@ final class RessourcesApi
 
         return ['id' => (int) $compte['id'], 'username' => (string) $compte['identifiant'],
             'identifiant' => (string) $compte['identifiant'], 'role' => $role,
-            'is_superuser' => $role === 'administrateur', 'is_staff' => $role === 'administrateur'];
+            'is_superuser' => $role === 'administrateur', 'is_staff' => $role === 'administrateur',
+            'active' => (bool) ($compte['actif'] ?? true)];
+    }
+
+    /**
+     * `UserViewSet.destroy` : GEDv2 ne supprime aucun compte (règle 4). Le retrait est une DÉSACTIVATION
+     * (`comptes.actif = 0`) : le compte ne peut plus se connecter, ses traces restent. Un administrateur
+     * ne peut pas se désactiver lui-même par l'API (la porte resterait sans gardien).
+     *
+     * @param array<string, string> $args
+     */
+    public function compteDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/comptes/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->compteOuRefus($id, $etape);
+            $session = $this->session ?? throw new ErreurApi(403, 'session administrative indisponible', $etape);
+            if ($session['compte'] === $id) {
+                throw new ErreurApi(409, 'un administrateur ne peut pas désactiver son propre compte par l’API', $etape);
+            }
+            $this->pdo->prepare('UPDATE comptes SET actif = 0 WHERE id = ?')->execute([$id]);
+
+            return $this->compteOuRefus($id, $etape);
+        }, 200, true);
     }
 
     public function groupesLister(Requete $requete, Reponse $reponse): Reponse
     {
         return $this->lireRessource($requete, $reponse, 'GET /api/v1/groupes', function (): array {
-            $requete = $this->pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom');
+            $requete = $this->pdo->query('SELECT id, nom, role_code, actif FROM securite_groupes ORDER BY nom');
 
             return ['count' => $this->compterLignes('securite_groupes'),
                 'results' => array_map(fn (array $g): array => $this->groupeResume($g),
@@ -678,7 +1007,7 @@ final class RessourcesApi
     /** @return array<string, mixed> @throws ErreurApi */
     private function groupeOuRefus(int $id, string $etape): array
     {
-        $requete = $this->pdo->prepare('SELECT id, nom, role_code FROM securite_groupes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, nom, role_code, actif FROM securite_groupes WHERE id = ?');
         $requete->execute([$id]);
         $groupe = $requete->fetch(PDO::FETCH_ASSOC);
         if ($groupe === false) {
@@ -689,13 +1018,33 @@ final class RessourcesApi
     }
 
     /**
+     * `GroupViewSet.destroy` : GEDv2 ne supprime aucun groupe (règle 4). Le retrait est une DÉSACTIVATION
+     * (`securite_groupes.actif = 0`) : le groupe n'est plus proposé, ses règles de dossier restent
+     * lisibles (la table d'ACL n'est pas touchée).
+     *
+     * @param array<string, string> $args
+     */
+    public function groupeDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/groupes/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->groupeOuRefus($id, $etape);
+            $this->pdo->prepare('UPDATE securite_groupes SET actif = 0 WHERE id = ?')->execute([$id]);
+
+            return $this->groupeOuRefus($id, $etape);
+        }, 200, true);
+    }
+
+    /**
      * @param array<string, mixed> $groupe
      * @return array<string, mixed>
      */
     private function groupeResume(array $groupe): array
     {
         return ['id' => (int) $groupe['id'], 'name' => (string) $groupe['nom'], 'nom' => (string) $groupe['nom'],
-            'role' => (string) $groupe['role_code']];
+            'role' => (string) $groupe['role_code'], 'active' => (bool) ($groupe['actif'] ?? true)];
     }
 
     // -----------------------------------------------------------------------
@@ -978,13 +1327,18 @@ final class RessourcesApi
 
     /**
      * `TasksViewSet.acknowledge` (Paperless) : acquitte les tâches listées et rend le nombre traité.
-     * Réservé à l'administrateur (la liste `/api/v1/taches` l'est aussi dans GEDv2).
+     * Le droit d'acquittement est `Securite\PermissionsTaches` (équivalent `AcknowledgeTasksPermissions`) :
+     * l'administrateur l'a, un futur rôle pourra l'obtenir par la permission fine.
      */
     public function tachesAccuser(Requete $requete, Reponse $reponse): Reponse
     {
         $etape = 'POST /api/v1/taches/acknowledge';
 
         return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $session = $this->session ?? throw new ErreurApi(403, 'session indisponible', $etape);
+            if (!PermissionsTaches::peutAcquitter((bool) $session['administrateur'])) {
+                throw new ErreurApi(403, 'droit d’acquittement des tâches requis', $etape);
+            }
             $ids = $this->listeIdentifiants($corps['tasks'] ?? $corps['ids'] ?? []);
             if ($ids === []) {
                 throw new ErreurApi(400, 'aucune tâche à acquitter (clé « tasks » attendue)', $etape);
@@ -1002,6 +1356,36 @@ final class RessourcesApi
 
             return ['result' => $resultat];
         }, 200, true);
+    }
+
+    /**
+     * `ws/status/` (StatusConsumer de Paperless, Channels/Redis) : GEDv2 n'a ni WebSocket ni démon
+     * (hébergement mutualisé). L'équivalent fonctionnel LÉGER est un flux SSE d'un seul événement : l'état
+     * RÉEL des tâches de la file `ingestion_travaux`, puis fermeture — un appel court, reprenable, sans
+     * Redis ni connexion longue. Le client réinterroge le même point à son rythme.
+     */
+    public function tachesEvenements(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/taches/statut/evenements';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $this->session = $session;
+            if (!$session['administrateur']) {
+                throw new ErreurApi(403, 'droit administrateur requis', $etape);
+            }
+            $bilan = (new Taches($this->config))->bilan();
+            $charge = json_encode(['statut' => 'ok', 'file' => 'ingestion_travaux', 'bilan' => $bilan],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $reponse->getBody()->write("event: statut\ndata: " . (string) $charge . "\n\n");
+
+            return $reponse->withHeader('Content-Type', 'text/event-stream; charset=utf-8')
+                ->withHeader('Cache-Control', 'no-cache')
+                ->withStatus(200);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'le flux de statut n’a pas pu être produit');
+        }
     }
 
     /**
@@ -1357,21 +1741,13 @@ final class RessourcesApi
     // -----------------------------------------------------------------------
 
     /**
-     * `GET /api/v1/configuration` : configuration applicative EN LECTURE (le `.env` fait foi). Réservé à
-     * l'administrateur, comme la vue Paperless.
+     * `GET /api/v1/configuration` : configuration applicative RÉELLE (surcharge du fonds superposée au
+     * `.env`). Réservé à l'administrateur, comme la vue Paperless.
      */
     public function configurationLire(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->lireRessource($requete, $reponse, 'GET /api/v1/configuration', function (): array {
-            return [
-                'id' => 1,
-                'app_title' => $this->config->get('GED_NOM', 'GEDv2'),
-                'app_logo' => '/logo',
-                'language' => $this->config->get('GED_LANGUE', 'fr'),
-                'version' => $this->versionGed(),
-                'source' => 'env',
-            ];
-        }, true);
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/configuration',
+            fn (): array => $this->configurationEtat(), true);
     }
 
     /** `ApplicationConfigurationViewSet.create` : la création est interdite (405), comme Paperless. */
@@ -1380,22 +1756,75 @@ final class RessourcesApi
         $etape = 'POST /api/v1/configuration';
 
         return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
-            throw new ErreurApi(405, 'la configuration GEDv2 ne se crée pas par l’API : elle vient du fichier .env', $etape);
+            throw new ErreurApi(405, 'la configuration GEDv2 ne se crée pas : elle se modifie (titre, langue)', $etape);
         }, 405, true);
     }
 
-    /**
-     * `ApplicationConfigurationViewSet.update` / `partial_update` : GEDv2 refuse l'écriture — la
-     * configuration vient du `.env` (lecture seule), un registre inscriptible supposerait un schéma, un
-     * écran et un audit. Refus nommé 409, jamais un 500 muet.
-     */
+    /** `ApplicationConfigurationViewSet.update` (PUT) : remplacement des réglages modifiables. */
+    public function configurationRemplacer(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->ecrireConfiguration($requete, $reponse, 'PUT /api/v1/configuration');
+    }
+
+    /** `ApplicationConfigurationViewSet.partial_update` (PATCH) : modification des réglages fournis. */
     public function configurationModifier(Requete $requete, Reponse $reponse): Reponse
     {
-        $etape = 'PATCH /api/v1/configuration';
+        return $this->ecrireConfiguration($requete, $reponse, 'PATCH /api/v1/configuration');
+    }
+
+    private function ecrireConfiguration(Requete $requete, Reponse $reponse, string $etape): Reponse
+    {
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $valeurs = [];
+            $titre = $this->texteOptionnel($corps, ['app_title', 'titre'], '');
+            $langue = $this->texteOptionnel($corps, ['language', 'langue'], '');
+            if ($titre !== '') {
+                $valeurs['titre'] = $titre;
+            }
+            if ($langue !== '') {
+                $valeurs['langue'] = $langue;
+            }
+            // Une requête PATCH sans clé MODIFIABLE (titre, langue) ne change rien : elle est acceptée
+            // comme un no-op (sémantique DRF), jamais un 500 ; les champs Paperless sans équivalent GEDv2
+            // sont ignorés, la configuration GEDv2 n'en dépend pas.
+            if ($valeurs !== []) {
+                try {
+                    (new ConfigurationApp($this->config))->modifier($valeurs);
+                } catch (\RuntimeException $e) {
+                    throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+                }
+            }
+
+            return $this->configurationEtat();
+        }, 200, true);
+    }
+
+    /**
+     * `ApplicationConfigurationViewSet.destroy` : retire la surcharge et rejoue les valeurs du `.env`
+     * (règle 4 : aucune donnée utilisateur n'est supprimée, la configuration par défaut revient).
+     */
+    public function configurationSupprimer(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'DELETE /api/v1/configuration';
 
         return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
-            throw new ErreurApi(409, 'la configuration GEDv2 est en lecture seule (fichier .env) : aucune écriture par l’API', $etape);
+            try {
+                (new ConfigurationApp($this->config))->reinitialiser();
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->configurationEtat();
         }, 200, true);
+    }
+
+    /** @return array<string, mixed> */
+    private function configurationEtat(): array
+    {
+        $effective = (new ConfigurationApp($this->config))->effective();
+
+        return ['id' => 1, 'app_title' => $effective['titre'], 'app_logo' => '/logo',
+            'language' => $effective['langue'], 'version' => $this->versionGed(), 'source' => $effective['source']];
     }
 
     /** `FaviconView.get` : le favicon GEDv2, servi sans jeton (comme la vue Paperless). */

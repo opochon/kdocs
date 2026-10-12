@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-12T13:06:24",
-    "duree_s":  1431,
-    "commit":  "6d3aae4",
+    "date":  "2026-10-12T23:12:05",
+    "duree_s":  1026,
+    "commit":  "c7b5380",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[30;42mTests: 828\u001b[0m\u001b[30;42m, Assertions: 11099\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
+                                       "detail":  "\u001b[30;42mTests: 863\u001b[0m\u001b[30;42m, Assertions: 11538\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
                                        "ok":  true
                                    },
                     "3-banc":  {
@@ -16,8 +16,8 @@
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  2 failed   89 passed (12.5m)",
-                                     "ok":  false
+                                     "detail":  "  95 passed (5.3m)",
+                                     "ok":  true
                                  },
                     "7-securite":  {
                                        "detail":  "OK: sonde s├®curit├® ÔÇö aucun contournement accept├®",
@@ -28,19 +28,19 @@
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 784 ms, p95 ├®criture 238 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 673 ms, p95 ├®criture 242 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
                                      "ok":  true
                                  },
                     "8-statique":  {
-                                       "detail":  "phpstan : 0 erreur(s) hors baseline | audit : Could not open input file: tools\\composer.phar",
-                                       "ok":  false
+                                       "detail":  "phpstan : 0 erreur(s) hors baseline | audit : \u001b[32mNo security vulnerability advisories found.\u001b[39m",
+                                       "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 891 ms) | auditeur: 4/4 (mÃ©diane 462 ms) | comptable: 4/4 (mÃ©diane 547 ms) | debutant: 4/4 (mÃ©diane 382 ms) | fiduciaire: 4/4 (mÃ©diane 430 ms) | secretaire: 3/3 (mÃ©diane 678 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 700 ms) | auditeur: 4/4 (mÃ©diane 415 ms) | comptable: 4/4 (mÃ©diane 561 ms) | debutant: 4/4 (mÃ©diane 382 ms) | fiduciaire: 4/4 (mÃ©diane 370 ms) | secretaire: 3/3 (mÃ©diane 534 ms)",
                                        "ok":  true
                                    },
                     "9-parite":  {
-                                     "detail":  "parite : 780 elements | couverts 546 | strict 70,00 % | hors exclusions 74,49 % | ecarts 234 | VERT",
+                                     "detail":  "parite : 780 elements | couverts 737 | strict 94,49 % | hors exclusions 97,49 % | ecarts 43 | VERT",
                                      "ok":  true
                                  }
                 }

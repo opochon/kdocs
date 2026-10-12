@@ -400,6 +400,11 @@ try {
         'POST /profil/mail' => 'adresse=',
         'POST /profil/appairage' => 'sonde=1',
         'POST /application/appareils/{id:[0-9]+}/revoquer' => 'sonde=1',
+        // Référentiels de l'écran Application (lot ged-parite-final-1) : nom/organe vide ou clé de
+        // configuration vide sont refusés par le métier, sans écrire ; la sonde ne vérifie que le CSRF.
+        'POST /application/emetteur' => 'nom=',
+        'POST /application/emplacement' => 'nom=&chemin=',
+        'POST /application/configuration' => 'titre=',
         // Administration V2-13 : formulaires volontairement incomplets ; aucune création ne peut aboutir,
         // mais l'absence et le rejeu CSRF restent vérifiés pour chaque mutation déclarée.
         'POST /administration/comptes' => 'identifiant=&role=',

@@ -29,20 +29,22 @@ final class Etiquettes
     /**
      * @return array{id:int, nom:string, couleur:string, boite_reception:bool}
      */
-    public function ajouter(string $nom, string $couleur = self::COULEUR_DEFAUT, bool $boiteReception = false): array
+    public function ajouter(string $nom, string $couleur = self::COULEUR_DEFAUT, bool $boiteReception = false, ?int $parent = null): array
     {
         $nom = self::validerNom($nom);
         $couleur = self::validerCouleur($couleur);
-        foreach ($this->lister() as $e) {
+        $parent = $this->validerParent($parent);
+        foreach ($this->lister(false) as $e) {
             if (mb_strtolower($e['nom']) === mb_strtolower($nom)) {
                 throw new RuntimeException("étiquette : « $nom » existe déjà");
             }
         }
         $id = 0;
-        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($nom, $couleur, $boiteReception, &$id): array {
+        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($nom, $couleur, $boiteReception, $parent, &$id): array {
             $etiquettes = (array) ($etat['etiquettes'] ?? []);
             $id = self::prochainId($etiquettes);
-            $etiquettes[] = ['id' => $id, 'nom' => $nom, 'couleur' => $couleur, 'boite_reception' => $boiteReception];
+            $etiquettes[] = ['id' => $id, 'nom' => $nom, 'couleur' => $couleur,
+                'boite_reception' => $boiteReception, 'parent' => $parent, 'actif' => true];
 
             return ['etiquettes' => $etiquettes];
         });
@@ -66,10 +68,22 @@ final class Etiquettes
         $this->changer($id, ['boite_reception' => $boiteReception]);
     }
 
-    /** @return array{id:int, nom:string, couleur:string, boite_reception:bool}|null */
+    /** Règle la parenté (hiérarchie d'étiquettes, modèle Paperless `Tag.parent`) ; null = racine. */
+    public function definirParent(int $id, ?int $parent): void
+    {
+        $this->changer($id, ['parent' => $this->validerParent($parent, $id)]);
+    }
+
+    /** Met en veille (`actif = false`) : l'étiquette reste lisible, elle n'est plus proposée. */
+    public function definirActif(int $id, bool $actif): void
+    {
+        $this->changer($id, ['actif' => $actif]);
+    }
+
+    /** @return array{id:int, nom:string, couleur:string, boite_reception:bool, parent:?int, actif:bool}|null */
     public function lire(int $id): ?array
     {
-        foreach ($this->lister() as $e) {
+        foreach ($this->lister(false) as $e) {
             if ($e['id'] === $id) {
                 return $e;
             }
@@ -78,24 +92,30 @@ final class Etiquettes
         return null;
     }
 
-    /** @return list<array{id:int, nom:string, couleur:string, boite_reception:bool}> */
-    public function lister(): array
+    /**
+     * @return list<array{id:int, nom:string, couleur:string, boite_reception:bool, parent:?int, actif:bool}>
+     */
+    public function lister(bool $actifsSeuls = true): array
     {
         $etat = $this->registre->lire(self::FICHIER);
         $etiquettes = [];
         foreach ((array) ($etat['etiquettes'] ?? []) as $e) {
             $e = (array) $e;
+            $parent = $e['parent'] ?? null;
             $etiquettes[] = ['id' => (int) $e['id'], 'nom' => (string) $e['nom'],
-                'couleur' => (string) ($e['couleur'] ?? self::COULEUR_DEFAUT), 'boite_reception' => (bool) ($e['boite_reception'] ?? false)];
+                'couleur' => (string) ($e['couleur'] ?? self::COULEUR_DEFAUT),
+                'boite_reception' => (bool) ($e['boite_reception'] ?? false),
+                'parent' => is_numeric($parent) ? (int) $parent : null,
+                'actif' => (bool) ($e['actif'] ?? true)];
         }
 
-        return $etiquettes;
+        return $actifsSeuls ? array_values(array_filter($etiquettes, static fn (array $e): bool => $e['actif'])) : $etiquettes;
     }
 
     /**
      * L'étiquette de boîte de réception (au plus une attendue), ou null.
      *
-     * @return array{id:int, nom:string, couleur:string, boite_reception:bool}|null
+     * @return array{id:int, nom:string, couleur:string, boite_reception:bool, parent:?int, actif:bool}|null
      */
     public function boiteReception(): ?array
     {
@@ -106,6 +126,22 @@ final class Etiquettes
         }
 
         return null;
+    }
+
+    /** Une parenté doit désigner une étiquette EXISTANTE et différente d'elle-même : jamais de cycle direct. */
+    private function validerParent(?int $parent, ?int $id = null): ?int
+    {
+        if ($parent === null || $parent <= 0) {
+            return null;
+        }
+        if ($id !== null && $parent === $id) {
+            throw new RuntimeException('étiquette : une étiquette ne peut pas être sa propre parente');
+        }
+        if ($this->lire($parent) === null) {
+            throw new RuntimeException("étiquette : parente introuvable ($parent)");
+        }
+
+        return $parent;
     }
 
     /** @param array<string, mixed> $champs */

@@ -153,16 +153,23 @@ final class Module
             }
         });
 
-        // Créer un champ personnalisé typé sur un type de la nomenclature.
+        // Créer un champ personnalisé typé sur un type de la nomenclature, ou le mettre en veille
+        // (jamais le supprimer : ses valeurs restent dans les `.meta.json`).
         $app->post('/metadonnees/champ', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
             $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
             $options = array_values(array_filter(array_map('trim', explode("\n", (string) ($corps['options'] ?? ''))),
                 static fn (string $o) => $o !== ''));
+            $retour = '/metadonnees?type=' . (int) ($corps['type'] ?? 0);
             try {
-                (new Champs($config))->ajouter((int) ($corps['type'] ?? 0), (string) ($corps['nom'] ?? ''),
-                    (string) ($corps['nature'] ?? ''), $options);
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => (new Champs($config))->ajouter((int) ($corps['type'] ?? 0), (string) ($corps['nom'] ?? ''),
+                        (string) ($corps['nature'] ?? ''), $options),
+                    'desactiver' => (new Champs($config))->definirActif((int) ($corps['id'] ?? 0), false),
+                    'reactiver' => (new Champs($config))->definirActif((int) ($corps['id'] ?? 0), true),
+                    default => throw new RuntimeException('action inconnue (ajouter, desactiver, reactiver)'),
+                };
 
-                return $rep->withHeader('Location', '/metadonnees?type=' . (int) ($corps['type'] ?? 0))->withStatus(303);
+                return $rep->withHeader('Location', $retour)->withStatus(303);
             } catch (RuntimeException $e) {
                 return self::nommer($vue, $rep, 'POST /metadonnees/champ', $e->getMessage());
             }
@@ -176,11 +183,15 @@ final class Module
             try {
                 match ((string) ($corps['action'] ?? 'ajouter')) {
                     'ajouter' => $etiquettes->ajouter((string) ($corps['nom'] ?? ''), (string) ($corps['couleur'] ?? Etiquettes::COULEUR_DEFAUT),
-                        (string) ($corps['boite_reception'] ?? '') === '1'),
+                        (string) ($corps['boite_reception'] ?? '') === '1',
+                        (int) ($corps['parent'] ?? 0) > 0 ? (int) $corps['parent'] : null),
                     'couleur' => $etiquettes->definirCouleur((int) ($corps['id'] ?? 0), (string) ($corps['couleur'] ?? '')),
                     'renommer' => $etiquettes->renommer((int) ($corps['id'] ?? 0), (string) ($corps['nom'] ?? '')),
                     'boite' => $etiquettes->definirBoiteReception((int) ($corps['id'] ?? 0), (string) ($corps['valeur'] ?? '1') === '1'),
-                    default => throw new RuntimeException('action inconnue (ajouter, couleur, renommer, boite)'),
+                    'parent' => $etiquettes->definirParent((int) ($corps['id'] ?? 0),
+                        (int) ($corps['parent'] ?? 0) > 0 ? (int) $corps['parent'] : null),
+                    'actif' => $etiquettes->definirActif((int) ($corps['id'] ?? 0), (string) ($corps['valeur'] ?? '1') === '1'),
+                    default => throw new RuntimeException('action inconnue (ajouter, couleur, renommer, boite, parent, actif)'),
                 };
 
                 return $rep->withHeader('Location', '/metadonnees')->withStatus(303);

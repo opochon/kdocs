@@ -232,6 +232,66 @@ final class Module
         $app->post('/application/pdfa-rattrapage', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage',$e->getMessage());} });
         $app->post('/application/pdfa-rattrapage/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage/{id}/tranche',$e->getMessage());} });
 
+        // Lot ged-parite-final-1 : Référentiels de l'écran Application — émetteurs (Correspondent) et
+        // emplacements de classement (StoragePath) se créent, se modifient et se retirent en veille ; la
+        // configuration applicative (titre, langue) est inscriptible dans le fonds puis effaçable.
+        $app->post('/application/emetteur', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $emetteurs = new \Ged\Socle\Emetteurs($config);
+            try {
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => $emetteurs->ajouter((string) ($corps['nom'] ?? ''), (string) ($corps['algo'] ?? 'aucun'), (string) ($corps['motif'] ?? ''), (string) ($corps['insensible'] ?? '1') === '1'),
+                    'regle' => $emetteurs->definirRegle((int) ($corps['id'] ?? 0), (string) ($corps['algo'] ?? 'aucun'), (string) ($corps['motif'] ?? ''), (string) ($corps['insensible'] ?? '1') === '1'),
+                    'actif' => $emetteurs->definirActif((int) ($corps['id'] ?? 0), (string) ($corps['valeur'] ?? '1') === '1'),
+                    default => throw new \RuntimeException('action inconnue (ajouter, regle, actif)'),
+                };
+
+                return $rep->withHeader('Location', '/application')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /application/emetteur', $e->getMessage());
+            }
+        });
+        $app->post('/application/emplacement', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $emplacements = new \Ged\Socle\Emplacements($config);
+            try {
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => $emplacements->ajouter((string) ($corps['nom'] ?? ''), (string) ($corps['chemin'] ?? '')),
+                    'chemin' => $emplacements->definirChemin((int) ($corps['id'] ?? 0), (string) ($corps['chemin'] ?? '')),
+                    'actif' => $emplacements->definirActif((int) ($corps['id'] ?? 0), (string) ($corps['valeur'] ?? '1') === '1'),
+                    default => throw new \RuntimeException('action inconnue (ajouter, chemin, actif)'),
+                };
+
+                return $rep->withHeader('Location', '/application')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /application/emplacement', $e->getMessage());
+            }
+        });
+        $app->post('/application/configuration', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $configuration = new \Ged\Socle\ConfigurationApp($config);
+            try {
+                if ((string) ($corps['action'] ?? 'modifier') === 'reinitialiser') {
+                    $configuration->reinitialiser();
+                } else {
+                    $valeurs = [];
+                    foreach (\Ged\Socle\ConfigurationApp::CLES as $cle) {
+                        if (isset($corps[$cle]) && is_string($corps[$cle])) {
+                            $valeurs[$cle] = $corps[$cle];
+                        }
+                    }
+                    if ($valeurs === []) {
+                        throw new \RuntimeException('aucune clé modifiable (titre, langue)');
+                    }
+                    $configuration->modifier($valeurs);
+                }
+
+                return $rep->withHeader('Location', '/application')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /application/configuration', $e->getMessage());
+            }
+        });
+
         // Lot ged-parite-ecrans-1 (Interface) : écrans rendant le service des écrans Paperless, à la
         // manière de GEDv2 (mêmes gabarits, même charte) — tableau de bord, journaux, corbeille, réglages
         // et accès par numéro d'archive. Les permissions sont déclarées dans `Ged\Securite\DroitsRoutes`

@@ -51,6 +51,11 @@ final class DroitsRoutes
         // Lot ged-pdfa-1 : rattrapage des copies d'archivage PDF/A du fonds (même droit que la reconstruction).
         'POST /application/pdfa-rattrapage' => 'application:administrer',
         'POST /application/pdfa-rattrapage/{id:[0-9]+}/tranche' => 'application:administrer',
+        // Lot ged-parite-final-1 : référentiels (émetteurs, emplacements) et configuration applicative
+        // modifiables depuis l'écran Application (même droit que les autres réglages d'installation).
+        'POST /application/emetteur' => 'application:administrer',
+        'POST /application/emplacement' => 'application:administrer',
+        'POST /application/configuration' => 'application:administrer',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
@@ -202,6 +207,19 @@ final class DroitsRoutes
         'POST /api/v1/etiquettes' => 'publique:api-documents-ecriture',
         'PUT /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        // Correspondants (registre des émetteurs) et emplacements de classement — lot ged-parite-final-1.
+        'GET /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/emetteurs' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/emetteurs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/emplacements' => 'publique:api-documents-lecture',
+        'GET /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/emplacements' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/emplacements/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'POST /api/v1/types' => 'publique:api-documents-ecriture',
         'PUT /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
@@ -211,20 +229,24 @@ final class DroitsRoutes
         'POST /api/v1/champs' => 'publique:api-documents-ecriture',
         'PUT /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'POST /api/v1/vues' => 'publique:api-documents-ecriture',
         'PUT /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/comptes' => 'publique:api-documents-lecture',
         'POST /api/v1/comptes' => 'publique:api-documents-ecriture',
         'GET /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/groupes' => 'publique:api-documents-lecture',
         'POST /api/v1/groupes' => 'publique:api-documents-ecriture',
         'GET /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'POST /api/v1/partages' => 'publique:api-documents-ecriture',
         'GET /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'PUT /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
@@ -236,6 +258,8 @@ final class DroitsRoutes
         'GET /api/v1/taches' => 'publique:api-documents-lecture',
         'POST /api/v1/taches/acknowledge' => 'publique:api-documents-ecriture',
         'POST /api/v1/taches/run' => 'publique:api-documents-ecriture',
+        // Statut temps réel (StatusConsumer de Paperless) en flux SSE léger (lot ged-parite-final-1).
+        'GET /api/v1/taches/statut/evenements' => 'publique:api-documents-lecture',
         'GET /api/v1/taches/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/courriers/traites/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/profil' => 'publique:api-documents-lecture',
@@ -257,7 +281,9 @@ final class DroitsRoutes
         // Configuration applicative (lecture) et logo/favicon (publics) — lot ged-parite-api-4.
         'GET /api/v1/configuration' => 'publique:api-documents-lecture',
         'POST /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/configuration' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/configuration' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/configuration' => 'publique:api-documents-ecriture',
         'GET /favicon' => 'publique:favicon',
         'GET /logo' => 'publique:app-logo',
     ];
@@ -277,7 +303,7 @@ final class DroitsRoutes
 
         // Verbes REST des ressources (lot ged-parite-api-3) : identifiant concret dans le chemin. La
         // route est servie par `Ged\Jonctions\RessourcesApi`, la porte réelle étant le jeton.
-        if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes)/[0-9]+$#', $chemin, $ressource) === 1) {
+        if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes|emetteurs|emplacements)/[0-9]+$#', $chemin, $ressource) === 1) {
             return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/' . $ressource[1] . '/{id:[0-9]+}'] ?? null;
         }
         // Désactivation TOTP d'un compte (lot ged-parite-api-4) : identifiant concret dans le chemin.

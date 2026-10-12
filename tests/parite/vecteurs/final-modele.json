@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "categorie": "modele",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 12,
+  "vecteurs": [
+    {
+      "id": "modele:owner_nom:001",
+      "entree": { "filtre": "owner", "valeur": "<identifiant A>" },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/filters.py:763 (DocumentFilterSet.owner)"
+    },
+    {
+      "id": "modele:owner_id:002",
+      "entree": { "filtre": "owner__id", "valeur": "<id B>" },
+      "sortie": { "retenus": ["c"] },
+      "reference": "src/documents/filters.py:763 (DocumentFilterSet.owner__id)"
+    },
+    {
+      "id": "modele:owner_id_none:003",
+      "entree": { "filtre": "owner__id__none", "valeur": true },
+      "sortie": { "retenus": ["b"] },
+      "reference": "src/documents/filters.py:726 (DocumentFilterSet.owner__id__none, ObjectFilter)"
+    },
+    {
+      "id": "modele:is_root_true:004",
+      "entree": { "filtre": "is_root", "valeur": true },
+      "sortie": { "retenus": ["Orpheline", "Parent"] },
+      "reference": "src/documents/filters.py:95 (TagFilterSet.is_root, BooleanFilter)"
+    },
+    {
+      "id": "modele:is_root_false:005",
+      "entree": { "filtre": "is_root", "valeur": false },
+      "sortie": { "retenus": ["Enfant"] },
+      "reference": "src/documents/filters.py:95 (TagFilterSet.is_root)"
+    },
+    {
+      "id": "modele:custom_field_exact:006",
+      "entree": { "filtre": "custom_field_query", "valeur": ["string_field", "exact", "paperless"] },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/tests/test_api_filter_by_custom_fields.py:277 (test_exact)"
+    },
+    {
+      "id": "modele:custom_field_icontains:007",
+      "entree": { "filtre": "custom_field_query", "valeur": ["string_field", "icontains", "PER"] },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/tests/test_api_filter_by_custom_fields.py:328 (test_icontains)"
+    },
+    {
+      "id": "modele:custom_field_exists:008",
+      "entree": { "filtre": "custom_field_query", "valeur": ["string_field", "exists", false] },
+      "sortie": { "retenus": ["c"] },
+      "reference": "src/documents/tests/test_api_filter_by_custom_fields.py:304 (test_exists_false)"
+    },
+    {
+      "id": "modele:custom_field_and:009",
+      "entree": { "filtre": "custom_field_query", "valeur": ["AND", [["string_field", "exists", true], ["url_field", "exists", true]]] },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/tests/test_api_filter_by_custom_fields.py:259 (test_filter_by_multiple_fields)"
+    },
+    {
+      "id": "modele:custom_field_invalide:010",
+      "entree": { "filtre": "custom_field_query", "valeur": "pas-du-json" },
+      "sortie": { "statut": 400 },
+      "reference": "src/documents/tests/test_api_filter_by_custom_fields.py:507 (test_invalid_json)"
+    },
+    {
+      "id": "modele:original_filename:011",
+      "entree": { "filtre": "original_filename", "valeur": "scanner" },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/filters.py:763 (DocumentFilterSet.original_filename)"
+    },
+    {
+      "id": "modele:archive_serial_number:012",
+      "entree": { "filtre": "asn", "valeur": "42" },
+      "sortie": { "retenus": ["a"] },
+      "reference": "src/documents/filters.py:763 (DocumentFilterSet.archive_serial_number)"
+    }
+  ],
+  "non_rejouables": []
+}

@@ -44,6 +44,8 @@ final class EcranMetadonnees
             }
         }
         $choisi ??= $types[0] ?? null;
+        // Étiquettes ACTIVES ET EN VEILLE (un retrait reste lisible et réactivable) avec leur parente.
+        $etiquettes = (new Etiquettes($this->config))->lister(false);
 
         return [
             'ecran' => 'metadonnees',
@@ -53,7 +55,8 @@ final class EcranMetadonnees
             'typeChoisi' => $choisi === null ? null : $choisi + ['slug' => Fichiers::slug($choisi['nom'])],
             'champsDuType' => $choisi === null ? [] : $this->champs->pourType($choisi['nom']),
             'natures' => Champs::NATURES,
-            'etiquettes' => (new Etiquettes($this->config))->lister(),
+            'etiquettes' => $etiquettes,
+            'parentsEtiquettePossibles' => $etiquettes,
             'couleurEtiquetteDefaut' => Etiquettes::COULEUR_DEFAUT,
             'csrf' => $csrf,
         ];

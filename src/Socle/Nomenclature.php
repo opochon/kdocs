@@ -152,7 +152,7 @@ final class Nomenclature
      * lecture par requête.
      *
      * @return array{types:list<array{id:int, nom:string, actif:bool}>, champs:list<array{id:int, type_id:int,
-     *               cle:string, nom:string, nature:string, options:list<string>}>}
+     *               cle:string, nom:string, nature:string, options:list<string>, actif:bool}>}
      */
     public function contenu(): array
     {
@@ -167,7 +167,8 @@ final class Nomenclature
             $c = (array) $c;
             $champs[] = ['id' => (int) $c['id'], 'type_id' => (int) $c['type_id'], 'cle' => (string) $c['cle'],
                 'nom' => (string) $c['nom'], 'nature' => (string) $c['nature'],
-                'options' => array_values(array_map('strval', (array) ($c['options'] ?? [])))];
+                'options' => array_values(array_map('strval', (array) ($c['options'] ?? []))),
+                'actif' => (bool) ($c['actif'] ?? true)];
         }
 
         return ['types' => $types, 'champs' => $champs];

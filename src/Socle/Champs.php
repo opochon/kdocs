@@ -133,9 +133,48 @@ final class Champs
     /** @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>}> */
     public function tous(): array
     {
+        $actifs = [];
+        foreach ($this->defs() as $d) {
+            if ($d['actif'] === true) {
+                $actifs[] = ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'], 'options' => $d['options']];
+            }
+        }
+
+        return $actifs;
+    }
+
+    /**
+     * Toutes les définitions, actives ET en veille : sert aux lectures d'administration (un champ
+     * retiré reste lisible et réactivable), jamais à la proposition d'un formulaire.
+     *
+     * @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool}>
+     */
+    public function tousInclusifs(): array
+    {
         return array_map(static fn (array $d): array => [
-            'id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'], 'options' => $d['options'],
+            'id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'],
+            'options' => $d['options'], 'actif' => $d['actif'],
         ], $this->defs());
+    }
+
+    /**
+     * Met un champ en veille (`actif = false`, modèle Paperless : un champ retiré n'est plus proposé,
+     * ses valeurs restent lisibles dans les `.meta.json`). Idempotent ; aucune donnée n'est supprimée.
+     */
+    public function definirActif(int $id, bool $actif): void
+    {
+        if ($this->def($id) === null) {
+            throw new RuntimeException("champ : aucun champ nº $id");
+        }
+        $this->nomenclature->transformer(static function (array $etat) use ($id, $actif): array {
+            foreach ($etat['champs'] as &$c) {
+                if ((int) $c['id'] === $id) {
+                    $c['actif'] = $actif;
+                }
+            }
+
+            return $etat;
+        });
     }
 
     /**
@@ -360,7 +399,7 @@ final class Champs
      * Toutes les définitions, jointes au nom de leur type. La nomenclature entière tient en une
      * lecture (mise en cache par le Registre) : la jointure se fait en mémoire.
      *
-     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>}>
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool}>
      */
     private function defs(): array
     {
@@ -384,9 +423,10 @@ final class Champs
     /** @return array{id:int, cle:string, nom:string, nature:string, options:list<string>}|null */
     private function def(int $id): ?array
     {
-        foreach ($this->tous() as $d) {
+        foreach ($this->defs() as $d) {
             if ($d['id'] === $id) {
-                return $d;
+                return ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'],
+                    'nature' => $d['nature'], 'options' => $d['options']];
             }
         }
 
