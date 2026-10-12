@@ -92,7 +92,11 @@ final class Etiquettes
         return $etiquettes;
     }
 
-    /** L'étiquette de boîte de réception (au plus une attendue), ou null. */
+    /**
+     * L'étiquette de boîte de réception (au plus une attendue), ou null.
+     *
+     * @return array{id:int, nom:string, couleur:string, boite_reception:bool}|null
+     */
     public function boiteReception(): ?array
     {
         foreach ($this->lister() as $e) {

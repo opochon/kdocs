@@ -242,6 +242,8 @@ final class Champs
     /**
      * Valide une valeur d'instance quel que soit son type PHP (chaîne de formulaire, entier, liste d'ids).
      * Le rejeu des vecteurs Paperless passe par ici : une valeur refusée lève une erreur nommée.
+     *
+     * @param list<string> $options
      */
     public static function validerValeur(string $nature, array $options, mixed $valeur): mixed
     {
@@ -295,7 +297,11 @@ final class Champs
         return round($montant, 2);
     }
 
-    /** Un lien posé par formulaire : « 12,15 » ou « [12,15] », jamais vide. */
+    /**
+     * Un lien posé par formulaire : « 12,15 » ou « [12,15] », jamais vide.
+     *
+     * @return list<int>
+     */
     private static function validerLien(string $brute): array
     {
         $brute = trim($brute, " \t\n\r[]");

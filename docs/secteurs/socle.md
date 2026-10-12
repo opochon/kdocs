@@ -337,3 +337,46 @@ ETAT: bloqué — harness global non exécutable jusqu’à disponibilité d’u
 - Copie du juge : PHPStan 0, PHPUnit 565 tests vert. Le total de la reconstruction est désormais le périmètre que `synchroniser()` relit (`IndexPleinTexte::aRelire`, définition unique), les documents vivants absents du fonds sont comptés et nommés à part.
 - Défaut trouvé à la relecture et corrigé par le juge, oracle d'abord : un fichier qui disparaît APRÈS le lancement laissait la tâche « en cours » pour toujours (plus aucune tranche ne relisait rien). Elle se termine désormais et compte l'`ecart`. Reste à l'afficher dans le bilan de l'écran Application (petit ajout, prochain lot Interface).
 - **Fait au lot ged-finitions-1 (11-10)** : le bilan de l'écran Application affiche l'`ecart` non nul (`data-testid="reconstruction-ecart"`) en plus des absents nommés — oracle de rendu `tests/php/Ui/ApplicationReconstructionEcartTest.php` et parcours E2E où un fichier disparaît pendant la reconstruction (journal dans `docs/secteurs/interface.md`).
+## Journal lot ged-parite-modele-3 (12-10) — reste du modele Paperless et categories voisines
+
+- `src/Socle/Fichiers.php` : `nomPublic()` (nom public « AAAA-MM-JJ titre.ext », extension deduite du
+  MIME, comme `Document.get_public_filename`) et `extensionSupportee()` (liste fermee, deterministe).
+- `src/Socle/Champs.php` : natures `url` et `lien` (DOCUMENTLINK), validation par valeur quel que soit
+  le type PHP (`validerValeur`), schemas URL admis bornes ; la nature ne se change toujours pas apres
+  creation et les valeurs vivent dans le `.meta.json`.
+- `src/Socle/Vues.php` : reglages d'affichage d'une vue enregistree (`SavedView` : `display_fields`,
+  `display_mode`, `page_size`, `show_on_sidebar`, `show_on_dashboard`, `sort_field`, `sort_reverse`),
+  listes fermees `AFFICHAGES`, `MODES`, `TRIS`, et `tableauDeBord()` / `barreLaterale()`.
+- `src/Socle/Etiquettes.php` : etiquette = nom + couleur `#RRGGBB` + boite de reception (`Tag.color`,
+  `Tag.is_inbox_tag`), dans `.ged/etiquettes.json` ; jamais de suppression.
+- `src/Socle/Preferences.php` : preferences d'interface par utilisateur (`UiSettings`) a cles bornees,
+  dans `.ged/preferences.json`.
+- `src/Socle/Matching.php` : `MatchingModel` (nom, motif, algorithme, `is_insensitive`) qui delegue la
+  decision a `Classement\Correspondance` (algorithmes Paperless deja rejoues).
+- `src/Socle/Taches.php` + `src/Socle/EcranTaches.php` : suivi des traitements (`PaperlessTask`,
+  `TaskName`, `TaskType`) SANS Celery/Redis ; journal en ajout seul dans `.ged/taches.json` et reflet de
+  la file reelle `ingestion_travaux`. Ecran `/taches` (statut, horodatage, resultat, acquittement).
+- `src/Socle/EcranVues.php` + `/vues` : creer et nommer une vue, choisir les champs affiches, le mode,
+  la taille de page, le tri, le tableau de bord et le menu lateral.
+- `src/Socle/ModeleDroits.php` : traduction des permissions Django (`PaperlessObjectPermissions`) vers
+  les niveaux GEDv2 (`lire`, `deposer`, `modifier`, `gerer`) ; le controle reste dans `DroitsDossiers`.
+- `src/Socle/ModificationMasse.php` : action `proprietaire` (adaptation GEDv2 de `set_permissions`).
+- `src/Socle/Collaboration.php` + `src/Socle/Migrations.php` et `Schema::assurerColonneVersionPartage` :
+  version partagee d'un lien externe (`ShareLink.file_version`), migration versionnee non destructive
+  (montee idempotente, retour refuse si un partage vise une version precise).
+- Preuves : rejeu `tests/php/Parite/ModeleResteTest.php` (64 vecteurs Paperless, 9 familles, 100 %),
+  `tests/php/Socle/ModelesResteTest.php` (8 tests), `tests/php/Socle/MigrationModeleTest.php` (4 tests),
+  E2E `tests/e2e/taches.spec.ts` et `tests/e2e/vues.spec.ts` (menus, liens, boutons de l'ecran).
+- Parite : `tools/parite/extraire-modele-reste.py` (lecture seule) et 64 vecteurs commis ;
+  `tools/parite/corriger-correspondance-modele-reste.php` ; phase 7 du rapport. Mesure : 529 / 780
+  couverts, parite stricte 67,82 %, hors exclusions 72,17 %. Modele 310/313, permissions 11/12,
+  masse 17/17, correspondance 13/13, commande 13/17, chaine 57/60.
+
+## Demandes du lot ged-parite-modele-3
+
+- **Securite** : `src/Securite/DroitsRoutes.php` a recu cinq lignes (Socle) — `POST /metadonnees/etiquette`,
+  `GET /taches`, `POST /taches/{id}/accuser`, `GET /vues`, `POST /vues`, `POST /vues/{id}` et leur
+  resolution parametree. Aucune autre ligne n'a bouge ; a relire au prochain passage sur les droits.
+- **Interface** : `templates/ecrans/application.twig` a recu deux liens d'administration (suivi des
+  traitements, vues enregistrees) et `templates/ecrans/metadonnees.twig` une section Etiquettes. A
+  reprendre au prochain passage sur l'ecran Application.

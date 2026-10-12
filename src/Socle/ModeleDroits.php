@@ -62,7 +62,7 @@ final class ModeleDroits
             throw new RuntimeException("droit : niveau inconnu « $niveau » (lire, deposer, modifier, gerer)");
         }
 
-        return array_values(array_keys(self::ACTIONS, $niveau, true));
+        return array_keys(self::ACTIONS, $niveau, true);
     }
 
     /** Le compte a-t-il ce droit Paperless sur le dossier de droits du document ? */
