@@ -159,6 +159,11 @@ final class DroitsRoutes
         // hors secteur (Securite), signalées dans docs/lots/ged-parite-api-2.md.
         'GET /api/v1/champs' => 'publique:api-documents-lecture',
         'GET /api/v1/partages' => 'publique:api-documents-lecture',
+        'GET /api/v1/statistiques' => 'publique:api-documents-lecture',
+        'GET /api/v1/next_asn' => 'publique:api-documents-lecture',
+        'GET /api/v1/autocomplete' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/selection_data' => 'publique:api-documents-lecture',
+        'GET /api/v1/documents/{id:[0-9]+}/metadonnees' => 'publique:api-documents-lecture',
         // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
         // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
         // récupère une copie de secours en nouvelle version.

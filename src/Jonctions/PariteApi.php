@@ -72,6 +72,116 @@ final class PariteApi
         }
     }
 
+    public function statistiques(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/statistiques';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->statistiques());
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'les statistiques n’ont pas pu être lues');
+        }
+    }
+
+    public function nextAsn(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/next_asn';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->prochainAsn());
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'le prochain numéro d’archive n’a pas pu être calculé');
+        }
+    }
+
+    public function selectionData(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/documents/selection_data';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $corps = $requete->getParsedBody();
+
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)
+                ->selectionData($this->identifiantsSelection(is_array($corps) ? $corps : [])));
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'les données de sélection n’ont pas pu être lues');
+        }
+    }
+
+    public function autocomplete(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/autocomplete';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $criteres = $requete->getQueryParams();
+            $terme = trim((string) ($criteres['terme'] ?? $criteres['term'] ?? ''));
+            if ($terme === '') {
+                throw new ErreurApi(400, 'terme requis (paramètre « terme »)', $etape);
+            }
+            $limite = (int) ($criteres['limite'] ?? $criteres['limit'] ?? 10);
+            if ($limite < 1) {
+                throw new ErreurApi(400, 'limite invalide (entier positif attendu)', $etape);
+            }
+
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->autocomplete($terme, $limite));
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'l’autocomplétion n’a pas pu être calculée');
+        }
+    }
+
+    /** @param array<string, string> $args */
+    public function metadonneesDocument(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = 'GET /api/v1/documents/' . $id . '/metadonnees';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->fiche($id, $etape));
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, "les métadonnées du document $id n’ont pas pu être lues");
+        }
+    }
+
+    /**
+     * Identifiants de la sélection : `documents` (liste ou « 1,2 ») ou `ids`. Un identifiant invalide est
+     * refusé 400, jamais lâché.
+     *
+     * @param array<string, mixed> $corps
+     * @return list<int>
+     * @throws ErreurApi
+     */
+    private function identifiantsSelection(array $corps): array
+    {
+        $brut = $corps['documents'] ?? $corps['ids'] ?? [];
+        $ids = [];
+        foreach (is_array($brut) ? $brut : explode(',', (string) $brut) as $element) {
+            $element = trim((string) $element);
+            if ($element === '') {
+                continue;
+            }
+            $ids[] = (int) $this->identifiant($element, 'documents', 'POST /api/v1/documents/selection_data');
+        }
+        if ($ids === []) {
+            throw new ErreurApi(400, 'sélection vide : « documents » (liste d’identifiants) requis',
+                'POST /api/v1/documents/selection_data');
+        }
+
+        return $ids;
+    }
+
     /**
      * Filtre des définitions de champs (CustomFieldFilterSet.id / .name) : `id`, `ids`, `nom` (égal, casse
      * ignorée) et `nom_contient` (sous-chaîne). Un identifiant invalide est refusé 400, jamais lâché.
@@ -196,8 +306,8 @@ final class PariteApi
         return $this->erreur($reponse, new ErreurApi(500, $cause, $etape, $e));
     }
 
-    /** @param array<mixed> $donnees */
-    private function json(Reponse $reponse, int $code, array $donnees): Reponse
+    /** @param mixed $donnees */
+    private function json(Reponse $reponse, int $code, mixed $donnees): Reponse
     {
         $reponse->getBody()->write((string) json_encode($donnees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 

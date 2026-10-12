@@ -73,6 +73,11 @@ final class Module
         // Compléments de parité (lot ged-parite-api-2) : même porte que l'API des documents.
         $app->get('/api/v1/champs', [$pariteApi, 'champs']);
         $app->get('/api/v1/partages', [$pariteApi, 'partages']);
+        $app->get('/api/v1/statistiques', [$pariteApi, 'statistiques']);
+        $app->get('/api/v1/next_asn', [$pariteApi, 'nextAsn']);
+        $app->get('/api/v1/autocomplete', [$pariteApi, 'autocomplete']);
+        $app->post('/api/v1/documents/selection_data', [$pariteApi, 'selectionData']);
+        $app->get('/api/v1/documents/{id:[0-9]+}/metadonnees', [$pariteApi, 'metadonneesDocument']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);

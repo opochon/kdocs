@@ -337,6 +337,141 @@ final class Catalogue
     }
 
     /**
+     * Statistiques du fonds, AU PÉRIMÈTRE DES DROITS du compte (correspondance fonctionnelle de
+     * StatisticsView de Paperless : totaux, boîte de réception, répartition par type MIME, caractères
+     * indexés, compteurs de référentiels, prochain numéro d'archive).
+     *
+     * @return array<string, mixed>
+     */
+    public function statistiques(): array
+    {
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $total = $this->compter($where, $params);
+        $inbox = $this->compter($where . " AND d.statut = 'a_controler'", $params);
+
+        $parMime = [];
+        $requete = $this->pdo->prepare('SELECT d.mime, COUNT(*) total FROM documents d WHERE ' . $where
+            . ' GROUP BY d.mime ORDER BY total DESC, d.mime');
+        $requete->execute($params);
+        foreach ($requete->fetchAll(PDO::FETCH_ASSOC) as $ligne) {
+            $parMime[] = ['mime' => (string) $ligne['mime'], 'total' => (int) $ligne['total']];
+        }
+
+        $caracteres = 0;
+        $requete = $this->pdo->prepare('SELECT COALESCE(SUM(CHAR_LENGTH(rt.contenu)), 0) FROM documents d'
+            . ' INNER JOIN recherche_textes rt ON rt.document_id = d.id AND rt.absent_le IS NULL WHERE ' . $where);
+        $requete->execute($params);
+        $caracteres = (int) $requete->fetchColumn();
+
+        return [
+            'documents_total' => $total,
+            'documents_inbox' => $inbox,
+            'document_file_type_counts' => $parMime,
+            'character_count' => $caracteres,
+            'tag_count' => count($this->etiquettes()),
+            'correspondent_count' => count($this->emetteurs()),
+            'document_type_count' => count($this->types()),
+            'current_asn' => $this->prochainAsn(),
+        ];
+    }
+
+    /**
+     * Prochain numéro d'archive : le numéro d'archive de GEDv2 est l'identifiant d'index du document
+     * (voir `/asn/{id}`). On rend le plus grand identifiant LISIBLE + 1 (correspondance fonctionnelle de
+     * UnifiedSearchViewSet.next_asn), sans jamais exposer un document hors dossiers.
+     */
+    public function prochainAsn(): int
+    {
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $requete = $this->pdo->prepare('SELECT COALESCE(MAX(d.id), 0) + 1 FROM documents d WHERE ' . $where);
+        $requete->execute($params);
+
+        return (int) $requete->fetchColumn();
+    }
+
+    /**
+     * Données de sélection (correspondance fonctionnelle de SelectionDataView) : pour un ensemble
+     * d'identifiants de documents LISIBLES, le compte de chacun des référentiels présents (émetteurs,
+     * étiquettes, types, dossiers, champs personnalisés, statuts).
+     *
+     * @param list<int> $ids
+     * @return array<string, list<array{nom:string, total:int}>>
+     * @throws ErreurApi (403 si un document visé n'est pas lisible)
+     */
+    public function selectionData(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $i): bool => $i > 0)));
+        $compte = ['emetteurs' => [], 'etiquettes' => [], 'types' => [], 'dossiers' => [], 'champs' => [], 'statuts' => []];
+        if ($ids === []) {
+            return $compte;
+        }
+
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $marqueurs = implode(', ', array_fill(0, count($ids), '?'));
+        $requete = $this->pdo->prepare('SELECT d.id, d.type, d.emetteur, d.etiquettes, d.chemin_relatif, d.meta, d.statut'
+            . ' FROM documents d WHERE ' . $where . ' AND d.id IN (' . $marqueurs . ')');
+        $requete->execute([...$params, ...$ids]);
+        $lus = [];
+        foreach ($requete->fetchAll(PDO::FETCH_ASSOC) as $ligne) {
+            $lus[(int) $ligne['id']] = $ligne;
+            $this->ajouterCompte($compte['statuts'], (string) $ligne['statut']);
+            $this->ajouterCompte($compte['types'], (string) ($ligne['type'] ?? ''));
+            $this->ajouterCompte($compte['emetteurs'], (string) ($ligne['emetteur'] ?? ''));
+            $this->ajouterCompte($compte['dossiers'], self::dossierDe((string) $ligne['chemin_relatif']));
+            foreach ((array) json_decode((string) $ligne['etiquettes'], true) as $etiquette) {
+                $this->ajouterCompte($compte['etiquettes'], (string) $etiquette);
+            }
+            $meta = json_decode((string) $ligne['meta'], true);
+            foreach (is_array($meta) && is_array($meta['champs'] ?? null) ? array_keys($meta['champs']) : [] as $cle) {
+                $this->ajouterCompte($compte['champs'], (string) $cle);
+            }
+        }
+        foreach ($ids as $id) {
+            if (!isset($lus[$id])) {
+                throw new ErreurApi(403, "document $id : hors des dossiers du compte, sélection refusée", 'GET /api/v1/documents/selection_data');
+            }
+        }
+        foreach ($compte as &$liste) {
+            uasort($liste, static fn (int $a, int $b): int => $b <=> $a);
+            $liste = array_values(array_map(static fn (string $nom, int $total): array => ['nom' => $nom, 'total' => $total],
+                array_keys($liste), $liste));
+        }
+
+        return $compte;
+    }
+
+    /**
+     * Autocomplétion (correspondance fonctionnelle de SearchAutoCompleteView) : jusqu'à `$limite`
+     * suggestions de titres qui contiennent le terme, au périmètre des droits du compte.
+     *
+     * @return list<string>
+     */
+    public function autocomplete(string $terme, int $limite): array
+    {
+        $limite = max(1, min(50, $limite));
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $prefixe = self::echapperLike($terme) . '%';
+        $contient = '%' . self::echapperLike($terme) . '%';
+        $requete = $this->pdo->prepare('SELECT DISTINCT d.titre FROM documents d'
+            . ' LEFT JOIN recherche_textes rt ON rt.document_id = d.id AND rt.absent_le IS NULL'
+            . ' WHERE ' . $where . ' AND d.titre <> \'\' AND (d.titre LIKE ? OR rt.contenu LIKE ?)'
+            . ' ORDER BY d.titre LIMIT ' . $limite);
+        $requete->execute([...$params, $prefixe, $contient]);
+
+        return array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
+    }
+
+    /** @param array<string, int> $compte */
+    private function ajouterCompte(array &$compte, string $nom): void
+    {
+        $nom = trim($nom);
+        if ($nom === '') {
+            return;
+        }
+        $compte[$nom] = ($compte[$nom] ?? 0) + 1;
+    }
+
+    /**
      * Filtres normalisés : une date, un identifiant ou un booléen invalide est refusé 400 (jamais un
      * filtre lâche silencieux). Les filtres de texte sont bornés et échappés pour le LIKE.
      *
