@@ -83,6 +83,30 @@ PHPStan niveau 6 : **0 erreur** hors baseline (baseline vide, inchangée).
   d'administrateur, pas d'une entrée de bout en bout. Un délai par recherche (comme le fait Paperless)
   demanderait l'extension PCRE dédiée.
 
+## Harness (`powershell -File tools\harness.ps1 -SansBanc`)
+
+Second rejeu, `tools/composer.phar` restauré (outil gitignoré absent de ce worktree, même constat que
+le lot ged-oracle-paperless-1) :
+
+| Couche | État | Détail |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules, `DB_NAME=gedv2_test` imposé |
+| 1-unitaire | VERT | 670 tests, 9 830 assertions, 1 sauté |
+| 3-banc | ROUGE | sautée par `-SansBanc` (attendu) |
+| 4-écrans | VERT | 80 passés (3,6 m) |
+| 7-sécurité | VERT | aucun contournement accepté |
+| 2-contrat | VERT | toutes les routes déclarées couvertes |
+| 6-charge | VERT | p95 lecture 671 ms, p95 écriture 220 ms, 0 erreur, ingestion finie |
+| 8-statique | VERT | PHPStan niveau 6 : 0 erreur ; `composer audit` : aucune vulnérabilité |
+| 5-personas | VERT | 6 personas, tous les gestes trouvés (médianes 343–686 ms) |
+| 9-parité | VERT | 780 éléments, 187 couverts, strict 23,97 %, hors exclusions 25,55 %, 0 non prouvé |
+
+La couche 3 étant sautée par `-SansBanc`, le banc de classement a été rejoué à part, car la table
+`mois()` est partagée avec `dateEnTete` : `classement-bruite --ia-simule` 65/65, 54 validés seuls
+(83,1 %), 0 validé faux, 0 type faux, 0 émetteur faux, 0 date fausse, porte FRANCHIE ;
+`classement-regression --ia-simule` 20/20, 17 validés seuls (85,0 %), 0 validé faux, porte FRANCHIE.
+Aucune régression de classement.
+
 ## Porte qualité
 
 - **Analyse statique** : `php vendor\bin\phpstan analyse --memory-limit=2G` → 0 erreur, niveau 6,
@@ -99,4 +123,4 @@ PHPStan niveau 6 : **0 erreur** hors baseline (baseline vide, inchangée).
   longs, le coût croît. Ce mode n'est appelé par aucune route aujourd'hui ; à surveiller si un moteur
   de règles l'expose.
 
-ETAT: en cours
+ETAT: fini
