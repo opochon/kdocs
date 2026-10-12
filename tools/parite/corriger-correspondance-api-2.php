@@ -65,7 +65,7 @@ $pwConfig = 'configuration.spec.ts > un administrateur lit la configuration et l
 $pwJournaux = 'journaux.spec.ts > un administrateur consulte les journaux';
 $pwReglages = 'reglages.spec.ts > un utilisateur regle ses preferences generales';
 $pwCorbeille = 'corbeille.spec.ts > un administrateur restaure un document de la corbeille';
-$pwAdmin = 'utilisateurs.spec.ts > les écrans d’administration s’ouvrent par le menu, comme un utilisateur';
+$pwAdmin = 'utilisateurs.spec.ts > un administrateur gere les comptes et les groupes';
 
 /**
  * Éléments COUVERTS par une route nouvelle du lot (route + preuve PHPUnit).

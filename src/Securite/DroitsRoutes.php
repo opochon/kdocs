@@ -331,12 +331,20 @@ final class DroitsRoutes
             if (preg_match('#^/api/v1/documents/[0-9]+/fichier$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/fichier'];
             }
+            // Lot ged-parite-api-2 : fiche fichier d'un document (identifiant concret dans le chemin).
+            if (preg_match('#^/api/v1/documents/[0-9]+/metadonnees$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/metadonnees'];
+            }
             if (preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}'];
             }
         }
         if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}'];
+        }
+        // Lot ged-parite-api-2 : envoi d'un document par courriel (identifiant concret dans le chemin).
+        if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+/email$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}/email'];
         }
 
         // Lot ged-parite-ecrans-1 (Interface) : routes d'écran paramétrées (section de réglages, numéro

@@ -10,13 +10,13 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 546 | 187 | 0 | 47 | 70,00 % | 74,49 % |
+| 780 | 599 | 116 | 0 | 65 | 76,79 % | 83,78 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 96 | 179 | 0 | 43 | 30,19 % | 34,91 % |
+| api | 318 | 149 | 108 | 0 | 61 | 46,86 % | 57,98 % |
 | chaine | 60 | 57 | 3 | 0 | 0 | 95,00 % | 95,00 % |
 | commande | 17 | 13 | 2 | 0 | 2 | 76,47 % | 86,67 % |
 | correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
@@ -61,6 +61,8 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 
 | Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
 | --- | --- | ---: | ---: | ---: | ---: |
+| 2-filtres-documents | tests/parite/vecteurs/api-2-filtres-documents.json | 15 | 15 | 24 | 100,00 % |
+| 2-filtres-ressources | tests/parite/vecteurs/api-2-filtres-ressources.json | 3 | 3 | 0 | 100,00 % |
 | filtres-documents | tests/parite/vecteurs/api-filtres-documents.json | 18 | 18 | 2 | 100,00 % |
 
 ## Modele — workflows (phase 5)
@@ -125,10 +127,10 @@ listes `non_rejouables` avec leur raison.
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
 | @action DocumentViewSet.download [GET] detail | src/documents/views.py:970 | couvert-autrement | route GET /api/v1/documents/{id:[0-9]+}/fichier | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testPaginationBorneeEtVersionTelechargeable (couche 1) |  |
-| @action DocumentViewSet.email_document [POST] detail | src/documents/views.py:1187 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| @action DocumentViewSet.email_documents [POST] liste | src/documents/views.py:1199 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| @action DocumentViewSet.email_document [POST] detail | src/documents/views.py:1187 | couvert | route POST /api/v1/documents/{id:[0-9]+}/email | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| @action DocumentViewSet.email_documents [POST] liste | src/documents/views.py:1199 | couvert | route POST /api/v1/documents/email | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
 | @action DocumentViewSet.history [GET] detail | src/documents/views.py:1120 | couvert-autrement | service Ged\Socle\Registre | phpunit Ged\Tests\Socle\RegistreTest::testÉcritPuisRelitDepuisUneAutreInstance (couche 1) |  |
-| @action DocumentViewSet.metadata [GET] detail | src/documents/views.py:830 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| @action DocumentViewSet.metadata [GET] detail | src/documents/views.py:830 | couvert | route GET /api/v1/documents/{id:[0-9]+}/metadonnees | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | @action DocumentViewSet.notes [GET/POST/DELETE] detail | src/documents/views.py:982 | couvert-autrement | route POST /documents/{id:[0-9]+}/notes | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | @action DocumentViewSet.preview [GET] detail | src/documents/views.py:941 | couvert-autrement | route GET /documents/{id:[0-9]+}/apercu | phpunit Ged\Tests\Apercu\ModuleTest::testPageApercuPdfSeDesigne (couche 1) |  |
 | @action DocumentViewSet.share_links [GET] detail | src/documents/views.py:1093 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
@@ -137,53 +139,53 @@ listes `non_rejouables` avec leur raison.
 | @action MailAccountViewSet.process [POST] detail | src/paperless_mail/views.py:130 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/traiter | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | @action MailAccountViewSet.test [POST] liste | src/paperless_mail/views.py:84 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/tester | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | @action ProcessedMailViewSet.bulk_delete [POST] liste | src/paperless_mail/views.py:151 | couvert-autrement | route POST /courrier/journal/purger | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
-| @action StoragePathViewSet.test [POST] liste | src/documents/views.py:2347 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| @action StoragePathViewSet.test [POST] liste | src/documents/views.py:2347 | couvert | route POST /api/v1/dossiers/tester | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
 | @action TasksViewSet.acknowledge [POST] liste | src/documents/views.py:2566 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
 | @action TasksViewSet.run [POST] liste | src/documents/views.py:2583 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| @action UnifiedSearchViewSet.next_asn [GET] liste | src/documents/views.py:1359 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| @action UserViewSet.deactivate_totp [POST] detail | src/paperless/views.py:150 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentFilterSet.id | src/documents/filters.py:81 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| @action UnifiedSearchViewSet.next_asn [GET] liste | src/documents/views.py:1359 | couvert | route GET /api/v1/next_asn | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| @action UserViewSet.deactivate_totp [POST] detail | src/paperless/views.py:150 | exclu (exclu : infrastructure-django) | - | - |  |
+| CorrespondentFilterSet.id | src/documents/filters.py:81 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | CorrespondentFilterSet.name | src/documents/filters.py:81 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
-| CustomFieldFilterSet.id | src/documents/filters.py:209 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CustomFieldFilterSet.name | src/documents/filters.py:209 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| CustomFieldFilterSet.id | src/documents/filters.py:209 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
+| CustomFieldFilterSet.name | src/documents/filters.py:209 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
 | DocumentFilterSet.added | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
-| DocumentFilterSet.archive_serial_number | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.archive_serial_number | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.checksum | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
 | DocumentFilterSet.content | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.correspondent | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.correspondent__id | src/documents/filters.py:763 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
-| DocumentFilterSet.correspondent__id__none (ObjectFilter) | src/documents/filters.py:716 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.correspondent__id__none (ObjectFilter) | src/documents/filters.py:716 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.correspondent__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created__date__gt (DateFilter) | src/documents/filters.py:756 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created__date__gte (DateFilter) | src/documents/filters.py:757 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
 | DocumentFilterSet.created__date__lt (DateFilter) | src/documents/filters.py:758 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created__date__lte (DateFilter) | src/documents/filters.py:759 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
-| DocumentFilterSet.custom_field_query (CustomFieldQueryFilter) | src/documents/filters.py:749 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.custom_fields | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.custom_fields__icontains (CustomFieldsFilter) | src/documents/filters.py:728 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.custom_fields__id__all (ObjectFilter) | src/documents/filters.py:730 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.custom_fields__id__in (ObjectFilter) | src/documents/filters.py:737 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.custom_fields__id__none (ObjectFilter) | src/documents/filters.py:732 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.custom_field_query (CustomFieldQueryFilter) | src/documents/filters.py:749 | absent (DSL JSON de requête sur champs personnalisés (CustomFieldQueryParser) non porté ; src/documents/filters.py:749.) | - | - | V2-05 |
+| DocumentFilterSet.custom_fields | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testLesFiltresDesChampsPersonnalisesSontCables (couche 1) |  |
+| DocumentFilterSet.custom_fields__icontains (CustomFieldsFilter) | src/documents/filters.py:728 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.custom_fields__id__all (ObjectFilter) | src/documents/filters.py:730 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testLesFiltresDesChampsPersonnalisesSontCables (couche 1) |  |
+| DocumentFilterSet.custom_fields__id__in (ObjectFilter) | src/documents/filters.py:737 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testLesFiltresDesChampsPersonnalisesSontCables (couche 1) |  |
+| DocumentFilterSet.custom_fields__id__none (ObjectFilter) | src/documents/filters.py:732 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testLesFiltresDesChampsPersonnalisesSontCables (couche 1) |  |
 | DocumentFilterSet.document_type | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.document_type__id | src/documents/filters.py:763 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
-| DocumentFilterSet.document_type__id__none (ObjectFilter) | src/documents/filters.py:718 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.document_type__id__none (ObjectFilter) | src/documents/filters.py:718 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.document_type__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
-| DocumentFilterSet.has_custom_fields (BooleanFilter) | src/documents/filters.py:742 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.has_custom_fields (BooleanFilter) | src/documents/filters.py:742 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiDeuxFiltresDocumentsTest::testLesFiltresDesChampsPersonnalisesSontCables (couche 1) |  |
 | DocumentFilterSet.id | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
 | DocumentFilterSet.is_in_inbox (InboxFilter) | src/documents/filters.py:722 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
 | DocumentFilterSet.is_tagged (BooleanFilter) | src/documents/filters.py:703 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.mime_type (MimeTypeFilter) | src/documents/filters.py:753 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
 | DocumentFilterSet.modified | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
-| DocumentFilterSet.original_filename | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.owner | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.owner__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.owner__id__none (ObjectFilter) | src/documents/filters.py:726 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.original_filename | src/documents/filters.py:763 | absent (Nom d’origine du fichier non porté par le document GEDv2 (vit dans ingestion_travaux.nom_origine) ; src/documents/filters.py:763.) | - | - | V2-05 |
+| DocumentFilterSet.owner | src/documents/filters.py:763 | absent (Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763.) | - | - | V2-05 |
+| DocumentFilterSet.owner__id | src/documents/filters.py:763 | absent (Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763.) | - | - | V2-05 |
+| DocumentFilterSet.owner__id__none (ObjectFilter) | src/documents/filters.py:726 | absent (Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:726.) | - | - | V2-05 |
 | DocumentFilterSet.storage_path | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
-| DocumentFilterSet.storage_path__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.storage_path__id__none (ObjectFilter) | src/documents/filters.py:720 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.storage_path__name | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.tags__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.storage_path__id | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.storage_path__id__none (ObjectFilter) | src/documents/filters.py:720 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.storage_path__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.tags__id | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.tags__id__all (ObjectFilter) | src/documents/filters.py:710 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
 | DocumentFilterSet.tags__id__in (ObjectFilter) | src/documents/filters.py:714 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
 | DocumentFilterSet.tags__id__none (ObjectFilter) | src/documents/filters.py:712 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
@@ -192,19 +194,19 @@ listes `non_rejouables` avec leur raison.
 | DocumentFilterSet.title_content (TitleContentFilter) | src/documents/filters.py:724 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
 | DocumentTypeFilterSet.id | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | DocumentTypeFilterSet.name | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
-| PaperlessTaskFilterSet.acknowledged (BooleanFilter) | src/documents/filters.py:800 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| PaperlessTaskFilterSet.status | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| PaperlessTaskFilterSet.type | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| PaperlessTaskFilterSet.acknowledged (BooleanFilter) | src/documents/filters.py:800 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| PaperlessTaskFilterSet.status | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| PaperlessTaskFilterSet.type | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
 | ProcessedMailFilterSet.rule | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
 | ProcessedMailFilterSet.status | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
-| ShareLinkFilterSet.created | src/documents/filters.py:793 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ShareLinkFilterSet.expiration | src/documents/filters.py:793 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathFilterSet.id | src/documents/filters.py:114 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathFilterSet.name | src/documents/filters.py:114 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| StoragePathFilterSet.path | src/documents/filters.py:114 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagFilterSet.id | src/documents/filters.py:90 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagFilterSet.is_root (BooleanFilter) | src/documents/filters.py:95 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| ShareLinkFilterSet.created | src/documents/filters.py:793 | couvert | route GET /api/v1/partages | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testLesFiltresDesLiensDePartageRespectentLesDroits (couche 1) |  |
+| ShareLinkFilterSet.expiration | src/documents/filters.py:793 | couvert | route GET /api/v1/partages | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testLesFiltresDesLiensDePartageRespectentLesDroits (couche 1) |  |
+| StoragePathFilterSet.id | src/documents/filters.py:114 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
+| StoragePathFilterSet.name | src/documents/filters.py:114 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
+| StoragePathFilterSet.path | src/documents/filters.py:114 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
+| TagFilterSet.id | src/documents/filters.py:90 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
+| TagFilterSet.is_root (BooleanFilter) | src/documents/filters.py:95 | absent (Hiérarchie d’étiquettes absente : GEDv2 porte les étiquettes comme valeurs texte, sans parenté ; src/documents/filters.py:95.) | - | - | V2-05 |
 | TagFilterSet.name | src/documents/filters.py:90 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | re_path accounts/^confirm-email/(?P<key>[-:\w]+)/$ -> account_confirm_email [allauth_account_views.ConfirmEmailView.as_view] | src/paperless/urls.py:309 | exclu (exclu : infrastructure-django) | - | - |  |
 | path accounts/account_inactive/ -> account_inactive [allauth_account_views.account_inactive] | src/paperless/urls.py:281 | exclu (exclu : infrastructure-django) | - | - |  |
@@ -222,10 +224,10 @@ listes `non_rejouables` avec leur raison.
 | re_path ^api/^auth/ [include] | src/paperless/urls.py:89 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^documents/ [include] | src/paperless/urls.py:118 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/ [include] | src/paperless/urls.py:85 | exclu (exclu : infrastructure-django) | - | - |  |
-| path ^api/^profile/disconnect_social_account/ [DisconnectSocialAccountView.as_view] | src/paperless/urls.py:177 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| path ^api/^profile/generate_auth_token/ [GenerateAuthTokenView.as_view] | src/paperless/urls.py:173 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| path ^api/^profile/disconnect_social_account/ [DisconnectSocialAccountView.as_view] | src/paperless/urls.py:177 | exclu (exclu : infrastructure-django) | - | - |  |
+| path ^api/^profile/generate_auth_token/ [GenerateAuthTokenView.as_view] | src/paperless/urls.py:173 | couvert-autrement | route POST /api/v1/appairage/jeton | phpunit Ged\Tests\Jonctions\AppairageTest::testLeJetonAppairagePorteLesDroitsDuCompte (couche 1) |  |
 | re_path ^api/^profile/ [include] | src/paperless/urls.py:164 | exclu (exclu : infrastructure-django) | - | - |  |
-| path ^api/^profile/social_account_providers/ [SocialAccountProvidersView.as_view] | src/paperless/urls.py:181 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| path ^api/^profile/social_account_providers/ [SocialAccountProvidersView.as_view] | src/paperless/urls.py:181 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^$ [RedirectView.as_view] | src/paperless/urls.py:225 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^schema/ [include] | src/paperless/urls.py:208 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^search/ [include] | src/paperless/urls.py:96 | exclu (exclu : infrastructure-django) | - | - |  |
@@ -238,12 +240,12 @@ listes `non_rejouables` avec leur raison.
 | re_path share/(?P<slug>\w+)/?$ [SharedLinkView.as_view] | src/paperless/urls.py:233 | couvert-autrement | route GET /partages/{jeton:[A-Za-z0-9_-]+} | phpunit Ged\Tests\Socle\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois (couche 1) |  |
 | path ws/status/ [StatusConsumer.as_asgi] | src/paperless/urls.py:362 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
 | re_path ^logo(?:/(?P<filename>.+))?/?$ -> app_logo [serve_logo] | src/paperless/urls.py:270 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^search/^autocomplete/ -> autocomplete [SearchAutoCompleteView.as_view] | src/paperless/urls.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^search/^autocomplete/ -> autocomplete [SearchAutoCompleteView.as_view] | src/paperless/urls.py:105 | couvert | route GET /api/v1/autocomplete | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | re_path .* -> base [login_required] | src/paperless/urls.py:353 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view] | src/paperless/urls.py:132 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view] | src/paperless/urls.py:132 | couvert | route POST /api/v1/documents/bulk_download | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
 | re_path ^api/^documents/^bulk_edit/ -> bulk_edit [BulkEditView.as_view] | src/paperless/urls.py:127 | couvert-autrement | route POST /bibliotheque/masse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
-| re_path ^api/^bulk_edit_objects/ -> bulk_edit_objects [BulkEditObjectsView.as_view] | src/paperless/urls.py:145 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| router /api/config/ -> ApplicationConfigurationViewSet | src/paperless/urls.py:80 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^bulk_edit_objects/ -> bulk_edit_objects [BulkEditObjectsView.as_view] | src/paperless/urls.py:145 | couvert | route POST /api/v1/documents/bulk_edit | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| router /api/config/ -> ApplicationConfigurationViewSet | src/paperless/urls.py:80 | couvert-autrement | route GET /application | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
 | router /api/correspondents/ -> CorrespondentViewSet | src/paperless/urls.py:63 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | router /api/custom_fields/ -> CustomFieldViewSet | src/paperless/urls.py:79 | couvert-autrement | route POST /metadonnees/champ | phpunit Ged\Tests\Socle\ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug (couche 1) |  |
 | router /api/document_types/ -> DocumentTypeViewSet | src/paperless/urls.py:64 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
@@ -251,31 +253,31 @@ listes `non_rejouables` avec leur raison.
 | re_path ^favicon.ico$ -> favicon [FaviconView.as_view] | src/paperless/urls.py:234 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^search/^$ -> global_search [GlobalSearchView.as_view] | src/paperless/urls.py:100 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Recherche\EcranTest::testLesVraisResultatsArriventDansLeGabarit (couche 1) |  |
 | router /api/groups/ -> GroupViewSet | src/paperless/urls.py:72 | couvert-autrement | route GET /administration/groupes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
-| router /api/logs/ -> LogViewSet | src/paperless/urls.py:66 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| router /api/logs/ -> LogViewSet | src/paperless/urls.py:66 | couvert-autrement | route GET /journaux | playwright journaux.spec.ts > un administrateur consulte les journaux (couche 4) |  |
 | router /api/mail_accounts/ -> MailAccountViewSet | src/paperless/urls.py:73 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | router /api/mail_rules/ -> MailRuleViewSet | src/paperless/urls.py:74 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | path accounts/2fa/authenticate/ -> mfa_authenticate [allauth_mfa_views.authenticate] | src/paperless/urls.py:344 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view] | src/paperless/urls.py:203 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view] | src/paperless/urls.py:203 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^documents/^post_document/ -> post_document [PostDocumentView.as_view] | src/paperless/urls.py:122 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
 | router /api/processed_mail/ -> ProcessedMailViewSet | src/paperless/urls.py:81 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | re_path ^api/^profile/^$ -> profile_view [ProfileView.as_view] | src/paperless/urls.py:168 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
 | re_path ^api/^remote_version/ -> remoteversion [RemoteVersionView.as_view] | src/paperless/urls.py:150 | exclu (exclu : infrastructure-django) | - | - |  |
 | router /api/saved_views/ -> SavedViewViewSet | src/paperless/urls.py:68 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | re_path ^api/^schema/^$ -> schema [SpectacularAPIView.as_view] | src/paperless/urls.py:212 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^documents/^selection_data/ -> selection_data [SelectionDataView.as_view] | src/paperless/urls.py:137 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^documents/^selection_data/ -> selection_data [SelectionDataView.as_view] | src/paperless/urls.py:137 | couvert | route POST /api/v1/documents/selection_data | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | router /api/share_links/ -> ShareLinkViewSet | src/paperless/urls.py:75 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
-| path accounts/3rdparty/login/cancelled/ -> socialaccount_login_cancelled [allauth_social_account_views.login_cancelled] | src/paperless/urls.py:324 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| path accounts/3rdparty/login/error/ -> socialaccount_login_error [allauth_social_account_views.login_error] | src/paperless/urls.py:329 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| path accounts/3rdparty/signup/ -> socialaccount_signup [allauth_social_account_views.signup] | src/paperless/urls.py:334 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| re_path ^api/^statistics/ -> statistics [StatisticsView.as_view] | src/paperless/urls.py:113 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| router /api/storage_paths/ -> StoragePathViewSet | src/paperless/urls.py:69 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| path accounts/3rdparty/login/cancelled/ -> socialaccount_login_cancelled [allauth_social_account_views.login_cancelled] | src/paperless/urls.py:324 | exclu (exclu : infrastructure-django) | - | - |  |
+| path accounts/3rdparty/login/error/ -> socialaccount_login_error [allauth_social_account_views.login_error] | src/paperless/urls.py:329 | exclu (exclu : infrastructure-django) | - | - |  |
+| path accounts/3rdparty/signup/ -> socialaccount_signup [allauth_social_account_views.signup] | src/paperless/urls.py:334 | exclu (exclu : infrastructure-django) | - | - |  |
+| re_path ^api/^statistics/ -> statistics [StatisticsView.as_view] | src/paperless/urls.py:113 | couvert | route GET /api/v1/statistiques | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| router /api/storage_paths/ -> StoragePathViewSet | src/paperless/urls.py:69 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
 | re_path ^api/^schema/^view/ -> swagger-ui [SpectacularSwaggerView.as_view] | src/paperless/urls.py:217 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^status/ -> system_status [SystemStatusView.as_view] | src/paperless/urls.py:193 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^status/ -> system_status [SystemStatusView.as_view] | src/paperless/urls.py:193 | exclu (exclu : infrastructure-django) | - | - |  |
 | router /api/tags/ -> TagViewSet | src/paperless/urls.py:67 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | router /api/tasks/ -> TasksViewSet | src/paperless/urls.py:70 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| path ^api/^profile/totp/ -> totp_view [TOTPView.as_view] | src/paperless/urls.py:185 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| path ^api/^profile/totp/ -> totp_view [TOTPView.as_view] | src/paperless/urls.py:185 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^trash/ -> trash [TrashView.as_view] | src/paperless/urls.py:198 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien (couche 1) |  |
-| re_path ^api/^ui_settings/ -> ui_settings [UiSettingsView.as_view] | src/paperless/urls.py:155 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| re_path ^api/^ui_settings/ -> ui_settings [UiSettingsView.as_view] | src/paperless/urls.py:155 | couvert-autrement | route GET /reglages | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
 | router /api/users/ -> UserViewSet | src/paperless/urls.py:71 | couvert-autrement | route GET /administration/comptes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
 | router /api/workflow_actions/ -> WorkflowActionViewSet | src/paperless/urls.py:77 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
 | router /api/workflow_triggers/ -> WorkflowTriggerViewSet | src/paperless/urls.py:76 | couvert-autrement | route POST /workflows/evenements | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
@@ -399,24 +401,24 @@ listes `non_rejouables` avec leur raison.
 | WorkflowViewSet.partial_update (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | WorkflowViewSet.retrieve (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | WorkflowViewSet.update (DRF ModelViewSet) | src/documents/views.py:2805 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe ApplicationConfigurationViewSet(ModelViewSet) | src/paperless/views.py:349 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe BulkDownloadView(GenericAPIView) | src/documents/views.py:2256 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe BulkEditObjectsView(PassUserMixin) | src/documents/views.py:2693 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe ApplicationConfigurationViewSet(ModelViewSet) | src/paperless/views.py:349 | couvert-autrement | route GET /application | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
+| classe BulkDownloadView(GenericAPIView) | src/documents/views.py:2256 | couvert | route POST /api/v1/documents/bulk_download | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
+| classe BulkEditObjectsView(PassUserMixin) | src/documents/views.py:2693 | couvert | route POST /api/v1/documents/bulk_edit | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
 | classe BulkEditView(PassUserMixin) | src/documents/views.py:1490 | couvert-autrement | route POST /bibliotheque/masse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | classe CorrespondentViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:388 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| classe CustomFieldViewSet(ModelViewSet) | src/documents/views.py:2823 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe DisconnectSocialAccountView(GenericAPIView) | src/paperless/views.py:379 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe CustomFieldViewSet(ModelViewSet) | src/documents/views.py:2823 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
+| classe DisconnectSocialAccountView(GenericAPIView) | src/paperless/views.py:379 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe DocumentTypeViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:462 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | classe DocumentViewSet(PassUserMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet) | src/documents/views.py:685 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesNouvellesRoutesSontDeclareesHorsSession (couche 1) |  |
 | classe FaviconView(View) | src/paperless/views.py:96 | exclu (exclu : infrastructure-django) | - | - |  |
-| classe GenerateAuthTokenView(GenericAPIView) | src/paperless/views.py:320 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe GenerateAuthTokenView(GenericAPIView) | src/paperless/views.py:320 | couvert-autrement | route POST /api/v1/appairage/jeton | phpunit Ged\Tests\Jonctions\AppairageTest::testLeJetonAppairagePorteLesDroitsDuCompte (couche 1) |  |
 | classe GlobalSearchView(PassUserMixin) | src/documents/views.py:1948 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Recherche\EcranTest::testLesVraisResultatsArriventDansLeGabarit (couche 1) |  |
-| classe GroupViewSet(ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe GroupViewSet(ModelViewSet) | src/paperless/views.py:168 | couvert-autrement | route GET /administration/groupes | playwright utilisateurs.spec.ts > un administrateur gere les comptes et les groupes (couche 4) |  |
 | classe IndexView(TemplateView) | src/documents/views.py:209 | exclu (exclu : infrastructure-django) | - | - |  |
-| classe LogViewSet(ViewSet) | src/documents/views.py:1402 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe LogViewSet(ViewSet) | src/documents/views.py:1402 | couvert-autrement | route GET /journaux | playwright journaux.spec.ts > un administrateur consulte les journaux (couche 4) |  |
 | classe MailAccountViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | classe MailRuleViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| classe OauthCallbackView(GenericAPIView) | src/paperless_mail/views.py:181 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe OauthCallbackView(GenericAPIView) | src/paperless_mail/views.py:181 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PaperlessObtainAuthTokenView(ObtainAuthToken) | src/paperless/views.py:48 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PassUserMixin(GenericAPIView) | src/documents/views.py:251 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PostDocumentView(GenericAPIView) | src/documents/views.py:1661 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
@@ -424,21 +426,21 @@ listes `non_rejouables` avec leur raison.
 | classe ProfileView(GenericAPIView) | src/paperless/views.py:181 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
 | classe RemoteVersionView(GenericAPIView) | src/documents/views.py:2455 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe SavedViewViewSet(ModelViewSet, PassUserMixin) | src/documents/views.py:1452 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| classe SearchAutoCompleteView(GenericAPIView) | src/documents/views.py:1877 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe SelectionDataView(GenericAPIView) | src/documents/views.py:1780 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe SearchAutoCompleteView(GenericAPIView) | src/documents/views.py:1877 | couvert | route GET /api/v1/autocomplete | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| classe SelectionDataView(GenericAPIView) | src/documents/views.py:1780 | couvert | route POST /api/v1/documents/selection_data | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | classe ShareLinkViewSet(ModelViewSet, PassUserMixin) | src/documents/views.py:2602 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
-| classe SharedLinkView(View) | src/documents/views.py:2619 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe SocialAccountProvidersView(GenericAPIView) | src/paperless/views.py:405 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe StatisticsView(GenericAPIView) | src/documents/views.py:2151 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe StoragePathViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:2306 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe SystemStatusView(PassUserMixin) | src/documents/views.py:2938 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe TOTPView(GenericAPIView) | src/paperless/views.py:240 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe SharedLinkView(View) | src/documents/views.py:2619 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
+| classe SocialAccountProvidersView(GenericAPIView) | src/paperless/views.py:405 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe StatisticsView(GenericAPIView) | src/documents/views.py:2151 | couvert | route GET /api/v1/statistiques | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
+| classe StoragePathViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:2306 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
+| classe SystemStatusView(PassUserMixin) | src/documents/views.py:2938 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe TOTPView(GenericAPIView) | src/paperless/views.py:240 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe TagViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:425 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | classe TasksViewSet(ReadOnlyModelViewSet) | src/documents/views.py:2532 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| classe TrashView(ListModelMixin, PassUserMixin) | src/documents/views.py:3113 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe UiSettingsView(GenericAPIView) | src/documents/views.py:2361 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe UnifiedSearchViewSet(DocumentViewSet) | src/documents/views.py:1289 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe UserViewSet(ModelViewSet) | src/paperless/views.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe TrashView(ListModelMixin, PassUserMixin) | src/documents/views.py:3113 | couvert-autrement | route GET /corbeille | playwright corbeille.spec.ts > un administrateur restaure un document de la corbeille (couche 4) |  |
+| classe UiSettingsView(GenericAPIView) | src/documents/views.py:2361 | couvert-autrement | route GET /reglages | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
+| classe UnifiedSearchViewSet(DocumentViewSet) | src/documents/views.py:1289 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLaRecherchePleinTexteRespecteLesDroits (couche 1) |  |
+| classe UserViewSet(ModelViewSet) | src/paperless/views.py:105 | couvert-autrement | route GET /administration/comptes | playwright utilisateurs.spec.ts > un administrateur gere les comptes et les groupes (couche 4) |  |
 | classe WorkflowActionViewSet(ModelViewSet) | src/documents/views.py:2780 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
 | classe WorkflowTriggerViewSet(ModelViewSet) | src/documents/views.py:2762 | couvert-autrement | route POST /workflows/evenements | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
 | classe WorkflowViewSet(ModelViewSet) | src/documents/views.py:2805 | couvert-autrement | route GET /workflows | phpunit Ged\Tests\Workflows\ModuleTest::testEcranRepondMemeSansTablesDuSecteur (couche 1) |  |
@@ -946,46 +948,19 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 
 | Id | Categorie | Reference Paperless | Statut | Raison | Lot |
 | --- | --- | --- | --- | --- | --- |
-| api:action:DocumentViewSet.email_document | api | src/documents/views.py:1187 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:DocumentViewSet.email_documents | api | src/documents/views.py:1199 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:DocumentViewSet.metadata | api | src/documents/views.py:830 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:StoragePathViewSet.test | api | src/documents/views.py:2347 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:TasksViewSet.acknowledge | api | src/documents/views.py:2566 | exclu | infrastructure-celery-redis |  |
 | api:action:TasksViewSet.run | api | src/documents/views.py:2583 | exclu | infrastructure-celery-redis |  |
-| api:action:UnifiedSearchViewSet.next_asn | api | src/documents/views.py:1359 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:UserViewSet.deactivate_totp | api | src/paperless/views.py:150 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:CorrespondentFilterSet.id | api | src/documents/filters.py:81 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:CustomFieldFilterSet.id | api | src/documents/filters.py:209 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:CustomFieldFilterSet.name | api | src/documents/filters.py:209 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.archive_serial_number | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.correspondent__id__none | api | src/documents/filters.py:716 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_field_query | api | src/documents/filters.py:749 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_fields | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_fields__icontains | api | src/documents/filters.py:728 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_fields__id__all | api | src/documents/filters.py:730 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_fields__id__in | api | src/documents/filters.py:737 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.custom_fields__id__none | api | src/documents/filters.py:732 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.document_type__id__none | api | src/documents/filters.py:718 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.has_custom_fields | api | src/documents/filters.py:742 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.original_filename | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.owner | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.owner__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.owner__id__none | api | src/documents/filters.py:726 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.storage_path__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.storage_path__id__none | api | src/documents/filters.py:720 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.storage_path__name | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.tags__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:PaperlessTaskFilterSet.acknowledged | api | src/documents/filters.py:800 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:PaperlessTaskFilterSet.type | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:ShareLinkFilterSet.created | api | src/documents/filters.py:793 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:ShareLinkFilterSet.expiration | api | src/documents/filters.py:793 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:StoragePathFilterSet.id | api | src/documents/filters.py:114 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:StoragePathFilterSet.name | api | src/documents/filters.py:114 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:StoragePathFilterSet.path | api | src/documents/filters.py:114 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:TagFilterSet.id | api | src/documents/filters.py:90 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:TagFilterSet.is_root | api | src/documents/filters.py:95 | absent | ecart assume, lot a creer | V2-05 |
+| api:action:UserViewSet.deactivate_totp | api | src/paperless/views.py:150 | exclu | infrastructure-django |  |
+| api:filtre:DocumentFilterSet.custom_field_query | api | src/documents/filters.py:749 | absent | DSL JSON de requête sur champs personnalisés (CustomFieldQueryParser) non porté ; src/documents/filters.py:749. | V2-05 |
+| api:filtre:DocumentFilterSet.original_filename | api | src/documents/filters.py:763 | absent | Nom d’origine du fichier non porté par le document GEDv2 (vit dans ingestion_travaux.nom_origine) ; src/documents/filters.py:763. | V2-05 |
+| api:filtre:DocumentFilterSet.owner | api | src/documents/filters.py:763 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763. | V2-05 |
+| api:filtre:DocumentFilterSet.owner__id | api | src/documents/filters.py:763 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763. | V2-05 |
+| api:filtre:DocumentFilterSet.owner__id__none | api | src/documents/filters.py:726 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:726. | V2-05 |
+| api:filtre:PaperlessTaskFilterSet.acknowledged | api | src/documents/filters.py:800 | exclu | infrastructure-celery-redis |  |
+| api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
+| api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
+| api:filtre:PaperlessTaskFilterSet.type | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
+| api:filtre:TagFilterSet.is_root | api | src/documents/filters.py:95 | absent | Hiérarchie d’étiquettes absente : GEDv2 porte les étiquettes comme valeurs texte, sans parenté ; src/documents/filters.py:95. | V2-05 |
 | api:route:account_confirm_email | api | src/paperless/urls.py:309 | exclu | infrastructure-django |  |
 | api:route:account_inactive | api | src/paperless/urls.py:281 | exclu | infrastructure-django |  |
 | api:route:account_login | api | src/paperless/urls.py:278 | exclu | infrastructure-django |  |
@@ -1002,10 +977,9 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:anon:api-auth-include | api | src/paperless/urls.py:89 | exclu | infrastructure-django |  |
 | api:route:anon:api-documents-include | api | src/paperless/urls.py:118 | exclu | infrastructure-django |  |
 | api:route:anon:api-include | api | src/paperless/urls.py:85 | exclu | infrastructure-django |  |
-| api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view | api | src/paperless/urls.py:177 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view | api | src/paperless/urls.py:173 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view | api | src/paperless/urls.py:177 | exclu | infrastructure-django |  |
 | api:route:anon:api-profile-include | api | src/paperless/urls.py:164 | exclu | infrastructure-django |  |
-| api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view | api | src/paperless/urls.py:181 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view | api | src/paperless/urls.py:181 | exclu | infrastructure-django |  |
 | api:route:anon:api-redirectview-as-view | api | src/paperless/urls.py:225 | exclu | infrastructure-django |  |
 | api:route:anon:api-schema-include | api | src/paperless/urls.py:208 | exclu | infrastructure-django |  |
 | api:route:anon:api-search-include | api | src/paperless/urls.py:96 | exclu | infrastructure-django |  |
@@ -1017,28 +991,19 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:anon:fetch-thumb-p-pk-d-redirectview-as-view | api | src/paperless/urls.py:246 | exclu | infrastructure-django |  |
 | api:route:anon:ws-status-statusconsumer-as-asgi | api | src/paperless/urls.py:362 | exclu | infrastructure-celery-redis |  |
 | api:route:app_logo | api | src/paperless/urls.py:270 | exclu | infrastructure-django |  |
-| api:route:autocomplete | api | src/paperless/urls.py:105 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:base | api | src/paperless/urls.py:353 | exclu | infrastructure-django |  |
-| api:route:bulk_download | api | src/paperless/urls.py:132 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:bulk_edit_objects | api | src/paperless/urls.py:145 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:config | api | src/paperless/urls.py:80 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:favicon | api | src/paperless/urls.py:234 | exclu | infrastructure-django |  |
-| api:route:logs | api | src/paperless/urls.py:66 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:mfa_authenticate | api | src/paperless/urls.py:344 | exclu | infrastructure-django |  |
-| api:route:oauth_callback | api | src/paperless/urls.py:203 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:oauth_callback | api | src/paperless/urls.py:203 | exclu | infrastructure-django |  |
 | api:route:remoteversion | api | src/paperless/urls.py:150 | exclu | infrastructure-django |  |
 | api:route:schema | api | src/paperless/urls.py:212 | exclu | infrastructure-django |  |
-| api:route:selection_data | api | src/paperless/urls.py:137 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:socialaccount_login_cancelled | api | src/paperless/urls.py:324 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:socialaccount_login_error | api | src/paperless/urls.py:329 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:socialaccount_signup | api | src/paperless/urls.py:334 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:statistics | api | src/paperless/urls.py:113 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:storage-paths | api | src/paperless/urls.py:69 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:socialaccount_login_cancelled | api | src/paperless/urls.py:324 | exclu | infrastructure-django |  |
+| api:route:socialaccount_login_error | api | src/paperless/urls.py:329 | exclu | infrastructure-django |  |
+| api:route:socialaccount_signup | api | src/paperless/urls.py:334 | exclu | infrastructure-django |  |
 | api:route:swagger-ui | api | src/paperless/urls.py:217 | exclu | infrastructure-django |  |
-| api:route:system_status | api | src/paperless/urls.py:193 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:system_status | api | src/paperless/urls.py:193 | exclu | infrastructure-django |  |
 | api:route:tasks | api | src/paperless/urls.py:70 | exclu | infrastructure-celery-redis |  |
-| api:route:totp_view | api | src/paperless/urls.py:185 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:ui_settings | api | src/paperless/urls.py:155 | absent | ecart assume, lot a creer | V2-05 |
+| api:route:totp_view | api | src/paperless/urls.py:185 | exclu | infrastructure-django |  |
 | api:verbe:ApplicationConfigurationViewSet.create | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:ApplicationConfigurationViewSet.destroy | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:ApplicationConfigurationViewSet.list | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
@@ -1141,33 +1106,17 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:verbe:WorkflowViewSet.partial_update | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:WorkflowViewSet.retrieve | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:WorkflowViewSet.update | api | src/documents/views.py:2805 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:ApplicationConfigurationViewSet | api | src/paperless/views.py:349 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:BulkDownloadView | api | src/documents/views.py:2256 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:BulkEditObjectsView | api | src/documents/views.py:2693 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:CustomFieldViewSet | api | src/documents/views.py:2823 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:DisconnectSocialAccountView | api | src/paperless/views.py:379 | absent | ecart assume, lot a creer | V2-05 |
+| api:vue:DisconnectSocialAccountView | api | src/paperless/views.py:379 | exclu | infrastructure-django |  |
 | api:vue:FaviconView | api | src/paperless/views.py:96 | exclu | infrastructure-django |  |
-| api:vue:GenerateAuthTokenView | api | src/paperless/views.py:320 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:GroupViewSet | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:IndexView | api | src/documents/views.py:209 | exclu | infrastructure-django |  |
-| api:vue:LogViewSet | api | src/documents/views.py:1402 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:OauthCallbackView | api | src/paperless_mail/views.py:181 | absent | ecart assume, lot a creer | V2-05 |
+| api:vue:OauthCallbackView | api | src/paperless_mail/views.py:181 | exclu | infrastructure-django |  |
 | api:vue:PaperlessObtainAuthTokenView | api | src/paperless/views.py:48 | exclu | infrastructure-django |  |
 | api:vue:PassUserMixin | api | src/documents/views.py:251 | exclu | infrastructure-django |  |
 | api:vue:RemoteVersionView | api | src/documents/views.py:2455 | exclu | infrastructure-django |  |
-| api:vue:SearchAutoCompleteView | api | src/documents/views.py:1877 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:SelectionDataView | api | src/documents/views.py:1780 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:SharedLinkView | api | src/documents/views.py:2619 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:SocialAccountProvidersView | api | src/paperless/views.py:405 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:StatisticsView | api | src/documents/views.py:2151 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:StoragePathViewSet | api | src/documents/views.py:2306 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:SystemStatusView | api | src/documents/views.py:2938 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:TOTPView | api | src/paperless/views.py:240 | absent | ecart assume, lot a creer | V2-05 |
+| api:vue:SocialAccountProvidersView | api | src/paperless/views.py:405 | exclu | infrastructure-django |  |
+| api:vue:SystemStatusView | api | src/documents/views.py:2938 | exclu | infrastructure-django |  |
+| api:vue:TOTPView | api | src/paperless/views.py:240 | exclu | infrastructure-django |  |
 | api:vue:TasksViewSet | api | src/documents/views.py:2532 | exclu | infrastructure-celery-redis |  |
-| api:vue:TrashView | api | src/documents/views.py:3113 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:UiSettingsView | api | src/documents/views.py:2361 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:UnifiedSearchViewSet | api | src/documents/views.py:1289 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:UserViewSet | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
 | chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | Metadonnees lues par les parseurs GEDv2, sans Tika (service Java externe), reference src/paperless_tika/parsers.py | V2-04 |
 | chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | Vignette produite par Ged\Apercu\Miniature, sans Tika, reference src/paperless_tika/parsers.py | V2-04 |
 | chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | Tika est un service Java externe ; GEDv2 n’en depend pas (extraction PDF/Texte/OCR maison), reference src/paperless_tika/parsers.py | V2-04 |

@@ -2223,7 +2223,7 @@
             },
             "preuve": {
                 "type": "playwright",
-                "cible": "utilisateurs.spec.ts > les écrans d’administration s’ouvrent par le menu, comme un utilisateur"
+                "cible": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes"
             },
             "note": "Groupes : écran d’administration des groupes (source unique des droits)."
         },
@@ -2486,7 +2486,7 @@
             },
             "preuve": {
                 "type": "playwright",
-                "cible": "utilisateurs.spec.ts > les écrans d’administration s’ouvrent par le menu, comme un utilisateur"
+                "cible": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes"
             },
             "note": "Utilisateurs : écran d’administration des comptes."
         },
