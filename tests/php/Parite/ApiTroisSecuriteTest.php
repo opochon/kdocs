@@ -117,6 +117,11 @@ final class ApiTroisSecuriteTest extends TestCase
         self::assertSame(200, $this->appel($app, 'GET', '/api/v1/courriers/traites/' . $message, $jetonAdmin)[0]);
         self::assertSame(404, $this->appel($app, 'GET', '/api/v1/courriers/traites/999999999', $jetonAdmin)[0]);
 
+        // État système (SystemStatusView) : /sante nomme l'application et la base qui répondent.
+        [$sante, $etat] = $this->appel($app, 'GET', '/sante');
+        self::assertSame(200, $sante);
+        self::assertSame('gedv2', $etat['app'] ?? null);
+
         // Non-accès : sans jeton, la porte refuse et se nomme.
         self::assertSame(401, $this->appel($app, 'GET', '/api/v1/preferences')[0]);
     }

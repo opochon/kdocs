@@ -1473,47 +1473,98 @@
         },
         "api:verbe:ApplicationConfigurationViewSet.create": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:ApplicationConfigurationViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Aucune suppression de clé de configuration par le produit (zéro suppression). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:ApplicationConfigurationViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/application"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage"
+            },
+            "note": "Configuration applicative : l’écran /application montre la configuration et les chemins réels (lecture seule)."
         },
         "api:verbe:ApplicationConfigurationViewSet.partial_update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:ApplicationConfigurationViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/application"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage"
+            },
+            "note": "Configuration applicative : lecture par l’écran /application."
         },
         "api:verbe:ApplicationConfigurationViewSet.update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:BulkDownloadView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents/bulk_download"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits"
+            },
+            "note": "Téléchargement groupé : POST /api/v1/documents/bulk_download rend l’archive ZIP au périmètre des droits."
         },
         "api:verbe:BulkEditObjectsView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents/bulk_edit"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits"
+            },
+            "note": "Modification groupée : POST /api/v1/documents/bulk_edit réutilise Socle\\ModificationMasse (contrôle par dossier)."
         },
         "api:verbe:BulkEditView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents/bulk_edit"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits"
+            },
+            "note": "Modification groupée (verbe générique) : même route GEDv2, mêmes contrôles par dossier."
         },
         "api:verbe:CorrespondentViewSet.create": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CorrespondentViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CorrespondentViewSet.list": {
             "statut": "couvert-autrement",
@@ -1529,51 +1580,105 @@
         },
         "api:verbe:CorrespondentViewSet.partial_update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CorrespondentViewSet.retrieve": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CorrespondentViewSet.update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CustomFieldViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testRejoueLesVecteursDeClassement"
+            }
         },
         "api:verbe:CustomFieldViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:CustomFieldViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises"
+            }
         },
         "api:verbe:CustomFieldViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/champs/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:CustomFieldViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/champs/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:CustomFieldViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/champs/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:DisconnectSocialAccountView.post": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Déconnexion d’un compte social django-allauth absente (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
         },
         "api:verbe:DocumentTypeViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:DocumentTypeViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:DocumentTypeViewSet.list": {
             "statut": "couvert-autrement",
@@ -1588,52 +1693,135 @@
             }
         },
         "api:verbe:DocumentTypeViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/types/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:DocumentTypeViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:DocumentTypeViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/types/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:FaviconView.get": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Pas de favicon configurable côté GEDv2 : l’icône est un asset statique, aucune route API. Le juge d’api-2 a exclu la route apparentée `api:route:favicon` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/urls.py."
         },
         "api:verbe:GenerateAuthTokenView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/jetons"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            }
         },
         "api:verbe:GlobalSearchView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testLaRecherchePleinTexteRespecteLesDroits"
+            },
+            "note": "Recherche globale : GET /api/v1/documents?q= (index plein texte, au périmètre des droits)."
         },
         "api:verbe:GroupViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/groupes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration"
+            }
         },
         "api:verbe:GroupViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:GroupViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/groupes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration"
+            }
         },
         "api:verbe:GroupViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/groupes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:GroupViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/groupes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:GroupViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/groupes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:MailAccountViewSet.create": {
             "statut": "couvert-autrement",
@@ -1781,11 +1969,21 @@
         },
         "api:verbe:OauthCallbackView.get": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Rappel OAuth du courrier (django-allauth) absent (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
         },
         "api:verbe:PostDocumentView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent"
+            },
+            "note": "Dépôt d’un document : POST /api/v1/documents passe par la chaîne d’ingestion (idempotent)."
         },
         "api:verbe:ProcessedMailViewSet.list": {
             "statut": "couvert-autrement",
@@ -1800,28 +1998,62 @@
             }
         },
         "api:verbe:ProcessedMailViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/courriers/traites/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            }
         },
         "api:verbe:ProfileView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/profil"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            }
         },
         "api:verbe:ProfileView.patch": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/profil"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            }
         },
         "api:verbe:RemoteVersionView.get": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Aucun contrôle de version distante en GEDv2 (pas d’appel réseau sortant de mise à jour). Le juge d’api-2 a exclu `api:route:remoteversion` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/views.py."
         },
         "api:verbe:SavedViewViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testRejoueLesVecteursDeClassement"
+            }
         },
         "api:verbe:SavedViewViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:SavedViewViewSet.list": {
             "statut": "couvert-autrement",
@@ -1836,108 +2068,237 @@
             }
         },
         "api:verbe:SavedViewViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/vues/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:SavedViewViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/vues/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:SavedViewViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/vues/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:SearchAutoCompleteView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/autocomplete"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits"
+            },
+            "note": "Autocomplétion : GET /api/v1/autocomplete au périmètre des droits."
         },
         "api:verbe:SelectionDataView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/documents/selection_data"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits"
+            },
+            "note": "Données de sélection : POST /api/v1/documents/selection_data, borné aux documents lisibles."
         },
         "api:verbe:ShareLinkViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage"
+            }
         },
         "api:verbe:ShareLinkViewSet.destroy": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "DELETE",
+                "chemin": "/api/v1/partages/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage"
+            }
         },
         "api:verbe:ShareLinkViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxFiltresRessourcesTest::testLesFiltresDesLiensDePartageRespectentLesDroits"
+            }
         },
         "api:verbe:ShareLinkViewSet.partial_update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:ShareLinkViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/partages/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisPartageTest::testRejoueLesVecteursDeLiensDePartage"
+            }
         },
         "api:verbe:ShareLinkViewSet.update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:SharedLinkView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/partages/{jeton:[A-Za-z0-9_-]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois"
+            },
+            "note": "Lien de partage public : GET /partages/{jeton} consomme le jeton de session, jamais le document hors droits."
         },
         "api:verbe:SocialAccountProvidersView.get": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Comptes sociaux django-allauth absents (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
         },
         "api:verbe:StatisticsView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/statistiques"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits"
+            },
+            "note": "Statistiques : GET /api/v1/statistiques au périmètre des droits."
         },
         "api:verbe:StoragePathViewSet.create": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:StoragePathViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:StoragePathViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/dossiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\ContratCmmTest::testParcoursCmmDeBoutEnBout"
+            }
         },
         "api:verbe:StoragePathViewSet.partial_update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:StoragePathViewSet.retrieve": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:StoragePathViewSet.update": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:SystemStatusView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/sante"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            },
+            "note": "État système : GET /sante nomme l’application et la base qui répondent (équivalent GEDv2 du statut Django)."
         },
         "api:verbe:TOTPView.delete": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
         },
         "api:verbe:TOTPView.get": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
         },
         "api:verbe:TOTPView.post": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
         },
         "api:verbe:TagViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:TagViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:TagViewSet.list": {
             "statut": "couvert-autrement",
@@ -1952,136 +2313,372 @@
             }
         },
         "api:verbe:TagViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/etiquettes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:TagViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:TagViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/etiquettes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRessourcesClassementTest::testLesVerbesDesRegistresDuFonds"
+            }
         },
         "api:verbe:TasksViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille"
+            }
         },
         "api:verbe:TasksViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testProfilJetonsPreferencesCorbeilleTachesEtCourrier"
+            }
         },
         "api:verbe:TrashView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/corbeille"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille"
+            }
         },
         "api:verbe:TrashView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/corbeille"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisRechercheTest::testRejoueLesVecteursDeTachesEtDeCorbeille"
+            }
         },
         "api:verbe:UiSettingsView.get": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/preferences"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testRejoueLesVecteursDUiSettings"
+            }
         },
         "api:verbe:UiSettingsView.post": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/preferences"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisSecuriteTest::testRejoueLesVecteursDUiSettings"
+            }
         },
         "api:verbe:UserViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration"
+            }
         },
         "api:verbe:UserViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:UserViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testRejoueLesVecteursDAdministration"
+            }
         },
         "api:verbe:UserViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:UserViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:UserViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiTroisAdministrationTest::testLesVerbesDesComptesEtGroupesEtLeRefusDeNonAcces"
+            }
         },
         "api:verbe:WorkflowActionViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowActionViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:WorkflowActionViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowActionViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowActionViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowActionViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowTriggerViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowTriggerViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:WorkflowTriggerViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowTriggerViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowTriggerViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowTriggerViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.destroy": {
             "statut": "absent",
-            "lot": "V2-05"
+            "lot": "V2-05",
+            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
         },
         "api:verbe:WorkflowViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:vue:ApplicationConfigurationViewSet": {
             "statut": "couvert-autrement",

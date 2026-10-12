@@ -434,13 +434,14 @@ final class RessourcesApi
     /** @return array<string, mixed> @throws ErreurApi */
     private function vueOuRefus(int $id, string $etape): array
     {
-        $vue = (new Vues($this->config))->lire($id);
-        if ($vue === null) {
-            throw new ErreurApi(404, "vue introuvable : $id", $etape);
+        foreach ((new Vues($this->config))->lister() as $vue) {
+            if ($vue['id'] === $id) {
+                return ['id' => $vue['id'], 'name' => $vue['nom'], 'filtres' => $vue['filtres'],
+                    'reglages' => $vue['reglages'], 'filter_rules' => []];
+            }
         }
 
-        return ['id' => $vue['id'], 'name' => $vue['nom'], 'filtres' => $vue['filtres'],
-            'reglages' => $vue['reglages'], 'filter_rules' => []];
+        throw new ErreurApi(404, "vue introuvable : $id", $etape);
     }
 
     // -----------------------------------------------------------------------
@@ -550,7 +551,10 @@ final class RessourcesApi
         return $this->compteResume($compte);
     }
 
-    /** @param array<string, mixed> $compte @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $compte
+     * @return array<string, mixed>
+     */
     private function compteResume(array $compte): array
     {
         $role = (string) $compte['role'];
@@ -656,7 +660,10 @@ final class RessourcesApi
         return $this->groupeResume($groupe);
     }
 
-    /** @param array<string, mixed> $groupe @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $groupe
+     * @return array<string, mixed>
+     */
     private function groupeResume(array $groupe): array
     {
         return ['id' => (int) $groupe['id'], 'name' => (string) $groupe['nom'], 'nom' => (string) $groupe['nom'],
