@@ -206,6 +206,7 @@ final class DroitsRoutes
         'POST /api/v1/types' => 'publique:api-documents-ecriture',
         'PUT /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'PATCH /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'POST /api/v1/champs' => 'publique:api-documents-ecriture',
         'PUT /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',

@@ -141,6 +141,7 @@ try {
                 'PUT /api/v1/etiquettes/{id:[0-9]+}', 'PATCH /api/v1/etiquettes/{id:[0-9]+}',
                 'GET /api/v1/types/{id:[0-9]+}', 'POST /api/v1/types',
                 'PUT /api/v1/types/{id:[0-9]+}', 'PATCH /api/v1/types/{id:[0-9]+}',
+                'DELETE /api/v1/types/{id:[0-9]+}',
                 'GET /api/v1/champs/{id:[0-9]+}', 'POST /api/v1/champs',
                 'PUT /api/v1/champs/{id:[0-9]+}', 'PATCH /api/v1/champs/{id:[0-9]+}',
                 'GET /api/v1/vues/{id:[0-9]+}', 'POST /api/v1/vues',

@@ -189,6 +189,32 @@ final class RessourcesApi
         return $this->ecrireType($requete, $reponse, (int) ($args['id'] ?? 0), false);
     }
 
+    /**
+     * `DocumentTypeViewSet.destroy` : GEDv2 ne supprime jamais un référentiel (règle 4). Le retrait est une
+     * DÉSACTIVATION tracée (`Socle\Nomenclature::definirActif(false)`) : le type reste lisible pour les
+     * documents qui le portent, il n'est plus proposé. Même précédent que `MailAccountViewSet.destroy`
+     * (déjà couvert-autrement par la bascule du compte de courrier).
+     *
+     * @param array<string, string> $args
+     */
+    public function typeDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/types/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->typeOuRefus($id, $etape);
+            $nomenclature = new Nomenclature($this->config);
+            try {
+                $nomenclature->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->typeOuRefus($id, $etape);
+        });
+    }
+
     private function ecrireType(Requete $requete, Reponse $reponse, int $id, bool $complet): Reponse
     {
         $etape = ($complet ? 'PUT' : 'PATCH') . " /api/v1/types/$id";

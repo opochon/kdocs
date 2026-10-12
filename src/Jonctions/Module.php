@@ -94,6 +94,7 @@ final class Module
         $app->post('/api/v1/types', [$ressources, 'typeCreer']);
         $app->put('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeRemplacer']);
         $app->patch('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeModifier']);
+        $app->delete('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeDesactiver']);
         $app->get('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champLire']);
         $app->post('/api/v1/champs', [$ressources, 'champCreer']);
         $app->put('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champRemplacer']);
