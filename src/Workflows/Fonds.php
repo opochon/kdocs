@@ -106,6 +106,10 @@ final class Fonds
             return null;   // pièce hors index : elle n'a pas encore d'entrée à proposer
         }
         $montant = $donnees['montant'] ?? null;
+        $dossier = (string) ($donnees['dossier'] ?? str_replace('\\', '/', dirname(substr($chemin, strlen(rtrim($this->racine, '/\\')) + 1))));
+        if ($dossier === '.' || $dossier === '\\') {
+            $dossier = '';
+        }
 
         return [
             'id' => $id,
@@ -117,6 +121,18 @@ final class Fonds
             'etiquettes' => array_values(array_map('strval', (array) ($donnees['etiquettes'] ?? []))),
             'texte' => (string) ($donnees['texte'] ?? ''),
             'echeance' => (string) ($donnees['echeance'] ?? $donnees['date_echeance'] ?? '') ?: null,
+            // Champs du modèle Paperless portés par le `.meta.json` (le dossier fait foi).
+            'dossier' => $dossier !== '' ? $dossier : null,
+            'proprietaire' => isset($donnees['proprietaire']) && $donnees['proprietaire'] !== '' ? (string) $donnees['proprietaire'] : null,
+            'nom_fichier' => (string) ($donnees['nom_origine'] ?? $fichier),
+            'droits' => is_array($donnees['droits'] ?? null) ? $donnees['droits'] : [],
+            'champs' => is_array($donnees['champs'] ?? null) ? $donnees['champs'] : [],
+            'source' => (int) ($donnees['source_ingestion'] ?? 0),
+            'dates' => [
+                'added' => (string) ($donnees['ajoute_le'] ?? ''),
+                'created' => (string) ($donnees['date'] ?? $donnees['date_document'] ?? ''),
+                'modified' => (string) ($donnees['maj_le'] ?? ''),
+            ],
             'meta' => $donnees,
             'chemin' => $chemin,
         ];
