@@ -236,3 +236,51 @@ ETAT: fini
 - Oracle : `tests/php/Workflows/ModuleTest.php::testLeCatalogueSertUnePageLisibleAUnNavigateur` (le test
   JSON existant reste inchangé) ; parcours E2E `tests/e2e/parite-masse.spec.ts` (menu Workflows → clic
   sur le lien → écran visible).
+
+## Journal lot ged-parite-modele-1 — 12-10-2026
+
+**Mission** : rattraper les écarts `modele` de la famille WORKFLOWS de l'oracle de parité Paperless
+(v2.20.5), sans toucher aux autres familles (courrier, documents, vues, tâches, affichage).
+
+**Oracle d'abord** : `tools/parite/extraire-workflows.py` lit EN LECTURE SEULE
+`src/documents/tests/test_workflows.py` et émet 27 vecteurs `{document, déclencheur, actions} →
+{déclenché, attributs}` + 4 `non_rejouables` motivés (Django/DRF, chemin de bac à sable, mock
+`auto_now`). `tests/php/Parite/ModeleWorkflowsTest.php` rejoue chaque vecteur par le VRAI moteur et
+`gedv2_test` ; mesure `var/parite/modele-workflows.json` (27/27) ; phase 5 du rapport de parité.
+
+**Moteur Paperless** (aucun second mécanisme) :
+- `Declencheur` : type, sources, filtres chemin/nom/source/règle de courrier, correspondance de contenu
+  déléguée à `Ged\Classement\Correspondance` (comportement-1), étiquettes, type, émetteur, dossier,
+  requête de champs personnalisés, planification (champ de date, décalage, récurrence).
+- `Action` : `assign_*`, `remove_*` (dont `remove_all_*`), courriel et webhook ; placeholders `{{…}}`.
+- `Applicateur` : retient les déclencheurs du type demandé, applique les actions dans l'ordre par le
+  contrat `Depot`, isole une action en erreur (nommée, journalisée).
+- `Executions` (`WorkflowRun`) : chaque exécution tracée dans `workflow_journal` (ajout seul).
+- `DepotWorkflows` : définitions dans `workflow_definitions` (genre `workflow`), aucune table de plus
+  (plafond de 21 tables respecté). Ports courriel/webhook INJECTABLES, FAUX en test (aucun réseau,
+  aucun secret) ; l'adaptateur par défaut journalise.
+- Migration versionnée v2 : colonne `workflow_definitions.ordre` + index, montée idempotente et retour
+  NON destructif (refus nommé si un tri serait perdu) ; `Migrations` teste montée/retour sur `gedv2_test`.
+
+**Écran** : `/workflows/admin` (liste, création, édition, activation, ordre, historique des
+exécutions), lien depuis `/workflows`, réservé à `workflow.gerer`. Parcours Playwright
+`tests/e2e/workflows-admin.spec.ts` (menu, champs, boutons ; aucune API interne).
+
+**Parité** : 99 éléments `modele` (95 WORKFLOWS + 4 `ScheduleDateField`) couverts avec service + preuve
+qui passe ; 339/780 couverts, parité stricte **43,46 %** (avant 32,18 %). Correcteur ciblé
+`tools/parite/corriger-correspondance-modeles.php` (les lots chaîne et api restent intacts).
+
+**Fichiers partagés commités par ce lot (signalés)**
+- `src/Securite/DroitsRoutes.php` : 5 lignes `/workflows/admin*` + reconnaissances des patrons
+  paramétrés. Aucune autre permission touchée.
+- `tools/parite/juge.php` : phase 5 du rapport (mesure des modèles de workflows).
+
+**Demandes**
+- **Interface** : `templates/ecrans/workflows.twig` reçoit un second lien « Administration des
+  workflows » dans la barre d'actions à gauche sous le titre ; aucune autre retouche d'Interface.
+- **Socle** : aucune nouvelle table (plafond de 21) ; la migration v2 ajoute une colonne, pas une table.
+  `tools/installer.php` n'a pas besoin d'être modifié.
+
+**Restants de la famille `modele`** (autres lots) : courrier (MailRule / MailAccount / ProcessedMail,
+et les énumérations TitleSource / ConsumptionScope / CorrespondentSource), documents / vues / tâches,
+affichage.
