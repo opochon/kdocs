@@ -1,0 +1,4884 @@
+{
+  "version": 1,
+  "categorie": "filtres-documents",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 15,
+  "vecteurs": [
+    {
+      "id": "filtres-documents:test_document_filters:001",
+      "entree": {
+        "requete": {
+          "is_in_inbox": "true"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc1"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:668"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:002",
+      "entree": {
+        "requete": {
+          "is_in_inbox": "false"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc2",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:674"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:003",
+      "entree": {
+        "requete": {
+          "tags__id__in": [
+            "t1",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc1",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:680"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:004",
+      "entree": {
+        "requete": {
+          "tags__id__in": [
+            "t2",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc2",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:688"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:005",
+      "entree": {
+        "requete": {
+          "tags__id__all": [
+            "t2",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:696"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:006",
+      "entree": {
+        "requete": {
+          "tags__id__all": [
+            "t1",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:704"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:008",
+      "entree": {
+        "requete": {
+          "tags__id__none": "t3"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc1",
+          "doc2"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:718"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:009",
+      "entree": {
+        "requete": {
+          "tags__id__none": [
+            "t3",
+            "t2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc1"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:724"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:010",
+      "entree": {
+        "requete": {
+          "tags__id__none": [
+            "t2",
+            "t1"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:732"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:011",
+      "entree": {
+        "requete": {
+          "id__in": [
+            "doc1",
+            "doc2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2
+      },
+      "reference": "src/documents/tests/test_api_documents.py:739"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:013",
+      "entree": {
+        "requete": {
+          "id": "doc2"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1
+      },
+      "reference": "src/documents/tests/test_api_documents.py:753"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:014",
+      "entree": {
+        "requete": {
+          "custom_fields__icontains": "stringfield"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2
+      },
+      "reference": "src/documents/tests/test_api_documents.py:761"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:015",
+      "entree": {
+        "requete": {
+          "custom_fields__icontains": "foobard1"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc1"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:769"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:016",
+      "entree": {
+        "requete": {
+          "custom_fields__icontains": "foobard3"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:777"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:017",
+      "entree": {
+        "requete": {
+          "mime_type": "pdf"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard1"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "stringfield": "foobard3"
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "stringfield",
+            "nature": "STRING"
+          },
+          {
+            "nom": "numberfield",
+            "nature": "INT"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 3
+      },
+      "reference": "src/documents/tests/test_api_documents.py:785"
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "filtres-documents:test_document_filters:007",
+      "requete": {
+        "tags__id__all": "t1at3"
+      },
+      "corpus": [
+        {
+          "cle": "doc1",
+          "titre": "none1",
+          "empreinte": "A",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t1"
+          ],
+          "statut": "a_controler",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {
+            "stringfield": "foobard1"
+          },
+          "proprietaire": null,
+          "nom_origine": null
+        },
+        {
+          "cle": "doc2",
+          "titre": "none2",
+          "empreinte": "B",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t2"
+          ],
+          "statut": "valide",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {},
+          "proprietaire": null,
+          "nom_origine": null
+        },
+        {
+          "cle": "doc3",
+          "titre": "none3",
+          "empreinte": "C",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t2",
+            "t3"
+          ],
+          "statut": "valide",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {
+            "stringfield": "foobard3"
+          },
+          "proprietaire": null,
+          "nom_origine": null
+        }
+      ],
+      "champs": [
+        {
+          "nom": "stringfield",
+          "nature": "STRING"
+        },
+        {
+          "nom": "numberfield",
+          "nature": "INT"
+        }
+      ],
+      "raison": "ObjectFilter de Paperless rend la queryset inchangee quand une valeur n'est pas une liste d'entiers (ValueError avale, src/documents/filters.py) : comportement Django assume, non rejoue.",
+      "reference": "src/documents/tests/test_api_documents.py:711"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:012",
+      "requete": {
+        "id__range": [
+          "doc1",
+          "doc3"
+        ]
+      },
+      "corpus": [
+        {
+          "cle": "doc1",
+          "titre": "none1",
+          "empreinte": "A",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t1"
+          ],
+          "statut": "a_controler",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {
+            "stringfield": "foobard1"
+          },
+          "proprietaire": null,
+          "nom_origine": null
+        },
+        {
+          "cle": "doc2",
+          "titre": "none2",
+          "empreinte": "B",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t2"
+          ],
+          "statut": "valide",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {},
+          "proprietaire": null,
+          "nom_origine": null
+        },
+        {
+          "cle": "doc3",
+          "titre": "none3",
+          "empreinte": "C",
+          "mime": "application/pdf",
+          "contenu": "",
+          "etiquettes": [
+            "t2",
+            "t3"
+          ],
+          "statut": "valide",
+          "type": null,
+          "emetteur": null,
+          "chemin": null,
+          "date": null,
+          "ajoute": null,
+          "champs": {
+            "stringfield": "foobard3"
+          },
+          "proprietaire": null,
+          "nom_origine": null
+        }
+      ],
+      "champs": [
+        {
+          "nom": "stringfield",
+          "nature": "STRING"
+        },
+        {
+          "nom": "numberfield",
+          "nature": "INT"
+        }
+      ],
+      "raison": "parametre sans equivalent GEDv2 : id__range",
+      "reference": "src/documents/tests/test_api_documents.py:746"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:001",
+      "entree": {
+        "requete": {
+          "q": "test"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:847"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:002",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "is_tagged": "true"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:851"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:003",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "is_tagged": "false"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:852"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:016",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "tags__id__all": [
+            "tag",
+            "tag2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:896"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:017",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "tags__id__all": "tag"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:900"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:018",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "tags__id__all": "tag2"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:901"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:019",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "tags__id__in": [
+            "tag",
+            "tag2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:905"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:020",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "tags__id__none": [
+            "tag",
+            "tag2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:909"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:021",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "checksum__icontains": "foo"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "recherche ambiante `query=test` : Paperless (Whoosh) apparie des jetons entiers, la recherche de GEDv2 (BOOLEAN MODE prefixe) retient aussi « test2 » (src/documents/views.py:1290). Ecart de tokenisation assume : le filtre n'est pas rejoue avec la recherche qui l'accompagne.",
+      "reference": "src/documents/tests/test_api_search.py:975"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:004",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "correspondent__id": "correspondent"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "emetteur identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = emetteur/sans_emetteur.",
+      "reference": "src/documents/tests/test_api_search.py:856"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:005",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "correspondent__id__in": [
+            "correspondent",
+            "correspondent2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "emetteur identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = emetteur/sans_emetteur.",
+      "reference": "src/documents/tests/test_api_search.py:857"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:006",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "correspondent__id__none": "correspondent"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "emetteur identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = emetteur/sans_emetteur.",
+      "reference": "src/documents/tests/test_api_search.py:861"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:007",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "document_type__id": "type"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "type identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = type/sans_type.",
+      "reference": "src/documents/tests/test_api_search.py:865"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:008",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "document_type__id__in": [
+            "type",
+            "type2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "type identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = type/sans_type.",
+      "reference": "src/documents/tests/test_api_search.py:866"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:009",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "document_type__id__none": "type"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "type identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = type/sans_type.",
+      "reference": "src/documents/tests/test_api_search.py:870"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:010",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "storage_path__id": "path"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (chemin_relatif) ; correspondance fonctionnelle = dossier/sans_dossier.",
+      "reference": "src/documents/tests/test_api_search.py:874"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:011",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "storage_path__id__in": [
+            "path",
+            "path2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (chemin_relatif) ; correspondance fonctionnelle = dossier/sans_dossier.",
+      "reference": "src/documents/tests/test_api_search.py:875"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:012",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "storage_path__id__none": "path"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (chemin_relatif) ; correspondance fonctionnelle = dossier/sans_dossier.",
+      "reference": "src/documents/tests/test_api_search.py:879"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:013",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "storage_path__isnull": "true"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (chemin_relatif) ; correspondance fonctionnelle = dossier/sans_dossier.",
+      "reference": "src/documents/tests/test_api_search.py:884"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:014",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "correspondent__isnull": "true"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "emetteur identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = emetteur/sans_emetteur.",
+      "reference": "src/documents/tests/test_api_search.py:888"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:015",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "document_type__isnull": "true"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "type identifie par son NOM en GEDv2 (pas d'id) : correspondance fonctionnelle = type/sans_type.",
+      "reference": "src/documents/tests/test_api_search.py:892"
+    },
+    {
+      "id": "filtres-documents:test_search_filtering:022",
+      "entree": {
+        "requete": {
+          "q": "test",
+          "original_filename__istartswith": "doc"
+        },
+        "corpus": [
+          {
+            "cle": "d1",
+            "titre": "",
+            "empreinte": "1",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": "correspondent",
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard1",
+              "number field": ""
+            },
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d2",
+            "titre": "",
+            "empreinte": "2",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type",
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d3",
+            "titre": "",
+            "empreinte": "3",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag",
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d4",
+            "titre": "",
+            "empreinte": "4",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [
+              "tag2"
+            ],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {
+              "string field": "foobard4"
+            },
+            "proprietaire": null,
+            "nom_origine": "doc4.pdf"
+          },
+          {
+            "cle": "d5",
+            "titre": "",
+            "empreinte": "5",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": null,
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": "doc5.pdf"
+          },
+          {
+            "cle": "d7",
+            "titre": "",
+            "empreinte": "7",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": null,
+            "emetteur": null,
+            "chemin": "path/d7.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          },
+          {
+            "cle": "d8",
+            "titre": "",
+            "empreinte": "foo",
+            "mime": "application/pdf",
+            "contenu": "test",
+            "etiquettes": [],
+            "statut": "valide",
+            "type": "type2",
+            "emetteur": "correspondent2",
+            "chemin": "path2/d8.pdf",
+            "date": null,
+            "ajoute": null,
+            "champs": {},
+            "proprietaire": null,
+            "nom_origine": null
+          }
+        ],
+        "champs": [
+          {
+            "nom": "string field",
+            "nature": "STRING"
+          },
+          {
+            "nom": "number field",
+            "nature": "INT"
+          }
+        ]
+      },
+      "raison": "nom d'origine du fichier non porte par le document GEDv2 (vit dans ingestion_travaux.nom_origine) : modele absent.",
+      "reference": "src/documents/tests/test_api_search.py:980"
+    }
+  ]
+}

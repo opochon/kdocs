@@ -155,6 +155,20 @@ final class DroitsRoutes
         'GET /api/v1/etiquettes' => 'publique:api-documents-lecture',
         'GET /api/v1/emetteurs' => 'publique:api-documents-lecture',
         'GET /api/v1/vues' => 'publique:api-documents-lecture',
+        // Compléments de parité (lot ged-parite-api-2) : même porte (jeton lié à un compte). Lignes
+        // hors secteur (Securite), signalées dans docs/lots/ged-parite-api-2.md.
+        'GET /api/v1/champs' => 'publique:api-documents-lecture',
+        'GET /api/v1/partages' => 'publique:api-documents-lecture',
+        'GET /api/v1/statistiques' => 'publique:api-documents-lecture',
+        'GET /api/v1/next_asn' => 'publique:api-documents-lecture',
+        'GET /api/v1/autocomplete' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/selection_data' => 'publique:api-documents-lecture',
+        'GET /api/v1/documents/{id:[0-9]+}/metadonnees' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/{id:[0-9]+}/email' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/email' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/bulk_edit' => 'publique:api-documents-ecriture',
+        'POST /api/v1/documents/bulk_download' => 'publique:api-documents-lecture',
+        'POST /api/v1/dossiers/tester' => 'publique:api-documents-ecriture',
         // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
         // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
         // récupère une copie de secours en nouvelle version.
@@ -317,12 +331,20 @@ final class DroitsRoutes
             if (preg_match('#^/api/v1/documents/[0-9]+/fichier$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/fichier'];
             }
+            // Lot ged-parite-api-2 : fiche fichier d'un document (identifiant concret dans le chemin).
+            if (preg_match('#^/api/v1/documents/[0-9]+/metadonnees$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/metadonnees'];
+            }
             if (preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}'];
             }
         }
         if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}'];
+        }
+        // Lot ged-parite-api-2 : envoi d'un document par courriel (identifiant concret dans le chemin).
+        if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+/email$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}/email'];
         }
 
         // Lot ged-parite-ecrans-1 (Interface) : routes d'écran paramétrées (section de réglages, numéro

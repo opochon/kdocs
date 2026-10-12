@@ -44,6 +44,9 @@ final class Module
         $api = new DepotApi($jetons, $sourceApi, $pdo, $dossiers, $depotDossier, $tailleMax);
         // API REST des documents (lot ged-api-documents) : jetons liés à un compte, portées lecture/écriture.
         $apiDocuments = new DocumentsApi($config, $jetons, $sourceApi, $depotDossier, $droits, $tailleMax);
+        // Compléments de l'API (lot ged-parite-api-2), même porte que DocumentsApi (ApiJeton partagé).
+        $apiJeton = new ApiJeton($config, $jetons, $droits);
+        $pariteApi = new PariteApi($config, $apiJeton, $mailer, $droits);
         $appairageApi = new AppairageApi($appairage, $jetons);
         $ecranProfil = new EcranProfil($vue, $profil, $appairage, $jetons);
         $ecranJonctions = new EcranJonctions($jetons);
@@ -67,6 +70,19 @@ final class Module
         $app->get('/api/v1/etiquettes', [$apiDocuments, 'etiquettes']);
         $app->get('/api/v1/emetteurs', [$apiDocuments, 'emetteurs']);
         $app->get('/api/v1/vues', [$apiDocuments, 'vues']);
+        // Compléments de parité (lot ged-parite-api-2) : même porte que l'API des documents.
+        $app->get('/api/v1/champs', [$pariteApi, 'champs']);
+        $app->get('/api/v1/partages', [$pariteApi, 'partages']);
+        $app->get('/api/v1/statistiques', [$pariteApi, 'statistiques']);
+        $app->get('/api/v1/next_asn', [$pariteApi, 'nextAsn']);
+        $app->get('/api/v1/autocomplete', [$pariteApi, 'autocomplete']);
+        $app->post('/api/v1/documents/selection_data', [$pariteApi, 'selectionData']);
+        $app->get('/api/v1/documents/{id:[0-9]+}/metadonnees', [$pariteApi, 'metadonneesDocument']);
+        $app->post('/api/v1/documents/{id:[0-9]+}/email', [$pariteApi, 'emailDocument']);
+        $app->post('/api/v1/documents/email', [$pariteApi, 'emailDocuments']);
+        $app->post('/api/v1/documents/bulk_edit', [$pariteApi, 'bulkEdit']);
+        $app->post('/api/v1/documents/bulk_download', [$pariteApi, 'bulkDownload']);
+        $app->post('/api/v1/dossiers/tester', [$pariteApi, 'dossierTester']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);

@@ -312,6 +312,10 @@ final class Catalogue
             'modifie_annee' => null, 'modifie_mois' => null, 'modifie_jour' => null,
             'etiquettes_any' => [], 'sans_etiquettes' => [], 'etiquettes_presentes' => null,
             'a_traiter' => null, 'sans_emetteur' => null, 'sans_type' => null, 'sans_dossier' => null,
+            // Champs personnalises (DocumentFilterSet custom_fields* / has_custom_fields) : les valeurs
+            // vivent dans `meta.champs` du document, la cle est le slug de la definition (Socle\Champs).
+            'champs_presents' => null, 'champs_tous' => [], 'champs_any' => [], 'sans_champs' => [],
+            'champs_contient' => null,
         ];
     }
 
@@ -330,6 +334,145 @@ final class Catalogue
 
             return [];
         }
+    }
+
+    /**
+     * Statistiques du fonds, AU PÉRIMÈTRE DES DROITS du compte (correspondance fonctionnelle de
+     * StatisticsView de Paperless : totaux, boîte de réception, répartition par type MIME, caractères
+     * indexés, compteurs de référentiels, prochain numéro d'archive).
+     *
+     * @return array<string, mixed>
+     */
+    public function statistiques(): array
+    {
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $total = $this->compter($where, $params);
+        $inbox = $this->compter($where . " AND d.statut = 'a_controler'", $params);
+
+        $parMime = [];
+        $requete = $this->pdo->prepare('SELECT d.mime, COUNT(*) total FROM documents d WHERE ' . $where
+            . ' GROUP BY d.mime ORDER BY total DESC, d.mime');
+        $requete->execute($params);
+        foreach ($requete->fetchAll(PDO::FETCH_ASSOC) as $ligne) {
+            $parMime[] = ['mime' => (string) $ligne['mime'], 'total' => (int) $ligne['total']];
+        }
+
+        $caracteres = 0;
+        $requete = $this->pdo->prepare('SELECT COALESCE(SUM(CHAR_LENGTH(rt.contenu)), 0) FROM documents d'
+            . ' INNER JOIN recherche_textes rt ON rt.document_id = d.id AND rt.absent_le IS NULL WHERE ' . $where);
+        $requete->execute($params);
+        $caracteres = (int) $requete->fetchColumn();
+
+        return [
+            'documents_total' => $total,
+            'documents_inbox' => $inbox,
+            'document_file_type_counts' => $parMime,
+            'character_count' => $caracteres,
+            'tag_count' => count($this->etiquettes()),
+            'correspondent_count' => count($this->emetteurs()),
+            'document_type_count' => count($this->types()),
+            'current_asn' => $this->prochainAsn(),
+        ];
+    }
+
+    /**
+     * Prochain numéro d'archive : le numéro d'archive de GEDv2 est l'identifiant d'index du document
+     * (voir `/asn/{id}`). On rend le plus grand identifiant LISIBLE + 1 (correspondance fonctionnelle de
+     * UnifiedSearchViewSet.next_asn), sans jamais exposer un document hors dossiers.
+     */
+    public function prochainAsn(): int
+    {
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $requete = $this->pdo->prepare('SELECT COALESCE(MAX(d.id), 0) + 1 FROM documents d WHERE ' . $where);
+        $requete->execute($params);
+
+        return (int) $requete->fetchColumn();
+    }
+
+    /**
+     * Données de sélection (correspondance fonctionnelle de SelectionDataView) : pour un ensemble
+     * d'identifiants de documents LISIBLES, le compte de chacun des référentiels présents (émetteurs,
+     * étiquettes, types, dossiers, champs personnalisés, statuts).
+     *
+     * @param list<int> $ids
+     * @return array<string, list<array{nom:string, total:int}>>
+     * @throws ErreurApi (403 si un document visé n'est pas lisible)
+     */
+    public function selectionData(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $i): bool => $i > 0)));
+        $compte = ['emetteurs' => [], 'etiquettes' => [], 'types' => [], 'dossiers' => [], 'champs' => [], 'statuts' => []];
+        if ($ids === []) {
+            return $compte;
+        }
+
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $marqueurs = implode(', ', array_fill(0, count($ids), '?'));
+        $requete = $this->pdo->prepare('SELECT d.id, d.type, d.emetteur, d.etiquettes, d.chemin_relatif, d.meta, d.statut'
+            . ' FROM documents d WHERE ' . $where . ' AND d.id IN (' . $marqueurs . ')');
+        $requete->execute([...$params, ...$ids]);
+        $lus = [];
+        foreach ($requete->fetchAll(PDO::FETCH_ASSOC) as $ligne) {
+            $lus[(int) $ligne['id']] = $ligne;
+            $this->ajouterCompte($compte['statuts'], (string) $ligne['statut']);
+            $this->ajouterCompte($compte['types'], (string) ($ligne['type'] ?? ''));
+            $this->ajouterCompte($compte['emetteurs'], (string) ($ligne['emetteur'] ?? ''));
+            $this->ajouterCompte($compte['dossiers'], self::dossierDe((string) $ligne['chemin_relatif']));
+            foreach ((array) json_decode((string) $ligne['etiquettes'], true) as $etiquette) {
+                $this->ajouterCompte($compte['etiquettes'], (string) $etiquette);
+            }
+            $meta = json_decode((string) $ligne['meta'], true);
+            foreach (is_array($meta) && is_array($meta['champs'] ?? null) ? array_keys($meta['champs']) : [] as $cle) {
+                $this->ajouterCompte($compte['champs'], (string) $cle);
+            }
+        }
+        foreach ($ids as $id) {
+            if (!isset($lus[$id])) {
+                throw new ErreurApi(403, "document $id : hors des dossiers du compte, sélection refusée", 'GET /api/v1/documents/selection_data');
+            }
+        }
+        $resultat = [];
+        foreach ($compte as $famille => $liste) {
+            uasort($liste, static fn (int $a, int $b): int => $b <=> $a);
+            $entrees = [];
+            foreach ($liste as $nom => $total) {
+                $entrees[] = ['nom' => (string) $nom, 'total' => (int) $total];
+            }
+            $resultat[$famille] = $entrees;
+        }
+
+        return $resultat;
+    }
+
+    /**
+     * Autocomplétion (correspondance fonctionnelle de SearchAutoCompleteView) : jusqu'à `$limite`
+     * suggestions de titres qui contiennent le terme, au périmètre des droits du compte.
+     *
+     * @return list<string>
+     */
+    public function autocomplete(string $terme, int $limite): array
+    {
+        $limite = max(1, min(50, $limite));
+        [$where, $params] = $this->wherePourFiltres($this->filtresVides());
+        $prefixe = self::echapperLike($terme) . '%';
+        $contient = '%' . self::echapperLike($terme) . '%';
+        $requete = $this->pdo->prepare('SELECT DISTINCT d.titre FROM documents d'
+            . ' LEFT JOIN recherche_textes rt ON rt.document_id = d.id AND rt.absent_le IS NULL'
+            . ' WHERE ' . $where . ' AND d.titre <> \'\' AND (d.titre LIKE ? OR rt.contenu LIKE ?)'
+            . ' ORDER BY d.titre LIMIT ' . $limite);
+        $requete->execute([...$params, $prefixe, $contient]);
+
+        return array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
+    }
+
+    /** @param array<string, int> $compte */
+    private function ajouterCompte(array &$compte, string $nom): void
+    {
+        $nom = trim($nom);
+        if ($nom === '') {
+            return;
+        }
+        $compte[$nom] = ($compte[$nom] ?? 0) + 1;
     }
 
     /**
@@ -394,6 +537,13 @@ final class Catalogue
         foreach (['etiquettes_presentes', 'a_traiter', 'sans_emetteur', 'sans_type', 'sans_dossier'] as $cle) {
             $filtres[$cle] = $this->booleen($criteres[$cle] ?? null, $cle, $etape);
         }
+
+        // Champs personnalises : existence, liste d'appartenance (toutes/aucune) et contenu.
+        $filtres['champs_presents'] = $this->booleen($criteres['champs_presents'] ?? null, 'champs_presents', $etape);
+        foreach (['champs_tous', 'champs_any', 'sans_champs'] as $cle) {
+            $filtres[$cle] = $this->listeChaines($criteres[$cle] ?? null);
+        }
+        $filtres['champs_contient'] = $this->chaine($criteres['champs_contient'] ?? null);
 
         return $filtres;
     }
@@ -605,6 +755,10 @@ final class Catalogue
             $params[] = (string) json_encode($etiquette, JSON_UNESCAPED_UNICODE);
         }
 
+        [$clausesChamps, $paramsChamps] = $this->clausesChamps($filtres);
+        $clauses = [...$clauses, ...$clausesChamps];
+        $params = [...$params, ...$paramsChamps];
+
         $clauses = [...$clauses, ...$this->clausesBooleennes($filtres)];
 
         if (($filtres['dossier'] ?? null) !== null) {
@@ -653,6 +807,55 @@ final class Catalogue
         }
 
         return $clauses;
+    }
+
+    /**
+     * Filtres des champs personnalisés (DocumentFilterSet custom_fields* / has_custom_fields).
+     *
+     * Les valeurs vivent dans `meta.champs` (`.meta.json` : le dossier fait foi) ; la clé est celle de
+     * la définition (`Socle\Champs`). Aucune valeur n'est concaténée : les clés et les motifs passent
+     * par des marqueurs `?` (`JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(...)), ?)`).
+     *
+     * @param array<string, mixed> $filtres
+     * @return array{0:list<string>, 1:list<mixed>}
+     */
+    private function clausesChamps(array $filtres): array
+    {
+        $clauses = [];
+        $params = [];
+
+        if (($filtres['champs_contient'] ?? null) !== null) {
+            $clauses[] = "CAST(JSON_EXTRACT(d.meta, '$.champs') AS CHAR) LIKE ?";
+            $params[] = '%' . self::echapperLike((string) $filtres['champs_contient']) . '%';
+        }
+
+        if (($filtres['champs_presents'] ?? null) !== null) {
+            $presence = "COALESCE(JSON_LENGTH(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs'))), 0) > 0";
+            $clauses[] = $filtres['champs_presents'] ? $presence : 'NOT (' . $presence . ')';
+        }
+
+        $present = static function (string $cle) use (&$params): string {
+            $params[] = (string) json_encode($cle, JSON_UNESCAPED_UNICODE);
+
+            return "JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs')), ?)";
+        };
+
+        foreach ($filtres['champs_tous'] ?? [] as $cle) {
+            $clauses[] = $present($cle);
+        }
+        $any = [];
+        foreach ($filtres['champs_any'] ?? [] as $cle) {
+            $any[] = $present($cle);
+        }
+        if ($any !== []) {
+            $clauses[] = '(' . implode(' OR ', $any) . ')';
+        }
+        foreach ($filtres['sans_champs'] ?? [] as $cle) {
+            $params[] = (string) json_encode($cle, JSON_UNESCAPED_UNICODE);
+            $clauses[] = "COALESCE(JSON_CONTAINS(JSON_KEYS(JSON_EXTRACT(d.meta, '$.champs')), ?), 0) = 0";
+        }
+
+        return [$clauses, $params];
     }
 
     /** Sous-requête corrélée sur le contenu indexé (`recherche_textes`), au même document. */
