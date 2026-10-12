@@ -1,0 +1,120 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Réglages{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-reglages">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Réglages</h1>
+      <span class="muted">{{ utilisateur }}</span>
+    </div>
+    <div class="actions">
+      <span class="chip" data-testid="reglage-section">{{ sections[section] }}</span>
+      {% if '*' in permissions or 'application:administrer' in permissions %}
+        <a class="btn discret" href="/administration/comptes" data-testid="lien-reglage-comptes">{{ ic.i('appareil') }}Comptes</a>
+        <a class="btn discret" href="/administration/groupes" data-testid="lien-reglage-groupes">{{ ic.i('partage') }}Groupes</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if message %}
+    <section class="carte" data-testid="reglage-message">
+      <p><span class="chip ok">ok</span> Réglages enregistrés.</p>
+    </section>
+  {% endif %}
+
+  <div class="reglages">
+    <nav class="carte" aria-label="Sections des réglages">
+      <ul class="arbre">
+        {% for slug, libelle in sections %}
+          <li><a href="/reglages/{{ slug }}" data-testid="reglage-onglet-{{ slug }}"
+                 {{ section == slug ? 'aria-current="page"' : '' }}>{{ libelle }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div style="display:grid;gap:12px">
+      {% if section == 'reglages-generaux' %}
+        <section class="carte section-reglage" data-testid="reglage-general">
+          <h2>Réglages généraux</h2>
+          <form method="post" action="/reglages" data-testid="formulaire-reglages-generaux">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="section" value="reglages-generaux">
+            <div class="champ"><label for="reglage-langue">Langue</label>
+              <select id="reglage-langue" name="langue" data-testid="reglage-langue">
+                {% for l in langues %}<option value="{{ l }}" {{ reglages.langue == l ? 'selected' : '' }}>{{ l }}</option>{% endfor %}
+              </select></div>
+            <div class="champ"><label for="reglage-theme">Thème</label>
+              <select id="reglage-theme" name="theme" data-testid="reglage-theme">
+                {% for t in themes %}<option value="{{ t }}" {{ reglages.theme == t ? 'selected' : '' }}>{{ t }}</option>{% endfor %}
+              </select></div>
+            <div class="champ"><label for="reglage-mode">Mode d’affichage</label>
+              <select id="reglage-mode" name="mode_affichage" data-testid="reglage-mode">
+                {% for m in modes %}<option value="{{ m }}" {{ reglages.mode_affichage == m ? 'selected' : '' }}>{{ m }}</option>{% endfor %}
+              </select></div>
+            <div class="champ"><label for="reglage-taille">Documents par page</label>
+              <input id="reglage-taille" name="taille_page" type="number" min="10" max="1000" value="{{ reglages.taille_page }}" data-testid="reglage-taille"></div>
+            <fieldset class="champ"><legend>Colonnes affichées</legend>
+              {% for a in affichages %}
+                <label class="case"><input type="checkbox" name="colonnes[]" value="{{ a }}"
+                  {{ a in reglages.colonnes ? 'checked' : '' }} data-testid="reglage-colonne-{{ a }}"> {{ a }}</label>
+              {% endfor %}
+            </fieldset>
+            <div class="pied-validation">
+              <button class="btn primaire" type="submit" data-testid="action-enregistrer-reglages">Enregistrer</button>
+            </div>
+          </form>
+        </section>
+      {% elseif section == 'notifications' %}
+        <section class="carte section-reglage" data-testid="reglage-notifications">
+          <h2>Notifications</h2>
+          <p class="muted">Quand la GED vous avertit des traitements du fonds.</p>
+          <form method="post" action="/reglages" data-testid="formulaire-notifications">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="section" value="notifications">
+            <label class="case"><input type="checkbox" name="notifications_nouveau" value="1"
+              {{ reglages.notifications_nouveau ? 'checked' : '' }} data-testid="notification-nouveau"> Nouveau document détecté</label>
+            <label class="case"><input type="checkbox" name="notifications_succes" value="1"
+              {{ reglages.notifications_succes ? 'checked' : '' }} data-testid="notification-succes"> Traitement terminé</label>
+            <label class="case"><input type="checkbox" name="notifications_echec" value="1"
+              {{ reglages.notifications_echec ? 'checked' : '' }} data-testid="notification-echec"> Traitement en échec</label>
+            <label class="case"><input type="checkbox" name="notifications_masquer" value="1"
+              {{ reglages.notifications_masquer ? 'checked' : '' }} data-testid="notification-masquer"> Masquer au tableau de bord</label>
+            <div class="pied-validation">
+              <button class="btn primaire" type="submit" data-testid="action-enregistrer-notifications">Enregistrer</button>
+            </div>
+          </form>
+        </section>
+      {% elseif section == 'permissions' %}
+        <section class="carte section-reglage" data-testid="reglage-permissions">
+          <h2>Mes permissions</h2>
+          <p class="muted">Vos droits effectifs. L’administration des droits se fait dans Comptes, Groupes et par dossier.</p>
+          <ul class="liste" data-testid="reglage-permissions-liste">
+            {% for p in permissions %}
+              <li data-testid="reglage-permission-{{ loop.index }}"><span class="l1 mono">{{ p }}</span></li>
+            {% else %}
+              <li class="muted" data-testid="reglage-permissions-vide">Aucune permission déclarée.</li>
+            {% endfor %}
+          </ul>
+          <div class="actions">
+            <a class="btn" href="/administration/comptes" data-testid="reglage-permissions-comptes">Comptes</a>
+            <a class="btn discret" href="/administration/groupes" data-testid="reglage-permissions-groupes">Groupes</a>
+          </div>
+        </section>
+      {% else %}
+        <section class="carte section-reglage" data-testid="reglage-vues">
+          <h2>Vues enregistrées</h2>
+          <ul class="liste" data-testid="reglage-vues-liste">
+            {% for v in vues %}
+              <li data-testid="reglage-vue-{{ v.id }}"><span class="l1">{{ v.nom }}</span></li>
+            {% else %}
+              <li class="muted" data-testid="reglage-vues-vide">Aucune vue enregistrée.</li>
+            {% endfor %}
+          </ul>
+          <div class="actions"><a class="btn" href="/vues" data-testid="lien-reglage-vues">Gérer les vues enregistrées</a></div>
+        </section>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

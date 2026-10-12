@@ -115,6 +115,18 @@ final class DroitsRoutes
         'POST /vues' => 'documents:lire',
         'POST /vues/{id:[0-9]+}' => 'documents:lire',
         'POST /bibliotheque/vue' => 'documents:lire',
+        // Lot ged-parite-ecrans-1 (Interface) : tableau de bord, journaux (admin), corbeille (admin,
+        // restauration seule — GEDv2 ne supprime jamais), réglages de l'utilisateur et accès par numéro
+        // d'archive. Lignes hors secteur (Securite), signalées dans docs/secteurs/interface.md.
+        'GET /tableau-de-bord' => 'documents:lire',
+        'GET /journaux' => 'application:administrer',
+        'GET /corbeille' => 'application:administrer',
+        'POST /corbeille/{id:[0-9]+}/restaurer' => 'application:administrer',
+        'GET /reglages' => 'documents:lire',
+        'GET /reglages/{section:[a-z-]+}' => 'documents:lire',
+        'POST /reglages' => 'documents:lire',
+        'GET /asn' => 'documents:lire',
+        'GET /asn/{id:[0-9]+}' => 'documents:lire',
         // Lot ged-parite-masse : modification en masse. La permission globale est vérifiée ici ; le
         // niveau `modifier` sur CHAQUE dossier est vérifié par le service, document par document.
         'POST /bibliotheque/masse' => 'documents:modifier',
@@ -311,6 +323,18 @@ final class DroitsRoutes
         }
         if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/documents/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /api/v1/documents/{id:[0-9]+}'];
+        }
+
+        // Lot ged-parite-ecrans-1 (Interface) : routes d'écran paramétrées (section de réglages, numéro
+        // d'archive, restauration d'une pièce de la corbeille).
+        if (strtoupper($methode) === 'GET' && preg_match('#^/reglages/[a-z-]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /reglages/{section:[a-z-]+}'];
+        }
+        if (strtoupper($methode) === 'GET' && preg_match('#^/asn/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /asn/{id:[0-9]+}'];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/corbeille/[0-9]+/restaurer$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /corbeille/{id:[0-9]+}/restaurer'];
         }
 
         return null;

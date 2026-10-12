@@ -36,7 +36,12 @@ if ($SansBanc) {
 # 4. Écrans (Playwright) — le serveur est lancé par la configuration Playwright. `--no-install` : sans
 #    node_modules, npx échoue au lieu d'attendre une confirmation qui bloque le harness (constat du juge, 11-10). Le projet « personas »
 #    est exclu : la couche 5 a son propre projet et se joue plus bas, seule.
-$sortie = & npx.cmd --no-install playwright test --project=parcours --project=budgets --reporter=line 2>&1
+#    Lot ged-parite-ecrans-1 : la couche 9 relit `var\e2e-latest.json` (identifiants des parcours, preuve des
+#    écrans). Le rapport JSON est donc écrit EN PLUS de la sortie ligne (l'override `--reporter=line`
+#    l'aurait supprimé) ; les preuves d'écran ne sont pas un faux vert.
+$env:PLAYWRIGHT_JSON_OUTPUT_NAME = 'var\e2e-latest.json'
+$sortie = & npx.cmd --no-install playwright test --project=parcours --project=budgets --reporter=line,json 2>&1
+Remove-Item Env:\PLAYWRIGHT_JSON_OUTPUT_NAME -ErrorAction SilentlyContinue
 # Sortie complète gardée hors dépôt : un écran rouge se nomme sans rejouer la couche (constat du juge, 11-10).
 New-Item -ItemType Directory -Force var\harness | Out-Null; $sortie | Out-File var\harness\4-ecrans.txt -Encoding utf8
 $couches['4-ecrans'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match 'passed|failed' } | Select-Object -Last 2) -join ' ' }

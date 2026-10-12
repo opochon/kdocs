@@ -33,6 +33,10 @@ final class Module
                 return $vue->rendre($rep, 'securite/comptes.twig', [
                     'ecran' => 'administration',
                     'comptes' => $pdo->query('SELECT id, identifiant, role FROM comptes ORDER BY identifiant')->fetchAll(),
+                    // Lot ged-parite-ecrans-1 : le formulaire de création était rendu SANS jeton CSRF, la
+                    // création par l'écran était donc impossible. Jeton de la session courante (ligne
+                    // hors secteur, signalée dans docs/secteurs/interface.md).
+                    'csrf' => \Ged\Ui\Ecrans::jetonCsrf($req),
                 ]);
             } catch (PDOException) {
                 return self::schemaIndisponible($vue, $rep, 'GET /administration/comptes');
@@ -60,6 +64,7 @@ final class Module
                 return $vue->rendre($rep, 'securite/groupes.twig', [
                     'ecran' => 'administration',
                     'groupes' => $pdo->query('SELECT id, nom, role_code FROM securite_groupes ORDER BY nom')->fetchAll(),
+                    'csrf' => \Ged\Ui\Ecrans::jetonCsrf($req),
                 ]);
             } catch (PDOException) {
                 return self::schemaIndisponible($vue, $rep, 'GET /administration/groupes');

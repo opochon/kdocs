@@ -1,0 +1,57 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Journaux{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-journaux">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Journaux</h1>
+      <span class="muted">journal d’audit et de scellement — en ajout seul, jamais purgés</span>
+    </div>
+    <div class="actions">
+      <span class="chip" data-testid="journaux-total">{{ total_journal }} entrée(s)</span>
+      {% for s in sources %}
+        <span class="chip {{ s.existe ? 'ok' : '' }}" data-testid="journaux-source-{{ s.nom }}">{{ s.nom }}{{ s.existe ? '' : ' : absent' }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if erreur %}
+    <section class="carte" data-testid="journaux-erreur">
+      <p><span class="chip danger">erreur</span> <strong>Lecture des journaux</strong> · {{ erreur }}</p>
+    </section>
+  {% endif %}
+
+  <form class="actions" method="get" action="/journaux" data-testid="journaux-filtre">
+    <label for="journaux-action">Action</label>
+    <select id="journaux-action" name="action" data-testid="journaux-action">
+      <option value="">Toutes</option>
+      {% for a in actions %}
+        <option value="{{ a }}" {{ action == a ? 'selected' : '' }}>{{ a }}</option>
+      {% endfor %}
+    </select>
+    <label for="journaux-lignes">Lignes</label>
+    <input id="journaux-lignes" name="lignes" type="number" min="10" max="1000" value="{{ lignes }}" data-testid="journaux-lignes">
+    <button class="btn" type="submit" data-testid="journaux-appliquer">Afficher</button>
+  </form>
+
+  <section class="carte" aria-label="Entrées du journal">
+    <table class="table" data-testid="journaux-liste">
+      <thead><tr><th>Horodatage</th><th>Action</th><th>Auteur</th><th>Contexte</th><th>Source</th></tr></thead>
+      <tbody>
+      {% for e in entrees %}
+        <tr data-testid="journal-ligne-{{ loop.index }}">
+          <td class="mono">{{ e.horodatage }}</td>
+          <td>{{ e.action }}</td>
+          <td>{{ e.utilisateur ?: '—' }}</td>
+          <td>{% for cle, valeur in e.contexte %}{{ cle }}={{ valeur }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+          <td>{{ e.source }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted" data-testid="journaux-vide">Aucune entrée pour ce filtre.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

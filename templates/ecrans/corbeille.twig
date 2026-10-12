@@ -1,0 +1,51 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Corbeille{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-corbeille">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Corbeille</h1>
+      <span class="muted">les documents mis de côté, restaurables — rien n’est supprimé</span>
+    </div>
+    <div class="actions">
+      <span class="chip" data-testid="corbeille-total">{{ documents|length }} document(s)</span>
+      <a class="btn discret" href="/bibliotheque" data-testid="corbeille-retour">Bibliothèque</a>
+    </div>
+  </div>
+
+  <section class="carte" data-testid="corbeille-regle">
+    <p class="muted">Un document de la corbeille garde son fichier et son <span class="mono">.meta.json</span> sous
+      <span class="mono">.corbeille/</span> : GEDv2 ne supprime jamais de donnée utilisateur.
+      La restauration le replace dans le fonds, à l’identique.</p>
+    <button class="btn discret" type="button" disabled data-testid="corbeille-suppression-desactivee"
+            title="GEDv2 ne supprime jamais de donnée utilisateur : une pièce de la corbeille reste restaurable.">
+      Suppression définitive indisponible
+    </button>
+  </section>
+
+  <section class="carte" aria-label="Documents à la corbeille">
+    <table class="table" data-testid="corbeille-liste">
+      <thead><tr><th>Titre</th><th>Chemin d’origine</th><th>Mis à la corbeille</th><th>Par</th><th></th></tr></thead>
+      <tbody>
+      {% for d in documents %}
+        <tr data-testid="corbeille-document-{{ d.id }}">
+          <td>{{ d.titre }}</td>
+          <td class="mono">{{ d.chemin }}</td>
+          <td>{{ d.supprime_le }}</td>
+          <td>{{ d.supprime_par ?: '—' }}</td>
+          <td>
+            <form method="post" action="/corbeille/{{ d.id }}/restaurer" class="inline">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn discret" type="submit" data-testid="action-restaurer-{{ d.id }}">Restaurer</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted" data-testid="corbeille-vide">La corbeille est vide.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -443,6 +443,11 @@ try {
         'POST /taches/{id:[0-9]+}/accuser' => 'sonde=1',
         'POST /vues' => 'nom=',
         'POST /vues/{id:[0-9]+}' => 'display_mode=invalide',
+        // Lot ged-parite-ecrans-1 (Interface) : la restauration d'une pièce inexistante est refusée par le
+        // métier (aucun fichier déplacé) ; une langue inconnue est refusée avant toute écriture de
+        // préférence. La sonde ne vérifie ici que l'absence et le rejeu du jeton CSRF.
+        'POST /corbeille/{id:[0-9]+}/restaurer' => 'sonde=1',
+        'POST /reglages' => 'section=reglages-generaux&langue=xx',
     ];
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);

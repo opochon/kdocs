@@ -28,6 +28,12 @@ final class Preferences
         'modele_document' => 'string',
         'tri' => 'string',
         'tri_inverse' => 'bool',
+        // Lot ged-parite-ecrans-1 (Interface) : réglages de notification de l'utilisateur, bornés comme
+        // les autres (modèle Paperless `UiSettings.notifications_*`). Lignes hors secteur, signalées.
+        'notifications_nouveau' => 'bool',
+        'notifications_succes' => 'bool',
+        'notifications_echec' => 'bool',
+        'notifications_masquer' => 'bool',
     ];
 
     private readonly Registre $registre;
@@ -81,6 +87,10 @@ final class Preferences
             'modele_document' => (string) ($brut['modele_document'] ?? 'complet'),
             'tri' => (string) ($brut['tri'] ?? 'created'),
             'tri_inverse' => (bool) ($brut['tri_inverse'] ?? false),
+            'notifications_nouveau' => (bool) ($brut['notifications_nouveau'] ?? false),
+            'notifications_succes' => (bool) ($brut['notifications_succes'] ?? false),
+            'notifications_echec' => (bool) ($brut['notifications_echec'] ?? false),
+            'notifications_masquer' => (bool) ($brut['notifications_masquer'] ?? false),
         ];
     }
 

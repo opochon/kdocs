@@ -1,0 +1,83 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Tableau de bord{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-tableau-de-bord">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Tableau de bord</h1>
+      <span class="muted">ce que vous devez traiter</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/a-traiter" data-testid="tb-lien-a-traiter">{{ ic.i('inbox') }}Ouvrir À traiter</a>
+      <a class="btn discret" href="/bibliotheque" data-testid="tb-lien-bibliotheque">{{ ic.i('biblio') }}Bibliothèque</a>
+    </div>
+  </div>
+
+  <div class="reglages">
+    <nav class="carte" aria-label="Raccourcis">
+      <ul class="arbre">
+        <li><a href="#tb-a-classer" data-testid="tb-raccourci-a-classer">Documents à classer</a></li>
+        <li><a href="#tb-taches" data-testid="tb-raccourci-taches">Traitements en échec</a></li>
+        <li><a href="#tb-courriers" data-testid="tb-raccourci-courriers">Courriers récents</a></li>
+        <li><a href="#tb-vues" data-testid="tb-raccourci-vues">Vues épinglées</a></li>
+      </ul>
+    </nav>
+
+    <div style="display:grid;gap:12px">
+      <section class="carte section-reglage" id="tb-a-classer" data-testid="tb-a-classer">
+        <h2>Documents à classer
+          <span class="chip" data-testid="tb-a-classer-total">{{ a_classer.total }}</span>
+        </h2>
+        <ul class="liste" data-testid="tb-a-classer-liste">
+          {% for d in a_classer.apercu %}
+            <li><span class="l1">{{ d.titre }}</span>
+              <span class="l2"><a href="/documents/{{ d.id }}" data-testid="tb-document-{{ d.id }}">Ouvrir la fiche</a></span></li>
+          {% else %}
+            <li class="muted" data-testid="tb-a-classer-vide">Aucun document en attente de classement.</li>
+          {% endfor %}
+        </ul>
+        <div class="actions"><a class="btn" href="/a-traiter" data-testid="tb-tout-a-traiter">Tout voir dans À traiter</a></div>
+      </section>
+
+      <section class="carte section-reglage" id="tb-taches" data-testid="tb-taches">
+        <h2>Traitements en échec
+          <span class="chip {{ taches.total > 0 ? 'warn' : '' }}" data-testid="tb-taches-total">{{ taches.total }}</span>
+        </h2>
+        <ul class="liste" data-testid="tb-taches-liste">
+          {% for t in taches.apercu %}
+            <li><span class="l1">{{ t.fichier }}</span><span class="l2">{{ t.resultat ?: 'sans détail' }}</span></li>
+          {% else %}
+            <li class="muted" data-testid="tb-taches-vide">Aucun traitement en échec.</li>
+          {% endfor %}
+        </ul>
+        <div class="actions"><a class="btn discret" href="/taches" data-testid="tb-lien-taches">Suivi des traitements</a></div>
+      </section>
+
+      <section class="carte section-reglage" id="tb-courriers" data-testid="tb-courriers">
+        <h2>Courriers récents</h2>
+        <ul class="liste" data-testid="tb-courriers-liste">
+          {% for c in courriers %}
+            <li><span class="l1">{{ c.sujet }}</span>
+              <span class="l2">{{ c.statut }}{% if c.date %} · {{ c.date }}{% endif %}</span></li>
+          {% else %}
+            <li class="muted" data-testid="tb-courriers-vide">Aucun courrier relevé.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="carte section-reglage" id="tb-vues" data-testid="tb-vues">
+        <h2>Vues épinglées</h2>
+        <ul class="liste" data-testid="tb-vues-liste">
+          {% for v in vues %}
+            <li><span class="l1"><a href="/bibliotheque?vue={{ v.id }}" data-testid="tb-vue-{{ v.id }}">{{ v.nom }}</a></span></li>
+          {% else %}
+            <li class="muted" data-testid="tb-vues-vide">Aucune vue épinglée : créez-en une dans Vues enregistrées.</li>
+          {% endfor %}
+        </ul>
+        <div class="actions"><a class="btn discret" href="/vues" data-testid="tb-lien-vues">Vues enregistrées</a></div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
