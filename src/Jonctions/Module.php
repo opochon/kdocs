@@ -48,6 +48,8 @@ final class Module
         $apiJeton = new ApiJeton($config, $jetons, $droits);
         $pariteApi = new PariteApi($config, $apiJeton, $mailer, $droits);
         $appairageApi = new AppairageApi($appairage, $jetons);
+        // Verbes REST des ressources (lot ged-parite-api-3), même porte que DocumentsApi/PariteApi.
+        $ressources = new RessourcesApi($config, $apiJeton);
         $ecranProfil = new EcranProfil($vue, $profil, $appairage, $jetons);
         $ecranJonctions = new EcranJonctions($jetons);
 
@@ -83,6 +85,47 @@ final class Module
         $app->post('/api/v1/documents/bulk_edit', [$pariteApi, 'bulkEdit']);
         $app->post('/api/v1/documents/bulk_download', [$pariteApi, 'bulkDownload']);
         $app->post('/api/v1/dossiers/tester', [$pariteApi, 'dossierTester']);
+        // Verbes REST des ressources et vues annexes (lot ged-parite-api-3) : même porte jeton.
+        $app->get('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteLire']);
+        $app->post('/api/v1/etiquettes', [$ressources, 'etiquetteCreer']);
+        $app->put('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteRemplacer']);
+        $app->patch('/api/v1/etiquettes/{id:[0-9]+}', [$ressources, 'etiquetteModifier']);
+        $app->get('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeLire']);
+        $app->post('/api/v1/types', [$ressources, 'typeCreer']);
+        $app->put('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeRemplacer']);
+        $app->patch('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeModifier']);
+        $app->get('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champLire']);
+        $app->post('/api/v1/champs', [$ressources, 'champCreer']);
+        $app->put('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champRemplacer']);
+        $app->patch('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champModifier']);
+        $app->get('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueLire']);
+        $app->post('/api/v1/vues', [$ressources, 'vueCreer']);
+        $app->put('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueRemplacer']);
+        $app->patch('/api/v1/vues/{id:[0-9]+}', [$ressources, 'vueModifier']);
+        $app->get('/api/v1/comptes', [$ressources, 'comptesLister']);
+        $app->post('/api/v1/comptes', [$ressources, 'compteCreer']);
+        $app->get('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteLire']);
+        $app->put('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteRemplacer']);
+        $app->patch('/api/v1/comptes/{id:[0-9]+}', [$ressources, 'compteModifier']);
+        $app->get('/api/v1/groupes', [$ressources, 'groupesLister']);
+        $app->post('/api/v1/groupes', [$ressources, 'groupeCreer']);
+        $app->get('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeLire']);
+        $app->put('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeRemplacer']);
+        $app->patch('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeModifier']);
+        $app->post('/api/v1/partages', [$ressources, 'partageCreer']);
+        $app->get('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageLire']);
+        $app->delete('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageSupprimer']);
+        $app->get('/api/v1/documents/{id:[0-9]+}/partages', [$ressources, 'partagesDocument']);
+        $app->get('/api/v1/corbeille', [$ressources, 'corbeilleLire']);
+        $app->post('/api/v1/corbeille', [$ressources, 'corbeilleAction']);
+        $app->get('/api/v1/taches', [$ressources, 'tachesLister']);
+        $app->get('/api/v1/taches/{id:[0-9]+}', [$ressources, 'tacheLire']);
+        $app->get('/api/v1/courriers/traites/{id:[0-9]+}', [$ressources, 'courrierTraiteLire']);
+        $app->get('/api/v1/profil', [$ressources, 'profilLire']);
+        $app->patch('/api/v1/profil', [$ressources, 'profilModifier']);
+        $app->post('/api/v1/jetons', [$ressources, 'jetonCreer']);
+        $app->get('/api/v1/preferences', [$ressources, 'preferencesLire']);
+        $app->post('/api/v1/preferences', [$ressources, 'preferencesEnregistrer']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);

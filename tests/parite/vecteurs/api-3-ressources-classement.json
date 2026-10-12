@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "categorie": "ressources-classement",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 11,
+  "vecteurs": [
+    {
+      "id": "ressources-classement:test_create_custom_field:001",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/custom_fields/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:79"
+    },
+    {
+      "id": "ressources-classement:test_create_custom_field:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/custom_fields/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:79"
+    },
+    {
+      "id": "ressources-classement:test_create_custom_field_nonunique_name:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/custom_fields/",
+        "corps": {
+          "data_type": "string",
+          "name": "Test Custom Field"
+        }
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:112"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_create_update_patch:004",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/saved_views/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2069"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_create_update_patch:005",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/saved_views/{v1}/",
+        "corps": {
+          "show_in_sidebar": false
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2083"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_create_update_patch:006",
+      "entree": {
+        "methode": "PUT",
+        "chemin": "/api/saved_views/{v1}/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2090"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_create_update_patch:007",
+      "entree": {
+        "methode": "PUT",
+        "chemin": "/api/saved_views/{v1}/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2099"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_display_options:008",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/saved_views/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2131"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_display_options:009",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/saved_views/{v1}/",
+        "corps": {
+          "display_fields": [
+            "{SavedView.DisplayFields.TAGS}",
+            "{SavedView.DisplayFields.TITLE}",
+            "{SavedView.DisplayFields.CREATED}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2158"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_display_options:010",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/saved_views/{v1}/",
+        "corps": {
+          "display_fields": [
+            "foobar"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2180"
+    },
+    {
+      "id": "ressources-classement:test_saved_view_display_options:011",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/saved_views/{v1}/",
+        "corps": {
+          "display_fields": []
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_documents.py:2190"
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "ressources-classement:test_api_create_storage_path:012",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/storage_paths/"
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (`documents.chemin_relatif` et `securite_dossiers`) ; la correspondance fonctionnelle est le dossier, pas un gabarit de chemin.",
+      "reference": "src/documents/tests/test_api_objects.py:195"
+    },
+    {
+      "id": "ressources-classement:test_api_create_invalid_storage_path:013",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/storage_paths/"
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (`documents.chemin_relatif` et `securite_dossiers`) ; la correspondance fonctionnelle est le dossier, pas un gabarit de chemin.",
+      "reference": "src/documents/tests/test_api_objects.py:219"
+    },
+    {
+      "id": "ressources-classement:test_api_create_storage_path_rejects_traversal:014",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/storage_paths/"
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (`documents.chemin_relatif` et `securite_dossiers`) ; la correspondance fonctionnelle est le dossier, pas un gabarit de chemin.",
+      "reference": "src/documents/tests/test_api_objects.py:243"
+    },
+    {
+      "id": "ressources-classement:test_api_delete_storage_path:015",
+      "entree": {
+        "methode": "DELETE",
+        "chemin": "/api/storage_paths/{sp2}/"
+      },
+      "raison": "chemin de stockage comme entite absent : GEDv2 range par dossier (`documents.chemin_relatif` et `securite_dossiers`) ; la correspondance fonctionnelle est le dossier, pas un gabarit de chemin.",
+      "reference": "src/documents/tests/test_api_objects.py:328"
+    }
+  ]
+}

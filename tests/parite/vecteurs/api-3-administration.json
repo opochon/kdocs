@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "categorie": "administration",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 7,
+  "vecteurs": [
+    {
+      "id": "administration:test_get_users:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/users/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:632"
+    },
+    {
+      "id": "administration:test_create_user:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/users/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:661"
+    },
+    {
+      "id": "administration:test_update_user:003",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/users/{user1}/",
+        "corps": {
+          "first_name": "Updated Name 1",
+          "password": "******"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:723"
+    },
+    {
+      "id": "administration:test_update_user:004",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/users/{user1}/",
+        "corps": {
+          "first_name": "Updated Name 2",
+          "password": "newreallystrongpassword456"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:737"
+    },
+    {
+      "id": "administration:test_get_groups:005",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/groups/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:896"
+    },
+    {
+      "id": "administration:test_create_group:006",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/groups/"
+      },
+      "sortie": {
+        "statut": 201
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:919"
+    },
+    {
+      "id": "administration:test_update_group:007",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/groups/{group1}/",
+        "corps": {
+          "name": "Updated Name 1"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:968"
+    }
+  ],
+  "non_rejouables": []
+}
