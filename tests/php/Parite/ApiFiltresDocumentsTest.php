@@ -122,7 +122,7 @@ final class ApiFiltresDocumentsTest extends TestCase
             ['cle' => 'a', 'titre' => 'Facture Alpha', 'mime' => 'application/pdf', 'empreinte' => 'aaa1',
                 'etiquettes' => ['Urgent'], 'statut' => 'a_controler', 'date' => '2024-01-10',
                 'ajoute' => '2024-02-01 08:00:00', 'modifie' => '2024-03-01 09:00:00', 'type' => 'Facture',
-                'emetteur' => 'Alpha SA', 'chemin' => $prefixe . '/a.pdf'],
+                'emetteur' => 'Alpha SA', 'contenu' => 'Paiement fournisseur urgent', 'chemin' => $prefixe . '/a.pdf'],
             ['cle' => 'b', 'titre' => 'Recu Beta', 'mime' => 'image/png', 'empreinte' => 'bbb2',
                 'etiquettes' => [], 'statut' => 'valide', 'date' => '2024-06-15',
                 'ajoute' => '2024-07-01 08:00:00', 'modifie' => '2024-08-01 09:00:00', 'type' => null,
@@ -151,6 +151,15 @@ final class ApiFiltresDocumentsTest extends TestCase
             self::assertSame(['a', 'c'], $noms(['mime_contient' => 'pdf']));
             self::assertSame(['b'], $noms(['empreinte_egal' => 'BBB2']), 'empreinte casse ignorée');
 
+            // Contenu indexé (recherche_textes) et référentiels existants : émetteur, type, dossier, étiquette.
+            self::assertSame(['a'], $noms(['contenu_contient' => 'fournisseur']));
+            self::assertSame(['a'], $noms(['contenu_commence' => 'Paiement']));
+            self::assertSame(['a'], $noms(['titre_contenu' => 'fournisseur']), 'titre_contenu cherche aussi le contenu');
+            self::assertSame(['a'], $noms(['emetteur' => 'Alpha SA']));
+            self::assertSame(['a'], $noms(['type' => 'Facture']));
+            self::assertSame(['a', 'c'], $noms(['dossier' => $prefixe]));
+            self::assertSame(['c'], $noms(['etiquette' => 'Contrat']));
+
             self::assertSame(['a'], $noms(['etiquettes_presentes' => '1', 'titre_contient' => 'Alpha']));
             self::assertSame(['b'], $noms(['sans_etiquettes' => 'Urgent,Contrat']));
             self::assertSame(['a', 'c'], $noms(['etiquettes_any' => 'Contrat,Urgent']));
@@ -161,9 +170,14 @@ final class ApiFiltresDocumentsTest extends TestCase
             self::assertSame(['a', 'b'], $noms(['date_max' => '2024-06-15']));
             self::assertSame(['c'], $noms(['date_apres' => '2024-06-15']));
             self::assertSame(['a'], $noms(['date_avant' => '2024-06-15']));
+            self::assertSame(['a', 'b'], $noms(['date_annee' => '2024']));
+            self::assertSame(['b'], $noms(['date_mois' => '6']));
+            self::assertSame(['a'], $noms(['date_jour' => '10']));
 
             self::assertSame(['c'], $noms(['ajoute_min' => '2025-01-01']));
+            self::assertSame(['c'], $noms(['ajoute_annee' => '2025']));
             self::assertSame(['a', 'b'], $noms(['modifie_max' => '2024-08-01 23:59:59']));
+            self::assertSame(['a', 'c'], $noms(['modifie_mois' => '3']));
 
             self::assertSame(['b'], $noms(['sans_emetteur' => '1']));
             self::assertSame(['b'], $noms(['sans_type' => '1']));

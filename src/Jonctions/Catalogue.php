@@ -265,8 +265,11 @@ final class Catalogue
             'titre_contenu' => null,
             'empreinte' => null, 'empreinte_egal' => null, 'mime' => null, 'mime_contient' => null,
             'date_min' => null, 'date_max' => null, 'date_apres' => null, 'date_avant' => null,
+            'date_annee' => null, 'date_mois' => null, 'date_jour' => null,
             'ajoute_min' => null, 'ajoute_max' => null, 'ajoute_apres' => null, 'ajoute_avant' => null,
+            'ajoute_annee' => null, 'ajoute_mois' => null, 'ajoute_jour' => null,
             'modifie_min' => null, 'modifie_max' => null, 'modifie_apres' => null, 'modifie_avant' => null,
+            'modifie_annee' => null, 'modifie_mois' => null, 'modifie_jour' => null,
             'etiquettes_any' => [], 'sans_etiquettes' => [], 'etiquettes_presentes' => null,
             'a_traiter' => null, 'sans_emetteur' => null, 'sans_type' => null, 'sans_dossier' => null,
         ];
@@ -339,6 +342,10 @@ final class Catalogue
                 $filtres[$cle] = $nature === 'date'
                     ? $this->date($criteres[$cle] ?? null, $cle, $etape)
                     : $this->horodatage($criteres[$cle] ?? null, $cle, $etape);
+            }
+            foreach (['annee', 'mois', 'jour'] as $composante) {
+                $cle = $prefixe . '_' . $composante;
+                $filtres[$cle] = $this->identifiant($criteres[$cle] ?? null, $cle, $etape);
             }
         }
 
@@ -524,10 +531,16 @@ final class Catalogue
         foreach ([
             'date_min' => 'd.date_document >= ?', 'date_max' => 'd.date_document <= ?',
             'date_apres' => 'd.date_document > ?', 'date_avant' => 'd.date_document < ?',
+            'date_annee' => 'YEAR(d.date_document) = ?', 'date_mois' => 'MONTH(d.date_document) = ?',
+            'date_jour' => 'DAY(d.date_document) = ?',
             'ajoute_min' => 'd.cree_le >= ?', 'ajoute_max' => 'd.cree_le <= ?',
             'ajoute_apres' => 'd.cree_le > ?', 'ajoute_avant' => 'd.cree_le < ?',
+            'ajoute_annee' => 'YEAR(d.cree_le) = ?', 'ajoute_mois' => 'MONTH(d.cree_le) = ?',
+            'ajoute_jour' => 'DAY(d.cree_le) = ?',
             'modifie_min' => 'd.maj_le >= ?', 'modifie_max' => 'd.maj_le <= ?',
             'modifie_apres' => 'd.maj_le > ?', 'modifie_avant' => 'd.maj_le < ?',
+            'modifie_annee' => 'YEAR(d.maj_le) = ?', 'modifie_mois' => 'MONTH(d.maj_le) = ?',
+            'modifie_jour' => 'DAY(d.maj_le) = ?',
         ] as $cle => $operateur) {
             if (($filtres[$cle] ?? null) !== null) {
                 $clauses[] = $operateur;
