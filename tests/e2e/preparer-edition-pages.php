@@ -15,9 +15,20 @@ use Ged\Socle\DepotFichiers;
 putenv('DB_NAME=gedv2_test');
 putenv('APP_ENV=test');
 $verrou = fopen(sys_get_temp_dir() . '/gedv2_test.lock', 'c');
-if ($verrou === false || !flock($verrou, LOCK_EX)) {
-    fwrite(STDERR, "verrou gedv2_test indisponible\n");
+if ($verrou === false) {
+    fwrite(STDERR, "verrou gedv2_test introuvable\n");
     exit(1);
+}
+// Verrou borne : un detenteur fige (process orphelin) ne doit jamais faire attendre
+// a l'infini, sinon chaque run expire et laisse un nouvel orphelin tenant le verrou.
+$limite = microtime(true) + 60.0;
+while (!flock($verrou, LOCK_EX | LOCK_NB)) {
+    if (microtime(true) >= $limite) {
+        fwrite(STDERR, "verrou gedv2_test tenu par un autre processus apres 60 s\n");
+        fclose($verrou);
+        exit(1);
+    }
+    usleep(200000);
 }
 try {
     $config = new Config($racine);

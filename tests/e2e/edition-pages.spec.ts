@@ -23,7 +23,7 @@ async function attendre(url: string): Promise<void> {
 }
 function preparer() {
   return JSON.parse(execFileSync('php', ['tests/e2e/preparer-edition-pages.php'], { cwd: RACINE,
-    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS } }).toString()) as typeof preparation;
+    env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS }, timeout: 70_000, killSignal: 'SIGKILL' }).toString()) as typeof preparation;
 }
 async function connecterPage(browser: Browser, mobile = false): Promise<{ page: Page; fermer: () => Promise<void> }> {
   const contexte = await browser.newContext({ baseURL: base, viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 }, locale: 'fr-CH' });
@@ -53,7 +53,7 @@ test('le vrai compte retouche puis valide six pages sans perte ni doublon', asyn
     await page.getByTestId('edition-annuler').click();
     await page.getByTestId('action-valider').click();
     const fin = JSON.parse(execFileSync('php', ['tests/e2e/verifier-edition-pages.php', String(preparation.lot)], { cwd: RACINE,
-      env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS } }).toString());
+      env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: FONDS }, timeout: 70_000, killSignal: 'SIGKILL' }).toString());
     expect(fin.pages).toEqual([1, 2, 3, 4, 5, 6]); expect(fin.statuts).toEqual(['valide']);
   } finally { await fermer(); }
 });
