@@ -283,6 +283,23 @@ MANUELS: dict[str, dict] = {
         ],
         "non_rejouables": [],
     },
+    "destroy": {
+        "note": (
+            "Paperless supprime un référentiel (DELETE → 204). GEDv2 ne supprime jamais (règle 4) : le "
+            "retrait d'un type de document est une DÉSACTIVATION (204 attendu → 200 obtenu), même précédent "
+            "que MailAccountViewSet.destroy (déjà couvert-autrement par la bascule). Vecteur transcrit du "
+            "contrat DRF ModelViewSetDestroy, aucun code Paperless repris."
+        ),
+        "vecteurs": [
+            {
+                "id": "destroy:doctype_destroy:001",
+                "entree": {"methode": "DELETE", "chemin": "/api/document_types/{id}/"},
+                "sortie": {"statut": 204},
+                "reference": "src/documents/views.py (DocumentTypeViewSet, ModelViewSet)",
+            },
+        ],
+        "non_rejouables": [],
+    },
 }
 
 
