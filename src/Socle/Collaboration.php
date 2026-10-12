@@ -102,14 +102,22 @@ final class Collaboration
         $this->audit->ajouter('lien_retire', $auteur, ['lien'=>$lien]);
     }
 
-    /** @return array{id:int,jeton:string} le jeton ne revient qu'à sa création, et n'est jamais audité. */
-    public function partagerExterne(int $document, string $auteur, string $expiration): array
+    /**
+     * Cree un partage externe. `$version` fixe la version partagee (modele Paperless `ShareLink.file_version`) ;
+     * `null` vaut « version courante ». La version est un entier positif, jamais un identifiant de fichier brut.
+     *
+     * @return array{id:int,jeton:string} le jeton ne revient qu'a sa creation, et n'est jamais audite.
+     */
+    public function partagerExterne(int $document, string $auteur, string $expiration, ?int $version = null): array
     {
         $this->exigerDocument($document); $date = $this->expiration($expiration);
+        if ($version !== null && $version < 1) {
+            throw new RuntimeException('partage externe : version invalide (entier positif attendu)');
+        }
         $jeton = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '='); $empreinte = hash('sha256', $jeton);
-        $s = $this->pdo->prepare("INSERT INTO document_collaboration (document_id,type,type_partage,cible_type,jeton_empreinte,auteur,expire_le) VALUES (?,'partage','externe','lien',?,?,?)");
-        $s->execute([$document, $empreinte, $auteur, $date]); $id = (int) $this->pdo->lastInsertId();
-        $this->audit->ajouter('partage_externe_cree', $auteur, ['partage'=>$id, 'document'=>$document, 'jeton_empreinte'=>substr($empreinte,0,12)]);
+        $s = $this->pdo->prepare("INSERT INTO document_collaboration (document_id,type,type_partage,cible_type,jeton_empreinte,auteur,expire_le,version) VALUES (?,'partage','externe','lien',?,?,?,?)");
+        $s->execute([$document, $empreinte, $auteur, $date, $version]); $id = (int) $this->pdo->lastInsertId();
+        $this->audit->ajouter('partage_externe_cree', $auteur, ['partage'=>$id, 'document'=>$document, 'version'=>$version, 'jeton_empreinte'=>substr($empreinte,0,12)]);
         return ['id'=>$id, 'jeton'=>$jeton];
     }
 
@@ -160,18 +168,18 @@ final class Collaboration
         $this->revoquerPartageType($partage, 'externe', $auteur);
     }
 
-    /** @return array{document:int,partage:int}|null */
+    /** @return array{document:int,partage:int,version:?int}|null */
     public function lienExterneValide(string $jeton): ?array
     {
         if (!preg_match('/^[A-Za-z0-9_-]{40,128}$/', $jeton)) return null;
-        $empreinte=hash('sha256',$jeton); $s=$this->pdo->prepare("SELECT id,document_id FROM document_collaboration WHERE type='partage' AND type_partage='externe' AND jeton_empreinte=? AND revoque_le IS NULL AND expire_le > NOW()"); $s->execute([$empreinte]); $r=$s->fetch(PDO::FETCH_ASSOC);
+        $empreinte=hash('sha256',$jeton); $s=$this->pdo->prepare("SELECT id,document_id,version FROM document_collaboration WHERE type='partage' AND type_partage='externe' AND jeton_empreinte=? AND revoque_le IS NULL AND expire_le > NOW()"); $s->execute([$empreinte]); $r=$s->fetch(PDO::FETCH_ASSOC);
         if (!is_array($r)) return null;
         $this->audit->ajouter('partage_externe_acces', null, ['partage'=>(int)$r['id'],'document'=>(int)$r['document_id'],'jeton_empreinte'=>substr($empreinte,0,12)]);
-        return ['document'=>(int)$r['document_id'],'partage'=>(int)$r['id']];
+        return ['document'=>(int)$r['document_id'],'partage'=>(int)$r['id'],'version'=>isset($r['version']) ? (int) $r['version'] : null];
     }
 
-    /** @return list<array{id:int,type:string,cible:string,expire_le:?string,revoque_le:?string}> */
-    public function partages(int $document): array { $s=$this->pdo->prepare("SELECT id,type_partage type,CASE WHEN cible_type='lien' THEN 'lien externe' ELSE CONCAT(cible_type, ' #', cible_id) END cible,expire_le,revoque_le FROM document_collaboration WHERE document_id=? AND type='partage' ORDER BY cree_le DESC"); $s->execute([$document]); return $s->fetchAll(PDO::FETCH_ASSOC); }
+    /** @return list<array{id:int,type:string,cible:string,version:?int,expire_le:?string,revoque_le:?string}> */
+    public function partages(int $document): array { $s=$this->pdo->prepare("SELECT id,type_partage type,CASE WHEN cible_type='lien' THEN 'lien externe' ELSE CONCAT(cible_type, ' #', cible_id) END cible,version,expire_le,revoque_le FROM document_collaboration WHERE document_id=? AND type='partage' ORDER BY cree_le DESC"); $s->execute([$document]); return $s->fetchAll(PDO::FETCH_ASSOC); }
 
     /** @return list<array{quand:string,quoi:string}> */
     public function historique(int $document): array { $s=$this->pdo->prepare("SELECT cree_le quand, CONCAT(UCASE(LEFT(action, 1)), SUBSTRING(action, 2), ' par ', auteur) quoi FROM document_collaboration WHERE document_id=? AND type='evenement' UNION ALL SELECT cree_le, CONCAT('Partage ',type_partage,' créé') FROM document_collaboration WHERE document_id=? AND type='partage' ORDER BY quand DESC"); $s->execute([$document,$document]); return $s->fetchAll(PDO::FETCH_ASSOC); }

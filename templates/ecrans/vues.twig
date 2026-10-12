@@ -1,0 +1,62 @@
+{% extends 'layout.twig' %}
+{% block titre %}Vues enregistrées{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-vues">
+  <div class="page-tete">
+    <div class="titre"><h1>Vues enregistrées</h1><span class="chip">{{ vues|length }} vue(s)</span></div>
+    <div class="actions"><a class="btn discret" href="/application" data-testid="vues-retour">Application</a></div>
+  </div>
+  <p class="muted">Une vue est un filtre nommé du fonds : champs affichés, mode, taille de page, tri, et présence au tableau de bord ou dans le menu. Elle ne déplace jamais un fichier.</p>
+
+  <section class="carte">
+    <h2>Nouvelle vue</h2>
+    <form method="post" action="/vues" data-testid="formulaire-vue">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="vue-nom">Nom</label>
+        <input id="vue-nom" name="nom" data-testid="vue-nom" maxlength="100" required></div>
+      <fieldset><legend>Champs affichés</legend>
+        {% for a in affichages %}
+          <label class="case"><input type="checkbox" name="display_fields[]" value="{{ a }}" data-testid="vue-champ-{{ a }}"> {{ a }}</label>
+        {% endfor %}
+      </fieldset>
+      <div class="champ"><label for="vue-mode">Mode</label>
+        <select id="vue-mode" name="display_mode" data-testid="vue-mode">
+          <option value="">Défaut</option>
+          {% for m in modes %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="vue-taille">Taille de page</label>
+        <input id="vue-taille" name="page_size" type="number" min="10" max="1000" value="50" data-testid="vue-taille"></div>
+      <div class="champ"><label for="vue-tri">Tri</label>
+        <select id="vue-tri" name="sort_field" data-testid="vue-tri">
+          <option value="">Défaut</option>
+          {% for t in tris %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select></div>
+      <label class="case"><input type="checkbox" name="sort_reverse" value="1" data-testid="vue-tri-inverse"> Tri décroissant</label>
+      <label class="case"><input type="checkbox" name="show_on_dashboard" value="1" data-testid="vue-tableau-bord"> Afficher au tableau de bord</label>
+      <label class="case"><input type="checkbox" name="show_in_sidebar" value="1" data-testid="vue-barre-laterale"> Afficher dans le menu latéral</label>
+      <button class="btn" type="submit" data-testid="action-creer-vue">Créer la vue</button>
+    </form>
+  </section>
+
+  <section class="carte">
+    <h2>Vues du fonds</h2>
+    {% for v in vues %}
+      <form method="post" action="/vues/{{ v.id }}" data-testid="vue-{{ v.id }}">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <strong data-testid="vue-{{ v.id }}-nom">{{ v.nom }}</strong>
+        <span class="muted" data-testid="vue-{{ v.id }}-resume">{{ v.reglages.mode ?: 'défaut' }} · {{ v.reglages.taille_page ?: 'défaut' }} · {{ v.reglages.tri ?: 'défaut' }}{{ v.reglages.tri_inverse ? ' ↓' : '' }}</span>
+        <div class="champ"><label>Mode</label><select name="display_mode" data-testid="vue-{{ v.id }}-mode">
+          <option value="">Défaut</option>
+          {% for m in modes %}<option value="{{ m }}" {{ v.reglages.mode == m ? 'selected' : '' }}>{{ m }}</option>{% endfor %}
+        </select></div>
+        <div class="champ"><label>Taille de page</label><input name="page_size" type="number" min="10" max="1000" value="{{ v.reglages.taille_page ?: 50 }}" data-testid="vue-{{ v.id }}-taille"></div>
+        <label class="case"><input type="checkbox" name="show_on_dashboard" value="1" {{ v.reglages.tableau_bord ? 'checked' : '' }} data-testid="vue-{{ v.id }}-tableau-bord"> Tableau de bord</label>
+        <label class="case"><input type="checkbox" name="show_in_sidebar" value="1" {{ v.reglages.barre_laterale ? 'checked' : '' }} data-testid="vue-{{ v.id }}-barre-laterale"> Menu latéral</label>
+        <button class="btn discret" type="submit" data-testid="action-enregistrer-vue-{{ v.id }}">Enregistrer</button>
+      </form>
+    {% else %}
+      <p class="muted" data-testid="vues-vide">Aucune vue enregistrée.</p>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,1030 @@
+{
+  "version": 1,
+  "categorie": "modele-reste",
+  "reference": {
+    "tag": "v2.20.5",
+    "depot": "paperless-ngx"
+  },
+  "total": 64,
+  "vecteurs": [
+    {
+      "id": "document-nom-public-application-pdf",
+      "famille": "document",
+      "reference": "src/documents/tests/test_document_model.py:82",
+      "entree": {
+        "mime": "application/pdf",
+        "titre": "test",
+        "date": "2020-12-25"
+      },
+      "sortie": {
+        "nom_public": "2020-12-25 test.pdf"
+      }
+    },
+    {
+      "id": "document-nom-public-image-jpeg",
+      "famille": "document",
+      "reference": "src/documents/tests/test_document_model.py:90",
+      "entree": {
+        "mime": "image/jpeg",
+        "titre": "test",
+        "date": "2020-12-25"
+      },
+      "sortie": {
+        "nom_public": "2020-12-25 test.jpg"
+      }
+    },
+    {
+      "id": "document-nom-public-application-zip",
+      "famille": "document",
+      "reference": "src/documents/tests/test_document_model.py:98",
+      "entree": {
+        "mime": "application/zip",
+        "titre": "test",
+        "date": "2020-12-25"
+      },
+      "sortie": {
+        "nom_public": "2020-12-25 test.zip"
+      }
+    },
+    {
+      "id": "document-nom-public-image-jpegasd",
+      "famille": "document",
+      "reference": "src/documents/tests/test_document_model.py:106",
+      "entree": {
+        "mime": "image/jpegasd",
+        "titre": "test",
+        "date": "2020-12-25"
+      },
+      "sortie": {
+        "nom_public": "2020-12-25 test"
+      }
+    },
+    {
+      "id": "matching-none-1",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:52",
+      "entree": {
+        "motif": "",
+        "algorithme": "MATCH_NONE",
+        "insensible": true,
+        "textes_match": [],
+        "textes_non_match": [
+          "no",
+          "match"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-2",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:63",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "insensible": true,
+        "textes_match": [
+          "I have alpha, charlie, and gamma in me"
+        ],
+        "textes_non_match": [
+          "I have alpha in me",
+          "I have charlie in me",
+          "I have gamma in me",
+          "I have alpha and charlie in me",
+          "I have alphas, charlie, and gamma in me",
+          "I have alphas in me",
+          "I have bravo in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-3",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:78",
+      "entree": {
+        "motif": "12 34 56",
+        "algorithme": "MATCH_ALL",
+        "insensible": true,
+        "textes_match": [
+          "I have 12 34, and 56 in me"
+        ],
+        "textes_non_match": [
+          "I have 12 in me",
+          "I have 34 in me",
+          "I have 56 in me",
+          "I have 12 and 34 in me",
+          "I have 120, 34, and 56 in me",
+          "I have 123456 in me",
+          "I have 01234567 in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-4",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:93",
+      "entree": {
+        "motif": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "insensible": true,
+        "textes_match": [
+          "the quick brown fox jumped over the lazy dogs",
+          "the quick brown fox jumped over the lazy  dogs"
+        ],
+        "textes_non_match": [
+          "the quick fox jumped over the lazy dogs",
+          "the quick brown wolf jumped over the lazy dogs",
+          "the quick brown fox jumped over the fat dogs",
+          "the quick brown fox jumped over the lazy... dogs"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-5",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:109",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "insensible": true,
+        "textes_match": [
+          "I have alpha in me",
+          "I have charlie in me",
+          "I have gamma in me",
+          "I have alpha, charlie, and gamma in me",
+          "I have alpha and charlie in me"
+        ],
+        "textes_non_match": [
+          "I have alphas in me",
+          "I have bravo in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-6",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:125",
+      "entree": {
+        "motif": "12 34 56",
+        "algorithme": "MATCH_ANY",
+        "insensible": true,
+        "textes_match": [
+          "I have 12 in me",
+          "I have 34 in me",
+          "I have 56 in me",
+          "I have 12 and 34 in me",
+          "I have 12, 34, and 56 in me",
+          "I have 120, 34, and 56 in me"
+        ],
+        "textes_non_match": [
+          "I have 123456 in me",
+          "I have 01234567 in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-7",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:142",
+      "entree": {
+        "motif": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "insensible": true,
+        "textes_match": [
+          "the quick brown fox",
+          "jumped over the lazy  dogs."
+        ],
+        "textes_non_match": [
+          "the lazy fox jumped over the brown dogs"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-literal-8",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:153",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "insensible": true,
+        "textes_match": [
+          "I have 'alpha charlie gamma' in me"
+        ],
+        "textes_non_match": [
+          "I have alpha in me",
+          "I have charlie in me",
+          "I have gamma in me",
+          "I have alpha and charlie in me",
+          "I have alpha, charlie, and gamma in me",
+          "I have alphas, charlie, and gamma in me",
+          "I have alphas in me",
+          "I have bravo in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-literal-9",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:169",
+      "entree": {
+        "motif": "12 34 56",
+        "algorithme": "MATCH_LITERAL",
+        "insensible": true,
+        "textes_match": [
+          "I have 12 34 56 in me"
+        ],
+        "textes_non_match": [
+          "I have 12 in me",
+          "I have 34 in me",
+          "I have 56 in me",
+          "I have 12 and 34 in me",
+          "I have 12 34, and 56 in me",
+          "I have 120, 34, and 560 in me",
+          "I have 120, 340, and 560 in me",
+          "I have 123456 in me",
+          "I have 01234567 in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-regex-10",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:187",
+      "entree": {
+        "motif": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "insensible": true,
+        "textes_match": [
+          "I have alpha_and_gamma in me",
+          "I have alphas_and_gamma in me"
+        ],
+        "textes_non_match": [
+          "I have alpha in me",
+          "I have gamma in me",
+          "I have alpha and charlie in me",
+          "I have alpha,and,gamma in me",
+          "I have alpha and gamma in me",
+          "I have alpha, charlie, and gamma in me",
+          "I have alphas, charlie, and gamma in me",
+          "I have alphas in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-regex-11",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:207",
+      "entree": {
+        "motif": "[",
+        "algorithme": "MATCH_REGEX",
+        "insensible": true,
+        "textes_match": [],
+        "textes_non_match": [
+          "Don't match this"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-fuzzy-12",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:226",
+      "entree": {
+        "motif": "Springfield, Miss.",
+        "algorithme": "MATCH_FUZZY",
+        "insensible": true,
+        "textes_match": [
+          "1220 Main Street, Springf eld, Miss.",
+          "1220 Main Street, Spring field, Miss.",
+          "1220 Main Street, Springfeld, Miss.",
+          "1220 Main Street Springfield Miss"
+        ],
+        "textes_non_match": [
+          "1220 Main Street, Springfield, Mich."
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-13",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:241",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_ALL",
+        "insensible": false,
+        "textes_match": [
+          "I have alpha, charlie, and gamma in me",
+          "I have gamma, charlie, and alpha in me"
+        ],
+        "textes_non_match": [
+          "I have Alpha, charlie, and gamma in me",
+          "I have gamma, Charlie, and alpha in me",
+          "I have alpha, charlie, and Gamma in me",
+          "I have gamma, charlie, and ALPHA in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-14",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:257",
+      "entree": {
+        "motif": "Alpha charlie Gamma",
+        "algorithme": "MATCH_ALL",
+        "insensible": false,
+        "textes_match": [
+          "I have Alpha, charlie, and Gamma in me",
+          "I have Gamma, charlie, and Alpha in me"
+        ],
+        "textes_non_match": [
+          "I have Alpha, charlie, and gamma in me",
+          "I have gamma, charlie, and alpha in me",
+          "I have alpha, charlie, and Gamma in me",
+          "I have Gamma, Charlie, and ALPHA in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-all-15",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:273",
+      "entree": {
+        "motif": "brown fox \"lazy dogs\"",
+        "algorithme": "MATCH_ALL",
+        "insensible": false,
+        "textes_match": [
+          "the quick brown fox jumped over the lazy dogs",
+          "the quick brown fox jumped over the lazy  dogs"
+        ],
+        "textes_non_match": [
+          "the quick Brown fox jumped over the lazy dogs",
+          "the quick brown Fox jumped over the lazy  dogs",
+          "the quick brown fox jumped over the Lazy dogs",
+          "the quick brown fox jumped over the lazy  Dogs"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-16",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:290",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_ANY",
+        "insensible": false,
+        "textes_match": [
+          "I have alpha in me",
+          "I have charlie in me",
+          "I have gamma in me",
+          "I have alpha, charlie, and gamma in me",
+          "I have alpha and charlie in me"
+        ],
+        "textes_non_match": [
+          "I have Alpha in me",
+          "I have chaRLie in me",
+          "I have gamMA in me",
+          "I have aLPha, cHArlie, and gAMma in me",
+          "I have AlphA and CharlIe in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-17",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:310",
+      "entree": {
+        "motif": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_ANY",
+        "insensible": false,
+        "textes_match": [
+          "I have Alpha in me",
+          "I have Charlie in me",
+          "I have Gamma in me",
+          "I have Alpha, Charlie, and Gamma in me",
+          "I have Alpha and Charlie in me"
+        ],
+        "textes_non_match": [
+          "I have alpha in me",
+          "I have ChaRLie in me",
+          "I have GamMA in me",
+          "I have ALPha, CHArlie, and GAMma in me",
+          "I have AlphA and CharlIe in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-any-18",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:330",
+      "entree": {
+        "motif": "\"brown fox\" \" lazy  dogs \"",
+        "algorithme": "MATCH_ANY",
+        "insensible": false,
+        "textes_match": [
+          "the quick brown fox",
+          "jumped over the lazy  dogs."
+        ],
+        "textes_non_match": [
+          "the quick Brown fox",
+          "jumped over the lazy  Dogs."
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-literal-19",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:345",
+      "entree": {
+        "motif": "alpha charlie gamma",
+        "algorithme": "MATCH_LITERAL",
+        "insensible": false,
+        "textes_match": [
+          "I have 'alpha charlie gamma' in me"
+        ],
+        "textes_non_match": [
+          "I have 'Alpha charlie gamma' in me",
+          "I have 'alpha Charlie gamma' in me",
+          "I have 'alpha charlie Gamma' in me",
+          "I have 'Alpha Charlie Gamma' in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-literal-20",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:358",
+      "entree": {
+        "motif": "Alpha Charlie Gamma",
+        "algorithme": "MATCH_LITERAL",
+        "insensible": false,
+        "textes_match": [
+          "I have 'Alpha Charlie Gamma' in me"
+        ],
+        "textes_non_match": [
+          "I have 'Alpha charlie gamma' in me",
+          "I have 'alpha Charlie gamma' in me",
+          "I have 'alpha charlie Gamma' in me",
+          "I have 'alpha charlie gamma' in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-regex-21",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:372",
+      "entree": {
+        "motif": "alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "insensible": false,
+        "textes_match": [
+          "I have alpha_and_gamma in me",
+          "I have alphas_and_gamma in me"
+        ],
+        "textes_non_match": [
+          "I have Alpha_and_Gamma in me",
+          "I have alpHAs_and_gaMMa in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "matching-regex-22",
+      "famille": "matching",
+      "reference": "src/documents/tests/test_matchables.py:386",
+      "entree": {
+        "motif": "Alpha\\w+gamma",
+        "algorithme": "MATCH_REGEX",
+        "insensible": false,
+        "textes_match": [
+          "I have Alpha_and_gamma in me",
+          "I have Alphas_and_gamma in me"
+        ],
+        "textes_non_match": [
+          "I have Alpha_and_Gamma in me",
+          "I have alphas_and_gamma in me"
+        ]
+      },
+      "sortie": {}
+    },
+    {
+      "id": "savedview-test",
+      "famille": "savedview",
+      "reference": "src/documents/tests/test_api_documents.py:2060",
+      "entree": {
+        "reglages": {
+          "name": "test",
+          "show_on_dashboard": true,
+          "show_in_sidebar": true,
+          "sort_field": "created2"
+        }
+      },
+      "sortie": {
+        "accepte": true
+      }
+    },
+    {
+      "id": "savedview-test-2",
+      "famille": "savedview",
+      "reference": "src/documents/tests/test_api_documents.py:2116",
+      "entree": {
+        "reglages": {
+          "name": "test",
+          "show_on_dashboard": true,
+          "show_in_sidebar": true,
+          "sort_field": "created2",
+          "page_size": 20,
+          "display_mode": "small_cards",
+          "display_fields": [
+            "title",
+            "created"
+          ]
+        }
+      },
+      "sortie": {
+        "accepte": true
+      }
+    },
+    {
+      "id": "savedview-test-3",
+      "famille": "savedview",
+      "reference": "src/documents/tests/test_api_documents.py:2205",
+      "entree": {
+        "reglages": {
+          "name": "test",
+          "show_on_dashboard": true,
+          "show_in_sidebar": true,
+          "sort_field": "created2",
+          "page_size": 20,
+          "display_mode": "small_cards",
+          "display_fields": [
+            "title",
+            "created"
+          ]
+        }
+      },
+      "sortie": {
+        "accepte": true
+      }
+    },
+    {
+      "id": "champs-url-1",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:841",
+      "entree": {
+        "nature": "url",
+        "valeur": "tel:+1-816-555-1212"
+      },
+      "sortie": {
+        "accepte": true
+      }
+    },
+    {
+      "id": "champs-url-2",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:825",
+      "entree": {
+        "nature": "url",
+        "valeur": "not a url"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-url-3",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:825",
+      "entree": {
+        "nature": "url",
+        "valeur": "file:"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-nombre-4",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:877",
+      "entree": {
+        "nature": "nombre",
+        "valeur": "not an int"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-montant-5",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:915",
+      "entree": {
+        "nature": "montant",
+        "valeur": 12.123
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-montant-6",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:931",
+      "entree": {
+        "nature": "montant",
+        "valeur": "GBP12.123"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-montant-7",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:947",
+      "entree": {
+        "nature": "montant",
+        "valeur": "G12.12"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-liste-8",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:1027",
+      "entree": {
+        "nature": "liste",
+        "valeur": "not an option"
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-lien-9",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:1064",
+      "entree": {
+        "nature": "lien",
+        "valeur": 999
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "champs-lien-10",
+      "famille": "champs",
+      "reference": "src/documents/tests/test_api_custom_fields.py:1078",
+      "entree": {
+        "nature": "lien",
+        "valeur": ""
+      },
+      "sortie": {
+        "accepte": false
+      }
+    },
+    {
+      "id": "tache-test_get_tasks",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:34",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_get_tasks-2",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:39",
+      "entree": {
+        "task_file_name": "task_two.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_get_single_task_status",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:70",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_get_single_task_status-2",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:75",
+      "entree": {
+        "task_file_name": "task_two.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_get_single_task_status_not_valid",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:97",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_get_single_task_status_not_valid-2",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:102",
+      "entree": {
+        "task_file_name": "task_two.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_acknowledge_tasks",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:121",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_acknowledge_tasks_requires_change_permission",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:152",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_tasks_owner_aware",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:191",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_tasks_owner_aware-2",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:197",
+      "entree": {
+        "task_file_name": "task_two.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_tasks_owner_aware-3",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:202",
+      "entree": {
+        "task_file_name": "task_three.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_task_result_no_error",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:231",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_task_result_with_error",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:257",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_task_name_webui",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:286",
+      "entree": {
+        "task_file_name": "test.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_task_name_consume_folder",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:312",
+      "entree": {
+        "task_file_name": "anothertest.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "tache-test_task_result_failed_duplicate_includes_related_doc",
+      "famille": "tache",
+      "reference": "src/documents/tests/test_api_tasks.py:337",
+      "entree": {
+        "task_file_name": "task_one.pdf",
+        "acknowledged": false
+      },
+      "sortie": {
+        "status": "PENDING"
+      }
+    },
+    {
+      "id": "permissions-view_document-1",
+      "famille": "permissions",
+      "reference": "src/documents/tests/test_api_permissions.py:164",
+      "entree": {
+        "codename": "view_document",
+        "objet": "document"
+      },
+      "sortie": {
+        "droit": "view_document"
+      }
+    },
+    {
+      "id": "permissions-view_document-2",
+      "famille": "permissions",
+      "reference": "src/documents/tests/test_api_permissions.py:347",
+      "entree": {
+        "codename": "view_document",
+        "objet": "document"
+      },
+      "sortie": {
+        "droit": "view_document"
+      }
+    },
+    {
+      "id": "masse-test_set_permissions-1",
+      "famille": "masse",
+      "reference": "src/documents/tests/test_bulk_edit.py:401",
+      "entree": {
+        "operation": "set_permissions",
+        "documents": [
+          1,
+          2,
+          3
+        ],
+        "proprietaire": "vecteur"
+      },
+      "sortie": {
+        "proprietaire_pose": true
+      }
+    },
+    {
+      "id": "masse-test_set_permissions_merge-2",
+      "famille": "masse",
+      "reference": "src/documents/tests/test_bulk_edit.py:443",
+      "entree": {
+        "operation": "set_permissions",
+        "documents": [
+          1,
+          2,
+          3
+        ],
+        "proprietaire": "vecteur"
+      },
+      "sortie": {
+        "proprietaire_pose": true
+      }
+    },
+    {
+      "id": "commande-document_exporter-1",
+      "famille": "commande",
+      "reference": "src/documents/tests/test_management_exporter.py:190",
+      "entree": {
+        "commande": "document_exporter"
+      },
+      "sortie": {
+        "fichiers_ecrits": true
+      }
+    },
+    {
+      "id": "commande-document_exporter-2",
+      "famille": "commande",
+      "reference": "src/documents/tests/test_management_exporter.py:293",
+      "entree": {
+        "commande": "document_exporter"
+      },
+      "sortie": {
+        "fichiers_ecrits": true
+      }
+    },
+    {
+      "id": "chaine-pdf",
+      "famille": "chaine",
+      "reference": "src/documents/tests/test_parsers.py:226",
+      "entree": {
+        "extension": ".pdf"
+      },
+      "sortie": {
+        "supporte": true
+      }
+    },
+    {
+      "id": "chaine-hsdfh",
+      "famille": "chaine",
+      "reference": "src/documents/tests/test_parsers.py:227",
+      "entree": {
+        "extension": ".hsdfh"
+      },
+      "sortie": {
+        "supporte": false
+      }
+    },
+    {
+      "id": "chaine-vide",
+      "famille": "chaine",
+      "reference": "src/documents/tests/test_parsers.py:228",
+      "entree": {
+        "extension": ""
+      },
+      "sortie": {
+        "supporte": false
+      }
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "tache-celery-states",
+      "raison": "etats Celery/Redis : GEDv2 n'a aucun demon, le suivi utilisateur est reimplemente",
+      "reference": "src/documents/tests/test_api_tasks.py:1"
+    },
+    {
+      "id": "commande-decrypt-documents",
+      "raison": "chiffrement du fonds absent de GEDv2 (le dossier fait foi, fichiers lisibles)",
+      "reference": "src/documents/management/commands/document_decrypt.py"
+    },
+    {
+      "id": "chaine-tika",
+      "raison": "Tika est un service Java externe ; GEDv2 n'en depend pas",
+      "reference": "src/paperless_tika/parsers.py"
+    }
+  ]
+}

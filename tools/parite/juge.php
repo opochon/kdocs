@@ -536,6 +536,47 @@ if ($modeleCourrier === [] || !isset($modeleCourrier['categorie'])) {
 }
 $lignes[] = '';
 
+// Phase 7 : parite d'effet du RESTE DU MODELE et des petites categories voisines (vecteurs extraits des
+// tests Paperless, rejoues cote GEDv2 par tests/php/Parite/ModeleResteTest.php). Additif.
+$lignes[] = '## Modele — reste et categories voisines (phase 7)';
+$lignes[] = '';
+$modeleReste = chargerJson($racine . '/var/parite/modele-reste.json');
+if ($modeleReste === [] || !isset($modeleReste['categorie'])) {
+    $lignes[] = 'Aucune mesure du reste du modele disponible (lancer tests/php/Parite/ModeleResteTest.php).';
+} else {
+    $totalReste = (int) ($modeleReste['total'] ?? 0);
+    $passesReste = (int) ($modeleReste['passes'] ?? 0);
+    $lignes[] = 'Vecteurs {entree, sortie} extraits des tests Paperless (nom public, MatchingModel, SavedView,';
+    $lignes[] = 'validation des champs, PaperlessTask, droits d\'objet, masse, commande, decouverte de parseur),';
+    $lignes[] = 'rejoues contre le vrai modele GEDv2 sur gedv2_test. Les traits propres a Django/Celery/Tika sont';
+    $lignes[] = 'listes `non_rejouables` avec leur raison.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: | ---: |';
+    $lignes[] = sprintf(
+        '| modele-reste | tests/parite/vecteurs/modele-reste.json | %d | %d | %d | %s %% |',
+        $passesReste,
+        $totalReste,
+        (int) ($modeleReste['non_rejouables'] ?? 0),
+        number_format($totalReste > 0 ? round($passesReste / $totalReste * 100, 2) : 0.0, 2, ',', ' '),
+    );
+    foreach ((array) ($modeleReste['familles'] ?? []) as $famille => $mesure) {
+        if (!is_array($mesure)) {
+            continue;
+        }
+        $t = (int) ($mesure['total'] ?? 0);
+        $p = (int) ($mesure['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| — %s | — | %d | %d | — | %s %% |',
+            (string) $famille,
+            $p,
+            $t,
+            number_format($t > 0 ? round($p / $t * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
+
 $index = [];
 foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $element) {
     if (is_array($element)) {

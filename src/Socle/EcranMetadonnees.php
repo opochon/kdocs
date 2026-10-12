@@ -12,11 +12,13 @@ use Ged\Config;
  */
 final class EcranMetadonnees
 {
+    private readonly Config $config;
     private readonly Nomenclature $nomenclature;
     private readonly Champs $champs;
 
     public function __construct(Config $config)
     {
+        $this->config = $config;
         $this->nomenclature = new Nomenclature($config);
         $this->champs = new Champs($config);
     }
@@ -51,6 +53,8 @@ final class EcranMetadonnees
             'typeChoisi' => $choisi === null ? null : $choisi + ['slug' => Fichiers::slug($choisi['nom'])],
             'champsDuType' => $choisi === null ? [] : $this->champs->pourType($choisi['nom']),
             'natures' => Champs::NATURES,
+            'etiquettes' => (new Etiquettes($this->config))->lister(),
+            'couleurEtiquetteDefaut' => Etiquettes::COULEUR_DEFAUT,
             'csrf' => $csrf,
         ];
     }

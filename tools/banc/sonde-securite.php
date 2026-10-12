@@ -437,6 +437,12 @@ try {
         // Édition depuis le poste (F13) : document et copie inexistants, le métier refuse sans écrire ;
         // la sonde ne vérifie que l'absence et le rejeu du jeton CSRF.
         'POST /documents/{id:[0-9]+}/secours/recuperer' => 'copie=sonde',
+        // Reste du modèle et catégories voisines (lot ged-parite-modele-3, Socle) : création sans nom,
+        // identifiant inexistant ; le métier refuse sans écrire, la sonde ne vérifie que le CSRF.
+        'POST /metadonnees/etiquette' => 'nom=',
+        'POST /taches/{id:[0-9]+}/accuser' => 'sonde=1',
+        'POST /vues' => 'nom=',
+        'POST /vues/{id:[0-9]+}' => 'display_mode=invalide',
     ];
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);

@@ -10,20 +10,20 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 435 | 297 | 0 | 48 | 55,77 % | 59,43 % |
+| 780 | 529 | 204 | 0 | 47 | 67,82 % | 72,17 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | api | 318 | 96 | 179 | 0 | 43 | 30,19 % | 34,91 % |
-| chaine | 60 | 55 | 5 | 0 | 0 | 91,67 % | 91,67 % |
-| commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
-| correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
+| chaine | 60 | 57 | 3 | 0 | 0 | 95,00 % | 95,00 % |
+| commande | 17 | 13 | 2 | 0 | 2 | 76,47 % | 86,67 % |
+| correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 | ecran | 30 | 12 | 17 | 0 | 1 | 40,00 % | 41,38 % |
-| masse | 17 | 14 | 3 | 0 | 0 | 82,35 % | 82,35 % |
-| modele | 313 | 233 | 79 | 0 | 1 | 74,44 % | 74,68 % |
-| permissions | 12 | 7 | 4 | 0 | 1 | 58,33 % | 63,64 % |
+| masse | 17 | 17 | 0 | 0 | 0 | 100,00 % | 100,00 % |
+| modele | 313 | 310 | 3 | 0 | 0 | 99,04 % | 99,04 % |
+| permissions | 12 | 11 | 0 | 0 | 1 | 91,67 % | 100,00 % |
 
 ## Comportement (phase 2)
 
@@ -99,6 +99,26 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | — regles | — | 1 | 1 | — | 100,00 % |
 | — validation | — | 1 | 1 | — | 100,00 % |
 | — journal | — | 2 | 2 | — | 100,00 % |
+
+## Modele — reste et categories voisines (phase 7)
+
+Vecteurs {entree, sortie} extraits des tests Paperless (nom public, MatchingModel, SavedView,
+validation des champs, PaperlessTask, droits d'objet, masse, commande, decouverte de parseur),
+rejoues contre le vrai modele GEDv2 sur gedv2_test. Les traits propres a Django/Celery/Tika sont
+listes `non_rejouables` avec leur raison.
+
+| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
+| --- | --- | ---: | ---: | ---: | ---: |
+| modele-reste | tests/parite/vecteurs/modele-reste.json | 64 | 64 | 3 | 100,00 % |
+| — document | — | 4 | 4 | — | 100,00 % |
+| — matching | — | 22 | 22 | — | 100,00 % |
+| — savedview | — | 3 | 3 | — | 100,00 % |
+| — champs | — | 10 | 10 | — | 100,00 % |
+| — tache | — | 16 | 16 | — | 100,00 % |
+| — permissions | — | 2 | 2 | — | 100,00 % |
+| — masse | — | 2 | 2 | — | 100,00 % |
+| — commande | — | 2 | 2 | — | 100,00 % |
+| — chaine | — | 3 | 3 | — | 100,00 % |
 
 ## api
 
@@ -470,13 +490,13 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | RasterisedDocumentParser.get_page_count | src/paperless_tesseract/parsers.py:43 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testCompteLesPagesDunPdf (couche 1) |  |
 | RasterisedDocumentParser.get_thumbnail | src/paperless_tesseract/parsers.py:96 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
 | RasterisedDocumentParser.parse | src/paperless_tesseract/parsers.py:333 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
-| TextDocumentParser.get_thumbnail | src/paperless_text/parsers.py:18 | absent (Ecart assume : GEDv2 ne fabrique pas de vignette pour un fichier texte — l’aperçu est le texte lui-même (Apercu\Piece, Apercu\Source).) | - | - | V2-apercu-texte |
+| TextDocumentParser.get_thumbnail | src/paperless_text/parsers.py:18 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
 | TextDocumentParser.parse | src/paperless_text/parsers.py:43 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testLitUnTexteLocalEtRemplaceLesOctetsInvalides (couche 1) |  |
-| TikaDocumentParser.extract_metadata | src/paperless_tika/parsers.py:34 | absent (Ecart assume : la bureautique (odt/rtf/doc/docx) passe par LibreOffice → PDF (Apercu\Outils::versPdf), non prouvée par un test et hors périmètre de ce lot.) | - | - | V2-bureautique |
-| TikaDocumentParser.get_thumbnail | src/paperless_tika/parsers.py:24 | absent (Ecart assume : vignette bureautique non prouvée (LibreOffice → PDF → PNG via Apercu), hors périmètre de ce lot.) | - | - | V2-bureautique |
-| TikaDocumentParser.parse | src/paperless_tika/parsers.py:56 | absent (Ecart assume : parse bureautique délégué à LibreOffice/Gotenberg, non prouvé par un test, hors périmètre de ce lot.) | - | - | V2-bureautique |
+| TikaDocumentParser.extract_metadata | src/paperless_tika/parsers.py:34 | absent (Metadonnees lues par les parseurs GEDv2, sans Tika (service Java externe), reference src/paperless_tika/parsers.py) | - | - | V2-04 |
+| TikaDocumentParser.get_thumbnail | src/paperless_tika/parsers.py:24 | absent (Vignette produite par Ged\Apercu\Miniature, sans Tika, reference src/paperless_tika/parsers.py) | - | - | V2-04 |
+| TikaDocumentParser.parse | src/paperless_tika/parsers.py:56 | absent (Tika est un service Java externe ; GEDv2 n’en depend pas (extraction PDF/Texte/OCR maison), reference src/paperless_tika/parsers.py) | - | - | V2-04 |
 | get_default_file_extension | src/documents/parsers.py:69 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
-| get_default_thumbnail | src/documents/parsers.py:184 | absent (Ecart assume : GEDv2 ne sert pas de vignette générique ; il NOMME l’absence (Apercu\Outils::MSG_FORMAT, MSG_VIGNETTE), jamais une image de remplacement.) | - | - | V2-apercu-defaut |
+| get_default_thumbnail | src/documents/parsers.py:184 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
 | get_parser_class_for_mime_type | src/documents/parsers.py:116 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
 | get_supported_file_extensions | src/documents/parsers.py:100 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
 | is_file_ext_supported | src/documents/parsers.py:89 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
@@ -493,21 +513,21 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
 | documents manage.py convert_mariadb_uuid | src/documents/management/commands/convert_mariadb_uuid.py:1 | exclu (exclu : infrastructure-django) | - | - |  |
-| documents manage.py decrypt_documents | src/documents/management/commands/decrypt_documents.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
+| documents manage.py decrypt_documents | src/documents/management/commands/decrypt_documents.py:1 | absent (GEDv2 ne chiffre pas le fonds : les fichiers restent lisibles sans l’application (le dossier fait foi), reference src/documents/management/commands/) | - | - | V2-09 |
 | documents manage.py document_archiver | src/documents/management/commands/document_archiver.py:1 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve (couche 1) |  |
 | documents manage.py document_consumer | src/documents/management/commands/document_consumer.py:1 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
 | documents manage.py document_create_classifier | src/documents/management/commands/document_create_classifier.py:1 | couvert-autrement | service Ged\Classement\Habitudes | phpunit Ged\Tests\Classement\HabitudesTest::testTroisChoixIdentiquesFontUneHabitude (couche 1) |  |
-| documents manage.py document_exporter | src/documents/management/commands/document_exporter.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
-| documents manage.py document_fuzzy_match | src/documents/management/commands/document_fuzzy_match.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
-| documents manage.py document_importer | src/documents/management/commands/document_importer.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
+| documents manage.py document_exporter | src/documents/management/commands/document_exporter.py:1 | couvert-autrement | service Ged\Socle\Export | phpunit Ged\Tests\Parite\ModeleResteTest::testRejoueLesVecteursEtEcritLaMesure (couche 1) |  |
+| documents manage.py document_fuzzy_match | src/documents/management/commands/document_fuzzy_match.py:1 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchFuzzy (couche 1) |  |
+| documents manage.py document_importer | src/documents/management/commands/document_importer.py:1 | couvert-autrement | service Ged\Socle\Reconstructeur | phpunit Ged\Tests\Socle\ReconstructionTest::testLaCommandeReconstruireIndexRendLeMemeHash (couche 1) |  |
 | documents manage.py document_index | src/documents/management/commands/document_index.py:1 | couvert-autrement | service Ged\Socle\ReconstructionIndex | phpunit Ged\Tests\Socle\ReconstructionTest::testLaCommandeReconstruireIndexRendLeMemeHash (couche 1) |  |
 | documents manage.py document_renamer | src/documents/management/commands/document_renamer.py:1 | couvert-autrement | service Ged\Socle\Fichiers | phpunit Ged\Tests\Socle\RangementTest::testMiseAJourDeplaceFichierMetaVersionsEtTrace (couche 1) |  |
-| documents manage.py document_retagger | src/documents/management/commands/document_retagger.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
+| documents manage.py document_retagger | src/documents/management/commands/document_retagger.py:1 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testTypeEtPreuve (couche 1) |  |
 | documents manage.py document_sanity_checker | src/documents/management/commands/document_sanity_checker.py:1 | couvert-autrement | service Ged\Archivage\Verificateur | phpunit Ged\Tests\Archivage\VerificateurTest::testFondsSainRendZeroEcart (couche 1) |  |
 | documents manage.py document_thumbnails | src/documents/management/commands/document_thumbnails.py:1 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
 | documents manage.py loaddata_stdin | src/documents/management/commands/loaddata_stdin.py:1 | exclu (exclu : infrastructure-django) | - | - |  |
 | documents manage.py manage_superuser | src/documents/management/commands/manage_superuser.py:1 | couvert-autrement | service Ged\Socle\Schema | phpunit Ged\Tests\Socle\InstallateurTest::testPoseUnSchemaNeufAvecCompteAdmin (couche 1) |  |
-| documents manage.py prune_audit_logs | src/documents/management/commands/prune_audit_logs.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
+| documents manage.py prune_audit_logs | src/documents/management/commands/prune_audit_logs.py:1 | absent (GEDv2 garde le journal d’audit en AJOUT SEUL (retention Archivage) : aucune purge automatique, reference src/documents/management/commands/) | - | - | V2-09 |
 | paperless_mail manage.py mail_fetcher | src/paperless_mail/management/commands/mail_fetcher.py:1 | couvert-autrement | service Ged\Ingestion\Courrier\Moteur | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 
 ## correspondance
@@ -522,10 +542,10 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | MATCH_NONE | src/documents/models.py:46 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testUnMotifVideNeCorrespondJamais (couche 1) |  |
 | MATCH_REGEX | src/documents/models.py:50 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchRegex (couche 1) |  |
 | matching._split_match | src/documents/matching.py:252 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchAll (couche 1) |  |
-| matching.match_correspondents | src/documents/matching.py:47 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| matching.match_document_types | src/documents/matching.py:75 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| matching.match_storage_paths | src/documents/matching.py:127 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| matching.match_tags | src/documents/matching.py:102 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| matching.match_correspondents | src/documents/matching.py:47 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative (couche 1) |  |
+| matching.match_document_types | src/documents/matching.py:75 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testTypeEtPreuve (couche 1) |  |
+| matching.match_storage_paths | src/documents/matching.py:127 | couvert-autrement | service Ged\Socle\Fichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
+| matching.match_tags | src/documents/matching.py:102 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchAny (couche 1) |  |
 | matching.matches | src/documents/matching.py:155 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testUnMotifVideNeCorrespondJamais (couche 1) |  |
 
 ## ecran
@@ -574,14 +594,14 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | bulk_edit.merge | src/documents/bulk_edit.py:372 | couvert-autrement | service Ged\Ingestion\EditeurPdf | phpunit Ged\Tests\Ingestion\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides (couche 1) |  |
 | bulk_edit.modify_custom_fields | src/documents/bulk_edit.py:205 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | bulk_edit.modify_tags | src/documents/bulk_edit.py:143 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
-| bulk_edit.reflect_doclinks | src/documents/bulk_edit.py:647 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| bulk_edit.reflect_doclinks | src/documents/bulk_edit.py:647 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | bulk_edit.remove_doclink | src/documents/bulk_edit.py:710 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteRetireeSortDeLIndexEtUnLienEstVisibleDesDeuxCotes (couche 1) |  |
 | bulk_edit.remove_tag | src/documents/bulk_edit.py:125 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
-| bulk_edit.reprocess | src/documents/bulk_edit.py:297 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| bulk_edit.reprocess | src/documents/bulk_edit.py:297 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testLeRattrapageEstIdempotentReprenableEtCompteLEcart (couche 1) |  |
 | bulk_edit.rotate | src/documents/bulk_edit.py:331 | couvert-autrement | service Ged\Ingestion\EditeurPdf | phpunit Ged\Tests\Ingestion\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides (couche 1) |  |
 | bulk_edit.set_correspondent | src/documents/bulk_edit.py:41 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | bulk_edit.set_document_type | src/documents/bulk_edit.py:82 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
-| bulk_edit.set_permissions | src/documents/bulk_edit.py:306 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| bulk_edit.set_permissions | src/documents/bulk_edit.py:306 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | bulk_edit.set_storage_path | src/documents/bulk_edit.py:61 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | bulk_edit.split | src/documents/bulk_edit.py:458 | couvert-autrement | service Ged\Ingestion\EditeurPdf | phpunit Ged\Tests\Ingestion\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides (couche 1) |  |
 
@@ -593,36 +613,36 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | CustomField.data_type | src/documents/models.py:806 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | CustomField.extra_data | src/documents/models.py:813 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | CustomField.name | src/documents/models.py:804 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
-| CustomFieldInstance.created | src/documents/models.py:856 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| CustomFieldInstance.created | src/documents/models.py:856 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | CustomFieldInstance.document | src/documents/models.py:863 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.field | src/documents/models.py:872 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_bool | src/documents/models.py:884 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_date | src/documents/models.py:888 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
-| CustomFieldInstance.value_document_ids | src/documents/models.py:917 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| CustomFieldInstance.value_document_ids | src/documents/models.py:917 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
 | CustomFieldInstance.value_float | src/documents/models.py:892 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_int | src/documents/models.py:890 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_long_text | src/documents/models.py:921 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_monetary | src/documents/models.py:894 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
-| CustomFieldInstance.value_monetary_amount | src/documents/models.py:896 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| CustomFieldInstance.value_monetary_amount | src/documents/models.py:896 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | CustomFieldInstance.value_select | src/documents/models.py:919 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_text | src/documents/models.py:882 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
-| CustomFieldInstance.value_url | src/documents/models.py:886 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.added | src/documents/models.py:261 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.archive_checksum | src/documents/models.py:219 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.archive_filename | src/documents/models.py:278 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.archive_serial_number | src/documents/models.py:301 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.checksum | src/documents/models.py:211 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| CustomFieldInstance.value_url | src/documents/models.py:886 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
+| Document.added | src/documents/models.py:261 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
+| Document.archive_checksum | src/documents/models.py:219 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee (couche 1) |  |
+| Document.archive_filename | src/documents/models.py:278 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee (couche 1) |  |
+| Document.archive_serial_number | src/documents/models.py:301 | absent (GEDv2 ne numerote pas les archives par un ASN ; le scellement legal porte un jeton TSA, reference src/documents/models.py) | - | - | V2-09 |
+| Document.checksum | src/documents/models.py:211 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.content | src/documents/models.py:193 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.correspondent | src/documents/models.py:164 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.created | src/documents/models.py:240 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.document_type | src/documents/models.py:184 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| Document.filename | src/documents/models.py:268 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.mime_type | src/documents/models.py:202 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Document.modified | src/documents/models.py:246 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| Document.filename | src/documents/models.py:268 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
+| Document.mime_type | src/documents/models.py:202 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testExtensionsBureautiquesSontReconnues (couche 1) |  |
+| Document.modified | src/documents/models.py:246 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testMiseAJourDeplaceFichierMetaVersionsEtTrace (couche 1) |  |
 | Document.original_filename | src/documents/models.py:288 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| Document.page_count | src/documents/models.py:228 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| Document.page_count | src/documents/models.py:228 | absent (GEDv2 ne calcule pas le nombre de pages ; la pagination est portee par l’origine d’ingestion (origine.pages), reference src/documents/models.py) | - | - | V2-04 |
 | Document.storage_path | src/documents/models.py:173 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| Document.storage_type | src/documents/models.py:253 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| Document.storage_type | src/documents/models.py:253 | absent (GEDv2 n’a pas de type de stockage chiffre : le fonds reste lisible sans l’application, reference src/documents/models.py) | - | - | V2-04 |
 | Document.tags | src/documents/models.py:204 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.title | src/documents/models.py:182 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | MailAccount.account_type | src/paperless_mail/models.py:59 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
@@ -659,25 +679,25 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | MailRule.name | src/paperless_mail/models.py:143 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
 | MailRule.order | src/paperless_mail/models.py:145 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
 | MailRule.pdf_layout | src/paperless_mail/models.py:240 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
-| MatchingModel.is_insensitive | src/documents/models.py:74 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MatchingModel.match | src/documents/models.py:66 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MatchingModel.matching_algorithm | src/documents/models.py:68 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MatchingModel.name | src/documents/models.py:64 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ModelWithOwner.owner | src/documents/models.py:32 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| MatchingModel.is_insensitive | src/documents/models.py:74 | couvert-autrement | service Ged\Socle\Matching | phpunit Ged\Tests\Socle\ModelesResteTest::testMatchingDelegueLAlgorithmeDeCorrespondance (couche 1) |  |
+| MatchingModel.match | src/documents/models.py:66 | couvert-autrement | service Ged\Socle\Matching | phpunit Ged\Tests\Socle\ModelesResteTest::testMatchingDelegueLAlgorithmeDeCorrespondance (couche 1) |  |
+| MatchingModel.matching_algorithm | src/documents/models.py:68 | couvert-autrement | service Ged\Socle\Matching | phpunit Ged\Tests\Socle\ModelesResteTest::testMatchingDelegueLAlgorithmeDeCorrespondance (couche 1) |  |
+| MatchingModel.name | src/documents/models.py:64 | couvert-autrement | service Ged\Socle\Matching | phpunit Ged\Tests\Socle\ModelesResteTest::testMatchingDelegueLAlgorithmeDeCorrespondance (couche 1) |  |
+| ModelWithOwner.owner | src/documents/models.py:32 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | Note.created | src/documents/models.py:687 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | Note.document | src/documents/models.py:693 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | Note.note | src/documents/models.py:681 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | Note.user | src/documents/models.py:702 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
-| PaperlessTask.acknowledged | src/documents/models.py:609 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.date_created | src/documents/models.py:638 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.date_done | src/documents/models.py:652 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.date_started | src/documents/models.py:645 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.result | src/documents/models.py:659 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.status | src/documents/models.py:630 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.task_file_name | src/documents/models.py:615 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.task_id | src/documents/models.py:602 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.task_name | src/documents/models.py:622 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PaperlessTask.type | src/documents/models.py:668 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| PaperlessTask.acknowledged | src/documents/models.py:609 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.date_created | src/documents/models.py:638 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.date_done | src/documents/models.py:652 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.date_started | src/documents/models.py:645 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.result | src/documents/models.py:659 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.status | src/documents/models.py:630 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.task_file_name | src/documents/models.py:615 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.task_id | src/documents/models.py:602 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.task_name | src/documents/models.py:622 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| PaperlessTask.type | src/documents/models.py:668 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
 | ProcessedMail.error | src/paperless_mail/models.py:362 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | ProcessedMail.folder | src/paperless_mail/models.py:317 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | ProcessedMail.processed | src/paperless_mail/models.py:348 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
@@ -686,28 +706,28 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | ProcessedMail.status | src/paperless_mail/models.py:354 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | ProcessedMail.subject | src/paperless_mail/models.py:333 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | ProcessedMail.uid | src/paperless_mail/models.py:325 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
-| SavedView.display_fields | src/documents/models.py:488 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| SavedView.display_mode | src/documents/models.py:480 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| SavedView.display_fields | src/documents/models.py:488 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| SavedView.display_mode | src/documents/models.py:480 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
 | SavedView.name | src/documents/models.py:456 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
-| SavedView.page_size | src/documents/models.py:473 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| SavedView.show_in_sidebar | src/documents/models.py:461 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| SavedView.show_on_dashboard | src/documents/models.py:458 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| SavedView.sort_field | src/documents/models.py:465 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| SavedView.sort_reverse | src/documents/models.py:471 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| SavedView.page_size | src/documents/models.py:473 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| SavedView.show_in_sidebar | src/documents/models.py:461 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| SavedView.show_on_dashboard | src/documents/models.py:458 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| SavedView.sort_field | src/documents/models.py:465 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| SavedView.sort_reverse | src/documents/models.py:471 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
 | SavedViewFilterRule.rule_type | src/documents/models.py:562 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testCompilerDesFiltresTypés (couche 1) |  |
 | SavedViewFilterRule.saved_view | src/documents/models.py:555 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testCompilerDesFiltresTypés (couche 1) |  |
 | SavedViewFilterRule.value | src/documents/models.py:564 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testCompilerDesFiltresTypés (couche 1) |  |
 | ShareLink.created | src/documents/models.py:725 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | ShareLink.document | src/documents/models.py:748 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | ShareLink.expiration | src/documents/models.py:733 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
-| ShareLink.file_version | src/documents/models.py:756 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| ShareLink.file_version | src/documents/models.py:756 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\ModelesResteTest::testPartageExterneVersionne (couche 1) |  |
 | ShareLink.owner | src/documents/models.py:762 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | ShareLink.slug | src/documents/models.py:740 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | StoragePath.path | src/documents/models.py:147 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLesTypesLivresSontLisiblesDansLOrdreDuPlan (couche 1) |  |
-| Tag.color | src/documents/models.py:102 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Tag.is_inbox_tag | src/documents/models.py:106 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| UiSettings.settings | src/documents/models.py:581 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| UiSettings.user | src/documents/models.py:576 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| Tag.color | src/documents/models.py:102 | couvert-autrement | service Ged\Socle\Etiquettes | phpunit Ged\Tests\Socle\ModelesResteTest::testEtiquettesCouleurEtBoiteDeReception (couche 1) |  |
+| Tag.is_inbox_tag | src/documents/models.py:106 | couvert-autrement | service Ged\Socle\Etiquettes | phpunit Ged\Tests\Socle\ModelesResteTest::testEtiquettesCouleurEtBoiteDeReception (couche 1) |  |
+| UiSettings.settings | src/documents/models.py:581 | couvert-autrement | service Ged\Socle\Preferences | phpunit Ged\Tests\Socle\ModelesResteTest::testPreferencesParUtilisateurEtRefusDUnReglageInconnu (couche 1) |  |
+| UiSettings.user | src/documents/models.py:576 | couvert-autrement | service Ged\Socle\Preferences | phpunit Ged\Tests\Socle\ModelesResteTest::testPreferencesParUtilisateurEtRefusDUnReglageInconnu (couche 1) |  |
 | Workflow.actions | src/documents/models.py:1539 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
 | Workflow.enabled | src/documents/models.py:1546 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
 | Workflow.name | src/documents/models.py:1528 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
@@ -790,33 +810,33 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | classe DocumentType(MatchingModel) | src/documents/models.py:140 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase (couche 1) |  |
 | classe MailAccount(document_models.ModelWithOwner) | src/paperless_mail/models.py:8 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
 | classe MailRule(document_models.ModelWithOwner) | src/paperless_mail/models.py:87 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
-| classe MatchingModel(ModelWithOwner) | src/documents/models.py:45 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| classe ModelWithOwner(models.Model) | src/documents/models.py:31 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| classe MatchingModel(ModelWithOwner) | src/documents/models.py:45 | couvert-autrement | service Ged\Socle\Matching | phpunit Ged\Tests\Socle\ModelesResteTest::testMatchingDelegueLAlgorithmeDeCorrespondance (couche 1) |  |
+| classe ModelWithOwner(models.Model) | src/documents/models.py:31 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | classe Note(SoftDeleteModel) | src/documents/models.py:680 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
-| classe PaperlessTask(ModelWithOwner) | src/documents/models.py:587 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| classe PaperlessTask(ModelWithOwner) | src/documents/models.py:587 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
 | classe ProcessedMail(document_models.ModelWithOwner) | src/paperless_mail/models.py:308 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | classe SavedView(ModelWithOwner) | src/documents/models.py:435 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
 | classe SavedViewFilterRule(models.Model) | src/documents/models.py:503 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testCompilerDesFiltresTypés (couche 1) |  |
 | classe ShareLink(SoftDeleteModel) | src/documents/models.py:720 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | classe StoragePath(MatchingModel) | src/documents/models.py:146 | couvert-autrement | service Ged\Socle\Fichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | classe Tag(MatchingModel, TreeNodeModel) | src/documents/models.py:101 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase (couche 1) |  |
-| classe UiSettings(models.Model) | src/documents/models.py:575 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| classe UiSettings(models.Model) | src/documents/models.py:575 | couvert-autrement | service Ged\Socle\Preferences | phpunit Ged\Tests\Socle\ModelesResteTest::testPreferencesParUtilisateurEtRefusDUnReglageInconnu (couche 1) |  |
 | classe Workflow(models.Model) | src/documents/models.py:1527 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
 | classe WorkflowAction(models.Model) | src/documents/models.py:1272 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
 | classe WorkflowActionEmail(models.Model) | src/documents/models.py:1185 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
 | classe WorkflowActionWebhook(models.Model) | src/documents/models.py:1222 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
 | classe WorkflowRun(SoftDeleteModel) | src/documents/models.py:1552 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
 | classe WorkflowTrigger(models.Model) | src/documents/models.py:980 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
-| CustomField type BOOL | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type DATE | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type DOCUMENTLINK | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type FLOAT | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type INT | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type LONG_TEXT | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type MONETARY | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type SELECT | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type STRING | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CustomField type URL | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| CustomField type BOOL | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type DATE | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type DOCUMENTLINK | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
+| CustomField type FLOAT | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type INT | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type LONG_TEXT | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type MONETARY | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type SELECT | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type STRING | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
+| CustomField type URL | src/documents/models.py:843 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
 | AttachmentProcessing.ATTACHMENTS_ONLY | src/paperless_mail/models.py:115 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | AttachmentProcessing.EVERYTHING | src/paperless_mail/models.py:116 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | ConsumptionScope.ATTACHMENTS_ONLY | src/paperless_mail/models.py:104 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
@@ -826,36 +846,36 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | CorrespondentSource.FROM_EMAIL | src/paperless_mail/models.py:139 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | CorrespondentSource.FROM_NAME | src/paperless_mail/models.py:140 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | CorrespondentSource.FROM_NOTHING | src/paperless_mail/models.py:138 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
-| DisplayFields.ADDED | src/documents/models.py:444 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.ASN | src/documents/models.py:452 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.CORRESPONDENT | src/documents/models.py:446 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.CREATED | src/documents/models.py:443 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.CUSTOM_FIELD | src/documents/models.py:454 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.DOCUMENT_TYPE | src/documents/models.py:447 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.NOTES | src/documents/models.py:449 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.OWNER | src/documents/models.py:450 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.PAGE_COUNT | src/documents/models.py:453 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.SHARED | src/documents/models.py:451 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.STORAGE_PATH | src/documents/models.py:448 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.TAGS | src/documents/models.py:445 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayFields.TITLE | src/documents/models.py:442 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayMode.LARGE_CARDS | src/documents/models.py:439 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayMode.SMALL_CARDS | src/documents/models.py:438 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| DisplayMode.TABLE | src/documents/models.py:437 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| DisplayFields.ADDED | src/documents/models.py:444 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.ASN | src/documents/models.py:452 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.CORRESPONDENT | src/documents/models.py:446 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.CREATED | src/documents/models.py:443 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.CUSTOM_FIELD | src/documents/models.py:454 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.DOCUMENT_TYPE | src/documents/models.py:447 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.NOTES | src/documents/models.py:449 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.OWNER | src/documents/models.py:450 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.PAGE_COUNT | src/documents/models.py:453 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.SHARED | src/documents/models.py:451 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.STORAGE_PATH | src/documents/models.py:448 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.TAGS | src/documents/models.py:445 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayFields.TITLE | src/documents/models.py:442 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayMode.LARGE_CARDS | src/documents/models.py:439 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayMode.SMALL_CARDS | src/documents/models.py:438 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
+| DisplayMode.TABLE | src/documents/models.py:437 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\ModelesResteTest::testVuesReglagesAffichageTriEtTableauDeBord (couche 1) |  |
 | DocumentSourceChoices.API_UPLOAD | src/documents/models.py:998 | couvert-autrement | route POST /api/v1/depots | phpunit Ged\Tests\Jonctions\DepotApiTest::testTroisFichiersPoussesDeuxFoisDonnentTroisTravauxSansDoublon (couche 1) |  |
 | DocumentSourceChoices.CONSUME_FOLDER | src/documents/models.py:997 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
 | DocumentSourceChoices.MAIL_FETCH | src/documents/models.py:999 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
 | DocumentSourceChoices.WEB_UI | src/documents/models.py:1000 | couvert-autrement | route POST /deposer | phpunit Ged\Tests\Ui\ATraiterNomenclatureTest::testUnTypeAjouteAuFondsApparaitDansLesChoixDeLEcran (couche 1) |  |
 | FieldDataType.BOOL | src/documents/models.py:789 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.DATE | src/documents/models.py:788 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
-| FieldDataType.DOCUMENTLINK | src/documents/models.py:793 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| FieldDataType.DOCUMENTLINK | src/documents/models.py:793 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
 | FieldDataType.FLOAT | src/documents/models.py:791 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.INT | src/documents/models.py:790 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.LONG_TEXT | src/documents/models.py:795 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.MONETARY | src/documents/models.py:792 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.SELECT | src/documents/models.py:794 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.STRING | src/documents/models.py:786 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
-| FieldDataType.URL | src/documents/models.py:787 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| FieldDataType.URL | src/documents/models.py:787 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
 | FileVersion.ARCHIVE | src/documents/models.py:722 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve (couche 1) |  |
 | FileVersion.ORIGINAL | src/documents/models.py:723 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu (couche 1) |  |
 | ImapSecurity.NONE | src/paperless_mail/models.py:14 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
@@ -878,13 +898,13 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | ScheduleDateField.CREATED | src/documents/models.py:1004 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
 | ScheduleDateField.CUSTOM_FIELD | src/documents/models.py:1006 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
 | ScheduleDateField.MODIFIED | src/documents/models.py:1005 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
-| TaskName.CHECK_SANITY | src/documents/models.py:599 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskName.CONSUME_FILE | src/documents/models.py:597 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskName.INDEX_OPTIMIZE | src/documents/models.py:600 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskName.TRAIN_CLASSIFIER | src/documents/models.py:598 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskType.AUTO | src/documents/models.py:592 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskType.MANUAL_TASK | src/documents/models.py:594 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TaskType.SCHEDULED_TASK | src/documents/models.py:593 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| TaskName.CHECK_SANITY | src/documents/models.py:599 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskName.CONSUME_FILE | src/documents/models.py:597 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskName.INDEX_OPTIMIZE | src/documents/models.py:600 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskName.TRAIN_CLASSIFIER | src/documents/models.py:598 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskType.AUTO | src/documents/models.py:592 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskType.MANUAL_TASK | src/documents/models.py:594 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
+| TaskType.SCHEDULED_TASK | src/documents/models.py:593 | couvert-autrement | service Ged\Socle\Taches | phpunit Ged\Tests\Socle\ModelesResteTest::testTachesCycleDeVieSansCelery (couche 1) |  |
 | TitleSource.FROM_FILENAME | src/paperless_mail/models.py:134 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | TitleSource.FROM_SUBJECT | src/paperless_mail/models.py:133 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | TitleSource.NONE | src/paperless_mail/models.py:135 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
@@ -910,13 +930,13 @@ courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont 
 | AcknowledgeTasksPermissions | src/documents/permissions.py:207 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
 | PaperlessAdminPermissions | src/documents/permissions.py:45 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testMatriceCanoniqueSuitLaDecisionEtCouvreLesRoutes (couche 1) |  |
 | PaperlessNotePermissions | src/documents/permissions.py:186 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
-| PaperlessObjectPermissions | src/documents/permissions.py:19 | absent (ecart assume, lot a creer) | - | - | V2-07 |
+| PaperlessObjectPermissions | src/documents/permissions.py:19 | couvert-autrement | service Ged\Socle\ModeleDroits | phpunit Ged\Tests\Socle\ModelesResteTest::testModeleDroitsTraduitLesPermissionsPaperless (couche 1) |  |
 | ViewDocumentsPermissions | src/documents/permissions.py:168 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces (couche 1) |  |
 | get_document_count_filter_for_user | src/documents/permissions.py:132 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Recherche\SemblablesTest::testLesDroitsDeDossierSontAppliquesDansLaRequete (couche 1) |  |
-| get_groups_with_only_permission | src/documents/permissions.py:50 | absent (ecart assume, lot a creer) | - | - | V2-07 |
-| get_objects_for_user_owner_aware | src/documents/permissions.py:151 | absent (ecart assume, lot a creer) | - | - | V2-07 |
+| get_groups_with_only_permission | src/documents/permissions.py:50 | couvert-autrement | service Ged\Socle\ModeleDroits | phpunit Ged\Tests\Socle\ModelesResteTest::testModeleDroitsTraduitLesPermissionsPaperless (couche 1) |  |
+| get_objects_for_user_owner_aware | src/documents/permissions.py:151 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces (couche 1) |  |
 | has_perms_owner_aware | src/documents/permissions.py:163 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\DroitsBaseTest::testHeritageEtRefusExpliciteSontPlusFortsQueLaPermissionDuRole (couche 1) |  |
-| set_permissions_for_object | src/documents/permissions.py:64 | absent (ecart assume, lot a creer) | - | - | V2-07 |
+| set_permissions_for_object | src/documents/permissions.py:64 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces (couche 1) |  |
 | owner sur ModelWithOwner | src/documents/models.py:32 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\DroitsBaseTest::testOracleDroitsEstRespecteParToutesLesSurfaces (couche 1) |  |
 | owner sur ShareLink | src/documents/models.py:762 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 
@@ -1148,23 +1168,13 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:vue:UiSettingsView | api | src/documents/views.py:2361 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:UnifiedSearchViewSet | api | src/documents/views.py:1289 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:UserViewSet | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| chaine:parseur:TextDocumentParser.get_thumbnail | chaine | src/paperless_text/parsers.py:18 | absent | Ecart assume : GEDv2 ne fabrique pas de vignette pour un fichier texte — l’aperçu est le texte lui-même (Apercu\Piece, Apercu\Source). | V2-apercu-texte |
-| chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | Ecart assume : la bureautique (odt/rtf/doc/docx) passe par LibreOffice → PDF (Apercu\Outils::versPdf), non prouvée par un test et hors périmètre de ce lot. | V2-bureautique |
-| chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | Ecart assume : vignette bureautique non prouvée (LibreOffice → PDF → PNG via Apercu), hors périmètre de ce lot. | V2-bureautique |
-| chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | Ecart assume : parse bureautique délégué à LibreOffice/Gotenberg, non prouvé par un test, hors périmètre de ce lot. | V2-bureautique |
-| chaine:parseur:documents.get_default_thumbnail | chaine | src/documents/parsers.py:184 | absent | Ecart assume : GEDv2 ne sert pas de vignette générique ; il NOMME l’absence (Apercu\Outils::MSG_FORMAT, MSG_VIGNETTE), jamais une image de remplacement. | V2-apercu-defaut |
+| chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | Metadonnees lues par les parseurs GEDv2, sans Tika (service Java externe), reference src/paperless_tika/parsers.py | V2-04 |
+| chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | Vignette produite par Ged\Apercu\Miniature, sans Tika, reference src/paperless_tika/parsers.py | V2-04 |
+| chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | Tika est un service Java externe ; GEDv2 n’en depend pas (extraction PDF/Texte/OCR maison), reference src/paperless_tika/parsers.py | V2-04 |
 | commande:documents:convert_mariadb_uuid | commande | src/documents/management/commands/convert_mariadb_uuid.py:1 | exclu | infrastructure-django |  |
-| commande:documents:decrypt_documents | commande | src/documents/management/commands/decrypt_documents.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| commande:documents:document_exporter | commande | src/documents/management/commands/document_exporter.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| commande:documents:document_fuzzy_match | commande | src/documents/management/commands/document_fuzzy_match.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| commande:documents:document_importer | commande | src/documents/management/commands/document_importer.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| commande:documents:document_retagger | commande | src/documents/management/commands/document_retagger.py:1 | absent | ecart assume, lot a creer | V2-00 |
+| commande:documents:decrypt_documents | commande | src/documents/management/commands/decrypt_documents.py:1 | absent | GEDv2 ne chiffre pas le fonds : les fichiers restent lisibles sans l’application (le dossier fait foi), reference src/documents/management/commands/ | V2-09 |
 | commande:documents:loaddata_stdin | commande | src/documents/management/commands/loaddata_stdin.py:1 | exclu | infrastructure-django |  |
-| commande:documents:prune_audit_logs | commande | src/documents/management/commands/prune_audit_logs.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| correspondance:fonction:match_correspondents | correspondance | src/documents/matching.py:47 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:fonction:match_document_types | correspondance | src/documents/matching.py:75 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:fonction:match_storage_paths | correspondance | src/documents/matching.py:127 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:fonction:match_tags | correspondance | src/documents/matching.py:102 | absent | ecart assume, lot a creer | V2-03 |
+| commande:documents:prune_audit_logs | commande | src/documents/management/commands/prune_audit_logs.py:1 | absent | GEDv2 garde le journal d’audit en AJOUT SEUL (retention Archivage) : aucune purge automatique, reference src/documents/management/commands/ | V2-09 |
 | ecran:reglage:general | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:72 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:reglage:notifications | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:74 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:reglage:permissions | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:73 | absent | ecart assume, lot a creer | V2-03 |
@@ -1183,92 +1193,8 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | ecran:route:trash | ecran | src-ui/src/app/app-routing.module.ts:166 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:usersgroups | ecran | src-ui/src/app/app-routing.module.ts:277 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:vide | ecran | src-ui/src/app/app-routing.module.ts:33 | exclu | infrastructure-django |  |
-| masse:fonction:reflect_doclinks | masse | src/documents/bulk_edit.py:647 | absent | ecart assume, lot a creer | V2-03 |
-| masse:fonction:reprocess | masse | src/documents/bulk_edit.py:297 | absent | ecart assume, lot a creer | V2-03 |
-| masse:fonction:set_permissions | masse | src/documents/bulk_edit.py:306 | absent | ecart assume, lot a creer | V2-03 |
-| modele:champ:CustomFieldInstance.created | modele | src/documents/models.py:856 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:CustomFieldInstance.value_document_ids | modele | src/documents/models.py:917 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:CustomFieldInstance.value_monetary_amount | modele | src/documents/models.py:896 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:CustomFieldInstance.value_url | modele | src/documents/models.py:886 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.added | modele | src/documents/models.py:261 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.archive_checksum | modele | src/documents/models.py:219 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.archive_filename | modele | src/documents/models.py:278 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.archive_serial_number | modele | src/documents/models.py:301 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.checksum | modele | src/documents/models.py:211 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.filename | modele | src/documents/models.py:268 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.mime_type | modele | src/documents/models.py:202 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.modified | modele | src/documents/models.py:246 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.page_count | modele | src/documents/models.py:228 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Document.storage_type | modele | src/documents/models.py:253 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MatchingModel.is_insensitive | modele | src/documents/models.py:74 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MatchingModel.match | modele | src/documents/models.py:66 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MatchingModel.matching_algorithm | modele | src/documents/models.py:68 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MatchingModel.name | modele | src/documents/models.py:64 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ModelWithOwner.owner | modele | src/documents/models.py:32 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.acknowledged | modele | src/documents/models.py:609 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.date_created | modele | src/documents/models.py:638 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.date_done | modele | src/documents/models.py:652 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.date_started | modele | src/documents/models.py:645 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.result | modele | src/documents/models.py:659 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.status | modele | src/documents/models.py:630 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.task_file_name | modele | src/documents/models.py:615 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.task_id | modele | src/documents/models.py:602 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.task_name | modele | src/documents/models.py:622 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:PaperlessTask.type | modele | src/documents/models.py:668 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.display_fields | modele | src/documents/models.py:488 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.display_mode | modele | src/documents/models.py:480 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.page_size | modele | src/documents/models.py:473 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.show_in_sidebar | modele | src/documents/models.py:461 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.show_on_dashboard | modele | src/documents/models.py:458 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.sort_field | modele | src/documents/models.py:465 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:SavedView.sort_reverse | modele | src/documents/models.py:471 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ShareLink.file_version | modele | src/documents/models.py:756 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Tag.color | modele | src/documents/models.py:102 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Tag.is_inbox_tag | modele | src/documents/models.py:106 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:UiSettings.settings | modele | src/documents/models.py:581 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:UiSettings.user | modele | src/documents/models.py:576 | absent | ecart assume, lot a creer | V2-04 |
-| modele:classe:MatchingModel | modele | src/documents/models.py:45 | absent | ecart assume, lot a creer | V2-04 |
-| modele:classe:ModelWithOwner | modele | src/documents/models.py:31 | absent | ecart assume, lot a creer | V2-04 |
-| modele:classe:PaperlessTask | modele | src/documents/models.py:587 | exclu | infrastructure-celery-redis |  |
-| modele:classe:UiSettings | modele | src/documents/models.py:575 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:BOOL | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:DATE | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:DOCUMENTLINK | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:FLOAT | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:INT | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:LONG_TEXT | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:MONETARY | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:SELECT | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:STRING | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:customfield-type:URL | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.ADDED | modele | src/documents/models.py:444 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.ASN | modele | src/documents/models.py:452 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.CORRESPONDENT | modele | src/documents/models.py:446 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.CREATED | modele | src/documents/models.py:443 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.CUSTOM_FIELD | modele | src/documents/models.py:454 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.DOCUMENT_TYPE | modele | src/documents/models.py:447 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.NOTES | modele | src/documents/models.py:449 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.OWNER | modele | src/documents/models.py:450 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.PAGE_COUNT | modele | src/documents/models.py:453 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.SHARED | modele | src/documents/models.py:451 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.STORAGE_PATH | modele | src/documents/models.py:448 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.TAGS | modele | src/documents/models.py:445 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayFields.TITLE | modele | src/documents/models.py:442 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayMode.LARGE_CARDS | modele | src/documents/models.py:439 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayMode.SMALL_CARDS | modele | src/documents/models.py:438 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:DisplayMode.TABLE | modele | src/documents/models.py:437 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:FieldDataType.DOCUMENTLINK | modele | src/documents/models.py:793 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:FieldDataType.URL | modele | src/documents/models.py:787 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskName.CHECK_SANITY | modele | src/documents/models.py:599 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskName.CONSUME_FILE | modele | src/documents/models.py:597 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskName.INDEX_OPTIMIZE | modele | src/documents/models.py:600 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskName.TRAIN_CLASSIFIER | modele | src/documents/models.py:598 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskType.AUTO | modele | src/documents/models.py:592 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskType.MANUAL_TASK | modele | src/documents/models.py:594 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TaskType.SCHEDULED_TASK | modele | src/documents/models.py:593 | absent | ecart assume, lot a creer | V2-04 |
+| modele:champ:Document.archive_serial_number | modele | src/documents/models.py:301 | absent | GEDv2 ne numerote pas les archives par un ASN ; le scellement legal porte un jeton TSA, reference src/documents/models.py | V2-09 |
+| modele:champ:Document.page_count | modele | src/documents/models.py:228 | absent | GEDv2 ne calcule pas le nombre de pages ; la pagination est portee par l’origine d’ingestion (origine.pages), reference src/documents/models.py | V2-04 |
+| modele:champ:Document.storage_type | modele | src/documents/models.py:253 | absent | GEDv2 n’a pas de type de stockage chiffre : le fonds reste lisible sans l’application, reference src/documents/models.py | V2-04 |
 | permissions:classe:AcknowledgeTasksPermissions | permissions | src/documents/permissions.py:207 | exclu | infrastructure-celery-redis |  |
-| permissions:classe:PaperlessObjectPermissions | permissions | src/documents/permissions.py:19 | absent | ecart assume, lot a creer | V2-07 |
-| permissions:fonction:get_groups_with_only_permission | permissions | src/documents/permissions.py:50 | absent | ecart assume, lot a creer | V2-07 |
-| permissions:fonction:get_objects_for_user_owner_aware | permissions | src/documents/permissions.py:151 | absent | ecart assume, lot a creer | V2-07 |
-| permissions:fonction:set_permissions_for_object | permissions | src/documents/permissions.py:64 | absent | ecart assume, lot a creer | V2-07 |
 

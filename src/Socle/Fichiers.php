@@ -67,6 +67,43 @@ final class Fichiers
         return $extension !== '' ? "$nom.$extension" : $nom;
     }
 
+    /** Extension préférée d'un MIME, ou chaîne vide si le type n'est pas connu (comme Paperless). */
+    public static function extensionPourMime(string $mime): string
+    {
+        $preferees = [
+            'application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png',
+            'image/tiff' => 'tif', 'image/gif' => 'gif', 'image/webp' => 'webp',
+            'application/zip' => 'zip', 'text/plain' => 'txt', 'text/csv' => 'csv',
+            'message/rfc822' => 'eml', 'application/rtf' => 'rtf', 'text/markdown' => 'md',
+        ];
+        if (isset($preferees[$mime])) {
+            return $preferees[$mime];
+        }
+        $extension = array_search($mime, self::MIME, true);
+
+        return is_string($extension) ? $extension : '';
+    }
+
+    /**
+     * Nom public d'une pièce, tel que Paperless-ngx le forge (`get_public_filename`) : « AAAA-MM-JJ titre.ext »,
+     * l'extension venant du MIME. Un type inconnu ne porte aucune extension — jamais un point orphelin.
+     */
+    public static function nomPublic(string $date, string $titre, string $mime): string
+    {
+        $extension = self::extensionPourMime($mime);
+        $base = trim($date . ' ' . $titre);
+
+        return $extension !== '' ? "$base.$extension" : $base;
+    }
+
+    /** Le fonds sait-il traiter ces extensions ? Liste fermée, déterministe (MIME connus + archive zip). */
+    public static function extensionSupportee(string $extension): bool
+    {
+        $extension = strtolower(trim(ltrim($extension, '.')));
+
+        return $extension !== '' && (isset(self::MIME[$extension]) || $extension === 'zip');
+    }
+
     /**
      * Slug stable d'un nom affiché : minuscules pliées, séparateurs « - ». Adresse les clés de champs
      * personnalisés (`champs.echeance` dans le `.meta.json`) et les liens de vues — ne change jamais
