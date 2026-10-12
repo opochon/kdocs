@@ -454,6 +454,47 @@ if ($api === []) {
 }
 $lignes[] = '';
 
+// Phase 5 : parite d'effet du MODELE de workflows (vecteurs extraits des tests Paperless, rejoues cote
+// GEDv2 par tests/php/Parite/ModeleWorkflowsTest.php). Additif : ne change pas le verdict de la couche.
+$lignes[] = '## Modele — workflows (phase 5)';
+$lignes[] = '';
+$modeleWorkflows = chargerJson($racine . '/var/parite/modele-workflows.json');
+if ($modeleWorkflows === [] || !isset($modeleWorkflows['categorie'])) {
+    $lignes[] = 'Aucune mesure de modele disponible (lancer tests/php/Parite/ModeleWorkflowsTest.php).';
+} else {
+    $total = (int) ($modeleWorkflows['total'] ?? 0);
+    $passes = (int) ($modeleWorkflows['passes'] ?? 0);
+    $lignes[] = 'Vecteurs {document, declencheur, actions} extraits des tests Paperless (WorkflowTrigger,';
+    $lignes[] = 'WorkflowAction, WorkflowActionEmail, WorkflowActionWebhook, WorkflowRun), rejoues contre le';
+    $lignes[] = 'vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celery sont listes';
+    $lignes[] = '`non_rejouables` avec leur raison.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: | ---: |';
+    $lignes[] = sprintf(
+        '| modele-workflows | tests/parite/vecteurs/modele-workflows.json | %d | %d | %d | %s %% |',
+        $passes,
+        $total,
+        (int) ($modeleWorkflows['non_rejouables'] ?? 0),
+        number_format($total > 0 ? round($passes / $total * 100, 2) : 0.0, 2, ',', ' '),
+    );
+    foreach ((array) ($modeleWorkflows['familles'] ?? []) as $famille => $mesure) {
+        if (!is_array($mesure)) {
+            continue;
+        }
+        $t = (int) ($mesure['total'] ?? 0);
+        $p = (int) ($mesure['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| — %s | — | %d | %d | — | %s %% |',
+            (string) $famille,
+            $p,
+            $t,
+            number_format($t > 0 ? round($p / $t * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
+
 $index = [];
 foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $element) {
     if (is_array($element)) {

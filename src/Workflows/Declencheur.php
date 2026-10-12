@@ -71,7 +71,7 @@ final class Declencheur
         self::SOURCE_ECRAN => 'web_ui',
     ];
 
-    /** @var array<int, string> */
+    /** @var array<string, string> */
     public const DATES = [
         self::DATE_AJOUT => 'Ajout',
         self::DATE_CREATION => 'Création',
@@ -88,6 +88,12 @@ final class Declencheur
      */
     public static function correspondType(int $type, array $trigger, array $document): bool
     {
+        // Le workflow ne retient que les déclencheurs de CE type, comme Paperless (`triggers.filter(type=…)`).
+        $typeDeclencheur = (int) ($trigger['type'] ?? $type);
+        if ($typeDeclencheur !== $type) {
+            return false;
+        }
+
         return match ($type) {
             self::CONSOMMATION => self::correspondConsommation($trigger, $document),
             self::AJOUT, self::MISE_A_JOUR, self::PLANIFIE => self::correspondExistant($trigger, $document),
@@ -299,7 +305,10 @@ final class Declencheur
         return true;
     }
 
-    /** @param list<mixed> $liste @return list<string> */
+    /**
+     * @param list<mixed> $liste
+     * @return list<string>
+     */
     private static function normaliserListe(array $liste): array
     {
         return array_values(array_unique(array_filter(

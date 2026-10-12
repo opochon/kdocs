@@ -23,7 +23,7 @@ final class DepotWorkflows
     {
         $lignes = $this->pdo->query("SELECT * FROM workflow_definitions WHERE genre = 'workflow' ORDER BY ordre, id")->fetchAll();
 
-        return array_map(fn (array $ligne): array => $this->decoder($ligne), is_array($lignes) ? $lignes : []);
+        return array_map(fn (array $ligne): array => $this->decoder($ligne), $lignes);
     }
 
     /** @return list<array<string, mixed>> workflows actifs, dans l'ordre */

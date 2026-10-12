@@ -23,7 +23,7 @@ final class CourrielJournalise implements PortCourriel
             'auteur' => 'workflow',
             'horodatage' => new \DateTimeImmutable(),
             'details' => [
-                'destinataires' => array_values($destinataires),
+                'destinataires' => $destinataires,
                 'sujet' => $sujet,
                 'corps' => $corps,
                 'inclure_document' => $inclureDocument,

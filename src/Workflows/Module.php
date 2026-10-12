@@ -33,7 +33,7 @@ final class Module
         $journal = new Journal($pdo);
         $fonds = Fonds::depuis($config, $pdo);
         $ecran = new Ecran($config, $pdo, $horloge);
-        $admin = new Admin($config, $pdo);
+        $admin = new Admin($pdo);
 
         // --- Administration des workflows (réservée à `workflow.gerer`) : liste, création, édition, ordre,
         //     activation et historique des exécutions. Le formulaire construit la même définition Paperless. ---

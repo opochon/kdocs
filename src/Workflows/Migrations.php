@@ -63,7 +63,7 @@ final class Migrations
     private static function appliquer(PDO $pdo, int $version): void
     {
         match ($version) {
-            1 => Schema::installer($pdo),
+            1 => Schema::assurerTables($pdo),
             2 => Schema::assurerOrdre($pdo),
             default => throw new ErreurWorkflow("migration : étape inconnue ($version)"),
         };

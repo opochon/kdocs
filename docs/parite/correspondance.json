@@ -3865,304 +3865,829 @@
             "lot": "V2-04"
         },
         "modele:champ:Workflow.actions": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
+            }
         },
         "modele:champ:Workflow.enabled": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
+            }
         },
         "modele:champ:Workflow.name": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
+            }
         },
         "modele:champ:Workflow.order": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
+            }
         },
         "modele:champ:Workflow.triggers": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\DepotWorkflows"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
+            }
         },
         "modele:champ:WorkflowAction.assign_change_groups": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_change_users": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_correspondent": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_custom_fields": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_custom_fields_values": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_document_type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_owner": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_storage_path": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_title": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_view_groups": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.assign_view_users": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.email": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.order": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_correspondents": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_custom_fields": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_document_types": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_owners": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_permissions": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_storage_paths": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_all_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_change_groups": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_change_users": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_correspondents": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_custom_fields": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_document_types": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_owners": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_storage_paths": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_view_groups": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.remove_view_users": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowAction.webhook": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDeRetraitEstApplique"
+            }
         },
         "modele:champ:WorkflowActionEmail.body": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsCourrielDeWorkflowActionEmail"
+            }
         },
         "modele:champ:WorkflowActionEmail.include_document": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsCourrielDeWorkflowActionEmail"
+            }
         },
         "modele:champ:WorkflowActionEmail.subject": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsCourrielDeWorkflowActionEmail"
+            }
         },
         "modele:champ:WorkflowActionEmail.to": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsCourrielDeWorkflowActionEmail"
+            }
         },
         "modele:champ:WorkflowActionWebhook.as_json": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.body": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.headers": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.include_document": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.params": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.url": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowActionWebhook.use_params": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook"
+            }
         },
         "modele:champ:WorkflowRun.document": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Executions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution"
+            }
         },
         "modele:champ:WorkflowRun.run_at": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Executions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution"
+            }
         },
         "modele:champ:WorkflowRun.type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Executions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution"
+            }
         },
         "modele:champ:WorkflowRun.workflow": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Executions"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_custom_field_query": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_filename": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_all_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_correspondent": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_document_type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_not_correspondents": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_not_document_types": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_not_storage_paths": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_not_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_storage_path": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_has_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_mailrule": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.filter_path": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.is_insensitive": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.match": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.matching_algorithm": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.schedule_date_custom_field": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.schedule_date_field": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.schedule_is_recurring": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.schedule_offset_days": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.schedule_recurring_interval_days": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:champ:WorkflowTrigger.type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesFiltresDeConsommation"
+            }
         },
         "modele:classe:Correspondent": {
             "statut": "couvert-autrement",
@@ -4324,66 +4849,66 @@
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Moteur"
+                "classe": "Ged\\Workflows\\DepotWorkflows"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testConditionsEvalueesSurFiche"
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
             }
         },
         "modele:classe:WorkflowAction": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Moteur"
+                "classe": "Ged\\Workflows\\Action"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan"
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDAffectationEstApplique"
             }
         },
         "modele:classe:WorkflowActionEmail": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Action"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDAffectationEstApplique"
             }
         },
         "modele:classe:WorkflowActionWebhook": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Action"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testChaqueChampDAffectationEstApplique"
             }
         },
         "modele:classe:WorkflowRun": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Moteur"
+                "classe": "Ged\\Workflows\\Executions"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\MoteurTest::testHorlogeFigeeInjecteeHorodateLeJournal"
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution"
             }
         },
         "modele:classe:WorkflowTrigger": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Moteur"
+                "classe": "Ged\\Workflows\\DepotWorkflows"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+                "cible": "Ged\\Tests\\Workflows\\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees"
             }
         },
         "modele:customfield-type:BOOL": {
@@ -4769,27 +5294,48 @@
             "lot": "V2-04"
         },
         "modele:type:ScheduleDateField.ADDED": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage"
+            }
         },
         "modele:type:ScheduleDateField.CREATED": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage"
+            }
         },
         "modele:type:ScheduleDateField.CUSTOM_FIELD": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Declencheur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90"
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage"
             }
         },
         "modele:type:ScheduleDateField.MODIFIED": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage"
+            }
         },
         "modele:type:TaskName.CHECK_SANITY": {
             "statut": "absent",
@@ -4835,84 +5381,154 @@
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Action"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesEnumerationsDeActionSontCellesDuModele"
             }
         },
         "modele:type:WorkflowActionType.EMAIL": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesEnumerationsDeActionSontCellesDuModele"
+            }
         },
         "modele:type:WorkflowActionType.REMOVAL": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Action"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur"
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesEnumerationsDeActionSontCellesDuModele"
             }
         },
         "modele:type:WorkflowActionType.WEBHOOK": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Action"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ActionTest::testLesEnumerationsDeActionSontCellesDuModele"
+            }
         },
         "modele:type:WorkflowTriggerMatching.ALL": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerMatching.ANY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerMatching.FUZZY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerMatching.LITERAL": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerMatching.NONE": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerMatching.REGEX": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerType.CONSUMPTION": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Moteur"
+                "classe": "Ged\\Workflows\\Declencheur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction"
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
             }
         },
         "modele:type:WorkflowTriggerType.DOCUMENT_ADDED": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerType.DOCUMENT_UPDATED": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Workflows\\Declencheur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
+            }
         },
         "modele:type:WorkflowTriggerType.SCHEDULED": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Workflows\\Catalogue"
+                "classe": "Ged\\Workflows\\Declencheur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Workflows\\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90"
+                "cible": "Ged\\Tests\\Workflows\\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless"
             }
         },
         "permissions:classe:AcknowledgeTasksPermissions": {

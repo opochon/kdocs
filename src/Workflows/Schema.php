@@ -24,6 +24,16 @@ final class Schema
 
     public static function installer(PDO $pdo): void
     {
+        self::assurerTables($pdo);
+        self::assurerOrdre($pdo);
+    }
+
+    /**
+     * Étape v1 : les tables de base, idempotentes. `Migrations::monter` l'appelle pour la version 1 ;
+     * l'installateur la pose avec le reste du schéma.
+     */
+    public static function assurerTables(PDO $pdo): void
+    {
         $pdo->exec(<<<'SQL'
             CREATE TABLE IF NOT EXISTS workflow_definitions (
               id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -71,9 +81,6 @@ final class Schema
               KEY k_horodatage (horodatage)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
-
-        // Version 2 : colonne de tri des définitions (règles, circuits et workflows Paperless partagent la table).
-        self::assurerOrdre($pdo);
     }
 
     /**

@@ -36,17 +36,15 @@ final class Admin
         'proprietaire' => 'Propriétaire',
     ];
 
-    public function __construct(
-        private readonly Config $config,
-        private readonly PDO $pdo,
-    ) {
+    public function __construct(private readonly PDO $pdo)
+    {
     }
 
     public static function depuisRacine(?string $racine = null): self
     {
         $config = new Config($racine ?? dirname(__DIR__, 2));
 
-        return new self($config, Base::pdo($config));
+        return new self(Base::pdo($config));
     }
 
     /** @return array<string, mixed> */

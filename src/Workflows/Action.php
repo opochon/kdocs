@@ -192,9 +192,9 @@ final class Action
      * @param array<string, mixed> $action
      * @param array<string, mixed> $document
      * @param list<string>         $effets
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>
      */
-    private static function envoyerCourriel(array $action, array $document, ?PortCourriel $port, array &$effets): ?array
+    private static function envoyerCourriel(array $action, array $document, ?PortCourriel $port, array &$effets): array
     {
         $email = (array) ($action['email'] ?? []);
         $destinataires = array_values(array_filter(array_map('trim', explode(',', (string) ($email['to'] ?? '')))));
@@ -215,9 +215,9 @@ final class Action
      * @param array<string, mixed> $action
      * @param array<string, mixed> $document
      * @param list<string>         $effets
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>
      */
-    private static function appelerWebhook(array $action, array $document, ?PortWebhook $port, array &$effets): ?array
+    private static function appelerWebhook(array $action, array $document, ?PortWebhook $port, array &$effets): array
     {
         $webhook = (array) ($action['webhook'] ?? []);
         $url = trim((string) ($webhook['url'] ?? ''));
@@ -267,7 +267,11 @@ final class Action
         );
     }
 
-    /** Variante tolérante (courriel, webhook) : un placeholder inconnu devient vide, rien n'est bloqué. */
+    /**
+     * Variante tolérante (courriel, webhook) : un placeholder inconnu devient vide, rien n'est bloqué.
+     *
+     * @param array<string, mixed> $document
+     */
     private static function resoudreOuVide(string $gabarit, array $document): string
     {
         try {
@@ -304,7 +308,10 @@ final class Action
         ];
     }
 
-    /** @param list<mixed> $liste @return list<string> */
+    /**
+     * @param list<mixed> $liste
+     * @return list<string>
+     */
     private static function liste(array $liste): array
     {
         return array_values(array_unique(array_filter(
@@ -313,7 +320,11 @@ final class Action
         )));
     }
 
-    /** @param list<mixed> $base @param list<mixed> $retires @return list<string> */
+    /**
+     * @param list<mixed> $base
+     * @param list<mixed> $retires
+     * @return list<string>
+     */
     private static function soustraire(array $base, array $retires): array
     {
         $exclus = array_map([self::class, 'normaliser'], self::liste($retires));
@@ -324,7 +335,10 @@ final class Action
         ));
     }
 
-    /** @param array<string, mixed> $droits @return array<string, array<string, list<string>>> */
+    /**
+     * @param array<string, mixed> $droits
+     * @return array<string, array<string, list<string>>>
+     */
     private static function normaliserDroits(array $droits): array
     {
         $normalise = [];

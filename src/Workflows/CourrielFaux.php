@@ -16,7 +16,7 @@ final class CourrielFaux implements PortCourriel
     public function envoyer(array $destinataires, string $sujet, string $corps, bool $inclureDocument, array $document): void
     {
         $this->envoyes[] = [
-            'destinataires' => array_values($destinataires),
+            'destinataires' => $destinataires,
             'sujet' => $sujet,
             'corps' => $corps,
             'inclure_document' => $inclureDocument,
