@@ -73,9 +73,13 @@ final class Module
             return self::redirection($rep, '/courrier');
         });
 
-        $app->post('/courrier/comptes/{id:[0-9]+}/basculer', function (Requete $req, Reponse $rep, array $args) use ($config): Reponse {
+        $app->post('/courrier/comptes/{id:[0-9]+}/basculer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $corps = self::corps($req);
-            Fabrique::comptes($config)->basculer((int) $args['id'], (string) ($corps['actif'] ?? '0') === '1');
+            try {
+                Fabrique::comptes($config)->basculer((int) $args['id'], (string) ($corps['actif'] ?? '0') === '1');
+            } catch (ErreurCourrier $e) {
+                return self::erreur($vue, $rep, 404, 'POST /courrier/comptes/' . (int) $args['id'] . '/basculer', $e->getMessage());
+            }
 
             return self::redirection($rep, '/courrier');
         });
@@ -159,9 +163,13 @@ final class Module
             return self::redirection($rep, '/courrier');
         });
 
-        $app->post('/courrier/regles/{id:[0-9]+}/basculer', function (Requete $req, Reponse $rep, array $args) use ($config): Reponse {
+        $app->post('/courrier/regles/{id:[0-9]+}/basculer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             $corps = self::corps($req);
-            Fabrique::regles($config)->basculer((int) $args['id'], (string) ($corps['actif'] ?? '0') === '1');
+            try {
+                Fabrique::regles($config)->basculer((int) $args['id'], (string) ($corps['actif'] ?? '0') === '1');
+            } catch (ErreurCourrier $e) {
+                return self::erreur($vue, $rep, 404, 'POST /courrier/regles/' . (int) $args['id'] . '/basculer', $e->getMessage());
+            }
 
             return self::redirection($rep, '/courrier');
         });
