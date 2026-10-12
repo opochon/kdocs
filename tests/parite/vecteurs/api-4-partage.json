@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "categorie": "partage",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 2,
+  "vecteurs": [
+    {
+      "id": "partage:sharelink_partial_update:001",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/share_links/{id}/",
+        "corps": {
+          "expiration": "{expiration}"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/views.py:2602"
+    },
+    {
+      "id": "partage:sharelink_update:002",
+      "entree": {
+        "methode": "PUT",
+        "chemin": "/api/share_links/{id}/",
+        "corps": {
+          "expiration": "{expiration}"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/views.py:2602"
+    }
+  ],
+  "non_rejouables": [],
+  "note": "Paperless n'a pas de test d'update d'un lien de partage : `ShareLinkViewSet` est un ModelViewSet (src/documents/views.py:2602), PUT/PATCH rendent 200. Vecteurs transcrits du contrat DRF, aucun code Paperless repris."
+}

@@ -256,6 +256,35 @@ FAMILLES: dict[str, list[tuple[str, list[str], str, str | None]]] = {
     ],
 }
 
+# Familles du lot dont Paperless n'a PAS de test dedie : le contrat DRF est transcrit ici, a la main,
+# sous la meme forme {entree, sortie}. La reference cite la classe de vue, la note dit pourquoi.
+MANUELS: dict[str, dict] = {
+    "partage": {
+        "note": (
+            "Paperless n'a pas de test d'update d'un lien de partage : `ShareLinkViewSet` est un "
+            "ModelViewSet (src/documents/views.py:2602), PUT/PATCH rendent 200. Vecteurs transcrits du "
+            "contrat DRF, aucun code Paperless repris."
+        ),
+        "vecteurs": [
+            {
+                "id": "partage:sharelink_partial_update:001",
+                "entree": {"methode": "PATCH", "chemin": "/api/share_links/{id}/",
+                           "corps": {"expiration": "{expiration}"}},
+                "sortie": {"statut": 200},
+                "reference": "src/documents/views.py:2602",
+            },
+            {
+                "id": "partage:sharelink_update:002",
+                "entree": {"methode": "PUT", "chemin": "/api/share_links/{id}/",
+                           "corps": {"expiration": "{expiration}"}},
+                "sortie": {"statut": 200},
+                "reference": "src/documents/views.py:2602",
+            },
+        ],
+        "non_rejouables": [],
+    },
+}
+
 
 def extraire_famille(depot: Path, famille: str,
                      definition: list[tuple[str, list[str], str, str | None]]) -> tuple[list[dict], list[dict]]:
@@ -354,6 +383,15 @@ def main() -> int:
         (sortie / f"api-4-{famille}.json").write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n",
                                                       encoding="utf-8")
         print(f"OK: {len(vecteurs)} vecteurs, {len(ecartes)} non rejouables pour {famille} (api-4-{famille}.json)")
+    # Familles SANS test dedie cote Paperless : le contrat DRF est transcrit a la main (meme discipline
+    # {entree, sortie}), la reference cite la classe de vue. Aucune ligne de code Paperless reprise.
+    for famille, manuel in MANUELS.items():
+        document = {"version": 1, "categorie": famille, "reference": reference, "total": len(manuel["vecteurs"]),
+                    "vecteurs": manuel["vecteurs"], "non_rejouables": manuel.get("non_rejouables", []),
+                    "note": manuel.get("note", "")}
+        (sortie / f"api-4-{famille}.json").write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+                                                      encoding="utf-8")
+        print(f"OK: {len(manuel['vecteurs'])} vecteurs (manuel) pour {famille} (api-4-{famille}.json)")
     return 0
 
 
