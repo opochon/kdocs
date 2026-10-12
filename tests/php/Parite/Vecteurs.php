@@ -36,12 +36,29 @@ final class Vecteurs
      */
     public static function ecrire(string $categorie, array $resultat): void
     {
+        self::ecrireMesure('chaine-' . $categorie, $resultat);
+    }
+
+    /**
+     * Mesure d'une famille `api` (lot ged-parite-api-1) : écrite à part pour que la phase 3 (chaîne)
+     * ne mélange pas ses familles avec celles de l'API.
+     *
+     * @param array<string,mixed> $resultat
+     */
+    public static function ecrireApi(string $categorie, array $resultat): void
+    {
+        self::ecrireMesure('api-' . $categorie, $resultat);
+    }
+
+    /** @param array<string,mixed> $resultat */
+    private static function ecrireMesure(string $fichier, array $resultat): void
+    {
         $dossier = dirname(__DIR__, 3) . '/var/parite';
         if (!is_dir($dossier) && !mkdir($dossier, 0777, true) && !is_dir($dossier)) {
             throw new RuntimeException('dossier de mesure impossible : ' . $dossier);
         }
         file_put_contents(
-            $dossier . '/chaine-' . $categorie . '.json',
+            $dossier . '/' . $fichier . '.json',
             json_encode($resultat, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n",
         );
     }

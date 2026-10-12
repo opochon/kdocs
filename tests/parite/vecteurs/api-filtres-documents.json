@@ -1,0 +1,966 @@
+{
+  "version": 1,
+  "categorie": "filtres-documents",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 18,
+  "vecteurs": [
+    {
+      "id": "filtres-documents:test_document_filters:001",
+      "entree": {
+        "requete": {
+          "is_in_inbox": "true"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc1"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:668"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:002",
+      "entree": {
+        "requete": {
+          "is_in_inbox": "false"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc2",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:674"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:003",
+      "entree": {
+        "requete": {
+          "tags__id__in": [
+            "t1",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc1",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:680"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:004",
+      "entree": {
+        "requete": {
+          "tags__id__in": [
+            "t2",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc2",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:688"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:005",
+      "entree": {
+        "requete": {
+          "tags__id__all": [
+            "t2",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:696"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:006",
+      "entree": {
+        "requete": {
+          "tags__id__all": [
+            "t1",
+            "t3"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:704"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:008",
+      "entree": {
+        "requete": {
+          "tags__id__none": "t3"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2,
+        "retenus": [
+          "doc1",
+          "doc2"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:718"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:009",
+      "entree": {
+        "requete": {
+          "tags__id__none": [
+            "t3",
+            "t2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc1"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:724"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:010",
+      "entree": {
+        "requete": {
+          "tags__id__none": [
+            "t2",
+            "t1"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:732"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:011",
+      "entree": {
+        "requete": {
+          "id__in": [
+            "doc1",
+            "doc2"
+          ]
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 2
+      },
+      "reference": "src/documents/tests/test_api_documents.py:739"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:013",
+      "entree": {
+        "requete": {
+          "id": "doc2"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1
+      },
+      "reference": "src/documents/tests/test_api_documents.py:753"
+    },
+    {
+      "id": "filtres-documents:test_document_filters:014",
+      "entree": {
+        "requete": {
+          "mime_type": "pdf"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 3
+      },
+      "reference": "src/documents/tests/test_api_documents.py:785"
+    },
+    {
+      "id": "filtres-documents:test_document_checksum_filter:001",
+      "entree": {
+        "requete": {
+          "checksum__iexact": "B"
+        },
+        "corpus": [
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc2"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:844"
+    },
+    {
+      "id": "filtres-documents:test_document_checksum_filter:002",
+      "entree": {
+        "requete": {
+          "checksum__iexact": "X"
+        },
+        "corpus": [
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:850"
+    },
+    {
+      "id": "filtres-documents:test_documents_title_content_filter:001",
+      "entree": {
+        "requete": {
+          "title_content": "A"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "title A",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc2",
+            "titre": "title B",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "title A",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc4",
+            "titre": "title B",
+            "empreinte": "D",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 3,
+        "retenus": [
+          "doc1",
+          "doc2",
+          "doc3"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:921"
+    },
+    {
+      "id": "filtres-documents:test_documents_title_content_filter:002",
+      "entree": {
+        "requete": {
+          "title_content": "B"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "title A",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc2",
+            "titre": "title B",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "title A",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc4",
+            "titre": "title B",
+            "empreinte": "D",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 3,
+        "retenus": [
+          "doc2",
+          "doc3",
+          "doc4"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:930"
+    },
+    {
+      "id": "filtres-documents:test_documents_title_content_filter:003",
+      "entree": {
+        "requete": {
+          "title_content": "X"
+        },
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "title A",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc2",
+            "titre": "title B",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "content A",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "title A",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc4",
+            "titre": "title B",
+            "empreinte": "D",
+            "mime": "application/pdf",
+            "contenu": "content B",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 0
+      },
+      "reference": "src/documents/tests/test_api_documents.py:939"
+    },
+    {
+      "id": "filtres-documents:test_documents_title_content_filter_strips_boundary_whitespace:001",
+      "entree": {
+        "requete": {
+          "title_content": " Testwort "
+        },
+        "corpus": [
+          {
+            "cle": "doc",
+            "titre": "Testwort",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [],
+            "statut": "valide"
+          }
+        ]
+      },
+      "sortie": {
+        "total": 1,
+        "retenus": [
+          "doc"
+        ]
+      },
+      "reference": "src/documents/tests/test_api_documents.py:952"
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "filtres-documents:test_document_filters:007",
+      "raison": "ObjectFilter de Paperless rend la queryset inchangee quand une valeur n'est pas une liste d'entiers (ValueError avale, src/documents/filters.py: ObjectFilter.filter) : comportement Django assume, non rejoue.",
+      "reference": "src/documents/tests/test_api_documents.py:711",
+      "entree": {
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ],
+        "requete": {
+          "tags__id__all": "t1at3"
+        }
+      }
+    },
+    {
+      "id": "filtres-documents:test_document_filters:012",
+      "raison": "Django/DRF ignore silencieusement les parametres de filtre inconnus (ID_KWARGS n'a ni range ni lt ; src/documents/filters.py:48) : GEDv2 nomme une erreur 400, un filtre silencieusement lache n'est pas une convention GEDv2.",
+      "reference": "src/documents/tests/test_api_documents.py:746",
+      "entree": {
+        "corpus": [
+          {
+            "cle": "doc1",
+            "titre": "none1",
+            "empreinte": "A",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t1"
+            ],
+            "statut": "a_controler"
+          },
+          {
+            "cle": "doc2",
+            "titre": "none2",
+            "empreinte": "B",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2"
+            ],
+            "statut": "valide"
+          },
+          {
+            "cle": "doc3",
+            "titre": "none3",
+            "empreinte": "C",
+            "mime": "application/pdf",
+            "contenu": "",
+            "etiquettes": [
+              "t2",
+              "t3"
+            ],
+            "statut": "valide"
+          }
+        ],
+        "requete": {
+          "id__range": [
+            "doc1",
+            "doc3"
+          ]
+        }
+      }
+    }
+  ]
+}
