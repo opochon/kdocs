@@ -1670,8 +1670,16 @@
             }
         },
         "chaine:classe:ConsumerError": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ErreurConsommation"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testErreurDeConsommationNommeLeFichierEtLaCause"
+            },
+            "note": "exception nommee : fichier + cause."
         },
         "chaine:classe:ConsumerPlugin": {
             "statut": "couvert-autrement",
@@ -1685,36 +1693,100 @@
             }
         },
         "chaine:classe:ConsumerPluginMixin": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\EtapesConsommation"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testEtapeNommeEchoueAvecLeFichier"
+            },
+            "note": "socle des etapes : nom du fichier, progression, echec nomme."
         },
         "chaine:classe:ConsumerPreflightPlugin": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ControleAvant"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testExecutionDuControleRendLesEtapes"
+            },
+            "note": "controles avant consommation (fichier, doublon, dossiers, ASN)."
         },
         "chaine:classe:ConsumerStatusShortMessage": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\MessageStatut"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testMessagesDeStatutSontCeuxDePaperless"
+            },
+            "note": "memes cles machine de statut."
         },
         "chaine:codebarres:Barcode": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CodeBarres"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive"
+            },
+            "note": "valeur de code-barres (page, valeur, config) portee par CodeBarres, sans dataclass."
         },
         "chaine:codebarres:Barcode.is_asn": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CodeBarres"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive"
+            },
+            "note": "valeur prefixee par le prefixe d archive configure."
         },
         "chaine:codebarres:Barcode.is_separator": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CodeBarres"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive"
+            },
+            "note": "egalite stricte avec le motif de separation."
         },
         "chaine:codebarres:BarcodePlugin": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CodeBarres"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineCodeBarresTest::testRejoueLaDecoupeParCodesBarres"
+            },
+            "note": "classification et numerotation portees par le service, pas par un greffon Django."
         },
         "chaine:codebarres:BarcodePlugin.run": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\CodeBarres"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineCodeBarresTest::testRejoueLaDecoupeParCodesBarres"
+            },
+            "note": "decoupe de liasse rejouee sur 4 vecteurs separate_pages (test_barcodes.py)."
         },
         "chaine:doublon:pre_check_duplicate": {
             "statut": "couvert-autrement",
@@ -1728,8 +1800,16 @@
             }
         },
         "chaine:etape:ConsumerPlugin._parse_title_placeholders": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritTitre"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testTitreAPlaceholders"
+            },
+            "note": "placeholders de titre rendus depuis le contexte du document."
         },
         "chaine:etape:ConsumerPlugin._store": {
             "statut": "couvert-autrement",
@@ -1754,8 +1834,16 @@
             }
         },
         "chaine:etape:ConsumerPlugin.apply_overrides": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Surcharges"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testSurchargesNappliquentQueCeQuiEstFourni"
+            },
+            "note": "surcharges appliquees uniquement si fournies ; etiquettes ajoutees."
         },
         "chaine:etape:ConsumerPlugin.run": {
             "statut": "couvert-autrement",
@@ -1769,8 +1857,16 @@
             }
         },
         "chaine:etape:ConsumerPreflightPlugin.pre_check_asn_value": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ControleAvant"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testControleDesNumerosArchive"
+            },
+            "note": "ASN borne uint32 et libre, statut nomme."
         },
         "chaine:etape:ConsumerPreflightPlugin.pre_check_directories": {
             "statut": "couvert-autrement",
@@ -1806,20 +1902,52 @@
             }
         },
         "chaine:etape:ConsumerPreflightPlugin.run": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ControleAvant"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChainePreflightTest::testExecutionDuControleRendLesEtapes"
+            },
+            "note": "enchainement des controles dans l ordre de Paperless."
         },
         "chaine:nom-fichier:_is_safe_relative_path": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testCheminRelatifSurRefuseAbsoluEtRemontee"
+            },
+            "note": "refus d un chemin absolu ou portant une remontee."
         },
         "chaine:nom-fichier:create_dummy_document": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testLeDocumentTemoinPorteTousLesPlaceholders"
+            },
+            "note": "document temoin = tableau de metadonnees complet (documentTemoin)."
         },
         "chaine:nom-fichier:get_added_date_context": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees"
+            },
+            "note": "contexte de la date d ajout (annee, mois, nom de mois, jour)."
         },
         "chaine:nom-fichier:get_basic_metadata_context": {
             "statut": "couvert-autrement",
@@ -1833,24 +1961,64 @@
             }
         },
         "chaine:nom-fichier:get_creation_date_context": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees"
+            },
+            "note": "contexte de la date de creation (annee, mois, nom de mois, jour)."
         },
         "chaine:nom-fichier:get_custom_fields_context": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees"
+            },
+            "note": "champs personnalises normalises (type, valeur assainie)."
         },
         "chaine:nom-fichier:get_tags_context": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees"
+            },
+            "note": "etiquettes triees (tag_list) et ordonnees (tag_name_list)."
         },
         "chaine:nom-fichier:validate_filepath_template_and_render": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\GabaritChemin"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineGabaritTest::testRejoueLesVecteursDuGabarit"
+            },
+            "note": "rendu placeholder-only (25 vecteurs) ; le langage Jinja (conditionnels, localize_date) reste un ecart assume."
         },
         "chaine:parseur:DocumentParser.extract_metadata": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testMetadonneesDunePiece"
+            },
+            "note": "metadonnees deterministes (mime, famille, pages)."
         },
         "chaine:parseur:DocumentParser.get_date": {
             "statut": "couvert-autrement",
@@ -1864,12 +2032,28 @@
             }
         },
         "chaine:parseur:DocumentParser.get_page_count": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testCompteLesPagesDunPdf"
+            },
+            "note": "pages d un PDF, 1 pour une image."
         },
         "chaine:parseur:DocumentParser.get_text": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testLitUnTexteLocalEtRemplaceLesOctetsInvalides"
+            },
+            "note": "lecture texte locale, octets invalides remplaces."
         },
         "chaine:parseur:DocumentParser.get_thumbnail": {
             "statut": "couvert-autrement",
@@ -1883,84 +2067,209 @@
             }
         },
         "chaine:parseur:DocumentParser.parse": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testMetadonneesDunePiece"
+            },
+            "note": "orchestration locale ; OCR par le moteur externe."
         },
         "chaine:parseur:MailDocumentParser.extract_metadata": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Jonctions\\Courriel"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees"
+            },
+            "note": "en-tetes, texte, pieces du message RFC 822."
         },
         "chaine:parseur:MailDocumentParser.get_thumbnail": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Jonctions\\Courriel"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees"
+            },
+            "note": "GEDv2 ne fabrique pas de vignette mail : il rend le HTML nettoye du message."
         },
         "chaine:parseur:MailDocumentParser.parse": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Jonctions\\Courriel"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees"
+            },
+            "note": "lecture complete d un .eml."
         },
         "chaine:parseur:RasterisedDocumentParser.extract_metadata": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testMetadonneesDunePiece"
+            },
+            "note": "metadonnees d une piece rasterisee (pages, mime)."
         },
         "chaine:parseur:RasterisedDocumentParser.extract_text": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            },
+            "note": "texte OCR produit par le moteur d ingestion, prouve par le test de la chaine."
         },
         "chaine:parseur:RasterisedDocumentParser.get_page_count": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testCompteLesPagesDunPdf"
+            },
+            "note": "pages d un PDF rasterise."
         },
         "chaine:parseur:RasterisedDocumentParser.get_thumbnail": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Apercu\\Miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\MiniatureTest::testGenereUneVignetteDepuisUnPdf"
+            },
+            "note": "vignette PDF -> PNG par Apercu."
         },
         "chaine:parseur:RasterisedDocumentParser.parse": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Pilote"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\PiloteTest::testLotDecoupeEnPiecesPuisRange"
+            },
+            "note": "chaine d ingestion complete (decoupe, OCR, rangement)."
         },
         "chaine:parseur:TextDocumentParser.get_thumbnail": {
             "statut": "absent",
-            "lot": "V2-02"
+            "lot": "V2-apercu-texte",
+            "note": "Ecart assume : GEDv2 ne fabrique pas de vignette pour un fichier texte — l’aperçu est le texte lui-même (Apercu\\Piece, Apercu\\Source)."
         },
         "chaine:parseur:TextDocumentParser.parse": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\ParseurPiece"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineParseursTest::testLitUnTexteLocalEtRemplaceLesOctetsInvalides"
+            },
+            "note": "lecture d un fichier texte."
         },
         "chaine:parseur:TikaDocumentParser.extract_metadata": {
             "statut": "absent",
-            "lot": "V2-02"
+            "lot": "V2-bureautique",
+            "note": "Ecart assume : la bureautique (odt/rtf/doc/docx) passe par LibreOffice → PDF (Apercu\\Outils::versPdf), non prouvée par un test et hors périmètre de ce lot."
         },
         "chaine:parseur:TikaDocumentParser.get_thumbnail": {
             "statut": "absent",
-            "lot": "V2-02"
+            "lot": "V2-bureautique",
+            "note": "Ecart assume : vignette bureautique non prouvée (LibreOffice → PDF → PNG via Apercu), hors périmètre de ce lot."
         },
         "chaine:parseur:TikaDocumentParser.parse": {
             "statut": "absent",
-            "lot": "V2-02"
+            "lot": "V2-bureautique",
+            "note": "Ecart assume : parse bureautique délégué à LibreOffice/Gotenberg, non prouvé par un test, hors périmètre de ce lot."
         },
         "chaine:parseur:documents.get_default_file_extension": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testRejoueLesVecteursDuRegistre"
+            },
+            "note": "extension par defaut par type MIME, rejouee sur les vecteurs de test_parsers.py."
         },
         "chaine:parseur:documents.get_default_thumbnail": {
             "statut": "absent",
-            "lot": "V2-02"
+            "lot": "V2-apercu-defaut",
+            "note": "Ecart assume : GEDv2 ne sert pas de vignette générique ; il NOMME l’absence (Apercu\\Outils::MSG_FORMAT, MSG_VIGNETTE), jamais une image de remplacement."
         },
         "chaine:parseur:documents.get_parser_class_for_mime_type": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testRejoueLesVecteursDuRegistre"
+            },
+            "note": "famille de parseur par MIME (rasterise/texte/bureautique), vecteurs test_parsers.py."
         },
         "chaine:parseur:documents.get_supported_file_extensions": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testRejoueLesVecteursDuRegistre"
+            },
+            "note": "extensions supportees = celles des parseurs declares + variantes graphiques."
         },
         "chaine:parseur:documents.is_file_ext_supported": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testRejoueLesVecteursDuRegistre"
+            },
+            "note": "support d une extension, insensible a la casse et au point initial."
         },
         "chaine:parseur:documents.is_mime_type_supported": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testMimeSupporteSuitLeParseurPourMime"
+            },
+            "note": "un MIME est supporte si un parseur le reclame."
         },
         "chaine:parseur:documents.make_thumbnail_from_pdf": {
             "statut": "couvert-autrement",
@@ -1996,16 +2305,40 @@
             }
         },
         "chaine:parseur:documents.parse_date_generator": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\DatesDansTexteTest::testDateDansLeTexte"
+            },
+            "note": "GEDv2 retient la premiere date lisible (un document = une date) ; le generateur multi-dates n est pas expose."
         },
         "chaine:parseur:documents.run_convert": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\RegistreParseurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineRegistreTest::testArgumentsConvertSuiventLOrdreDePaperless"
+            },
+            "note": "construction des arguments de conversion (densite, echelle...)."
         },
         "chaine:parseur:paperless_tesseract.post_process_text": {
-            "statut": "absent",
-            "lot": "V2-02"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\TexteOcr"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ChaineOcrTest::testRejoueLePostTraitementDuTexteOcr"
+            },
+            "note": "espaces repliees, indentation et blancs de fin retires, octet nul remplace."
         },
         "commande:documents:convert_mariadb_uuid": {
             "statut": "exclu",

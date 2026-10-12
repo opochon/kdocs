@@ -1,0 +1,496 @@
+{
+  "version": 1,
+  "categorie": "gabarit",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 25,
+  "vecteurs": [
+    {
+      "id": "gabarit:test_invalid_characters:001",
+      "entree": {
+        "gabarit": "{title}",
+        "document": {
+          "titre": "This. is the title.",
+          "mime": "application/pdf",
+          "pk": 1,
+          "checksum": "1"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "This. is the title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:904"
+    },
+    {
+      "id": "gabarit:test_invalid_characters:002",
+      "entree": {
+        "gabarit": "{title}",
+        "document": {
+          "titre": "my\\invalid/../title:yay",
+          "mime": "application/pdf",
+          "pk": 2,
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "my-invalid-..-title-yay.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:912"
+    },
+    {
+      "id": "gabarit:test_date:001",
+      "entree": {
+        "gabarit": "{created}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "2020-05-21",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "2020-05-21.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:923"
+    },
+    {
+      "id": "gabarit:test_dynamic_path:001",
+      "entree": {
+        "gabarit": "TestFolder/{{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "TestFolder/2020-06-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:942"
+    },
+    {
+      "id": "gabarit:test_dynamic_path_with_none:001",
+      "entree": {
+        "gabarit": "{{asn}} - {{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "none - 2020-06-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:963"
+    },
+    {
+      "id": "gabarit:test_dynamic_path_remove_none:001",
+      "entree": {
+        "gabarit": "TestFolder/{{asn}}/{{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": true,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "TestFolder/2020-06-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:991"
+    },
+    {
+      "id": "gabarit:test_dynamic_path_remove_none:002",
+      "entree": {
+        "gabarit": "{{ owner_username }}/{{ created_year }}/{{ correspondent }}/{{ title }}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": true,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "2020/does not matter.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1000"
+    },
+    {
+      "id": "gabarit:test_multiple_doc_paths:001",
+      "entree": {
+        "gabarit": "ThisIsAFolder/{{asn}}/{{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 4,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "ThisIsAFolder/4/2020-06-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1035"
+    },
+    {
+      "id": "gabarit:test_multiple_doc_paths:002",
+      "entree": {
+        "gabarit": "SomeImportantNone/{{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 5,
+          "date_creation": "2020-07-25",
+          "checksum": "abcde"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "SomeImportantNone/2020-07-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1039"
+    },
+    {
+      "id": "gabarit:test_no_path_fallback:001",
+      "entree": {
+        "gabarit": null,
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 4,
+          "date_creation": "2020-06-25",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "0000002.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1077"
+    },
+    {
+      "id": "gabarit:test_no_path_fallback:002",
+      "entree": {
+        "gabarit": "SomeImportantNone/{{created}}",
+        "document": {
+          "titre": "does not matter",
+          "mime": "application/pdf",
+          "pk": 5,
+          "date_creation": "2020-07-25",
+          "checksum": "abcde"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "SomeImportantNone/2020-07-25.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1078"
+    },
+    {
+      "id": "gabarit:test_short_names_created:001",
+      "entree": {
+        "gabarit": "{created_year_short}/{created_month_name_short}/{created_month_name}/{title}",
+        "document": {
+          "titre": "The Title",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_creation": "1989-12-02",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "89/Dec/December/The Title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1135"
+    },
+    {
+      "id": "gabarit:test_short_names_added:001",
+      "entree": {
+        "gabarit": "{added_year_short}/{added_month_name}/{added_month_name_short}/{title}",
+        "document": {
+          "titre": "The Title",
+          "mime": "application/pdf",
+          "pk": 2,
+          "date_ajout": "1984-08-21 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "84/August/Aug/The Title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1148"
+    },
+    {
+      "id": "gabarit:test_document_owner_string:001",
+      "entree": {
+        "gabarit": "{owner_username}/{title}",
+        "document": {
+          "titre": "The Title",
+          "mime": "application/pdf",
+          "pk": 0,
+          "proprietaire": "user1",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "user1/The Title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1181"
+    },
+    {
+      "id": "gabarit:test_document_owner_string:002",
+      "entree": {
+        "gabarit": "{owner_username}/{title}",
+        "document": {
+          "titre": "does matter",
+          "mime": "application/pdf",
+          "pk": 0,
+          "checksum": "3"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "none/does matter.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1182"
+    },
+    {
+      "id": "gabarit:test_document_original_filename:001",
+      "entree": {
+        "gabarit": "{original_name}",
+        "document": {
+          "titre": "does matter",
+          "mime": "application/pdf",
+          "pk": 0,
+          "nom_origine": "someepdf.pdf",
+          "checksum": "3"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "someepdf.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1228"
+    },
+    {
+      "id": "gabarit:test_document_original_filename:002",
+      "entree": {
+        "gabarit": "{original_name}",
+        "document": {
+          "titre": "does matter",
+          "mime": "application/pdf",
+          "pk": 0,
+          "nom_origine": "some pdf with spaces and stuff.pdf",
+          "checksum": "1"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "some pdf with spaces and stuff.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1230"
+    },
+    {
+      "id": "gabarit:test_document_original_filename:003",
+      "entree": {
+        "gabarit": "{original_name}",
+        "document": {
+          "titre": "does matter",
+          "mime": "application/pdf",
+          "pk": 0,
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "none.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1235"
+    },
+    {
+      "id": "gabarit:test_document_original_filename:004",
+      "entree": {
+        "gabarit": "{original_name}",
+        "document": {
+          "titre": "does matter",
+          "mime": "text/plain",
+          "pk": 0,
+          "nom_origine": "logs.txt",
+          "checksum": "4"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "logs.txt"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1237"
+    },
+    {
+      "id": "gabarit:test_document_original_filename:005",
+      "entree": {
+        "gabarit": "{original_name}",
+        "document": {
+          "titre": "does matter",
+          "mime": "text/plain",
+          "pk": 0,
+          "nom_origine": "logs.txt",
+          "checksum": "4"
+        },
+        "retirer_none": false,
+        "archive": true
+      },
+      "sortie": {
+        "chemin": "logs.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1238"
+    },
+    {
+      "id": "gabarit:test_template_with_undefined_var:001",
+      "entree": {
+        "gabarit": "{{creation_date}}/{{ title_name_str }}",
+        "document": {
+          "titre": "Does Matter",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 25,
+          "date_creation": "2020-06-25",
+          "date_ajout": "2024-10-01 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "0000002.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1368"
+    },
+    {
+      "id": "gabarit:test_datetime_filter:001",
+      "entree": {
+        "gabarit": "{{ created | datetime('%Y') }}/{{ title }}",
+        "document": {
+          "titre": "Some Title",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 25,
+          "date_creation": "2020-06-25",
+          "date_ajout": "2024-10-01 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "2020/Some Title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1554"
+    },
+    {
+      "id": "gabarit:test_datetime_filter:002",
+      "entree": {
+        "gabarit": "{{ created | datetime('%Y-%m-%d') }}/{{ title }}",
+        "document": {
+          "titre": "Some Title",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 25,
+          "date_creation": "2020-06-25",
+          "date_ajout": "2024-10-01 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "2020-06-25/Some Title.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1562"
+    },
+    {
+      "id": "gabarit:test_slugify_filter:001",
+      "entree": {
+        "gabarit": "{{ title | slugify }}",
+        "document": {
+          "titre": "Some Title! With @ Special # Characters",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 25,
+          "date_creation": "2020-06-25",
+          "date_ajout": "2024-10-01 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "some-title-with-special-characters.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1597"
+    },
+    {
+      "id": "gabarit:test_slugify_filter:002",
+      "entree": {
+        "gabarit": "{{ correspondent | slugify }}/{{ title | slugify }}",
+        "document": {
+          "titre": "Some Title! With @ Special # Characters",
+          "mime": "application/pdf",
+          "pk": 2,
+          "asn": 25,
+          "correspondant": "John's @ Office / Workplace",
+          "date_creation": "2020-06-25",
+          "date_ajout": "2024-10-01 07:36:51",
+          "checksum": "2"
+        },
+        "retirer_none": false,
+        "archive": false
+      },
+      "sortie": {
+        "chemin": "johns-office-workplace/some-title-with-special-characters.pdf"
+      },
+      "reference": "src/documents/tests/test_file_handling.py:1611"
+    }
+  ]
+}

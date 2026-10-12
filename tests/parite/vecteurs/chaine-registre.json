@@ -1,0 +1,444 @@
+{
+  "version": 1,
+  "categorie": "registre",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 41,
+  "vecteurs": [
+    {
+      "id": "registre:test_get_parser_class_0_parsers:parseur-absent:application/pdf",
+      "entree": {
+        "mime": "application/pdf"
+      },
+      "sortie": {
+        "parseur": null
+      },
+      "reference": "src/documents/tests/test_parsers.py:99"
+    },
+    {
+      "id": "registre:test_get_parser_class_no_valid_parser:parseur-absent:image/tiff",
+      "entree": {
+        "mime": "image/tiff"
+      },
+      "sortie": {
+        "parseur": null
+      },
+      "reference": "src/documents/tests/test_parsers.py:127"
+    },
+    {
+      "id": "registre:test_tesseract_parser:application/pdf:ext",
+      "entree": {
+        "mime": "application/pdf"
+      },
+      "sortie": {
+        "extension": ".pdf"
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:application/pdf:ext-support",
+      "entree": {
+        "extension": ".pdf"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:application/pdf:parseur",
+      "entree": {
+        "mime": "application/pdf",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "RasterisedDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/png:ext",
+      "entree": {
+        "mime": "image/png"
+      },
+      "sortie": {
+        "extension": ".png"
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/png:ext-support",
+      "entree": {
+        "extension": ".png"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/png:parseur",
+      "entree": {
+        "mime": "image/png",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "RasterisedDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/jpeg:ext",
+      "entree": {
+        "mime": "image/jpeg"
+      },
+      "sortie": {
+        "extension": ".jpg"
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/jpeg:ext-support",
+      "entree": {
+        "extension": ".jpg"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/jpeg:parseur",
+      "entree": {
+        "mime": "image/jpeg",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "RasterisedDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/tiff:ext",
+      "entree": {
+        "mime": "image/tiff"
+      },
+      "sortie": {
+        "extension": ".tif"
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/tiff:ext-support",
+      "entree": {
+        "extension": ".tif"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/tiff:parseur",
+      "entree": {
+        "mime": "image/tiff",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "RasterisedDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/webp:ext",
+      "entree": {
+        "mime": "image/webp"
+      },
+      "sortie": {
+        "extension": ".webp"
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/webp:ext-support",
+      "entree": {
+        "extension": ".webp"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_tesseract_parser:image/webp:parseur",
+      "entree": {
+        "mime": "image/webp",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "RasterisedDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:131"
+    },
+    {
+      "id": "registre:test_text_parser:text/plain:ext",
+      "entree": {
+        "mime": "text/plain"
+      },
+      "sortie": {
+        "extension": ".txt"
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_text_parser:text/plain:ext-support",
+      "entree": {
+        "extension": ".txt"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_text_parser:text/plain:parseur",
+      "entree": {
+        "mime": "text/plain",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "TextDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_text_parser:text/csv:ext",
+      "entree": {
+        "mime": "text/csv"
+      },
+      "sortie": {
+        "extension": ".csv"
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_text_parser:text/csv:ext-support",
+      "entree": {
+        "extension": ".csv"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_text_parser:text/csv:parseur",
+      "entree": {
+        "mime": "text/csv",
+        "tika": false
+      },
+      "sortie": {
+        "parseur": "TextDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:158"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.oasis.opendocument.text:ext",
+      "entree": {
+        "mime": "application/vnd.oasis.opendocument.text"
+      },
+      "sortie": {
+        "extension": ".odt"
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.oasis.opendocument.text:ext-support",
+      "entree": {
+        "extension": ".odt"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.oasis.opendocument.text:parseur",
+      "entree": {
+        "mime": "application/vnd.oasis.opendocument.text",
+        "tika": true
+      },
+      "sortie": {
+        "parseur": "TikaDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:text/rtf:ext",
+      "entree": {
+        "mime": "text/rtf"
+      },
+      "sortie": {
+        "extension": ".rtf"
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:text/rtf:ext-support",
+      "entree": {
+        "extension": ".rtf"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:text/rtf:parseur",
+      "entree": {
+        "mime": "text/rtf",
+        "tika": true
+      },
+      "sortie": {
+        "parseur": "TikaDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/msword:ext",
+      "entree": {
+        "mime": "application/msword"
+      },
+      "sortie": {
+        "extension": ".doc"
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/msword:ext-support",
+      "entree": {
+        "extension": ".doc"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/msword:parseur",
+      "entree": {
+        "mime": "application/msword",
+        "tika": true
+      },
+      "sortie": {
+        "parseur": "TikaDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.openxmlformats-officedocument.wordprocessingml.document:ext",
+      "entree": {
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "sortie": {
+        "extension": ".docx"
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.openxmlformats-officedocument.wordprocessingml.document:ext-support",
+      "entree": {
+        "extension": ".docx"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_tika_parser:application/vnd.openxmlformats-officedocument.wordprocessingml.document:parseur",
+      "entree": {
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "tika": true
+      },
+      "sortie": {
+        "parseur": "TikaDocumentParser",
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:182"
+    },
+    {
+      "id": "registre:test_no_parser_for_mime:parseur-absent:text/sdgsdf",
+      "entree": {
+        "mime": "text/sdgsdf"
+      },
+      "sortie": {
+        "parseur": null
+      },
+      "reference": "src/documents/tests/test_parsers.py:216"
+    },
+    {
+      "id": "registre:test_default_extension:defaut-ext:application/zip",
+      "entree": {
+        "mime": "application/zip"
+      },
+      "sortie": {
+        "extension": ".zip"
+      },
+      "reference": "src/documents/tests/test_parsers.py:220"
+    },
+    {
+      "id": "registre:test_default_extension:defaut-ext:aasdasd/dgfgf",
+      "entree": {
+        "mime": "aasdasd/dgfgf"
+      },
+      "sortie": {
+        "extension": ""
+      },
+      "reference": "src/documents/tests/test_parsers.py:223"
+    },
+    {
+      "id": "registre:test_file_extension_support:support-ext:.pdf",
+      "entree": {
+        "extension": ".pdf"
+      },
+      "sortie": {
+        "support": true
+      },
+      "reference": "src/documents/tests/test_parsers.py:226"
+    },
+    {
+      "id": "registre:test_file_extension_support:support-ext:.hsdfh",
+      "entree": {
+        "extension": ".hsdfh"
+      },
+      "sortie": {
+        "support": false
+      },
+      "reference": "src/documents/tests/test_parsers.py:227"
+    },
+    {
+      "id": "registre:test_file_extension_support:support-ext:vide",
+      "entree": {
+        "extension": ""
+      },
+      "sortie": {
+        "support": false
+      },
+      "reference": "src/documents/tests/test_parsers.py:228"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "categorie": "ocr-text",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "ocr-text:001",
+      "entree": {
+        "texte": "simple     string"
+      },
+      "sortie": {
+        "texte": "simple string"
+      },
+      "reference": "src/paperless_tesseract/tests/test_parser.py:34"
+    },
+    {
+      "id": "ocr-text:002",
+      "entree": {
+        "texte": "simple    newline\n   testing string"
+      },
+      "sortie": {
+        "texte": "simple newline\ntesting string"
+      },
+      "reference": "src/paperless_tesseract/tests/test_parser.py:35"
+    },
+    {
+      "id": "ocr-text:003",
+      "entree": {
+        "texte": "utf-8   строка с пробелами в конце  "
+      },
+      "sortie": {
+        "texte": "utf-8 строка с пробелами в конце"
+      },
+      "reference": "src/paperless_tesseract/tests/test_parser.py:36"
+    }
+  ]
+}

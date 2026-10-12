@@ -10,14 +10,14 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 187 | 545 | 0 | 48 | 23,97 % | 25,55 % |
+| 780 | 228 | 504 | 0 | 48 | 29,23 % | 31,15 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | api | 318 | 49 | 226 | 0 | 43 | 15,41 % | 17,82 % |
-| chaine | 60 | 14 | 46 | 0 | 0 | 23,33 % | 23,33 % |
+| chaine | 60 | 55 | 5 | 0 | 0 | 91,67 % | 91,67 % |
 | commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
 | correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
 | ecran | 30 | 10 | 19 | 0 | 1 | 33,33 % | 34,48 % |
@@ -39,6 +39,19 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 | — MATCH_LITERAL | — | 29 | 29 | 100,00 % |
 | — MATCH_REGEX | — | 19 | 19 | 100,00 % |
 | — MATCH_FUZZY | — | 5 | 5 | 100,00 % |
+
+## Chaine de consommation (phase 3)
+
+Vecteurs {entree, sortie} extraits des tests Paperless (registre des parseurs, post-traitement OCR,
+codes-barres, gabarit de nom de fichier), rejoues par l'equivalent GEDv2. Un ecart de comportement
+reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
+
+| Famille | Fichier de vecteurs | Passes | Total | Taux |
+| --- | --- | ---: | ---: | ---: |
+| codebarres | tests/parite/vecteurs/chaine-codebarres.json | 4 | 4 | 100,00 % |
+| gabarit | tests/parite/vecteurs/chaine-gabarit.json | 25 | 25 | 100,00 % |
+| ocr-text | tests/parite/vecteurs/chaine-ocr-text.json | 3 | 3 | 100,00 % |
+| registre | tests/parite/vecteurs/chaine-registre.json | 39 | 41 | 95,12 % |
 
 ## api
 
@@ -367,66 +380,66 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
-| consumer.ConsumerError | src/documents/consumer.py:76 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| consumer.ConsumerError | src/documents/consumer.py:76 | couvert-autrement | service Ged\Ingestion\ErreurConsommation | phpunit Ged\Tests\Parite\ChainePreflightTest::testErreurDeConsommationNommeLeFichierEtLaCause (couche 1) |  |
 | consumer.ConsumerPlugin | src/documents/consumer.py:151 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
-| consumer.ConsumerPluginMixin | src/documents/consumer.py:101 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| consumer.ConsumerPreflightPlugin | src/documents/consumer.py:753 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| consumer.ConsumerStatusShortMessage | src/documents/consumer.py:80 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| barcodes.Barcode | src/documents/barcodes.py:38 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| Barcode.is_asn | src/documents/barcodes.py:56 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| Barcode.is_separator | src/documents/barcodes.py:48 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| barcodes.BarcodePlugin | src/documents/barcodes.py:64 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| BarcodePlugin.run | src/documents/barcodes.py:118 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| consumer.ConsumerPluginMixin | src/documents/consumer.py:101 | couvert-autrement | service Ged\Ingestion\EtapesConsommation | phpunit Ged\Tests\Parite\ChainePreflightTest::testEtapeNommeEchoueAvecLeFichier (couche 1) |  |
+| consumer.ConsumerPreflightPlugin | src/documents/consumer.py:753 | couvert-autrement | service Ged\Ingestion\ControleAvant | phpunit Ged\Tests\Parite\ChainePreflightTest::testExecutionDuControleRendLesEtapes (couche 1) |  |
+| consumer.ConsumerStatusShortMessage | src/documents/consumer.py:80 | couvert-autrement | service Ged\Ingestion\MessageStatut | phpunit Ged\Tests\Parite\ChainePreflightTest::testMessagesDeStatutSontCeuxDePaperless (couche 1) |  |
+| barcodes.Barcode | src/documents/barcodes.py:38 | couvert-autrement | service Ged\Ingestion\CodeBarres | phpunit Ged\Tests\Parite\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive (couche 1) |  |
+| Barcode.is_asn | src/documents/barcodes.py:56 | couvert | service Ged\Ingestion\CodeBarres | phpunit Ged\Tests\Parite\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive (couche 1) |  |
+| Barcode.is_separator | src/documents/barcodes.py:48 | couvert | service Ged\Ingestion\CodeBarres | phpunit Ged\Tests\Parite\ChaineCodeBarresTest::testClassifieEtExtraitLeNumeroArchive (couche 1) |  |
+| barcodes.BarcodePlugin | src/documents/barcodes.py:64 | couvert-autrement | service Ged\Ingestion\CodeBarres | phpunit Ged\Tests\Parite\ChaineCodeBarresTest::testRejoueLaDecoupeParCodesBarres (couche 1) |  |
+| BarcodePlugin.run | src/documents/barcodes.py:118 | couvert-autrement | service Ged\Ingestion\CodeBarres | phpunit Ged\Tests\Parite\ChaineCodeBarresTest::testRejoueLaDecoupeParCodesBarres (couche 1) |  |
 | ConsumerPreflightPlugin.pre_check_duplicate | src/documents/consumer.py:778 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois (couche 1) |  |
-| ConsumerPlugin._parse_title_placeholders | src/documents/consumer.py:585 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| ConsumerPlugin._parse_title_placeholders | src/documents/consumer.py:585 | couvert | service Ged\Ingestion\GabaritTitre | phpunit Ged\Tests\Parite\ChainePreflightTest::testTitreAPlaceholders (couche 1) |  |
 | ConsumerPlugin._store | src/documents/consumer.py:614 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | ConsumerPlugin._write | src/documents/consumer.py:739 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| ConsumerPlugin.apply_overrides | src/documents/consumer.py:679 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| ConsumerPlugin.apply_overrides | src/documents/consumer.py:679 | couvert | service Ged\Ingestion\Surcharges | phpunit Ged\Tests\Parite\ChainePreflightTest::testSurchargesNappliquentQueCeQuiEstFourni (couche 1) |  |
 | ConsumerPlugin.run | src/documents/consumer.py:281 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
-| ConsumerPreflightPlugin.pre_check_asn_value | src/documents/consumer.py:811 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| ConsumerPreflightPlugin.pre_check_asn_value | src/documents/consumer.py:811 | couvert | service Ged\Ingestion\ControleAvant | phpunit Ged\Tests\Parite\ChainePreflightTest::testControleDesNumerosArchive (couche 1) |  |
 | ConsumerPreflightPlugin.pre_check_directories | src/documents/consumer.py:802 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testMemoireDEtatDansUnDossierQuiNExistePasEncore (couche 1) |  |
 | ConsumerPreflightPlugin.pre_check_duplicate | src/documents/consumer.py:778 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois (couche 1) |  |
 | ConsumerPreflightPlugin.pre_check_file_exists | src/documents/consumer.py:764 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLeMemeFichierNEntreJamaisDeuxFois (couche 1) |  |
-| ConsumerPreflightPlugin.run | src/documents/consumer.py:847 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath._is_safe_relative_path | src/documents/templating/filepath.py:265 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath.create_dummy_document | src/documents/templating/filepath.py:93 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath.get_added_date_context | src/documents/templating/filepath.py:137 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| ConsumerPreflightPlugin.run | src/documents/consumer.py:847 | couvert-autrement | service Ged\Ingestion\ControleAvant | phpunit Ged\Tests\Parite\ChainePreflightTest::testExecutionDuControleRendLesEtapes (couche 1) |  |
+| filepath._is_safe_relative_path | src/documents/templating/filepath.py:265 | couvert | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testCheminRelatifSurRefuseAbsoluEtRemontee (couche 1) |  |
+| filepath.create_dummy_document | src/documents/templating/filepath.py:93 | couvert-autrement | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testLeDocumentTemoinPorteTousLesPlaceholders (couche 1) |  |
+| filepath.get_added_date_context | src/documents/templating/filepath.py:137 | couvert | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees (couche 1) |  |
 | filepath.get_basic_metadata_context | src/documents/templating/filepath.py:155 | couvert-autrement | service Ged\Socle\Fichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| filepath.get_creation_date_context | src/documents/templating/filepath.py:121 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath.get_custom_fields_context | src/documents/templating/filepath.py:212 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath.get_tags_context | src/documents/templating/filepath.py:196 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| filepath.validate_filepath_template_and_render | src/documents/templating/filepath.py:276 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| DocumentParser.extract_metadata | src/documents/parsers.py:380 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| filepath.get_creation_date_context | src/documents/templating/filepath.py:121 | couvert | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees (couche 1) |  |
+| filepath.get_custom_fields_context | src/documents/templating/filepath.py:212 | couvert | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees (couche 1) |  |
+| filepath.get_tags_context | src/documents/templating/filepath.py:196 | couvert | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testContexteDeDatesEtDeMetadonnees (couche 1) |  |
+| filepath.validate_filepath_template_and_render | src/documents/templating/filepath.py:276 | couvert-autrement | service Ged\Ingestion\GabaritChemin | phpunit Ged\Tests\Parite\ChaineGabaritTest::testRejoueLesVecteursDuGabarit (couche 1) |  |
+| DocumentParser.extract_metadata | src/documents/parsers.py:380 | couvert-autrement | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testMetadonneesDunePiece (couche 1) |  |
 | DocumentParser.get_date | src/documents/parsers.py:401 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testDateEnTete (couche 1) |  |
-| DocumentParser.get_page_count | src/documents/parsers.py:383 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| DocumentParser.get_text | src/documents/parsers.py:398 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| DocumentParser.get_page_count | src/documents/parsers.py:383 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testCompteLesPagesDunPdf (couche 1) |  |
+| DocumentParser.get_text | src/documents/parsers.py:398 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testLitUnTexteLocalEtRemplaceLesOctetsInvalides (couche 1) |  |
 | DocumentParser.get_thumbnail | src/documents/parsers.py:392 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
-| DocumentParser.parse | src/documents/parsers.py:386 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| MailDocumentParser.extract_metadata | src/paperless_mail/parsers.py:72 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| MailDocumentParser.get_thumbnail | src/paperless_mail/parsers.py:55 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| MailDocumentParser.parse | src/paperless_mail/parsers.py:125 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| RasterisedDocumentParser.extract_metadata | src/paperless_tesseract/parsers.py:57 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| RasterisedDocumentParser.extract_text | src/paperless_tesseract/parsers.py:154 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| RasterisedDocumentParser.get_page_count | src/paperless_tesseract/parsers.py:43 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| RasterisedDocumentParser.get_thumbnail | src/paperless_tesseract/parsers.py:96 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| RasterisedDocumentParser.parse | src/paperless_tesseract/parsers.py:333 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| TextDocumentParser.get_thumbnail | src/paperless_text/parsers.py:18 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| TextDocumentParser.parse | src/paperless_text/parsers.py:43 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| TikaDocumentParser.extract_metadata | src/paperless_tika/parsers.py:34 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| TikaDocumentParser.get_thumbnail | src/paperless_tika/parsers.py:24 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| TikaDocumentParser.parse | src/paperless_tika/parsers.py:56 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| get_default_file_extension | src/documents/parsers.py:69 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| get_default_thumbnail | src/documents/parsers.py:184 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| get_parser_class_for_mime_type | src/documents/parsers.py:116 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| get_supported_file_extensions | src/documents/parsers.py:100 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| is_file_ext_supported | src/documents/parsers.py:89 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| is_mime_type_supported | src/documents/parsers.py:61 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| DocumentParser.parse | src/documents/parsers.py:386 | couvert-autrement | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testMetadonneesDunePiece (couche 1) |  |
+| MailDocumentParser.extract_metadata | src/paperless_mail/parsers.py:72 | couvert-autrement | service Ged\Jonctions\Courriel | phpunit Ged\Tests\Jonctions\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees (couche 1) |  |
+| MailDocumentParser.get_thumbnail | src/paperless_mail/parsers.py:55 | couvert-autrement | service Ged\Jonctions\Courriel | phpunit Ged\Tests\Jonctions\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees (couche 1) |  |
+| MailDocumentParser.parse | src/paperless_mail/parsers.py:125 | couvert-autrement | service Ged\Jonctions\Courriel | phpunit Ged\Tests\Jonctions\CourrielTest::testUnEmlDonneTexteIndexeApercuNettoyeEtPiecesListees (couche 1) |  |
+| RasterisedDocumentParser.extract_metadata | src/paperless_tesseract/parsers.py:57 | couvert-autrement | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testMetadonneesDunePiece (couche 1) |  |
+| RasterisedDocumentParser.extract_text | src/paperless_tesseract/parsers.py:154 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
+| RasterisedDocumentParser.get_page_count | src/paperless_tesseract/parsers.py:43 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testCompteLesPagesDunPdf (couche 1) |  |
+| RasterisedDocumentParser.get_thumbnail | src/paperless_tesseract/parsers.py:96 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
+| RasterisedDocumentParser.parse | src/paperless_tesseract/parsers.py:333 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
+| TextDocumentParser.get_thumbnail | src/paperless_text/parsers.py:18 | absent (Ecart assume : GEDv2 ne fabrique pas de vignette pour un fichier texte — l’aperçu est le texte lui-même (Apercu\Piece, Apercu\Source).) | - | - | V2-apercu-texte |
+| TextDocumentParser.parse | src/paperless_text/parsers.py:43 | couvert | service Ged\Ingestion\ParseurPiece | phpunit Ged\Tests\Parite\ChaineParseursTest::testLitUnTexteLocalEtRemplaceLesOctetsInvalides (couche 1) |  |
+| TikaDocumentParser.extract_metadata | src/paperless_tika/parsers.py:34 | absent (Ecart assume : la bureautique (odt/rtf/doc/docx) passe par LibreOffice → PDF (Apercu\Outils::versPdf), non prouvée par un test et hors périmètre de ce lot.) | - | - | V2-bureautique |
+| TikaDocumentParser.get_thumbnail | src/paperless_tika/parsers.py:24 | absent (Ecart assume : vignette bureautique non prouvée (LibreOffice → PDF → PNG via Apercu), hors périmètre de ce lot.) | - | - | V2-bureautique |
+| TikaDocumentParser.parse | src/paperless_tika/parsers.py:56 | absent (Ecart assume : parse bureautique délégué à LibreOffice/Gotenberg, non prouvé par un test, hors périmètre de ce lot.) | - | - | V2-bureautique |
+| get_default_file_extension | src/documents/parsers.py:69 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
+| get_default_thumbnail | src/documents/parsers.py:184 | absent (Ecart assume : GEDv2 ne sert pas de vignette générique ; il NOMME l’absence (Apercu\Outils::MSG_FORMAT, MSG_VIGNETTE), jamais une image de remplacement.) | - | - | V2-apercu-defaut |
+| get_parser_class_for_mime_type | src/documents/parsers.py:116 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
+| get_supported_file_extensions | src/documents/parsers.py:100 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
+| is_file_ext_supported | src/documents/parsers.py:89 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testRejoueLesVecteursDuRegistre (couche 1) |  |
+| is_mime_type_supported | src/documents/parsers.py:61 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testMimeSupporteSuitLeParseurPourMime (couche 1) |  |
 | make_thumbnail_from_pdf | src/documents/parsers.py:235 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testGenereUneVignetteDepuisUnPdf (couche 1) |  |
 | make_thumbnail_from_pdf_gs_fallback | src/documents/parsers.py:191 | couvert-autrement | service Ged\Apercu\Miniature | phpunit Ged\Tests\Apercu\MiniatureTest::testLaVignetteDuRepliGhostscriptRespecteLaTaille (couche 1) |  |
 | parse_date | src/documents/parsers.py:262 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testDateEnTete (couche 1) |  |
-| parse_date_generator | src/documents/parsers.py:266 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| run_convert | src/documents/parsers.py:140 | absent (ecart assume, lot a creer) | - | - | V2-02 |
-| post_process_text | src/paperless_tesseract/parsers.py:461 | absent (ecart assume, lot a creer) | - | - | V2-02 |
+| parse_date_generator | src/documents/parsers.py:266 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\DatesDansTexteTest::testDateDansLeTexte (couche 1) |  |
+| run_convert | src/documents/parsers.py:140 | couvert | service Ged\Ingestion\RegistreParseurs | phpunit Ged\Tests\Parite\ChaineRegistreTest::testArgumentsConvertSuiventLOrdreDePaperless (couche 1) |  |
+| post_process_text | src/paperless_tesseract/parsers.py:461 | couvert | service Ged\Ingestion\TexteOcr | phpunit Ged\Tests\Parite\ChaineOcrTest::testRejoueLePostTraitementDuTexteOcr (couche 1) |  |
 
 ## commande
 
@@ -1135,52 +1148,11 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:vue:UiSettingsView | api | src/documents/views.py:2361 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:UnifiedSearchViewSet | api | src/documents/views.py:1289 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:UserViewSet | api | src/paperless/views.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| chaine:classe:ConsumerError | chaine | src/documents/consumer.py:76 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:classe:ConsumerPluginMixin | chaine | src/documents/consumer.py:101 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:classe:ConsumerPreflightPlugin | chaine | src/documents/consumer.py:753 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:classe:ConsumerStatusShortMessage | chaine | src/documents/consumer.py:80 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:codebarres:Barcode | chaine | src/documents/barcodes.py:38 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:codebarres:Barcode.is_asn | chaine | src/documents/barcodes.py:56 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:codebarres:Barcode.is_separator | chaine | src/documents/barcodes.py:48 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:codebarres:BarcodePlugin | chaine | src/documents/barcodes.py:64 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:codebarres:BarcodePlugin.run | chaine | src/documents/barcodes.py:118 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:etape:ConsumerPlugin._parse_title_placeholders | chaine | src/documents/consumer.py:585 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:etape:ConsumerPlugin.apply_overrides | chaine | src/documents/consumer.py:679 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:etape:ConsumerPreflightPlugin.pre_check_asn_value | chaine | src/documents/consumer.py:811 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:etape:ConsumerPreflightPlugin.run | chaine | src/documents/consumer.py:847 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:_is_safe_relative_path | chaine | src/documents/templating/filepath.py:265 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:create_dummy_document | chaine | src/documents/templating/filepath.py:93 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:get_added_date_context | chaine | src/documents/templating/filepath.py:137 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:get_creation_date_context | chaine | src/documents/templating/filepath.py:121 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:get_custom_fields_context | chaine | src/documents/templating/filepath.py:212 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:get_tags_context | chaine | src/documents/templating/filepath.py:196 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:nom-fichier:validate_filepath_template_and_render | chaine | src/documents/templating/filepath.py:276 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:DocumentParser.extract_metadata | chaine | src/documents/parsers.py:380 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:DocumentParser.get_page_count | chaine | src/documents/parsers.py:383 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:DocumentParser.get_text | chaine | src/documents/parsers.py:398 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:DocumentParser.parse | chaine | src/documents/parsers.py:386 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:MailDocumentParser.extract_metadata | chaine | src/paperless_mail/parsers.py:72 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:MailDocumentParser.get_thumbnail | chaine | src/paperless_mail/parsers.py:55 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:MailDocumentParser.parse | chaine | src/paperless_mail/parsers.py:125 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:RasterisedDocumentParser.extract_metadata | chaine | src/paperless_tesseract/parsers.py:57 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:RasterisedDocumentParser.extract_text | chaine | src/paperless_tesseract/parsers.py:154 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:RasterisedDocumentParser.get_page_count | chaine | src/paperless_tesseract/parsers.py:43 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:RasterisedDocumentParser.get_thumbnail | chaine | src/paperless_tesseract/parsers.py:96 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:RasterisedDocumentParser.parse | chaine | src/paperless_tesseract/parsers.py:333 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:TextDocumentParser.get_thumbnail | chaine | src/paperless_text/parsers.py:18 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:TextDocumentParser.parse | chaine | src/paperless_text/parsers.py:43 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.get_default_file_extension | chaine | src/documents/parsers.py:69 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.get_default_thumbnail | chaine | src/documents/parsers.py:184 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.get_parser_class_for_mime_type | chaine | src/documents/parsers.py:116 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.get_supported_file_extensions | chaine | src/documents/parsers.py:100 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.is_file_ext_supported | chaine | src/documents/parsers.py:89 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.is_mime_type_supported | chaine | src/documents/parsers.py:61 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.parse_date_generator | chaine | src/documents/parsers.py:266 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:documents.run_convert | chaine | src/documents/parsers.py:140 | absent | ecart assume, lot a creer | V2-02 |
-| chaine:parseur:paperless_tesseract.post_process_text | chaine | src/paperless_tesseract/parsers.py:461 | absent | ecart assume, lot a creer | V2-02 |
+| chaine:parseur:TextDocumentParser.get_thumbnail | chaine | src/paperless_text/parsers.py:18 | absent | Ecart assume : GEDv2 ne fabrique pas de vignette pour un fichier texte — l’aperçu est le texte lui-même (Apercu\Piece, Apercu\Source). | V2-apercu-texte |
+| chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | Ecart assume : la bureautique (odt/rtf/doc/docx) passe par LibreOffice → PDF (Apercu\Outils::versPdf), non prouvée par un test et hors périmètre de ce lot. | V2-bureautique |
+| chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | Ecart assume : vignette bureautique non prouvée (LibreOffice → PDF → PNG via Apercu), hors périmètre de ce lot. | V2-bureautique |
+| chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | Ecart assume : parse bureautique délégué à LibreOffice/Gotenberg, non prouvé par un test, hors périmètre de ce lot. | V2-bureautique |
+| chaine:parseur:documents.get_default_thumbnail | chaine | src/documents/parsers.py:184 | absent | Ecart assume : GEDv2 ne sert pas de vignette générique ; il NOMME l’absence (Apercu\Outils::MSG_FORMAT, MSG_VIGNETTE), jamais une image de remplacement. | V2-apercu-defaut |
 | commande:documents:convert_mariadb_uuid | commande | src/documents/management/commands/convert_mariadb_uuid.py:1 | exclu | infrastructure-django |  |
 | commande:documents:decrypt_documents | commande | src/documents/management/commands/decrypt_documents.py:1 | absent | ecart assume, lot a creer | V2-00 |
 | commande:documents:document_exporter | commande | src/documents/management/commands/document_exporter.py:1 | absent | ecart assume, lot a creer | V2-00 |
