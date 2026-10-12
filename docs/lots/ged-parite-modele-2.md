@@ -124,4 +124,3 @@ La couche 3 étant sautée par `-SansBanc`, aucun banc n'a été rejoué (aucun 
 commités que les fichiers régénérés par le harness (`recette/registre.json`, `recette/preuves/**`, `var/**`).
 
 ETAT: fini
-
