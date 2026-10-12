@@ -33,16 +33,28 @@ Paperless (GPLv3) reprise. `src/Parite/Juge.php` non modifié (le juge y ajouter
     écriture réelle puis `DELETE` = retour au `.env`) ; seul reste l'écart logo (200 vs 404).
   - Routes déclarées : `Securite\DroitsRoutes`, `Jonctions\Module`, statuts contrat `tools/banc/contrat.php`.
 
+## Fait — évolution de modèle (2e étape)
+
+- `documents.proprietaire_id` (migration idempotente) + filtres `owner` / `owner__id` / `owner__id__none`,
+  exposé dans la fiche (`owner`, `proprietaire_id`) ; un document sans propriétaire reste valide.
+- Hiérarchie d'étiquettes : `Etiquettes` gagne `parent` + `actif` + `definirParent`, filtre
+  `TagFilterSet.is_root` sur `GET /api/v1/etiquettes` (racine = parente nulle ; hors registre = racine).
+- `custom_field_query` : `Socle\RequeteChamps` (DSL JSON `[champ, opérateur, valeur]`, `AND/OR/NOT`,
+  bornes profondeur ≤ 10 / atomes ≤ 20, refus 400 nommé) traduit en SQL paramétré sur `meta.champs`.
+- `original_filename` : filtre sur `meta.nom_origine`, `documents.nom` et `ingestion_travaux.nom_origine`
+  (jointure) ; exposé dans la fiche.
+- `Document.archive_serial_number` (meta.asn), `page_count` (compté sur le fichier réel via
+  `Ingestion\ParseurPiece`), `storage_type` (`unencrypted`) : exposés par la fiche.
+- Preuves : vecteurs `final-modele.json` (12) + `FinalModeleTest` (3 tests, vert).
+
 ## En cours
 
-- Évolution de modèle : propriétaire de document, hiérarchie d'étiquettes (`is_root`), nom d'origine,
-  requête sur champs personnalisés (`custom_field_query`).
+- Chaîne `TikaDocumentParser` (couvert-autrement), commandes, `AcknowledgeTasksPermissions`, `ws-status`.
 
 ## Reste
 
-- Chaîne : `TikaDocumentParser` (à statuer couvert-autrement par `Ingestion\ParseurPiece`/`RegistreParseurs`).
 - Commandes `decrypt_documents`, `prune_audit_logs`.
-- Champs Document `archive_serial_number`, `page_count`, `storage_type`.
+- `AcknowledgeTasksPermissions`.
 - `AcknowledgeTasksPermissions`.
 - `ws-status` (équivalent léger SSE).
 - Écrans (`/application`, `/metadonnees`, fiche document) + tests d'accès.

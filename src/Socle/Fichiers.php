@@ -170,12 +170,15 @@ final class Fichiers
             static fn (string $e) => $e !== ''));
 
         return [
-            ['titre', 'type', 'emetteur', 'date_document', 'montant', 'etiquettes', 'statut', 'source'],
+            ['titre', 'type', 'emetteur', 'date_document', 'montant', 'etiquettes', 'statut', 'source', 'proprietaire_id'],
             [mb_substr((string) $meta['titre'], 0, 200), $meta['type'] ?? null, $meta['emetteur'] ?? null,
                 (isset($meta['date']) && preg_match('#^\d{4}-\d{2}-\d{2}$#', (string) $meta['date'])) ? $meta['date'] : null,
                 isset($meta['montant']) && is_numeric($meta['montant']) ? (float) $meta['montant'] : null,
                 $etiquettes === [] ? null : self::json($etiquettes), $meta['statut'] ?? 'a_controler',
-                $meta['source'] ?? null],
+                $meta['source'] ?? null,
+                // Propriétaire (DocumentFilterSet.owner) : la valeur vit dans le `.meta.json`, la colonne
+                // n'est qu'un index reconstructible. Absent ou non numérique : NULL, jamais une invention.
+                isset($meta['proprietaire_id']) && is_numeric($meta['proprietaire_id']) ? (int) $meta['proprietaire_id'] : null],
         ];
     }
 

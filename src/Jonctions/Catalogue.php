@@ -39,15 +39,18 @@ final class Catalogue
     private const EMETTEURS_MAX = 1000;
 
     /** Clés de métadonnées que l'API accepte de modifier. */
-    private const METADONNEES = ['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'dossier'];
+    private const METADONNEES = ['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes', 'dossier', 'proprietaire_id', 'proprietaire'];
 
     private readonly PDO $pdo;
     private readonly Depot $depot;
     private readonly DroitsDossiers $droits;
     private readonly Nomenclature $nomenclature;
     private readonly Vues $vues;
+    private readonly Config $config;
     /** @var array<string, string> Niveau effectif par dossier, mémorisé le temps de la requête. */
     private array $niveaux = [];
+    /** @var array<int, ?string> Nom d'identifiant d'un compte propriétaire, mémorisé le temps de la requête. */
+    private array $proprietaires = [];
 
     public function __construct(Config $config, private readonly int $compte, private readonly bool $administrateur = false)
     {
@@ -56,6 +59,7 @@ final class Catalogue
         $this->droits = new DroitsDossiers($this->pdo);
         $this->nomenclature = new Nomenclature($config);
         $this->vues = new Vues($config);
+        $this->config = $config;
     }
 
     /**
@@ -105,14 +109,45 @@ final class Catalogue
         $this->exigerDroitLecture($id, $etape);
         $versions = $this->versions($id);
         $derniere = $versions === [] ? 0 : (int) $versions[array_key_last($versions)]['numero'];
+        $resume = $this->resume($ligne);
+        $resume['dossier'] = self::dossierDe((string) $ligne['chemin_relatif']);
+        $resume['statut'] = (string) $ligne['statut'];
+        $resume['empreinte'] = (string) $ligne['empreinte'];
+        $resume['version'] = $derniere;
+        $resume['versions'] = $versions;
+        // Champs Paperless du Document : `page_count` est compté sur le fichier réel, `storage_type`
+        // est le mode de stockage de GEDv2 (fichier lisible, jamais chiffré par le produit).
+        $resume['page_count'] = $this->nombreDePages($ligne);
+        $resume['storage_type'] = 'unencrypted';
+        // Le nom d'origine vit dans `ingestion_travaux` (le document peut ne pas le porter en meta).
+        $resume['original_filename'] = $resume['original_filename'] ?? $this->nomOrigineTravail($id);
 
-        return $this->resume($ligne) + [
-            'dossier' => self::dossierDe((string) $ligne['chemin_relatif']),
-            'statut' => (string) $ligne['statut'],
-            'empreinte' => (string) $ligne['empreinte'],
-            'version' => $derniere,
-            'versions' => $versions,
-        ];
+        return $resume;
+    }
+
+    /** Nombre de pages réel du fichier courant, ou null si indéterminable (jamais une valeur inventée). */
+    private function nombreDePages(array $ligne): ?int
+    {
+        try {
+            $absolu = $this->depot->cheminAbsolu((string) $ligne['chemin_relatif']);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+        if (!is_file($absolu)) {
+            return null;
+        }
+
+        return \Ged\Ingestion\ParseurPiece::nombreDePages($absolu, (string) $ligne['mime']);
+    }
+
+    /** Nom d'origine du fichier déposé, lu du suivi d'ingestion (`ingestion_travaux.nom_origine`). */
+    private function nomOrigineTravail(int $id): ?string
+    {
+        $requete = $this->pdo->prepare('SELECT nom_origine FROM ingestion_travaux WHERE document_id = ? AND nom_origine <> ? ORDER BY id DESC LIMIT 1');
+        $requete->execute([$id, '']);
+        $nom = $requete->fetchColumn();
+
+        return is_string($nom) && $nom !== '' ? $nom : null;
     }
 
     /**
@@ -247,8 +282,25 @@ final class Catalogue
             }
         }
         sort($etiquettes, SORT_NATURAL | SORT_FLAG_CASE);
+        $etiquettes = $this->filtrerNoms($etiquettes, $criteres, $etape);
 
-        return $this->filtrerNoms($etiquettes, $criteres, $etape);
+        // Hiérarchie (TagFilterSet.is_root) : une étiquette est racine quand sa parente est nulle dans le
+        // registre du fonds (`.ged/etiquettes.json`). Une étiquette hors registre est racine par défaut :
+        // aucune parenté n'est inventée.
+        $racine = $this->booleen($criteres['is_root'] ?? $criteres['racine'] ?? null, 'is_root', $etape);
+        if ($racine !== null) {
+            $parents = [];
+            foreach ((new \Ged\Socle\Etiquettes($this->config))->lister(false) as $definition) {
+                $parents[mb_strtolower($definition['nom'])] = $definition['parent'];
+            }
+            $etiquettes = array_values(array_filter($etiquettes, static function (string $nom) use ($racine, $parents): bool {
+                $estRacine = !isset($parents[mb_strtolower($nom)]) || $parents[mb_strtolower($nom)] === null;
+
+                return $estRacine === $racine;
+            }));
+        }
+
+        return $etiquettes;
     }
 
     /**
@@ -264,8 +316,18 @@ final class Catalogue
         $requete = $this->pdo->prepare("SELECT DISTINCT d.emetteur FROM documents d WHERE $where"
             . " AND d.emetteur IS NOT NULL AND d.emetteur <> '' ORDER BY d.emetteur LIMIT " . self::EMETTEURS_MAX);
         $requete->execute($params);
+        $noms = array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
 
-        return $this->filtrerNoms(array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN))), $criteres, $etape);
+        // Union avec le REGISTRE des émetteurs (`.ged/emetteurs.json`) : un correspondant créé par l'API
+        // est proposé même si aucun document ne le porte encore. Le registre ne remplace pas l'historique.
+        foreach ((new \Ged\Socle\Emetteurs($this->config))->lister() as $emetteur) {
+            if (!in_array($emetteur['nom'], $noms, true)) {
+                $noms[] = $emetteur['nom'];
+            }
+        }
+        sort($noms, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $this->filtrerNoms($noms, $criteres, $etape);
     }
 
     /**
@@ -316,6 +378,9 @@ final class Catalogue
             // vivent dans `meta.champs` du document, la cle est le slug de la definition (Socle\Champs).
             'champs_presents' => null, 'champs_tous' => [], 'champs_any' => [], 'sans_champs' => [],
             'champs_contient' => null,
+            // Parité Paperless (lot ged-parite-final-1) : propriétaire, nom d'origine, ASN, requête JSON.
+            'proprietaire_id' => null, 'proprietaire_aucun' => null, 'nom_origine' => null,
+            'asn' => null, 'requete_champs' => null,
         ];
     }
 
@@ -545,7 +610,51 @@ final class Catalogue
         }
         $filtres['champs_contient'] = $this->chaine($criteres['champs_contient'] ?? null);
 
+        // Parité Paperless (lot ged-parite-final-1).
+        $filtres['proprietaire_id'] = $this->compteProprietaire(
+            $criteres['owner'] ?? $criteres['owner__id'] ?? $criteres['proprietaire'] ?? $criteres['proprietaire_id'] ?? null,
+            $etape,
+        );
+        $filtres['proprietaire_aucun'] = $this->booleen(
+            $criteres['owner__id__none'] ?? $criteres['proprietaire_aucun'] ?? null, 'owner__id__none', $etape,
+        );
+        $filtres['nom_origine'] = $this->chaine($criteres['original_filename'] ?? $criteres['nom_origine'] ?? null);
+        $filtres['asn'] = $this->chaine($criteres['asn'] ?? null);
+        $filtres['requete_champs'] = $this->chaine($criteres['custom_field_query'] ?? $criteres['requete_champs'] ?? null);
+        if ($filtres['requete_champs'] !== null) {
+            // L'expression est compilée ICI pour être refusée avant toute requête : un filtre faux se
+            // nomme (400), il n'est jamais silencieusement ignoré.
+            try {
+                \Ged\Socle\RequeteChamps::clauses((string) $filtres['requete_champs'], 'd');
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+        }
+
         return $filtres;
+    }
+
+    /**
+     * Résout un propriétaire Paperless (`owner` / `owner__id`) : identifiant numérique direct, ou nom
+     * d'identifiant de compte (casse ignorée). Rend null (pas de filtre) ou 0 (nom sans compte : aucun
+     * document ne peut correspondre). Jamais une valeur silencieusement ignorée.
+     *
+     * @throws ErreurApi
+     */
+    private function compteProprietaire(mixed $valeur, string $etape): ?int
+    {
+        $valeur = trim((string) $valeur);
+        if ($valeur === '') {
+            return null;
+        }
+        if (preg_match('/^\d+$/', $valeur) === 1) {
+            return (int) $valeur;
+        }
+        $requete = $this->pdo->prepare('SELECT id FROM comptes WHERE LOWER(identifiant) = ? LIMIT 1');
+        $requete->execute([mb_strtolower($valeur)]);
+        $id = $requete->fetchColumn();
+
+        return is_numeric($id) ? (int) $id : 0;
     }
 
     private function chaine(mixed $valeur): ?string
@@ -765,6 +874,38 @@ final class Catalogue
             $clauses[] = '(d.chemin_relatif = ? OR d.chemin_relatif LIKE ?)';
             $params[] = $filtres['dossier'];
             $params[] = $filtres['dossier'] . '/%';
+        }
+
+        // Parité Paperless (lot ged-parite-final-1) : propriétaire, nom d'origine, ASN, requête JSON.
+        if (($filtres['proprietaire_id'] ?? null) !== null) {
+            if ((int) $filtres['proprietaire_id'] > 0) {
+                $clauses[] = 'd.proprietaire_id = ?';
+                $params[] = (int) $filtres['proprietaire_id'];
+            } else {
+                $clauses[] = '1 = 0';   // propriétaire nommé introuvable : aucun document ne correspond
+            }
+        }
+        if (($filtres['proprietaire_aucun'] ?? null) !== null) {
+            $clauses[] = $filtres['proprietaire_aucun'] ? 'd.proprietaire_id IS NULL' : 'd.proprietaire_id IS NOT NULL';
+        }
+        if (($filtres['nom_origine'] ?? null) !== null) {
+            $motif = '%' . self::echapperLike((string) $filtres['nom_origine']) . '%';
+            $clauses[] = '(d.nom LIKE ? OR JSON_UNQUOTE(JSON_EXTRACT(d.meta, ?)) LIKE ?'
+                . ' OR EXISTS (SELECT 1 FROM ingestion_travaux t WHERE t.document_id = d.id AND t.nom_origine LIKE ?))';
+            $params[] = $motif;
+            $params[] = '$.nom_origine';
+            $params[] = $motif;
+            $params[] = $motif;
+        }
+        if (($filtres['asn'] ?? null) !== null) {
+            $clauses[] = 'JSON_UNQUOTE(JSON_EXTRACT(d.meta, ?)) = ?';
+            $params[] = '$.asn';
+            $params[] = (string) $filtres['asn'];
+        }
+        if (($filtres['requete_champs'] ?? null) !== null) {
+            [$sqlChamps, $paramsChamps] = \Ged\Socle\RequeteChamps::clauses((string) $filtres['requete_champs'], 'd');
+            $clauses[] = $sqlChamps;
+            $params = [...$params, ...$paramsChamps];
         }
         if (!$this->administrateur) {
             [$acl, $aclParams] = DroitsDossiers::predicatLecture('d', $this->compte);
@@ -990,7 +1131,10 @@ final class Catalogue
         return $documents;
     }
 
-    private const COLONNES = 'd.id, d.chemin_relatif, d.nom, d.titre, d.type, d.emetteur, d.date_document, d.montant, d.etiquettes, d.mime, d.taille, d.statut, d.empreinte';
+    private const COLONNES = "d.id, d.chemin_relatif, d.nom, d.titre, d.type, d.emetteur, d.date_document, d.montant, "
+        . "d.etiquettes, d.mime, d.taille, d.statut, d.empreinte, d.proprietaire_id, "
+        . "JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.asn')) AS asn, "
+        . "JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.nom_origine')) AS nom_origine";
 
     /** @return array<string, mixed>|null */
     private function ligneVivante(int $id): ?array
@@ -1023,6 +1167,13 @@ final class Catalogue
             'mime' => (string) $ligne['mime'],
             'taille' => (int) $ligne['taille'],
             'droits' => $this->niveauPourChemin((string) $ligne['chemin_relatif']),
+            // Parité Paperless (lot ged-parite-final-1) : champs du Document exposés au niveau de la fiche.
+            'proprietaire_id' => is_numeric($ligne['proprietaire_id'] ?? null) ? (int) $ligne['proprietaire_id'] : null,
+            'owner' => $this->nomProprietaire(is_numeric($ligne['proprietaire_id'] ?? null) ? (int) $ligne['proprietaire_id'] : null),
+            'archive_serial_number' => isset($ligne['asn']) && $ligne['asn'] !== null && $ligne['asn'] !== ''
+                ? (string) $ligne['asn'] : null,
+            'original_filename' => isset($ligne['nom_origine']) && $ligne['nom_origine'] !== null && $ligne['nom_origine'] !== ''
+                ? (string) $ligne['nom_origine'] : null,
         ];
     }
 
@@ -1057,6 +1208,22 @@ final class Catalogue
         $position = strrpos($chemin, '/');
 
         return $position === false ? '' : substr($chemin, 0, $position);
+    }
+
+    /** Identifiant du compte propriétaire, ou null (document sans propriétaire). Mémoire de requête. */
+    private function nomProprietaire(?int $id): ?string
+    {
+        if ($id === null || $id < 1) {
+            return null;
+        }
+        if (array_key_exists($id, $this->proprietaires)) {
+            return $this->proprietaires[$id];
+        }
+        $requete = $this->pdo->prepare('SELECT identifiant FROM comptes WHERE id = ?');
+        $requete->execute([$id]);
+        $identifiant = $requete->fetchColumn();
+
+        return $this->proprietaires[$id] = is_string($identifiant) ? $identifiant : null;
     }
 
     /** @throws ErreurApi */
@@ -1157,6 +1324,22 @@ final class Catalogue
                 throw new ErreurApi(400, 'dossier : chemin vide ou hors du fonds', $etape);
             }
             $propre['dossier'] = $dossier;
+        }
+        // Propriétaire (DocumentFilterSet.owner) : null l'efface, un identifiant de compte le pose.
+        if (array_key_exists('proprietaire_id', $metadonnees) || array_key_exists('proprietaire', $metadonnees)) {
+            $brut = $metadonnees['proprietaire_id'] ?? $metadonnees['proprietaire'];
+            if ($brut === null || $brut === '') {
+                $propre['proprietaire_id'] = null;
+            } elseif (is_numeric($brut) && (int) $brut > 0) {
+                $requete = $this->pdo->prepare('SELECT 1 FROM comptes WHERE id = ?');
+                $requete->execute([(int) $brut]);
+                if ($requete->fetchColumn() === false) {
+                    throw new ErreurApi(400, "propriétaire : aucun compte nº " . (int) $brut, $etape);
+                }
+                $propre['proprietaire_id'] = (int) $brut;
+            } else {
+                throw new ErreurApi(400, 'propriétaire : identifiant de compte attendu (ou null)', $etape);
+            }
         }
 
         return $propre;

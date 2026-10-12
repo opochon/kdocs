@@ -16,6 +16,8 @@ final class Schema
         // Parité Paperless (lot ged-parite-final-1) : `UserViewSet.destroy` DÉSACTIVE un compte. La colonne
         // n'est pas une table de plus (plafond V2-01 intact) et vaut 1 par défaut (aucun compte muet).
         self::assurerColonneActif($pdo, 'comptes');
+        // Propriétaire d'un document (DocumentFilterSet.owner) : colonne, pas une table de plus.
+        self::assurerColonneProprietaire($pdo);
     }
 
     /**
@@ -37,6 +39,7 @@ final class Schema
               date_document DATE NULL,
               montant DECIMAL(14,2) NULL,
               etiquettes JSON NULL COMMENT 'liste de chaînes',
+              proprietaire_id INT UNSIGNED NULL COMMENT 'compte propriétaire (DocumentFilterSet.owner), NULL = aucun',
               source VARCHAR(20) NULL COMMENT 'dossier | adresse | ecran | mobile',
               statut VARCHAR(20) NOT NULL DEFAULT 'a_controler',
               empreinte CHAR(64) NOT NULL COMMENT 'sha256 du contenu : sert au suivi des déplacements',
@@ -184,6 +187,19 @@ final class Schema
             return;
         }
         $pdo->exec("ALTER TABLE `$table` ADD COLUMN actif TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'mise en veille, zéro suppression'");
+    }
+
+    /**
+     * Pose `documents.proprietaire_id` si elle manque (table d'une version antérieure) : un document peut
+     * avoir un compte propriétaire (`DocumentFilterSet.owner`), ou aucun. Idempotent, rejouable.
+     */
+    public static function assurerColonneProprietaire(PDO $pdo): void
+    {
+        if (self::colonneExiste($pdo, 'documents', 'proprietaire_id')) {
+            return;
+        }
+        $pdo->exec('ALTER TABLE documents ADD COLUMN proprietaire_id INT UNSIGNED NULL '
+            . "COMMENT 'compte propriétaire (DocumentFilterSet.owner), NULL = aucun'");
     }
 
     /**
