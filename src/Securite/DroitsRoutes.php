@@ -240,6 +240,11 @@ final class DroitsRoutes
         'POST /api/v1/jetons' => 'publique:api-documents-ecriture',
         'GET /api/v1/preferences' => 'publique:api-documents-lecture',
         'POST /api/v1/preferences' => 'publique:api-documents-ecriture',
+        // Double authentification TOTP (lot ged-parite-api-4) : porte jeton, hors session.
+        'GET /api/v1/profil/totp' => 'publique:api-documents-lecture',
+        'POST /api/v1/profil/totp' => 'publique:api-documents-ecriture',
+        'DELETE /api/v1/profil/totp' => 'publique:api-documents-ecriture',
+        'POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp' => 'publique:api-documents-ecriture',
     ];
 
     /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */
@@ -259,6 +264,10 @@ final class DroitsRoutes
         // route est servie par `Ged\Jonctions\RessourcesApi`, la porte réelle étant le jeton.
         if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes)/[0-9]+$#', $chemin, $ressource) === 1) {
             return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/' . $ressource[1] . '/{id:[0-9]+}'] ?? null;
+        }
+        // Désactivation TOTP d'un compte (lot ged-parite-api-4) : identifiant concret dans le chemin.
+        if (strtoupper($methode) === 'POST' && preg_match('#^/api/v1/comptes/[0-9]+/deactivate_totp$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp'];
         }
         if (preg_match('#^/api/v1/partages/[0-9]+$#', $chemin) === 1) {
             return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/partages/{id:[0-9]+}'] ?? null;

@@ -155,7 +155,9 @@ try {
                 'POST /api/v1/taches/acknowledge', 'POST /api/v1/taches/run',
                 'GET /api/v1/taches/{id:[0-9]+}', 'GET /api/v1/courriers/traites/{id:[0-9]+}',
                 'GET /api/v1/profil', 'PATCH /api/v1/profil', 'POST /api/v1/jetons',
-                'GET /api/v1/preferences', 'POST /api/v1/preferences' => 401,
+                'GET /api/v1/preferences', 'POST /api/v1/preferences',
+                'GET /api/v1/profil/totp', 'POST /api/v1/profil/totp', 'DELETE /api/v1/profil/totp',
+                'POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp' => 401,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.

@@ -8,6 +8,7 @@ use Ged\Base;
 use Ged\Config;
 use Ged\Ingestion\Courrier\Traites;
 use Ged\Securite\DroitsDossiers;
+use Ged\Securite\Totp;
 use Ged\Socle\Champs;
 use Ged\Socle\Collaboration;
 use Ged\Socle\DepotFichiers;
@@ -1094,6 +1095,87 @@ final class RessourcesApi
     {
         return ['user' => ['id' => $session['compte'], 'username' => $session['identifiant']],
             'settings' => (new Preferences($this->config))->lire($session['identifiant'])];
+    }
+
+    // -----------------------------------------------------------------------
+    // Double authentification TOTP (TOTPView de Paperless, django-otp/allauth)
+    // -----------------------------------------------------------------------
+
+    /** `TOTPView.get` : enrôlement — un secret NEUF est rendu UNE fois, jamais relu une fois actif. */
+    public function totpLire(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/profil/totp', function (array $session): array {
+            $totp = new Totp($this->pdo);
+            $etat = $totp->etat($session['compte']);
+            if ($etat !== null && $etat['actif']) {
+                return ['active' => true, 'secret' => null, 'otpauth_uri' => null, 'qr_svg' => null];
+            }
+            $secret = $totp->genererSecret();
+            $uri = $totp->uri($secret, $session['identifiant']);
+
+            return ['active' => false, 'secret' => $secret, 'otpauth_uri' => $uri, 'qr_svg' => $totp->svg($uri)];
+        });
+    }
+
+    /** `TOTPView.post` : active après vérification du code ; les codes de secours ne sont rendus qu'ici. */
+    public function totpActiver(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/profil/totp';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $session = $this->session;
+            if ($session === null) {
+                throw new ErreurApi(403, 'session indisponible', $etape);
+            }
+            $secret = strtoupper($this->texteRequis($corps, ['secret'], 'secret', $etape));
+            $code = $this->texteRequis($corps, ['code'], 'code', $etape);
+            $totp = new Totp($this->pdo);
+            try {
+                $valide = $totp->verifier($secret, $code);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+            if (!$valide) {
+                throw new ErreurApi(400, 'code de vérification invalide', $etape);
+            }
+
+            return ['active' => true, 'recovery_codes' => $totp->activer($session['compte'], $secret)];
+        });
+    }
+
+    /** `TOTPView.delete` : désactive ; une seconde désactivation se nomme 404 (comme Paperless). */
+    public function totpDesactiver(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'DELETE /api/v1/profil/totp';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            $session = $this->session;
+            if ($session === null) {
+                throw new ErreurApi(403, 'session indisponible', $etape);
+            }
+            if (!(new Totp($this->pdo))->desactiver($session['compte'])) {
+                throw new ErreurApi(404, 'aucune double authentification active', $etape);
+            }
+
+            return ['active' => false];
+        });
+    }
+
+    /** `UserViewSet.deactivate_totp` : un administrateur retire le TOTP d'un compte ; 404 si absent. */
+    /** @param array<string, string> $args */
+    public function compteDesactiverTotp(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $cible = (int) ($args['id'] ?? 0);
+        $etape = "POST /api/v1/comptes/$cible/deactivate_totp";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($cible, $etape): array {
+            $this->compteOuRefus($cible, $etape);
+            if (!(new Totp($this->pdo))->desactiver($cible)) {
+                throw new ErreurApi(404, 'aucune double authentification active', $etape);
+            }
+
+            return ['id' => $cible, 'totp' => 'desactive'];
+        }, 200, true);
     }
 
     // -----------------------------------------------------------------------

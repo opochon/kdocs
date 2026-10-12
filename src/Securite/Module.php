@@ -23,6 +23,7 @@ final class Module
         $pdo = Base::pdo($config);
         $controleur = new ConnexionController(
             new Authentification($config, $pdo), $sessions, new ProtectionBruteForce($dossier . '/brute-force.json'), $audit, $vue,
+            new Totp($pdo),
         );
 
         $app->get('/connexion', [$controleur, 'formulaire']);
