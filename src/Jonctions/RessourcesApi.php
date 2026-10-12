@@ -9,6 +9,7 @@ use Ged\Config;
 use Ged\Ingestion\Courrier\Traites;
 use Ged\Securite\Authentification;
 use Ged\Securite\DroitsDossiers;
+use Ged\Securite\PermissionsTaches;
 use Ged\Securite\Totp;
 use Ged\Socle\Champs;
 use Ged\Socle\Collaboration;
@@ -1326,13 +1327,18 @@ final class RessourcesApi
 
     /**
      * `TasksViewSet.acknowledge` (Paperless) : acquitte les tâches listées et rend le nombre traité.
-     * Réservé à l'administrateur (la liste `/api/v1/taches` l'est aussi dans GEDv2).
+     * Le droit d'acquittement est `Securite\PermissionsTaches` (équivalent `AcknowledgeTasksPermissions`) :
+     * l'administrateur l'a, un futur rôle pourra l'obtenir par la permission fine.
      */
     public function tachesAccuser(Requete $requete, Reponse $reponse): Reponse
     {
         $etape = 'POST /api/v1/taches/acknowledge';
 
         return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $session = $this->session ?? throw new ErreurApi(403, 'session indisponible', $etape);
+            if (!PermissionsTaches::peutAcquitter((bool) $session['administrateur'])) {
+                throw new ErreurApi(403, 'droit d’acquittement des tâches requis', $etape);
+            }
             $ids = $this->listeIdentifiants($corps['tasks'] ?? $corps['ids'] ?? []);
             if ($ids === []) {
                 throw new ErreurApi(400, 'aucune tâche à acquitter (clé « tasks » attendue)', $etape);
@@ -1350,6 +1356,36 @@ final class RessourcesApi
 
             return ['result' => $resultat];
         }, 200, true);
+    }
+
+    /**
+     * `ws/status/` (StatusConsumer de Paperless, Channels/Redis) : GEDv2 n'a ni WebSocket ni démon
+     * (hébergement mutualisé). L'équivalent fonctionnel LÉGER est un flux SSE d'un seul événement : l'état
+     * RÉEL des tâches de la file `ingestion_travaux`, puis fermeture — un appel court, reprenable, sans
+     * Redis ni connexion longue. Le client réinterroge le même point à son rythme.
+     */
+    public function tachesEvenements(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'GET /api/v1/taches/statut/evenements';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $this->session = $session;
+            if (!$session['administrateur']) {
+                throw new ErreurApi(403, 'droit administrateur requis', $etape);
+            }
+            $bilan = (new Taches($this->config))->bilan();
+            $charge = json_encode(['statut' => 'ok', 'file' => 'ingestion_travaux', 'bilan' => $bilan],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $reponse->getBody()->write("event: statut\ndata: " . (string) $charge . "\n\n");
+
+            return $reponse->withHeader('Content-Type', 'text/event-stream; charset=utf-8')
+                ->withHeader('Cache-Control', 'no-cache')
+                ->withStatus(200);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'le flux de statut n’a pas pu être produit');
+        }
     }
 
     /**

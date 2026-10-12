@@ -155,6 +155,7 @@ try {
                 'DELETE /api/v1/partages/{id:[0-9]+}', 'GET /api/v1/documents/{id:[0-9]+}/partages',
                 'GET /api/v1/corbeille', 'POST /api/v1/corbeille', 'GET /api/v1/taches',
                 'POST /api/v1/taches/acknowledge', 'POST /api/v1/taches/run',
+                'GET /api/v1/taches/statut/evenements',
                 'GET /api/v1/taches/{id:[0-9]+}', 'GET /api/v1/courriers/traites/{id:[0-9]+}',
                 'GET /api/v1/profil', 'PATCH /api/v1/profil', 'POST /api/v1/jetons',
                 'GET /api/v1/preferences', 'POST /api/v1/preferences',

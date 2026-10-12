@@ -253,6 +253,8 @@ final class DroitsRoutes
         'GET /api/v1/taches' => 'publique:api-documents-lecture',
         'POST /api/v1/taches/acknowledge' => 'publique:api-documents-ecriture',
         'POST /api/v1/taches/run' => 'publique:api-documents-ecriture',
+        // Statut temps réel (StatusConsumer de Paperless) en flux SSE léger (lot ged-parite-final-1).
+        'GET /api/v1/taches/statut/evenements' => 'publique:api-documents-lecture',
         'GET /api/v1/taches/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/courriers/traites/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/profil' => 'publique:api-documents-lecture',

@@ -141,6 +141,8 @@ final class Module
         $app->get('/api/v1/taches', [$ressources, 'tachesLister']);
         $app->post('/api/v1/taches/acknowledge', [$ressources, 'tachesAccuser']);
         $app->post('/api/v1/taches/run', [$ressources, 'tachesExecuter']);
+        // Statut temps réel (StatusConsumer de Paperless) : flux SSE léger, un appel court (lot final-1).
+        $app->get('/api/v1/taches/statut/evenements', [$ressources, 'tachesEvenements']);
         $app->get('/api/v1/taches/{id:[0-9]+}', [$ressources, 'tacheLire']);
         $app->get('/api/v1/courriers/traites/{id:[0-9]+}', [$ressources, 'courrierTraiteLire']);
         $app->get('/api/v1/profil', [$ressources, 'profilLire']);
