@@ -114,7 +114,7 @@ final class ControleAvant extends EtapesConsommation
     public function executer(array $contexte): array
     {
         $evenements = [$this->progression(0, 100, MessageStatut::NEW_FILE)];
-        $this->verifierFichier((string) ($contexte['fichier'] ?? ''));
+        $this->verifierFichier($contexte['fichier']);
         $this->verifierDoublon(
             $contexte['empreinte'] ?? null,
             $contexte['empreinte_existante'] ?? null,

@@ -57,7 +57,7 @@ final class CodeBarres
     public static function numeroArchiveDepuisCodes(array $codesBarres, string $prefixe): ?int
     {
         foreach ($codesBarres as $codeBarres) {
-            $numero = self::numeroArchive($codeBarres['valeur'] ?? null, $prefixe);
+            $numero = self::numeroArchive($codeBarres['valeur'], $prefixe);
             if ($numero !== null) {
                 return $numero;
             }
@@ -81,8 +81,8 @@ final class CodeBarres
     ): array {
         $pages = [];
         foreach ($codesBarres as $codeBarres) {
-            $page = (int) ($codeBarres['page'] ?? 0);
-            $valeur = (string) ($codeBarres['valeur'] ?? '');
+            $page = $codeBarres['page'];
+            $valeur = $codeBarres['valeur'];
             if (!self::estSeparateur($valeur, $motifSeparateur)) {
                 continue;
             }
@@ -95,8 +95,8 @@ final class CodeBarres
             return $pages;
         }
         foreach ($codesBarres as $codeBarres) {
-            $page = (int) ($codeBarres['page'] ?? 0);
-            if ($page !== 0 && self::estNumeroArchive((string) ($codeBarres['valeur'] ?? ''), $prefixeArchive)) {
+            $page = $codeBarres['page'];
+            if ($page !== 0 && self::estNumeroArchive($codeBarres['valeur'], $prefixeArchive)) {
                 $pages[$page] = true;   // un code-barres ASN ouvre un document et garde sa page
             }
         }

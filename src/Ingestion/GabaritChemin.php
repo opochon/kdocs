@@ -78,8 +78,7 @@ final class GabaritChemin
                 ? self::assainirGabarit((string) $document['correspondant']) : self::VIDE,
             'document_type' => isset($document['type_document'])
                 ? self::assainirGabarit((string) $document['type_document']) : self::VIDE,
-            'asn' => isset($document['asn']) && $document['asn'] !== null
-                ? (string) $document['asn'] : self::VIDE,
+            'asn' => isset($document['asn']) ? (string) $document['asn'] : self::VIDE,
             'owner_username' => isset($document['proprietaire'])
                 ? (string) $document['proprietaire'] : self::VIDE,
             'original_name' => isset($document['nom_origine']) && $document['nom_origine'] !== ''
