@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "categorie": "taches",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 8,
+  "vecteurs": [
+    {
+      "id": "taches:test_get_tasks:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/tasks/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:46"
+    },
+    {
+      "id": "taches:test_acknowledge_tasks:002",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/tasks/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:133"
+    },
+    {
+      "id": "taches:test_acknowledge_tasks:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/acknowledge/",
+        "corps": {
+          "tasks": [
+            "{task.id}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:133"
+    },
+    {
+      "id": "taches:test_acknowledge_tasks_requires_change_permission:004",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/acknowledge/",
+        "corps": {
+          "tasks": [
+            "{task.id}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:161"
+    },
+    {
+      "id": "taches:test_acknowledge_tasks_requires_change_permission:005",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/acknowledge/",
+        "corps": {
+          "tasks": [
+            "{task.id}"
+          ]
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:174"
+    },
+    {
+      "id": "taches:test_run_train_classifier_task:006",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/run/",
+        "corps": {
+          "task_name": "{PaperlessTask.TaskName.TRAIN_CLASSIFIER}"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:374"
+    },
+    {
+      "id": "taches:test_run_train_classifier_task:007",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/run/",
+        "corps": {
+          "task_name": "{PaperlessTask.TaskName.TRAIN_CLASSIFIER}"
+        }
+      },
+      "sortie": {
+        "statut": 500
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:386"
+    },
+    {
+      "id": "taches:test_run_task_requires_superuser:008",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/tasks/run/",
+        "corps": {
+          "task_name": "{PaperlessTask.TaskName.CHECK_SANITY}"
+        }
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_tasks.py:409"
+    }
+  ],
+  "non_rejouables": []
+}

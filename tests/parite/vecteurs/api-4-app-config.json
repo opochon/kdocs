@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "categorie": "app-config",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 5,
+  "vecteurs": [
+    {
+      "id": "app-config:test_api_get_config:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/config/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_app_config.py:35"
+    },
+    {
+      "id": "app-config:test_api_update_config:002",
+      "entree": {
+        "methode": "PATCH",
+        "chemin": "/api/config/1/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_app_config.py:114"
+    },
+    {
+      "id": "app-config:test_create_not_allowed:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/config/"
+      },
+      "sortie": {
+        "statut": 405
+      },
+      "reference": "src/documents/tests/test_api_app_config.py:612"
+    },
+    {
+      "id": "app-config:test_api_replace_app_logo:004",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/logo/"
+      },
+      "sortie": {
+        "statut": 404
+      },
+      "reference": "src/documents/tests/test_api_app_config.py:157"
+    },
+    {
+      "id": "app-config:test_api_replace_app_logo:005",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/logo/simple.jpg"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_app_config.py:174"
+    }
+  ],
+  "non_rejouables": []
+}

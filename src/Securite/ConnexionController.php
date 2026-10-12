@@ -16,6 +16,9 @@ final class ConnexionController
         private readonly ProtectionBruteForce $protection,
         private readonly JournalAudit $audit,
         private readonly Vue $vue,
+        // Lot ged-parite-api-4 : double authentification TOTP. Optionnel pour ne pas casser les appels
+        // existants (oracle V2-07a) ; le Module de production le fournit toujours.
+        private readonly ?Totp $totp = null,
     ) {
     }
 
@@ -60,6 +63,36 @@ final class ConnexionController
                 'Identifiant ou mot de passe incorrect.',
                 'identifiant ou mot de passe incorrect',
             );
+        }
+
+        // Double authentification (lot ged-parite-api-4) : si le compte a activé le TOTP, le code est
+        // exigé AVANT l'ouverture de la session. Aucun secret n'est journalisé.
+        if ($this->totp !== null && $utilisateur['id'] !== null) {
+            $etat = $this->totp->etat($utilisateur['id']);
+            if ($etat !== null && $etat['actif']) {
+                $code = (string) ($corps['code'] ?? '');
+                if (trim($code) === '') {
+                    $this->audit->ajouter('echec_connexion', $utilisateur['identifiant'], ['cause' => 'code MFA requis']);
+                    return $this->formulaireErreur(
+                        $requete,
+                        $reponse,
+                        'Code de vérification requis.',
+                        'code de vérification à deux facteurs requis',
+                    );
+                }
+                if (!$this->totp->verifier($etat['secret'], $code)) {
+                    $attente = $this->protection->echec($identifiant);
+                    $this->audit->ajouter('echec_connexion', $utilisateur['identifiant'], [
+                        'cause' => 'code MFA invalide', 'attente_secondes' => $attente,
+                    ]);
+                    return $this->formulaireErreur(
+                        $requete,
+                        $reponse,
+                        'Code de vérification incorrect.',
+                        'code de vérification à deux facteurs incorrect',
+                    );
+                }
+            }
         }
 
         $this->protection->succes($identifiant);

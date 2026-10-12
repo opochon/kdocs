@@ -7,7 +7,9 @@ namespace Ged\Jonctions;
 use Ged\Base;
 use Ged\Config;
 use Ged\Ingestion\Courrier\Traites;
+use Ged\Securite\Authentification;
 use Ged\Securite\DroitsDossiers;
+use Ged\Securite\Totp;
 use Ged\Socle\Champs;
 use Ged\Socle\Collaboration;
 use Ged\Socle\DepotFichiers;
@@ -185,6 +187,32 @@ final class RessourcesApi
     public function typeModifier(Requete $requete, Reponse $reponse, array $args): Reponse
     {
         return $this->ecrireType($requete, $reponse, (int) ($args['id'] ?? 0), false);
+    }
+
+    /**
+     * `DocumentTypeViewSet.destroy` : GEDv2 ne supprime jamais un référentiel (règle 4). Le retrait est une
+     * DÉSACTIVATION tracée (`Socle\Nomenclature::definirActif(false)`) : le type reste lisible pour les
+     * documents qui le portent, il n'est plus proposé. Même précédent que `MailAccountViewSet.destroy`
+     * (déjà couvert-autrement par la bascule du compte de courrier).
+     *
+     * @param array<string, string> $args
+     */
+    public function typeDesactiver(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "DELETE /api/v1/types/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($id, $etape): array {
+            $this->typeOuRefus($id, $etape);
+            $nomenclature = new Nomenclature($this->config);
+            try {
+                $nomenclature->definirActif($id, false);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->typeOuRefus($id, $etape);
+        });
     }
 
     private function ecrireType(Requete $requete, Reponse $reponse, int $id, bool $complet): Reponse
@@ -731,6 +759,48 @@ final class RessourcesApi
         }, 204);
     }
 
+    /**
+     * `ShareLinkViewSet.update` / `partial_update` (PUT/PATCH) : modifie l'échéance d'un lien de partage
+     * sans le révoquer. GEDv2 ne supprime rien : la mise à jour est tracée, la valeur reste bornée (date
+     * future obligatoire). L'identifiant et le document d'origine ne changent jamais.
+     *
+     * @param array<string, string> $args
+     */
+    public function partageModifier(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "PATCH /api/v1/partages/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($id, $etape): array {
+            $this->partageOuRefus($id, $etape);
+            $expiration = $this->texteOptionnel($corps, ['expiration', 'expire_le'], '');
+            if ($expiration !== '') {
+                $date = null;
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiration) === 1) {
+                    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $expiration) ?: null;
+                } else {
+                    try {
+                        $date = new \DateTimeImmutable($expiration);
+                    } catch (\Exception) {
+                        $date = null;
+                    }
+                }
+                if ($date === null || $date <= new \DateTimeImmutable('today')) {
+                    throw new ErreurApi(400, 'expiration future obligatoire (AAAA-MM-JJ)', $etape);
+                }
+                $this->pdo->prepare("UPDATE document_collaboration SET expire_le = ? WHERE id = ? AND type = 'partage' AND type_partage = 'externe'")
+                    ->execute([$date->format('Y-m-d H:i:s'), $id]);
+            }
+            $version = $this->entier($corps, ['file_version', 'version'], 0);
+            if ($version > 0) {
+                $this->pdo->prepare("UPDATE document_collaboration SET version = ? WHERE id = ? AND type = 'partage' AND type_partage = 'externe'")
+                    ->execute([$version, $id]);
+            }
+
+            return $this->partageOuRefus($id, $etape);
+        });
+    }
+
     /** @param array<string, mixed> $args */
     public function partagesDocument(Requete $requete, Reponse $reponse, array $args): Reponse
     {
@@ -856,14 +926,103 @@ final class RessourcesApi
 
     public function tachesLister(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->lireRessource($requete, $reponse, 'GET /api/v1/taches', function (): array {
-            $taches = (new Taches($this->config))->lister(50);
+        // Filtres PaperlessTaskFilterSet (lot api-4) : task_id, status, task_name, type, acknowledged.
+        // Ils s'appliquent au suivi réel (`Socle\Taches`, complété par `ingestion_travaux`) sans file
+        // parallèle ; un filtre inconnu est ignoré, jamais une erreur.
+        $filtres = $requete->getQueryParams();
+
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/taches', function () use ($filtres): array {
+            $service = new Taches($this->config);
+            $taches = $service->lister(500);
             if ($taches === []) {
-                $taches = (new Taches($this->config))->depuisTravaux($this->pdo, 50);
+                $taches = $service->depuisTravaux($this->pdo, 500);
+            }
+            $taches = $this->filtrerTaches($taches, $filtres);
+
+            return ['count' => count($taches), 'results' => array_slice($taches, 0, 50)];
+        }, true);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $taches
+     * @param array<string, mixed> $filtres
+     * @return list<array<string, mixed>>
+     */
+    private function filtrerTaches(array $taches, array $filtres): array
+    {
+        $gardees = [];
+        foreach ($taches as $tache) {
+            if (isset($filtres['task_id']) && (string) ($tache['task_id'] ?? '') !== (string) $filtres['task_id']) {
+                continue;
+            }
+            if (isset($filtres['status']) && (string) ($tache['status'] ?? '') !== mb_strtoupper((string) $filtres['status'])) {
+                continue;
+            }
+            if (isset($filtres['task_name']) && mb_strtoupper((string) ($tache['task_name'] ?? '')) !== mb_strtoupper((string) $filtres['task_name'])) {
+                continue;
+            }
+            if (isset($filtres['type']) && mb_strtoupper((string) ($tache['type'] ?? '')) !== mb_strtoupper((string) $filtres['type'])) {
+                continue;
+            }
+            if (isset($filtres['acknowledged'])) {
+                $voulu = filter_var($filtres['acknowledged'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($voulu !== null && ($tache['acknowledged'] ?? false) !== $voulu) {
+                    continue;
+                }
+            }
+            $gardees[] = $tache;
+        }
+
+        return $gardees;
+    }
+
+    /**
+     * `TasksViewSet.acknowledge` (Paperless) : acquitte les tâches listées et rend le nombre traité.
+     * Réservé à l'administrateur (la liste `/api/v1/taches` l'est aussi dans GEDv2).
+     */
+    public function tachesAccuser(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/taches/acknowledge';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $ids = $this->listeIdentifiants($corps['tasks'] ?? $corps['ids'] ?? []);
+            if ($ids === []) {
+                throw new ErreurApi(400, 'aucune tâche à acquitter (clé « tasks » attendue)', $etape);
+            }
+            $service = new Taches($this->config);
+            $resultat = 0;
+            foreach ($ids as $id) {
+                try {
+                    $service->accuser($id, true);
+                } catch (\RuntimeException $e) {
+                    throw new ErreurApi(404, "tâche introuvable : $id", $etape, $e);
+                }
+                ++$resultat;
             }
 
-            return ['count' => count($taches), 'results' => $taches];
-        }, true);
+            return ['result' => $resultat];
+        }, 200, true);
+    }
+
+    /**
+     * `TasksViewSet.run` (Paperless) : programme une tâche de maintenance connue. GEDv2 n'a aucun démon
+     * Celery : la tâche est enregistrée dans le suivi partagé (`Socle\Taches`), reprise par un job court.
+     * Réservé à l'administrateur (comme `superuser` côté Paperless).
+     */
+    public function tachesExecuter(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/taches/run';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $nom = mb_strtoupper($this->texteRequis($corps, ['task_name', 'nom'], 'task_name', $etape));
+            try {
+                $tache = (new Taches($this->config))->ouvrir($nom, Taches::TYPES[0], 'maintenance:' . $nom, $this->auteur());
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return ['result' => 'tâche enregistrée', 'task_id' => $tache['task_id'], 'task_name' => $tache['task_name']];
+        }, 200, true);
     }
 
     /** @param array<string, string> $args */
@@ -1005,6 +1164,266 @@ final class RessourcesApi
     {
         return ['user' => ['id' => $session['compte'], 'username' => $session['identifiant']],
             'settings' => (new Preferences($this->config))->lire($session['identifiant'])];
+    }
+
+    // -----------------------------------------------------------------------
+    // Double authentification TOTP (TOTPView de Paperless, django-otp/allauth)
+    // -----------------------------------------------------------------------
+
+    /** `TOTPView.get` : enrôlement — un secret NEUF est rendu UNE fois, jamais relu une fois actif. */
+    public function totpLire(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/profil/totp', function (array $session): array {
+            $totp = new Totp($this->pdo);
+            $etat = $totp->etat($session['compte']);
+            if ($etat !== null && $etat['actif']) {
+                return ['active' => true, 'secret' => null, 'otpauth_uri' => null, 'qr_svg' => null];
+            }
+            $secret = $totp->genererSecret();
+            $uri = $totp->uri($secret, $session['identifiant']);
+
+            return ['active' => false, 'secret' => $secret, 'otpauth_uri' => $uri, 'qr_svg' => $totp->svg($uri)];
+        });
+    }
+
+    /** `TOTPView.post` : active après vérification du code ; les codes de secours ne sont rendus qu'ici. */
+    public function totpActiver(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/profil/totp';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $session = $this->session;
+            if ($session === null) {
+                throw new ErreurApi(403, 'session indisponible', $etape);
+            }
+            $secret = strtoupper($this->texteRequis($corps, ['secret'], 'secret', $etape));
+            $code = $this->texteRequis($corps, ['code'], 'code', $etape);
+            $totp = new Totp($this->pdo);
+            try {
+                $valide = $totp->verifier($secret, $code);
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+            if (!$valide) {
+                throw new ErreurApi(400, 'code de vérification invalide', $etape);
+            }
+
+            return ['active' => true, 'recovery_codes' => $totp->activer($session['compte'], $secret)];
+        });
+    }
+
+    /** `TOTPView.delete` : désactive ; une seconde désactivation se nomme 404 (comme Paperless). */
+    public function totpDesactiver(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'DELETE /api/v1/profil/totp';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            $session = $this->session;
+            if ($session === null) {
+                throw new ErreurApi(403, 'session indisponible', $etape);
+            }
+            if (!(new Totp($this->pdo))->desactiver($session['compte'])) {
+                throw new ErreurApi(404, 'aucune double authentification active', $etape);
+            }
+
+            return ['active' => false];
+        });
+    }
+
+    /** `UserViewSet.deactivate_totp` : un administrateur retire le TOTP d'un compte ; 404 si absent. */
+    /** @param array<string, string> $args */
+    public function compteDesactiverTotp(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $cible = (int) ($args['id'] ?? 0);
+        $etape = "POST /api/v1/comptes/$cible/deactivate_totp";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($cible, $etape): array {
+            $this->compteOuRefus($cible, $etape);
+            if (!(new Totp($this->pdo))->desactiver($cible)) {
+                throw new ErreurApi(404, 'aucune double authentification active', $etape);
+            }
+
+            return ['id' => $cible, 'totp' => 'desactive'];
+        }, 200, true);
+    }
+
+    // -----------------------------------------------------------------------
+    // Jeton d'API par identifiants (PaperlessObtainAuthTokenView / GenerateAuthTokenView)
+    // -----------------------------------------------------------------------
+
+    /**
+     * `POST /api/v1/token` : échange identifiant + mot de passe contre un jeton d'API, avec le code MFA
+     * quand la double authentification est active. La valeur du jeton n'est rendue qu'ICI, jamais relue.
+     * Route hors jeton (c'est elle qui le délivre) : aucune session, aucun cookie.
+     */
+    public function jetonObtenir(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/token';
+        try {
+            $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
+            $identifiant = trim((string) ($corps['username'] ?? $corps['identifiant'] ?? ''));
+            $motDePasse = (string) ($corps['password'] ?? $corps['mot_de_passe'] ?? '');
+            $utilisateur = (new Authentification($this->config, $this->pdo))->verifier($identifiant, $motDePasse);
+            if ($utilisateur === null) {
+                throw new ErreurApi(400, 'identifiant ou mot de passe incorrect', $etape);
+            }
+            if ($utilisateur['id'] === null) {
+                throw new ErreurApi(403, 'le compte n’est lié à aucun identifiant : jeton impossible', $etape);
+            }
+            $totp = new Totp($this->pdo);
+            $etat = $totp->etat($utilisateur['id']);
+            if ($etat !== null && $etat['actif']) {
+                $code = trim((string) ($corps['code'] ?? ''));
+                if ($code === '') {
+                    throw new ErreurApi(400, 'code MFA requis', $etape);
+                }
+                if (!$totp->verifier($etat['secret'], $code)) {
+                    throw new ErreurApi(400, 'code MFA invalide', $etape);
+                }
+            }
+            // Valeur rendue UNE SEULE FOIS, jamais journalisée.
+            $jeton = (new Jetons($this->pdo))->creerPourCompte('api-token', 'documents_lecture',
+                $utilisateur['id'], $utilisateur['identifiant']);
+
+            return $this->json($reponse, 200, ['token' => $jeton, 'username' => $utilisateur['identifiant']]);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'le jeton n’a pas pu être créé');
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // État système (`SystemStatusView` de Paperless) et version distante (`RemoteVersionView`)
+    // -----------------------------------------------------------------------
+
+    /**
+     * `GET /api/v1/statut` : état système réel de la GED (base, stockage, suivi des tâches), réservé à
+     * l'administrateur comme `SystemStatusView`. Aucun démon n'est sondé : le suivi des tâches est celui
+     * de la file `ingestion_travaux` + du registre local, sans Redis ni Celery.
+     */
+    public function statutSysteme(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/statut', function (): array {
+            $racineStockage = $this->config->chemin('STORAGE_ROOT', 'storage/documents');
+            $total = @disk_total_space($racineStockage);
+            $libre = @disk_free_space($racineStockage);
+            $bilan = (new Taches($this->config))->bilan();
+
+            return [
+                'app' => 'gedv2',
+                'version' => $this->versionGed(),
+                'server_os' => PHP_OS_FAMILY,
+                'install_type' => 'mutualise',
+                'storage' => [
+                    'total' => $total === false ? null : (int) $total,
+                    'available' => $libre === false ? null : (int) $libre,
+                ],
+                'database' => [
+                    'type' => 'mariadb',
+                    'base' => $this->config->get('DB_NAME', 'gedv2'),
+                    'statut' => 'OK',
+                    'serveur' => (string) $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
+                ],
+                'tasks' => $bilan + ['file' => 'ingestion_travaux', 'mode' => 'sans démon (job court, reprenable)'],
+            ];
+        }, true);
+    }
+
+    /**
+     * `GET /api/v1/version` : version installée. GEDv2 tourne en hébergement mutualisé et ne contacte
+     * aucun service distant : la vérification de mise à jour est rendue explicitement désactivée (cause
+     * nommée), jamais simulée par un appel réseau.
+     */
+    public function versionDistante(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/version', function (): array {
+            return [
+                'version' => $this->versionGed(),
+                'update_available' => false,
+                'remote_checked' => false,
+                'cause' => 'aucun service distant contacté : GEDv2 rend la version installée, la veille est à la charge de l’exploitant',
+            ];
+        });
+    }
+
+    private function versionGed(): string
+    {
+        return $this->config->get('GED_VERSION', '2.20.5-ged');
+    }
+
+    // -----------------------------------------------------------------------
+    // Configuration applicative (ApplicationConfigurationViewSet), logo et favicon
+    // -----------------------------------------------------------------------
+
+    /**
+     * `GET /api/v1/configuration` : configuration applicative EN LECTURE (le `.env` fait foi). Réservé à
+     * l'administrateur, comme la vue Paperless.
+     */
+    public function configurationLire(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/configuration', function (): array {
+            return [
+                'id' => 1,
+                'app_title' => $this->config->get('GED_NOM', 'GEDv2'),
+                'app_logo' => '/logo',
+                'language' => $this->config->get('GED_LANGUE', 'fr'),
+                'version' => $this->versionGed(),
+                'source' => 'env',
+            ];
+        }, true);
+    }
+
+    /** `ApplicationConfigurationViewSet.create` : la création est interdite (405), comme Paperless. */
+    public function configurationCreer(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/configuration';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            throw new ErreurApi(405, 'la configuration GEDv2 ne se crée pas par l’API : elle vient du fichier .env', $etape);
+        }, 405, true);
+    }
+
+    /**
+     * `ApplicationConfigurationViewSet.update` / `partial_update` : GEDv2 refuse l'écriture — la
+     * configuration vient du `.env` (lecture seule), un registre inscriptible supposerait un schéma, un
+     * écran et un audit. Refus nommé 409, jamais un 500 muet.
+     */
+    public function configurationModifier(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'PATCH /api/v1/configuration';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function () use ($etape): array {
+            throw new ErreurApi(409, 'la configuration GEDv2 est en lecture seule (fichier .env) : aucune écriture par l’API', $etape);
+        }, 200, true);
+    }
+
+    /** `FaviconView.get` : le favicon GEDv2, servi sans jeton (comme la vue Paperless). */
+    public function favicon(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->fichierStatique($reponse, $this->config->racine() . '/public/favicon.svg', 'image/svg+xml');
+    }
+
+    /** `app_logo` : le logo de l'application (fichier `GED_LOGO` s'il est posé, sinon le favicon). */
+    public function logo(Requete $requete, Reponse $reponse): Reponse
+    {
+        $choisi = $this->config->get('GED_LOGO', '');
+        $chemin = $choisi !== '' ? $this->config->chemin('GED_LOGO', 'public/favicon.svg')
+            : $this->config->racine() . '/public/favicon.svg';
+
+        return $this->fichierStatique($reponse, $chemin, 'image/svg+xml');
+    }
+
+    private function fichierStatique(Reponse $reponse, string $chemin, string $mime): Reponse
+    {
+        if (!is_file($chemin) || !is_readable($chemin)) {
+            return $this->json($reponse, 404, ['erreur' => [
+                'etape' => 'GET logo/favicon', 'cause' => 'fichier absent : ' . basename($chemin), 'reference' => '',
+            ]]);
+        }
+        $reponse->getBody()->write((string) file_get_contents($chemin));
+
+        return $reponse->withHeader('Content-Type', $mime)->withStatus(200);
     }
 
     // -----------------------------------------------------------------------

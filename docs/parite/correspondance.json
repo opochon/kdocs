@@ -176,14 +176,28 @@
             }
         },
         "api:action:TasksViewSet.acknowledge": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/taches/acknowledge"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            }
         },
         "api:action:TasksViewSet.run": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/taches/run"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            }
         },
         "api:action:UnifiedSearchViewSet.next_asn": {
             "statut": "couvert",
@@ -198,9 +212,16 @@
             }
         },
         "api:action:UserViewSet.deactivate_totp": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/comptes/{id:[0-9]+}/deactivate_totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            }
         },
         "api:filtre:CorrespondentFilterSet.id": {
             "statut": "couvert-autrement",
@@ -412,7 +433,7 @@
         "api:filtre:DocumentFilterSet.custom_field_query": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "DSL JSON de requête sur champs personnalisés (CustomFieldQueryParser) non porté ; src/documents/filters.py:749."
+            "note": "Le `custom_field_query` de Paperless est un DSL JSON propre à son moteur (fields.py) : aucune requête équivalente côté GEDv2, qui filtre par champs via ses propres critères. Porter le DSL serait un moteur de requêtes parallèle ; proposition au juge : laisser absent. Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:DocumentFilterSet.custom_fields": {
             "statut": "couvert-autrement",
@@ -604,22 +625,22 @@
         "api:filtre:DocumentFilterSet.original_filename": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Nom d’origine du fichier non porté par le document GEDv2 (vit dans ingestion_travaux.nom_origine) ; src/documents/filters.py:763."
+            "note": "Nom de fichier d’origine non porté par `documents` : GEDv2 expose le nom public (`nom`) et conserve le nom d’origine dans la file `ingestion_travaux` (travail), pas sur la fiche. Évolution : colonne `documents.nom_origine` + reprise des index + filtre, flux F1 (dépôt) et F5 (retrouver). Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:DocumentFilterSet.owner": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763."
+            "note": "Propriétaire de document absent du modèle GEDv2 : le document n’a pas d’utilisateur propriétaire (le droit est par dossier et par portée de jeton). Évolution : colonne `documents.proprietaire_id` (ou registre du fonds) + écran de réaffectation + reprise de la indexation, flux F1 (dépôt) et F10 (droits). Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:DocumentFilterSet.owner__id": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763."
+            "note": "Même absence de propriétaire (`owner__id`). Évolution : colonne propriétaire + filtre + écran, flux F1/F10. Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:DocumentFilterSet.owner__id__none": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:726."
+            "note": "Même absence de propriétaire (`owner__id__none`, documents sans propriétaire). Évolution : colonne propriétaire nullable + filtre, flux F1/F10. Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:DocumentFilterSet.storage_path": {
             "statut": "couvert-autrement",
@@ -783,24 +804,56 @@
             }
         },
         "api:filtre:PaperlessTaskFilterSet.acknowledged": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "Filtre porté par la même route : `?acknowledged=` (rejoué par l’oracle)."
         },
         "api:filtre:PaperlessTaskFilterSet.status": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "Filtre porté par la même route : `?status=` (rejoué par l’oracle)."
         },
         "api:filtre:PaperlessTaskFilterSet.task_name": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "Filtre porté par la même route : `?task_name=` (rejoué par l’oracle)."
         },
         "api:filtre:PaperlessTaskFilterSet.type": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "Filtre porté par la même route : `?type=` (rejoué par l’oracle)."
         },
         "api:filtre:ProcessedMailFilterSet.rule": {
             "statut": "couvert-autrement",
@@ -903,7 +956,7 @@
         "api:filtre:TagFilterSet.is_root": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Hiérarchie d’étiquettes absente : GEDv2 porte les étiquettes comme valeurs texte, sans parenté ; src/documents/filters.py:95."
+            "note": "Hiérarchie d’étiquettes absente : les étiquettes GEDv2 sont plates (nom, couleur, boîte de réception), sans parent/enfant. Évolution : colonne `etiquettes_parents` + arbre + écran de glisser-déposer + héritage des filtres, flux F3 (classement) et F5. Référence src/documents/filters.py:95,726,749,763."
         },
         "api:filtre:TagFilterSet.name": {
             "statut": "couvert-autrement",
@@ -918,49 +971,65 @@
             }
         },
         "api:route:account_confirm_email": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/profil/mail/verifier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel"
+            },
+            "note": "La confirmation d’adresse django-allauth correspond à la vérification d’adresse GEDv2 : le lien à usage unique arrive sur `/profil/mail/verifier`."
         },
         "api:route:account_inactive": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Pas de notion de compte « inactif » dans GEDv2 : un compte est créé/supprimé de la matrice des rôles, la connexion échoue par un refus nommé. Évolution : colonne `comptes.actif` + écran d’administration + refus de connexion nommé, flux F10. Référence src/paperless/urls.py."
         },
         "api:route:account_login": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/connexion"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testLEcranDeConnexionEstDisponible"
+            },
+            "note": "L’écran de connexion GEDv2 remplace la page django-allauth `account_login`."
         },
         "api:route:account_logout": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "La déconnexion existe (`POST /deconnexion`) mais sa preuve de bout en bout passe par un parcours navigateur avec session : proposé au juge plutôt que couvert par un test de session synthétique. Référence src/paperless/urls.py."
         },
         "api:route:account_reset_password": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
         },
         "api:route:account_reset_password_done": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
         },
         "api:route:account_reset_password_from_key": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
         },
         "api:route:account_reset_password_from_key_done": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Réinitialisation de mot de passe par courriel absente : GEDv2 vérifie déjà une adresse (`/profil/mail/verifier`) mais n’a pas de jeton de réinitialisation. Évolution : registre de jetons à usage unique + deux écrans + envoi via le mailer existant, flux F10. Référence src/paperless/urls.py (django-allauth)."
         },
         "api:route:account_signup": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "GEDv2 n’ouvre pas d’inscription libre : un administrateur crée les comptes (`/administration/comptes`). Porter `account_signup` supposerait une politique d’inscription (invitation, validation) + écran + courriel, flux F10. Proposition au juge. Référence src/paperless/urls.py."
         },
         "api:route:anon:accounts-3rdparty-include": {
             "statut": "exclu",
@@ -993,7 +1062,7 @@
         "api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view": {
             "statut": "couvert-autrement",
@@ -1015,7 +1084,7 @@
         "api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:anon:api-redirectview-as-view": {
             "statut": "exclu",
@@ -1030,9 +1099,16 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-token-paperlessobtainauthtokenview-as-view": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/token"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreJetonTest::testRejoueLesVecteursDuJetonEtDuCodeMfa"
+            }
         },
         "api:route:anon:assets-path-path-redirectview-as-view": {
             "statut": "exclu",
@@ -1069,12 +1145,19 @@
         "api:route:anon:ws-status-statusconsumer-as-asgi": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "WebSocket de statut ASGI absent : GEDv2 doit tourner en hébergement mutualisé sans démon ni socket persistant. Correspondance fonctionnelle : `GET /api/v1/taches` (suivi réel, polling court) — porté par ce lot. Porter un canal temps réel supposerait un serveur ASGI séparé, interdit par la cible. Proposition au juge. Référence src/paperless/asgi.py."
         },
         "api:route:app_logo": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/logo"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreAppConfigTest::testRejoueLesVecteursDeConfigurationEtDImages"
+            }
         },
         "api:route:autocomplete": {
             "statut": "couvert",
@@ -1190,9 +1273,16 @@
             }
         },
         "api:route:favicon": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/favicon"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreAppConfigTest::testRejoueLesVecteursDeConfigurationEtDImages"
+            }
         },
         "api:route:global_search": {
             "statut": "couvert-autrement",
@@ -1256,14 +1346,22 @@
             }
         },
         "api:route:mfa_authenticate": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/connexion"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testLaConnexionExigeLeCodeTotp"
+            },
+            "note": "La porte MFA est portée par la connexion GEDv2 : quand le TOTP est actif, un code est exigé avant l’ouverture de session."
         },
         "api:route:oauth_callback": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:post_document": {
             "statut": "couvert-autrement",
@@ -1302,9 +1400,16 @@
             }
         },
         "api:route:remoteversion": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/version"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreStatutTest::testRejoueLesVecteursDeStatutEtDeVersion"
+            }
         },
         "api:route:saved-views": {
             "statut": "couvert-autrement",
@@ -1349,17 +1454,17 @@
         "api:route:socialaccount_login_cancelled": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:socialaccount_login_error": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:socialaccount_signup": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:route:statistics": {
             "statut": "couvert",
@@ -1391,9 +1496,16 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:system_status": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/statut"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreStatutTest::testRejoueLesVecteursDeStatutEtDeVersion"
+            }
         },
         "api:route:tags": {
             "statut": "couvert-autrement",
@@ -1408,14 +1520,29 @@
             }
         },
         "api:route:tasks": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "La route `/api/tasks/` de Paperless correspond à `GET /api/v1/taches` (file ingestion_travaux + suivi, sans Celery)."
         },
         "api:route:totp_view": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/profil/totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            }
         },
         "api:route:trash": {
             "statut": "couvert-autrement",
@@ -1490,14 +1617,21 @@
             }
         },
         "api:verbe:ApplicationConfigurationViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/configuration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreAppConfigTest::testRejoueLesVecteursDeConfigurationEtDImages"
+            }
         },
         "api:verbe:ApplicationConfigurationViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Aucune suppression de clé de configuration par le produit (zéro suppression). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "La configuration applicative de GEDv2 est lue depuis le `.env` (lecture seule via `GET /api/v1/configuration`) ; `POST` répond 405 comme Paperless. Un `destroy` supposerait un registre global inscriptible (clé → valeur) + écran + trace d’audit, flux F12. Proposition au juge. Référence src/paperless/views.py."
         },
         "api:verbe:ApplicationConfigurationViewSet.list": {
             "statut": "couvert-autrement",
@@ -1515,7 +1649,7 @@
         "api:verbe:ApplicationConfigurationViewSet.partial_update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "La configuration applicative de GEDv2 est lue depuis le `.env` (lecture seule via `GET /api/v1/configuration`) ; `POST` répond 405 comme Paperless. Un `partial_update` supposerait un registre global inscriptible (clé → valeur) + écran + trace d’audit, flux F12. Proposition au juge. Référence src/paperless/views.py."
         },
         "api:verbe:ApplicationConfigurationViewSet.retrieve": {
             "statut": "couvert-autrement",
@@ -1533,7 +1667,7 @@
         "api:verbe:ApplicationConfigurationViewSet.update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "La configuration applicative de GEDv2 est lue depuis le `.env` (lecture seule via `GET /api/v1/configuration`) ; `POST` répond 405 comme Paperless. Un `update` supposerait un registre global inscriptible (clé → valeur) + écran + trace d’audit, flux F12. Proposition au juge. Référence src/paperless/views.py."
         },
         "api:verbe:BulkDownloadView.post": {
             "statut": "couvert-autrement",
@@ -1577,12 +1711,12 @@
         "api:verbe:CorrespondentViewSet.create": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Émetteur = chaîne portée par le document (`documents.emetteur`), pas d’entité : `GET /api/v1/emetteurs` en expose déjà la liste dérivée. Un `create` supposerait un registre d’émetteurs (fichier `.ged/emetteurs.json`, service Socle, écran, fusion des graphies), flux F3 (classement) et F5. Référence src/documents/models.py."
         },
         "api:verbe:CorrespondentViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Émetteur = chaîne portée par le document (`documents.emetteur`), pas d’entité : `GET /api/v1/emetteurs` en expose déjà la liste dérivée. Un `destroy` supposerait un registre d’émetteurs (fichier `.ged/emetteurs.json`, service Socle, écran, fusion des graphies), flux F3 (classement) et F5. Référence src/documents/models.py."
         },
         "api:verbe:CorrespondentViewSet.list": {
             "statut": "couvert-autrement",
@@ -1599,17 +1733,17 @@
         "api:verbe:CorrespondentViewSet.partial_update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Émetteur = chaîne portée par le document (`documents.emetteur`), pas d’entité : `GET /api/v1/emetteurs` en expose déjà la liste dérivée. Un `partial_update` supposerait un registre d’émetteurs (fichier `.ged/emetteurs.json`, service Socle, écran, fusion des graphies), flux F3 (classement) et F5. Référence src/documents/models.py."
         },
         "api:verbe:CorrespondentViewSet.retrieve": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Émetteur = chaîne portée par le document (`documents.emetteur`), pas d’entité : `GET /api/v1/emetteurs` en expose déjà la liste dérivée. Un `retrieve` supposerait un registre d’émetteurs (fichier `.ged/emetteurs.json`, service Socle, écran, fusion des graphies), flux F3 (classement) et F5. Référence src/documents/models.py."
         },
         "api:verbe:CorrespondentViewSet.update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Émetteur = chaîne portée par le document (documents.emetteur), pas d’entité ; la liste dérivée est déjà exposée (GET /api/v1/emetteurs). Un verbe d’écriture suppose un registre d’émetteurs (registre du fonds) + un écran ; coût : un fichier .ged/emetteurs.json, un service Socle, une section de /metadonnees. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Émetteur = chaîne portée par le document (`documents.emetteur`), pas d’entité : `GET /api/v1/emetteurs` en expose déjà la liste dérivée. Un `update` supposerait un registre d’émetteurs (fichier `.ged/emetteurs.json`, service Socle, écran, fusion des graphies), flux F3 (classement) et F5. Référence src/documents/models.py."
         },
         "api:verbe:CustomFieldViewSet.create": {
             "statut": "couvert",
@@ -1626,7 +1760,7 @@
         "api:verbe:CustomFieldViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4). Les champs personnalisés vivent dans `.ged/` ; un retrait supposerait un drapeau + purge des valeurs + écran, flux F3/F5. Référence src/documents/models.py."
         },
         "api:verbe:CustomFieldViewSet.list": {
             "statut": "couvert",
@@ -1679,7 +1813,7 @@
         "api:verbe:DisconnectSocialAccountView.post": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Déconnexion d’un compte social django-allauth absente (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:verbe:DocumentTypeViewSet.create": {
             "statut": "couvert",
@@ -1694,9 +1828,16 @@
             }
         },
         "api:verbe:DocumentTypeViewSet.destroy": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "DELETE",
+                "chemin": "/api/v1/types/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreDestroyTest::testLeRetraitDUnTypeDesactiveSansSupprimer"
+            }
         },
         "api:verbe:DocumentTypeViewSet.list": {
             "statut": "couvert-autrement",
@@ -1747,9 +1888,16 @@
             }
         },
         "api:verbe:FaviconView.get": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Pas de favicon configurable côté GEDv2 : l’icône est un asset statique, aucune route API. Le juge d’api-2 a exclu la route apparentée `api:route:favicon` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/urls.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/favicon"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreAppConfigTest::testRejoueLesVecteursDeConfigurationEtDImages"
+            }
         },
         "api:verbe:GenerateAuthTokenView.post": {
             "statut": "couvert",
@@ -1791,7 +1939,7 @@
         "api:verbe:GroupViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais un groupe (règle 4) : un groupe se vide. Un `destroy` supposerait une corbeille de groupes, flux F10. Référence src/paperless/views.py."
         },
         "api:verbe:GroupViewSet.list": {
             "statut": "couvert",
@@ -1988,7 +2136,7 @@
         "api:verbe:OauthCallbackView.get": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Rappel OAuth du courrier (django-allauth) absent (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:verbe:PostDocumentView.post": {
             "statut": "couvert-autrement",
@@ -2052,9 +2200,16 @@
             }
         },
         "api:verbe:RemoteVersionView.get": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Aucun contrôle de version distante en GEDv2 (pas d’appel réseau sortant de mise à jour). Le juge d’api-2 a exclu `api:route:remoteversion` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion. Référence src/paperless/views.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/version"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreStatutTest::testRejoueLesVecteursDeStatutEtDeVersion"
+            }
         },
         "api:verbe:SavedViewViewSet.create": {
             "statut": "couvert",
@@ -2071,7 +2226,7 @@
         "api:verbe:SavedViewViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4). Une vue enregistrée se modifie ; un retrait supposerait un drapeau + écran de corbeille des vues, flux F5. Référence src/documents/models.py."
         },
         "api:verbe:SavedViewViewSet.list": {
             "statut": "couvert-autrement",
@@ -2184,9 +2339,16 @@
             }
         },
         "api:verbe:ShareLinkViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PATCH",
+                "chemin": "/api/v1/partages/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatrePartageTest::testRejoueLesVecteursDeMiseAJourDUnLienDePartage"
+            }
         },
         "api:verbe:ShareLinkViewSet.retrieve": {
             "statut": "couvert",
@@ -2201,9 +2363,16 @@
             }
         },
         "api:verbe:ShareLinkViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "L’échéance d’un partage externe n’est pas modifiable en GEDv2 : on révoque puis on recrée (DELETE + POST). Un `update` supposerait une route dédiée et une trace d’audit de changement d’échéance. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "PUT",
+                "chemin": "/api/v1/partages/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatrePartageTest::testRejoueLesVecteursDeMiseAJourDUnLienDePartage"
+            }
         },
         "api:verbe:SharedLinkView.get": {
             "statut": "couvert-autrement",
@@ -2221,7 +2390,7 @@
         "api:verbe:SocialAccountProvidersView.get": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Comptes sociaux django-allauth absents (infrastructure Django). La route apparentée est déjà exclue ; verbe proposé à l’exclusion."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:verbe:StatisticsView.get": {
             "statut": "couvert-autrement",
@@ -2239,12 +2408,12 @@
         "api:verbe:StoragePathViewSet.create": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Pas d’entité « chemin de stockage » : GEDv2 range par DOSSIER (`documents.chemin_relatif`, `securite_dossiers`) — `GET /api/v1/dossiers` en expose la liste. Un `create` supposerait un registre de gabarits de chemin + dossier cible + écran, flux F1/F3. Référence src/documents/models.py."
         },
         "api:verbe:StoragePathViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Pas d’entité « chemin de stockage » : GEDv2 range par DOSSIER (`documents.chemin_relatif`, `securite_dossiers`) — `GET /api/v1/dossiers` en expose la liste. Un `destroy` supposerait un registre de gabarits de chemin + dossier cible + écran, flux F1/F3. Référence src/documents/models.py."
         },
         "api:verbe:StoragePathViewSet.list": {
             "statut": "couvert",
@@ -2261,17 +2430,17 @@
         "api:verbe:StoragePathViewSet.partial_update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Pas d’entité « chemin de stockage » : GEDv2 range par DOSSIER (`documents.chemin_relatif`, `securite_dossiers`) — `GET /api/v1/dossiers` en expose la liste. Un `partial_update` supposerait un registre de gabarits de chemin + dossier cible + écran, flux F1/F3. Référence src/documents/models.py."
         },
         "api:verbe:StoragePathViewSet.retrieve": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Pas d’entité « chemin de stockage » : GEDv2 range par DOSSIER (`documents.chemin_relatif`, `securite_dossiers`) — `GET /api/v1/dossiers` en expose la liste. Un `retrieve` supposerait un registre de gabarits de chemin + dossier cible + écran, flux F1/F3. Référence src/documents/models.py."
         },
         "api:verbe:StoragePathViewSet.update": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Chemin de stockage comme entité absent : GEDv2 range par dossier (`documents.chemin_relatif`, `securite_dossiers`) ; la liste est exposée par GET /api/v1/dossiers. Les verbes d’écriture supposent un modèle de modèle de chemin (gabarits) que GEDv2 n’a pas. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "Pas d’entité « chemin de stockage » : GEDv2 range par DOSSIER (`documents.chemin_relatif`, `securite_dossiers`) — `GET /api/v1/dossiers` en expose la liste. Un `update` supposerait un registre de gabarits de chemin + dossier cible + écran, flux F1/F3. Référence src/documents/models.py."
         },
         "api:verbe:SystemStatusView.get": {
             "statut": "couvert-autrement",
@@ -2287,19 +2456,40 @@
             "note": "État système : GET /sante nomme l’application et la base qui répondent (équivalent GEDv2 du statut Django)."
         },
         "api:verbe:TOTPView.delete": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "DELETE",
+                "chemin": "/api/v1/profil/totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            }
         },
         "api:verbe:TOTPView.get": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/profil/totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            }
         },
         "api:verbe:TOTPView.post": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "MFA TOTP (django-allauth / django-otp) absent du modèle GEDv2. Le juge d’api-2 a exclu `api:route:totp_view` (infrastructure-django) ; ce verbe est resté absent — incohérence proposée à l’exclusion."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/profil/totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            }
         },
         "api:verbe:TagViewSet.create": {
             "statut": "couvert",
@@ -2316,7 +2506,7 @@
         "api:verbe:TagViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un référentiel (règle 4 : zéro suppression) ; les étiquettes/types/champs/vues se renomment ou se désactivent, ils ne s’effacent pas. Un `destroy` supposerait un drapeau de retrait + une corbeille de référentiel. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais un référentiel (règle 4). Les étiquettes n’ont pas de drapeau de retrait. Évolution : colonne `etiquettes.retire_le` + écran de retrait + trace, flux F3/F5. Référence src/documents/models.py."
         },
         "api:verbe:TagViewSet.list": {
             "statut": "couvert-autrement",
@@ -2453,7 +2643,7 @@
         "api:verbe:UserViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais un compte ni un groupe (règle 4) : un compte se retire par révocation de ses jetons, un groupe se vide. Un `destroy` supposerait un état « retiré » tracé (colonnes + migration + écran). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais un compte (règle 4) : la révocation des jetons et le retrait de la matrice des rôles existent, pas la suppression. Un `destroy` supposerait une désactivation de compte tracée, flux F10. Référence src/paperless/views.py."
         },
         "api:verbe:UserViewSet.list": {
             "statut": "couvert",
@@ -2518,7 +2708,7 @@
         "api:verbe:WorkflowActionViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais une définition de workflow : un déclencheur ou une action se retire en réenregistrant la définition (désactivation) ; un `destroy` unitaire supposerait une corbeille de workflows, flux F6. Référence src/documents/models.py."
         },
         "api:verbe:WorkflowActionViewSet.list": {
             "statut": "couvert-autrement",
@@ -2583,7 +2773,7 @@
         "api:verbe:WorkflowTriggerViewSet.destroy": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "note": "GEDv2 ne supprime jamais une définition de workflow : un déclencheur ou une action se retire en réenregistrant la définition (désactivation) ; un `destroy` unitaire supposerait une corbeille de workflows, flux F6. Référence src/documents/models.py."
         },
         "api:verbe:WorkflowTriggerViewSet.list": {
             "statut": "couvert-autrement",
@@ -2646,9 +2836,17 @@
             "note": "Workflows : un graphe unique (définition + déclencheurs + actions) administré par DepotWorkflows et les écrans /workflows/admin."
         },
         "api:verbe:WorkflowViewSet.destroy": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/workflows/admin/{id:[0-9]+}/basculer"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Workflows\\ModuleTest::testLAdminCreeEditeActiveEtMontreLHistorique"
+            },
+            "note": "GEDv2 ne supprime pas une définition de workflow : la bascule la désactive (preuve existante)."
         },
         "api:verbe:WorkflowViewSet.list": {
             "statut": "couvert-autrement",
@@ -2774,7 +2972,7 @@
         "api:vue:DisconnectSocialAccountView": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:vue:DocumentTypeViewSet": {
             "statut": "couvert-autrement",
@@ -2801,9 +2999,17 @@
             }
         },
         "api:vue:FaviconView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/favicon"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreAppConfigTest::testRejoueLesVecteursDeConfigurationEtDImages"
+            },
+            "note": "Le doublon de la route est déjà traité par le même oracle."
         },
         "api:vue:GenerateAuthTokenView": {
             "statut": "couvert-autrement",
@@ -2887,12 +3093,19 @@
         "api:vue:OauthCallbackView": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:vue:PaperlessObtainAuthTokenView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/api/v1/token"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreJetonTest::testRejoueLesVecteursDuJetonEtDuCodeMfa"
+            }
         },
         "api:vue:PassUserMixin": {
             "statut": "exclu",
@@ -2935,9 +3148,16 @@
             }
         },
         "api:vue:RemoteVersionView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/version"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreStatutTest::testRejoueLesVecteursDeStatutEtDeVersion"
+            }
         },
         "api:vue:SavedViewViewSet": {
             "statut": "couvert-autrement",
@@ -3003,7 +3223,7 @@
         "api:vue:SocialAccountProvidersView": {
             "statut": "absent",
             "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "note": "Comptes sociaux / SSO django-allauth absents : GEDv2 s’authentifie sur ses propres comptes (mot de passe + TOTP porté par ce lot). Évolution : clients OAuth2 par fournisseur (config, écran de liaison, rappel, jetons chiffrés) + politique de rattachement d’identité, flux F10. Proposition au juge : laisser absent à ce stade. Référence src/paperless/urls.py, src/paperless/views.py."
         },
         "api:vue:StatisticsView": {
             "statut": "couvert",
@@ -3031,14 +3251,29 @@
             "note": "Chemin de stockage comme entité absent ; dossiers exposés par GET /api/v1/dossiers."
         },
         "api:vue:SystemStatusView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/statut"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreStatutTest::testRejoueLesVecteursDeStatutEtDeVersion"
+            }
         },
         "api:vue:TOTPView": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/profil/totp"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTotpTest::testRejoueLesVecteursTotp"
+            },
+            "note": "La vue TOTP est rendue par les trois verbes de `/api/v1/profil/totp`."
         },
         "api:vue:TagViewSet": {
             "statut": "couvert-autrement",
@@ -3053,9 +3288,17 @@
             }
         },
         "api:vue:TasksViewSet": {
-            "statut": "absent",
-            "lot": "V2-05",
-            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/taches"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiQuatreTachesTest::testRejoueLesVecteursDeTachesEtLeursFiltres"
+            },
+            "note": "Le doublon de la route est déjà traité par le même oracle."
         },
         "api:vue:TrashView": {
             "statut": "couvert-autrement",

@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "categorie": "totp",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 11,
+  "vecteurs": [
+    {
+      "id": "totp:test_get_totp:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/profile/totp/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_profile.py:416"
+    },
+    {
+      "id": "totp:test_activate_totp:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/totp/",
+        "corps": {
+          "secret": "123",
+          "code": "456"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_profile.py:440"
+    },
+    {
+      "id": "totp:test_deactivate_totp:003",
+      "entree": {
+        "methode": "DELETE",
+        "chemin": "/api/profile/totp/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_profile.py:463"
+    },
+    {
+      "id": "totp:test_deactivate_totp:004",
+      "entree": {
+        "methode": "DELETE",
+        "chemin": "/api/profile/totp/"
+      },
+      "sortie": {
+        "statut": 404
+      },
+      "reference": "src/documents/tests/test_api_profile.py:470"
+    },
+    {
+      "id": "totp:test_update_auth_token:005",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/generate_auth_token/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_profile.py:267"
+    },
+    {
+      "id": "totp:test_update_auth_token:006",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/generate_auth_token/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_profile.py:272"
+    },
+    {
+      "id": "totp:test_profile_not_logged_in:007",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/profile/"
+      },
+      "sortie": {
+        "statut": 401
+      },
+      "reference": "src/documents/tests/test_api_profile.py:290"
+    },
+    {
+      "id": "totp:test_profile_not_logged_in:008",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/profile/generate_auth_token/"
+      },
+      "sortie": {
+        "statut": 401
+      },
+      "reference": "src/documents/tests/test_api_profile.py:293"
+    },
+    {
+      "id": "totp:test_deactivate_totp:009",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/users/{user1}/deactivate_totp/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:771"
+    },
+    {
+      "id": "totp:test_deactivate_totp:010",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/users/{user1}/deactivate_totp/"
+      },
+      "sortie": {
+        "statut": 404
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:778"
+    },
+    {
+      "id": "totp:test_deactivate_totp:011",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/users/{user1}/deactivate_totp/"
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:794"
+    }
+  ],
+  "non_rejouables": []
+}

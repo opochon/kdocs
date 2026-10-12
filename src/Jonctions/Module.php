@@ -94,6 +94,7 @@ final class Module
         $app->post('/api/v1/types', [$ressources, 'typeCreer']);
         $app->put('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeRemplacer']);
         $app->patch('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeModifier']);
+        $app->delete('/api/v1/types/{id:[0-9]+}', [$ressources, 'typeDesactiver']);
         $app->get('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champLire']);
         $app->post('/api/v1/champs', [$ressources, 'champCreer']);
         $app->put('/api/v1/champs/{id:[0-9]+}', [$ressources, 'champRemplacer']);
@@ -114,11 +115,15 @@ final class Module
         $app->patch('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeModifier']);
         $app->post('/api/v1/partages', [$ressources, 'partageCreer']);
         $app->get('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageLire']);
+        $app->put('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageModifier']);
+        $app->patch('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageModifier']);
         $app->delete('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageSupprimer']);
         $app->get('/api/v1/documents/{id:[0-9]+}/partages', [$ressources, 'partagesDocument']);
         $app->get('/api/v1/corbeille', [$ressources, 'corbeilleLire']);
         $app->post('/api/v1/corbeille', [$ressources, 'corbeilleAction']);
         $app->get('/api/v1/taches', [$ressources, 'tachesLister']);
+        $app->post('/api/v1/taches/acknowledge', [$ressources, 'tachesAccuser']);
+        $app->post('/api/v1/taches/run', [$ressources, 'tachesExecuter']);
         $app->get('/api/v1/taches/{id:[0-9]+}', [$ressources, 'tacheLire']);
         $app->get('/api/v1/courriers/traites/{id:[0-9]+}', [$ressources, 'courrierTraiteLire']);
         $app->get('/api/v1/profil', [$ressources, 'profilLire']);
@@ -126,6 +131,22 @@ final class Module
         $app->post('/api/v1/jetons', [$ressources, 'jetonCreer']);
         $app->get('/api/v1/preferences', [$ressources, 'preferencesLire']);
         $app->post('/api/v1/preferences', [$ressources, 'preferencesEnregistrer']);
+        // Double authentification TOTP (lot ged-parite-api-4) : même porte jeton.
+        $app->get('/api/v1/profil/totp', [$ressources, 'totpLire']);
+        $app->post('/api/v1/profil/totp', [$ressources, 'totpActiver']);
+        $app->delete('/api/v1/profil/totp', [$ressources, 'totpDesactiver']);
+        $app->post('/api/v1/comptes/{id:[0-9]+}/deactivate_totp', [$ressources, 'compteDesactiverTotp']);
+        // Jeton d'API par identifiants (lot ged-parite-api-4) : hors jeton, c'est la route qui le délivre.
+        $app->post('/api/v1/token', [$ressources, 'jetonObtenir']);
+        // État système et version installée (lot ged-parite-api-4), même porte jeton.
+        $app->get('/api/v1/statut', [$ressources, 'statutSysteme']);
+        $app->get('/api/v1/version', [$ressources, 'versionDistante']);
+        // Configuration applicative (lecture), logo et favicon (lot ged-parite-api-4).
+        $app->get('/api/v1/configuration', [$ressources, 'configurationLire']);
+        $app->post('/api/v1/configuration', [$ressources, 'configurationCreer']);
+        $app->patch('/api/v1/configuration', [$ressources, 'configurationModifier']);
+        $app->get('/favicon', [$ressources, 'favicon']);
+        $app->get('/logo', [$ressources, 'logo']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);
