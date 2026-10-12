@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "categorie": "jeton",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "jeton:test_get_token_mfa_enabled:001",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/token/",
+        "corps": {
+          "username": "user1",
+          "password": "password"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:559"
+    },
+    {
+      "id": "jeton:test_get_token_mfa_enabled:002",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/token/",
+        "corps": {
+          "username": "user1",
+          "password": "password"
+        }
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:575"
+    },
+    {
+      "id": "jeton:test_get_token_mfa_enabled:003",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/token/",
+        "corps": {
+          "username": "user1",
+          "password": "password",
+          "code": "123456"
+        }
+      },
+      "sortie": {
+        "statut": 400
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:588"
+    },
+    {
+      "id": "jeton:test_get_token_mfa_enabled:004",
+      "entree": {
+        "methode": "POST",
+        "chemin": "/api/token/",
+        "corps": {
+          "username": "user1",
+          "password": "password",
+          "code": "123456"
+        }
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_permissions.py:601"
+    }
+  ],
+  "non_rejouables": []
+}

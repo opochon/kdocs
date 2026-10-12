@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "categorie": "statut",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "statut:test_system_status:001",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/status/"
+      },
+      "sortie": {
+        "statut": 200
+      },
+      "reference": "src/documents/tests/test_api_status.py:34"
+    },
+    {
+      "id": "statut:test_system_status_insufficient_permissions:002",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/status/"
+      },
+      "sortie": {
+        "statut": 401
+      },
+      "reference": "src/documents/tests/test_api_status.py:59"
+    },
+    {
+      "id": "statut:test_system_status_insufficient_permissions:003",
+      "entree": {
+        "methode": "GET",
+        "chemin": "/api/status/"
+      },
+      "sortie": {
+        "statut": 403
+      },
+      "reference": "src/documents/tests/test_api_status.py:63"
+    }
+  ],
+  "non_rejouables": []
+}
