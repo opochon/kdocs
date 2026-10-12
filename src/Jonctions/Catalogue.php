@@ -431,13 +431,17 @@ final class Catalogue
                 throw new ErreurApi(403, "document $id : hors des dossiers du compte, sélection refusée", 'GET /api/v1/documents/selection_data');
             }
         }
-        foreach ($compte as &$liste) {
+        $resultat = [];
+        foreach ($compte as $famille => $liste) {
             uasort($liste, static fn (int $a, int $b): int => $b <=> $a);
-            $liste = array_values(array_map(static fn (string $nom, int $total): array => ['nom' => $nom, 'total' => $total],
-                array_keys($liste), $liste));
+            $entrees = [];
+            foreach ($liste as $nom => $total) {
+                $entrees[] = ['nom' => (string) $nom, 'total' => (int) $total];
+            }
+            $resultat[$famille] = $entrees;
         }
 
-        return $compte;
+        return $resultat;
     }
 
     /**
