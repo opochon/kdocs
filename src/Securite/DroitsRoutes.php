@@ -155,6 +155,10 @@ final class DroitsRoutes
         'GET /api/v1/etiquettes' => 'publique:api-documents-lecture',
         'GET /api/v1/emetteurs' => 'publique:api-documents-lecture',
         'GET /api/v1/vues' => 'publique:api-documents-lecture',
+        // Compléments de parité (lot ged-parite-api-2) : même porte (jeton lié à un compte). Lignes
+        // hors secteur (Securite), signalées dans docs/lots/ged-parite-api-2.md.
+        'GET /api/v1/champs' => 'publique:api-documents-lecture',
+        'GET /api/v1/partages' => 'publique:api-documents-lecture',
         // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
         // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
         // récupère une copie de secours en nouvelle version.

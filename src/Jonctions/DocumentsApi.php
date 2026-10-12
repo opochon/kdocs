@@ -32,6 +32,9 @@ final class DocumentsApi
     /** Champs de métadonnées acceptés en formulaire de dépôt (sinon champ « metadonnees » au format JSON). */
     private const CHAMPS_META_DEPOT = ['titre', 'type', 'emetteur', 'date', 'montant', 'etiquettes'];
 
+    /** Porte partagée des routes `/api/v1` sous jeton (voir ApiJeton). */
+    private readonly ApiJeton $apiJeton;
+
     public function __construct(
         private readonly Config $config,
         private readonly Jetons $jetons,
@@ -40,15 +43,16 @@ final class DocumentsApi
         private readonly DroitsDossiers $droits,
         private readonly int $tailleMax = DepotApi::TAILLE_MAX_DEFAUT,
     ) {
+        $this->apiJeton = new ApiJeton($config, $jetons, $droits);
     }
 
     public function lister(Requete $requete, Reponse $reponse): Reponse
     {
         $etape = 'GET /api/v1/documents';
         try {
-            $session = $this->authentifier($requete, $etape, false);
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
 
-            return $this->json($reponse, 200, $this->catalogue($session)->lister($requete->getQueryParams(), $etape));
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->lister($requete->getQueryParams(), $etape));
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -62,9 +66,9 @@ final class DocumentsApi
         $id = (int) ($args['id'] ?? 0);
         $etape = 'GET /api/v1/documents/' . $id;
         try {
-            $session = $this->authentifier($requete, $etape, false);
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
 
-            return $this->json($reponse, 200, $this->catalogue($session)->fiche($id, $etape));
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->fiche($id, $etape));
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -78,9 +82,9 @@ final class DocumentsApi
         $id = (int) ($args['id'] ?? 0);
         $etape = 'GET /api/v1/documents/' . $id . '/fichier';
         try {
-            $session = $this->authentifier($requete, $etape, false);
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
 
-            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, null, $etape), $etape);
+            return $this->servirFichier($reponse, $this->apiJeton->catalogue($session)->fichier($id, null, $etape), $etape);
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -95,9 +99,9 @@ final class DocumentsApi
         $numero = (int) ($args['numero'] ?? 0);
         $etape = 'GET /api/v1/documents/' . $id . '/versions/' . $numero . '/fichier';
         try {
-            $session = $this->authentifier($requete, $etape, false);
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
 
-            return $this->servirFichier($reponse, $this->catalogue($session)->fichier($id, $numero, $etape), $etape);
+            return $this->servirFichier($reponse, $this->apiJeton->catalogue($session)->fichier($id, $numero, $etape), $etape);
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
@@ -111,10 +115,10 @@ final class DocumentsApi
         $id = (int) ($args['id'] ?? 0);
         $etape = 'POST /api/v1/documents/' . $id;
         try {
-            $session = $this->authentifier($requete, $etape, true);
+            $session = $this->apiJeton->authentifier($requete, $etape, true);
             $corps = $requete->getParsedBody();
 
-            return $this->json($reponse, 200, $this->catalogue($session)->modifier(
+            return $this->json($reponse, 200, $this->apiJeton->catalogue($session)->modifier(
                 $id, is_array($corps) ? $corps : [], (string) $session['identifiant'], $etape,
             ));
         } catch (ErreurApi $e) {
@@ -128,7 +132,7 @@ final class DocumentsApi
     {
         $etape = 'POST /api/v1/documents';
         try {
-            $session = $this->authentifier($requete, $etape, true);
+            $session = $this->apiJeton->authentifier($requete, $etape, true);
             $fichier = $this->fichierDepot($requete, $etape);
             $nom = $fichier->getClientFilename() ?? 'depot';
             if (SourceApi::extensionAutorisee($nom) === null) {
@@ -188,72 +192,6 @@ final class DocumentsApi
         return $this->referentiel($requete, $reponse, 'GET /api/v1/vues', static fn (Catalogue $c): array => $c->vues());
     }
 
-    /**
-     * Vérifie le jeton et nomme précisément un refus : absent/Inconnu/révoqué → 401 ; sans compte ou portée
-     * insuffisante → 403 ; débit dépassé → 429. Le jeton n'est jamais journalisé.
-     *
-     * @return array{compte:int, identifiant:string, application:string, administrateur:bool}
-     * @throws ErreurApi
-     */
-    private function authentifier(Requete $requete, string $etape, bool $ecriture): array
-    {
-        $valeur = $this->jetonEntete($requete);
-        if ($valeur === '') {
-            throw new ErreurApi(401, 'jeton absent (en-tête Authorization: Bearer attendu)', $etape);
-        }
-        $ligne = $this->jetons->resoudre($valeur);
-        if ($ligne === null) {
-            throw new ErreurApi(401, 'jeton inconnu', $etape);
-        }
-        if ($ligne['revoque']) {
-            throw new ErreurApi(401, 'jeton révoqué', $etape);
-        }
-        if ($ligne['compte_id'] === null || $ligne['compte_identifiant'] === null) {
-            throw new ErreurApi(403, 'le jeton n’est lié à aucun compte : les droits ne peuvent pas être appliqués', $etape);
-        }
-        if (!$this->porteeAutorisee($ligne['portee'], $ecriture)) {
-            $requise = $ecriture ? 'documents_ecriture' : 'documents_lecture';
-            throw new ErreurApi(403, "portée insuffisante : « $requise » requise", $etape);
-        }
-        if (!(new Debit($this->config))->autoriser('documents:jeton:' . $ligne['id'])) {
-            throw new ErreurApi(429, 'débit dépassé pour ce jeton (réessayer dans une minute)', $etape);
-        }
-        $this->jetons->marquerUtilisation($ligne['id']);
-
-        return [
-            'compte' => $ligne['compte_id'], 'identifiant' => $ligne['compte_identifiant'],
-            'application' => $ligne['application'],
-            'administrateur' => in_array('*', $this->droits->permissionsPourCompte($ligne['compte_id']), true),
-        ];
-    }
-
-    private function porteeAutorisee(string $portee, bool $ecriture): bool
-    {
-        if ($portee === '*') {
-            return true;
-        }
-
-        return $ecriture
-            ? $portee === Jetons::PORTEE_ECRITURE
-            : in_array($portee, [Jetons::PORTEE_LECTURE, Jetons::PORTEE_ECRITURE], true);
-    }
-
-    private function jetonEntete(Requete $requete): string
-    {
-        $entete = trim($requete->getHeaderLine('Authorization'));
-        if (preg_match('/^Bearer\s+(\S+)$/i', $entete, $trouve) !== 1) {
-            return '';
-        }
-
-        return $trouve[1];
-    }
-
-    /** @param array{compte:int, identifiant:string, application:string, administrateur:bool} $session */
-    private function catalogue(array $session): Catalogue
-    {
-        return new Catalogue($this->config, $session['compte'], $session['administrateur']);
-    }
-
     /** @throws ErreurApi */
     private function fichierDepot(Requete $requete, string $etape): UploadedFileInterface
     {
@@ -294,9 +232,9 @@ final class DocumentsApi
     private function referentiel(Requete $requete, Reponse $reponse, string $etape, callable $lecture): Reponse
     {
         try {
-            $session = $this->authentifier($requete, $etape, false);
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
 
-            return $this->json($reponse, 200, $lecture($this->catalogue($session)));
+            return $this->json($reponse, 200, $lecture($this->apiJeton->catalogue($session)));
         } catch (ErreurApi $e) {
             return $this->erreur($reponse, $e);
         } catch (Throwable $e) {
