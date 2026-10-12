@@ -99,19 +99,26 @@ Django/DRF (`new_trigger_type`, serializer de consommation, `auto_now` mocké). 
 
 ## Harness (`powershell -File tools\harness.ps1 -SansBanc`)
 
-Rejeu du 2026-10-12. Détail dans `var/harness-modele-1.log` et `recette/registre.json`.
+Rejeu du 2026-10-12 sur le commit **38efc45** (842 s). Détail dans `var/harness-modele-1.log` et
+`recette/registre.json`. `tools/composer.phar` (outil gitignoré, absent de ce worktree) restauré depuis
+la copie de référence avant le rejeu : sans lui la couche 8 est ROUGE à tort.
 
 | Couche | État | Détail |
 | --- | --- | --- |
-| 0-garde-fous | à confirmer au rejeu | vendor + node_modules, `DB_NAME=gedv2_test` imposé |
-| 1-unitaire | VERT (ciblé) | 789 tests, 10 300 assertions, 1 sauté |
+| 0-garde-fous | VERT | vendor + node_modules, `DB_NAME=gedv2_test` imposé |
+| 1-unitaire | VERT | 789 tests, 10 300 assertions, 1 sauté |
 | 3-banc | ROUGE | sautée par `-SansBanc` (attendu) |
-| 4-écrans | à confirmer au rejeu | parcours `workflows-admin.spec.ts` vert seul ; `workflows.spec.ts` inchangé |
-| 7-sécurité | à confirmer au rejeu | sonde offensive |
-| 2-contrat | à confirmer au rejeu | 5 routes `/workflows/admin*` déclarées |
-| 6-charge | à confirmer au rejeu | — |
-| 8-statique | VERT | PHPStan niveau 6 : 0 erreur |
-| 5-personas | à confirmer au rejeu | geste Workflows inchangé |
-| 9-parité | VERT | 780 éléments, 339 couverts, strict 43,46 %, 0 non prouvé |
+| 4-écrans | VERT | 81 passés (4,5 m), dont `workflows-admin.spec.ts` |
+| 7-sécurité | VERT | sonde offensive : aucun contournement accepté |
+| 2-contrat | VERT | toutes les routes déclarées couvertes (dont les 5 `/workflows/admin*`) |
+| 6-charge | VERT | p95 lecture 641 ms, p95 écriture 244 ms, 0 erreur, 0 collision, ingestion finie |
+| 8-statique | VERT | PHPStan niveau 6 : 0 erreur ; `composer audit` : aucune vulnérabilité |
+| 5-personas | VERT | 6 personas, tous les gestes trouvés (médianes 370–696 ms) |
+| 9-parité | VERT | 780 éléments, 339 couverts, strict 43,46 %, hors exclusions 46,31 %, 0 non prouvé |
 
-ETAT: en cours
+La couche 3 étant sautée par `-SansBanc`, aucun banc n'a été rejoué (aucun banc de ce lot). Ne restent
+non commités que les fichiers régénérés par le harness (`recette/registre.json`, `recette/preuves/**`,
+`recette/parite-paperless.json`, `var/**`).
+
+ETAT: fini
+

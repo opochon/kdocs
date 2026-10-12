@@ -274,6 +274,7 @@ qui passe ; 339/780 couverts, parité stricte **43,46 %** (avant 32,18 %). Corre
 - `src/Securite/DroitsRoutes.php` : 5 lignes `/workflows/admin*` + reconnaissances des patrons
   paramétrés. Aucune autre permission touchée.
 - `tools/parite/juge.php` : phase 5 du rapport (mesure des modèles de workflows).
+- `tools/banc/sonde-securite.php` : 3 charges CSRF défensives pour les mutations `/workflows/admin*`.
 
 **Demandes**
 - **Interface** : `templates/ecrans/workflows.twig` reçoit un second lien « Administration des
