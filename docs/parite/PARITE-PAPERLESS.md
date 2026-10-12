@@ -10,20 +10,20 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 668 | 47 | 0 | 65 | 85,64 % | 93,43 % |
+| 780 | 668 | 88 | 0 | 24 | 85,64 % | 88,36 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 218 | 39 | 0 | 61 | 68,55 % | 84,82 % |
+| api | 318 | 218 | 79 | 0 | 21 | 68,55 % | 73,40 % |
 | chaine | 60 | 57 | 3 | 0 | 0 | 95,00 % | 95,00 % |
 | commande | 17 | 13 | 2 | 0 | 2 | 76,47 % | 86,67 % |
 | correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 | ecran | 30 | 29 | 0 | 0 | 1 | 96,67 % | 100,00 % |
 | masse | 17 | 17 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 | modele | 313 | 310 | 3 | 0 | 0 | 99,04 % | 99,04 % |
-| permissions | 12 | 11 | 0 | 0 | 1 | 91,67 % | 100,00 % |
+| permissions | 12 | 11 | 1 | 0 | 0 | 91,67 % | 91,67 % |
 
 ## Comportement (phase 2)
 
@@ -146,10 +146,10 @@ listes `non_rejouables` avec leur raison.
 | @action MailAccountViewSet.test [POST] liste | src/paperless_mail/views.py:84 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/tester | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | @action ProcessedMailViewSet.bulk_delete [POST] liste | src/paperless_mail/views.py:151 | couvert-autrement | route POST /courrier/journal/purger | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | @action StoragePathViewSet.test [POST] liste | src/documents/views.py:2347 | couvert | route POST /api/v1/dossiers/tester | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
-| @action TasksViewSet.acknowledge [POST] liste | src/documents/views.py:2566 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| @action TasksViewSet.run [POST] liste | src/documents/views.py:2583 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| @action TasksViewSet.acknowledge [POST] liste | src/documents/views.py:2566 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| @action TasksViewSet.run [POST] liste | src/documents/views.py:2583 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | @action UnifiedSearchViewSet.next_asn [GET] liste | src/documents/views.py:1359 | couvert | route GET /api/v1/next_asn | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
-| @action UserViewSet.deactivate_totp [POST] detail | src/paperless/views.py:150 | exclu (exclu : infrastructure-django) | - | - |  |
+| @action UserViewSet.deactivate_totp [POST] detail | src/paperless/views.py:150 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | CorrespondentFilterSet.id | src/documents/filters.py:81 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | CorrespondentFilterSet.name | src/documents/filters.py:81 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | CustomFieldFilterSet.id | src/documents/filters.py:209 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
@@ -200,10 +200,10 @@ listes `non_rejouables` avec leur raison.
 | DocumentFilterSet.title_content (TitleContentFilter) | src/documents/filters.py:724 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
 | DocumentTypeFilterSet.id | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | DocumentTypeFilterSet.name | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
-| PaperlessTaskFilterSet.acknowledged (BooleanFilter) | src/documents/filters.py:800 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| PaperlessTaskFilterSet.status | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| PaperlessTaskFilterSet.type | src/documents/filters.py:807 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| PaperlessTaskFilterSet.acknowledged (BooleanFilter) | src/documents/filters.py:800 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| PaperlessTaskFilterSet.status | src/documents/filters.py:807 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| PaperlessTaskFilterSet.type | src/documents/filters.py:807 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | ProcessedMailFilterSet.rule | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
 | ProcessedMailFilterSet.status | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
 | ShareLinkFilterSet.created | src/documents/filters.py:793 | couvert | route GET /api/v1/partages | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testLesFiltresDesLiensDePartageRespectentLesDroits (couche 1) |  |
@@ -214,15 +214,15 @@ listes `non_rejouables` avec leur raison.
 | TagFilterSet.id | src/documents/filters.py:90 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | TagFilterSet.is_root (BooleanFilter) | src/documents/filters.py:95 | absent (Hiérarchie d’étiquettes absente : GEDv2 porte les étiquettes comme valeurs texte, sans parenté ; src/documents/filters.py:95.) | - | - | V2-05 |
 | TagFilterSet.name | src/documents/filters.py:90 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
-| re_path accounts/^confirm-email/(?P<key>[-:\w]+)/$ -> account_confirm_email [allauth_account_views.ConfirmEmailView.as_view] | src/paperless/urls.py:309 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/account_inactive/ -> account_inactive [allauth_account_views.account_inactive] | src/paperless/urls.py:281 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/login/ -> account_login [allauth_account_views.login] | src/paperless/urls.py:278 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/logout/ -> account_logout [allauth_account_views.logout] | src/paperless/urls.py:279 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/password/reset/ -> account_reset_password [allauth_account_views.password_reset] | src/paperless/urls.py:291 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/password/reset/done/ -> account_reset_password_done [allauth_account_views.password_reset_done] | src/paperless/urls.py:296 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path accounts/^password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$ -> account_reset_password_from_key [allauth_account_views.password_reset_from_key] | src/paperless/urls.py:314 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/password/reset/key/done/ -> account_reset_password_from_key_done [allauth_account_views.password_reset_from_key_done] | src/paperless/urls.py:301 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/signup/ -> account_signup [allauth_account_views.signup] | src/paperless/urls.py:280 | exclu (exclu : infrastructure-django) | - | - |  |
+| re_path accounts/^confirm-email/(?P<key>[-:\w]+)/$ -> account_confirm_email [allauth_account_views.ConfirmEmailView.as_view] | src/paperless/urls.py:309 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/account_inactive/ -> account_inactive [allauth_account_views.account_inactive] | src/paperless/urls.py:281 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/login/ -> account_login [allauth_account_views.login] | src/paperless/urls.py:278 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/logout/ -> account_logout [allauth_account_views.logout] | src/paperless/urls.py:279 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/password/reset/ -> account_reset_password [allauth_account_views.password_reset] | src/paperless/urls.py:291 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/password/reset/done/ -> account_reset_password_done [allauth_account_views.password_reset_done] | src/paperless/urls.py:296 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| re_path accounts/^password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$ -> account_reset_password_from_key [allauth_account_views.password_reset_from_key] | src/paperless/urls.py:314 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/password/reset/key/done/ -> account_reset_password_from_key_done [allauth_account_views.password_reset_from_key_done] | src/paperless/urls.py:301 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/signup/ -> account_signup [allauth_account_views.signup] | src/paperless/urls.py:280 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | path accounts/3rdparty/ [include] | src/paperless/urls.py:320 | exclu (exclu : infrastructure-django) | - | - |  |
 | path accounts/ [include] | src/paperless/urls.py:272 | exclu (exclu : infrastructure-django) | - | - |  |
 | path accounts/password/ [include] | src/paperless/urls.py:287 | exclu (exclu : infrastructure-django) | - | - |  |
@@ -230,22 +230,22 @@ listes `non_rejouables` avec leur raison.
 | re_path ^api/^auth/ [include] | src/paperless/urls.py:89 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^documents/ [include] | src/paperless/urls.py:118 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/ [include] | src/paperless/urls.py:85 | exclu (exclu : infrastructure-django) | - | - |  |
-| path ^api/^profile/disconnect_social_account/ [DisconnectSocialAccountView.as_view] | src/paperless/urls.py:177 | exclu (exclu : infrastructure-django) | - | - |  |
+| path ^api/^profile/disconnect_social_account/ [DisconnectSocialAccountView.as_view] | src/paperless/urls.py:177 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | path ^api/^profile/generate_auth_token/ [GenerateAuthTokenView.as_view] | src/paperless/urls.py:173 | couvert-autrement | route POST /api/v1/appairage/jeton | phpunit Ged\Tests\Jonctions\AppairageTest::testLeJetonAppairagePorteLesDroitsDuCompte (couche 1) |  |
 | re_path ^api/^profile/ [include] | src/paperless/urls.py:164 | exclu (exclu : infrastructure-django) | - | - |  |
-| path ^api/^profile/social_account_providers/ [SocialAccountProvidersView.as_view] | src/paperless/urls.py:181 | exclu (exclu : infrastructure-django) | - | - |  |
+| path ^api/^profile/social_account_providers/ [SocialAccountProvidersView.as_view] | src/paperless/urls.py:181 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^$ [RedirectView.as_view] | src/paperless/urls.py:225 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^schema/ [include] | src/paperless/urls.py:208 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^search/ [include] | src/paperless/urls.py:96 | exclu (exclu : infrastructure-django) | - | - |  |
-| path ^api/token/ [PaperlessObtainAuthTokenView.as_view] | src/paperless/urls.py:160 | exclu (exclu : infrastructure-django) | - | - |  |
+| path ^api/token/ [PaperlessObtainAuthTokenView.as_view] | src/paperless/urls.py:160 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | path assets/<path:path> [RedirectView.as_view] | src/paperless/urls.py:262 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^fetch/^doc/(?P<pk>\d+)$ [RedirectView.as_view] | src/paperless/urls.py:240 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^fetch/ [include] | src/paperless/urls.py:236 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^fetch/^preview/(?P<pk>\d+)$ [RedirectView.as_view] | src/paperless/urls.py:252 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^fetch/^thumb/(?P<pk>\d+)$ [RedirectView.as_view] | src/paperless/urls.py:246 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path share/(?P<slug>\w+)/?$ [SharedLinkView.as_view] | src/paperless/urls.py:233 | couvert-autrement | route GET /partages/{jeton:[A-Za-z0-9_-]+} | phpunit Ged\Tests\Socle\V212dTest::testLeJetonExterneEstUnFlashDeSessionConsommeUneSeuleFois (couche 1) |  |
-| path ws/status/ [StatusConsumer.as_asgi] | src/paperless/urls.py:362 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| re_path ^logo(?:/(?P<filename>.+))?/?$ -> app_logo [serve_logo] | src/paperless/urls.py:270 | exclu (exclu : infrastructure-django) | - | - |  |
+| path ws/status/ [StatusConsumer.as_asgi] | src/paperless/urls.py:362 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| re_path ^logo(?:/(?P<filename>.+))?/?$ -> app_logo [serve_logo] | src/paperless/urls.py:270 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^search/^autocomplete/ -> autocomplete [SearchAutoCompleteView.as_view] | src/paperless/urls.py:105 | couvert | route GET /api/v1/autocomplete | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | re_path .* -> base [login_required] | src/paperless/urls.py:353 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^documents/^bulk_download/ -> bulk_download [BulkDownloadView.as_view] | src/paperless/urls.py:132 | couvert | route POST /api/v1/documents/bulk_download | phpunit Ged\Tests\Parite\ApiDeuxActionsTest::testLesActionsEmailMasseTelechargementEtDossierRespectentLesDroits (couche 1) |  |
@@ -256,32 +256,32 @@ listes `non_rejouables` avec leur raison.
 | router /api/custom_fields/ -> CustomFieldViewSet | src/paperless/urls.py:79 | couvert-autrement | route POST /metadonnees/champ | phpunit Ged\Tests\Socle\ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug (couche 1) |  |
 | router /api/document_types/ -> DocumentTypeViewSet | src/paperless/urls.py:64 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | router /api/documents/ -> UnifiedSearchViewSet | src/paperless/urls.py:65 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesNouvellesRoutesSontDeclareesHorsSession (couche 1) |  |
-| re_path ^favicon.ico$ -> favicon [FaviconView.as_view] | src/paperless/urls.py:234 | exclu (exclu : infrastructure-django) | - | - |  |
+| re_path ^favicon.ico$ -> favicon [FaviconView.as_view] | src/paperless/urls.py:234 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^search/^$ -> global_search [GlobalSearchView.as_view] | src/paperless/urls.py:100 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Recherche\EcranTest::testLesVraisResultatsArriventDansLeGabarit (couche 1) |  |
 | router /api/groups/ -> GroupViewSet | src/paperless/urls.py:72 | couvert-autrement | route GET /administration/groupes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
 | router /api/logs/ -> LogViewSet | src/paperless/urls.py:66 | couvert-autrement | route GET /journaux | playwright journaux.spec.ts > un administrateur consulte les journaux (couche 4) |  |
 | router /api/mail_accounts/ -> MailAccountViewSet | src/paperless/urls.py:73 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | router /api/mail_rules/ -> MailRuleViewSet | src/paperless/urls.py:74 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| path accounts/2fa/authenticate/ -> mfa_authenticate [allauth_mfa_views.authenticate] | src/paperless/urls.py:344 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view] | src/paperless/urls.py:203 | exclu (exclu : infrastructure-django) | - | - |  |
+| path accounts/2fa/authenticate/ -> mfa_authenticate [allauth_mfa_views.authenticate] | src/paperless/urls.py:344 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view] | src/paperless/urls.py:203 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^documents/^post_document/ -> post_document [PostDocumentView.as_view] | src/paperless/urls.py:122 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
 | router /api/processed_mail/ -> ProcessedMailViewSet | src/paperless/urls.py:81 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | re_path ^api/^profile/^$ -> profile_view [ProfileView.as_view] | src/paperless/urls.py:168 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
-| re_path ^api/^remote_version/ -> remoteversion [RemoteVersionView.as_view] | src/paperless/urls.py:150 | exclu (exclu : infrastructure-django) | - | - |  |
+| re_path ^api/^remote_version/ -> remoteversion [RemoteVersionView.as_view] | src/paperless/urls.py:150 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | router /api/saved_views/ -> SavedViewViewSet | src/paperless/urls.py:68 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | re_path ^api/^schema/^$ -> schema [SpectacularAPIView.as_view] | src/paperless/urls.py:212 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^documents/^selection_data/ -> selection_data [SelectionDataView.as_view] | src/paperless/urls.py:137 | couvert | route POST /api/v1/documents/selection_data | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | router /api/share_links/ -> ShareLinkViewSet | src/paperless/urls.py:75 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
-| path accounts/3rdparty/login/cancelled/ -> socialaccount_login_cancelled [allauth_social_account_views.login_cancelled] | src/paperless/urls.py:324 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/3rdparty/login/error/ -> socialaccount_login_error [allauth_social_account_views.login_error] | src/paperless/urls.py:329 | exclu (exclu : infrastructure-django) | - | - |  |
-| path accounts/3rdparty/signup/ -> socialaccount_signup [allauth_social_account_views.signup] | src/paperless/urls.py:334 | exclu (exclu : infrastructure-django) | - | - |  |
+| path accounts/3rdparty/login/cancelled/ -> socialaccount_login_cancelled [allauth_social_account_views.login_cancelled] | src/paperless/urls.py:324 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/3rdparty/login/error/ -> socialaccount_login_error [allauth_social_account_views.login_error] | src/paperless/urls.py:329 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path accounts/3rdparty/signup/ -> socialaccount_signup [allauth_social_account_views.signup] | src/paperless/urls.py:334 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^statistics/ -> statistics [StatisticsView.as_view] | src/paperless/urls.py:113 | couvert | route GET /api/v1/statistiques | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | router /api/storage_paths/ -> StoragePathViewSet | src/paperless/urls.py:69 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
 | re_path ^api/^schema/^view/ -> swagger-ui [SpectacularSwaggerView.as_view] | src/paperless/urls.py:217 | exclu (exclu : infrastructure-django) | - | - |  |
-| re_path ^api/^status/ -> system_status [SystemStatusView.as_view] | src/paperless/urls.py:193 | exclu (exclu : infrastructure-django) | - | - |  |
+| re_path ^api/^status/ -> system_status [SystemStatusView.as_view] | src/paperless/urls.py:193 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | router /api/tags/ -> TagViewSet | src/paperless/urls.py:67 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| router /api/tasks/ -> TasksViewSet | src/paperless/urls.py:70 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| path ^api/^profile/totp/ -> totp_view [TOTPView.as_view] | src/paperless/urls.py:185 | exclu (exclu : infrastructure-django) | - | - |  |
+| router /api/tasks/ -> TasksViewSet | src/paperless/urls.py:70 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| path ^api/^profile/totp/ -> totp_view [TOTPView.as_view] | src/paperless/urls.py:185 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | re_path ^api/^trash/ -> trash [TrashView.as_view] | src/paperless/urls.py:198 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien (couche 1) |  |
 | re_path ^api/^ui_settings/ -> ui_settings [UiSettingsView.as_view] | src/paperless/urls.py:155 | couvert-autrement | route GET /reglages | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
 | router /api/users/ -> UserViewSet | src/paperless/urls.py:71 | couvert-autrement | route GET /administration/comptes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
@@ -413,10 +413,10 @@ listes `non_rejouables` avec leur raison.
 | classe BulkEditView(PassUserMixin) | src/documents/views.py:1490 | couvert-autrement | route POST /bibliotheque/masse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | classe CorrespondentViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:388 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | classe CustomFieldViewSet(ModelViewSet) | src/documents/views.py:2823 | couvert | route GET /api/v1/champs | phpunit Ged\Tests\Parite\ApiDeuxFiltresRessourcesTest::testRejoueLesVecteursDesFiltresDeChampsPersonnalises (couche 1) |  |
-| classe DisconnectSocialAccountView(GenericAPIView) | src/paperless/views.py:379 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe DisconnectSocialAccountView(GenericAPIView) | src/paperless/views.py:379 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe DocumentTypeViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:462 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | classe DocumentViewSet(PassUserMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet) | src/documents/views.py:685 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesNouvellesRoutesSontDeclareesHorsSession (couche 1) |  |
-| classe FaviconView(View) | src/paperless/views.py:96 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe FaviconView(View) | src/paperless/views.py:96 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe GenerateAuthTokenView(GenericAPIView) | src/paperless/views.py:320 | couvert-autrement | route POST /api/v1/appairage/jeton | phpunit Ged\Tests\Jonctions\AppairageTest::testLeJetonAppairagePorteLesDroitsDuCompte (couche 1) |  |
 | classe GlobalSearchView(PassUserMixin) | src/documents/views.py:1948 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Recherche\EcranTest::testLesVraisResultatsArriventDansLeGabarit (couche 1) |  |
 | classe GroupViewSet(ModelViewSet) | src/paperless/views.py:168 | couvert-autrement | route GET /administration/groupes | playwright utilisateurs.spec.ts > un administrateur gere les comptes et les groupes (couche 4) |  |
@@ -424,25 +424,25 @@ listes `non_rejouables` avec leur raison.
 | classe LogViewSet(ViewSet) | src/documents/views.py:1402 | couvert-autrement | route GET /journaux | playwright journaux.spec.ts > un administrateur consulte les journaux (couche 4) |  |
 | classe MailAccountViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | classe MailRuleViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| classe OauthCallbackView(GenericAPIView) | src/paperless_mail/views.py:181 | exclu (exclu : infrastructure-django) | - | - |  |
-| classe PaperlessObtainAuthTokenView(ObtainAuthToken) | src/paperless/views.py:48 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe OauthCallbackView(GenericAPIView) | src/paperless_mail/views.py:181 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| classe PaperlessObtainAuthTokenView(ObtainAuthToken) | src/paperless/views.py:48 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe PassUserMixin(GenericAPIView) | src/documents/views.py:251 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PostDocumentView(GenericAPIView) | src/documents/views.py:1661 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
 | classe ProcessedMailViewSet(ReadOnlyModelViewSet, PassUserMixin) | src/paperless_mail/views.py:137 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | classe ProfileView(GenericAPIView) | src/paperless/views.py:181 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
-| classe RemoteVersionView(GenericAPIView) | src/documents/views.py:2455 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe RemoteVersionView(GenericAPIView) | src/documents/views.py:2455 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe SavedViewViewSet(ModelViewSet, PassUserMixin) | src/documents/views.py:1452 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
 | classe SearchAutoCompleteView(GenericAPIView) | src/documents/views.py:1877 | couvert | route GET /api/v1/autocomplete | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | classe SelectionDataView(GenericAPIView) | src/documents/views.py:1780 | couvert | route POST /api/v1/documents/selection_data | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | classe ShareLinkViewSet(ModelViewSet, PassUserMixin) | src/documents/views.py:2602 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | classe SharedLinkView(View) | src/documents/views.py:2619 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
-| classe SocialAccountProvidersView(GenericAPIView) | src/paperless/views.py:405 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe SocialAccountProvidersView(GenericAPIView) | src/paperless/views.py:405 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe StatisticsView(GenericAPIView) | src/documents/views.py:2151 | couvert | route GET /api/v1/statistiques | phpunit Ged\Tests\Parite\ApiDeuxVuesTest::testLesStatistiquesAutocompletionSelectionEtAsnRespectentLesDroits (couche 1) |  |
 | classe StoragePathViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:2306 | couvert-autrement | route GET /api/v1/dossiers | phpunit Ged\Tests\Jonctions\ContratCmmTest::testParcoursCmmDeBoutEnBout (couche 1) |  |
-| classe SystemStatusView(PassUserMixin) | src/documents/views.py:2938 | exclu (exclu : infrastructure-django) | - | - |  |
-| classe TOTPView(GenericAPIView) | src/paperless/views.py:240 | exclu (exclu : infrastructure-django) | - | - |  |
+| classe SystemStatusView(PassUserMixin) | src/documents/views.py:2938 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
+| classe TOTPView(GenericAPIView) | src/paperless/views.py:240 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe TagViewSet(ModelViewSet, PermissionsAwareDocumentCountMixin) | src/documents/views.py:425 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
-| classe TasksViewSet(ReadOnlyModelViewSet) | src/documents/views.py:2532 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| classe TasksViewSet(ReadOnlyModelViewSet) | src/documents/views.py:2532 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | classe TrashView(ListModelMixin, PassUserMixin) | src/documents/views.py:3113 | couvert-autrement | route GET /corbeille | playwright corbeille.spec.ts > un administrateur restaure un document de la corbeille (couche 4) |  |
 | classe UiSettingsView(GenericAPIView) | src/documents/views.py:2361 | couvert-autrement | route GET /reglages | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
 | classe UnifiedSearchViewSet(DocumentViewSet) | src/documents/views.py:1289 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLaRecherchePleinTexteRespecteLesDroits (couche 1) |  |
@@ -935,7 +935,7 @@ listes `non_rejouables` avec leur raison.
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
-| AcknowledgeTasksPermissions | src/documents/permissions.py:207 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
+| AcknowledgeTasksPermissions | src/documents/permissions.py:207 | absent (Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter.) | - | - | V2-05 |
 | PaperlessAdminPermissions | src/documents/permissions.py:45 | couvert-autrement | service Ged\Securite\DroitsDossiers | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testMatriceCanoniqueSuitLaDecisionEtCouvreLesRoutes (couche 1) |  |
 | PaperlessNotePermissions | src/documents/permissions.py:186 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | PaperlessObjectPermissions | src/documents/permissions.py:19 | couvert-autrement | service Ged\Socle\ModeleDroits | phpunit Ged\Tests\Socle\ModelesResteTest::testModeleDroitsTraduitLesPermissionsPaperless (couche 1) |  |
@@ -954,28 +954,28 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 
 | Id | Categorie | Reference Paperless | Statut | Raison | Lot |
 | --- | --- | --- | --- | --- | --- |
-| api:action:TasksViewSet.acknowledge | api | src/documents/views.py:2566 | exclu | infrastructure-celery-redis |  |
-| api:action:TasksViewSet.run | api | src/documents/views.py:2583 | exclu | infrastructure-celery-redis |  |
-| api:action:UserViewSet.deactivate_totp | api | src/paperless/views.py:150 | exclu | infrastructure-django |  |
+| api:action:TasksViewSet.acknowledge | api | src/documents/views.py:2566 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:action:TasksViewSet.run | api | src/documents/views.py:2583 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:action:UserViewSet.deactivate_totp | api | src/paperless/views.py:150 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:filtre:DocumentFilterSet.custom_field_query | api | src/documents/filters.py:749 | absent | DSL JSON de requête sur champs personnalisés (CustomFieldQueryParser) non porté ; src/documents/filters.py:749. | V2-05 |
 | api:filtre:DocumentFilterSet.original_filename | api | src/documents/filters.py:763 | absent | Nom d’origine du fichier non porté par le document GEDv2 (vit dans ingestion_travaux.nom_origine) ; src/documents/filters.py:763. | V2-05 |
 | api:filtre:DocumentFilterSet.owner | api | src/documents/filters.py:763 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763. | V2-05 |
 | api:filtre:DocumentFilterSet.owner__id | api | src/documents/filters.py:763 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:763. | V2-05 |
 | api:filtre:DocumentFilterSet.owner__id__none | api | src/documents/filters.py:726 | absent | Propriétaire de document absent du modèle GEDv2 ; src/documents/filters.py:726. | V2-05 |
-| api:filtre:PaperlessTaskFilterSet.acknowledged | api | src/documents/filters.py:800 | exclu | infrastructure-celery-redis |  |
-| api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
-| api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
-| api:filtre:PaperlessTaskFilterSet.type | api | src/documents/filters.py:807 | exclu | infrastructure-celery-redis |  |
+| api:filtre:PaperlessTaskFilterSet.acknowledged | api | src/documents/filters.py:800 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:filtre:PaperlessTaskFilterSet.type | api | src/documents/filters.py:807 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:filtre:TagFilterSet.is_root | api | src/documents/filters.py:95 | absent | Hiérarchie d’étiquettes absente : GEDv2 porte les étiquettes comme valeurs texte, sans parenté ; src/documents/filters.py:95. | V2-05 |
-| api:route:account_confirm_email | api | src/paperless/urls.py:309 | exclu | infrastructure-django |  |
-| api:route:account_inactive | api | src/paperless/urls.py:281 | exclu | infrastructure-django |  |
-| api:route:account_login | api | src/paperless/urls.py:278 | exclu | infrastructure-django |  |
-| api:route:account_logout | api | src/paperless/urls.py:279 | exclu | infrastructure-django |  |
-| api:route:account_reset_password | api | src/paperless/urls.py:291 | exclu | infrastructure-django |  |
-| api:route:account_reset_password_done | api | src/paperless/urls.py:296 | exclu | infrastructure-django |  |
-| api:route:account_reset_password_from_key | api | src/paperless/urls.py:314 | exclu | infrastructure-django |  |
-| api:route:account_reset_password_from_key_done | api | src/paperless/urls.py:301 | exclu | infrastructure-django |  |
-| api:route:account_signup | api | src/paperless/urls.py:280 | exclu | infrastructure-django |  |
+| api:route:account_confirm_email | api | src/paperless/urls.py:309 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_inactive | api | src/paperless/urls.py:281 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_login | api | src/paperless/urls.py:278 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_logout | api | src/paperless/urls.py:279 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_reset_password | api | src/paperless/urls.py:291 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_reset_password_done | api | src/paperless/urls.py:296 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_reset_password_from_key | api | src/paperless/urls.py:314 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_reset_password_from_key_done | api | src/paperless/urls.py:301 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:account_signup | api | src/paperless/urls.py:280 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:anon:accounts-3rdparty-include | api | src/paperless/urls.py:320 | exclu | infrastructure-django |  |
 | api:route:anon:accounts-include | api | src/paperless/urls.py:272 | exclu | infrastructure-django |  |
 | api:route:anon:accounts-password-include | api | src/paperless/urls.py:287 | exclu | infrastructure-django |  |
@@ -983,33 +983,33 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:anon:api-auth-include | api | src/paperless/urls.py:89 | exclu | infrastructure-django |  |
 | api:route:anon:api-documents-include | api | src/paperless/urls.py:118 | exclu | infrastructure-django |  |
 | api:route:anon:api-include | api | src/paperless/urls.py:85 | exclu | infrastructure-django |  |
-| api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view | api | src/paperless/urls.py:177 | exclu | infrastructure-django |  |
+| api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view | api | src/paperless/urls.py:177 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:anon:api-profile-include | api | src/paperless/urls.py:164 | exclu | infrastructure-django |  |
-| api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view | api | src/paperless/urls.py:181 | exclu | infrastructure-django |  |
+| api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view | api | src/paperless/urls.py:181 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:anon:api-redirectview-as-view | api | src/paperless/urls.py:225 | exclu | infrastructure-django |  |
 | api:route:anon:api-schema-include | api | src/paperless/urls.py:208 | exclu | infrastructure-django |  |
 | api:route:anon:api-search-include | api | src/paperless/urls.py:96 | exclu | infrastructure-django |  |
-| api:route:anon:api-token-paperlessobtainauthtokenview-as-view | api | src/paperless/urls.py:160 | exclu | infrastructure-django |  |
+| api:route:anon:api-token-paperlessobtainauthtokenview-as-view | api | src/paperless/urls.py:160 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:anon:assets-path-path-redirectview-as-view | api | src/paperless/urls.py:262 | exclu | infrastructure-django |  |
 | api:route:anon:fetch-doc-p-pk-d-redirectview-as-view | api | src/paperless/urls.py:240 | exclu | infrastructure-django |  |
 | api:route:anon:fetch-include | api | src/paperless/urls.py:236 | exclu | infrastructure-django |  |
 | api:route:anon:fetch-preview-p-pk-d-redirectview-as-view | api | src/paperless/urls.py:252 | exclu | infrastructure-django |  |
 | api:route:anon:fetch-thumb-p-pk-d-redirectview-as-view | api | src/paperless/urls.py:246 | exclu | infrastructure-django |  |
-| api:route:anon:ws-status-statusconsumer-as-asgi | api | src/paperless/urls.py:362 | exclu | infrastructure-celery-redis |  |
-| api:route:app_logo | api | src/paperless/urls.py:270 | exclu | infrastructure-django |  |
+| api:route:anon:ws-status-statusconsumer-as-asgi | api | src/paperless/urls.py:362 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:app_logo | api | src/paperless/urls.py:270 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:base | api | src/paperless/urls.py:353 | exclu | infrastructure-django |  |
-| api:route:favicon | api | src/paperless/urls.py:234 | exclu | infrastructure-django |  |
-| api:route:mfa_authenticate | api | src/paperless/urls.py:344 | exclu | infrastructure-django |  |
-| api:route:oauth_callback | api | src/paperless/urls.py:203 | exclu | infrastructure-django |  |
-| api:route:remoteversion | api | src/paperless/urls.py:150 | exclu | infrastructure-django |  |
+| api:route:favicon | api | src/paperless/urls.py:234 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:mfa_authenticate | api | src/paperless/urls.py:344 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:oauth_callback | api | src/paperless/urls.py:203 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:remoteversion | api | src/paperless/urls.py:150 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:schema | api | src/paperless/urls.py:212 | exclu | infrastructure-django |  |
-| api:route:socialaccount_login_cancelled | api | src/paperless/urls.py:324 | exclu | infrastructure-django |  |
-| api:route:socialaccount_login_error | api | src/paperless/urls.py:329 | exclu | infrastructure-django |  |
-| api:route:socialaccount_signup | api | src/paperless/urls.py:334 | exclu | infrastructure-django |  |
+| api:route:socialaccount_login_cancelled | api | src/paperless/urls.py:324 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:socialaccount_login_error | api | src/paperless/urls.py:329 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:socialaccount_signup | api | src/paperless/urls.py:334 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:route:swagger-ui | api | src/paperless/urls.py:217 | exclu | infrastructure-django |  |
-| api:route:system_status | api | src/paperless/urls.py:193 | exclu | infrastructure-django |  |
-| api:route:tasks | api | src/paperless/urls.py:70 | exclu | infrastructure-celery-redis |  |
-| api:route:totp_view | api | src/paperless/urls.py:185 | exclu | infrastructure-django |  |
+| api:route:system_status | api | src/paperless/urls.py:193 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:tasks | api | src/paperless/urls.py:70 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:route:totp_view | api | src/paperless/urls.py:185 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:verbe:ApplicationConfigurationViewSet.create | api | src/paperless/views.py:349 | absent | La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
 | api:verbe:ApplicationConfigurationViewSet.destroy | api | src/paperless/views.py:349 | absent | Aucune suppression de clé de configuration par le produit (zéro suppression). Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
 | api:verbe:ApplicationConfigurationViewSet.partial_update | api | src/paperless/views.py:349 | absent | La configuration d’application de GEDv2 est lue (Config du .env + écran /application) et n’a pas de registre global inscriptible par API. Écrire par verbe suppose un registre du fonds (clé → valeur) + un écran d’édition + une trace d’audit. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
@@ -1043,17 +1043,17 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:verbe:WorkflowActionViewSet.destroy | api | src/documents/views.py:2780 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
 | api:verbe:WorkflowTriggerViewSet.destroy | api | src/documents/views.py:2762 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
 | api:verbe:WorkflowViewSet.destroy | api | src/documents/views.py:2805 | absent | GEDv2 ne supprime jamais une définition de workflow : elle se désactive (`/workflows/admin/{id}/basculer`). Un `destroy` supposerait une corbeille de workflows. Référence src/documents/filters.py, src/documents/models.py, src/paperless/views.py. | V2-05 |
-| api:vue:DisconnectSocialAccountView | api | src/paperless/views.py:379 | exclu | infrastructure-django |  |
-| api:vue:FaviconView | api | src/paperless/views.py:96 | exclu | infrastructure-django |  |
+| api:vue:DisconnectSocialAccountView | api | src/paperless/views.py:379 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:FaviconView | api | src/paperless/views.py:96 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:vue:IndexView | api | src/documents/views.py:209 | exclu | infrastructure-django |  |
-| api:vue:OauthCallbackView | api | src/paperless_mail/views.py:181 | exclu | infrastructure-django |  |
-| api:vue:PaperlessObtainAuthTokenView | api | src/paperless/views.py:48 | exclu | infrastructure-django |  |
+| api:vue:OauthCallbackView | api | src/paperless_mail/views.py:181 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:PaperlessObtainAuthTokenView | api | src/paperless/views.py:48 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | api:vue:PassUserMixin | api | src/documents/views.py:251 | exclu | infrastructure-django |  |
-| api:vue:RemoteVersionView | api | src/documents/views.py:2455 | exclu | infrastructure-django |  |
-| api:vue:SocialAccountProvidersView | api | src/paperless/views.py:405 | exclu | infrastructure-django |  |
-| api:vue:SystemStatusView | api | src/documents/views.py:2938 | exclu | infrastructure-django |  |
-| api:vue:TOTPView | api | src/paperless/views.py:240 | exclu | infrastructure-django |  |
-| api:vue:TasksViewSet | api | src/documents/views.py:2532 | exclu | infrastructure-celery-redis |  |
+| api:vue:RemoteVersionView | api | src/documents/views.py:2455 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:SocialAccountProvidersView | api | src/paperless/views.py:405 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:SystemStatusView | api | src/documents/views.py:2938 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:TOTPView | api | src/paperless/views.py:240 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
+| api:vue:TasksViewSet | api | src/documents/views.py:2532 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 | chaine:parseur:TikaDocumentParser.extract_metadata | chaine | src/paperless_tika/parsers.py:34 | absent | Metadonnees lues par les parseurs GEDv2, sans Tika (service Java externe), reference src/paperless_tika/parsers.py | V2-04 |
 | chaine:parseur:TikaDocumentParser.get_thumbnail | chaine | src/paperless_tika/parsers.py:24 | absent | Vignette produite par Ged\Apercu\Miniature, sans Tika, reference src/paperless_tika/parsers.py | V2-04 |
 | chaine:parseur:TikaDocumentParser.parse | chaine | src/paperless_tika/parsers.py:56 | absent | Tika est un service Java externe ; GEDv2 n’en depend pas (extraction PDF/Texte/OCR maison), reference src/paperless_tika/parsers.py | V2-04 |
@@ -1065,5 +1065,5 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:champ:Document.archive_serial_number | modele | src/documents/models.py:301 | absent | GEDv2 ne numerote pas les archives par un ASN ; le scellement legal porte un jeton TSA, reference src/documents/models.py | V2-09 |
 | modele:champ:Document.page_count | modele | src/documents/models.py:228 | absent | GEDv2 ne calcule pas le nombre de pages ; la pagination est portee par l’origine d’ingestion (origine.pages), reference src/documents/models.py | V2-04 |
 | modele:champ:Document.storage_type | modele | src/documents/models.py:253 | absent | GEDv2 n’a pas de type de stockage chiffre : le fonds reste lisible sans l’application, reference src/documents/models.py | V2-04 |
-| permissions:classe:AcknowledgeTasksPermissions | permissions | src/documents/permissions.py:207 | exclu | infrastructure-celery-redis |  |
+| permissions:classe:AcknowledgeTasksPermissions | permissions | src/documents/permissions.py:207 | absent | Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter. | V2-05 |
 

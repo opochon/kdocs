@@ -176,12 +176,14 @@
             }
         },
         "api:action:TasksViewSet.acknowledge": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:action:TasksViewSet.run": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:action:UnifiedSearchViewSet.next_asn": {
             "statut": "couvert",
@@ -196,9 +198,9 @@
             }
         },
         "api:action:UserViewSet.deactivate_totp": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:filtre:CorrespondentFilterSet.id": {
             "statut": "couvert-autrement",
@@ -781,24 +783,24 @@
             }
         },
         "api:filtre:PaperlessTaskFilterSet.acknowledged": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis",
-            "note": "Filtres de PaperlessTask (résultats de tâches Celery/Redis). Référence src/documents/filters.py:800-807, src/documents/views.py:2532."
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:filtre:PaperlessTaskFilterSet.status": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis",
-            "note": "Filtres de PaperlessTask (résultats de tâches Celery/Redis). Référence src/documents/filters.py:800-807, src/documents/views.py:2532."
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:filtre:PaperlessTaskFilterSet.task_name": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis",
-            "note": "Filtres de PaperlessTask (résultats de tâches Celery/Redis). Référence src/documents/filters.py:800-807, src/documents/views.py:2532."
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:filtre:PaperlessTaskFilterSet.type": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis",
-            "note": "Filtres de PaperlessTask (résultats de tâches Celery/Redis). Référence src/documents/filters.py:800-807, src/documents/views.py:2532."
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:filtre:ProcessedMailFilterSet.rule": {
             "statut": "couvert-autrement",
@@ -916,40 +918,49 @@
             }
         },
         "api:route:account_confirm_email": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_inactive": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_login": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_logout": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_reset_password": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_reset_password_done": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_reset_password_from_key": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_reset_password_from_key_done": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:account_signup": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:anon:accounts-3rdparty-include": {
             "statut": "exclu",
@@ -980,9 +991,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-profile-disconnect-social-account-disconnectsocialaccountview-as-view": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:anon:api-profile-generate-auth-token-generateauthtokenview-as-view": {
             "statut": "couvert-autrement",
@@ -1002,9 +1013,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-profile-social-account-providers-socialaccountprovidersview-as-view": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:anon:api-redirectview-as-view": {
             "statut": "exclu",
@@ -1019,8 +1030,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:anon:api-token-paperlessobtainauthtokenview-as-view": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:anon:assets-path-path-redirectview-as-view": {
             "statut": "exclu",
@@ -1055,12 +1067,14 @@
             }
         },
         "api:route:anon:ws-status-statusconsumer-as-asgi": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:app_logo": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:autocomplete": {
             "statut": "couvert",
@@ -1176,8 +1190,9 @@
             }
         },
         "api:route:favicon": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:global_search": {
             "statut": "couvert-autrement",
@@ -1241,13 +1256,14 @@
             }
         },
         "api:route:mfa_authenticate": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:oauth_callback": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless_mail/views.py:181, src/paperless/urls.py:203 (OAuth django-allauth)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:post_document": {
             "statut": "couvert-autrement",
@@ -1286,8 +1302,9 @@
             }
         },
         "api:route:remoteversion": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:saved-views": {
             "statut": "couvert-autrement",
@@ -1330,19 +1347,19 @@
             }
         },
         "api:route:socialaccount_login_cancelled": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:socialaccount_login_error": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:socialaccount_signup": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:statistics": {
             "statut": "couvert",
@@ -1374,9 +1391,9 @@
             "exclusion": "infrastructure-django"
         },
         "api:route:system_status": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:tags": {
             "statut": "couvert-autrement",
@@ -1391,13 +1408,14 @@
             }
         },
         "api:route:tasks": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:totp_view": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:route:trash": {
             "statut": "couvert-autrement",
@@ -2754,9 +2772,9 @@
             }
         },
         "api:vue:DisconnectSocialAccountView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:DocumentTypeViewSet": {
             "statut": "couvert-autrement",
@@ -2783,8 +2801,9 @@
             }
         },
         "api:vue:FaviconView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:GenerateAuthTokenView": {
             "statut": "couvert-autrement",
@@ -2866,13 +2885,14 @@
             }
         },
         "api:vue:OauthCallbackView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless_mail/views.py:181, src/paperless/urls.py:203 (OAuth django-allauth)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:PaperlessObtainAuthTokenView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:PassUserMixin": {
             "statut": "exclu",
@@ -2915,8 +2935,9 @@
             }
         },
         "api:vue:RemoteVersionView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:SavedViewViewSet": {
             "statut": "couvert-autrement",
@@ -2980,9 +3001,9 @@
             "note": "Lien de partage : GEDv2 le gère PAR DOCUMENT (Socle\\Collaboration), expire, révocable, jamais en clair."
         },
         "api:vue:SocialAccountProvidersView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:StatisticsView": {
             "statut": "couvert",
@@ -3010,14 +3031,14 @@
             "note": "Chemin de stockage comme entité absent ; dossiers exposés par GET /api/v1/dossiers."
         },
         "api:vue:SystemStatusView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:TOTPView": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-django",
-            "note": "src/paperless/views.py:97-412, src/paperless/urls.py:173-334 (django-allauth, MFA, statut Django)"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:TagViewSet": {
             "statut": "couvert-autrement",
@@ -3032,8 +3053,9 @@
             }
         },
         "api:vue:TasksViewSet": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "api:vue:TrashView": {
             "statut": "couvert-autrement",
@@ -8077,8 +8099,9 @@
             }
         },
         "permissions:classe:AcknowledgeTasksPermissions": {
-            "statut": "exclu",
-            "exclusion": "infrastructure-celery-redis"
+            "statut": "absent",
+            "lot": "V2-05",
+            "note": "Exclusion retiree par le juge le 12.10.2026 : fonction utilisable, non propre a Paperless ; a porter."
         },
         "permissions:classe:PaperlessAdminPermissions": {
             "statut": "couvert-autrement",
