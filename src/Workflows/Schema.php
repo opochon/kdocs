@@ -20,6 +20,8 @@ final class Schema
 {
     public const TABLES = ['workflow_definitions', 'workflow_instances', 'workflow_journal'];
 
+    public const VERSION = 2;
+
     public static function installer(PDO $pdo): void
     {
         $pdo->exec(<<<'SQL'
@@ -69,5 +71,24 @@ final class Schema
               KEY k_horodatage (horodatage)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+
+        // Version 2 : colonne de tri des définitions (règles, circuits et workflows Paperless partagent la table).
+        self::assurerOrdre($pdo);
+    }
+
+    /**
+     * Étape v2, idempotente : la colonne `ordre` et son index. Rejouable sur une base déjà à jour.
+     * `Migrations::monter` l'appelle pour la version 2, l'installateur la pose avec le reste du schéma.
+     */
+    public static function assurerOrdre(PDO $pdo): void
+    {
+        if (!Migrations::colonneExiste($pdo, 'workflow_definitions', 'ordre')) {
+            $pdo->exec('ALTER TABLE workflow_definitions ADD COLUMN ordre INT NOT NULL DEFAULT 0 AFTER actif');
+        }
+        $index = 'SELECT COUNT(*) FROM information_schema.statistics'
+            . " WHERE table_schema = DATABASE() AND table_name = 'workflow_definitions' AND index_name = 'k_genre_ordre'";
+        if ((int) $pdo->query($index)->fetchColumn() === 0) {
+            $pdo->exec('ALTER TABLE workflow_definitions ADD KEY k_genre_ordre (genre, ordre)');
+        }
     }
 }
