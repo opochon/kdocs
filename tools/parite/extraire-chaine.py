@@ -429,10 +429,21 @@ def _vecteurs_gabarit_fonction(chemin: Path, depot: Path, fonction: ast.Function
                     if isinstance(valeur, dict) and "__storage_path__" in valeur:
                         storage_paths[nom] = valeur["__storage_path__"]
                     variables[nom] = valeur
-            elif isinstance(cible, ast.Attribute) and cible.attr == "path" and isinstance(cible.value, ast.Name):
-                text = _texte(evenement.value)
-                if text is not None:
-                    storage_paths[cible.value.id] = text
+            elif isinstance(cible, ast.Attribute) and isinstance(cible.value, ast.Name):
+                if cible.attr == "path":
+                    text = _texte(evenement.value)
+                    if text is not None:
+                        storage_paths[cible.value.id] = text
+                elif cible.attr in {"correspondent", "owner"}:
+                    # Affectation après coup (doc.correspondent = ...) : le document doit refléter l'état
+                    # au moment de l'assertion, sinon le vecteur est incomplet.
+                    document_vise = variables.get(cible.value.id)
+                    valeur = _valeur(evenement.value, variables)
+                    if isinstance(document_vise, dict) and isinstance(valeur, dict):
+                        if cible.attr == "correspondent" and valeur.get("__correspondant__"):
+                            document_vise["correspondant"] = valeur["__correspondant__"]
+                        if cible.attr == "owner" and valeur.get("__utilisateur__"):
+                            document_vise["proprietaire"] = valeur["__utilisateur__"]
         elif isinstance(evenement, ast.With):
             for item in evenement.items:
                 if isinstance(item.context_expr, ast.Call):

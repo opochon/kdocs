@@ -479,6 +479,7 @@
           "mime": "application/pdf",
           "pk": 2,
           "asn": 25,
+          "correspondant": "John's @ Office / Workplace",
           "date_creation": "2020-06-25",
           "date_ajout": "2024-10-01 07:36:51",
           "checksum": "2"
