@@ -12,6 +12,7 @@
     </div>
     <div class="actions">
       <a class="btn discret" href="/workflows/catalogue" data-testid="lien-catalogue">{{ ic.i('vue') }}Catalogue des composants</a>
+      <a class="btn discret" href="/workflows/admin" data-testid="lien-admin">{{ ic.i('reglages') }}Administration des workflows</a>
       {% for g in gabarits %}
       <form method="post" action="/workflows/gabarits/{{ g.nom }}">
         <input type="hidden" name="csrf" value="{{ csrf }}">

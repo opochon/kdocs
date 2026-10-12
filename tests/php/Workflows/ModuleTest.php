@@ -7,6 +7,7 @@ namespace Ged\Tests\Workflows;
 use Ged\Kernel;
 use Ged\Securite\DroitsRoutes;
 use Ged\Workflows\Circuits;
+use Ged\Workflows\DepotWorkflows;
 use Ged\Workflows\Editeur;
 use Ged\Workflows\Gabarits;
 use Ged\Workflows\Journal;
@@ -46,6 +47,11 @@ final class ModuleTest extends TestCase
             ['GET', '/workflows/circuits/12/editeur'],
             ['POST', '/workflows/circuits'],
             ['POST', '/workflows/circuits/12'],
+            ['GET', '/workflows/admin'],
+            ['POST', '/workflows/admin'],
+            ['GET', '/workflows/admin/12'],
+            ['POST', '/workflows/admin/12'],
+            ['POST', '/workflows/admin/12/basculer'],
         ];
 
         foreach ($routes as [$methode, $chemin]) {
@@ -54,6 +60,43 @@ final class ModuleTest extends TestCase
         // Le patron littéral enregistré par Slim est reconnu tel quel (test de sécurité).
         self::assertSame('workflow.gerer', DroitsRoutes::permissionPour('POST', '/workflows/circuits/{id:[0-9]+}'));
         self::assertSame('workflows:lire', DroitsRoutes::permissionPour('GET', '/workflows/circuits/{id:[0-9]+}/editeur'));
+        self::assertSame('workflow.gerer', DroitsRoutes::permissionPour('GET', '/workflows/admin/{id:[0-9]+}'));
+        self::assertSame('workflow.gerer', DroitsRoutes::permissionPour('POST', '/workflows/admin/{id:[0-9]+}/basculer'));
+    }
+
+    public function testLAdminCreeEditeActiveEtMontreLHistorique(): void
+    {
+        [$code, , $location] = $this->requete('POST', '/workflows/admin', [
+            'nom' => 'Workflow admin test', 'ordre' => 3, 'declencheur_type' => 2,
+            'declencheur_filtre' => 'filter_filename', 'declencheur_valeur' => '*facture*',
+            'action_type' => 1, 'action_champ' => 'titre', 'action_valeur' => 'Titre admin', 'actif' => '1',
+        ]);
+        self::assertSame(303, $code);
+        self::assertStringContainsString('/workflows/admin/', (string) $location);
+        $id = (int) basename((string) $location);
+
+        $workflow = (new DepotWorkflows($this->pdo))->parId($id);
+        self::assertNotNull($workflow);
+        self::assertSame(3, $workflow['ordre']);
+        self::assertTrue($workflow['actif']);
+        self::assertSame(2, $workflow['triggers'][0]['type']);
+        self::assertSame('*facture*', $workflow['triggers'][0]['filter_filename']);
+        self::assertSame('Titre admin', $workflow['actions'][0]['assign_title']);
+
+        [$code, $html] = $this->requete('GET', '/workflows/admin/' . $id);
+        self::assertSame(200, $code);
+        self::assertStringContainsString('data-testid="ecran-workflows-admin-edition"', $html);
+        self::assertStringContainsString('data-testid="historique-executions"', $html);
+        self::assertStringContainsString('data-testid="aucune-execution"', $html);
+
+        [$code] = $this->requete('POST', '/workflows/admin/' . $id . '/basculer', ['actif' => '0']);
+        self::assertSame(303, $code);
+        self::assertFalse((new DepotWorkflows($this->pdo))->parId($id)['actif']);
+
+        [$code, $html] = $this->requete('GET', '/workflows/admin');
+        self::assertSame(200, $code);
+        self::assertStringContainsString('data-testid="ecran-workflows-admin"', $html);
+        self::assertStringContainsString('data-testid="workflow-' . $id . '"', $html);
     }
 
     public function testLeCatalogueParRouteNExposeQueLeMoteur(): void
