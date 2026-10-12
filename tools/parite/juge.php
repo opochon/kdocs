@@ -381,6 +381,42 @@ if ($comportement === [] || !isset($comportement['categories'])) {
 }
 $lignes[] = '';
 
+// Phase 3 : parite d'effet de la chaine de consommation (vecteurs extraits des tests Paperless, rejoues
+// cote GEDv2 par tests/php/Parite/Chaine*Test.php). Additif : ne change pas le verdict de la couche.
+$lignes[] = '## Chaine de consommation (phase 3)';
+$lignes[] = '';
+$chaine = [];
+foreach (glob($racine . '/var/parite/chaine-*.json') ?: [] as $fichierChaine) {
+    $mesure = chargerJson($fichierChaine);
+    if ($mesure !== [] && isset($mesure['categorie'])) {
+        $chaine[(string) $mesure['categorie']] = $mesure;
+    }
+}
+if ($chaine === []) {
+    $lignes[] = 'Aucune mesure de chaine disponible (lancer tests/php/Parite/ChaineRegistreTest.php, ChaineOcrTest, ChaineCodeBarresTest, ChaineGabaritTest).';
+} else {
+    $lignes[] = 'Vecteurs {entree, sortie} extraits des tests Paperless (registre des parseurs, post-traitement OCR,';
+    $lignes[] = 'codes-barres, gabarit de nom de fichier), rejoues par l\'equivalent GEDv2. Un ecart de comportement';
+    $lignes[] = 'reste un ecart ; le test de rejeu echoue si un vecteur s\'ecarte.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: |';
+    ksort($chaine);
+    foreach ($chaine as $nomChaine => $mesureChaine) {
+        $totalChaine = (int) ($mesureChaine['total'] ?? 0);
+        $passesChaine = (int) ($mesureChaine['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| %s | tests/parite/vecteurs/chaine-%s.json | %d | %d | %s %% |',
+            (string) $nomChaine,
+            (string) $nomChaine,
+            $passesChaine,
+            $totalChaine,
+            number_format($totalChaine > 0 ? round($passesChaine / $totalChaine * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
+
 $index = [];
 foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $element) {
     if (is_array($element)) {
