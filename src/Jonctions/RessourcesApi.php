@@ -1226,6 +1226,65 @@ final class RessourcesApi
     }
 
     // -----------------------------------------------------------------------
+    // État système (`SystemStatusView` de Paperless) et version distante (`RemoteVersionView`)
+    // -----------------------------------------------------------------------
+
+    /**
+     * `GET /api/v1/statut` : état système réel de la GED (base, stockage, suivi des tâches), réservé à
+     * l'administrateur comme `SystemStatusView`. Aucun démon n'est sondé : le suivi des tâches est celui
+     * de la file `ingestion_travaux` + du registre local, sans Redis ni Celery.
+     */
+    public function statutSysteme(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/statut', function (): array {
+            $racineStockage = $this->config->chemin('STORAGE_ROOT', 'storage/documents');
+            $total = @disk_total_space($racineStockage);
+            $libre = @disk_free_space($racineStockage);
+            $bilan = (new Taches($this->config))->bilan();
+
+            return [
+                'app' => 'gedv2',
+                'version' => $this->versionGed(),
+                'server_os' => PHP_OS_FAMILY,
+                'install_type' => 'mutualise',
+                'storage' => [
+                    'total' => $total === false ? null : (int) $total,
+                    'available' => $libre === false ? null : (int) $libre,
+                ],
+                'database' => [
+                    'type' => 'mariadb',
+                    'base' => $this->config->get('DB_NAME', 'gedv2'),
+                    'statut' => 'OK',
+                    'serveur' => (string) $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
+                ],
+                'tasks' => $bilan + ['file' => 'ingestion_travaux', 'mode' => 'sans démon (job court, reprenable)'],
+            ];
+        }, true);
+    }
+
+    /**
+     * `GET /api/v1/version` : version installée. GEDv2 tourne en hébergement mutualisé et ne contacte
+     * aucun service distant : la vérification de mise à jour est rendue explicitement désactivée (cause
+     * nommée), jamais simulée par un appel réseau.
+     */
+    public function versionDistante(Requete $requete, Reponse $reponse): Reponse
+    {
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/version', function (): array {
+            return [
+                'version' => $this->versionGed(),
+                'update_available' => false,
+                'remote_checked' => false,
+                'cause' => 'aucun service distant contacté : GEDv2 rend la version installée, la veille est à la charge de l’exploitant',
+            ];
+        });
+    }
+
+    private function versionGed(): string
+    {
+        return $this->config->get('GED_VERSION', '2.20.5-ged');
+    }
+
+    // -----------------------------------------------------------------------
     // Porte commune des routes (jeton lié à un compte) et enveloppes JSON.
     // -----------------------------------------------------------------------
 

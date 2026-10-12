@@ -248,6 +248,9 @@ final class DroitsRoutes
         // Obtention d'un jeton d'API par identifiants (lot ged-parite-api-4) : route publique au sens
         // de la session (elle délivre le jeton), porte réelle = l'authentification vérifiée dans le secteur.
         'POST /api/v1/token' => 'publique:api-token',
+        // État système (administrateur) et version installée (tout jeton) — lot ged-parite-api-4.
+        'GET /api/v1/statut' => 'publique:api-documents-lecture',
+        'GET /api/v1/version' => 'publique:api-documents-lecture',
     ];
 
     /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */
