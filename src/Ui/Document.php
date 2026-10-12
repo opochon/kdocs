@@ -129,7 +129,9 @@ final class Document
                 $requete = $pdo->prepare('SELECT identifiant FROM comptes WHERE id = ?');
                 $requete->execute([$proprietaireId]);
                 $proprietaire = (string) ($requete->fetchColumn() ?: '');
-            } catch (Throwable) {
+            } catch (Throwable $e) {
+                // L'écran dit « — » plutôt que de tomber ; la panne est TRACÉE (jamais avalée).
+                error_log(sprintf('[GEDv2 document] propriétaire illisible pour le document %d : %s', $id, $e->getMessage()));
                 $proprietaire = '';
             }
         }
@@ -139,14 +141,16 @@ final class Document
                 $requete = $pdo->prepare('SELECT nom_origine FROM ingestion_travaux WHERE document_id = ? AND nom_origine <> \'\' ORDER BY id DESC LIMIT 1');
                 $requete->execute([$id]);
                 $nomOrigine = (string) ($requete->fetchColumn() ?: '');
-            } catch (Throwable) {
+            } catch (Throwable $e) {
+                error_log(sprintf('[GEDv2 document] nom d\'origine illisible pour le document %d : %s', $id, $e->getMessage()));
                 $nomOrigine = '';
             }
         }
         $pages = 0;
         try {
             $pages = (int) (\Ged\Ingestion\ParseurPiece::metadonnees($absolu, (string) ($doc['mime'] ?? ''))['pages'] ?? 0);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            error_log(sprintf('[GEDv2 document] pages illisibles pour le document %d : %s', $id, $e->getMessage()));
             $pages = isset($meta['pages']) && is_numeric($meta['pages']) ? (int) $meta['pages'] : 0;
         }
 
