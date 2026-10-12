@@ -3041,20 +3041,52 @@
             "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "ecran:reglage:general": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/reglages.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "reglages.spec.ts > un utilisateur regle ses preferences generales"
+            },
+            "note": "Section d'interface du composant SettingsComponent ; les cles GEDv2 sont bornees (Preferences::CLEFS)."
         },
         "ecran:reglage:notifications": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/reglages.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "reglages.spec.ts > un utilisateur choisit ses notifications"
+            },
+            "note": "Meme service que les notifications de Paperless (prevenir l'utilisateur) ; GEDv2 les range dans .ged/preferences.json."
         },
         "ecran:reglage:permissions": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/reglages.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "reglages.spec.ts > un utilisateur consulte ses permissions et les comptes"
+            },
+            "note": "Paperless y regle les permissions par defaut des objets crees ; GEDv2 montre les droits effectifs (role + dossier) et renvoie vers l'administration des comptes/groupes, source unique des droits."
         },
         "ecran:reglage:savedviews": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/vues.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée"
+            },
+            "note": "Meme service : les reglages des vues enregistrees. L'ecran dedie de GEDv2 est /vues (deja livre, lot ged-parite-modele-3)."
         },
         "ecran:route:404": {
             "statut": "couvert-autrement",
@@ -3068,12 +3100,28 @@
             }
         },
         "ecran:route:asn-id": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/asn.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "asn.spec.ts > un utilisateur ouvre un document par son numero d archive"
+            },
+            "note": "Paperless resout un ASN numerique vers un document ; GEDv2 n'a pas d'ASN de scellement mais son index numerote les documents : le meme geste (numero -> document) ouvre la fiche, et un numero inconnu est nomme."
         },
         "ecran:route:config": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/application.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage"
+            },
+            "note": "Meme service : la configuration globale de l'installation. GEDv2 la montre sur /application."
         },
         "ecran:route:correspondents": {
             "statut": "couvert-autrement",
@@ -3098,8 +3146,16 @@
             }
         },
         "ecran:route:dashboard": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/tableau-de-bord.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "tableau-de-bord.spec.ts > un utilisateur voit ce qu il doit traiter"
+            },
+            "note": "Paperless remplit son tableau de bord de widgets SavedView + statistiques ; GEDv2 montre la file reelle du fonds et l'etat des traitements (meme service : ce qui reste a faire)."
         },
         "ecran:route:documents": {
             "statut": "couvert-autrement",
@@ -3146,8 +3202,16 @@
             }
         },
         "ecran:route:logs": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/journaux.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "journaux.spec.ts > un administrateur consulte les journaux"
+            },
+            "note": "Paperless lit ses fichiers .log ; GEDv2 lit son journal d'audit NDJSON en ajout seul et le journal de scellement/retention. Aucune purge, aucune ecriture sur un GET."
         },
         "ecran:route:mail": {
             "statut": "couvert-autrement",
@@ -3161,12 +3225,28 @@
             }
         },
         "ecran:route:savedviews": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/vues.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée"
+            },
+            "note": "Ecran /vues de GEDv2 (modele SavedView), deja livre ; preuve E2E dediee."
         },
         "ecran:route:settings": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/reglages.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "reglages.spec.ts > un utilisateur regle ses preferences generales"
+            },
+            "note": "Paperless stocke un dictionnaire UiSettings par utilisateur ; GEDv2 le stocke dans le fonds (.ged/preferences.json), avec des clefs bornees."
         },
         "ecran:route:settings-mail": {
             "statut": "couvert-autrement",
@@ -3180,20 +3260,52 @@
             }
         },
         "ecran:route:settings-savedviews": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/vues.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée"
+            },
+            "note": "Paperless redirige settings/savedviews vers /savedviews ; GEDv2 pointe vers /vues (meme service)."
         },
         "ecran:route:settings-section": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/reglages.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "reglages.spec.ts > une section de reglages s ouvre par son adresse"
+            },
+            "note": "Meme composant SettingsComponent a sections qu'en `settings` ; GEDv2 sert /reglages/{section}."
         },
         "ecran:route:settings-usersgroups": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/securite/comptes.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes"
+            },
+            "note": "Paperless redirige settings/usersgroups vers /usersgroups ; GEDv2 pointe vers les memes ecrans d'administration."
         },
         "ecran:route:storagepaths": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/application.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage"
+            },
+            "note": "Paperless liste des chemins nommes ; GEDv2 a UN modele de rangement (annee / type / emetteur) qui joue le meme role, montre dans la section Stockage d'Application."
         },
         "ecran:route:tags": {
             "statut": "couvert-autrement",
@@ -3207,16 +3319,40 @@
             }
         },
         "ecran:route:tasks": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/taches.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "taches.spec.ts > un administrateur suit et acquitte un traitement"
+            },
+            "note": "Ecran /taches de GEDv2 (modele PaperlessTask), deja livre ; preuve E2E dediee."
         },
         "ecran:route:trash": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/corbeille.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "corbeille.spec.ts > un administrateur restaure un document de la corbeille"
+            },
+            "note": "Meme service que Paperless (revenir sur une mise en corbeille) ; la « suppression definitive » de Paperless est volontairement absente (regle non negociable : zero suppression de donnee utilisateur). La divergence est nommee a l'ecran."
         },
         "ecran:route:usersgroups": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/securite/comptes.twig"
+            },
+            "preuve": {
+                "type": "playwright",
+                "cible": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes"
+            },
+            "note": "GEDv2 rend le service par deux ecrans existants (/administration/comptes et /administration/groupes), atteints par le menu."
         },
         "ecran:route:vide": {
             "statut": "exclu",
