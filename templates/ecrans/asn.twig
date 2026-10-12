@@ -1,0 +1,36 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Numéro d’archive{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-asn">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Numéro d’archive</h1>
+      <span class="muted">saisissez un numéro pour ouvrir directement le document</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/bibliotheque" data-testid="asn-retour">Bibliothèque</a>
+    </div>
+  </div>
+
+  {% if erreur %}
+    <section class="carte" data-testid="asn-erreur">
+      <p><span class="chip danger">introuvable</span> <strong>Accès par numéro d’archive</strong> · {{ erreur }}</p>
+    </section>
+  {% endif %}
+
+  <section class="carte section-reglage">
+    <form method="get" action="/asn" data-testid="asn-formulaire">
+      <div class="champ">
+        <label for="asn-numero">Numéro d’archive</label>
+        <input id="asn-numero" name="numero" type="number" min="1" required value="{{ numero ?: '' }}"
+               data-testid="asn-numero" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="pied-validation">
+        <button class="btn primaire" type="submit" data-testid="action-ouvrir-asn">{{ ic.i('loupe') }}Ouvrir le document</button>
+      </div>
+    </form>
+    <p class="muted">Le numéro est celui de l’index du fonds : il reste stable après une reconstruction (F12).</p>
+  </section>
+</div>
+{% endblock %}

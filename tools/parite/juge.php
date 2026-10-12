@@ -615,7 +615,10 @@ foreach ($categories as $categorie) {
             ? (string) ($entree['preuve']['type'] ?? '') . ' ' . (string) ($entree['preuve']['cible'] ?? '')
             : '-';
         if (in_array($statut, ['couvert', 'couvert-autrement'], true)) {
-            $preuve .= ' (couche 1)';
+            // La couche citee est celle qui a PROUVE : PHPUnit (couche 1) ou parcours Playwright (couche 4,
+            // preuves des ecrans du lot ged-parite-ecrans-1). Le rapport ne renomme plus tout en couche 1.
+            $couche = ($entree['preuve']['type'] ?? '') === 'playwright' ? '4' : '1';
+            $preuve .= ' (couche ' . $couche . ')';
         } else {
             $preuve = '-';
         }

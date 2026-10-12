@@ -3,7 +3,7 @@
   "fonction": "F11",
   "libelle": "Trouver la liste des documents scellés par le menu Archives",
   "trouve": true,
-  "temps_ms": 311,
-  "ecran": "http://127.0.0.1:54434/archives — Archives",
+  "temps_ms": 246,
+  "ecran": "http://127.0.0.1:49830/archives — Archives",
   "erreur": ""
 }

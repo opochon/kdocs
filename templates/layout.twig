@@ -36,6 +36,8 @@
     {% endfor %}
     {% endfor %}
     <div class="bas">
+      <a href="/asn" data-testid="menu-asn" {% if ecran == 'asn' %}aria-current="page"{% endif %}>{{ ic.i('loupe') }}Numéro d’archive</a>
+      <a href="/reglages" data-testid="menu-reglages" {% if ecran == 'reglages' %}aria-current="page"{% endif %}>{{ ic.i('reglages') }}Mes réglages</a>
       <a href="/application" data-testid="menu-application" {% if ecran == 'application' %}aria-current="page"{% endif %}>{{ ic.i('reglages') }}Application</a>
     </div>
   </nav>

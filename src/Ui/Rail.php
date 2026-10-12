@@ -79,6 +79,8 @@ final class Rail
     private function principales(int $compte): array
     {
         return [
+            // Lot ged-parite-ecrans-1 : le tableau de bord ouvre la journée (modèle Paperless Dashboard).
+            ['id' => 'tableau-de-bord', 'libelle' => 'Tableau de bord', 'icone' => 'inbox', 'url' => '/tableau-de-bord', 'compte' => null],
             ['id' => 'a-traiter', 'libelle' => 'À traiter', 'icone' => 'inbox', 'url' => '/a-traiter', 'compte' => $compte],
             ['id' => 'bibliotheque', 'libelle' => 'Bibliothèque', 'icone' => 'biblio', 'url' => '/bibliotheque', 'compte' => null],
             ['id' => 'recherche', 'libelle' => 'Recherche', 'icone' => 'loupe', 'url' => '/recherche', 'compte' => null],
@@ -100,6 +102,8 @@ final class Rail
         if ($this->peut('application:administrer')) {
             $sections[] = ['titre' => 'Administration', 'entrees' => [
                 ['id' => 'metadonnees', 'libelle' => 'Métadonnées', 'icone' => 'vue', 'url' => '/metadonnees'],
+                ['id' => 'journaux', 'libelle' => 'Journaux', 'icone' => 'versions', 'url' => '/journaux'],
+                ['id' => 'corbeille', 'libelle' => 'Corbeille', 'icone' => 'corbeille', 'url' => '/corbeille'],
                 ['id' => 'comptes', 'libelle' => 'Comptes', 'icone' => 'appareil', 'url' => '/administration/comptes'],
                 ['id' => 'groupes', 'libelle' => 'Groupes', 'icone' => 'partage', 'url' => '/administration/groupes'],
                 ['id' => 'roles', 'libelle' => 'Rôles', 'icone' => 'reglages', 'url' => '/administration/roles'],

@@ -231,6 +231,89 @@ final class Module
         // comme la reconstruction. Lignes signalées hors secteur (Interface), commitées avec le lot.
         $app->post('/application/pdfa-rattrapage', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->lancer(self::auteur($req));return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage',$e->getMessage());} });
         $app->post('/application/pdfa-rattrapage/{id:[0-9]+}/tranche', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse { try{$j=(new \Ged\Ingestion\RattrapagePdfA($config))->avancer((int)$args['id']);return $rep->withHeader('Location','/application?pdfa='.$j['id'])->withStatus(303);}catch(\Throwable $e){return self::erreur($vue,$rep,'POST /application/pdfa-rattrapage/{id}/tranche',$e->getMessage());} });
+
+        // Lot ged-parite-ecrans-1 (Interface) : écrans rendant le service des écrans Paperless, à la
+        // manière de GEDv2 (mêmes gabarits, même charte) — tableau de bord, journaux, corbeille, réglages
+        // et accès par numéro d'archive. Les permissions sont déclarées dans `Ged\Securite\DroitsRoutes`
+        // (lignes hors secteur, signalées dans docs/secteurs/interface.md).
+        $app->get('/tableau-de-bord', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/tableau-de-bord.twig', TableauDeBord::depuisRacine($config->racine())->donnees());
+        });
+
+        $app->get('/journaux', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/journaux.twig', Journaux::depuisRacine($config->racine())->donnees($req->getQueryParams()));
+        });
+
+        $app->get('/corbeille', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $donnees = Corbeille::depuisRacine($config->racine())->donnees();
+            $donnees['csrf'] = Ecrans::jetonCsrf($req);
+
+            return $vue->rendre($rep, 'ecrans/corbeille.twig', $donnees);
+        });
+        $app->post('/corbeille/{id:[0-9]+}/restaurer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            try {
+                (new \Ged\Socle\DepotFichiers($config))->restaurer((int) $args['id']);
+
+                return $rep->withHeader('Location', '/corbeille')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /corbeille/{id}/restaurer', $e->getMessage());
+            }
+        });
+
+        $app->get('/reglages', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/reglages.twig', self::donneesReglages($req, $config, ''));
+        });
+        $app->get('/reglages/{section:[a-z-]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/reglages.twig', self::donneesReglages($req, $config, (string) $args['section']));
+        });
+        $app->post('/reglages', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $section = (string) ($corps['section'] ?? '');
+            $reglages = Reglages::depuisRacine($config->racine());
+            try {
+                $reglages->enregistrer(self::auteur($req), $section, $corps);
+
+                return $rep->withHeader('Location', '/reglages/' . $reglages->sectionValide($section) . '?message=1')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /reglages', $e->getMessage());
+            }
+        });
+
+        $app->get('/asn', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $numero = (int) ($req->getQueryParams()['numero'] ?? 0);
+            if ($numero < 1) {
+                return $vue->rendre($rep, 'ecrans/asn.twig', ['ecran' => 'asn', 'numero' => '', 'erreur' => null]);
+            }
+            $document = AccesArchive::depuisRacine($config->racine())->document($numero);
+            if ($document === null) {
+                return $vue->rendre($rep, 'ecrans/asn.twig', ['ecran' => 'asn', 'numero' => (string) $numero,
+                    'erreur' => "aucun document ne porte le numéro d’archive $numero"]);
+            }
+
+            return $rep->withHeader('Location', '/documents/' . (int) $document['id'])->withStatus(303);
+        });
+        $app->get('/asn/{id:[0-9]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $numero = (int) $args['id'];
+            $document = AccesArchive::depuisRacine($config->racine())->document($numero);
+            if ($document === null) {
+                return $vue->rendre($rep, 'erreur.twig', ['code' => 404, 'etape' => 'GET /asn/' . $numero,
+                    'cause' => "aucun document ne porte le numéro d’archive $numero", 'reference' => ''], 404);
+            }
+
+            return $rep->withHeader('Location', '/documents/' . (int) $document['id'])->withStatus(303);
+        });
+    }
+
+    /** @return array<string, mixed> */
+    private static function donneesReglages(Requete $req, Config $config, string $section): array
+    {
+        $session = $req->getAttribute('ged.session');
+        $utilisateur = is_array($session) ? (string) ($session['utilisateur'] ?? '') : '';
+        $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
+        $donnees = Reglages::depuisRacine($config->racine())->donnees($utilisateur, $section, $permissions, $req->getQueryParams());
+        $donnees['csrf'] = Ecrans::jetonCsrf($req);
+
+        return $donnees;
     }
 
     /** @param array<string, string> $args */

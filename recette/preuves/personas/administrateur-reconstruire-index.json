@@ -3,7 +3,7 @@
   "fonction": "F12",
   "libelle": "Lancer la reconstruction de l’index depuis le dossier et la voir finir",
   "trouve": true,
-  "temps_ms": 3323,
-  "ecran": "http://127.0.0.1:57922/application?reconstruction=1 — Application",
+  "temps_ms": 2800,
+  "ecran": "http://127.0.0.1:51109/application?reconstruction=1 — Application",
   "erreur": ""
 }

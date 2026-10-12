@@ -10,7 +10,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 529 | 204 | 0 | 47 | 67,82 % | 72,17 % |
+| 780 | 546 | 187 | 0 | 47 | 70,00 % | 74,49 % |
 
 ### Par categorie
 
@@ -20,7 +20,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 | chaine | 60 | 57 | 3 | 0 | 0 | 95,00 % | 95,00 % |
 | commande | 17 | 13 | 2 | 0 | 2 | 76,47 % | 86,67 % |
 | correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
-| ecran | 30 | 12 | 17 | 0 | 1 | 40,00 % | 41,38 % |
+| ecran | 30 | 29 | 0 | 0 | 1 | 96,67 % | 100,00 % |
 | masse | 17 | 17 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 | modele | 313 | 310 | 3 | 0 | 0 | 99,04 % | 99,04 % |
 | permissions | 12 | 11 | 0 | 0 | 1 | 91,67 % | 100,00 % |
@@ -552,33 +552,33 @@ listes `non_rejouables` avec leur raison.
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
-| reglages/General | src-ui/src/app/components/admin/settings/settings.component.ts:72 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| reglages/Notifications | src-ui/src/app/components/admin/settings/settings.component.ts:74 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| reglages/Permissions | src-ui/src/app/components/admin/settings/settings.component.ts:73 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| reglages/SavedViews | src-ui/src/app/components/admin/settings/settings.component.ts:75 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| reglages/General | src-ui/src/app/components/admin/settings/settings.component.ts:72 | couvert-autrement | ecran templates/ecrans/reglages.twig | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
+| reglages/Notifications | src-ui/src/app/components/admin/settings/settings.component.ts:74 | couvert-autrement | ecran templates/ecrans/reglages.twig | playwright reglages.spec.ts > un utilisateur choisit ses notifications (couche 4) |  |
+| reglages/Permissions | src-ui/src/app/components/admin/settings/settings.component.ts:73 | couvert-autrement | ecran templates/ecrans/reglages.twig | playwright reglages.spec.ts > un utilisateur consulte ses permissions et les comptes (couche 4) |  |
+| reglages/SavedViews | src-ui/src/app/components/admin/settings/settings.component.ts:75 | couvert-autrement | ecran templates/ecrans/vues.twig | playwright vues.spec.ts > un utilisateur crée et règle une vue enregistrée (couche 4) |  |
 | route UI '404' -> NotFoundComponent | src-ui/src/app/app-routing.module.ts:303 | couvert-autrement | ecran templates/erreur.twig | phpunit Ged\Tests\EcransTest::testPageInconnueEstNommee (couche 1) |  |
-| route UI 'asn/:id' -> DocumentAsnComponent | src-ui/src/app/app-routing.module.ts:97 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'config' -> ConfigComponent | src-ui/src/app/app-routing.module.ts:217 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'asn/:id' -> DocumentAsnComponent | src-ui/src/app/app-routing.module.ts:97 | couvert-autrement | ecran templates/ecrans/asn.twig | playwright asn.spec.ts > un utilisateur ouvre un document par son numero d archive (couche 4) |  |
+| route UI 'config' -> ConfigComponent | src-ui/src/app/app-routing.module.ts:217 | couvert-autrement | ecran templates/ecrans/application.twig | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
 | route UI 'correspondents' -> CorrespondentListComponent | src-ui/src/app/app-routing.module.ts:133 | couvert-autrement | ecran templates/ecrans/metadonnees.twig | phpunit Ged\Tests\Socle\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds (couche 1) |  |
 | route UI 'customfields' -> CustomFieldsComponent | src-ui/src/app/app-routing.module.ts:241 | couvert-autrement | ecran templates/ecrans/metadonnees.twig | phpunit Ged\Tests\Socle\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds (couche 1) |  |
-| route UI 'dashboard' -> DashboardComponent | src-ui/src/app/app-routing.module.ts:40 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'dashboard' -> DashboardComponent | src-ui/src/app/app-routing.module.ts:40 | couvert-autrement | ecran templates/ecrans/tableau-de-bord.twig | playwright tableau-de-bord.spec.ts > un utilisateur voit ce qu il doit traiter (couche 4) |  |
 | route UI 'documents' -> DocumentListComponent | src-ui/src/app/app-routing.module.ts:47 | couvert-autrement | ecran templates/ecrans/bibliotheque.twig | phpunit Ged\Tests\EcransTest::testEcranRepondEtSeDesigne (couche 1) |  |
 | route UI 'documents/:id' -> DocumentDetailComponent | src-ui/src/app/app-routing.module.ts:73 | couvert-autrement | ecran templates/ecrans/document.twig | phpunit Ged\Tests\EcransTest::testEcranRepondEtSeDesigne (couche 1) |  |
 | route UI 'documents/:id/:section' -> DocumentDetailComponent | src-ui/src/app/app-routing.module.ts:85 | couvert-autrement | ecran templates/ecrans/document.twig | phpunit Ged\Tests\EcransTest::testEcranRepondEtSeDesigne (couche 1) |  |
 | route UI 'documenttypes' -> DocumentTypeListComponent | src-ui/src/app/app-routing.module.ts:121 | couvert-autrement | ecran templates/ecrans/metadonnees.twig | phpunit Ged\Tests\Socle\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds (couche 1) |  |
-| route UI 'logs' -> LogsComponent | src-ui/src/app/app-routing.module.ts:157 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'logs' -> LogsComponent | src-ui/src/app/app-routing.module.ts:157 | couvert-autrement | ecran templates/ecrans/journaux.twig | playwright journaux.spec.ts > un administrateur consulte les journaux (couche 4) |  |
 | route UI 'mail' -> MailComponent | src-ui/src/app/app-routing.module.ts:265 | couvert-autrement | ecran templates/ecrans/courrier.twig | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| route UI 'savedviews' -> SavedViewsComponent | src-ui/src/app/app-routing.module.ts:289 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'settings' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:191 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'savedviews' -> SavedViewsComponent | src-ui/src/app/app-routing.module.ts:289 | couvert-autrement | ecran templates/ecrans/vues.twig | playwright vues.spec.ts > un utilisateur crée et règle une vue enregistrée (couche 4) |  |
+| route UI 'settings' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:191 | couvert-autrement | ecran templates/ecrans/reglages.twig | playwright reglages.spec.ts > un utilisateur regle ses preferences generales (couche 4) |  |
 | route UI 'settings/mail' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:179 | couvert-autrement | ecran templates/ecrans/courrier.twig | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
-| route UI 'settings/savedviews' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:187 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'settings/:section' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:204 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'settings/usersgroups' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:183 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'storagepaths' -> StoragePathListComponent | src-ui/src/app/app-routing.module.ts:145 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'settings/savedviews' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:187 | couvert-autrement | ecran templates/ecrans/vues.twig | playwright vues.spec.ts > un utilisateur crée et règle une vue enregistrée (couche 4) |  |
+| route UI 'settings/:section' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:204 | couvert-autrement | ecran templates/ecrans/reglages.twig | playwright reglages.spec.ts > une section de reglages s ouvre par son adresse (couche 4) |  |
+| route UI 'settings/usersgroups' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:183 | couvert-autrement | ecran templates/securite/comptes.twig | playwright utilisateurs.spec.ts > un administrateur gere les comptes et les groupes (couche 4) |  |
+| route UI 'storagepaths' -> StoragePathListComponent | src-ui/src/app/app-routing.module.ts:145 | couvert-autrement | ecran templates/ecrans/application.twig | playwright configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage (couche 4) |  |
 | route UI 'tags' -> TagListComponent | src-ui/src/app/app-routing.module.ts:109 | couvert-autrement | ecran templates/ecrans/metadonnees.twig | phpunit Ged\Tests\Socle\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds (couche 1) |  |
-| route UI 'tasks' -> TasksComponent | src-ui/src/app/app-routing.module.ts:229 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'trash' -> TrashComponent | src-ui/src/app/app-routing.module.ts:166 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'usersgroups' -> UsersAndGroupsComponent | src-ui/src/app/app-routing.module.ts:277 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'tasks' -> TasksComponent | src-ui/src/app/app-routing.module.ts:229 | couvert-autrement | ecran templates/ecrans/taches.twig | playwright taches.spec.ts > un administrateur suit et acquitte un traitement (couche 4) |  |
+| route UI 'trash' -> TrashComponent | src-ui/src/app/app-routing.module.ts:166 | couvert-autrement | ecran templates/ecrans/corbeille.twig | playwright corbeille.spec.ts > un administrateur restaure un document de la corbeille (couche 4) |  |
+| route UI 'usersgroups' -> UsersAndGroupsComponent | src-ui/src/app/app-routing.module.ts:277 | couvert-autrement | ecran templates/securite/comptes.twig | playwright utilisateurs.spec.ts > un administrateur gere les comptes et les groupes (couche 4) |  |
 | route UI '' -> AppFrameComponent | src-ui/src/app/app-routing.module.ts:33 | exclu (exclu : infrastructure-django) | - | - |  |
 | route UI 'view/:id' -> DocumentListComponent | src-ui/src/app/app-routing.module.ts:60 | couvert-autrement | ecran templates/ecrans/bibliotheque.twig | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
 | route UI 'workflows' -> WorkflowsComponent | src-ui/src/app/app-routing.module.ts:253 | couvert-autrement | ecran templates/ecrans/workflows.twig | phpunit Ged\Tests\Workflows\ModuleTest::testEcranRepondMemeSansTablesDuSecteur (couche 1) |  |
@@ -1175,23 +1175,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | commande:documents:decrypt_documents | commande | src/documents/management/commands/decrypt_documents.py:1 | absent | GEDv2 ne chiffre pas le fonds : les fichiers restent lisibles sans l’application (le dossier fait foi), reference src/documents/management/commands/ | V2-09 |
 | commande:documents:loaddata_stdin | commande | src/documents/management/commands/loaddata_stdin.py:1 | exclu | infrastructure-django |  |
 | commande:documents:prune_audit_logs | commande | src/documents/management/commands/prune_audit_logs.py:1 | absent | GEDv2 garde le journal d’audit en AJOUT SEUL (retention Archivage) : aucune purge automatique, reference src/documents/management/commands/ | V2-09 |
-| ecran:reglage:general | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:72 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:reglage:notifications | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:74 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:reglage:permissions | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:73 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:reglage:savedviews | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:75 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:asn-id | ecran | src-ui/src/app/app-routing.module.ts:97 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:config | ecran | src-ui/src/app/app-routing.module.ts:217 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:dashboard | ecran | src-ui/src/app/app-routing.module.ts:40 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:logs | ecran | src-ui/src/app/app-routing.module.ts:157 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:savedviews | ecran | src-ui/src/app/app-routing.module.ts:289 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:settings | ecran | src-ui/src/app/app-routing.module.ts:191 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:settings-savedviews | ecran | src-ui/src/app/app-routing.module.ts:187 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:settings-section | ecran | src-ui/src/app/app-routing.module.ts:204 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:settings-usersgroups | ecran | src-ui/src/app/app-routing.module.ts:183 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:storagepaths | ecran | src-ui/src/app/app-routing.module.ts:145 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:tasks | ecran | src-ui/src/app/app-routing.module.ts:229 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:trash | ecran | src-ui/src/app/app-routing.module.ts:166 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:usersgroups | ecran | src-ui/src/app/app-routing.module.ts:277 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:vide | ecran | src-ui/src/app/app-routing.module.ts:33 | exclu | infrastructure-django |  |
 | modele:champ:Document.archive_serial_number | modele | src/documents/models.py:301 | absent | GEDv2 ne numerote pas les archives par un ASN ; le scellement legal porte un jeton TSA, reference src/documents/models.py | V2-09 |
 | modele:champ:Document.page_count | modele | src/documents/models.py:228 | absent | GEDv2 ne calcule pas le nombre de pages ; la pagination est portee par l’origine d’ingestion (origine.pages), reference src/documents/models.py | V2-04 |
