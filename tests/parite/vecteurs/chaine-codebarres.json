@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "categorie": "codebarres",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "codebarres:test_separate_pages:1f",
+      "entree": {
+        "pages": 3,
+        "coupes": {
+          "1": false
+        }
+      },
+      "sortie": {
+        "documents": 2
+      },
+      "reference": "src/documents/tests/test_barcodes.py:387"
+    },
+    {
+      "id": "codebarres:test_separate_pages_double_code:1f-2f",
+      "entree": {
+        "pages": 4,
+        "coupes": {
+          "1": false,
+          "2": false
+        }
+      },
+      "sortie": {
+        "documents": 2
+      },
+      "reference": "src/documents/tests/test_barcodes.py:404"
+    },
+    {
+      "id": "codebarres:test_separate_pages_by_asn_barcodes_and_patcht:2f-4t-5t-8t-10t",
+      "entree": {
+        "pages": 12,
+        "coupes": {
+          "2": false,
+          "4": true,
+          "5": true,
+          "8": true,
+          "10": true
+        }
+      },
+      "sortie": {
+        "documents": 6
+      },
+      "reference": "src/documents/tests/test_barcodes.py:479"
+    },
+    {
+      "id": "codebarres:test_separate_pages_by_asn_barcodes:2t-3t-6t-8t",
+      "entree": {
+        "pages": 10,
+        "coupes": {
+          "2": true,
+          "3": true,
+          "6": true,
+          "8": true
+        }
+      },
+      "sortie": {
+        "documents": 5
+      },
+      "reference": "src/documents/tests/test_barcodes.py:512"
+    }
+  ]
+}
