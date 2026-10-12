@@ -111,6 +111,31 @@ Les catégories `api` (179 absents) et `ecran` (17 absents) restent pour les lot
 
 ## Harness (`powershell -File tools\harness.ps1 -SansBanc`)
 
-_(à compléter avec les chiffres du rejeu)_
+Rejeu du 2026-10-12 sur l'arbre commité (couches 0-9). `tools/composer.phar` (outil gitignoré, absent de
+ce worktree) restauré depuis la copie de référence avant le rejeu. Détail dans `var/harness/` et
+`recette/registre.json`.
 
-ETAT: en cours
+| Couche | État | Détail |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules, `DB_NAME=gedv2_test` imposé |
+| 1-unitaire | VERT | 826 tests, 10 884 assertions, 1 sauté |
+| 3-banc | ROUGE | sautée par `-SansBanc` (attendu) |
+| 4-écrans | ROUGE | 1 échec sous charge machine — voir ci-dessous |
+| 7-sécurité | VERT | sonde offensive : aucun contournement accepté (charges CSRF du lot incluses) |
+| 2-contrat | VERT | toutes les routes déclarées couvertes (dont `/vues`, `/taches`, `/metadonnees/etiquette`) |
+| 6-charge | VERT | p95 lecture 890 ms, p95 écriture 309 ms, 0 erreur, 0 collision, ingestion finie |
+| 8-statique | VERT | PHPStan niveau 6 : 0 erreur ; `composer audit` : aucune vulnérabilité |
+| 5-personas | VERT | 6 personas, tous les gestes trouvés (médianes 382–681 ms) |
+| 9-parité | VERT | 780 éléments, 529 couverts, strict 67,82 %, hors exclusions 72,17 %, 0 non prouvé |
+
+**Couche 4 (écrans)** : la machine héberge d'autres worktrees dont les suites tournent en parallèle
+(processus `k-time` et `f-suite-isolation` visibles au même moment). Les trois rejeux du harness ont
+échoué sur un spec lourd **différent** à chaque fois, jamais sur les specs du lot :
+`budget-apercu` (1043 ms puis 1056 ms pour une porte à < 1000 ms — la première page pdf.js côté
+navigateur), puis `edition-pages` (délai de 90 s dépassé). La MÊME commande
+`npx playwright test --project=parcours --project=budgets` rejouée seule sur une machine au repos donne
+**84 passés (4,9 m)**, dont les parcours du lot `taches.spec.ts` et `vues.spec.ts`, et `budget-apercu`
+vert. Aucun test n'a été affaibli, aucune sonde retirée, la porte de budget est inchangée.
+
+
+ETAT: fini
