@@ -11,6 +11,16 @@ final class Schema
 {
     public static function installer(PDO $pdo): void
     {
+        self::assurerTablesBase($pdo);
+        self::assurerColonneVersionPartage($pdo);
+    }
+
+    /**
+     * Tables de base du secteur (documents, versions, déplacements, comptes, collaboration, installation),
+     * sans les évolutions de colonnes. Appelée par `installer` et par la migration versionnée (`Migrations`).
+     */
+    public static function assurerTablesBase(PDO $pdo): void
+    {
         // Le document : une ligne = un fichier du fonds. La base n'est qu'un index de ce que
         // le dossier montre ; tout ce qui doit survivre à une reconstruction vit dans le `.meta.json`.
         $pdo->exec(<<<'SQL'
@@ -135,6 +145,29 @@ final class Schema
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
         self::migrerCollaborationV212d($pdo);
+    }
+
+    /**
+     * Pose la colonne `version` de `document_collaboration` si elle manque (table créée avant elle) :
+     * un partage externe peut viser une version précise du document, pas seulement la courante.
+     * Idempotent, rejouable.
+     */
+    public static function assurerColonneVersionPartage(PDO $pdo): void
+    {
+        if (self::colonneExiste($pdo, 'document_collaboration', 'version')) {
+            return;
+        }
+        $pdo->exec('ALTER TABLE document_collaboration ADD COLUMN version INT UNSIGNED NULL '
+            . "COMMENT 'version du document partagée, NULL = courante'");
+    }
+
+    private static function colonneExiste(PDO $pdo, string $table, string $colonne): bool
+    {
+        $requete = $pdo->prepare('SELECT COUNT(*) FROM information_schema.columns'
+            . ' WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?');
+        $requete->execute([$table, $colonne]);
+
+        return (int) $requete->fetchColumn() > 0;
     }
 
     /**

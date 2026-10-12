@@ -17,7 +17,10 @@ use RuntimeException;
 final class Champs
 {
     /** Natures proposées ; l'étiquette affichée vit dans les gabarits. */
-    public const NATURES = ['texte', 'nombre', 'montant', 'date', 'liste', 'booleen'];
+    public const NATURES = ['texte', 'nombre', 'montant', 'date', 'liste', 'booleen', 'url', 'lien'];
+
+    /** Schémas admis pour une valeur `url` : liens web et liens composables (téléphone, courriel). */
+    public const SCHEMAS_URL = ['http', 'https', 'ftp', 'ftps', 'tel', 'mailto'];
 
     private const PLAFOND_TEXTE = 500;
 
@@ -170,7 +173,7 @@ final class Champs
         if (trim($valeurBrute) === '') {
             unset($champs[$cle]);
         } else {
-            $champs[$cle] = $this->valider($def['nature'], $def['options'], $valeurBrute);
+            $champs[$cle] = self::valider($def['nature'], $def['options'], $valeurBrute);
         }
         if ($champs === []) {
             unset($meta['champs']);
@@ -192,7 +195,7 @@ final class Champs
      *
      * @param list<string> $options
      */
-    public function valider(string $nature, array $options, string $brute): mixed
+    public static function valider(string $nature, array $options, string $brute): mixed
     {
         $brute = trim($brute);
         switch ($nature) {
@@ -227,9 +230,106 @@ final class Champs
                 }
 
                 return mb_strtolower($brute) === 'oui';
+            case 'url':
+                return self::validerUrl($brute);
+            case 'lien':
+                return self::validerLien($brute);
         }
 
         throw new RuntimeException("champ : nature inconnue « $nature »");
+    }
+
+    /**
+     * Valide une valeur d'instance quel que soit son type PHP (chaîne de formulaire, entier, liste d'ids).
+     * Le rejeu des vecteurs Paperless passe par ici : une valeur refusée lève une erreur nommée.
+     */
+    public static function validerValeur(string $nature, array $options, mixed $valeur): mixed
+    {
+        if (is_array($valeur)) {
+            if ($nature !== 'lien') {
+                throw new RuntimeException("champ $nature : une liste n’est admise que pour un lien de documents");
+            }
+
+            return self::validerLienListe($valeur);
+        }
+        if (is_bool($valeur)) {
+            return $valeur;
+        }
+        if (is_int($valeur) || is_float($valeur)) {
+            if ($nature === 'lien') {
+                throw new RuntimeException('champ lien : attendu une liste d’identifiants de documents, pas un nombre seul');
+            }
+            if ($nature === 'montant') {
+                return self::validerMontant((string) $valeur);
+            }
+            if ($nature === 'nombre') {
+                return (float) $valeur;
+            }
+            $valeur = (string) $valeur;
+        }
+
+        return self::valider($nature, $options, (string) $valeur);
+    }
+
+    /** Un lien non vide est un schéma admis suivi d'un corps non vide (comme Paperless : tel: est accepté). */
+    private static function validerUrl(string $brute): string
+    {
+        if (preg_match('#^([a-z][a-z0-9+.\-]*):(\S.*)$#i', $brute, $m) !== 1
+            || !in_array(mb_strtolower($m[1]), self::SCHEMAS_URL, true)) {
+            throw new RuntimeException("champ url : « $brute » n’est pas un lien valide (" . implode(', ', self::SCHEMAS_URL) . ')');
+        }
+
+        return $brute;
+    }
+
+    private static function validerMontant(string $brute): float
+    {
+        if (!is_numeric($brute)) {
+            throw new RuntimeException("champ montant : « $brute » n’est pas un nombre");
+        }
+        $montant = (float) $brute;
+        if (round($montant, 2) !== $montant) {
+            throw new RuntimeException("champ montant : « $brute » porte plus de deux décimales");
+        }
+
+        return round($montant, 2);
+    }
+
+    /** Un lien posé par formulaire : « 12,15 » ou « [12,15] », jamais vide. */
+    private static function validerLien(string $brute): array
+    {
+        $brute = trim($brute, " \t\n\r[]");
+        if ($brute === '') {
+            throw new RuntimeException('champ lien : aucun document lié');
+        }
+        $ids = array_values(array_filter(array_map('trim', explode(',', $brute)), static fn (string $i): bool => $i !== ''));
+
+        return self::validerLienListe($ids);
+    }
+
+    /**
+     * @param list<mixed> $valeur
+     * @return list<int>
+     */
+    private static function validerLienListe(array $valeur): array
+    {
+        if ($valeur === []) {
+            throw new RuntimeException('champ lien : aucun document lié');
+        }
+        $ids = [];
+        foreach ($valeur as $brut) {
+            if (is_int($brut) && $brut > 0) {
+                $ids[] = $brut;
+                continue;
+            }
+            if (is_string($brut) && preg_match('#^\d+$#', trim($brut)) === 1 && (int) $brut > 0) {
+                $ids[] = (int) $brut;
+                continue;
+            }
+            throw new RuntimeException('champ lien : chaque identifiant doit être un entier positif');
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**

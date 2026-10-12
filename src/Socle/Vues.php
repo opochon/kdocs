@@ -22,6 +22,20 @@ final class Vues
     /** Registre du fonds qui porte les vues enregistrées. */
     private const FICHIER = 'vues';
 
+    /** Champs affichables d'une vue (modèle Paperless `SavedView.DisplayFields`, adapté à GEDv2). */
+    public const AFFICHAGES = ['title', 'created', 'added', 'asn', 'correspondent', 'document_type', 'tags',
+        'storage_path', 'owner', 'notes', 'shared', 'page_count', 'custom_fields', 'title_custom'];
+
+    /** Modes d'affichage (modèle Paperless `SavedView.DisplayMode`). */
+    public const MODES = ['table', 'small_cards', 'large_cards'];
+
+    /** Champs de tri admis (le tri vit dans les métadonnées du document, pas dans une table). */
+    public const TRIS = ['added', 'created', 'modified', 'title', 'correspondent', 'document_type',
+        'storage_path', 'page_count', 'asn'];
+
+    public const TAILLE_PAGE_MIN = 10;
+    public const TAILLE_PAGE_MAX = 1000;
+
     private readonly Registre $registre;
     private readonly Champs $champs;
 
@@ -99,6 +113,60 @@ final class Vues
     }
 
     /**
+     * Compile les réglages d'affichage d'une vue (champs affichés, mode, taille de page, barre latérale,
+     * tableau de bord, tri). Vide veut dire « réglage laissé au défaut » ; toute valeur hors liste ou hors
+     * bornes est une erreur nommée, jamais un réglage silencieusement lâche.
+     *
+     * @param array<string, mixed> $brut
+     * @return array{affichage:?list<string>, mode:?string, taille_page:?int, barre_laterale:bool,
+     *               tableau_bord:bool, tri:?string, tri_inverse:bool}
+     */
+    public function compilerReglages(array $brut): array
+    {
+        $reglages = ['affichage' => null, 'mode' => null, 'taille_page' => null, 'barre_laterale' => true,
+            'tableau_bord' => false, 'tri' => null, 'tri_inverse' => false];
+
+        if (array_key_exists('display_fields', $brut)) {
+            $champs = array_values(array_filter(array_map('strval', (array) $brut['display_fields']), static fn (string $c): bool => $c !== ''));
+            foreach ($champs as $champ) {
+                if (!in_array($champ, self::AFFICHAGES, true)) {
+                    throw new RuntimeException("vue : champ affiché inconnu « $champ »");
+                }
+            }
+            $reglages['affichage'] = $champs === [] ? null : $champs;   // liste vide = aucun champ affiché
+        }
+        if (array_key_exists('display_mode', $brut) && trim((string) $brut['display_mode']) !== '') {
+            $mode = trim((string) $brut['display_mode']);
+            if (!in_array($mode, self::MODES, true)) {
+                throw new RuntimeException("vue : mode d’affichage inconnu « $mode » (" . implode(', ', self::MODES) . ')');
+            }
+            $reglages['mode'] = $mode;
+        }
+        if (array_key_exists('page_size', $brut) && $brut['page_size'] !== null && $brut['page_size'] !== '') {
+            $taille = (int) $brut['page_size'];
+            if ($taille < self::TAILLE_PAGE_MIN || $taille > self::TAILLE_PAGE_MAX) {
+                throw new RuntimeException(sprintf('vue : taille de page hors bornes (%d–%d)',
+                    self::TAILLE_PAGE_MIN, self::TAILLE_PAGE_MAX));
+            }
+            $reglages['taille_page'] = $taille;
+        }
+        foreach (['show_in_sidebar' => 'barre_laterale', 'show_on_dashboard' => 'tableau_bord', 'sort_reverse' => 'tri_inverse'] as $cle => $cible) {
+            if (array_key_exists($cle, $brut)) {
+                $reglages[$cible] = (bool) $brut[$cle];
+            }
+        }
+        if (array_key_exists('sort_field', $brut)) {
+            $tri = trim((string) $brut['sort_field']);
+            if (mb_strlen($tri) > 64) {
+                throw new RuntimeException('vue : le champ de tri est trop long (64 caractères au plus)');
+            }
+            $reglages['tri'] = $tri === '' ? null : $tri;
+        }
+
+        return $reglages;
+    }
+
+    /**
      * Enregistre une vue : les filtres sont compilés ici, une vue stockée est donc toujours valide.
      * Rend l'identifiant de la vue.
      *
@@ -111,6 +179,7 @@ final class Vues
             throw new RuntimeException('vue : nom vide ou trop long (100 caractères au plus)');
         }
         $filtres = $this->compiler($brut);
+        $reglages = $this->compilerReglages($brut);
         foreach ($this->lister() as $vue) {
             if (mb_strtolower($vue['nom']) === mb_strtolower($nom)) {
                 throw new RuntimeException("vue : « $nom » existe déjà");
@@ -118,11 +187,11 @@ final class Vues
         }
 
         $id = 0;
-        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($nom, $filtres, $auteur, &$id): array {
+        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($nom, $filtres, $reglages, $auteur, &$id): array {
             // Id attribué SOUS VERROU (l'équivalent déterministe de l'auto-incrément, sans table) ;
             // un homonyme posé entre-temps par un autre administrateur reste refusé.
             $id = self::prochainId($etat);
-            $etat[] = ['id' => $id, 'nom' => $nom, 'filtres' => $filtres, 'auteur' => $auteur];
+            $etat[] = ['id' => $id, 'nom' => $nom, 'filtres' => $filtres, 'reglages' => $reglages, 'auteur' => $auteur];
 
             return $etat;
         });
@@ -191,7 +260,7 @@ final class Vues
         return null;
     }
 
-    /** @return list<array{id:int, nom:string, filtres:array<string, mixed>, auteur:string}> */
+    /** @return list<array{id:int, nom:string, filtres:array<string, mixed>, reglages:array<string, mixed>, auteur:string}> */
     public function lister(): array
     {
         $vues = [];
@@ -200,10 +269,77 @@ final class Vues
             $filtres = (array) ($v['filtres'] ?? []);
             $filtres += ['type' => null, 'emetteur' => null, 'de' => null, 'a' => null, 'etiquettes' => [], 'champ' => null];
             $vues[] = ['id' => (int) $v['id'], 'nom' => (string) $v['nom'], 'filtres' => $filtres,
+                'reglages' => self::normaliserReglages((array) ($v['reglages'] ?? [])),
                 'recherche' => (array) ($v['recherche'] ?? []), 'auteur' => (string) ($v['auteur'] ?? '')];
         }
 
         return $vues;
+    }
+
+    /**
+     * Réglages normalisés d'une vue relue : les clés absentes prennent leur défaut, jamais un trou.
+     *
+     * @param array<string, mixed> $brut
+     * @return array{affichage:?list<string>, mode:?string, taille_page:?int, barre_laterale:bool,
+     *               tableau_bord:bool, tri:?string, tri_inverse:bool}
+     */
+    private static function normaliserReglages(array $brut): array
+    {
+        $affichage = $brut['affichage'] ?? null;
+
+        return [
+            'affichage' => is_array($affichage) ? array_values(array_map('strval', $affichage)) : null,
+            'mode' => isset($brut['mode']) && is_string($brut['mode']) ? $brut['mode'] : null,
+            'taille_page' => isset($brut['taille_page']) && is_numeric($brut['taille_page']) ? (int) $brut['taille_page'] : null,
+            'barre_laterale' => (bool) ($brut['barre_laterale'] ?? true),
+            'tableau_bord' => (bool) ($brut['tableau_bord'] ?? false),
+            'tri' => isset($brut['tri']) && is_string($brut['tri']) && $brut['tri'] !== '' ? $brut['tri'] : null,
+            'tri_inverse' => (bool) ($brut['tri_inverse'] ?? false),
+        ];
+    }
+
+    /**
+     * Change les seuls réglages d'affichage d'une vue existante : les filtres ne bougent pas, le nom non plus.
+     *
+     * @param array<string, mixed> $brut
+     */
+    public function modifierReglages(int $id, array $brut, string $auteur): void
+    {
+        if ($this->lire($id) === null) {
+            throw new RuntimeException("vue : aucune vue nº $id");
+        }
+        $reglages = $this->compilerReglages($brut);
+        $this->registre->modifier(self::FICHIER, static function (array $etat) use ($id, $reglages, $auteur): array {
+            foreach ($etat as &$v) {
+                if ((int) (((array) $v)['id'] ?? 0) === $id) {
+                    $v = (array) $v;
+                    $v['reglages'] = $reglages;
+                    $v['auteur'] = $auteur;
+                }
+            }
+
+            return $etat;
+        });
+    }
+
+    /**
+     * Les vues montrées sur le tableau de bord, dans l'ordre de création.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function tableauDeBord(): array
+    {
+        return array_values(array_filter($this->lister(), static fn (array $v): bool => (bool) $v['reglages']['tableau_bord']));
+    }
+
+    /**
+     * Les vues montrées dans la barre latérale, dans l'ordre de création.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function barreLaterale(): array
+    {
+        return array_values(array_filter($this->lister(), static fn (array $v): bool => (bool) $v['reglages']['barre_laterale']));
     }
 
     /**

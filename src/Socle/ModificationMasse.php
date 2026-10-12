@@ -35,7 +35,7 @@ final class ModificationMasse
     public const LOT_MAX = 100;
 
     /** Actions admises, alignées sur l'édition en masse de Paperless-ngx (adaptées au modèle GEDv2). */
-    public const ACTIONS = ['type', 'emetteur', 'etiquettes_ajouter', 'etiquettes_retirer', 'dossier', 'corbeille'];
+    public const ACTIONS = ['type', 'emetteur', 'etiquettes_ajouter', 'etiquettes_retirer', 'dossier', 'proprietaire', 'corbeille'];
 
     private const REGISTRE = 'modification-masse';
 
@@ -248,6 +248,7 @@ final class ModificationMasse
             'type' => ['type' => (string) $valeur],
             'emetteur' => ['emetteur' => (string) $valeur],
             'dossier' => ['dossier' => (string) $valeur],
+            'proprietaire' => ['proprietaire' => (string) $valeur],
             'etiquettes_ajouter' => ['etiquettes' => array_values(array_unique([...$actuelles, ...$this->listerValeurs($valeur)]))],
             'etiquettes_retirer' => ['etiquettes' => array_values(array_diff($actuelles, $this->listerValeurs($valeur)))],
             default => throw new RuntimeException('modification en masse : action inconnue'),
@@ -272,7 +273,7 @@ final class ModificationMasse
         $action = (string) ($brut['action'] ?? '');
         if (!in_array($action, self::ACTIONS, true)) {
             throw new RuntimeException('modification en masse : action inconnue (type, emetteur, etiquettes_ajouter, '
-                . 'etiquettes_retirer, dossier, corbeille)');
+                . 'etiquettes_retirer, dossier, proprietaire, corbeille)');
         }
         $valeur = $brut['valeur'] ?? null;
 
