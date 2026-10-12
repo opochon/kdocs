@@ -85,6 +85,15 @@ final class ApiQuatreTotpTest extends TestCase
         self::assertSame(401, $this->appel($app, 'GET', '/api/v1/profil/totp')[0]);
     }
 
+    /** `account_login` : l'écran de connexion GEDv2 rend le formulaire (route GET /connexion). */
+    public function testLEcranDeConnexionEstDisponible(): void
+    {
+        $app = Kernel::creer(dirname(__DIR__, 3));
+        $reponse = $app->handle((new ServerRequestFactory())->createServerRequest('GET', '/connexion'));
+        self::assertSame(200, $reponse->getStatusCode());
+        self::assertStringContainsString('data-testid="formulaire-connexion"', (string) $reponse->getBody());
+    }
+
     /** La porte MFA de la connexion (`mfa_authenticate`) exige un code quand le TOTP est actif. */
     public function testLaConnexionExigeLeCodeTotp(): void
     {
