@@ -2139,50 +2139,100 @@
             }
         },
         "correspondance:algo:MATCH_ALL": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAll"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_ANY": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAny"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_AUTO": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchNoneEtMatchAutoNeCorrespondentJamais"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_FUZZY": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Classement\\Regles"
+                "classe": "Ged\\Classement\\Correspondance"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Classement\\ReglesTest::testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative"
-            }
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchFuzzy"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_LITERAL": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Classement\\Regles"
+                "classe": "Ged\\Classement\\Correspondance"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Classement\\ReglesTest::testIndicesMetierPriorisentCourrierContratEtFacture"
-            }
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchLiteral"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_NONE": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testUnMotifVideNeCorrespondJamais"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:algo:MATCH_REGEX": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchRegex"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:fonction:_split_match": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAll"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "correspondance:fonction:match_correspondents": {
             "statut": "absent",
@@ -2201,8 +2251,16 @@
             "lot": "V2-03"
         },
         "correspondance:fonction:matches": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Classement\\Correspondance"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Classement\\CorrespondanceTest::testUnMotifVideNeCorrespondJamais"
+            },
+            "note": "GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2."
         },
         "ecran:reglage:general": {
             "statut": "absent",

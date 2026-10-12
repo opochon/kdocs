@@ -450,6 +450,83 @@ final class Regles
     }
 
     /**
+     * Première date lisible dans TOUT le texte de la pièce, dans l'esprit du `parse_date` de
+     * Paperless-ngx : on parcourt le texte de gauche à droite et l'on retient la première forme
+     * reconnue et plausible. Contrairement à `dateEnTete()`, qui qualifie une date d'en-tête, cette
+     * lecture accepte tout le texte (les vecteurs de parité rejouent l'analyse Paperless) et reconnaît
+     * FR/DE/IT/EN, mois en toutes lettres ou abrégés, ordinaux anglais et années sur deux chiffres.
+     * Un nombre de six ou huit chiffres collés (« 130218 », « 20180213 ») n'est jamais une date.
+     */
+    public static function dateDansTexte(string $texte): ?string
+    {
+        $motif = '/(?:\b(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4}|\d{2})\b)'
+            . '|(?:\b(\d{1,2})(?:st|nd|rd|th)?[.\- \/]+(\p{L}{3,9})\.?[.\- \/]+(\d{4})\b)'
+            . '|(?:\b(\p{L}{3,9})\s+(\d{1,2}),\s*(\d{4})\b)'
+            . '|(?:\b(\p{L}{3,9})\s+(\d{4})\b)/iu';
+
+        if (preg_match_all($motif, $texte, $trouves, PREG_SET_ORDER) === false) {
+            return null;
+        }
+        foreach ($trouves as $trouve) {
+            $date = self::interpreterDate($trouve);
+            if ($date !== null && self::datePlausible($date)) {
+                return $date;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Traduit une correspondance de `dateDansTexte()` en ISO ; null si la forme n'est pas une date.
+     *
+     * @param array<int, string> $trouve
+     */
+    private static function interpreterDate(array $trouve): ?string
+    {
+        $jour = (string) ($trouve[1] ?? '');
+        if ($jour !== '') {
+            return self::dateIso((int) $jour, (int) ($trouve[2] ?? 0), self::anneeComplete((string) ($trouve[3] ?? '')));
+        }
+        $jour = (string) ($trouve[4] ?? '');
+        if ($jour !== '') {
+            return self::dateIso((int) $jour, self::mois((string) ($trouve[5] ?? '')) ?? 0, (int) ($trouve[6] ?? 0));
+        }
+        $mois = (string) ($trouve[7] ?? '');
+        if ($mois !== '') {
+            return self::dateIso((int) ($trouve[8] ?? 0), self::mois($mois) ?? 0, (int) ($trouve[9] ?? 0));
+        }
+        $mois = (string) ($trouve[10] ?? '');
+        if ($mois !== '') {
+            return self::dateIso(1, self::mois($mois) ?? 0, (int) ($trouve[11] ?? 0));
+        }
+
+        return null;
+    }
+
+    /** Une date ISO seulement si le jour et le mois existent vraiment (jour 1 pour un mois seul). */
+    private static function dateIso(int $jour, int $mois, int $annee): ?string
+    {
+        if ($mois < 1 || $mois > 12 || !checkdate($mois, $jour, $annee)) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $annee, $mois, $jour);
+    }
+
+    /** Une année sur deux chiffres : 18 -> 2018, 98 -> 1998 (comme dateparser/Paperless). */
+    private static function anneeComplete(string $annee): int
+    {
+        if (strlen($annee) === 2) {
+            $valeur = (int) $annee;
+
+            return $valeur < 70 ? 2000 + $valeur : 1900 + $valeur;
+        }
+
+        return (int) $annee;
+    }
+
+    /**
      * Le titre de la pièce : ligne « Concerne », sinon le numéro (facture, note de crédit, reçu…),
      * sinon type + émetteur + date. Jamais le nom du fichier ni du lot d'ingestion.
      */
@@ -548,18 +625,18 @@ final class Regles
     private static function mois(string $nom): ?int
     {
         static $mois = [
-            'janvier' => 1, 'januar' => 1, 'gennaio' => 1,
-            'fevrier' => 2, 'februar' => 2, 'febbraio' => 2,
-            'mars' => 3, 'marz' => 3, 'marzo' => 3,
-            'avril' => 4, 'april' => 4, 'aprile' => 4,
-            'mai' => 5, 'maggio' => 5,
-            'juin' => 6, 'juni' => 6, 'giugno' => 6,
-            'juillet' => 7, 'juli' => 7, 'luglio' => 7,
-            'aout' => 8, 'august' => 8, 'agosto' => 8,
-            'septembre' => 9, 'september' => 9, 'settembre' => 9,
-            'octobre' => 10, 'oktober' => 10, 'ottobre' => 10,
-            'novembre' => 11, 'november' => 11,
-            'decembre' => 12, 'dezember' => 12, 'dicembre' => 12,
+            'janvier' => 1, 'januar' => 1, 'gennaio' => 1, 'january' => 1, 'jan' => 1,
+            'fevrier' => 2, 'februar' => 2, 'febbraio' => 2, 'february' => 2, 'feb' => 2,
+            'mars' => 3, 'marz' => 3, 'marzo' => 3, 'march' => 3, 'mar' => 3,
+            'avril' => 4, 'april' => 4, 'aprile' => 4, 'apr' => 4,
+            'mai' => 5, 'maggio' => 5, 'may' => 5,
+            'juin' => 6, 'juni' => 6, 'giugno' => 6, 'june' => 6, 'jun' => 6,
+            'juillet' => 7, 'juli' => 7, 'luglio' => 7, 'july' => 7, 'jul' => 7,
+            'aout' => 8, 'august' => 8, 'agosto' => 8, 'aug' => 8,
+            'septembre' => 9, 'september' => 9, 'settembre' => 9, 'sept' => 9, 'sep' => 9,
+            'octobre' => 10, 'oktober' => 10, 'ottobre' => 10, 'october' => 10, 'oct' => 10,
+            'novembre' => 11, 'november' => 11, 'nov' => 11,
+            'decembre' => 12, 'dezember' => 12, 'dicembre' => 12, 'december' => 12, 'dec' => 12,
         ];
 
         return $mois[self::normaliser($nom)] ?? null;

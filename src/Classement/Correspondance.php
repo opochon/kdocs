@@ -1,0 +1,204 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ged\Classement;
+
+/**
+ * Correspondance automatique d'un texte de pièce avec le motif d'une règle de classement.
+ *
+ * Écrit à partir du comportement observé de Paperless-ngx 2.20 (`documents.matching.matches`,
+ * `_split_match`) : aucun code GPL n'est repris, les algorithmes sont réimplémentés à la manière de
+ * GEDv2. Les modes sont ceux du modèle de Paperless :
+ *
+ * - `MATCH_NONE`    : jamais de correspondance (un motif vide non plus) ;
+ * - `MATCH_ALL`     : chaque mot du motif est présent, mot entier (`\b…\b`) ;
+ * - `MATCH_ANY`     : au moins un mot du motif est présent, mot entier ;
+ * - `MATCH_LITERAL` : le motif entier est présent, encadré de limites de mot ;
+ * - `MATCH_REGEX`   : le motif est une expression régulière ; un motif invalide ne correspond jamais ;
+ * - `MATCH_FUZZY`   : similarité partielle entre le motif et la meilleure fenêtre du texte ;
+ * - `MATCH_AUTO`    : laissé à l'apprentissage, donc sans correspondance textuelle ici.
+ *
+ * Les mots peuvent être groupés par des guillemets (`"lazy  dogs"`) : les espaces internes valent
+ * alors `\s+`, donc plusieurs espaces sont tolérés. La sensibilité à la casse est un paramètre :
+ * `$insensible = true` active le mode insensible de Paperless (`is_insensitive`).
+ */
+final class Correspondance
+{
+    public const AUCUN = 'MATCH_NONE';
+    public const TOUS = 'MATCH_ALL';
+    public const UN = 'MATCH_ANY';
+    public const LITTERAL = 'MATCH_LITERAL';
+    public const REGEX = 'MATCH_REGEX';
+    public const FLOU = 'MATCH_FUZZY';
+    public const AUTO = 'MATCH_AUTO';
+
+    /** Seuil du mode flou, aligné sur rapidfuzz `score_cutoff=90` utilisé par Paperless. */
+    public const SEUIL_FLOU = 90.0;
+
+    /**
+     * Le motif correspond-il au texte, selon l'algorithme demandé ?
+     *
+     * Un motif vide (ou blanc) ne correspond jamais, quel que soit l'algorithme, comme Paperless.
+     * Un algorithme inconnu, `MATCH_NONE` ou `MATCH_AUTO` ne correspond jamais : GEDv2 ne lève pas
+     * d'erreur de classement pour un mode non textuel.
+     */
+    public static function correspond(
+        string $algorithme,
+        string $motif,
+        string $texte,
+        bool $insensible = false,
+    ): bool {
+        if (trim($motif) === '') {
+            return false;
+        }
+        $drapeaux = $insensible ? 'iu' : 'u';
+
+        return match ($algorithme) {
+            self::TOUS => self::tousLesMots($motif, $texte, $drapeaux),
+            self::UN => self::unMot($motif, $texte, $drapeaux),
+            self::LITTERAL => self::litteral($motif, $texte, $drapeaux),
+            self::REGEX => self::expressionReguliere($motif, $texte, $drapeaux),
+            self::FLOU => self::flou($motif, $texte, $insensible),
+            default => false,
+        };
+    }
+
+    /** Chaque mot du motif doit se lire comme un mot entier du texte. */
+    private static function tousLesMots(string $motif, string $texte, string $drapeaux): bool
+    {
+        $mots = self::mots($motif);
+        if ($mots === []) {
+            return false;
+        }
+        foreach ($mots as $mot) {
+            if (preg_match('/\b' . $mot . '\b/' . $drapeaux, $texte) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Au moins un mot du motif se lit comme un mot entier du texte. */
+    private static function unMot(string $motif, string $texte, string $drapeaux): bool
+    {
+        foreach (self::mots($motif) as $mot) {
+            if (preg_match('/\b' . $mot . '\b/' . $drapeaux, $texte) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Le motif entier est présent, encadré de limites de mot ; les espaces restent littéraux. */
+    private static function litteral(string $motif, string $texte, string $drapeaux): bool
+    {
+        return preg_match('/\b' . preg_quote($motif, '/') . '\b/' . $drapeaux, $texte) === 1;
+    }
+
+    /** Le motif est une expression régulière ; un motif invalide ou non compilable ne correspond pas. */
+    private static function expressionReguliere(string $motif, string $texte, string $drapeaux): bool
+    {
+        // `@` : preg_match émet un avertissement sur un motif invalide, que l'on traite explicitement
+        // comme une non-correspondance (comportement de safe_regex_search). Rien n'est avalé en silence :
+        // le retour `false` est testé et mène au refus.
+        $resultat = @preg_match('~' . str_replace('~', '\\~', $motif) . '~' . $drapeaux, $texte);
+
+        return $resultat === 1;
+    }
+
+    /**
+     * Similarité partielle : le motif est comparé à chaque fenêtre de même longueur du texte, et l'on
+     * retient la meilleure proportion de sous-séquence commune (distance Indel normalisée, comme
+     * rapidfuzz `fuzz.partial_ratio`). La ponctuation est retirée avant comparaison.
+     */
+    private static function flou(string $motif, string $texte, bool $insensible): bool
+    {
+        $gauche = self::sansPonctuation($motif);
+        $droite = self::sansPonctuation($texte);
+        if ($insensible) {
+            $gauche = mb_strtolower($gauche, 'UTF-8');
+            $droite = mb_strtolower($droite, 'UTF-8');
+        }
+        if ($gauche === '' || $droite === '') {
+            return false;
+        }
+        if (mb_strlen($gauche) > mb_strlen($droite)) {
+            [$gauche, $droite] = [$droite, $gauche];
+        }
+        $longueur = mb_strlen($gauche);
+        $jetons = preg_split('//u', $droite, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $motifJetons = preg_split('//u', $gauche, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $meilleur = 0.0;
+        for ($debut = 0; $debut + $longueur <= count($jetons); $debut++) {
+            $lcs = self::sousSequenceCommune($motifJetons, array_slice($jetons, $debut, $longueur));
+            $score = 100.0 * $lcs / $longueur;
+            if ($score > $meilleur) {
+                $meilleur = $score;
+            }
+            if ($meilleur >= 100.0) {
+                break;
+            }
+        }
+
+        return $meilleur >= self::SEUIL_FLOU;
+    }
+
+    /** `[^\w\s]` de Paperless : on garde lettres, chiffres, souligné et espaces. */
+    private static function sansPonctuation(string $valeur): string
+    {
+        return (string) preg_replace('/[^\p{L}\p{N}_\s]/u', '', $valeur);
+    }
+
+    /**
+     * Longueur de la plus longue sous-séquence commune (programmation dynamique, mémoire linéaire).
+     *
+     * @param list<string> $gauche
+     * @param list<string> $droite
+     */
+    private static function sousSequenceCommune(array $gauche, array $droite): int
+    {
+        $largeur = count($droite);
+        $precedente = array_fill(0, $largeur + 1, 0);
+        foreach ($gauche as $jeton) {
+            $courante = array_fill(0, $largeur + 1, 0);
+            foreach ($droite as $indice => $autre) {
+                $courante[$indice + 1] = $jeton === $autre
+                    ? $precedente[$indice] + 1
+                    : max($courante[$indice], $precedente[$indice + 1]);
+            }
+            $precedente = $courante;
+        }
+
+        return $precedente[$largeur];
+    }
+
+    /**
+     * Découpe le motif en mots (`"groupe entre guillemets"` ou jeton), normalise les espaces internes
+     * et échappe chaque mot. Un espace interne devient `\s+` : « lazy  dogs » tolère plusieurs espaces.
+     *
+     * @return list<string>
+     */
+    private static function mots(string $motif): array
+    {
+        if (preg_match_all('/"([^"]+)"|(\S+)/u', $motif, $trouves, PREG_SET_ORDER) === false) {
+            return [];
+        }
+        $mots = [];
+        foreach ($trouves as $trouve) {
+            $brut = ($trouve[1] ?? '') !== '' ? (string) $trouve[1] : (string) ($trouve[2] ?? '');
+            $normalise = trim((string) preg_replace('/\s+/u', ' ', $brut));
+            if ($normalise === '') {
+                continue;
+            }
+            $mots[] = implode('\s+', array_map(
+                static fn (string $partie): string => preg_quote($partie, '/'),
+                explode(' ', $normalise),
+            ));
+        }
+
+        return $mots;
+    }
+}

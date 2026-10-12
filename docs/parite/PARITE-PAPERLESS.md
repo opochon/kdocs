@@ -10,7 +10,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 180 | 552 | 0 | 48 | 23,08 % | 24,59 % |
+| 780 | 187 | 545 | 0 | 48 | 23,97 % | 25,55 % |
 
 ### Par categorie
 
@@ -19,7 +19,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 | api | 318 | 49 | 226 | 0 | 43 | 15,41 % | 17,82 % |
 | chaine | 60 | 14 | 46 | 0 | 0 | 23,33 % | 23,33 % |
 | commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
-| correspondance | 13 | 2 | 11 | 0 | 0 | 15,38 % | 15,38 % |
+| correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
 | ecran | 30 | 10 | 19 | 0 | 1 | 33,33 % | 34,48 % |
 | masse | 17 | 14 | 3 | 0 | 0 | 82,35 % | 82,35 % |
 | modele | 313 | 75 | 237 | 0 | 1 | 23,96 % | 24,04 % |
@@ -31,14 +31,14 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 
 | Categorie Paperless | Reference vecteurs | Passes | Total | Taux |
 | --- | --- | ---: | ---: | ---: |
-| dates | src/documents/tests/test_date_parsing.py | 10 | 25 | 40,00 % |
-| correspondance | src/documents/tests/test_matchables.py | 22 | 137 | 16,06 % |
+| dates | src/documents/tests/test_date_parsing.py | 25 | 25 | 100,00 % |
+| correspondance | src/documents/tests/test_matchables.py | 137 | 137 | 100,00 % |
 | — MATCH_NONE | — | 2 | 2 | 100,00 % |
-| — MATCH_ALL | — | 0 | 40 | 0,00 % |
-| — MATCH_ANY | — | 0 | 42 | 0,00 % |
-| — MATCH_LITERAL | — | 18 | 29 | 62,07 % |
-| — MATCH_REGEX | — | 0 | 19 | 0,00 % |
-| — MATCH_FUZZY | — | 2 | 5 | 40,00 % |
+| — MATCH_ALL | — | 40 | 40 | 100,00 % |
+| — MATCH_ANY | — | 42 | 42 | 100,00 % |
+| — MATCH_LITERAL | — | 29 | 29 | 100,00 % |
+| — MATCH_REGEX | — | 19 | 19 | 100,00 % |
+| — MATCH_FUZZY | — | 5 | 5 | 100,00 % |
 
 ## api
 
@@ -454,19 +454,19 @@ Vecteurs {entree, sortie} extraits mecaniquement des tests Paperless, rejoues pa
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
 | --- | --- | --- | --- | --- | --- |
-| MATCH_ALL | src/documents/models.py:48 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| MATCH_ANY | src/documents/models.py:47 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| MATCH_AUTO | src/documents/models.py:52 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| MATCH_FUZZY | src/documents/models.py:51 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative (couche 1) |  |
-| MATCH_LITERAL | src/documents/models.py:49 | couvert-autrement | service Ged\Classement\Regles | phpunit Ged\Tests\Classement\ReglesTest::testIndicesMetierPriorisentCourrierContratEtFacture (couche 1) |  |
-| MATCH_NONE | src/documents/models.py:46 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| MATCH_REGEX | src/documents/models.py:50 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| matching._split_match | src/documents/matching.py:252 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| MATCH_ALL | src/documents/models.py:48 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchAll (couche 1) |  |
+| MATCH_ANY | src/documents/models.py:47 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchAny (couche 1) |  |
+| MATCH_AUTO | src/documents/models.py:52 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchNoneEtMatchAutoNeCorrespondentJamais (couche 1) |  |
+| MATCH_FUZZY | src/documents/models.py:51 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchFuzzy (couche 1) |  |
+| MATCH_LITERAL | src/documents/models.py:49 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchLiteral (couche 1) |  |
+| MATCH_NONE | src/documents/models.py:46 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testUnMotifVideNeCorrespondJamais (couche 1) |  |
+| MATCH_REGEX | src/documents/models.py:50 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchRegex (couche 1) |  |
+| matching._split_match | src/documents/matching.py:252 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testMatchAll (couche 1) |  |
 | matching.match_correspondents | src/documents/matching.py:47 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | matching.match_document_types | src/documents/matching.py:75 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | matching.match_storage_paths | src/documents/matching.py:127 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | matching.match_tags | src/documents/matching.py:102 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| matching.matches | src/documents/matching.py:155 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| matching.matches | src/documents/matching.py:155 | couvert-autrement | service Ged\Classement\Correspondance | phpunit Ged\Tests\Classement\CorrespondanceTest::testUnMotifVideNeCorrespondJamais (couche 1) |  |
 
 ## ecran
 
@@ -1189,17 +1189,10 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | commande:documents:document_retagger | commande | src/documents/management/commands/document_retagger.py:1 | absent | ecart assume, lot a creer | V2-00 |
 | commande:documents:loaddata_stdin | commande | src/documents/management/commands/loaddata_stdin.py:1 | exclu | infrastructure-django |  |
 | commande:documents:prune_audit_logs | commande | src/documents/management/commands/prune_audit_logs.py:1 | absent | ecart assume, lot a creer | V2-00 |
-| correspondance:algo:MATCH_ALL | correspondance | src/documents/models.py:48 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:algo:MATCH_ANY | correspondance | src/documents/models.py:47 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:algo:MATCH_AUTO | correspondance | src/documents/models.py:52 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:algo:MATCH_NONE | correspondance | src/documents/models.py:46 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:algo:MATCH_REGEX | correspondance | src/documents/models.py:50 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:fonction:_split_match | correspondance | src/documents/matching.py:252 | absent | ecart assume, lot a creer | V2-03 |
 | correspondance:fonction:match_correspondents | correspondance | src/documents/matching.py:47 | absent | ecart assume, lot a creer | V2-03 |
 | correspondance:fonction:match_document_types | correspondance | src/documents/matching.py:75 | absent | ecart assume, lot a creer | V2-03 |
 | correspondance:fonction:match_storage_paths | correspondance | src/documents/matching.py:127 | absent | ecart assume, lot a creer | V2-03 |
 | correspondance:fonction:match_tags | correspondance | src/documents/matching.py:102 | absent | ecart assume, lot a creer | V2-03 |
-| correspondance:fonction:matches | correspondance | src/documents/matching.py:155 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:reglage:general | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:72 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:reglage:notifications | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:74 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:reglage:permissions | ecran | src-ui/src/app/components/admin/settings/settings.component.ts:73 | absent | ecart assume, lot a creer | V2-03 |
