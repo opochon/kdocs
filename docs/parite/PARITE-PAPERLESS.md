@@ -53,6 +53,16 @@ reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
 | ocr-text | tests/parite/vecteurs/chaine-ocr-text.json | 3 | 3 | 100,00 % |
 | registre | tests/parite/vecteurs/chaine-registre.json | 39 | 41 | 95,12 % |
 
+## API — filtres de liste (phase 4)
+
+Vecteurs {corpus, requete, documents retenus} extraits des tests Paperless (filtres de liste),
+rejoues contre la vraie couche de requetes de GEDv2 sur gedv2_test. Le test de rejeu echoue si un
+vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables` avec leur raison.
+
+| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
+| --- | --- | ---: | ---: | ---: | ---: |
+| filtres-documents | tests/parite/vecteurs/api-filtres-documents.json | 18 | 18 | 2 | 100,00 % |
+
 ## api
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
