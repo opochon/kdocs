@@ -79,17 +79,31 @@ Paperless (GPLv3) reprise. `src/Parite/Juge.php` non modifié (le juge y ajouter
 
 ## Reste
 
-- Harness complet `-SansBanc` (couches 1, 4, 5, 7, 8, 9) + chiffres exacts.
-- Porte qualité ECC (`docs/qualite/README.md`).
+- Aucun reste fonctionnel côté lot. **Le juge** doit poser les 19 exclusions SSO et étendre
+  `Juge::EXCLUSIONS_AUTORISEES` avec `authentification-allauth-sso` (décision d'Olivier, 12.10.2026) : le lot
+  ne s'exclut jamais lui-même.
 
 Note : les **19 exclusions SSO** restent `absent` dans `correspondance.json` — c'est **le juge** qui les pose
 en `exclu` (`authentification-allauth-sso`), conformément à la décision d'Olivier du 12.10.2026. Au niveau du
 lot, le hors-exclusions plafonne donc à `737 / 756 = 97,49 %` ; après l'ajout des 19 exclusions par le juge,
 `couverts / (780 − 43)` = **100,00 %** hors exclusions.
 
-## Mesures exactes
+## Mesures exactes (harness complet du 12.10.2026, arbre commité)
 
-| Mesure | Avant (`6090fe9`) | Après (à date, juge relancé) |
+| Couche | Verdict | Chiffres |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules présents, `DB_NAME=gedv2_test` imposé |
+| 1-unitaire | VERT | **863 tests, 11 538 assertions, 1 sauté** |
+| 2-contrat | VERT | toutes les routes déclarées couvertes, contrats de service OK |
+| 3-banc | ROUGE | sautée par `-SansBanc` (attendu) |
+| 4-ecrans | VERT | **95 passed (5,3 min)** |
+| 5-personas | VERT | administrateur 4/4 (médiane 700 ms), auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
+| 6-charge | VERT | p95 lecture **673 ms**, p95 écriture **242 ms**, 0 erreur, 0 collision, ingestion finie |
+| 7-securite | VERT | sonde offensive : aucun contournement accepté |
+| 8-statique | VERT | PHPStan niveau 6 : **0 erreur** hors baseline ; `composer audit` : aucune vulnérabilité |
+| 9-parite | VERT | 780 éléments · couverts **737** · strict **94,49 %** · hors exclusions **97,49 %** · 43 écarts (19 absents + 24 exclus) |
+
+| Mesure de parité | Avant (`6090fe9`) | Après |
 | --- | ---: | ---: |
 | Éléments couverts | 701 / 780 | **737 / 780** |
 | Parité stricte | 89,87 % | **94,49 %** |
@@ -97,9 +111,54 @@ lot, le hors-exclusions plafonne donc à `737 / 756 = 97,49 %` ; après l'ajout 
 | Absents | 55 | **19** (les SSO, pour le juge) |
 | Exclus | 24 | 24 (le juge portera 24 + 19 = **43**) |
 
-Couverture mesurée avec `var/e2e-latest.json` absent : la couche 4 (Playwright) doit être rejouée par le
-harness pour reprouver les 28 éléments adossés à un parcours navigateur ; le total couverts restera 737.
+## Familles portées : écrans impactés et flux F à retester
 
-## Porte qualité
+| Famille | Ce qui a changé | Écran(s) | Flux F |
+| --- | --- | --- | --- |
+| (a) Correspondants (5 verbes) | registre d'émetteurs + CRUD | `/application` → Référentiels | F1, F3, F5 |
+| (a) Chemins de stockage (5 verbes) | registre d'emplacements + CRUD | `/application` → Référentiels | F1, F3 |
+| (a) Configuration (update/partial/destroy) | identité inscriptible (titre, langue) | `/application` → Référentiels | F12 |
+| (a) Retraits Tag/Champ/Vue/Compte/Groupe | mise en veille (jamais suppression) | `/metadonnees`, `/vues`, `/administration/comptes` | F5, F10 |
+| (a) Retraits WorkflowAction/Trigger | mise en veille de la définition | `/workflows/admin` | F6, F8 |
+| (b) Document.owner | colonne + filtres `owner*` + fiche | fiche document, Bibliothèque/Recherche | F1, F10 |
+| (b) Hiérarchie d'étiquettes | `parent` + `is_root` | `/metadonnees` → Étiquettes | F3, F5 |
+| (b) `custom_field_query` | DSL JSON → SQL paramétré | Bibliothèque / Recherche (filtres) | F4, F5 |
+| (b) `original_filename` | filtre + fiche (nom d'origine) | fiche document, Bibliothèque | F1, F5 |
+| (b) `archive_serial_number` / `page_count` / `storage_type` | fiche document | fiche document, `/asn/{id}` | F1, F5 |
+| (c) `TikaDocumentParser` | couvert-autrement par `ParseurPiece` | « À traiter », dépôt | F1, F2 |
+| (d) `decrypt_documents` | outil CLI + `DechiffreurPdf` | (hors écran) | F1 |
+| (d) `prune_audit_logs` | outil CLI + `PurgeAudit` | `/journaux` (rétention) | F12 |
+| (e) `AcknowledgeTasksPermissions` | `PermissionsTaches` sur la file `ingestion_travaux` | `/taches` | F4, F8 |
+| (f) `ws-status` | flux SSE léger | `/taches` (statut) | F4, F8 |
 
-À compléter en fin de lot (PHPStan niveau 6, revue ECC, chiffres harness par couche).
+## Porte qualité (ECC, `docs/qualite/README.md`)
+
+1. **Analyse statique** — `php vendor\bin\phpstan analyse` niveau 6 : **0 erreur** hors baseline (couche 8
+   VERTE) ; `composer audit --locked` : **aucune vulnérabilité connue**. Baseline inchangée (vide), aucun
+   `@phpstan-ignore` ajouté dans `src` ni `tests`.
+2. **Revue du diff** contre les grilles `php-reviewer`, `security-reviewer`, `silent-failure-hunter` :
+   - `php-reviewer` : `declare(strict_types=1)` sur tous les fichiers neufs, retours typés, fonctions courtes
+     (outils CLI et services séparés des vues).
+   - `security-reviewer` : **SQL 100 % paramétré** — filtre `owner` (`d.proprietaire_id = ?`), `nom_origine`
+     (`LIKE ?` avec `echapperLike`), `asn` (`JSON_EXTRACT(d.meta, ?) = ?`), `custom_field_query` (marqueurs `?`,
+     nom de champ validé `/^[A-Za-z0-9_]+$/`, opérateurs en liste blanche, bornes profondeur ≤ 10 / atomes ≤ 20) ;
+     aucune concaténation d'entrée dans le SQL. CSRF vérifié par `GardeCentrale` : la sonde offensive couvre les
+     3 nouvelles routes `POST /application/*` (CSRF absent refusé, rejeu refusé). Déchiffrement via `proc_open`
+     en argv (jamais de shell). Aucun secret en clair.
+   - `silent-failure-hunter` : **constat ÉLEVÉ corrigé** — `Ui\Document::champsPaperless` avalait trois
+     `catch (Throwable)` ; ils **tracent** désormais (`error_log`) et retombent sur « — ». Les autres `catch`
+     du lot nomment la panne (`ErreurApi`, `nommer`, `erreur`) ou rendent une raison nommée
+     (`DechiffreurPdf`), jamais un 500 muet ni une erreur avalée.
+3. **TDD** — chaque famille a ses vecteurs figés (`final-verbes.json`, `final-modele.json`) et son oracle
+   `Final*Test` rouge avant le code, vert après ; les vecteurs des lots précédents et `src/Parite/Juge.php`
+   sont intacts ; `ApiQuatreAppConfigTest` a été **resserré** (écart « PATCH configuration » fermé), jamais
+   affaibli.
+
+## Résultat
+
+- Parité hors exclusions au niveau du lot : **97,49 %** (737/756) ; après les 19 exclusions SSO posées par le
+  juge : **100,00 %** (737/737), exclus = **43** (24 + 19), couverts = **737/780**, strict **94,49 %**.
+- Aucun élément du lot `final-porter.txt` n'est resté absent : **0 absent** parmi les 36 (32 `couvert`,
+  4 `couvert-autrement`).
+
+ETAT: fini
