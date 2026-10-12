@@ -133,6 +133,8 @@ final class Module
         $app->post('/api/v1/profil/totp', [$ressources, 'totpActiver']);
         $app->delete('/api/v1/profil/totp', [$ressources, 'totpDesactiver']);
         $app->post('/api/v1/comptes/{id:[0-9]+}/deactivate_totp', [$ressources, 'compteDesactiverTotp']);
+        // Jeton d'API par identifiants (lot ged-parite-api-4) : hors jeton, c'est la route qui le délivre.
+        $app->post('/api/v1/token', [$ressources, 'jetonObtenir']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);

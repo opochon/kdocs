@@ -245,6 +245,9 @@ final class DroitsRoutes
         'POST /api/v1/profil/totp' => 'publique:api-documents-ecriture',
         'DELETE /api/v1/profil/totp' => 'publique:api-documents-ecriture',
         'POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp' => 'publique:api-documents-ecriture',
+        // Obtention d'un jeton d'API par identifiants (lot ged-parite-api-4) : route publique au sens
+        // de la session (elle délivre le jeton), porte réelle = l'authentification vérifiée dans le secteur.
+        'POST /api/v1/token' => 'publique:api-token',
     ];
 
     /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */

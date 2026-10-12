@@ -7,6 +7,7 @@ namespace Ged\Jonctions;
 use Ged\Base;
 use Ged\Config;
 use Ged\Ingestion\Courrier\Traites;
+use Ged\Securite\Authentification;
 use Ged\Securite\DroitsDossiers;
 use Ged\Securite\Totp;
 use Ged\Socle\Champs;
@@ -1176,6 +1177,52 @@ final class RessourcesApi
 
             return ['id' => $cible, 'totp' => 'desactive'];
         }, 200, true);
+    }
+
+    // -----------------------------------------------------------------------
+    // Jeton d'API par identifiants (PaperlessObtainAuthTokenView / GenerateAuthTokenView)
+    // -----------------------------------------------------------------------
+
+    /**
+     * `POST /api/v1/token` : échange identifiant + mot de passe contre un jeton d'API, avec le code MFA
+     * quand la double authentification est active. La valeur du jeton n'est rendue qu'ICI, jamais relue.
+     * Route hors jeton (c'est elle qui le délivre) : aucune session, aucun cookie.
+     */
+    public function jetonObtenir(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/token';
+        try {
+            $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
+            $identifiant = trim((string) ($corps['username'] ?? $corps['identifiant'] ?? ''));
+            $motDePasse = (string) ($corps['password'] ?? $corps['mot_de_passe'] ?? '');
+            $utilisateur = (new Authentification($this->config, $this->pdo))->verifier($identifiant, $motDePasse);
+            if ($utilisateur === null) {
+                throw new ErreurApi(400, 'identifiant ou mot de passe incorrect', $etape);
+            }
+            if ($utilisateur['id'] === null) {
+                throw new ErreurApi(403, 'le compte n’est lié à aucun identifiant : jeton impossible', $etape);
+            }
+            $totp = new Totp($this->pdo);
+            $etat = $totp->etat($utilisateur['id']);
+            if ($etat !== null && $etat['actif']) {
+                $code = trim((string) ($corps['code'] ?? ''));
+                if ($code === '') {
+                    throw new ErreurApi(400, 'code MFA requis', $etape);
+                }
+                if (!$totp->verifier($etat['secret'], $code)) {
+                    throw new ErreurApi(400, 'code MFA invalide', $etape);
+                }
+            }
+            // Valeur rendue UNE SEULE FOIS, jamais journalisée.
+            $jeton = (new Jetons($this->pdo))->creerPourCompte('api-token', 'documents_lecture',
+                $utilisateur['id'], $utilisateur['identifiant']);
+
+            return $this->json($reponse, 200, ['token' => $jeton, 'username' => $utilisateur['identifiant']]);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'le jeton n’a pas pu être créé');
+        }
     }
 
     // -----------------------------------------------------------------------

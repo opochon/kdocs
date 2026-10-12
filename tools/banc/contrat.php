@@ -158,6 +158,8 @@ try {
                 'GET /api/v1/preferences', 'POST /api/v1/preferences',
                 'GET /api/v1/profil/totp', 'POST /api/v1/profil/totp', 'DELETE /api/v1/profil/totp',
                 'POST /api/v1/comptes/{id:[0-9]+}/deactivate_totp' => 401,
+                // Obtention d'un jeton d'API : sans identifiants valides, refus 400 nommé (comme Paperless).
+                'POST /api/v1/token' => 400,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.
