@@ -140,8 +140,16 @@
             "lot": "V2-05"
         },
         "api:filtre:CorrespondentFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/emetteurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:CustomFieldFilterSet.id": {
             "statut": "absent",
@@ -537,12 +545,28 @@
             }
         },
         "api:filtre:DocumentTypeFilterSet.id": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:DocumentTypeFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:PaperlessTaskFilterSet.acknowledged": {
             "statut": "absent",
@@ -597,8 +621,16 @@
             "lot": "V2-05"
         },
         "api:filtre:TagFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:route:account_confirm_email": {
             "statut": "exclu",

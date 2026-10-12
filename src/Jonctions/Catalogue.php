@@ -194,29 +194,45 @@ final class Catalogue
         return $this->fiche($id, $etape);
     }
 
-    /** @return list<array{id:int, nom:string, actif:bool}> */
-    public function types(): array
+    /**
+     * Types de la nomenclature, filtrés par `id` / `nom` / `nom_contient` (correspondance fonctionnelle
+     * avec DocumentTypeFilterSet de Paperless : les noms de paramètres suivent les conventions GEDv2).
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<array{id:int, nom:string, actif:bool}>
+     * @throws ErreurApi
+     */
+    public function types(array $criteres = [], string $etape = 'GET /api/v1/types'): array
     {
+        $types = [];
         try {
             $types = $this->nomenclature->lister();
-            if ($types !== []) {
-                return $types;
-            }
         } catch (\RuntimeException $e) {
             // Nomenclature illisible : on rend la liste livrée par défaut, jamais une liste vide muette,
             // et la cause technique part au journal.
             error_log('API documents : nomenclature illisible — ' . $e->getMessage());
         }
-        $defauts = [];
-        foreach (Nomenclature::TYPES_DEFAUT as $i => $nom) {
-            $defauts[] = ['id' => $i + 1, 'nom' => $nom, 'actif' => true];
+        if ($types === []) {
+            foreach (Nomenclature::TYPES_DEFAUT as $i => $nom) {
+                $types[] = ['id' => $i + 1, 'nom' => $nom, 'actif' => true];
+            }
         }
 
-        return $defauts;
+        $id = $this->identifiant($criteres['id'] ?? null, 'id', $etape);
+        $noms = $this->filtrerNoms(array_map(static fn (array $t): string => $t['nom'], $types), $criteres, $etape);
+
+        return array_values(array_filter($types, static fn (array $t): bool =>
+            ($id === null || $t['id'] === $id) && in_array($t['nom'], $noms, true)));
     }
 
-    /** @return list<string> Étiquettes des documents lisibles par ce compte. */
-    public function etiquettes(): array
+    /**
+     * Étiquettes des documents lisibles par ce compte, filtrées par `nom` / `nom_contient`.
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    public function etiquettes(array $criteres = [], string $etape = 'GET /api/v1/etiquettes'): array
     {
         [$where, $params] = $this->wherePourFiltres($this->filtresVides());
         $requete = $this->pdo->prepare('SELECT d.etiquettes FROM documents d WHERE ' . $where
@@ -232,18 +248,42 @@ final class Catalogue
         }
         sort($etiquettes, SORT_NATURAL | SORT_FLAG_CASE);
 
-        return $etiquettes;
+        return $this->filtrerNoms($etiquettes, $criteres, $etape);
     }
 
-    /** @return list<string> Émetteurs des documents lisibles par ce compte. */
-    public function emetteurs(): array
+    /**
+     * Émetteurs des documents lisibles par ce compte, filtrés par `nom` / `nom_contient`.
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    public function emetteurs(array $criteres = [], string $etape = 'GET /api/v1/emetteurs'): array
     {
         [$where, $params] = $this->wherePourFiltres($this->filtresVides());
         $requete = $this->pdo->prepare("SELECT DISTINCT d.emetteur FROM documents d WHERE $where"
             . " AND d.emetteur IS NOT NULL AND d.emetteur <> '' ORDER BY d.emetteur LIMIT " . self::EMETTEURS_MAX);
         $requete->execute($params);
 
-        return array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
+        return $this->filtrerNoms(array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN))), $criteres, $etape);
+    }
+
+    /**
+     * Filtre des noms de référentiel : `nom` (égal, casse ignorée) et `nom_contient` (sous-chaîne).
+     *
+     * @param list<string> $noms
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    private function filtrerNoms(array $noms, array $criteres, string $etape): array
+    {
+        $nom = $this->chaine($criteres['nom'] ?? null);
+        $contient = $this->chaine($criteres['nom_contient'] ?? null);
+
+        return array_values(array_filter($noms, static fn (string $valeur): bool =>
+            ($nom === null || mb_strtolower($valeur) === mb_strtolower($nom))
+            && ($contient === null || mb_stripos($valeur, $contient) !== false)));
     }
 
     /**
