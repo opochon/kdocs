@@ -733,6 +733,48 @@ final class RessourcesApi
         }, 204);
     }
 
+    /**
+     * `ShareLinkViewSet.update` / `partial_update` (PUT/PATCH) : modifie l'échéance d'un lien de partage
+     * sans le révoquer. GEDv2 ne supprime rien : la mise à jour est tracée, la valeur reste bornée (date
+     * future obligatoire). L'identifiant et le document d'origine ne changent jamais.
+     *
+     * @param array<string, string> $args
+     */
+    public function partageModifier(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+        $etape = "PATCH /api/v1/partages/$id";
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($id, $etape): array {
+            $this->partageOuRefus($id, $etape);
+            $expiration = $this->texteOptionnel($corps, ['expiration', 'expire_le'], '');
+            if ($expiration !== '') {
+                $date = null;
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiration) === 1) {
+                    $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $expiration) ?: null;
+                } else {
+                    try {
+                        $date = new \DateTimeImmutable($expiration);
+                    } catch (\Exception) {
+                        $date = null;
+                    }
+                }
+                if ($date === null || $date <= new \DateTimeImmutable('today')) {
+                    throw new ErreurApi(400, 'expiration future obligatoire (AAAA-MM-JJ)', $etape);
+                }
+                $this->pdo->prepare("UPDATE document_collaboration SET expire_le = ? WHERE id = ? AND type = 'partage' AND type_partage = 'externe'")
+                    ->execute([$date->format('Y-m-d H:i:s'), $id]);
+            }
+            $version = $this->entier($corps, ['file_version', 'version'], 0);
+            if ($version > 0) {
+                $this->pdo->prepare("UPDATE document_collaboration SET version = ? WHERE id = ? AND type = 'partage' AND type_partage = 'externe'")
+                    ->execute([$version, $id]);
+            }
+
+            return $this->partageOuRefus($id, $etape);
+        });
+    }
+
     /** @param array<string, mixed> $args */
     public function partagesDocument(Requete $requete, Reponse $reponse, array $args): Reponse
     {

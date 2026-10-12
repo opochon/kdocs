@@ -150,6 +150,7 @@ try {
                 'GET /api/v1/groupes', 'POST /api/v1/groupes', 'GET /api/v1/groupes/{id:[0-9]+}',
                 'PUT /api/v1/groupes/{id:[0-9]+}', 'PATCH /api/v1/groupes/{id:[0-9]+}',
                 'POST /api/v1/partages', 'GET /api/v1/partages/{id:[0-9]+}',
+                'PUT /api/v1/partages/{id:[0-9]+}', 'PATCH /api/v1/partages/{id:[0-9]+}',
                 'DELETE /api/v1/partages/{id:[0-9]+}', 'GET /api/v1/documents/{id:[0-9]+}/partages',
                 'GET /api/v1/corbeille', 'POST /api/v1/corbeille', 'GET /api/v1/taches',
                 'POST /api/v1/taches/acknowledge', 'POST /api/v1/taches/run',

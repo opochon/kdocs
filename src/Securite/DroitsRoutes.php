@@ -226,6 +226,8 @@ final class DroitsRoutes
         'PATCH /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'POST /api/v1/partages' => 'publique:api-documents-ecriture',
         'GET /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'PUT /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'DELETE /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
         'GET /api/v1/documents/{id:[0-9]+}/partages' => 'publique:api-documents-lecture',
         'GET /api/v1/corbeille' => 'publique:api-documents-lecture',

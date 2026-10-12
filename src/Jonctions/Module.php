@@ -114,6 +114,8 @@ final class Module
         $app->patch('/api/v1/groupes/{id:[0-9]+}', [$ressources, 'groupeModifier']);
         $app->post('/api/v1/partages', [$ressources, 'partageCreer']);
         $app->get('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageLire']);
+        $app->put('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageModifier']);
+        $app->patch('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageModifier']);
         $app->delete('/api/v1/partages/{id:[0-9]+}', [$ressources, 'partageSupprimer']);
         $app->get('/api/v1/documents/{id:[0-9]+}/partages', [$ressources, 'partagesDocument']);
         $app->get('/api/v1/corbeille', [$ressources, 'corbeilleLire']);
