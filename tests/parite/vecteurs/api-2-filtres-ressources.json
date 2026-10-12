@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "categorie": "filtres-ressources",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "filtres-ressources:test_custom_field_filters:001",
+      "entree": {
+        "ressource": "champs",
+        "requete": {
+          "id": "Test Custom Field String"
+        }
+      },
+      "sortie": {
+        "total": 1
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:1264"
+    },
+    {
+      "id": "filtres-ressources:test_custom_field_filters:002",
+      "entree": {
+        "ressource": "champs",
+        "requete": {
+          "id__in": [
+            "Test Custom Field String",
+            "Test Custom Field Date"
+          ]
+        }
+      },
+      "sortie": {
+        "total": 2
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:1271"
+    },
+    {
+      "id": "filtres-ressources:test_custom_field_filters:003",
+      "entree": {
+        "ressource": "champs",
+        "requete": {
+          "name__icontains": "Int"
+        }
+      },
+      "sortie": {
+        "total": 1
+      },
+      "reference": "src/documents/tests/test_api_custom_fields.py:1278"
+    }
+  ],
+  "non_rejouables": []
+}
