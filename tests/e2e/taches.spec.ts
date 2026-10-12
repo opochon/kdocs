@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import path from 'node:path';
 import { connecter } from './connexion';
 
@@ -25,6 +26,11 @@ test.beforeAll(() => {
     cwd: RACINE,
     env: { ...process.env, DB_NAME: 'gedv2_test', APP_ENV: 'test', STORAGE_ROOT: 'tests/corpus/apercu/documents' },
   });
+});
+
+// L'état de fonds écrit par le parcours (journal des tâches) ne se versionne pas.
+test.afterAll(() => {
+  rmSync(path.join(RACINE, 'tests/corpus/apercu/documents/.ged'), { recursive: true, force: true });
 });
 
 test('un administrateur suit et acquitte un traitement', async ({ page }) => {

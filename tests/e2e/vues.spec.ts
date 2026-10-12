@@ -1,4 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
+import { rmSync } from 'node:fs';
+import path from 'node:path';
 import { connecter } from './connexion';
 
 /**
@@ -8,6 +10,13 @@ import { connecter } from './connexion';
  * affichés, le mode, la taille de page, le tri et sa présence au tableau de bord / dans le menu, puis
  * modifie ses réglages. Tout passe par l'écran (menu, champs, boutons) : aucun appel d'API interne.
  */
+
+const RACINE = process.cwd();
+
+// L'état de fonds écrit par le parcours (vues enregistrées) ne se versionne pas.
+test.afterAll(() => {
+  rmSync(path.join(RACINE, 'tests/corpus/apercu/documents/.ged'), { recursive: true, force: true });
+});
 
 function surveillerConsole(page: Page): string[] {
   const erreurs: string[] = [];
