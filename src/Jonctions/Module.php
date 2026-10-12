@@ -46,7 +46,7 @@ final class Module
         $apiDocuments = new DocumentsApi($config, $jetons, $sourceApi, $depotDossier, $droits, $tailleMax);
         // Compléments de l'API (lot ged-parite-api-2), même porte que DocumentsApi (ApiJeton partagé).
         $apiJeton = new ApiJeton($config, $jetons, $droits);
-        $pariteApi = new PariteApi($config, $apiJeton);
+        $pariteApi = new PariteApi($config, $apiJeton, $mailer, $droits);
         $appairageApi = new AppairageApi($appairage, $jetons);
         $ecranProfil = new EcranProfil($vue, $profil, $appairage, $jetons);
         $ecranJonctions = new EcranJonctions($jetons);
@@ -78,6 +78,11 @@ final class Module
         $app->get('/api/v1/autocomplete', [$pariteApi, 'autocomplete']);
         $app->post('/api/v1/documents/selection_data', [$pariteApi, 'selectionData']);
         $app->get('/api/v1/documents/{id:[0-9]+}/metadonnees', [$pariteApi, 'metadonneesDocument']);
+        $app->post('/api/v1/documents/{id:[0-9]+}/email', [$pariteApi, 'emailDocument']);
+        $app->post('/api/v1/documents/email', [$pariteApi, 'emailDocuments']);
+        $app->post('/api/v1/documents/bulk_edit', [$pariteApi, 'bulkEdit']);
+        $app->post('/api/v1/documents/bulk_download', [$pariteApi, 'bulkDownload']);
+        $app->post('/api/v1/dossiers/tester', [$pariteApi, 'dossierTester']);
 
         // Écrans sous session normale : Mon profil porte l'adresse et la liste des appareils reliés.
         $app->get('/profil', [$ecranProfil, 'afficher']);

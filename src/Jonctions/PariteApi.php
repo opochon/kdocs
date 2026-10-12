@@ -7,6 +7,7 @@ namespace Ged\Jonctions;
 use Ged\Base;
 use Ged\Config;
 use Ged\Socle\Champs;
+use Ged\Socle\ModificationMasse;
 use Ged\Securite\DroitsDossiers;
 use PDO;
 use Psr\Http\Message\ResponseInterface as Reponse;
@@ -40,6 +41,8 @@ final class PariteApi
     public function __construct(
         private readonly Config $config,
         private readonly ApiJeton $apiJeton,
+        private readonly Mailer $mailer,
+        private readonly DroitsDossiers $droits,
     ) {
         $this->pdo = Base::pdo($config);
     }
@@ -153,6 +156,189 @@ final class PariteApi
         } catch (Throwable $e) {
             return $this->echec($reponse, $etape, $e, "les métadonnées du document $id n’ont pas pu être lues");
         }
+    }
+
+    /** @param array<string, string> $args */
+    public function emailDocument(Requete $requete, Reponse $reponse, array $args): Reponse
+    {
+        $id = (int) ($args['id'] ?? 0);
+
+        return $this->envoyerDocuments($requete, $reponse, [$id], 'POST /api/v1/documents/' . $id . '/email');
+    }
+
+    public function emailDocuments(Requete $requete, Reponse $reponse): Reponse
+    {
+        $corps = $requete->getParsedBody();
+
+        return $this->envoyerDocuments($requete, $reponse, [], 'POST /api/v1/documents/email', is_array($corps) ? $corps : []);
+    }
+
+    /**
+     * Envoi d'un ou plusieurs documents par courriel (DocumentViewSet.email_document / email_documents) :
+     * l'expéditeur est la GED (mécanisme d'envoi existant), chaque document est joint, et un document hors
+     * dossiers fait refuser tout l'envoi. Aucun envoi réel en test (transport « fichier »).
+     *
+     * @param list<int> $idsForces identifiants imposés (route de détail)
+     * @param array<string, mixed> $corps
+     */
+    private function envoyerDocuments(Requete $requete, Reponse $reponse, array $idsForces, string $etape, array $corps = []): Reponse
+    {
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $body = $corps === [] && is_array($requete->getParsedBody()) ? $requete->getParsedBody() : $corps;
+            $ids = $idsForces !== [] ? $idsForces : $this->identifiantsSelection($body);
+            $adresses = $this->adresses($body['addresses'] ?? $body['adresses'] ?? '', $etape);
+            $objet = trim((string) ($body['subject'] ?? $body['objet'] ?? 'Documents GED'));
+            $message = trim((string) ($body['message'] ?? $body['texte'] ?? 'Veuillez trouver les documents en pièce jointe.'));
+            if ($objet === '' || $message === '') {
+                throw new ErreurApi(400, 'objet et message requis', $etape);
+            }
+
+            $catalogue = $this->apiJeton->catalogue($session);
+            $pieces = [];
+            foreach ($ids as $id) {
+                $fichier = $catalogue->fichier($id, null, $etape);
+                $contenu = file_get_contents($fichier['chemin']);
+                if ($contenu === false) {
+                    throw new ErreurApi(404, "le fichier du document $id a disparu du fonds", $etape);
+                }
+                $pieces[] = ['nom' => $fichier['nom'], 'type' => $fichier['mime'], 'contenu' => $contenu];
+            }
+            foreach ($adresses as $adresse) {
+                $this->mailer->envoyerAvecPieces($adresse, $objet, $message, $pieces);
+            }
+
+            return $this->json($reponse, 200, ['envoye' => true, 'documents' => count($ids), 'destinataires' => $adresses]);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'l’envoi du courriel n’a pas abouti');
+        }
+    }
+
+    public function bulkEdit(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/documents/bulk_edit';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, true);
+            $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
+            $ids = $this->identifiantsSelection($corps);
+            $action = trim((string) ($corps['action'] ?? ''));
+            if ($action === '') {
+                throw new ErreurApi(400, 'action requise (type, emetteur, etiquettes_ajouter, etiquettes_retirer, dossier, proprietaire, corbeille)', $etape);
+            }
+
+            try {
+                $masse = new ModificationMasse($this->config, $session['compte'], $session['administrateur']);
+                $tache = $masse->lancer($ids, ['action' => $action, 'valeur' => $corps['valeur'] ?? null], $session['identifiant']);
+                $etat = $masse->avancer($tache['id']);
+                for ($i = 0; $i < 20 && ($etat['etat'] ?? '') === 'en_cours'; ++$i) {
+                    $etat = $masse->avancer($tache['id']);
+                }
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return $this->json($reponse, 200, $etat);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'la modification en masse n’a pas abouti');
+        }
+    }
+
+    public function bulkDownload(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/documents/bulk_download';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, false);
+            $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
+            $ids = $this->identifiantsSelection($corps);
+            $catalogue = $this->apiJeton->catalogue($session);
+
+            $archive = new \ZipArchive();
+            $fichierZip = tempnam(sys_get_temp_dir(), 'gedv2-zip-');
+            if ($fichierZip === false || $archive->open($fichierZip, \ZipArchive::OVERWRITE) !== true) {
+                throw new ErreurApi(500, 'archive ZIP impossible à préparer', $etape);
+            }
+            $noms = [];
+            foreach ($ids as $id) {
+                $fichier = $catalogue->fichier($id, null, $etape);
+                $contenu = file_get_contents($fichier['chemin']);
+                if ($contenu === false) {
+                    throw new ErreurApi(404, "le fichier du document $id a disparu du fonds", $etape);
+                }
+                $nom = $fichier['nom'];
+                if (isset($noms[$nom])) {
+                    $nom = $id . '-' . $nom;
+                }
+                $noms[$nom] = true;
+                $archive->addFromString($nom, $contenu);
+            }
+            $archive->close();
+            $octets = file_get_contents($fichierZip);
+            unlink($fichierZip);
+            if ($octets === false) {
+                throw new ErreurApi(500, 'archive ZIP illisible après préparation', $etape);
+            }
+            $reponse->getBody()->write($octets);
+
+            return $reponse->withHeader('Content-Type', 'application/zip')
+                ->withHeader('Content-Disposition', 'attachment; filename="documents.zip"')
+                ->withStatus(200);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'l’archive des documents n’a pas pu être préparée');
+        }
+    }
+
+    public function dossierTester(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/dossiers/tester';
+        try {
+            $session = $this->apiJeton->authentifier($requete, $etape, true);
+            $corps = is_array($requete->getParsedBody()) ? $requete->getParsedBody() : [];
+            $dossier = trim(str_replace('\\', '/', (string) ($corps['dossier'] ?? '')), '/');
+            if ($dossier === '' || str_contains($dossier, '..')) {
+                throw new ErreurApi(400, 'dossier requis (chemin relatif, sans « .. »)', $etape);
+            }
+            $idDossier = $this->droits->dossierPourChemin($dossier);
+            $deposable = $idDossier !== null && $this->droits->autorise($session['compte'], $idDossier, 'deposer');
+
+            return $this->json($reponse, 200, ['dossier' => $dossier, 'deposable' => $deposable]);
+        } catch (ErreurApi $e) {
+            return $this->erreur($reponse, $e);
+        } catch (Throwable $e) {
+            return $this->echec($reponse, $etape, $e, 'l’essai du dossier n’a pas abouti');
+        }
+    }
+
+    /**
+     * Adresses du courriel : liste ou chaîne « a@x, b@y » ; chacune est validée, une entrée invalide
+     * refuse l'envoi (400 nommé), jamais un envoi partiel silencieux.
+     *
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    private function adresses(mixed $brut, string $etape): array
+    {
+        $adresses = [];
+        foreach (is_array($brut) ? $brut : explode(',', (string) $brut) as $adresse) {
+            $adresse = trim((string) $adresse);
+            if ($adresse === '') {
+                continue;
+            }
+            if (filter_var($adresse, FILTER_VALIDATE_EMAIL) === false) {
+                throw new ErreurApi(400, "adresse invalide : « $adresse »", $etape);
+            }
+            $adresses[] = $adresse;
+        }
+        if ($adresses === []) {
+            throw new ErreurApi(400, 'au moins une adresse destinataire est requise', $etape);
+        }
+
+        return $adresses;
     }
 
     /**

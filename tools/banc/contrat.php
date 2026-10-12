@@ -132,6 +132,9 @@ try {
                 'GET /api/v1/statistiques', 'GET /api/v1/next_asn', 'GET /api/v1/autocomplete',
                 'POST /api/v1/documents/selection_data',
                 'GET /api/v1/documents/{id:[0-9]+}/metadonnees' => 401,
+                'POST /api/v1/documents/{id:[0-9]+}/email', 'POST /api/v1/documents/email',
+                'POST /api/v1/documents/bulk_edit', 'POST /api/v1/documents/bulk_download',
+                'POST /api/v1/dossiers/tester' => 401,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.

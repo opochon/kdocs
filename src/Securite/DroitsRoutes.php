@@ -164,6 +164,11 @@ final class DroitsRoutes
         'GET /api/v1/autocomplete' => 'publique:api-documents-lecture',
         'POST /api/v1/documents/selection_data' => 'publique:api-documents-lecture',
         'GET /api/v1/documents/{id:[0-9]+}/metadonnees' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/{id:[0-9]+}/email' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/email' => 'publique:api-documents-lecture',
+        'POST /api/v1/documents/bulk_edit' => 'publique:api-documents-ecriture',
+        'POST /api/v1/documents/bulk_download' => 'publique:api-documents-lecture',
+        'POST /api/v1/dossiers/tester' => 'publique:api-documents-ecriture',
         // Édition depuis le poste (lot ged-edition-serveur, F13) : API sous jeton d'appareil (hors
         // session), la porte réelle est le jeton vérifié dans le secteur ; et la route de session qui
         // récupère une copie de secours en nouvelle version.

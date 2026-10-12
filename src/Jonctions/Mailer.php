@@ -98,4 +98,15 @@ final class Mailer
 
         $this->transport->envoyer($adresse, self::OBJET_VERIFICATION, $texte);
     }
+
+    /**
+     * Courriel portant des documents (action `email_document` / `email_documents` de l'API). Le transport
+     * est celui de la GED : « fichier » en test (jamais d'envoi réel), SMTP en production.
+     *
+     * @param list<array{nom:string, type:string, contenu:string}> $pieces
+     */
+    public function envoyerAvecPieces(string $adresse, string $objet, string $texte, array $pieces = []): void
+    {
+        $this->transport->envoyer(trim($adresse), $objet, $texte, $pieces);
+    }
 }
