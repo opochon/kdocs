@@ -1287,3 +1287,51 @@ disparus PENDANT la reconstruction) mais le bilan de l'écran Application ne l'a
 **Preuves** : PHPUnit ciblé rouge avant code (1 échec / 2) puis 2 tests / 17 assertions verts ; E2E
 2 passed (35,9 s puis 37,0 s), **1 failed** sous mutation du bloc de gabarit ; voisins Socle/Ecrans
 28 tests / 141 assertions verts. Commits `7872788`, `ee5ab1b`.
+
+## Journal ged-parite-ecrans-1 (12-10) — les 17 écarts `ecran` de la parité Paperless
+
+Oracle d'abord : `tests/parite/vecteurs/ecrans.json` (17 scénarios utilisateur, lus en LECTURE SEULE
+dans `C:\ged\ref\paperless-ngx/src-ui`, aucun code GPL copié) et `tests/php/Parite/EcransPariteTest.php`
+(cohérence scénario ↔ gabarit ↔ correspondance), vus ROUGES avant l'implémentation (commit `07c637f`).
+
+**Écrans rendant le service Paperless, à la manière de GEDv2 (mêmes gabarits, même charte, barre d'actions
+sous le titre, testids, états vides et erreurs nommées)**
+- `TableauDeBord` + `templates/ecrans/tableau-de-bord.twig` (`/tableau-de-bord`) : documents à classer,
+  traitements en échec, courriers récents, vues épinglées.
+- `Journaux` + `templates/ecrans/journaux.twig` (`/journaux`, admin) : journal d'audit et de scellement,
+  filtre par action et borne de lignes, aucune écriture ni purge.
+- `Corbeille` + `templates/ecrans/corbeille.twig` (`/corbeille`, admin) : liste et RESTAURATION ; la
+  suppression définitive est annoncée indisponible (règle 4 : zéro suppression de donnée utilisateur).
+- `Reglages` + `templates/ecrans/reglages.twig` (`/reglages`, `/reglages/{section}`) : général
+  (langue/theme/mode/taille/colonnes), notifications, permissions effectives, vues.
+- `AccesArchive` + `templates/ecrans/asn.twig` (`/asn`, `/asn/{id}`) : numéro d'archive → fiche, numéro
+  inconnu refusé nommément.
+- Réutilisation sans doublon : `/application` (configuration globale, chemins de stockage), `/taches`,
+  `/vues`, `/administration/comptes|groupes`.
+- Menu : nouveau « Tableau de bord » (entrée principale), « Journaux » et « Corbeille » (section
+  Administration), « Numéro d'archive » et « Mes réglages » (bas du rail) ; icône « corbeille » ajoutée.
+
+**Preuves** : 7 parcours E2E (8 tests) verts en isolé ; PHPUnit 828 tests / 11 099 assertions verts ;
+PHPStan niveau 6 : 0 erreur ; couche 9 VERTE (546/780, stricte 70,00 %, `ecran` 29/30 dont 1 exclu).
+
+**Lignes hors secteur (assumées, signalées)**
+- `src/Securite/DroitsRoutes.php` : permissions des nouvelles routes (tableau de bord, journaux,
+  corbeille + restauration, réglages + section, asn + numéro).
+- `src/Securite/Module.php` : les formulaires de création Comptes/Groupes étaient rendus SANS jeton CSRF
+  (`csrf|default('')`), la création par l'écran était donc impossible ; ils reçoivent maintenant le jeton
+  de la session (`Ged\Ui\Ecrans::jetonCsrf`). Nécessaire au parcours `utilisateurs.spec.ts`.
+- `src/Socle/Preferences.php` : quatre clés de notification bornées (`notifications_*`), lues avec défaut.
+- `tools/banc/sonde-securite.php` : charges CSRF défensives des deux mutations neuves.
+- `tools/harness.ps1` : la couche 4 écrit désormais `var/e2e-latest.json` EN PLUS de la sortie ligne
+  (`--reporter=line,json` + `PLAYWRIGHT_JSON_OUTPUT_NAME`) ; sans cela l'override `--reporter=line`
+  supprimait la preuve E2E et la couche 9 aurait compté les écrans « non prouvés » (faux vert).
+- `tools/parite/juge.php` : le rapport nomme la COUCHE de la preuve (1 PHPUnit, 4 Playwright) au lieu de
+  tout étiqueter couche 1.
+
+**Demandes**
+- **Harness** : `tools/harness.ps1` modifié (rapport JSON de la couche 4) — à confirmer côté harness.
+- **Socle** : `Preferences::CLEFS`/`lire` étendues aux notifications ; à reprendre au prochain lot Socle.
+- **Droits & sécurité** : `DroitsRoutes` (nouvelles routes) et `Securite\Module` (jeton CSRF des
+  formulaires Comptes/Groupes) — à reprendre/reporter.
+- **Corbeille** : Paperless offre la « suppression définitive » ; GEDv2 ne la fait pas (règle 4). Écart
+  assumé et nommé à l'écran, pas une omission.
