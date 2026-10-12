@@ -231,6 +231,8 @@ final class DroitsRoutes
         'GET /api/v1/corbeille' => 'publique:api-documents-lecture',
         'POST /api/v1/corbeille' => 'publique:api-documents-ecriture',
         'GET /api/v1/taches' => 'publique:api-documents-lecture',
+        'POST /api/v1/taches/acknowledge' => 'publique:api-documents-ecriture',
+        'POST /api/v1/taches/run' => 'publique:api-documents-ecriture',
         'GET /api/v1/taches/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/courriers/traites/{id:[0-9]+}' => 'publique:api-documents-lecture',
         'GET /api/v1/profil' => 'publique:api-documents-lecture',

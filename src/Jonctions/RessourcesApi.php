@@ -856,14 +856,103 @@ final class RessourcesApi
 
     public function tachesLister(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->lireRessource($requete, $reponse, 'GET /api/v1/taches', function (): array {
-            $taches = (new Taches($this->config))->lister(50);
+        // Filtres PaperlessTaskFilterSet (lot api-4) : task_id, status, task_name, type, acknowledged.
+        // Ils s'appliquent au suivi réel (`Socle\Taches`, complété par `ingestion_travaux`) sans file
+        // parallèle ; un filtre inconnu est ignoré, jamais une erreur.
+        $filtres = $requete->getQueryParams();
+
+        return $this->lireRessource($requete, $reponse, 'GET /api/v1/taches', function () use ($filtres): array {
+            $service = new Taches($this->config);
+            $taches = $service->lister(500);
             if ($taches === []) {
-                $taches = (new Taches($this->config))->depuisTravaux($this->pdo, 50);
+                $taches = $service->depuisTravaux($this->pdo, 500);
+            }
+            $taches = $this->filtrerTaches($taches, $filtres);
+
+            return ['count' => count($taches), 'results' => array_slice($taches, 0, 50)];
+        }, true);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $taches
+     * @param array<string, mixed> $filtres
+     * @return list<array<string, mixed>>
+     */
+    private function filtrerTaches(array $taches, array $filtres): array
+    {
+        $gardees = [];
+        foreach ($taches as $tache) {
+            if (isset($filtres['task_id']) && (string) ($tache['task_id'] ?? '') !== (string) $filtres['task_id']) {
+                continue;
+            }
+            if (isset($filtres['status']) && (string) ($tache['status'] ?? '') !== mb_strtoupper((string) $filtres['status'])) {
+                continue;
+            }
+            if (isset($filtres['task_name']) && mb_strtoupper((string) ($tache['task_name'] ?? '')) !== mb_strtoupper((string) $filtres['task_name'])) {
+                continue;
+            }
+            if (isset($filtres['type']) && mb_strtoupper((string) ($tache['type'] ?? '')) !== mb_strtoupper((string) $filtres['type'])) {
+                continue;
+            }
+            if (isset($filtres['acknowledged'])) {
+                $voulu = filter_var($filtres['acknowledged'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($voulu !== null && ($tache['acknowledged'] ?? false) !== $voulu) {
+                    continue;
+                }
+            }
+            $gardees[] = $tache;
+        }
+
+        return $gardees;
+    }
+
+    /**
+     * `TasksViewSet.acknowledge` (Paperless) : acquitte les tâches listées et rend le nombre traité.
+     * Réservé à l'administrateur (la liste `/api/v1/taches` l'est aussi dans GEDv2).
+     */
+    public function tachesAccuser(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/taches/acknowledge';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $ids = $this->listeIdentifiants($corps['tasks'] ?? $corps['ids'] ?? []);
+            if ($ids === []) {
+                throw new ErreurApi(400, 'aucune tâche à acquitter (clé « tasks » attendue)', $etape);
+            }
+            $service = new Taches($this->config);
+            $resultat = 0;
+            foreach ($ids as $id) {
+                try {
+                    $service->accuser($id, true);
+                } catch (\RuntimeException $e) {
+                    throw new ErreurApi(404, "tâche introuvable : $id", $etape, $e);
+                }
+                ++$resultat;
             }
 
-            return ['count' => count($taches), 'results' => $taches];
-        }, true);
+            return ['result' => $resultat];
+        }, 200, true);
+    }
+
+    /**
+     * `TasksViewSet.run` (Paperless) : programme une tâche de maintenance connue. GEDv2 n'a aucun démon
+     * Celery : la tâche est enregistrée dans le suivi partagé (`Socle\Taches`), reprise par un job court.
+     * Réservé à l'administrateur (comme `superuser` côté Paperless).
+     */
+    public function tachesExecuter(Requete $requete, Reponse $reponse): Reponse
+    {
+        $etape = 'POST /api/v1/taches/run';
+
+        return $this->ecrireRessource($requete, $reponse, $etape, function (array $corps) use ($etape): array {
+            $nom = mb_strtoupper($this->texteRequis($corps, ['task_name', 'nom'], 'task_name', $etape));
+            try {
+                $tache = (new Taches($this->config))->ouvrir($nom, Taches::TYPES[0], 'maintenance:' . $nom, $this->auteur());
+            } catch (\RuntimeException $e) {
+                throw new ErreurApi(400, $e->getMessage(), $etape, $e);
+            }
+
+            return ['result' => 'tâche enregistrée', 'task_id' => $tache['task_id'], 'task_name' => $tache['task_name']];
+        }, 200, true);
     }
 
     /** @param array<string, string> $args */

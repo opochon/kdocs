@@ -119,6 +119,8 @@ final class Module
         $app->get('/api/v1/corbeille', [$ressources, 'corbeilleLire']);
         $app->post('/api/v1/corbeille', [$ressources, 'corbeilleAction']);
         $app->get('/api/v1/taches', [$ressources, 'tachesLister']);
+        $app->post('/api/v1/taches/acknowledge', [$ressources, 'tachesAccuser']);
+        $app->post('/api/v1/taches/run', [$ressources, 'tachesExecuter']);
         $app->get('/api/v1/taches/{id:[0-9]+}', [$ressources, 'tacheLire']);
         $app->get('/api/v1/courriers/traites/{id:[0-9]+}', [$ressources, 'courrierTraiteLire']);
         $app->get('/api/v1/profil', [$ressources, 'profilLire']);
