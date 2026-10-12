@@ -194,29 +194,45 @@ final class Catalogue
         return $this->fiche($id, $etape);
     }
 
-    /** @return list<array{id:int, nom:string, actif:bool}> */
-    public function types(): array
+    /**
+     * Types de la nomenclature, filtrés par `id` / `nom` / `nom_contient` (correspondance fonctionnelle
+     * avec DocumentTypeFilterSet de Paperless : les noms de paramètres suivent les conventions GEDv2).
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<array{id:int, nom:string, actif:bool}>
+     * @throws ErreurApi
+     */
+    public function types(array $criteres = [], string $etape = 'GET /api/v1/types'): array
     {
+        $types = [];
         try {
             $types = $this->nomenclature->lister();
-            if ($types !== []) {
-                return $types;
-            }
         } catch (\RuntimeException $e) {
             // Nomenclature illisible : on rend la liste livrée par défaut, jamais une liste vide muette,
             // et la cause technique part au journal.
             error_log('API documents : nomenclature illisible — ' . $e->getMessage());
         }
-        $defauts = [];
-        foreach (Nomenclature::TYPES_DEFAUT as $i => $nom) {
-            $defauts[] = ['id' => $i + 1, 'nom' => $nom, 'actif' => true];
+        if ($types === []) {
+            foreach (Nomenclature::TYPES_DEFAUT as $i => $nom) {
+                $types[] = ['id' => $i + 1, 'nom' => $nom, 'actif' => true];
+            }
         }
 
-        return $defauts;
+        $id = $this->identifiant($criteres['id'] ?? null, 'id', $etape);
+        $noms = $this->filtrerNoms(array_map(static fn (array $t): string => $t['nom'], $types), $criteres, $etape);
+
+        return array_values(array_filter($types, static fn (array $t): bool =>
+            ($id === null || $t['id'] === $id) && in_array($t['nom'], $noms, true)));
     }
 
-    /** @return list<string> Étiquettes des documents lisibles par ce compte. */
-    public function etiquettes(): array
+    /**
+     * Étiquettes des documents lisibles par ce compte, filtrées par `nom` / `nom_contient`.
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    public function etiquettes(array $criteres = [], string $etape = 'GET /api/v1/etiquettes'): array
     {
         [$where, $params] = $this->wherePourFiltres($this->filtresVides());
         $requete = $this->pdo->prepare('SELECT d.etiquettes FROM documents d WHERE ' . $where
@@ -232,28 +248,71 @@ final class Catalogue
         }
         sort($etiquettes, SORT_NATURAL | SORT_FLAG_CASE);
 
-        return $etiquettes;
+        return $this->filtrerNoms($etiquettes, $criteres, $etape);
     }
 
-    /** @return list<string> Émetteurs des documents lisibles par ce compte. */
-    public function emetteurs(): array
+    /**
+     * Émetteurs des documents lisibles par ce compte, filtrés par `nom` / `nom_contient`.
+     *
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    public function emetteurs(array $criteres = [], string $etape = 'GET /api/v1/emetteurs'): array
     {
         [$where, $params] = $this->wherePourFiltres($this->filtresVides());
         $requete = $this->pdo->prepare("SELECT DISTINCT d.emetteur FROM documents d WHERE $where"
             . " AND d.emetteur IS NOT NULL AND d.emetteur <> '' ORDER BY d.emetteur LIMIT " . self::EMETTEURS_MAX);
         $requete->execute($params);
 
-        return array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN)));
+        return $this->filtrerNoms(array_values(array_map('strval', $requete->fetchAll(PDO::FETCH_COLUMN))), $criteres, $etape);
+    }
+
+    /**
+     * Filtre des noms de référentiel : `nom` (égal, casse ignorée) et `nom_contient` (sous-chaîne).
+     *
+     * @param list<string> $noms
+     * @param array<string, mixed> $criteres
+     * @return list<string>
+     * @throws ErreurApi
+     */
+    private function filtrerNoms(array $noms, array $criteres, string $etape): array
+    {
+        $nom = $this->chaine($criteres['nom'] ?? null);
+        $contient = $this->chaine($criteres['nom_contient'] ?? null);
+
+        return array_values(array_filter($noms, static fn (string $valeur): bool =>
+            ($nom === null || mb_strtolower($valeur) === mb_strtolower($nom))
+            && ($contient === null || mb_stripos($valeur, $contient) !== false)));
     }
 
     /**
      * Filtres neutres (aucune contrainte), à la forme attendue par `wherePourFiltres`.
      *
-     * @return array{type:?string, emetteur:?string, etiquette:list<string>, date_debut:?string, date_fin:?string, dossier:?string}
+     * Le vocabulaire suit les conventions GEDv2 (français) ; la correspondance fonctionnelle avec les
+     * paramètres Paperless est documentée dans tests/php/Parite/ApiFiltresDocumentsTest.php.
+     *
+     * @return array<string, mixed>
      */
     private function filtresVides(): array
     {
-        return ['type' => null, 'emetteur' => null, 'etiquette' => [], 'date_debut' => null, 'date_fin' => null, 'dossier' => null];
+        return [
+            'type' => null, 'emetteur' => null, 'etiquette' => [], 'date_debut' => null, 'date_fin' => null,
+            'dossier' => null,
+            'id' => null, 'ids' => [],
+            'titre_egal' => null, 'titre_contient' => null, 'titre_commence' => null, 'titre_finit' => null,
+            'contenu_egal' => null, 'contenu_contient' => null, 'contenu_commence' => null, 'contenu_finit' => null,
+            'titre_contenu' => null,
+            'empreinte' => null, 'empreinte_egal' => null, 'mime' => null, 'mime_contient' => null,
+            'date_min' => null, 'date_max' => null, 'date_apres' => null, 'date_avant' => null,
+            'date_annee' => null, 'date_mois' => null, 'date_jour' => null,
+            'ajoute_min' => null, 'ajoute_max' => null, 'ajoute_apres' => null, 'ajoute_avant' => null,
+            'ajoute_annee' => null, 'ajoute_mois' => null, 'ajoute_jour' => null,
+            'modifie_min' => null, 'modifie_max' => null, 'modifie_apres' => null, 'modifie_avant' => null,
+            'modifie_annee' => null, 'modifie_mois' => null, 'modifie_jour' => null,
+            'etiquettes_any' => [], 'sans_etiquettes' => [], 'etiquettes_presentes' => null,
+            'a_traiter' => null, 'sans_emetteur' => null, 'sans_type' => null, 'sans_dossier' => null,
+        ];
     }
 
     /** @return list<array{id:int, nom:string}> Vues enregistrées du fonds (configuration partagée). */
@@ -274,19 +333,21 @@ final class Catalogue
     }
 
     /**
-     * Filtres normalisés : une date non ISO est refusée 400 (jamais un filtre lâche silencieux).
+     * Filtres normalisés : une date, un identifiant ou un booléen invalide est refusé 400 (jamais un
+     * filtre lâche silencieux). Les filtres de texte sont bornés et échappés pour le LIKE.
      *
      * @param array<string, mixed> $criteres
-     * @return array{type:?string, emetteur:?string, etiquette:list<string>, date_debut:?string, date_fin:?string, dossier:?string}
+     * @return array<string, mixed>
      * @throws ErreurApi
      */
     private function criteres(array $criteres, string $etape): array
     {
-        $etiquettes = [];
+        $filtres = $this->filtresVides();
+
         foreach ((array) ($criteres['etiquette'] ?? []) as $etiquette) {
             $etiquette = trim((string) $etiquette);
-            if ($etiquette !== '' && !in_array($etiquette, $etiquettes, true)) {
-                $etiquettes[] = $etiquette;
+            if ($etiquette !== '' && !in_array($etiquette, $filtres['etiquette'], true)) {
+                $filtres['etiquette'][] = $etiquette;
             }
         }
         $dossier = trim(str_replace('\\', '/', (string) ($criteres['dossier'] ?? '')), '/');
@@ -294,14 +355,47 @@ final class Catalogue
             throw new ErreurApi(400, "filtre dossier invalide : « $dossier »", $etape);
         }
 
-        return [
-            'type' => $this->chaine($criteres['type'] ?? null),
-            'emetteur' => $this->chaine($criteres['emetteur'] ?? null),
-            'etiquette' => $etiquettes,
-            'date_debut' => $this->date($criteres['date_debut'] ?? null, 'date_debut', $etape),
-            'date_fin' => $this->date($criteres['date_fin'] ?? null, 'date_fin', $etape),
-            'dossier' => $dossier === '' ? null : $dossier,
-        ];
+        $filtres['type'] = $this->chaine($criteres['type'] ?? null);
+        $filtres['emetteur'] = $this->chaine($criteres['emetteur'] ?? null);
+        $filtres['date_debut'] = $this->date($criteres['date_debut'] ?? null, 'date_debut', $etape);
+        $filtres['date_fin'] = $this->date($criteres['date_fin'] ?? null, 'date_fin', $etape);
+        $filtres['dossier'] = $dossier === '' ? null : $dossier;
+
+        $filtres['id'] = $this->identifiant($criteres['id'] ?? null, 'id', $etape);
+        $filtres['ids'] = $this->identifiants($criteres['ids'] ?? null, 'ids', $etape);
+
+        foreach (['titre', 'contenu'] as $champ) {
+            foreach (['egal', 'contient', 'commence', 'finit'] as $operateur) {
+                $cle = $champ . '_' . $operateur;
+                $filtres[$cle] = $this->chaine($criteres[$cle] ?? null);
+            }
+        }
+        $filtres['titre_contenu'] = $this->chaine($criteres['titre_contenu'] ?? null);
+        $filtres['empreinte'] = $this->chaine($criteres['empreinte'] ?? null);
+        $filtres['empreinte_egal'] = $this->chaine($criteres['empreinte_egal'] ?? null);
+        $filtres['mime'] = $this->chaine($criteres['mime'] ?? null);
+        $filtres['mime_contient'] = $this->chaine($criteres['mime_contient'] ?? null);
+
+        foreach (['date' => 'date', 'ajoute' => 'horodatage', 'modifie' => 'horodatage'] as $prefixe => $nature) {
+            foreach (['min', 'max', 'apres', 'avant'] as $borne) {
+                $cle = $prefixe . '_' . $borne;
+                $filtres[$cle] = $nature === 'date'
+                    ? $this->date($criteres[$cle] ?? null, $cle, $etape)
+                    : $this->horodatage($criteres[$cle] ?? null, $cle, $etape);
+            }
+            foreach (['annee', 'mois', 'jour'] as $composante) {
+                $cle = $prefixe . '_' . $composante;
+                $filtres[$cle] = $this->identifiant($criteres[$cle] ?? null, $cle, $etape);
+            }
+        }
+
+        $filtres['etiquettes_any'] = $this->listeChaines($criteres['etiquettes_any'] ?? null);
+        $filtres['sans_etiquettes'] = $this->listeChaines($criteres['sans_etiquettes'] ?? null);
+        foreach (['etiquettes_presentes', 'a_traiter', 'sans_emetteur', 'sans_type', 'sans_dossier'] as $cle) {
+            $filtres[$cle] = $this->booleen($criteres[$cle] ?? null, $cle, $etape);
+        }
+
+        return $filtres;
     }
 
     private function chaine(mixed $valeur): ?string
@@ -309,6 +403,67 @@ final class Catalogue
         $valeur = trim((string) $valeur);
 
         return $valeur === '' ? null : $valeur;
+    }
+
+    /** @throws ErreurApi */
+    private function identifiant(mixed $valeur, string $nom, string $etape): ?int
+    {
+        $valeur = trim((string) $valeur);
+        if ($valeur === '') {
+            return null;
+        }
+        if (preg_match('/^\d+$/', $valeur) !== 1 || (int) $valeur < 1) {
+            throw new ErreurApi(400, "filtre $nom : « $valeur » n’est pas un identifiant positif", $etape);
+        }
+
+        return (int) $valeur;
+    }
+
+    /**
+     * @return list<int>
+     * @throws ErreurApi
+     */
+    private function identifiants(mixed $valeur, string $nom, string $etape): array
+    {
+        $ids = [];
+        foreach ($this->listeChaines($valeur) as $identifiant) {
+            if (preg_match('/^\d+$/', $identifiant) !== 1 || (int) $identifiant < 1) {
+                throw new ErreurApi(400, "filtre $nom : « $identifiant » n’est pas un identifiant positif", $etape);
+            }
+            $ids[] = (int) $identifiant;
+        }
+
+        return $ids;
+    }
+
+    /** @return list<string> */
+    private function listeChaines(mixed $valeur): array
+    {
+        $valeurs = [];
+        foreach (is_array($valeur) ? $valeur : explode(',', (string) $valeur) as $element) {
+            $element = trim((string) $element);
+            if ($element !== '' && !in_array($element, $valeurs, true)) {
+                $valeurs[] = $element;
+            }
+        }
+
+        return $valeurs;
+    }
+
+    /** @throws ErreurApi */
+    private function booleen(mixed $valeur, string $nom, string $etape): ?bool
+    {
+        $valeur = trim((string) $valeur);
+        if ($valeur === '') {
+            return null;
+        }
+        if (in_array($valeur, ['1', 'true', 'oui', 'vrai'], true)) {
+            return true;
+        }
+        if (in_array($valeur, ['0', 'false', 'non', 'faux'], true)) {
+            return false;
+        }
+        throw new ErreurApi(400, "filtre $nom : « $valeur » n’est pas un booléen (1/0)", $etape);
     }
 
     /** @throws ErreurApi */
@@ -325,23 +480,58 @@ final class Catalogue
         return $valeur;
     }
 
+    /** Horodatage accepté en AAAA-MM-JJ (minuit) ou AAAA-MM-JJ HH:MM:SS. @throws ErreurApi */
+    private function horodatage(mixed $valeur, string $nom, string $etape): ?string
+    {
+        $valeur = trim((string) $valeur);
+        if ($valeur === '') {
+            return null;
+        }
+        if (preg_match('#^(\d{4})-(\d{2})-(\d{2})$#', $valeur, $m) === 1) {
+            if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+                throw new ErreurApi(400, "filtre $nom : « $valeur » n’existe pas", $etape);
+            }
+
+            return $valeur . ' 00:00:00';
+        }
+        if (preg_match('#^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$#', $valeur, $m) === 1) {
+            $secondes = $m[6] ?? '00';
+            if (!checkdate((int) $m[2], (int) $m[3], (int) $m[1])
+                || (int) $m[4] > 23 || (int) $m[5] > 59 || (int) $secondes > 59) {
+                throw new ErreurApi(400, "filtre $nom : « $valeur » n’est pas un horodatage valide", $etape);
+            }
+
+            return sprintf('%s-%s-%s %s:%s:%s', $m[1], $m[2], $m[3], $m[4], $m[5], $secondes);
+        }
+
+        throw new ErreurApi(400, "filtre $nom : « $valeur » n’est pas un horodatage AAAA-MM-JJ[ HH:MM:SS]", $etape);
+    }
+
     /**
-     * Clause WHERE commune à la liste, à la recherche et aux référentiels.
+     * Clause WHERE commune à la liste, à la recherche et aux référentiels. Aucune valeur n'est
+     * concaténée : tout passe par des marqueurs `?` et des paramètres liés.
      *
-     * @param array{type:?string, emetteur:?string, etiquette:list<string>, date_debut:?string, date_fin:?string, dossier:?string} $filtres
+     * @param array<string, mixed> $filtres
      * @return array{0:string, 1:list<mixed>}
      */
     private function wherePourFiltres(array $filtres): array
     {
         $clauses = ['d.supprime_le IS NULL', 'd.absent_depuis IS NULL'];
         $params = [];
-        if (($filtres['type'] ?? null) !== null) {
-            $clauses[] = 'BINARY d.type = ?';
-            $params[] = $filtres['type'];
+
+        if (($filtres['id'] ?? null) !== null) {
+            $clauses[] = 'd.id = ?';
+            $params[] = $filtres['id'];
         }
-        if (($filtres['emetteur'] ?? null) !== null) {
-            $clauses[] = 'BINARY d.emetteur = ?';
-            $params[] = $filtres['emetteur'];
+        if (($filtres['ids'] ?? []) !== []) {
+            $clauses[] = 'd.id IN (' . implode(', ', array_fill(0, count($filtres['ids']), '?')) . ')';
+            $params = [...$params, ...$filtres['ids']];
+        }
+        foreach (['type' => 'BINARY d.type = ?', 'emetteur' => 'BINARY d.emetteur = ?'] as $cle => $operateur) {
+            if (($filtres[$cle] ?? null) !== null) {
+                $clauses[] = $operateur;
+                $params[] = $filtres[$cle];
+            }
         }
         if (($filtres['date_debut'] ?? null) !== null) {
             $clauses[] = 'd.date_document >= ?';
@@ -351,10 +541,72 @@ final class Catalogue
             $clauses[] = 'd.date_document <= ?';
             $params[] = $filtres['date_fin'];
         }
-        foreach ($filtres['etiquette'] as $etiquette) {
+
+        // Titre et contenu indexé : mêmes opérateurs que DocumentFilterSet (egal / contient / commence / finit).
+        foreach (['egal', 'contient', 'commence', 'finit'] as $operateur) {
+            if (($filtres['titre_' . $operateur] ?? null) !== null) {
+                $clauses[] = $operateur === 'egal' ? 'd.titre = ?' : 'd.titre LIKE ?';
+                $params[] = self::motif($operateur, (string) $filtres['titre_' . $operateur]);
+            }
+            if (($filtres['contenu_' . $operateur] ?? null) !== null) {
+                $clauses[] = self::existeContenu($operateur);
+                $params[] = self::motif($operateur, (string) $filtres['contenu_' . $operateur]);
+            }
+        }
+        if (($filtres['titre_contenu'] ?? null) !== null) {
+            $motif = self::motif('contient', (string) $filtres['titre_contenu']);
+            $clauses[] = '(d.titre LIKE ? OR ' . self::existeContenu('contient') . ')';
+            $params[] = $motif;
+            $params[] = $motif;
+        }
+        foreach (['empreinte' => '=', 'empreinte_egal' => '=', 'mime' => '=', 'mime_contient' => 'LIKE'] as $cle => $operateur) {
+            if (($filtres[$cle] ?? null) === null) {
+                continue;
+            }
+            $colonne = str_starts_with($cle, 'mime') ? 'd.mime' : 'd.empreinte';
+            $clauses[] = $colonne . ' ' . $operateur . ' ?';
+            $params[] = $operateur === 'LIKE' ? '%' . self::echapperLike((string) $filtres[$cle]) . '%' : $filtres[$cle];
+        }
+
+        foreach ([
+            'date_min' => 'd.date_document >= ?', 'date_max' => 'd.date_document <= ?',
+            'date_apres' => 'd.date_document > ?', 'date_avant' => 'd.date_document < ?',
+            'date_annee' => 'YEAR(d.date_document) = ?', 'date_mois' => 'MONTH(d.date_document) = ?',
+            'date_jour' => 'DAY(d.date_document) = ?',
+            'ajoute_min' => 'd.cree_le >= ?', 'ajoute_max' => 'd.cree_le <= ?',
+            'ajoute_apres' => 'd.cree_le > ?', 'ajoute_avant' => 'd.cree_le < ?',
+            'ajoute_annee' => 'YEAR(d.cree_le) = ?', 'ajoute_mois' => 'MONTH(d.cree_le) = ?',
+            'ajoute_jour' => 'DAY(d.cree_le) = ?',
+            'modifie_min' => 'd.maj_le >= ?', 'modifie_max' => 'd.maj_le <= ?',
+            'modifie_apres' => 'd.maj_le > ?', 'modifie_avant' => 'd.maj_le < ?',
+            'modifie_annee' => 'YEAR(d.maj_le) = ?', 'modifie_mois' => 'MONTH(d.maj_le) = ?',
+            'modifie_jour' => 'DAY(d.maj_le) = ?',
+        ] as $cle => $operateur) {
+            if (($filtres[$cle] ?? null) !== null) {
+                $clauses[] = $operateur;
+                $params[] = $filtres[$cle];
+            }
+        }
+
+        $any = [];
+        foreach ($filtres['etiquettes_any'] ?? [] as $etiquette) {
+            $any[] = 'JSON_CONTAINS(d.etiquettes, ?)';
+            $params[] = (string) json_encode($etiquette, JSON_UNESCAPED_UNICODE);
+        }
+        if ($any !== []) {
+            $clauses[] = '(' . implode(' OR ', $any) . ')';
+        }
+        foreach ($filtres['etiquette'] ?? [] as $etiquette) {
             $clauses[] = 'JSON_CONTAINS(d.etiquettes, ?)';
             $params[] = (string) json_encode($etiquette, JSON_UNESCAPED_UNICODE);
         }
+        foreach ($filtres['sans_etiquettes'] ?? [] as $etiquette) {
+            $clauses[] = '(d.etiquettes IS NULL OR NOT JSON_CONTAINS(d.etiquettes, ?))';
+            $params[] = (string) json_encode($etiquette, JSON_UNESCAPED_UNICODE);
+        }
+
+        $clauses = [...$clauses, ...$this->clausesBooleennes($filtres)];
+
         if (($filtres['dossier'] ?? null) !== null) {
             $clauses[] = '(d.chemin_relatif = ? OR d.chemin_relatif LIKE ?)';
             $params[] = $filtres['dossier'];
@@ -370,9 +622,64 @@ final class Catalogue
     }
 
     /**
+     * Filtres booléens (livrés sous forme de clauses fixes, jamais d'entrée concaténée).
+     *
+     * @param array<string, mixed> $filtres
+     * @return list<string>
+     */
+    private function clausesBooleennes(array $filtres): array
+    {
+        $clauses = [];
+        if (($filtres['etiquettes_presentes'] ?? null) !== null) {
+            $clauses[] = $filtres['etiquettes_presentes']
+                ? 'd.etiquettes IS NOT NULL AND JSON_LENGTH(d.etiquettes) > 0'
+                : '(d.etiquettes IS NULL OR JSON_LENGTH(d.etiquettes) = 0)';
+        }
+        if (($filtres['a_traiter'] ?? null) !== null) {
+            $clauses[] = $filtres['a_traiter'] ? "d.statut = 'a_controler'" : "d.statut <> 'a_controler'";
+        }
+        if (($filtres['sans_emetteur'] ?? null) !== null) {
+            $clauses[] = $filtres['sans_emetteur']
+                ? "(d.emetteur IS NULL OR d.emetteur = '')"
+                : "(d.emetteur IS NOT NULL AND d.emetteur <> '')";
+        }
+        if (($filtres['sans_type'] ?? null) !== null) {
+            $clauses[] = $filtres['sans_type']
+                ? "(d.type IS NULL OR d.type = '')"
+                : "(d.type IS NOT NULL AND d.type <> '')";
+        }
+        if (($filtres['sans_dossier'] ?? null) !== null) {
+            $clauses[] = $filtres['sans_dossier'] ? "d.chemin_relatif NOT LIKE '%/%'" : "d.chemin_relatif LIKE '%/%'";
+        }
+
+        return $clauses;
+    }
+
+    /** Sous-requête corrélée sur le contenu indexé (`recherche_textes`), au même document. */
+    private static function existeContenu(string $operateur): string
+    {
+        $condition = $operateur === 'egal' ? 'rt.contenu = ?' : 'rt.contenu LIKE ?';
+
+        return 'EXISTS (SELECT 1 FROM recherche_textes rt WHERE rt.document_id = d.id AND rt.absent_le IS NULL AND ' . $condition . ')';
+    }
+
+    /** Motif LIKE (échappé) selon l'opérateur ; l'égalité rend la valeur nue. */
+    private static function motif(string $operateur, string $valeur): string
+    {
+        $echappe = self::echapperLike($valeur);
+
+        return match ($operateur) {
+            'contient' => '%' . $echappe . '%',
+            'commence' => $echappe . '%',
+            'finit' => '%' . $echappe,
+            default => $valeur,
+        };
+    }
+
+    /**
      * Identifiants de la recherche, dans l'ordre d'affichage, bornés et AU MÊME périmètre de droits.
      *
-     * @param array{type:?string, emetteur:?string, etiquette:list<string>, date_debut:?string, date_fin:?string, dossier:?string} $filtres
+     * @param array<string, mixed> $filtres
      * @return list<int>
      */
     private function idsRecherche(string $recherche, array $filtres): array

@@ -167,17 +167,20 @@ final class DocumentsApi
 
     public function types(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->referentiel($requete, $reponse, 'GET /api/v1/types', static fn (Catalogue $c): array => $c->types());
+        return $this->referentiel($requete, $reponse, 'GET /api/v1/types',
+            static fn (Catalogue $c): array => $c->types($requete->getQueryParams()));
     }
 
     public function etiquettes(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->referentiel($requete, $reponse, 'GET /api/v1/etiquettes', static fn (Catalogue $c): array => $c->etiquettes());
+        return $this->referentiel($requete, $reponse, 'GET /api/v1/etiquettes',
+            static fn (Catalogue $c): array => $c->etiquettes($requete->getQueryParams()));
     }
 
     public function emetteurs(Requete $requete, Reponse $reponse): Reponse
     {
-        return $this->referentiel($requete, $reponse, 'GET /api/v1/emetteurs', static fn (Catalogue $c): array => $c->emetteurs());
+        return $this->referentiel($requete, $reponse, 'GET /api/v1/emetteurs',
+            static fn (Catalogue $c): array => $c->emetteurs($requete->getQueryParams()));
     }
 
     public function vues(Requete $requete, Reponse $reponse): Reponse

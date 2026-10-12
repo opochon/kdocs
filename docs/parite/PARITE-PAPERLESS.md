@@ -10,13 +10,13 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 228 | 504 | 0 | 48 | 29,23 % | 31,15 % |
+| 780 | 251 | 481 | 0 | 48 | 32,18 % | 34,29 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 49 | 226 | 0 | 43 | 15,41 % | 17,82 % |
+| api | 318 | 72 | 203 | 0 | 43 | 22,64 % | 26,18 % |
 | chaine | 60 | 55 | 5 | 0 | 0 | 91,67 % | 91,67 % |
 | commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
 | correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
@@ -53,6 +53,16 @@ reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
 | ocr-text | tests/parite/vecteurs/chaine-ocr-text.json | 3 | 3 | 100,00 % |
 | registre | tests/parite/vecteurs/chaine-registre.json | 39 | 41 | 95,12 % |
 
+## API — filtres de liste (phase 4)
+
+Vecteurs {corpus, requete, documents retenus} extraits des tests Paperless (filtres de liste),
+rejoues contre la vraie couche de requetes de GEDv2 sur gedv2_test. Le test de rejeu echoue si un
+vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables` avec leur raison.
+
+| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
+| --- | --- | ---: | ---: | ---: | ---: |
+| filtres-documents | tests/parite/vecteurs/api-filtres-documents.json | 18 | 18 | 2 | 100,00 % |
+
 ## api
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
@@ -76,21 +86,21 @@ reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
 | @action UnifiedSearchViewSet.next_asn [GET] liste | src/documents/views.py:1359 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | @action UserViewSet.deactivate_totp [POST] detail | src/paperless/views.py:150 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | CorrespondentFilterSet.id | src/documents/filters.py:81 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| CorrespondentFilterSet.name | src/documents/filters.py:81 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| CorrespondentFilterSet.name | src/documents/filters.py:81 | couvert-autrement | route GET /api/v1/emetteurs | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | CustomFieldFilterSet.id | src/documents/filters.py:209 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | CustomFieldFilterSet.name | src/documents/filters.py:209 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.added | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.added | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.archive_serial_number | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.checksum | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.content | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.correspondent | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.checksum | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.content | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.correspondent | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.correspondent__id | src/documents/filters.py:763 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
 | DocumentFilterSet.correspondent__id__none (ObjectFilter) | src/documents/filters.py:716 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.correspondent__name | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.created | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.created__date__gt (DateFilter) | src/documents/filters.py:756 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.correspondent__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.created | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.created__date__gt (DateFilter) | src/documents/filters.py:756 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created__date__gte (DateFilter) | src/documents/filters.py:757 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
-| DocumentFilterSet.created__date__lt (DateFilter) | src/documents/filters.py:758 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.created__date__lt (DateFilter) | src/documents/filters.py:758 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.created__date__lte (DateFilter) | src/documents/filters.py:759 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
 | DocumentFilterSet.custom_field_query (CustomFieldQueryFilter) | src/documents/filters.py:749 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.custom_fields | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -98,33 +108,33 @@ reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
 | DocumentFilterSet.custom_fields__id__all (ObjectFilter) | src/documents/filters.py:730 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.custom_fields__id__in (ObjectFilter) | src/documents/filters.py:737 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.custom_fields__id__none (ObjectFilter) | src/documents/filters.py:732 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.document_type | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.document_type | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.document_type__id | src/documents/filters.py:763 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
 | DocumentFilterSet.document_type__id__none (ObjectFilter) | src/documents/filters.py:718 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.document_type__name | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.document_type__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.has_custom_fields (BooleanFilter) | src/documents/filters.py:742 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.is_in_inbox (InboxFilter) | src/documents/filters.py:722 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.is_tagged (BooleanFilter) | src/documents/filters.py:703 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.mime_type (MimeTypeFilter) | src/documents/filters.py:753 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.modified | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.id | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.is_in_inbox (InboxFilter) | src/documents/filters.py:722 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.is_tagged (BooleanFilter) | src/documents/filters.py:703 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.mime_type (MimeTypeFilter) | src/documents/filters.py:753 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.modified | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.original_filename | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.owner | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.owner__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.owner__id__none (ObjectFilter) | src/documents/filters.py:726 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.storage_path | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.storage_path | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.storage_path__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.storage_path__id__none (ObjectFilter) | src/documents/filters.py:720 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.storage_path__name | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.tags__id | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | DocumentFilterSet.tags__id__all (ObjectFilter) | src/documents/filters.py:710 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
 | DocumentFilterSet.tags__id__in (ObjectFilter) | src/documents/filters.py:714 | couvert-autrement | route POST /recherche/vue | phpunit Ged\Tests\Recherche\ServiceTest::testFiltresTexteEtMontantPartagentLeMemePerimetre (couche 1) |  |
-| DocumentFilterSet.tags__id__none (ObjectFilter) | src/documents/filters.py:712 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.tags__name | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentFilterSet.title | src/documents/filters.py:763 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentFilterSet.tags__id__none (ObjectFilter) | src/documents/filters.py:712 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments (couche 1) |  |
+| DocumentFilterSet.tags__name | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
+| DocumentFilterSet.title | src/documents/filters.py:763 | couvert-autrement | route GET /api/v1/documents | phpunit Ged\Tests\Parite\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables (couche 1) |  |
 | DocumentFilterSet.title_content (TitleContentFilter) | src/documents/filters.py:724 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Perf\BibliothequeFiltresTest::testLeFiltreSqlDonneLeMemeResultatQueLeFiltragePhp (couche 1) |  |
-| DocumentTypeFilterSet.id | src/documents/filters.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| DocumentTypeFilterSet.name | src/documents/filters.py:105 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| DocumentTypeFilterSet.id | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
+| DocumentTypeFilterSet.name | src/documents/filters.py:105 | couvert-autrement | route GET /api/v1/types | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | PaperlessTaskFilterSet.acknowledged (BooleanFilter) | src/documents/filters.py:800 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | PaperlessTaskFilterSet.status | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -138,7 +148,7 @@ reste un ecart ; le test de rejeu echoue si un vecteur s'ecarte.
 | StoragePathFilterSet.path | src/documents/filters.py:114 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | TagFilterSet.id | src/documents/filters.py:90 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | TagFilterSet.is_root (BooleanFilter) | src/documents/filters.py:95 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| TagFilterSet.name | src/documents/filters.py:90 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| TagFilterSet.name | src/documents/filters.py:90 | couvert-autrement | route GET /api/v1/etiquettes | phpunit Ged\Tests\Parite\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits (couche 1) |  |
 | re_path accounts/^confirm-email/(?P<key>[-:\w]+)/$ -> account_confirm_email [allauth_account_views.ConfirmEmailView.as_view] | src/paperless/urls.py:309 | exclu (exclu : infrastructure-django) | - | - |  |
 | path accounts/account_inactive/ -> account_inactive [allauth_account_views.account_inactive] | src/paperless/urls.py:281 | exclu (exclu : infrastructure-django) | - | - |  |
 | path accounts/login/ -> account_login [allauth_account_views.login] | src/paperless/urls.py:278 | exclu (exclu : infrastructure-django) | - | - |  |
@@ -891,48 +901,26 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:action:UnifiedSearchViewSet.next_asn | api | src/documents/views.py:1359 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:UserViewSet.deactivate_totp | api | src/paperless/views.py:150 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:CorrespondentFilterSet.id | api | src/documents/filters.py:81 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:CorrespondentFilterSet.name | api | src/documents/filters.py:81 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:CustomFieldFilterSet.id | api | src/documents/filters.py:209 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:CustomFieldFilterSet.name | api | src/documents/filters.py:209 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.added | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.archive_serial_number | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.checksum | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.content | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.correspondent | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.correspondent__id__none | api | src/documents/filters.py:716 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.correspondent__name | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.created | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.created__date__gt | api | src/documents/filters.py:756 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.created__date__lt | api | src/documents/filters.py:758 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_field_query | api | src/documents/filters.py:749 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_fields | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_fields__icontains | api | src/documents/filters.py:728 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_fields__id__all | api | src/documents/filters.py:730 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_fields__id__in | api | src/documents/filters.py:737 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.custom_fields__id__none | api | src/documents/filters.py:732 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.document_type | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.document_type__id__none | api | src/documents/filters.py:718 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.document_type__name | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.has_custom_fields | api | src/documents/filters.py:742 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.is_in_inbox | api | src/documents/filters.py:722 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.is_tagged | api | src/documents/filters.py:703 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.mime_type | api | src/documents/filters.py:753 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.modified | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.original_filename | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.owner | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.owner__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.owner__id__none | api | src/documents/filters.py:726 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.storage_path | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.storage_path__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.storage_path__id__none | api | src/documents/filters.py:720 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.storage_path__name | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:DocumentFilterSet.tags__id | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.tags__id__none | api | src/documents/filters.py:712 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.tags__name | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentFilterSet.title | api | src/documents/filters.py:763 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentTypeFilterSet.id | api | src/documents/filters.py:105 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:DocumentTypeFilterSet.name | api | src/documents/filters.py:105 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:PaperlessTaskFilterSet.acknowledged | api | src/documents/filters.py:800 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
@@ -946,7 +934,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:filtre:StoragePathFilterSet.path | api | src/documents/filters.py:114 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:TagFilterSet.id | api | src/documents/filters.py:90 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:TagFilterSet.is_root | api | src/documents/filters.py:95 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:TagFilterSet.name | api | src/documents/filters.py:90 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:account_confirm_email | api | src/paperless/urls.py:309 | exclu | infrastructure-django |  |
 | api:route:account_inactive | api | src/paperless/urls.py:281 | exclu | infrastructure-django |  |
 | api:route:account_login | api | src/paperless/urls.py:278 | exclu | infrastructure-django |  |

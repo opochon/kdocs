@@ -140,8 +140,16 @@
             "lot": "V2-05"
         },
         "api:filtre:CorrespondentFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/emetteurs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:CustomFieldFilterSet.id": {
             "statut": "absent",
@@ -152,24 +160,56 @@
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.added": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.archive_serial_number": {
             "statut": "absent",
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.checksum": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments"
+            }
         },
         "api:filtre:DocumentFilterSet.content": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.correspondent": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.correspondent__id": {
             "statut": "couvert-autrement",
@@ -188,16 +228,40 @@
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.correspondent__name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.created": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.created__date__gt": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.created__date__gte": {
             "statut": "couvert-autrement",
@@ -212,8 +276,16 @@
             }
         },
         "api:filtre:DocumentFilterSet.created__date__lt": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.created__date__lte": {
             "statut": "couvert-autrement",
@@ -252,8 +324,16 @@
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.document_type": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.document_type__id": {
             "statut": "couvert-autrement",
@@ -272,32 +352,80 @@
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.document_type__name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.has_custom_fields": {
             "statut": "absent",
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.id": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments"
+            }
         },
         "api:filtre:DocumentFilterSet.is_in_inbox": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments"
+            }
         },
         "api:filtre:DocumentFilterSet.is_tagged": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.mime_type": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments"
+            }
         },
         "api:filtre:DocumentFilterSet.modified": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.original_filename": {
             "statut": "absent",
@@ -316,8 +444,17 @@
             "lot": "V2-05"
         },
         "api:filtre:DocumentFilterSet.storage_path": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            },
+            "note": "GEDv2 : pas d’entité chemin de stockage ; « sans chemin » = document à la racine (sans_dossier)."
         },
         "api:filtre:DocumentFilterSet.storage_path__id": {
             "statut": "absent",
@@ -360,16 +497,40 @@
             }
         },
         "api:filtre:DocumentFilterSet.tags__id__none": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testRejoueLesVecteursDesFiltresDeDocuments"
+            }
         },
         "api:filtre:DocumentFilterSet.tags__name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.title": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresDocumentsTest::testLesFiltresDeBornesDExistenceEtDeTexteSontCables"
+            }
         },
         "api:filtre:DocumentFilterSet.title_content": {
             "statut": "couvert-autrement",
@@ -384,12 +545,28 @@
             }
         },
         "api:filtre:DocumentTypeFilterSet.id": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:DocumentTypeFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/types"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:filtre:PaperlessTaskFilterSet.acknowledged": {
             "statut": "absent",
@@ -444,8 +621,16 @@
             "lot": "V2-05"
         },
         "api:filtre:TagFilterSet.name": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/etiquettes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\ApiFiltresReferentielsTest::testLesFiltresDesReferentielsSontCablesEtRespectentLesDroits"
+            }
         },
         "api:route:account_confirm_email": {
             "statut": "exclu",

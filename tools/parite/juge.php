@@ -417,6 +417,43 @@ if ($chaine === []) {
 }
 $lignes[] = '';
 
+// Phase 4 : parite d'effet de l'API (vecteurs extraits des tests Paperless, rejoues cote GEDv2 par
+// tests/php/Parite/Api*Test.php). Additif : ne change pas le verdict de la couche.
+$lignes[] = '## API — filtres de liste (phase 4)';
+$lignes[] = '';
+$api = [];
+foreach (glob($racine . '/var/parite/api-*.json') ?: [] as $fichierApi) {
+    $mesure = chargerJson($fichierApi);
+    if ($mesure !== [] && isset($mesure['categorie'])) {
+        $api[(string) $mesure['categorie']] = $mesure;
+    }
+}
+if ($api === []) {
+    $lignes[] = 'Aucune mesure d\'API disponible (lancer tests/php/Parite/ApiFiltresDocumentsTest.php).';
+} else {
+    $lignes[] = 'Vecteurs {corpus, requete, documents retenus} extraits des tests Paperless (filtres de liste),';
+    $lignes[] = 'rejoues contre la vraie couche de requetes de GEDv2 sur gedv2_test. Le test de rejeu echoue si un';
+    $lignes[] = 'vecteur s\'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables` avec leur raison.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: | ---: |';
+    ksort($api);
+    foreach ($api as $nomApi => $mesureApi) {
+        $totalApi = (int) ($mesureApi['total'] ?? 0);
+        $passesApi = (int) ($mesureApi['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| %s | tests/parite/vecteurs/api-%s.json | %d | %d | %d | %s %% |',
+            (string) $nomApi,
+            (string) $nomApi,
+            $passesApi,
+            $totalApi,
+            (int) ($mesureApi['non_rejouables'] ?? 0),
+            number_format($totalApi > 0 ? round($passesApi / $totalApi * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
+
 $index = [];
 foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $element) {
     if (is_array($element)) {
