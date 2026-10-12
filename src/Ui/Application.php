@@ -61,6 +61,24 @@ final class Application
             ],
             'reconstruction' => $this->reconstruction(),
             'pdfa' => $this->pdfa(),
+            // Lot ged-parite-final-1 : référentiels métier (émetteurs, emplacements) et configuration
+            // inscriptible, lus depuis le fonds — l'écran les montre et les modifie à la manière GEDv2.
+            'referentiels' => $this->referentiels(),
+            'configuration' => (new \Ged\Socle\ConfigurationApp($this->config))->effective(),
+        ];
+    }
+
+    /**
+     * Référentiels du fonds : émetteurs (avec leur règle d'appariement) et emplacements de classement
+     * (avec leur gabarit de chemin), ACTIFS ET EN VEILLE (un retrait reste lisible et réactivable).
+     *
+     * @return array{emetteurs:list<array<string,mixed>>, emplacements:list<array<string,mixed>>}
+     */
+    private function referentiels(): array
+    {
+        return [
+            'emetteurs' => (new \Ged\Socle\Emetteurs($this->config))->lister(false),
+            'emplacements' => (new \Ged\Socle\Emplacements($this->config))->lister(false),
         ];
     }
 

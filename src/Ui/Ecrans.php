@@ -177,6 +177,10 @@ final class Ecrans
         // tout en gardant Bibliothèque comme entrée de rail courante.
         $doc = $reel ?? Maquette::document($id);
         $doc += ['statut' => '', 'ouverture' => null, 'secours' => [],
+            // Champs Paperless de la fiche (lot ged-parite-final-1) : présents même sur le repli de maquette,
+            // l'écran ne casse jamais et dit « — » quand l'information n'existe pas.
+            'proprietaire' => '', 'proprietaire_id' => null, 'nom_origine' => '', 'pages' => 0,
+            'asn' => '', 'storage_type' => 'unencrypted',
             'pdfa' => ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '', 'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''],
             'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
         $session = $req->getAttribute('ged.session');

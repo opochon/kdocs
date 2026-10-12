@@ -8,7 +8,7 @@
   </div>
   <div class="reglages">
     <nav class="carte" aria-label="Sections"><ul class="arbre">
-      {% for s in ['Ingestion', 'Stockage', 'Intelligence artificielle', 'Connecteurs', 'Utilisateurs et droits', 'Administration'] %}
+      {% for s in ['Ingestion', 'Stockage', 'Intelligence artificielle', 'Connecteurs', 'Utilisateurs et droits', 'Administration', 'Référentiels'] %}
         <li><a href="#s-{{ loop.index }}" data-testid="section-{{ loop.index }}">{{ s }}</a></li>
       {% endfor %}
     </ul></nav>
@@ -116,6 +116,64 @@
         {# Ajout minimal du lot ged-parite-modele-3 (secteur Socle) : suivi des traitements et vues enregistrées. #}
         <div class="ligne-reglage"><span>Traitements · consommation, OCR, courrier</span><span><a class="btn discret" href="/taches" data-testid="lien-taches">Suivi des traitements</a></span></div>
         <div class="ligne-reglage"><span>Vues enregistrées du fonds</span><span><a class="btn discret" href="/vues" data-testid="lien-vues">Vues enregistrées</a></span></div>
+      </section>
+      {# Lot ged-parite-final-1 : référentiels métier (émetteurs, emplacements) et identité modifiable.
+         Tout élément actionnable porte un data-testid ; un retrait est une mise en veille réversible. #}
+      <section class="carte section-reglage" id="s-7" data-testid="reglage-referentiels"><h2>Référentiels</h2>
+        <div class="ligne-reglage"><span>Identité de l’application</span><span>
+          <form method="post" action="/application/configuration" class="inline" data-testid="formulaire-configuration">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input name="titre" value="{{ configuration.titre }}" data-testid="configuration-titre" size="20">
+            <select name="langue" data-testid="configuration-langue">
+              {% for code in ['fr', 'de', 'it', 'en'] %}<option value="{{ code }}"{% if configuration.langue == code %} selected{% endif %}>{{ code }}</option>{% endfor %}
+            </select>
+            <button class="btn discret" type="submit" data-testid="configuration-enregistrer">Enregistrer</button>
+          </form>
+          <span class="muted" data-testid="configuration-source">source : {{ configuration.source == 'fonds' ? 'surcharge du fonds' : 'environnement' }}</span>
+          {% if configuration.source == 'fonds' %}
+            <form method="post" action="/application/configuration" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="reinitialiser"><button class="btn discret" type="submit" data-testid="configuration-reinitialiser">Revenir au .env</button></form>
+          {% endif %}
+        </span></div>
+        <div class="ligne-reglage" data-testid="emetteurs"><span>Émetteurs (correspondants)</span><span>
+          <ul class="liste" data-testid="emetteurs-liste">
+            {% for e in referentiels.emetteurs %}
+              <li data-testid="emetteur-{{ e.id }}">
+                <span class="mono">{{ e.nom }}</span>
+                <span class="muted">{{ e.motif ? e.motif : 'aucune règle' }} ({{ e.algo }})</span>
+                <span class="chip{% if not e.actif %} warn{% endif %}" data-testid="emetteur-{{ e.id }}-etat">{{ e.actif ? 'actif' : 'en veille' }}</span>
+                <form method="post" action="/application/emetteur" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="actif"><input type="hidden" name="id" value="{{ e.id }}"><input type="hidden" name="valeur" value="{{ e.actif ? '0' : '1' }}"><button class="btn discret" type="submit" data-testid="emetteur-{{ e.id }}-basculer">{{ e.actif ? 'Retirer' : 'Réactiver' }}</button></form>
+              </li>
+            {% else %}
+              <li class="muted" data-testid="emetteurs-vide">Aucun émetteur enregistré.</li>
+            {% endfor %}
+          </ul>
+          <form method="post" action="/application/emetteur" class="inline" data-testid="formulaire-emetteur">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input name="nom" placeholder="p. ex. Fournisseur Dupont" data-testid="emetteur-nom" required>
+            <input name="motif" placeholder="règle (facultatif)" data-testid="emetteur-motif">
+            <button class="btn primaire" type="submit" data-testid="emetteur-ajouter">Ajouter l’émetteur</button>
+          </form>
+        </span></div>
+        <div class="ligne-reglage" data-testid="emplacements"><span>Emplacements de classement</span><span>
+          <ul class="liste" data-testid="emplacements-liste">
+            {% for p in referentiels.emplacements %}
+              <li data-testid="emplacement-{{ p.id }}">
+                <span class="mono">{{ p.nom }}</span>
+                <span class="muted">{{ p.chemin }}</span>
+                <span class="chip{% if not p.actif %} warn{% endif %}" data-testid="emplacement-{{ p.id }}-etat">{{ p.actif ? 'actif' : 'en veille' }}</span>
+                <form method="post" action="/application/emplacement" class="inline"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="actif"><input type="hidden" name="id" value="{{ p.id }}"><input type="hidden" name="valeur" value="{{ p.actif ? '0' : '1' }}"><button class="btn discret" type="submit" data-testid="emplacement-{{ p.id }}-basculer">{{ p.actif ? 'Retirer' : 'Réactiver' }}</button></form>
+              </li>
+            {% else %}
+              <li class="muted" data-testid="emplacements-vide">Aucun emplacement enregistré.</li>
+            {% endfor %}
+          </ul>
+          <form method="post" action="/application/emplacement" class="inline" data-testid="formulaire-emplacement">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input name="nom" placeholder="p. ex. Factures fournisseurs" data-testid="emplacement-nom" required>
+            <input name="chemin" placeholder="p. ex. annee/type" data-testid="emplacement-chemin" required>
+            <button class="btn primaire" type="submit" data-testid="emplacement-ajouter">Ajouter l’emplacement</button>
+          </form>
+        </span></div>
       </section>
     </div>
   </div>

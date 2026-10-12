@@ -71,6 +71,14 @@
           <li class="champ" data-testid="champ-{{ c.cle }}">
             <span class="l1">{{ c.nom }}</span>
             <span class="l2">clé `{{ c.cle }}` · nature {{ c.nature }}{% if c.options %} · options : {{ c.options|join(', ') }}{% endif %}</span>
+            <form method="post" action="/metadonnees/champ" class="inline">
+              <input type="hidden" name="csrf" value="{{ csrf }}">
+              <input type="hidden" name="action" value="{{ c.actif ? 'desactiver' : 'reactiver' }}">
+              <input type="hidden" name="id" value="{{ c.id }}">
+              <input type="hidden" name="type" value="{{ typeChoisi.id }}">
+              <span class="chip{% if not c.actif %} warn{% endif %}" data-testid="champ-{{ c.cle }}-etat">{{ c.actif ? 'actif' : 'en veille' }}</span>
+              <button class="btn discret" type="submit" data-testid="champ-{{ c.cle }}-basculer">{{ c.actif ? 'Retirer' : 'Réactiver' }}</button>
+            </form>
           </li>
           {% else %}
           <li class="champ muted" data-testid="aucun-champ">Aucun champ sur ce type.</li>
@@ -109,19 +117,35 @@
 
     <section class="carte" data-testid="etiquettes-admin">
       <h2>Étiquettes</h2>
-      <p class="muted">Une étiquette a un nom, une couleur et peut être la boîte de réception du fonds. Elle n’est jamais supprimée.</p>
+      <p class="muted">Une étiquette a un nom, une couleur, une parente (hiérarchie) et peut être la boîte de réception du fonds. Elle n’est jamais supprimée : on la met en veille.</p>
       <table class="table" data-testid="etiquettes-liste">
-        <thead><tr><th>Nom</th><th>Couleur</th><th>Boîte de réception</th><th></th></tr></thead>
+        <thead><tr><th>Nom</th><th>Couleur</th><th>Parente</th><th>Boîte de réception</th><th>État</th><th></th></tr></thead>
         <tbody>
         {% for e in etiquettes %}
           <tr data-testid="etiquette-{{ e.id }}">
             <td>{{ e.nom }}</td>
             <td><span class="chip" style="background:{{ e.couleur }};color:#fff" data-testid="etiquette-{{ e.id }}-couleur">{{ e.couleur }}</span></td>
+            <td data-testid="etiquette-{{ e.id }}-parent">
+              <form method="post" action="/metadonnees/etiquette"><input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="parent"><input type="hidden" name="id" value="{{ e.id }}">
+                <select name="parent" data-testid="etiquette-{{ e.id }}-parent-saisie">
+                  <option value="">— racine —</option>
+                  {% for p in parentsEtiquettePossibles %}{% if p.id != e.id %}<option value="{{ p.id }}"{% if e.parent == p.id %} selected{% endif %}>{{ p.nom }}</option>{% endif %}{% endfor %}
+                </select>
+                <button class="btn discret" type="submit" data-testid="etiquette-{{ e.id }}-parenter">Rattacher</button></form>
+            </td>
             <td>
               <form method="post" action="/metadonnees/etiquette"><input type="hidden" name="csrf" value="{{ csrf }}">
                 <input type="hidden" name="action" value="boite"><input type="hidden" name="id" value="{{ e.id }}">
                 <input type="hidden" name="valeur" value="{{ e.boite_reception ? '0' : '1' }}">
                 <button class="btn discret" type="submit" data-testid="etiquette-{{ e.id }}-boite">{{ e.boite_reception ? 'Retirer' : 'Poser' }}</button></form>
+            </td>
+            <td>
+              <form method="post" action="/metadonnees/etiquette"><input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="actif"><input type="hidden" name="id" value="{{ e.id }}">
+                <input type="hidden" name="valeur" value="{{ e.actif ? '0' : '1' }}">
+                <span class="chip{% if not e.actif %} warn{% endif %}" data-testid="etiquette-{{ e.id }}-etat">{{ e.actif ? 'active' : 'en veille' }}</span>
+                <button class="btn discret" type="submit" data-testid="etiquette-{{ e.id }}-basculer">{{ e.actif ? 'Retirer' : 'Réactiver' }}</button></form>
             </td>
             <td>
               <form method="post" action="/metadonnees/etiquette" style="display:flex;gap:6px"><input type="hidden" name="csrf" value="{{ csrf }}">
@@ -131,7 +155,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="4" class="muted" data-testid="etiquettes-vide">Aucune étiquette.</td></tr>
+          <tr><td colspan="6" class="muted" data-testid="etiquettes-vide">Aucune étiquette.</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -141,6 +165,11 @@
           <input id="etiquette-nom" name="nom" data-testid="etiquette-nom" required></div>
         <div class="champ"><label for="etiquette-couleur">Couleur (#RRGGBB)</label>
           <input id="etiquette-couleur" name="couleur" value="{{ couleurEtiquetteDefaut }}" data-testid="etiquette-couleur"></div>
+        <div class="champ"><label for="etiquette-parent">Parente (facultatif)</label>
+          <select id="etiquette-parent" name="parent" data-testid="etiquette-parent">
+            <option value="">— racine —</option>
+            {% for p in parentsEtiquettePossibles %}<option value="{{ p.id }}">{{ p.nom }}</option>{% endfor %}
+          </select></div>
         <label class="case"><input type="checkbox" name="boite_reception" value="1" data-testid="etiquette-boite"> Boîte de réception</label>
         <button class="btn primaire" type="submit" data-testid="action-ajouter-etiquette">Ajouter l’étiquette</button>
       </form>

@@ -105,6 +105,60 @@ final class Document
                 'tsa_jeton' => (string) ($scellement['tsa_jeton'] ?? ''),
                 'tsa_url' => (string) ($scellement['tsa_url'] ?? ''),
             ],
+        ] + $this->champsPaperless($doc, $meta, $pdo, $absolu);
+    }
+
+    /**
+     * Champs Paperless du Document montrés par la fiche (lot ged-parite-final-1) : propriétaire, nom de
+     * fichier d'origine, nombre de pages, numéro d'archive et type de stockage. Chaque valeur vient du
+     * dossier ou de la file d'ingestion ; une information absente le dit (« — » à l'écran), rien n'est
+     * inventé, et une panne de lecture ne casse jamais la fiche.
+     *
+     * @param array<string, mixed> $doc
+     * @param array<string, mixed> $meta
+     * @return array<string, mixed>
+     */
+    private function champsPaperless(array $doc, array $meta, ?\PDO $pdo, string $absolu): array
+    {
+        $id = (int) $doc['id'];
+        $proprietaireId = isset($meta['proprietaire_id']) && is_numeric($meta['proprietaire_id'])
+            ? (int) $meta['proprietaire_id'] : null;
+        $proprietaire = '';
+        if ($proprietaireId !== null && $pdo !== null) {
+            try {
+                $requete = $pdo->prepare('SELECT identifiant FROM comptes WHERE id = ?');
+                $requete->execute([$proprietaireId]);
+                $proprietaire = (string) ($requete->fetchColumn() ?: '');
+            } catch (Throwable) {
+                $proprietaire = '';
+            }
+        }
+        $nomOrigine = (string) ($meta['nom_origine'] ?? '');
+        if ($nomOrigine === '' && $pdo !== null) {
+            try {
+                $requete = $pdo->prepare('SELECT nom_origine FROM ingestion_travaux WHERE document_id = ? AND nom_origine <> \'\' ORDER BY id DESC LIMIT 1');
+                $requete->execute([$id]);
+                $nomOrigine = (string) ($requete->fetchColumn() ?: '');
+            } catch (Throwable) {
+                $nomOrigine = '';
+            }
+        }
+        $pages = 0;
+        try {
+            $pages = (int) (\Ged\Ingestion\ParseurPiece::metadonnees($absolu, (string) ($doc['mime'] ?? ''))['pages'] ?? 0);
+        } catch (Throwable) {
+            $pages = isset($meta['pages']) && is_numeric($meta['pages']) ? (int) $meta['pages'] : 0;
+        }
+
+        return [
+            'proprietaire_id' => $proprietaireId,
+            'proprietaire' => $proprietaire,
+            'nom_origine' => $nomOrigine,
+            'pages' => $pages,
+            'asn' => isset($meta['asn']) && $meta['asn'] !== '' ? (string) $meta['asn'] : '',
+            // GEDv2 stocke le fichier LISIBLE, jamais chiffré par le produit : c'est le « plain text » sidecar
+            // de Paperless, équivalent de `storage_type: unencrypted`.
+            'storage_type' => 'unencrypted',
         ];
     }
 

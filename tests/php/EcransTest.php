@@ -31,6 +31,7 @@ final class EcransTest extends TestCase
             'fiche' => ['/documents/204', 'ecran-document'],
             'workflows' => ['/workflows', 'ecran-workflows'],
             'application' => ['/application', 'ecran-application'],
+            'métadonnées' => ['/metadonnees', 'ecran-metadonnees'],
         ];
     }
 
@@ -56,6 +57,27 @@ final class EcransTest extends TestCase
         [, $html] = $this->get('/application');
         self::assertStringContainsString('data-testid="reglage-editeur-pdf"', $html);
         self::assertStringContainsString('PyMuPDF', $html);
+    }
+
+    /**
+     * Lot ged-parite-final-1 : l'écran Application expose les référentiels (émetteurs, emplacements) et
+     * l'identité modifiable ; l'écran Métadonnées expose la parente d'étiquette. Chaque élément
+     * actionnable porte son data-testid (règle Interface).
+     */
+    public function testLesEcransExposentLesReferentielsEtLaHierarchieDEtiquettes(): void
+    {
+        [, $application] = $this->get('/application');
+        foreach (['reglage-referentiels', 'formulaire-emetteur', 'emetteur-ajouter', 'emetteurs-liste',
+            'formulaire-emplacement', 'emplacement-ajouter', 'emplacements-liste',
+            'formulaire-configuration', 'configuration-titre', 'configuration-enregistrer'] as $testid) {
+            self::assertStringContainsString('data-testid="' . $testid . '"', $application);
+        }
+
+        [, $metadonnees] = $this->get('/metadonnees');
+        self::assertStringContainsString('data-testid="etiquettes-admin"', $metadonnees);
+        self::assertStringContainsString('data-testid="etiquettes-liste"', $metadonnees);
+        self::assertStringContainsString('data-testid="etiquette-parent"', $metadonnees);
+        self::assertStringContainsString('data-testid="etiquette-nom"', $metadonnees);
     }
 
     public function testPageInconnueEstNommee(): void

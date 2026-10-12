@@ -51,6 +51,11 @@ final class DroitsRoutes
         // Lot ged-pdfa-1 : rattrapage des copies d'archivage PDF/A du fonds (même droit que la reconstruction).
         'POST /application/pdfa-rattrapage' => 'application:administrer',
         'POST /application/pdfa-rattrapage/{id:[0-9]+}/tranche' => 'application:administrer',
+        // Lot ged-parite-final-1 : référentiels (émetteurs, emplacements) et configuration applicative
+        // modifiables depuis l'écran Application (même droit que les autres réglages d'installation).
+        'POST /application/emetteur' => 'application:administrer',
+        'POST /application/emplacement' => 'application:administrer',
+        'POST /application/configuration' => 'application:administrer',
         // Archivage V2-09b : lecture séparée, scellement irréversible et vérification du fonds.
         'POST /documents/{id:[0-9]+}/sceller' => 'archivage:sceller',
         'GET /documents/{id:[0-9]+}/apercu' => 'document.voir',
