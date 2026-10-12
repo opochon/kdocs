@@ -165,7 +165,7 @@ def _appels_client(fonction: ast.FunctionDef) -> list[tuple[str, ast.Call]]:
         if not isinstance(noeud, ast.Call):
             continue
         nom = _nom(noeud.func)
-        if not nom.startswith("self.client."):
+        if not (nom.startswith("self.client.") or nom.startswith("rest_api_client.")):
             continue
         verbe = nom.split(".")[-1]
         if verbe not in ("get", "post", "put", "patch", "delete"):
@@ -198,6 +198,20 @@ def _assertions(fonction: ast.FunctionDef) -> list[tuple[str, int, int]]:
         statut = _statut(droite)
         if statut is not None:
             resultats.append((variable, statut, appel.lineno))
+    # Style pytest : `assert response.status_code == status.HTTP_200_OK` (test_remote_version.py).
+    for noeud in ast.walk(fonction):
+        if not isinstance(noeud, ast.Assert) or not isinstance(noeud.test, ast.Compare):
+            continue
+        comparaison = noeud.test
+        if len(comparaison.ops) != 1 or not isinstance(comparaison.ops[0], ast.Eq):
+            continue
+        gauche, droite = comparaison.left, comparaison.comparators[0]
+        if not (isinstance(gauche, ast.Attribute) and gauche.attr == "status_code"):
+            continue
+        variable = _nom(gauche.value)
+        statut = _statut(droite)
+        if statut is not None:
+            resultats.append((variable, statut, noeud.lineno))
     return resultats
 
 
@@ -230,6 +244,8 @@ FAMILLES: dict[str, list[tuple[str, list[str], str, str | None]]] = {
     "statut": [
         ("src/documents/tests/test_api_status.py",
          ["test_system_status", "test_system_status_insufficient_permissions"], "vecteurs", None),
+    ],
+    "version": [
         ("src/documents/tests/test_api_remote_version.py",
          ["test_remote_version_enabled_no_update_prefix"], "vecteurs", None),
     ],
