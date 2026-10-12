@@ -697,7 +697,7 @@ def extraire_filtres_ressources(depot: Path) -> tuple[list[dict], list[dict]]:
             return
         reference = f"{chemin.relative_to(depot).as_posix()}:{courant['ligne']}"
         identifiant = f"filtres-ressources:test_custom_field_filters:{len(vecteurs) + len(ecartes) + 1:03d}"
-        entree = {"ressource": "champs", "requete": courant["requete"]}
+        entree = {"ressource": "champs", "requete": courant["requete"], "champs": _champs_du_vecteur(objets)}
         raison = None
         for cle in courant["requete"]:
             if cle not in ("id", "id__in", "name__icontains", "nom", "nom_contient"):
