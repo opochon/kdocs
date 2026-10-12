@@ -359,9 +359,25 @@ foreach ($chaine as $id => [$gedv2, $preuve]) {
 // ===========================================================================
 // 5. CORRESPONDANCE AUTOMATIQUE
 // ===========================================================================
+// Lot ged-parite-comportement-1 : le service Ged\Classement\Correspondance rejoue les algorithmes de
+// documents.matching.matches (et _split_match pour le decoupage des mots). Preuves : les tests
+// unitaires du service, dont les vecteurs complets sont rejoues par tests/php/Parite/ComportementTest.php.
 
-poser($elements, 'correspondance:algo:MATCH_LITERAL', $A, service('Ged\\Classement\\Regles'), p('Ged\\Tests\\Classement\\ReglesTest::testIndicesMetierPriorisentCourrierContratEtFacture'));
-poser($elements, 'correspondance:algo:MATCH_FUZZY', $A, service('Ged\\Classement\\Regles'), p('Ged\\Tests\\Classement\\ReglesTest::testRapprochementEmetteurIgnoreFormeJuridiqueEtAccepteInclusionSignificative'));
+$correspondance = [
+    'correspondance:algo:MATCH_NONE' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testUnMotifVideNeCorrespondJamais'),
+    'correspondance:algo:MATCH_ALL' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAll'),
+    'correspondance:algo:MATCH_ANY' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAny'),
+    'correspondance:algo:MATCH_LITERAL' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchLiteral'),
+    'correspondance:algo:MATCH_REGEX' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchRegex'),
+    'correspondance:algo:MATCH_FUZZY' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchFuzzy'),
+    'correspondance:algo:MATCH_AUTO' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchNoneEtMatchAutoNeCorrespondentJamais'),
+    'correspondance:fonction:matches' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testUnMotifVideNeCorrespondJamais'),
+    'correspondance:fonction:_split_match' => p('Ged\\Tests\\Classement\\CorrespondanceTest::testMatchAll'),
+];
+foreach ($correspondance as $id => $preuve) {
+    poser($elements, $id, $A, service('Ged\\Classement\\Correspondance'), $preuve,
+        'GEDv2 : service de correspondance rejouant les algorithmes de Paperless, vecteurs en phase 2.');
+}
 
 // ===========================================================================
 // 6. ECRANS
