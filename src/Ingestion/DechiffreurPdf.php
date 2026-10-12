@@ -101,7 +101,9 @@ final class DechiffreurPdf
         fclose($tuyaux[2]);
         $code = proc_close($processus);
 
-        if ($code !== 0 || !self::estPdf($fichier) || self::estChiffre($fichier)) {
+        // Le fichier a été réécrit par l'outil : l'état est relu sur le disque, jamais déduit du code seul.
+        $apres = (string) file_get_contents($fichier);
+        if ($code !== 0 || !str_starts_with($apres, self::ENTETE) || preg_match('#/Encrypt\b#', $apres) === 1) {
             return self::RAISON_ECHEC;
         }
 

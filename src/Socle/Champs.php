@@ -135,7 +135,7 @@ final class Champs
     {
         $actifs = [];
         foreach ($this->defs() as $d) {
-            if (($d['actif'] ?? true) === true) {
+            if ($d['actif'] === true) {
                 $actifs[] = ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'], 'options' => $d['options']];
             }
         }
@@ -153,7 +153,7 @@ final class Champs
     {
         return array_map(static fn (array $d): array => [
             'id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'],
-            'options' => $d['options'], 'actif' => (bool) ($d['actif'] ?? true),
+            'options' => $d['options'], 'actif' => $d['actif'],
         ], $this->defs());
     }
 
@@ -399,7 +399,7 @@ final class Champs
      * Toutes les définitions, jointes au nom de leur type. La nomenclature entière tient en une
      * lecture (mise en cache par le Registre) : la jointure se fait en mémoire.
      *
-     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>}>
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool}>
      */
     private function defs(): array
     {

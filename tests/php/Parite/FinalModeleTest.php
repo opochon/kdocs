@@ -154,14 +154,16 @@ final class FinalModeleTest extends TestCase
         if ($filtre === 'is_root') {
             return $catalogue->etiquettes(['is_root' => $valeur === true ? '1' : '0']);
         }
+        // La base gedv2_test est partagée : le périmètre borne la lecture au corpus de CE test.
+        $criteres = ['ids' => implode(',', array_values($this->ids))];
         if ($filtre === 'owner') {
-            $criteres = ['owner' => 'final-a-' . $this->sel . '@exemple.test'];
+            $criteres['owner'] = 'final-a-' . $this->sel . '@exemple.test';
         } elseif ($filtre === 'owner__id') {
-            $criteres = ['owner__id' => (string) $this->compteB];
+            $criteres['owner__id'] = (string) $this->compteB;
         } elseif ($filtre === 'custom_field_query' && is_array($valeur)) {
-            $criteres = ['custom_field_query' => (string) json_encode($valeur)];
+            $criteres['custom_field_query'] = (string) json_encode($valeur);
         } else {
-            $criteres = [$filtre => $valeur];
+            $criteres[$filtre] = $valeur;
         }
         $page = $catalogue->lister($criteres, 'rejeu modèle ' . $filtre);
 

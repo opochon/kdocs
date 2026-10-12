@@ -125,7 +125,11 @@ final class Catalogue
         return $resume;
     }
 
-    /** Nombre de pages réel du fichier courant, ou null si indéterminable (jamais une valeur inventée). */
+    /**
+     * Nombre de pages réel du fichier courant, ou null si indéterminable (jamais une valeur inventée).
+     *
+     * @param array<string, mixed> $ligne
+     */
     private function nombreDePages(array $ligne): ?int
     {
         try {
@@ -294,7 +298,9 @@ final class Catalogue
                 $parents[mb_strtolower($definition['nom'])] = $definition['parent'];
             }
             $etiquettes = array_values(array_filter($etiquettes, static function (string $nom) use ($racine, $parents): bool {
-                $estRacine = !isset($parents[mb_strtolower($nom)]) || $parents[mb_strtolower($nom)] === null;
+                // `isset` rend faux pour une valeur nulle : une étiquette absente du registre OU sans
+                // parente est racine.
+                $estRacine = !isset($parents[mb_strtolower($nom)]);
 
                 return $estRacine === $racine;
             }));
@@ -1170,9 +1176,9 @@ final class Catalogue
             // Parité Paperless (lot ged-parite-final-1) : champs du Document exposés au niveau de la fiche.
             'proprietaire_id' => is_numeric($ligne['proprietaire_id'] ?? null) ? (int) $ligne['proprietaire_id'] : null,
             'owner' => $this->nomProprietaire(is_numeric($ligne['proprietaire_id'] ?? null) ? (int) $ligne['proprietaire_id'] : null),
-            'archive_serial_number' => isset($ligne['asn']) && $ligne['asn'] !== null && $ligne['asn'] !== ''
+            'archive_serial_number' => isset($ligne['asn']) && $ligne['asn'] !== ''
                 ? (string) $ligne['asn'] : null,
-            'original_filename' => isset($ligne['nom_origine']) && $ligne['nom_origine'] !== null && $ligne['nom_origine'] !== ''
+            'original_filename' => isset($ligne['nom_origine']) && $ligne['nom_origine'] !== ''
                 ? (string) $ligne['nom_origine'] : null,
         ];
     }

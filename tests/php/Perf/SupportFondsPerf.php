@@ -151,8 +151,8 @@ trait SupportFondsPerf
         }
 
         $insertion = $this->pdo->prepare('INSERT INTO documents (id, chemin_relatif, nom, empreinte, taille, mime, meta, '
-            . 'titre, type, emetteur, date_document, montant, etiquettes, statut, source) '
-            . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            . 'titre, type, emetteur, date_document, montant, etiquettes, statut, source, proprietaire_id) '
+            . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
         $this->pdo->beginTransaction();
         try {

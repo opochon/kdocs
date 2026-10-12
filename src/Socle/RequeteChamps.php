@@ -21,9 +21,16 @@ final class RequeteChamps
     private const PROFONDEUR_MAX = 10;
     private const ATOMES_MAX = 20;
 
-    /** Opérateurs d'atome admis (ceux des tests Paperless test_api_filter_by_custom_fields.py). */
-    private const OPERATEURS = ['exact', 'in', 'isnull', 'exists', 'icontains', 'istartswith',
-        'iendswith', 'gt', 'gte', 'lt', 'lte', 'range'];
+    /**
+     * Opérateurs d'atome admis (ceux des tests Paperless test_api_filter_by_custom_fields.py).
+     *
+     * @return list<string>
+     */
+    private static function operateurs(): array
+    {
+        return ['exact', 'in', 'isnull', 'exists', 'icontains', 'istartswith',
+            'iendswith', 'gt', 'gte', 'lt', 'lte', 'range'];
+    }
 
     /**
      * @return array{0:string, 1:list<mixed>} clause SQL et ses marqueurs
@@ -47,7 +54,6 @@ final class RequeteChamps
 
     /**
      * @param array<mixed> $expression
-     * @param list<mixed> $params
      * @return array{0:string, 1:list<mixed>}
      */
     private static function compiler(array $expression, string $alias, int $profondeur, int &$atomes): array
@@ -65,7 +71,6 @@ final class RequeteChamps
 
     /**
      * @param array<mixed> $expression
-     * @param list<mixed> $params
      * @return array{0:string, 1:list<mixed>}
      */
     private static function compilerLogique(string $operateur, array $expression, string $alias, int $profondeur, int &$atomes): array
@@ -93,7 +98,6 @@ final class RequeteChamps
 
     /**
      * @param array<mixed> $expression
-     * @param list<mixed> $params
      * @return array{0:string, 1:list<mixed>}
      */
     private static function compilerAtome(array $expression, string $alias, int &$atomes): array
@@ -107,7 +111,7 @@ final class RequeteChamps
         if (!is_string($champ) || preg_match('/^[A-Za-z0-9_]+$/', $champ) !== 1) {
             throw new RuntimeException('custom_field_query : nom de champ invalide');
         }
-        if (!is_string($operateur) || !in_array($operateur, self::OPERATEURS, true)) {
+        if (!is_string($operateur) || !in_array($operateur, self::operateurs(), true)) {
             throw new RuntimeException("custom_field_query : opérateur invalide « " . (is_scalar($operateur) ? (string) $operateur : '?' ) . ' »');
         }
         ++$atomes;
