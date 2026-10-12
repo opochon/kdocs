@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "categorie": "ecran",
+  "reference": {
+    "depot": "C:\\ged\\ref\\paperless-ngx",
+    "tag": "v2.20.5",
+    "lecture": "LECTURE SEULE du src-ui pour le comportement uniquement ; aucune ligne de code copiée (GPLv3)"
+  },
+  "principe": "Pour chaque element `ecran` de l'inventaire Paperless, le SCENARIO UTILISATEUR attendu de l'equivalent GEDv2 : ce que l'utilisateur fait (cliquer, saisir, naviguer au clavier) et ce qu'il VOIT. La preuve est un parcours E2E Playwright qui agit par l'ecran reel ; un scenario une fois commis n'est plus modifie.",
+  "ecrans": {
+    "ecran:route:dashboard": {
+      "libelle_paperless": "route UI 'dashboard' -> DashboardComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:40",
+      "scenario": [
+        "L'utilisateur ouvre le menu et clique « Tableau de bord ».",
+        "Il voit ce qu'il doit traiter : le nombre de documents a classer (statut a_controler du fonds), les traitements en echec non acquittes, les courriers recents.",
+        "Il voit les vues enregistrees epinglees au tableau de bord et peut les ouvrir.",
+        "Chaque bloc porte un lien vers l'ecran qui traite le sujet (A traiter, Taches, Courrier)."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/tableau-de-bord.twig", "route": "GET /tableau-de-bord"},
+      "preuve_e2e": "tableau-de-bord.spec.ts > un utilisateur voit ce qu il doit traiter",
+      "flux_f": ["F3", "F4", "F5"],
+      "note": "Paperless remplit son tableau de bord de widgets SavedView + statistiques ; GEDv2 montre la file reelle du fonds et l'etat des traitements (meme service : ce qui reste a faire)."
+    },
+    "ecran:route:logs": {
+      "libelle_paperless": "route UI 'logs' -> LogsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:157",
+      "scenario": [
+        "Un administrateur ouvre le menu Administration puis « Journaux ».",
+        "Il voit le journal d'audit de l'installation (horodatage, action, auteur, cible), du plus recent au plus ancien.",
+        "Il filtre par action et borne le nombre de lignes ; il change la borne et la liste suit.",
+        "L'ecran est reserve aux administrateurs : un compte sans le droit est refuse nommement."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/journaux.twig", "route": "GET /journaux"},
+      "preuve_e2e": "journaux.spec.ts > un administrateur consulte les journaux",
+      "flux_f": ["F10", "F11"],
+      "note": "Paperless lit ses fichiers .log ; GEDv2 lit son journal d'audit NDJSON en ajout seul et le journal de scellement/retention. Aucune purge, aucune ecriture sur un GET."
+    },
+    "ecran:route:trash": {
+      "libelle_paperless": "route UI 'trash' -> TrashComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:166",
+      "scenario": [
+        "Un administrateur ouvre le menu Administration puis « Corbeille ».",
+        "Il voit les documents mis a la corbeille (titre, chemin d'origine, date, auteur).",
+        "Il restaure un document : le bouton de sa ligne le replace dans le fonds et la liste se met a jour.",
+        "L'ecran dit qu'une piece de la corbeille reste dans le dossier (fichier deplace, drapeau) : GEDv2 ne supprime jamais de donnee utilisateur, la suppression definitive n'existe pas."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/corbeille.twig", "route": "GET /corbeille"},
+      "preuve_e2e": "corbeille.spec.ts > un administrateur restaure un document de la corbeille",
+      "flux_f": ["F6"],
+      "note": "Meme service que Paperless (revenir sur une mise en corbeille) ; la « suppression definitive » de Paperless est volontairement absente (regle non negociable : zero suppression de donnee utilisateur). La divergence est nommee a l'ecran."
+    },
+    "ecran:route:settings": {
+      "libelle_paperless": "route UI 'settings' -> SettingsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:191",
+      "scenario": [
+        "Un utilisateur ouvre le menu et clique « Reglages ».",
+        "Il voit ses reglages d'interface : langue, theme, mode d'affichage, taille de page, colonnes affichees.",
+        "Il modifie un reglage et enregistre ; l'enregistrement est confirme et relu a l'ouverture suivante."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/reglages.twig", "route": "GET /reglages"},
+      "preuve_e2e": "reglages.spec.ts > un utilisateur regle ses preferences generales",
+      "flux_f": [],
+      "note": "Paperless stocke un dictionnaire UiSettings par utilisateur ; GEDv2 le stocke dans le fonds (.ged/preferences.json), avec des clefs bornees."
+    },
+    "ecran:route:settings-section": {
+      "libelle_paperless": "route UI 'settings/:section' -> SettingsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:204",
+      "scenario": [
+        "L'utilisateur ouvre une section precise de ses reglages par son adresse (general, notifications, permissions, vues).",
+        "La bonne section s'ouvre : son titre est visible et les autres sections restent atteignables par les onglets."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/reglages.twig", "route": "GET /reglages/{section}"},
+      "preuve_e2e": "reglages.spec.ts > une section de reglages s ouvre par son adresse",
+      "flux_f": [],
+      "note": "Meme composant SettingsComponent a sections qu'en `settings` ; GEDv2 sert /reglages/{section}."
+    },
+    "ecran:reglage:general": {
+      "libelle_paperless": "reglages/General",
+      "reference_paperless": "src-ui/src/app/components/admin/settings/settings.component.ts:72",
+      "scenario": [
+        "L'utilisateur clique l'onglet « General » de ses reglages.",
+        "Il voit l'apparence (langue, theme, mode d'affichage, taille de page) et choisit ses colonnes affichees.",
+        "Il enregistre : la confirmation nomme l'enregistrement."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/reglages.twig", "route": "GET /reglages/reglages-generaux"},
+      "preuve_e2e": "reglages.spec.ts > un utilisateur regle ses preferences generales",
+      "flux_f": [],
+      "note": "Section d'interface du composant SettingsComponent ; les cles GEDv2 sont bornees (Preferences::CLEFS)."
+    },
+    "ecran:reglage:notifications": {
+      "libelle_paperless": "reglages/Notifications",
+      "reference_paperless": "src-ui/src/app/components/admin/settings/settings.component.ts:74",
+      "scenario": [
+        "L'utilisateur clique l'onglet « Notifications ».",
+        "Il regle quand la GED l'avertit : nouveau document detecte, traitement termine, traitement en echec, masquer sur le tableau de bord.",
+        "Il enregistre et ses choix sont relus a l'ouverture suivante."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/reglages.twig", "route": "GET /reglages/notifications"},
+      "preuve_e2e": "reglages.spec.ts > un utilisateur choisit ses notifications",
+      "flux_f": ["F9"],
+      "note": "Meme service que les notifications de Paperless (prevenir l'utilisateur) ; GEDv2 les range dans .ged/preferences.json."
+    },
+    "ecran:reglage:permissions": {
+      "libelle_paperless": "reglages/Permissions",
+      "reference_paperless": "src-ui/src/app/components/admin/settings/settings.component.ts:73",
+      "scenario": [
+        "L'utilisateur clique l'onglet « Permissions ».",
+        "Il voit son role et la liste de ses permissions effectives (lecture seule).",
+        "Un administrateur y trouve le lien vers les comptes, les groupes et les droits par dossier."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/reglages.twig", "route": "GET /reglages/permissions"},
+      "preuve_e2e": "reglages.spec.ts > un utilisateur consulte ses permissions et les comptes",
+      "flux_f": ["F10"],
+      "note": "Paperless y regle les permissions par defaut des objets crees ; GEDv2 montre les droits effectifs (role + dossier) et renvoie vers l'administration des comptes/groupes, source unique des droits."
+    },
+    "ecran:reglage:savedviews": {
+      "libelle_paperless": "reglages/SavedViews",
+      "reference_paperless": "src-ui/src/app/components/admin/settings/settings.component.ts:75",
+      "scenario": [
+        "L'utilisateur clique l'onglet « Vues » de ses reglages.",
+        "Il voit ses vues enregistrees et peut les ouvrir ou les regler (mode, taille, tri, tableau de bord, menu)."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/vues.twig", "route": "GET /vues"},
+      "preuve_e2e": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée",
+      "flux_f": ["F5"],
+      "note": "Meme service : les reglages des vues enregistrees. L'ecran dedie de GEDv2 est /vues (deja livre, lot ged-parite-modele-3)."
+    },
+    "ecran:route:savedviews": {
+      "libelle_paperless": "route UI 'savedviews' -> SavedViewsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:289",
+      "scenario": [
+        "L'utilisateur ouvre ses vues enregistrees.",
+        "Il cree une vue nommee en choisissant les champs, le mode, la taille de page, le tri et sa presence au tableau de bord ou dans le menu ; la vue est relue avec ses reglages."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/vues.twig", "route": "GET /vues"},
+      "preuve_e2e": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée",
+      "flux_f": ["F5"],
+      "note": "Ecran /vues de GEDv2 (modele SavedView), deja livre ; preuve E2E dediee."
+    },
+    "ecran:route:tasks": {
+      "libelle_paperless": "route UI 'tasks' -> TasksComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:229",
+      "scenario": [
+        "Un administrateur ouvre le menu Application puis « Suivi des traitements ».",
+        "Il voit l'avancement des traitements (fichier, tache, statut, horodatage, resultat) et acquitte une tache par le bouton de sa ligne."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/taches.twig", "route": "GET /taches"},
+      "preuve_e2e": "taches.spec.ts > un administrateur suit et acquitte un traitement",
+      "flux_f": ["F1"],
+      "note": "Ecran /taches de GEDv2 (modele PaperlessTask), deja livre ; preuve E2E dediee."
+    },
+    "ecran:route:usersgroups": {
+      "libelle_paperless": "route UI 'usersgroups' -> UsersAndGroupsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:277",
+      "scenario": [
+        "Un administrateur ouvre le menu Administration puis « Comptes » ou « Groupes ».",
+        "Il voit les comptes (identifiant, role) et les groupes (nom, role) ; il cree un compte ou un groupe et le voit dans la liste.",
+        "Un compte sans le droit n'atteint pas l'ecran."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/securite/comptes.twig", "route": "GET /administration/comptes"},
+      "preuve_e2e": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes",
+      "flux_f": ["F10"],
+      "note": "GEDv2 rend le service par deux ecrans existants (/administration/comptes et /administration/groupes), atteints par le menu."
+    },
+    "ecran:route:settings-usersgroups": {
+      "libelle_paperless": "route UI 'settings/usersgroups' -> SettingsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:183",
+      "scenario": [
+        "L'utilisateur (administrateur) ouvre les utilisateurs et groupes depuis les reglages.",
+        "Il retrouve les comptes et les groupes, comme depuis l'administration."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/securite/comptes.twig", "route": "GET /administration/comptes"},
+      "preuve_e2e": "utilisateurs.spec.ts > un administrateur gere les comptes et les groupes",
+      "flux_f": ["F10"],
+      "note": "Paperless redirige settings/usersgroups vers /usersgroups ; GEDv2 pointe vers les memes ecrans d'administration."
+    },
+    "ecran:route:settings-savedviews": {
+      "libelle_paperless": "route UI 'settings/savedviews' -> SettingsComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:187",
+      "scenario": [
+        "L'utilisateur ouvre ses vues enregistrees depuis ses reglages.",
+        "Il retrouve la meme liste de vues que sur l'ecran dedie et peut en regler une."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/vues.twig", "route": "GET /vues"},
+      "preuve_e2e": "vues.spec.ts > un utilisateur crée et règle une vue enregistrée",
+      "flux_f": ["F5"],
+      "note": "Paperless redirige settings/savedviews vers /savedviews ; GEDv2 pointe vers /vues (meme service)."
+    },
+    "ecran:route:config": {
+      "libelle_paperless": "route UI 'config' -> ConfigComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:217",
+      "scenario": [
+        "Un administrateur ouvre Application.",
+        "Il lit la configuration globale reelle de l'installation (ingestion, stockage, IA, connecteurs) : chaque valeur absente le dit, aucune valeur inventee."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/application.twig", "route": "GET /application"},
+      "preuve_e2e": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage",
+      "flux_f": [],
+      "note": "Meme service : la configuration globale de l'installation. GEDv2 la montre sur /application."
+    },
+    "ecran:route:storagepaths": {
+      "libelle_paperless": "route UI 'storagepaths' -> StoragePathListComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:145",
+      "scenario": [
+        "Un administrateur ouvre Application et la section Stockage.",
+        "Il voit la racine documentaire et la regle de rangement (chemin de stockage) du fonds, avec le repli des documents sans type."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/application.twig", "route": "GET /application"},
+      "preuve_e2e": "configuration.spec.ts > un administrateur lit la configuration et les chemins de stockage",
+      "flux_f": ["F1", "F7"],
+      "note": "Paperless liste des chemins nommes ; GEDv2 a UN modele de rangement (annee / type / emetteur) qui joue le meme role, montre dans la section Stockage d'Application."
+    },
+    "ecran:route:asn-id": {
+      "libelle_paperless": "route UI 'asn/:id' -> DocumentAsnComponent",
+      "reference_paperless": "src-ui/src/app/app-routing.module.ts:97",
+      "scenario": [
+        "L'utilisateur saisit un numero d'archive dans le champ d'acces direct et valide.",
+        "Le document correspondant s'ouvre (sa fiche) ; un numero inconnu est refuse nommement, jamais un 500 muet."
+      ],
+      "gedv2": {"type": "ecran", "fichier": "templates/ecrans/asn.twig", "route": "GET /asn/{id}"},
+      "preuve_e2e": "asn.spec.ts > un utilisateur ouvre un document par son numero d archive",
+      "flux_f": ["F5"],
+      "note": "Paperless resout un ASN numerique vers un document ; GEDv2 n'a pas d'ASN de scellement mais son index numerote les documents : le meme geste (numero -> document) ouvre la fiche, et un numero inconnu est nomme."
+    }
+  },
+  "non_couverts": {
+    "ecran:route:vide": {
+      "raison": "exclu : infrastructure-django (coquille de routage Angular, aucun service utilisateur)",
+      "reference": "src-ui/src/app/app-routing.module.ts:33"
+    },
+    "ecran:route:404": {
+      "raison": "deja couvert-autrement par templates/erreur.twig (hors de ce lot)",
+      "reference": "src-ui/src/app/app-routing.module.ts:303"
+    }
+  }
+}
