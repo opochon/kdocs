@@ -57,6 +57,7 @@ final class Correspondance
         return match ($algorithme) {
             self::TOUS => self::tousLesMots($motif, $texte, $drapeaux),
             self::UN => self::unMot($motif, $texte, $drapeaux),
+            self::REGEX => self::expressionReguliere($motif, $texte, $drapeaux),
             default => false,
         };
     }
@@ -87,6 +88,17 @@ final class Correspondance
         }
 
         return false;
+    }
+
+    /** Le motif est une expression régulière ; un motif invalide ou non compilable ne correspond pas. */
+    private static function expressionReguliere(string $motif, string $texte, string $drapeaux): bool
+    {
+        // `@` : preg_match émet un avertissement sur un motif invalide, que l'on traite explicitement
+        // comme une non-correspondance (comportement de safe_regex_search). Rien n'est avalé en silence :
+        // le retour `false` est testé et mène au refus.
+        $resultat = @preg_match('~' . str_replace('~', '\\~', $motif) . '~' . $drapeaux, $texte);
+
+        return $resultat === 1;
     }
 
     /**
