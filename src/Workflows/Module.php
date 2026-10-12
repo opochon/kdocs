@@ -33,6 +33,72 @@ final class Module
         $journal = new Journal($pdo);
         $fonds = Fonds::depuis($config, $pdo);
         $ecran = new Ecran($config, $pdo, $horloge);
+        $admin = new Admin($pdo);
+
+        // --- Administration des workflows (réservée à `workflow.gerer`) : liste, création, édition, ordre,
+        //     activation et historique des exécutions. Le formulaire construit la même définition Paperless. ---
+
+        $app->get('/workflows/admin', function (Requete $req, Reponse $rep) use ($admin, $vue): Reponse {
+            $donnees = $admin->liste();
+            $donnees['ecran'] = 'workflows';
+            $donnees['csrf'] = self::csrf($req);
+
+            return $vue->rendre($rep, 'ecrans/workflows-admin.twig', $donnees);
+        });
+
+        $app->post('/workflows/admin', function (Requete $req, Reponse $rep) use ($pdo, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            try {
+                $id = (new DepotWorkflows($pdo))->creer(Formulaire::workflow($corps));
+            } catch (ErreurWorkflow $e) {
+                return self::erreur($vue, $rep, 422, 'POST /workflows/admin', $e->getMessage());
+            }
+
+            return self::redirection($rep, '/workflows/admin/' . $id);
+        });
+
+        $app->get('/workflows/admin/{id:[0-9]+}', function (Requete $req, Reponse $rep, array $args) use ($admin, $vue): Reponse {
+            $donnees = $admin->edition((int) $args['id']);
+            if ($donnees === null) {
+                return self::erreur($vue, $rep, 404, 'GET /workflows/admin/' . (int) $args['id'], 'ce workflow n’existe pas');
+            }
+            $donnees['ecran'] = 'workflows';
+            $donnees['csrf'] = self::csrf($req);
+
+            return $vue->rendre($rep, 'ecrans/workflows-admin-edition.twig', $donnees);
+        });
+
+        $app->post('/workflows/admin/{id:[0-9]+}', function (Requete $req, Reponse $rep, array $args) use ($pdo, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $depot = new DepotWorkflows($pdo);
+            $workflow = $depot->parId((int) $args['id']);
+            if ($workflow === null) {
+                return self::erreur($vue, $rep, 404, 'POST /workflows/admin/' . (int) $args['id'], 'ce workflow n’existe pas');
+            }
+            try {
+                $nom = trim((string) ($corps['nom'] ?? $workflow['nom']));
+                if ($nom === '') {
+                    throw new ErreurWorkflow('le nom du workflow est requis');
+                }
+                // Les définitions gardent leurs déclencheurs et actions : l'écran n'édite que nom, ordre, actif.
+                $maj = $workflow;
+                $maj['nom'] = $nom;
+                $maj['ordre'] = (int) ($corps['ordre'] ?? $workflow['ordre']);
+                $maj['actif'] = !empty($corps['actif']);
+                $depot->mettreAJour((int) $args['id'], $maj);
+            } catch (ErreurWorkflow $e) {
+                return self::erreur($vue, $rep, 422, 'POST /workflows/admin/' . (int) $args['id'], $e->getMessage());
+            }
+
+            return self::redirection($rep, '/workflows/admin/' . (int) $args['id']);
+        });
+
+        $app->post('/workflows/admin/{id:[0-9]+}/basculer', function (Requete $req, Reponse $rep, array $args) use ($pdo): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            (new DepotWorkflows($pdo))->basculer((int) $args['id'], (string) ($corps['actif'] ?? '0') === '1');
+
+            return self::redirection($rep, '/workflows/admin');
+        });
 
         // --- La liste : circuits + règles (écran utilisateur, plus une console technique). ---
 
@@ -244,6 +310,17 @@ final class Module
     private static function redirection(Reponse $rep, string $chemin): Reponse
     {
         return $rep->withHeader('Location', $chemin)->withStatus(303);
+    }
+
+    /** Jeton CSRF du formulaire : celui de la session, ou à défaut le cookie posé par la garde. */
+    private static function csrf(Requete $req): string
+    {
+        $session = $req->getAttribute('ged.session');
+        if (is_array($session) && isset($session['csrf']) && (string) $session['csrf'] !== '') {
+            return (string) $session['csrf'];
+        }
+
+        return (string) ($req->getCookieParams()['gedv2_csrf'] ?? '');
     }
 
     /** @param array<string, mixed> $donnees */

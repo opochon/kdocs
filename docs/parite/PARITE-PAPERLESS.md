@@ -10,7 +10,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 251 | 481 | 0 | 48 | 32,18 % | 34,29 % |
+| 780 | 339 | 393 | 0 | 48 | 43,46 % | 46,31 % |
 
 ### Par categorie
 
@@ -22,7 +22,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 | correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
 | ecran | 30 | 10 | 19 | 0 | 1 | 33,33 % | 34,48 % |
 | masse | 17 | 14 | 3 | 0 | 0 | 82,35 % | 82,35 % |
-| modele | 313 | 75 | 237 | 0 | 1 | 23,96 % | 24,04 % |
+| modele | 313 | 163 | 149 | 0 | 1 | 52,08 % | 52,24 % |
 | permissions | 12 | 7 | 4 | 0 | 1 | 58,33 % | 63,64 % |
 
 ## Comportement (phase 2)
@@ -62,6 +62,22 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
 | --- | --- | ---: | ---: | ---: | ---: |
 | filtres-documents | tests/parite/vecteurs/api-filtres-documents.json | 18 | 18 | 2 | 100,00 % |
+
+## Modele — workflows (phase 5)
+
+Vecteurs {document, declencheur, actions} extraits des tests Paperless (WorkflowTrigger,
+WorkflowAction, WorkflowActionEmail, WorkflowActionWebhook, WorkflowRun), rejoues contre le
+vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celery sont listes
+`non_rejouables` avec leur raison.
+
+| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
+| --- | --- | ---: | ---: | ---: | ---: |
+| modele-workflows | tests/parite/vecteurs/modele-workflows.json | 27 | 27 | 4 | 100,00 % |
+| — declencheurs | — | 16 | 16 | — | 100,00 % |
+| — affectation | — | 1 | 1 | — | 100,00 % |
+| — retrait | — | 2 | 2 | — | 100,00 % |
+| — courriel-webhook | — | 2 | 2 | — | 100,00 % |
+| — planification | — | 6 | 6 | — | 100,00 % |
 
 ## api
 
@@ -671,81 +687,81 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | Tag.is_inbox_tag | src/documents/models.py:106 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | UiSettings.settings | src/documents/models.py:581 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | UiSettings.user | src/documents/models.py:576 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Workflow.actions | src/documents/models.py:1539 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Workflow.enabled | src/documents/models.py:1546 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Workflow.name | src/documents/models.py:1528 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Workflow.order | src/documents/models.py:1530 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| Workflow.triggers | src/documents/models.py:1532 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_change_groups | src/documents/models.py:1372 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_change_users | src/documents/models.py:1365 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_correspondent | src/documents/models.py:1324 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_custom_fields | src/documents/models.py:1379 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_custom_fields_values | src/documents/models.py:1386 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_document_type | src/documents/models.py:1315 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_owner | src/documents/models.py:1342 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_storage_path | src/documents/models.py:1333 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_tags | src/documents/models.py:1308 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_title | src/documents/models.py:1299 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_view_groups | src/documents/models.py:1358 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.assign_view_users | src/documents/models.py:1351 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.email | src/documents/models.py:1501 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.order | src/documents/models.py:1297 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_correspondents | src/documents/models.py:1427 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_custom_fields | src/documents/models.py:1496 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_document_types | src/documents/models.py:1415 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_owners | src/documents/models.py:1451 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_permissions | src/documents/models.py:1484 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_storage_paths | src/documents/models.py:1439 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_all_tags | src/documents/models.py:1403 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_change_groups | src/documents/models.py:1477 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_change_users | src/documents/models.py:1470 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_correspondents | src/documents/models.py:1420 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_custom_fields | src/documents/models.py:1489 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_document_types | src/documents/models.py:1408 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_owners | src/documents/models.py:1444 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_storage_paths | src/documents/models.py:1432 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_tags | src/documents/models.py:1396 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_view_groups | src/documents/models.py:1463 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.remove_view_users | src/documents/models.py:1456 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.type | src/documents/models.py:1291 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowAction.webhook | src/documents/models.py:1510 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionEmail.body | src/documents/models.py:1196 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionEmail.include_document | src/documents/models.py:1213 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionEmail.subject | src/documents/models.py:1186 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionEmail.to | src/documents/models.py:1205 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.as_json | src/documents/models.py:1237 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.body | src/documents/models.py:1249 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.headers | src/documents/models.py:1256 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.include_document | src/documents/models.py:1263 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.params | src/documents/models.py:1242 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.url | src/documents/models.py:1225 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionWebhook.use_params | src/documents/models.py:1232 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowRun.document | src/documents/models.py:1566 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowRun.run_at | src/documents/models.py:1574 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowRun.type | src/documents/models.py:1560 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowRun.workflow | src/documents/models.py:1553 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_custom_field_query | src/documents/models.py:1127 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_filename | src/documents/models.py:1032 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_all_tags | src/documents/models.py:1068 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_correspondent | src/documents/models.py:1097 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_document_type | src/documents/models.py:1082 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_not_correspondents | src/documents/models.py:1105 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_not_document_types | src/documents/models.py:1090 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_not_storage_paths | src/documents/models.py:1120 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_not_tags | src/documents/models.py:1075 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_storage_path | src/documents/models.py:1112 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_has_tags | src/documents/models.py:1062 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_mailrule | src/documents/models.py:1044 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.filter_path | src/documents/models.py:1020 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.is_insensitive | src/documents/models.py:1060 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.match | src/documents/models.py:1052 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.matching_algorithm | src/documents/models.py:1054 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.schedule_date_custom_field | src/documents/models.py:1169 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.schedule_date_field | src/documents/models.py:1159 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.schedule_is_recurring | src/documents/models.py:1142 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.schedule_offset_days | src/documents/models.py:1134 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.schedule_recurring_interval_days | src/documents/models.py:1150 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTrigger.type | src/documents/models.py:1008 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| Workflow.actions | src/documents/models.py:1539 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| Workflow.enabled | src/documents/models.py:1546 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| Workflow.name | src/documents/models.py:1528 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| Workflow.order | src/documents/models.py:1530 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| Workflow.triggers | src/documents/models.py:1532 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| WorkflowAction.assign_change_groups | src/documents/models.py:1372 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_change_users | src/documents/models.py:1365 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_correspondent | src/documents/models.py:1324 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_custom_fields | src/documents/models.py:1379 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_custom_fields_values | src/documents/models.py:1386 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_document_type | src/documents/models.py:1315 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_owner | src/documents/models.py:1342 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_storage_path | src/documents/models.py:1333 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_tags | src/documents/models.py:1308 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_title | src/documents/models.py:1299 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_view_groups | src/documents/models.py:1358 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.assign_view_users | src/documents/models.py:1351 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.email | src/documents/models.py:1501 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.order | src/documents/models.py:1297 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_correspondents | src/documents/models.py:1427 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_custom_fields | src/documents/models.py:1496 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_document_types | src/documents/models.py:1415 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_owners | src/documents/models.py:1451 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_permissions | src/documents/models.py:1484 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_storage_paths | src/documents/models.py:1439 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_all_tags | src/documents/models.py:1403 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_change_groups | src/documents/models.py:1477 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_change_users | src/documents/models.py:1470 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_correspondents | src/documents/models.py:1420 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_custom_fields | src/documents/models.py:1489 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_document_types | src/documents/models.py:1408 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_owners | src/documents/models.py:1444 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_storage_paths | src/documents/models.py:1432 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_tags | src/documents/models.py:1396 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_view_groups | src/documents/models.py:1463 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.remove_view_users | src/documents/models.py:1456 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.type | src/documents/models.py:1291 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowAction.webhook | src/documents/models.py:1510 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDeRetraitEstApplique (couche 1) |  |
+| WorkflowActionEmail.body | src/documents/models.py:1196 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsCourrielDeWorkflowActionEmail (couche 1) |  |
+| WorkflowActionEmail.include_document | src/documents/models.py:1213 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsCourrielDeWorkflowActionEmail (couche 1) |  |
+| WorkflowActionEmail.subject | src/documents/models.py:1186 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsCourrielDeWorkflowActionEmail (couche 1) |  |
+| WorkflowActionEmail.to | src/documents/models.py:1205 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsCourrielDeWorkflowActionEmail (couche 1) |  |
+| WorkflowActionWebhook.as_json | src/documents/models.py:1237 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.body | src/documents/models.py:1249 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.headers | src/documents/models.py:1256 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.include_document | src/documents/models.py:1263 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.params | src/documents/models.py:1242 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.url | src/documents/models.py:1225 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowActionWebhook.use_params | src/documents/models.py:1232 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesChampsWebhookDeWorkflowActionWebhook (couche 1) |  |
+| WorkflowRun.document | src/documents/models.py:1566 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
+| WorkflowRun.run_at | src/documents/models.py:1574 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
+| WorkflowRun.type | src/documents/models.py:1560 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
+| WorkflowRun.workflow | src/documents/models.py:1553 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
+| WorkflowTrigger.filter_custom_field_query | src/documents/models.py:1127 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_filename | src/documents/models.py:1032 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_all_tags | src/documents/models.py:1068 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_correspondent | src/documents/models.py:1097 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_document_type | src/documents/models.py:1082 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_not_correspondents | src/documents/models.py:1105 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_not_document_types | src/documents/models.py:1090 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_not_storage_paths | src/documents/models.py:1120 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_not_tags | src/documents/models.py:1075 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_storage_path | src/documents/models.py:1112 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_has_tags | src/documents/models.py:1062 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_mailrule | src/documents/models.py:1044 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.filter_path | src/documents/models.py:1020 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.is_insensitive | src/documents/models.py:1060 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.match | src/documents/models.py:1052 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.matching_algorithm | src/documents/models.py:1054 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.schedule_date_custom_field | src/documents/models.py:1169 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.schedule_date_field | src/documents/models.py:1159 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.schedule_is_recurring | src/documents/models.py:1142 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.schedule_offset_days | src/documents/models.py:1134 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.schedule_recurring_interval_days | src/documents/models.py:1150 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
+| WorkflowTrigger.type | src/documents/models.py:1008 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesFiltresDeConsommation (couche 1) |  |
 | classe Correspondent(MatchingModel) | src/documents/models.py:95 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase (couche 1) |  |
 | classe CustomField(models.Model) | src/documents/models.py:780 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | classe CustomFieldInstance(SoftDeleteModel) | src/documents/models.py:837 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
@@ -764,12 +780,12 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | classe StoragePath(MatchingModel) | src/documents/models.py:146 | couvert-autrement | service Ged\Socle\Fichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | classe Tag(MatchingModel, TreeNodeModel) | src/documents/models.py:101 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase (couche 1) |  |
 | classe UiSettings(models.Model) | src/documents/models.py:575 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| classe Workflow(models.Model) | src/documents/models.py:1527 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testConditionsEvalueesSurFiche (couche 1) |  |
-| classe WorkflowAction(models.Model) | src/documents/models.py:1272 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testUneErreurDActionNeBloquePasLeResteDuPlan (couche 1) |  |
-| classe WorkflowActionEmail(models.Model) | src/documents/models.py:1185 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur (couche 1) |  |
-| classe WorkflowActionWebhook(models.Model) | src/documents/models.py:1222 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur (couche 1) |  |
-| classe WorkflowRun(SoftDeleteModel) | src/documents/models.py:1552 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\MoteurTest::testHorlogeFigeeInjecteeHorodateLeJournal (couche 1) |  |
-| classe WorkflowTrigger(models.Model) | src/documents/models.py:980 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
+| classe Workflow(models.Model) | src/documents/models.py:1527 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
+| classe WorkflowAction(models.Model) | src/documents/models.py:1272 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
+| classe WorkflowActionEmail(models.Model) | src/documents/models.py:1185 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
+| classe WorkflowActionWebhook(models.Model) | src/documents/models.py:1222 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testChaqueChampDAffectationEstApplique (couche 1) |  |
+| classe WorkflowRun(SoftDeleteModel) | src/documents/models.py:1552 | couvert-autrement | service Ged\Workflows\Executions | phpunit Ged\Tests\Workflows\ApplicateurTest::testLeWorkflowSAppliqueParLeDepotEtTraceUneExecution (couche 1) |  |
+| classe WorkflowTrigger(models.Model) | src/documents/models.py:980 | couvert-autrement | service Ged\Workflows\DepotWorkflows | phpunit Ged\Tests\Workflows\ApplicateurTest::testLesEnumerationsDeWorkflowRunEtDUneDefinitionSontPortees (couche 1) |  |
 | CustomField type BOOL | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | CustomField type DATE | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | CustomField type DOCUMENTLINK | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
@@ -837,10 +853,10 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | PdfLayout.HTML_TEXT | src/paperless_mail/models.py:121 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | PdfLayout.TEXT_HTML | src/paperless_mail/models.py:120 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | PdfLayout.TEXT_ONLY | src/paperless_mail/models.py:123 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ScheduleDateField.ADDED | src/documents/models.py:1003 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ScheduleDateField.CREATED | src/documents/models.py:1004 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ScheduleDateField.CUSTOM_FIELD | src/documents/models.py:1006 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90 (couche 1) |  |
-| ScheduleDateField.MODIFIED | src/documents/models.py:1005 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| ScheduleDateField.ADDED | src/documents/models.py:1003 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
+| ScheduleDateField.CREATED | src/documents/models.py:1004 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
+| ScheduleDateField.CUSTOM_FIELD | src/documents/models.py:1006 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
+| ScheduleDateField.MODIFIED | src/documents/models.py:1005 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
 | TaskName.CHECK_SANITY | src/documents/models.py:599 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TaskName.CONSUME_FILE | src/documents/models.py:597 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TaskName.INDEX_OPTIMIZE | src/documents/models.py:600 | absent (ecart assume, lot a creer) | - | - | V2-04 |
@@ -851,20 +867,20 @@ vecteur s'ecarte ; les vecteurs propres a Django/DRF sont listes `non_rejouables
 | TitleSource.FROM_FILENAME | src/paperless_mail/models.py:134 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TitleSource.FROM_SUBJECT | src/paperless_mail/models.py:133 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TitleSource.NONE | src/paperless_mail/models.py:135 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionType.ASSIGNMENT | src/documents/models.py:1274 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur (couche 1) |  |
-| WorkflowActionType.EMAIL | src/documents/models.py:1282 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowActionType.REMOVAL | src/documents/models.py:1278 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\CatalogueTest::testLesActionsExposeesSontExactementCellesDuMoteur (couche 1) |  |
-| WorkflowActionType.WEBHOOK | src/documents/models.py:1286 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.ALL | src/documents/models.py:985 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.ANY | src/documents/models.py:984 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.FUZZY | src/documents/models.py:988 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.LITERAL | src/documents/models.py:986 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.NONE | src/documents/models.py:983 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerMatching.REGEX | src/documents/models.py:987 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerType.CONSUMPTION | src/documents/models.py:991 | couvert-autrement | service Ged\Workflows\Moteur | phpunit Ged\Tests\Workflows\ModuleTest::testEvenementDeDepotParRouteJournaliseLAction (couche 1) |  |
-| WorkflowTriggerType.DOCUMENT_ADDED | src/documents/models.py:992 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerType.DOCUMENT_UPDATED | src/documents/models.py:993 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| WorkflowTriggerType.SCHEDULED | src/documents/models.py:994 | couvert-autrement | service Ged\Workflows\Catalogue | phpunit Ged\Tests\Workflows\GabaritsTest::testContratAEcheanceProduitSonRappelAJ90 (couche 1) |  |
+| WorkflowActionType.ASSIGNMENT | src/documents/models.py:1274 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
+| WorkflowActionType.EMAIL | src/documents/models.py:1282 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
+| WorkflowActionType.REMOVAL | src/documents/models.py:1278 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
+| WorkflowActionType.WEBHOOK | src/documents/models.py:1286 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
+| WorkflowTriggerMatching.ALL | src/documents/models.py:985 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerMatching.ANY | src/documents/models.py:984 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerMatching.FUZZY | src/documents/models.py:988 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerMatching.LITERAL | src/documents/models.py:986 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerMatching.NONE | src/documents/models.py:983 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerMatching.REGEX | src/documents/models.py:987 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerType.CONSUMPTION | src/documents/models.py:991 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerType.DOCUMENT_ADDED | src/documents/models.py:992 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerType.DOCUMENT_UPDATED | src/documents/models.py:993 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
+| WorkflowTriggerType.SCHEDULED | src/documents/models.py:994 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLesEnumerationsSontCellesDuModelePaperless (couche 1) |  |
 
 ## permissions
 
@@ -1258,81 +1274,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:champ:Tag.is_inbox_tag | modele | src/documents/models.py:106 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:UiSettings.settings | modele | src/documents/models.py:581 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:UiSettings.user | modele | src/documents/models.py:576 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Workflow.actions | modele | src/documents/models.py:1539 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Workflow.enabled | modele | src/documents/models.py:1546 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Workflow.name | modele | src/documents/models.py:1528 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Workflow.order | modele | src/documents/models.py:1530 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:Workflow.triggers | modele | src/documents/models.py:1532 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_change_groups | modele | src/documents/models.py:1372 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_change_users | modele | src/documents/models.py:1365 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_correspondent | modele | src/documents/models.py:1324 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_custom_fields | modele | src/documents/models.py:1379 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_custom_fields_values | modele | src/documents/models.py:1386 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_document_type | modele | src/documents/models.py:1315 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_owner | modele | src/documents/models.py:1342 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_storage_path | modele | src/documents/models.py:1333 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_tags | modele | src/documents/models.py:1308 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_title | modele | src/documents/models.py:1299 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_view_groups | modele | src/documents/models.py:1358 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.assign_view_users | modele | src/documents/models.py:1351 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.email | modele | src/documents/models.py:1501 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.order | modele | src/documents/models.py:1297 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_correspondents | modele | src/documents/models.py:1427 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_custom_fields | modele | src/documents/models.py:1496 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_document_types | modele | src/documents/models.py:1415 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_owners | modele | src/documents/models.py:1451 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_permissions | modele | src/documents/models.py:1484 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_storage_paths | modele | src/documents/models.py:1439 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_all_tags | modele | src/documents/models.py:1403 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_change_groups | modele | src/documents/models.py:1477 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_change_users | modele | src/documents/models.py:1470 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_correspondents | modele | src/documents/models.py:1420 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_custom_fields | modele | src/documents/models.py:1489 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_document_types | modele | src/documents/models.py:1408 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_owners | modele | src/documents/models.py:1444 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_storage_paths | modele | src/documents/models.py:1432 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_tags | modele | src/documents/models.py:1396 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_view_groups | modele | src/documents/models.py:1463 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.remove_view_users | modele | src/documents/models.py:1456 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.type | modele | src/documents/models.py:1291 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowAction.webhook | modele | src/documents/models.py:1510 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionEmail.body | modele | src/documents/models.py:1196 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionEmail.include_document | modele | src/documents/models.py:1213 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionEmail.subject | modele | src/documents/models.py:1186 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionEmail.to | modele | src/documents/models.py:1205 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.as_json | modele | src/documents/models.py:1237 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.body | modele | src/documents/models.py:1249 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.headers | modele | src/documents/models.py:1256 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.include_document | modele | src/documents/models.py:1263 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.params | modele | src/documents/models.py:1242 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.url | modele | src/documents/models.py:1225 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowActionWebhook.use_params | modele | src/documents/models.py:1232 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowRun.document | modele | src/documents/models.py:1566 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowRun.run_at | modele | src/documents/models.py:1574 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowRun.type | modele | src/documents/models.py:1560 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowRun.workflow | modele | src/documents/models.py:1553 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_custom_field_query | modele | src/documents/models.py:1127 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_filename | modele | src/documents/models.py:1032 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_all_tags | modele | src/documents/models.py:1068 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_correspondent | modele | src/documents/models.py:1097 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_document_type | modele | src/documents/models.py:1082 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_not_correspondents | modele | src/documents/models.py:1105 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_not_document_types | modele | src/documents/models.py:1090 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_not_storage_paths | modele | src/documents/models.py:1120 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_not_tags | modele | src/documents/models.py:1075 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_storage_path | modele | src/documents/models.py:1112 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_has_tags | modele | src/documents/models.py:1062 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_mailrule | modele | src/documents/models.py:1044 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.filter_path | modele | src/documents/models.py:1020 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.is_insensitive | modele | src/documents/models.py:1060 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.match | modele | src/documents/models.py:1052 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.matching_algorithm | modele | src/documents/models.py:1054 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.schedule_date_custom_field | modele | src/documents/models.py:1169 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.schedule_date_field | modele | src/documents/models.py:1159 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.schedule_is_recurring | modele | src/documents/models.py:1142 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.schedule_offset_days | modele | src/documents/models.py:1134 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.schedule_recurring_interval_days | modele | src/documents/models.py:1150 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:WorkflowTrigger.type | modele | src/documents/models.py:1008 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:MailRule | modele | src/paperless_mail/models.py:87 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:MatchingModel | modele | src/documents/models.py:45 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:ModelWithOwner | modele | src/documents/models.py:31 | absent | ecart assume, lot a creer | V2-04 |
@@ -1390,9 +1331,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:type:PdfLayout.HTML_TEXT | modele | src/paperless_mail/models.py:121 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:PdfLayout.TEXT_HTML | modele | src/paperless_mail/models.py:120 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:PdfLayout.TEXT_ONLY | modele | src/paperless_mail/models.py:123 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ScheduleDateField.ADDED | modele | src/documents/models.py:1003 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ScheduleDateField.CREATED | modele | src/documents/models.py:1004 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ScheduleDateField.MODIFIED | modele | src/documents/models.py:1005 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.CHECK_SANITY | modele | src/documents/models.py:599 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.CONSUME_FILE | modele | src/documents/models.py:597 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.INDEX_OPTIMIZE | modele | src/documents/models.py:600 | absent | ecart assume, lot a creer | V2-04 |
@@ -1403,16 +1341,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:type:TitleSource.FROM_FILENAME | modele | src/paperless_mail/models.py:134 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TitleSource.FROM_SUBJECT | modele | src/paperless_mail/models.py:133 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TitleSource.NONE | modele | src/paperless_mail/models.py:135 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowActionType.EMAIL | modele | src/documents/models.py:1282 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowActionType.WEBHOOK | modele | src/documents/models.py:1286 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.ALL | modele | src/documents/models.py:985 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.ANY | modele | src/documents/models.py:984 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.FUZZY | modele | src/documents/models.py:988 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.LITERAL | modele | src/documents/models.py:986 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.NONE | modele | src/documents/models.py:983 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerMatching.REGEX | modele | src/documents/models.py:987 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerType.DOCUMENT_ADDED | modele | src/documents/models.py:992 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:WorkflowTriggerType.DOCUMENT_UPDATED | modele | src/documents/models.py:993 | absent | ecart assume, lot a creer | V2-04 |
 | permissions:classe:AcknowledgeTasksPermissions | permissions | src/documents/permissions.py:207 | exclu | infrastructure-celery-redis |  |
 | permissions:classe:PaperlessObjectPermissions | permissions | src/documents/permissions.py:19 | absent | ecart assume, lot a creer | V2-07 |
 | permissions:fonction:get_groups_with_only_permission | permissions | src/documents/permissions.py:50 | absent | ecart assume, lot a creer | V2-07 |

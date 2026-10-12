@@ -60,6 +60,12 @@ final class DroitsRoutes
         'GET /documents/{id:[0-9]+}/pdfa' => 'document.voir',
         'GET /documents/{id:[0-9]+}/miniature' => 'document.voir',
         'GET /workflows' => 'workflows:lire',
+        // Lot ged-parite-modele-1 : administration des workflows (modèle Paperless), réservée à `workflow.gerer`.
+        'GET /workflows/admin' => 'workflow.gerer',
+        'POST /workflows/admin' => 'workflow.gerer',
+        'GET /workflows/admin/{id:[0-9]+}' => 'workflow.gerer',
+        'POST /workflows/admin/{id:[0-9]+}' => 'workflow.gerer',
+        'POST /workflows/admin/{id:[0-9]+}/basculer' => 'workflow.gerer',
         // Workflows V2-06b : catalogue, éditeur graphique et enregistrement du dessin (lignes signalées
         // hors secteur, à commiter par le juge).
         'GET /workflows/catalogue' => 'workflows:lire',
@@ -195,6 +201,10 @@ final class DroitsRoutes
             if (preg_match('#^/workflows/circuits/[0-9]+/editeur$#', $chemin) === 1) {
                 return self::PERMISSIONS['GET /workflows/circuits/{id:[0-9]+}/editeur'];
             }
+            // Édition d'un workflow du modèle Paperless (lot ged-parite-modele-1).
+            if (preg_match('#^/workflows/admin/[0-9]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['GET /workflows/admin/{id:[0-9]+}'];
+            }
         }
 
         // Routes de Workflows paramétrées (une bascule de règle, un gabarit nommé).
@@ -227,6 +237,13 @@ final class DroitsRoutes
             }
             if (preg_match('#^/workflows/regles/[0-9]+/basculer$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/regles/{id:[0-9]+}/basculer'];
+            }
+            // Administration d'un workflow Paperless : activer puis enregistrer (lot ged-parite-modele-1).
+            if (preg_match('#^/workflows/admin/[0-9]+/basculer$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /workflows/admin/{id:[0-9]+}/basculer'];
+            }
+            if (preg_match('#^/workflows/admin/[0-9]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /workflows/admin/{id:[0-9]+}'];
             }
             if (preg_match('#^/workflows/gabarits/[A-Za-z0-9_]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/gabarits/{nom}'];

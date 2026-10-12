@@ -1,0 +1,52 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Workflow — {{ workflow.nom }}{% endblock %}
+{% block contenu %}
+{# Édition d'un workflow : nom, ordre, activation, et HISTORIQUE des exécutions (WorkflowRun). #}
+<div class="page" data-testid="ecran-workflows-admin-edition">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>{{ workflow.nom }}</h1>
+      <span class="muted">ordre {{ workflow.ordre }} · {{ workflow.actif ? 'actif' : 'en veille' }}</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/workflows/admin" data-testid="lien-admin-liste">{{ ic.i('vue') }}Liste des workflows</a>
+    </div>
+  </div>
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('reglages') }}Définition</div>
+    <div class="panneau">
+      <p class="l2" data-testid="edition-declencheurs">Déclencheurs : {{ resume.declencheurs|join(' ; ') ?: 'aucun' }}</p>
+      <p class="l2">Actions : {{ resume.actions|join(', ') ?: 'aucune' }}</p>
+    </div>
+    <form method="post" action="/workflows/admin/{{ workflow.id }}" data-testid="formulaire-edition-workflow">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="ed-nom">Nom</label>
+        <input id="ed-nom" name="nom" data-testid="edition-nom" value="{{ workflow.nom }}" maxlength="180" required></div>
+      <div class="champ"><label for="ed-ordre">Ordre</label>
+        <input id="ed-ordre" name="ordre" data-testid="edition-ordre" type="number" value="{{ workflow.ordre }}" min="0" max="9999"></div>
+      <div class="champ"><label for="ed-actif">Actif</label>
+        <input id="ed-actif" name="actif" data-testid="edition-actif" type="checkbox" value="1" {% if workflow.actif %}checked{% endif %}></div>
+      <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-enregistrer-workflow">Enregistrer</button></div>
+    </form>
+  </section>
+
+  <section class="carte" data-testid="historique-executions">
+    <div class="volet-tete">{{ ic.i('horloge') }}Historique des exécutions</div>
+    {% if executions %}
+    <div class="panneau">
+      <ul class="liste">
+        {% for e in executions %}
+        <li class="l2" data-testid="execution-{{ e.id }}">
+          {{ e.run_at }} — type {{ e.type }} — document {{ e.document_id }} — {{ e.auteur }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% else %}
+    <div class="panneau"><p class="muted" data-testid="aucune-execution">Aucune exécution enregistrée pour ce workflow.</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -416,6 +416,12 @@ try {
         'POST /workflows/essai' => 'document_id=0',
         'POST /workflows/evenements' => 'document_id=0',
         'POST /workflows/transitions' => 'document_id=0&vers=invalide',
+        // Administration des workflows Paperless (lot ged-parite-modele-1) : création sans nom et
+        // enregistrement/bascule d'un identifiant inexistant sont refusés par le métier, sans écrire ; la
+        // sonde ne vérifie que l'absence et le rejeu du jeton CSRF.
+        'POST /workflows/admin' => 'nom=',
+        'POST /workflows/admin/{id:[0-9]+}' => 'nom=',
+        'POST /workflows/admin/{id:[0-9]+}/basculer' => 'actif=0',
         // Édition depuis le poste (F13) : document et copie inexistants, le métier refuse sans écrire ;
         // la sonde ne vérifie que l'absence et le rejeu du jeton CSRF.
         'POST /documents/{id:[0-9]+}/secours/recuperer' => 'copie=sonde',
