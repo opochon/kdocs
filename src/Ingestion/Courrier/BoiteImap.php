@@ -169,6 +169,8 @@ final class BoiteImap implements PortBoite
             try {
                 $date = new \DateTimeImmutable($brutDate);
             } catch (\Exception) {
+                // En-tête Date illisible : repli nommé sur l'instant de lecture (le message reste traité,
+                // le filtre d'âge s'applique alors sur cette date ; ce n'est pas une erreur silencieuse).
                 $date = new \DateTimeImmutable();
             }
         }

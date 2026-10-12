@@ -103,4 +103,25 @@ rejeu final du harness). Nouveaux : `CoffreTest` (6), `MigrationCourrierTest` (4
 
 ## Harness (`powershell -File tools\harness.ps1 -SansBanc`)
 
-À compléter par le rejeu final (voir la note de clôture).
+Rejeu du 2026-10-12 (838 s) sur l'arbre commité (`8cb9078`). Détail dans `var/harness/` et
+`recette/registre.json`. `tools/composer.phar` (outil gitignoré, absent de ce worktree) restauré depuis la
+copie de référence avant le rejeu : sans lui la couche 8 est ROUGE à tort.
+
+| Couche | État | Détail |
+| --- | --- | --- |
+| 0-garde-fous | VERT | vendor + node_modules, `DB_NAME=gedv2_test` imposé |
+| 1-unitaire | VERT | 813 tests, 10 531 assertions, 1 sauté |
+| 3-banc | ROUGE | sautée par `-SansBanc` (attendu) |
+| 4-écrans | VERT | 82 passés (4,1 m), dont `courrier.spec.ts` |
+| 7-sécurité | VERT | sonde offensive : aucun contournement accepté |
+| 2-contrat | VERT | toutes les routes déclarées couvertes (dont les 12 `/courrier*`) |
+| 6-charge | VERT | p95 lecture 653 ms, p95 écriture 233 ms, 0 erreur, 0 collision, ingestion finie |
+| 8-statique | VERT | PHPStan niveau 6 : 0 erreur ; `composer audit` : aucune vulnérabilité |
+| 5-personas | VERT | 6 personas, tous les gestes trouvés (médianes 346–694 ms) |
+| 9-parité | VERT | 780 éléments, 435 couverts, strict 55,77 %, hors exclusions 59,43 %, 0 non prouvé |
+
+La couche 3 étant sautée par `-SansBanc`, aucun banc n'a été rejoué (aucun banc de ce lot). Ne restent non
+commités que les fichiers régénérés par le harness (`recette/registre.json`, `recette/preuves/**`, `var/**`).
+
+ETAT: fini
+
