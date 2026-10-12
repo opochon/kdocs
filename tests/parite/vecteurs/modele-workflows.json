@@ -1,0 +1,1569 @@
+{
+  "version": 1,
+  "categorie": "modele-workflows",
+  "reference": {
+    "commit": "d1aa76e4cee0ba74416bf23f1a4dfbeb5be46b5e",
+    "commit_court": "d1aa76e",
+    "tag": "v2.20.5"
+  },
+  "total": 27,
+  "vecteurs": [
+    {
+      "id": "declencheurs:test_document_added_no_match_trigger_type",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 1
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:813"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_filename",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [
+            "t3"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_filename": "*foobar*"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:949"
+    },
+    {
+      "id": "declencheurs:test_workflow_no_match_source",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 1,
+        "document": {
+          "titre": "sample test",
+          "emetteur": null,
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "test_file.pdf",
+          "chemin": "bac-a-sable/test_file.pdf",
+          "contenu": "",
+          "source": 2,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 1,
+          "sources": [
+            1,
+            3
+          ],
+          "filter_path": "*"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc from {correspondent}",
+            "assign_correspondent": "Correspondent Name",
+            "assign_document_type": "DocType Name",
+            "assign_storage_path": "/test/",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:729"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_content_matching",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "Hello world bar",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "match": "foo",
+          "matching_algorithm": 3,
+          "is_insensitive": true
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc content matching worked",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1023"
+    },
+    {
+      "id": "declencheurs:test_document_added_match_content_matching",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "Hello world foo bar",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "match": "foo",
+          "matching_algorithm": 3,
+          "is_insensitive": true
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc content matching worked",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:985"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_tags",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [
+            "t3"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_tags": [
+            "t1",
+            "t2"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1060"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_all_tags",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [
+            "t1"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_all_tags": [
+            "t1",
+            "t2"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1095"
+    },
+    {
+      "id": "declencheurs:test_document_added_excluded_tags",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [
+            "t3"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_not_tags": [
+            "t3"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1133"
+    },
+    {
+      "id": "declencheurs:test_document_added_excluded_correspondent",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_not_correspondents": [
+            "Correspondent Name"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1171"
+    },
+    {
+      "id": "declencheurs:test_document_added_excluded_document_types",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": null,
+          "type": "DocType Name",
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_not_document_types": [
+            "DocType Name"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1207"
+    },
+    {
+      "id": "declencheurs:test_document_added_excluded_storage_paths",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": null,
+          "type": null,
+          "dossier": "/test/",
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_not_storage_paths": [
+            "/test/"
+          ]
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1243"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_doctype",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": null,
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_document_type": "DocType Name"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1495"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_correspondent",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name 2",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_correspondent": "Correspondent Name"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1528"
+    },
+    {
+      "id": "declencheurs:test_document_added_no_match_storage_path",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": null,
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_has_storage_path": "/test/"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1562"
+    },
+    {
+      "id": "declencheurs:test_document_added_custom_field_query_no_match",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {
+            "Custom Field 1": "other"
+          },
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_custom_field_query": "Custom Field 1=egal:expected"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false
+      },
+      "reference": "src/documents/tests/test_workflows.py:1279"
+    },
+    {
+      "id": "declencheurs:test_document_added_custom_field_query_match",
+      "famille": "declencheurs",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {
+            "Custom Field 1": "expected"
+          },
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_custom_field_query": "Custom Field 1=egal:expected"
+        },
+        "actions": []
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:1321"
+    },
+    {
+      "id": "affectation:test_document_added_workflow",
+      "famille": "affectation",
+      "entree": {
+        "type": 2,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 2,
+          "filter_filename": "*sample*"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc created in {{created_year}}",
+            "assign_correspondent": "Correspondent Name 2",
+            "assign_document_type": "DocType Name",
+            "assign_storage_path": "/test/",
+            "assign_owner": "user2",
+            "assign_tags": [
+              "t1",
+              "t2",
+              "t3"
+            ],
+            "assign_view_users": [
+              "user3"
+            ],
+            "assign_view_groups": [
+              "group1"
+            ],
+            "assign_change_users": [
+              "user3"
+            ],
+            "assign_change_groups": [
+              "group1"
+            ],
+            "assign_custom_fields": [
+              "Custom Field 1",
+              "Custom Field 2"
+            ]
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true,
+        "attributs": {
+          "emetteur": "Correspondent Name 2"
+        }
+      },
+      "reference": "src/documents/tests/test_workflows.py:901"
+    },
+    {
+      "id": "retrait:test_removal_action_document_updated_workflow",
+      "famille": "retrait",
+      "entree": {
+        "type": 3,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": "DocType Name",
+          "dossier": "/test/",
+          "proprietaire": "user2",
+          "etiquettes": [
+            "t1",
+            "t2"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {
+            "Custom Field 1": null
+          },
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 3,
+          "filter_path": "*"
+        },
+        "actions": [
+          {
+            "type": 2,
+            "order": 0,
+            "remove_correspondents": [
+              "Correspondent Name"
+            ],
+            "remove_tags": [
+              "t1"
+            ],
+            "remove_document_types": [
+              "DocType Name"
+            ],
+            "remove_storage_paths": [
+              "/test/"
+            ],
+            "remove_owners": [
+              "user2"
+            ],
+            "remove_custom_fields": [
+              "Custom Field 1"
+            ],
+            "remove_view_users": [
+              "user3"
+            ],
+            "remove_view_groups": [
+              "group1"
+            ],
+            "remove_change_users": [
+              "user3"
+            ],
+            "remove_change_groups": [
+              "group1"
+            ]
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true,
+        "attributs": {
+          "type": null,
+          "emetteur": null,
+          "dossier": null,
+          "proprietaire": null
+        }
+      },
+      "reference": "src/documents/tests/test_workflows.py:2423"
+    },
+    {
+      "id": "retrait:test_removal_action_document_updated_removeall",
+      "famille": "retrait",
+      "entree": {
+        "type": 3,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": "DocType Name",
+          "dossier": "/test/",
+          "proprietaire": "user2",
+          "etiquettes": [
+            "t1",
+            "t2"
+          ],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {
+            "Custom Field 1": null
+          },
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 3,
+          "filter_path": "*"
+        },
+        "actions": [
+          {
+            "type": 2,
+            "order": 0,
+            "remove_all_tags": true,
+            "remove_all_document_types": true,
+            "remove_all_correspondents": true,
+            "remove_all_storage_paths": true,
+            "remove_all_owners": true,
+            "remove_all_permissions": true,
+            "remove_all_custom_fields": true
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true,
+        "attributs": {
+          "type": null,
+          "emetteur": null,
+          "dossier": null,
+          "proprietaire": null
+        }
+      },
+      "reference": "src/documents/tests/test_workflows.py:2497"
+    },
+    {
+      "id": "courriel-webhook:test_workflow_email_action",
+      "famille": "courriel-webhook",
+      "entree": {
+        "type": 3,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 3
+        },
+        "actions": [
+          {
+            "type": 3,
+            "order": 0,
+            "email": {
+              "subject": "Test Notification: {doc_title}",
+              "body": "Test message: {doc_url}",
+              "to": "user@example.com",
+              "include_document": false
+            }
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:2940"
+    },
+    {
+      "id": "courriel-webhook:test_workflow_webhook_action_body",
+      "famille": "courriel-webhook",
+      "entree": {
+        "type": 3,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 3
+        },
+        "actions": [
+          {
+            "type": 4,
+            "order": 0,
+            "webhook": {
+              "url": "http://paperless-ngx.com",
+              "use_params": false,
+              "as_json": false,
+              "body": "Test message: {{doc_url}}",
+              "params": {},
+              "headers": {},
+              "include_document": false
+            }
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:3282"
+    },
+    {
+      "id": "planification:test_workflow_scheduled_trigger_created",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-08",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_offset_days": 1,
+          "schedule_date_field": "created"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:1818"
+    },
+    {
+      "id": "planification:test_workflow_scheduled_trigger_added",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2025-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_offset_days": 1,
+          "schedule_date_field": "added"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:1861"
+    },
+    {
+      "id": "planification:test_workflow_scheduled_trigger_custom_field",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {
+            "Custom Field 1": "2026-04-08"
+          },
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-10",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_offset_days": 1,
+          "schedule_date_field": "custom_field",
+          "schedule_date_custom_field": "Custom Field 1"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:1946"
+    },
+    {
+      "id": "planification:test_workflow_scheduled_trigger_too_early",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-03-01",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_offset_days": 30,
+          "schedule_recurring_interval_days": 7,
+          "schedule_is_recurring": true,
+          "schedule_date_field": "created"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": false,
+        "derniere_execution": "2026-04-04"
+      },
+      "reference": "src/documents/tests/test_workflows.py:2043"
+    },
+    {
+      "id": "planification:test_offset_positive_means_after",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "Test doc",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "test.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-03-11",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_offset_days": 10,
+          "schedule_date_field": "created"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:2272"
+    },
+    {
+      "id": "planification:test_workflow_scheduled_trigger_negative_offset_created",
+      "famille": "planification",
+      "entree": {
+        "type": 4,
+        "document": {
+          "titre": "sample test",
+          "emetteur": "Correspondent Name",
+          "type": null,
+          "dossier": null,
+          "proprietaire": null,
+          "etiquettes": [],
+          "nom_fichier": "sample.pdf",
+          "chemin": null,
+          "contenu": "",
+          "source": 1,
+          "mailrule": null,
+          "droits": {
+            "lecture": {
+              "utilisateurs": [],
+              "groupes": []
+            },
+            "modification": {
+              "utilisateurs": [],
+              "groupes": []
+            }
+          },
+          "champs": {},
+          "dates": {
+            "added": "2026-04-10",
+            "created": "2026-04-02",
+            "modified": "2026-04-10"
+          }
+        },
+        "trigger": {
+          "type": 4,
+          "schedule_date_field": "created"
+        },
+        "actions": [
+          {
+            "type": 1,
+            "order": 0,
+            "assign_title": "Doc assign owner",
+            "assign_owner": "user2"
+          }
+        ]
+      },
+      "sortie": {
+        "declenche": true
+      },
+      "reference": "src/documents/tests/test_workflows.py:2221"
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "non-rejouable:test_workflow_fnmatch_path",
+      "raison": "chemin de bac a sable Django (self.dirs.scratch_dir) non materialisable dans un vecteur ; le filtre de chemin reste prouve par les tests unitaires GEDv2.",
+      "reference": "src/documents/tests/test_workflows.py:437"
+    },
+    {
+      "id": "non-rejouable:test_workflow_scheduled_trigger_modified",
+      "raison": "le champ `modified` est auto_now dans Paperless : le test le MOCKE (documents.models.Document.objects.filter) ; hors modele GEDv2.",
+      "reference": "src/documents/tests/test_workflows.py:1904"
+    },
+    {
+      "id": "non-rejouable:test_new_trigger_type_raises_exception",
+      "raison": "comportement propre a Django : Paperless leve une Exception Python pour un type de declencheur inconnu ; GEDv2 ne leve pas (correspondance fausse).",
+      "reference": "src/documents/tests/test_workflows.py:2403"
+    },
+    {
+      "id": "non-rejouable:test_consumption_trigger_requires_filter_configuration",
+      "raison": "validation de serializer DRF (WorkflowTriggerSerializer) ; pas de modele de serializer dans GEDv2.",
+      "reference": "src/documents/tests/test_workflows.py:1387"
+    }
+  ]
+}

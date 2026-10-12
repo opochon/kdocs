@@ -128,10 +128,8 @@ final class Applicateur
     {
         $meta = is_array($ligne['meta'] ?? null) ? $ligne['meta'] : [];
         $chemin = (string) ($ligne['chemin_relatif'] ?? ($meta['chemin_relatif'] ?? ''));
-        $dossier = (string) ($meta['dossier'] ?? dirname($chemin));
-        if ($dossier === '.' || $dossier === '\\') {
-            $dossier = '';
-        }
+        // Le dossier de stockage est un attribut EXPLICITE (`.meta.json`) : le rangement dérivé n'en est pas un.
+        $dossier = isset($meta['dossier']) && is_string($meta['dossier']) ? $meta['dossier'] : null;
 
         return [
             'id' => (int) ($ligne['id'] ?? 0),

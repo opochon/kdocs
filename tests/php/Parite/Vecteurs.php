@@ -50,8 +50,18 @@ final class Vecteurs
         self::ecrireMesure('api-' . $categorie, $resultat);
     }
 
+    /**
+     * Mesure d'une famille `modele` (lot ged-parite-modele-1) : les modèles de workflows.
+     *
+     * @param array<string,mixed> $resultat
+     */
+    public static function ecrireMesure(string $categorie, array $resultat): void
+    {
+        self::ecrireFichier($categorie, $resultat);
+    }
+
     /** @param array<string,mixed> $resultat */
-    private static function ecrireMesure(string $fichier, array $resultat): void
+    private static function ecrireFichier(string $fichier, array $resultat): void
     {
         $dossier = dirname(__DIR__, 3) . '/var/parite';
         if (!is_dir($dossier) && !mkdir($dossier, 0777, true) && !is_dir($dossier)) {
