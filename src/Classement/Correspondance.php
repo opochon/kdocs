@@ -59,6 +59,7 @@ final class Correspondance
             self::UN => self::unMot($motif, $texte, $drapeaux),
             self::LITTERAL => self::litteral($motif, $texte, $drapeaux),
             self::REGEX => self::expressionReguliere($motif, $texte, $drapeaux),
+            self::FLOU => self::flou($motif, $texte, $insensible),
             default => false,
         };
     }
@@ -106,6 +107,72 @@ final class Correspondance
         $resultat = @preg_match('~' . str_replace('~', '\\~', $motif) . '~' . $drapeaux, $texte);
 
         return $resultat === 1;
+    }
+
+    /**
+     * Similarité partielle : le motif est comparé à chaque fenêtre de même longueur du texte, et l'on
+     * retient la meilleure proportion de sous-séquence commune (distance Indel normalisée, comme
+     * rapidfuzz `fuzz.partial_ratio`). La ponctuation est retirée avant comparaison.
+     */
+    private static function flou(string $motif, string $texte, bool $insensible): bool
+    {
+        $gauche = self::sansPonctuation($motif);
+        $droite = self::sansPonctuation($texte);
+        if ($insensible) {
+            $gauche = mb_strtolower($gauche, 'UTF-8');
+            $droite = mb_strtolower($droite, 'UTF-8');
+        }
+        if ($gauche === '' || $droite === '') {
+            return false;
+        }
+        if (mb_strlen($gauche) > mb_strlen($droite)) {
+            [$gauche, $droite] = [$droite, $gauche];
+        }
+        $longueur = mb_strlen($gauche);
+        $jetons = preg_split('//u', $droite, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $motifJetons = preg_split('//u', $gauche, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $meilleur = 0.0;
+        for ($debut = 0; $debut + $longueur <= count($jetons); $debut++) {
+            $lcs = self::sousSequenceCommune($motifJetons, array_slice($jetons, $debut, $longueur));
+            $score = 100.0 * $lcs / $longueur;
+            if ($score > $meilleur) {
+                $meilleur = $score;
+            }
+            if ($meilleur >= 100.0) {
+                break;
+            }
+        }
+
+        return $meilleur >= self::SEUIL_FLOU;
+    }
+
+    /** `[^\w\s]` de Paperless : on garde lettres, chiffres, souligné et espaces. */
+    private static function sansPonctuation(string $valeur): string
+    {
+        return (string) preg_replace('/[^\p{L}\p{N}_\s]/u', '', $valeur);
+    }
+
+    /**
+     * Longueur de la plus longue sous-séquence commune (programmation dynamique, mémoire linéaire).
+     *
+     * @param list<string> $gauche
+     * @param list<string> $droite
+     */
+    private static function sousSequenceCommune(array $gauche, array $droite): int
+    {
+        $largeur = count($droite);
+        $precedente = array_fill(0, $largeur + 1, 0);
+        foreach ($gauche as $jeton) {
+            $courante = array_fill(0, $largeur + 1, 0);
+            foreach ($droite as $indice => $autre) {
+                $courante[$indice + 1] = $jeton === $autre
+                    ? $precedente[$indice] + 1
+                    : max($courante[$indice], $precedente[$indice + 1]);
+            }
+            $precedente = $courante;
+        }
+
+        return $precedente[$largeur];
     }
 
     /**
