@@ -47,29 +47,59 @@ Paperless (GPLv3) reprise. `src/Parite/Juge.php` non modifié (le juge y ajouter
   `Ingestion\ParseurPiece`), `storage_type` (`unencrypted`) : exposés par la fiche.
 - Preuves : vecteurs `final-modele.json` (12) + `FinalModeleTest` (3 tests, vert).
 
-## En cours
+## Fait — chaîne, commandes, droits, statut (3e et 4e étapes)
 
-- Chaîne `TikaDocumentParser` (couvert-autrement), commandes, `AcknowledgeTasksPermissions`, `ws-status`.
+- `TikaDocumentParser` (3 éléments) → **couvert-autrement** par `Ingestion\ParseurPiece` (métadonnées,
+  vignette déléguée à `Apercu`, texte UTF-8 réparé ; bureautique = LibreOffice → PDF avant OCR) : preuves
+  `ChaineParseursTest`, aucune dépendance lourde ajoutée.
+- `commande:documents:decrypt_documents` → `Ingestion\DechiffreurPdf` + outil `tools/decrypter-documents.php`
+  (outil externe `PDF_DECHIFFREUR`, refus **nommé** s'il est absent, jamais d'échec muet ; liste seule par
+  défaut, `--appliquer` pour écrire).
+- `commande:documents:prune_audit_logs` → `Securite\PurgeAudit` + outil `tools/purger-journal-audit.php`
+  (rétention en jours, ligne illisible **conservée**, écriture atomique ; aucune donnée utilisateur).
+- `permissions:classe:AcknowledgeTasksPermissions` → `Securite\PermissionsTaches` (administrateur ou
+  permission fine `taches:acquitter`), rattaché à la file `ingestion_travaux` (`Socle\Taches`), pas de Celery.
+- `api:route:anon:ws-status-…` → **équivalent fonctionnel léger** : `GET /api/v1/taches/statut/evenements`
+  (flux SSE d'un événement `statut` — état réel des tâches — puis fermeture ; pas de WebSocket/Redis en
+  mutualisé). `couvert-autrement` assumé.
+- Preuve : `tests/php/Parite/FinalCommandesTest.php` (3 tests, vert : outil absent puis déchiffrement réel
+  avec un faux outil externe, purge, 403 non-admin, SSE admin, 401 sans jeton).
+
+## Fait — écrans (5e étape)
+
+- `/application` : section **Référentiels** (émetteurs = Correspondent, emplacements = StoragePath) avec
+  création, mise en veille/réactivation et liste ; **identité modifiable** (titre, langue) avec retour au
+  `.env`. Routes `POST /application/emetteur|emplacement|configuration` (droit `application:administrer`).
+- `/metadonnees` : colonne **Parente** + rattachement, mise en veille/réactivation des étiquettes et des
+  champs (jamais de suppression).
+- Fiche document : **propriétaire**, **nom d'origine**, **pages**, **n° d'archive**, **type de stockage**
+  (repli nommé « — » quand l'information manque, y compris sur la maquette).
+- Tests : `EcransTest` (présence des data-testid + rendu) et E2E `configuration.spec.ts` (un administrateur
+  crée un émetteur, le voit, le met en veille, modifie l'identité puis revient au `.env`).
 
 ## Reste
 
-- Commandes `decrypt_documents`, `prune_audit_logs`.
-- `AcknowledgeTasksPermissions`.
-- `AcknowledgeTasksPermissions`.
-- `ws-status` (équivalent léger SSE).
-- Écrans (`/application`, `/metadonnees`, fiche document) + tests d'accès.
-- `correspondance.json` + rapport, harness complet, porte qualité ECC.
+- Harness complet `-SansBanc` (couches 1, 4, 5, 7, 8, 9) + chiffres exacts.
+- Porte qualité ECC (`docs/qualite/README.md`).
+
+Note : les **19 exclusions SSO** restent `absent` dans `correspondance.json` — c'est **le juge** qui les pose
+en `exclu` (`authentification-allauth-sso`), conformément à la décision d'Olivier du 12.10.2026. Au niveau du
+lot, le hors-exclusions plafonne donc à `737 / 756 = 97,49 %` ; après l'ajout des 19 exclusions par le juge,
+`couverts / (780 − 43)` = **100,00 %** hors exclusions.
 
 ## Mesures exactes
 
-| Mesure | Avant | Après (à date) |
+| Mesure | Avant (`6090fe9`) | Après (à date, juge relancé) |
 | --- | ---: | ---: |
-| Éléments couverts | 701 / 780 | 701 / 780 (correspondance pas encore corrigée) |
-| Parité stricte | 89,87 % | 89,87 % (idem) |
-| Absents | 55 | 55 (correspondance pas encore corrigée) |
+| Éléments couverts | 701 / 780 | **737 / 780** |
+| Parité stricte | 89,87 % | **94,49 %** |
+| Hors exclusions (24 exclus) | 92,72 % | **97,49 %** (737/756) |
+| Absents | 55 | **19** (les SSO, pour le juge) |
+| Exclus | 24 | 24 (le juge portera 24 + 19 = **43**) |
 
-Note : la `correspondance.json` sera corrigée en fin de lot, quand toutes les preuves seront vertes.
+Couverture mesurée avec `var/e2e-latest.json` absent : la couche 4 (Playwright) doit être rejouée par le
+harness pour reprouver les 28 éléments adossés à un parcours navigateur ; le total couverts restera 737.
 
 ## Porte qualité
 
-À compléter en fin de lot (PHPStan niveau 6, revue ECC, chiffres harness).
+À compléter en fin de lot (PHPStan niveau 6, revue ECC, chiffres harness par couche).
