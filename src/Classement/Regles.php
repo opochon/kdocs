@@ -449,6 +449,12 @@ final class Regles
         return $valeur >= $minimum && $valeur <= $maximum;
     }
 
+    /** Squelette de l'oracle rouge : le lot ged-parite-comportement-1 branchera l'analyse ici. */
+    public static function dateDansTexte(string $texte): ?string
+    {
+        return null;
+    }
+
     /**
      * Le titre de la pièce : ligne « Concerne », sinon le numéro (facture, note de crédit, reçu…),
      * sinon type + émetteur + date. Jamais le nom du fichier ni du lot d'ingestion.

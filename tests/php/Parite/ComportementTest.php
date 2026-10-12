@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace Ged\Tests\Parite;
 
+use Ged\Classement\Correspondance;
 use Ged\Classement\Regles;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Phase 2 du lot ged-oracle-paperless-1 : parite d'effet.
+ * Phase 2 du lot ged-oracle-paperless-1 : parité d'effet, rattrapée par le lot ged-parite-comportement-1.
  *
- * Les vecteurs {entree, sortie} sont extraits mecaniquement des tests de Paperless
- * (tests/parite/vecteurs/*.json, jamais de code). Chaque vecteur passe par l'equivalent
- * GEDv2 ; le resultat (passes / total, par categorie et par algorithme) est ecrit dans
- * var/parite/comportement.json pour le rapport de parite. Un ecart de comportement est
- * MESURE, jamais corrige dans ce lot.
+ * Les vecteurs {entree, sortie} sont extraits mécaniquement des tests de Paperless
+ * (tests/parite/vecteurs/*.json, jamais de code) et sont l'ORACLE : ils ne sont ni modifiés ni filtrés.
+ * Chaque vecteur est rejoué par l'équivalent GEDv2 — Ged\Classement\Correspondance pour la
+ * correspondance, Regles::dateDansTexte pour les dates — et le résultat (passes / total, par catégorie
+ * et par algorithme) est écrit dans var/parite/comportement.json pour le rapport de parité. Le test
+ * échoue si UN vecteur s'écarte de sa sortie attendue.
+ *
+ * Sensibilité à la casse : Paperless porte le drapeau `is_insensitive` dans le modèle, absent des
+ * vecteurs extraits. Rejouer en sensible est le seul choix cohérent avec les 137 vecteurs (aucun
+ * couple (algorithme, motif, texte) n'a deux sorties contradictoires) : les vecteurs de la classe
+ * insensible ne font jamais varier la casse, donc ils passent aussi en sensible.
  */
 final class ComportementTest extends TestCase
 {
@@ -31,57 +38,60 @@ final class ComportementTest extends TestCase
     }
 
     /**
+     * Rejoue un vecteur de correspondance via le service GEDv2. Aucun cas particulier : l'algorithme
+     * du vecteur est transmis tel quel au service, qui décide (un algorithme non textuel renvoie false).
+     *
      * @param array<string, mixed> $vecteur
      * @return array{0:bool, 1:string}
      */
     private function rejouerCorrespondance(array $vecteur): array
     {
         $entree = is_array($vecteur['entree'] ?? null) ? $vecteur['entree'] : [];
-        $algorithme = (string) ($entree['algorithme'] ?? '');
-        $match = (string) ($entree['match_texte'] ?? '');
-        $doc = (string) ($entree['doc_texte'] ?? '');
         $attendu = (bool) ($vecteur['sortie'] ?? false);
-
-        $obtenu = match ($algorithme) {
-            'MATCH_NONE' => false,
-            'MATCH_LITERAL' => Regles::nomSeLit($doc, $match),
-            'MATCH_FUZZY' => Regles::emetteursCorrespondent($match, $doc),
-            default => null,
-        };
-        if ($obtenu === null) {
-            return [false, 'pas d\'equivalent GEDv2 pour ' . $algorithme];
+        $obtenu = Correspondance::correspond(
+            (string) ($entree['algorithme'] ?? ''),
+            (string) ($entree['match_texte'] ?? ''),
+            (string) ($entree['doc_texte'] ?? ''),
+            false,
+        );
+        if ($obtenu === $attendu) {
+            return [true, ''];
         }
 
-        return [$obtenu === $attendu, ''];
+        return [false, 'attendu ' . var_export($attendu, true) . ', obtenu ' . var_export($obtenu, true)];
     }
 
     public function testRejoueLesVecteursEtEcritLaMesure(): void
     {
         $resultats = [];
-        $ecarts = [];
+        $echecs = [];
 
-        // Analyse de dates.
+        // Analyse de dates : la première date lisible dans le texte, à la manière de Paperless.
         $dates = $this->vecteurs('dates');
         $passes = 0;
+        $ecarts = [];
         foreach ((array) $dates['vecteurs'] as $vecteur) {
             $entree = is_array($vecteur['entree'] ?? null) ? $vecteur['entree'] : [];
-            $obtenu = Regles::dateEnTete((string) ($entree['texte'] ?? ''));
+            $obtenu = Regles::dateDansTexte((string) ($entree['texte'] ?? ''));
             $attendu = $vecteur['sortie'] ?? null;
             $attendu = is_string($attendu) ? $attendu : null;
             if ($obtenu === $attendu) {
                 $passes++;
             } else {
-                $ecarts[] = [
+                $ecart = [
                     'id' => (string) ($vecteur['id'] ?? ''),
                     'attendu' => $attendu,
                     'obtenu' => $obtenu,
                     'reference' => (string) ($vecteur['reference'] ?? ''),
                 ];
+                $ecarts[] = $ecart;
+                $echecs[] = 'dates ' . $ecart['id'] . ' (' . $ecart['reference'] . ') : attendu '
+                    . var_export($attendu, true) . ', obtenu ' . var_export($obtenu, true);
             }
         }
         $resultats['dates'] = ['total' => count((array) $dates['vecteurs']), 'passes' => $passes, 'ecarts' => $ecarts];
 
-        // Correspondance automatique.
+        // Correspondance automatique : chaque algorithme du modèle Paperless.
         $correspondance = $this->vecteurs('correspondance');
         $passes = 0;
         $ecarts = [];
@@ -96,12 +106,15 @@ final class ComportementTest extends TestCase
                 $passes++;
                 $parAlgorithme[$algorithme]['passes']++;
             } else {
-                $ecarts[] = [
+                $ecart = [
                     'id' => (string) ($vecteur['id'] ?? ''),
                     'algorithme' => $algorithme,
                     'raison' => $raison,
                     'reference' => (string) ($vecteur['reference'] ?? ''),
                 ];
+                $ecarts[] = $ecart;
+                $echecs[] = 'correspondance ' . $ecart['id'] . ' ' . $algorithme . ' ('
+                    . $ecart['reference'] . ') : ' . $raison;
             }
         }
         $resultats['correspondance'] = [
@@ -133,5 +146,6 @@ final class ComportementTest extends TestCase
             $resultats['dates']['total'],
             'la mesure doit couvrir tous les vecteurs de dates',
         );
+        self::assertSame([], $echecs, "vecteurs de comportement en écart :\n" . implode("\n", $echecs));
     }
 }
