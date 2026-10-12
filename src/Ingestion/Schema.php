@@ -9,7 +9,18 @@ use PDO;
 /** Tables du secteur Ingestion. Idempotent : rejouable sur une base existante. */
 final class Schema
 {
+    /** Colonnes du journal des courriels traites (modele Paperless `ProcessedMail`). */
+    public const COLONNES_COURRIER = ['regle', 'dossier', 'uid', 'sujet', 'statut', 'erreur', 'traite_le'];
+
+    /** L'installateur pose les tables de base PUIS les colonnes du journal courrier (idempotent). */
     public static function installer(PDO $pdo): void
+    {
+        self::assurerTables($pdo);
+        self::assurerColonnesCourrier($pdo);
+    }
+
+    /** Étape v1, idempotente : les deux tables de base. `Migrations::monter` l'appelle pour la version 1. */
+    public static function assurerTables(PDO $pdo): void
     {
         // Un « travail » = un fichier reçu (lot ou pièce). La même empreinte n'entre jamais deux fois.
         $pdo->exec(<<<'SQL'
@@ -45,5 +56,30 @@ final class Schema
               UNIQUE KEY uq_message (boite(150), message_id(300))
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
+    }
+
+    /**
+     * Étape v2, idempotente : le journal des courriels traités (modele Paperless `ProcessedMail`) enrichit
+     * `ingestion_messages` au lieu d'ouvrir une table de plus. Un message d'adresse n'a que `boite`/
+     * `message_id`/`pieces` ; une ligne de courrier porte en plus la règle, le dossier, l'uid, l'objet, le
+     * statut, l'erreur et la date de traitement. `Migrations::monter` l'appelle pour la version 2 ;
+     * l'installateur la pose avec le reste du schéma.
+     */
+    public static function assurerColonnesCourrier(PDO $pdo): void
+    {
+        $colonnes = [
+            'regle' => "ADD COLUMN regle VARCHAR(190) NULL COMMENT 'nom de la règle de courrier'",
+            'dossier' => "ADD COLUMN dossier VARCHAR(190) NULL COMMENT 'dossier IMAP relevé'",
+            'uid' => "ADD COLUMN uid VARCHAR(190) NULL COMMENT 'UID du message dans le dossier'",
+            'sujet' => "ADD COLUMN sujet VARCHAR(255) NULL",
+            'statut' => "ADD COLUMN statut VARCHAR(32) NULL COMMENT 'SUCCESS|PROCESSED_WO_CONSUMPTION|FAILED|purge'",
+            'erreur' => 'ADD COLUMN erreur TEXT NULL',
+            'traite_le' => 'ADD COLUMN traite_le DATETIME NULL',
+        ];
+        foreach ($colonnes as $colonne => $definition) {
+            if (!Migrations::colonneExiste($pdo, 'ingestion_messages', $colonne)) {
+                $pdo->exec('ALTER TABLE ingestion_messages ' . $definition);
+            }
+        }
     }
 }

@@ -104,16 +104,40 @@
             }
         },
         "api:action:MailAccountViewSet.process": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes/{id:[0-9]+}/traiter"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:action:MailAccountViewSet.test": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes/{id:[0-9]+}/tester"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:action:ProcessedMailViewSet.bulk_delete": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/journal/purger"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "api:action:StoragePathViewSet.test": {
             "statut": "absent",
@@ -585,12 +609,26 @@
             "lot": "V2-05"
         },
         "api:filtre:ProcessedMailFilterSet.rule": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut"
+            }
         },
         "api:filtre:ProcessedMailFilterSet.status": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut"
+            }
         },
         "api:filtre:ShareLinkFilterSet.created": {
             "statut": "absent",
@@ -881,12 +919,28 @@
             "lot": "V2-05"
         },
         "api:route:mail-accounts": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:route:mail-rules": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:route:mfa_authenticate": {
             "statut": "exclu",
@@ -909,8 +963,16 @@
             }
         },
         "api:route:processed-mail": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:route:profile_view": {
             "statut": "couvert-autrement",
@@ -1236,52 +1298,148 @@
             "lot": "V2-05"
         },
         "api:verbe:MailAccountViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailAccountViewSet.destroy": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes/{id:[0-9]+}/basculer"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailAccountViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailAccountViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailAccountViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailAccountViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/comptes/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.create": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.destroy": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/regles/{id:[0-9]+}/basculer"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.partial_update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/regles/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.retrieve": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier/regles/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:MailRuleViewSet.update": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "POST",
+                "chemin": "/courrier/regles/{id:[0-9]+}"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:OauthCallbackView.get": {
             "statut": "absent",
@@ -1292,8 +1450,16 @@
             "lot": "V2-05"
         },
         "api:verbe:ProcessedMailViewSet.list": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:verbe:ProcessedMailViewSet.retrieve": {
             "statut": "absent",
@@ -1680,12 +1846,28 @@
             "lot": "V2-05"
         },
         "api:vue:MailAccountViewSet": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:vue:MailRuleViewSet": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:vue:OauthCallbackView": {
             "statut": "absent",
@@ -1712,8 +1894,16 @@
             }
         },
         "api:vue:ProcessedMailViewSet": {
-            "statut": "absent",
-            "lot": "V2-05"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/courrier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "api:vue:ProfileView": {
             "statut": "couvert-autrement",
@@ -2649,11 +2839,11 @@
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+                "classe": "Ged\\Ingestion\\Courrier\\Moteur"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
             }
         },
         "correspondance:algo:MATCH_ALL": {
@@ -2890,8 +3080,15 @@
             "lot": "V2-03"
         },
         "ecran:route:mail": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/courrier.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "ecran:route:savedviews": {
             "statut": "absent",
@@ -2902,8 +3099,15 @@
             "lot": "V2-03"
         },
         "ecran:route:settings-mail": {
-            "statut": "absent",
-            "lot": "V2-03"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "ecran",
+                "fichier": "templates/ecrans/courrier.twig"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier"
+            }
         },
         "ecran:route:settings-savedviews": {
             "statut": "absent",
@@ -3435,140 +3639,378 @@
             }
         },
         "modele:champ:MailAccount.account_type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.character_set": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.expiration": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.imap_port": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.imap_security": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.imap_server": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.is_token": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.name": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.password": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.refresh_token": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailAccount.username": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Comptes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
+            }
         },
         "modele:champ:MailRule.account": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.action": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.action_parameter": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_correspondent": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_correspondent_from": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_document_type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_owner_from_rule": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_tags": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.assign_title_from": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.attachment_type": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.consumption_scope": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.enabled": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_attachment_filename_exclude": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_attachment_filename_include": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_body": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_from": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_subject": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.filter_to": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.folder": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.maximum_age": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.name": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.order": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MailRule.pdf_layout": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:champ:MatchingModel.is_insensitive": {
             "statut": "absent",
@@ -3675,36 +4117,92 @@
             "lot": "V2-04"
         },
         "modele:champ:ProcessedMail.error": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.folder": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.processed": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.received": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.rule": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.status": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.subject": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:ProcessedMail.uid": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:champ:SavedView.display_fields": {
             "statut": "absent",
@@ -4748,16 +5246,23 @@
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran"
             }
         },
         "modele:classe:MailRule": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regles"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testUneRegleSeRelitALEIdentique"
+            }
         },
         "modele:classe:MatchingModel": {
             "statut": "absent",
@@ -4783,8 +5288,15 @@
             "exclusion": "infrastructure-celery-redis"
         },
         "modele:classe:ProcessedMail": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Traites"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite"
+            }
         },
         "modele:classe:SavedView": {
             "statut": "couvert-autrement",
@@ -4952,40 +5464,103 @@
             "lot": "V2-04"
         },
         "modele:type:AttachmentProcessing.ATTACHMENTS_ONLY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:AttachmentProcessing.EVERYTHING": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:ConsumptionScope.ATTACHMENTS_ONLY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:ConsumptionScope.EML_ONLY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:ConsumptionScope.EVERYTHING": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:CorrespondentSource.FROM_CUSTOM": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:CorrespondentSource.FROM_EMAIL": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:CorrespondentSource.FROM_NAME": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:CorrespondentSource.FROM_NOTHING": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:DisplayFields.ADDED": {
             "statut": "absent",
@@ -5219,79 +5794,177 @@
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
             }
         },
         "modele:type:ImapSecurity.SSL": {
             "statut": "couvert-autrement",
             "gedv2": {
                 "type": "service",
-                "classe": "Ged\\Ingestion\\Imap\\ImapBoite"
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Ingestion\\SourceAdresseTest::testClientImapContreServeurLocal"
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
             }
         },
         "modele:type:ImapSecurity.STARTTLS": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAccountType.GMAIL_OAUTH": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAccountType.IMAP": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAccountType.OUTLOOK_OAUTH": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Compte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAction.DELETE": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAction.FLAG": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAction.MARK_READ": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAction.MOVE": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:MailAction.TAG": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:PdfLayout.DEFAULT": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:PdfLayout.HTML_ONLY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:PdfLayout.HTML_TEXT": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:PdfLayout.TEXT_HTML": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:PdfLayout.TEXT_ONLY": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:ScheduleDateField.ADDED": {
             "statut": "couvert-autrement",
@@ -5366,16 +6039,37 @@
             "lot": "V2-04"
         },
         "modele:type:TitleSource.FROM_FILENAME": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:TitleSource.FROM_SUBJECT": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:TitleSource.NONE": {
-            "statut": "absent",
-            "lot": "V2-04"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Ingestion\\Courrier\\Regle"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Ingestion\\Courrier\\RegleTest::testToutesLesEnumerationsDuModeleExistent"
+            }
         },
         "modele:type:WorkflowActionType.ASSIGNMENT": {
             "statut": "couvert-autrement",

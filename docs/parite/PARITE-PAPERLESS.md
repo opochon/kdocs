@@ -10,19 +10,19 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 339 | 393 | 0 | 48 | 43,46 % | 46,31 % |
+| 780 | 435 | 297 | 0 | 48 | 55,77 % | 59,43 % |
 
 ### Par categorie
 
 | Categorie | Total | Couverts | Absents | Non prouves | Exclus | Stricte | Hors exclusions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| api | 318 | 72 | 203 | 0 | 43 | 22,64 % | 26,18 % |
+| api | 318 | 96 | 179 | 0 | 43 | 30,19 % | 34,91 % |
 | chaine | 60 | 55 | 5 | 0 | 0 | 91,67 % | 91,67 % |
 | commande | 17 | 9 | 6 | 0 | 2 | 52,94 % | 60,00 % |
 | correspondance | 13 | 9 | 4 | 0 | 0 | 69,23 % | 69,23 % |
-| ecran | 30 | 10 | 19 | 0 | 1 | 33,33 % | 34,48 % |
+| ecran | 30 | 12 | 17 | 0 | 1 | 40,00 % | 41,38 % |
 | masse | 17 | 14 | 3 | 0 | 0 | 82,35 % | 82,35 % |
-| modele | 313 | 163 | 149 | 0 | 1 | 52,08 % | 52,24 % |
+| modele | 313 | 233 | 79 | 0 | 1 | 74,44 % | 74,68 % |
 | permissions | 12 | 7 | 4 | 0 | 1 | 58,33 % | 63,64 % |
 
 ## Comportement (phase 2)
@@ -79,6 +79,27 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | — courriel-webhook | — | 2 | 2 | — | 100,00 % |
 | — planification | — | 6 | 6 | — | 100,00 % |
 
+## Modele — courrier (phase 6)
+
+Vecteurs {courriel, regle} extraits des tests Paperless (MailRule, MailAccountHandler, actions
+marquer / supprimer / deplacer / etiqueter, filtres de pieces), rejoues contre le vrai moteur
+courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont listes
+`non_rejouables` avec leur raison.
+
+| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |
+| --- | --- | ---: | ---: | ---: | ---: |
+| modele-courrier | tests/parite/vecteurs/modele-courrier.json | 42 | 42 | 4 | 100,00 % |
+| — filtres-fichiers | — | 9 | 9 | — | 100,00 % |
+| — filtres | — | 8 | 8 | — | 100,00 % |
+| — titre | — | 3 | 3 | — | 100,00 % |
+| — emetteur | — | 5 | 5 | — | 100,00 % |
+| — pieces | — | 4 | 4 | — | 100,00 % |
+| — portee | — | 1 | 1 | — | 100,00 % |
+| — actions | — | 8 | 8 | — | 100,00 % |
+| — regles | — | 1 | 1 | — | 100,00 % |
+| — validation | — | 1 | 1 | — | 100,00 % |
+| — journal | — | 2 | 2 | — | 100,00 % |
+
 ## api
 
 | Fonction Paperless | Reference source | Statut | Equivalent GEDv2 | Preuve / harness | Lot |
@@ -93,9 +114,9 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | @action DocumentViewSet.share_links [GET] detail | src/documents/views.py:1093 | couvert-autrement | route POST /documents/{id:[0-9]+}/partages | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | @action DocumentViewSet.suggestions [GET] detail | src/documents/views.py:893 | couvert-autrement | service Ged\Classement\ClasseurGed | phpunit Ged\Tests\Classement\ClasseurGedTest::testSansIndiceDuToutLeRepliCourrierEstProposeSansValidation (couche 1) |  |
 | @action DocumentViewSet.thumb [GET] detail | src/documents/views.py:951 | couvert-autrement | route GET /documents/{id:[0-9]+}/miniature | phpunit Ged\Tests\Apercu\ModuleTest::testMiniatureServieEnPng (couche 1) |  |
-| @action MailAccountViewSet.process [POST] detail | src/paperless_mail/views.py:130 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| @action MailAccountViewSet.test [POST] liste | src/paperless_mail/views.py:84 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| @action ProcessedMailViewSet.bulk_delete [POST] liste | src/paperless_mail/views.py:151 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| @action MailAccountViewSet.process [POST] detail | src/paperless_mail/views.py:130 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/traiter | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| @action MailAccountViewSet.test [POST] liste | src/paperless_mail/views.py:84 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/tester | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| @action ProcessedMailViewSet.bulk_delete [POST] liste | src/paperless_mail/views.py:151 | couvert-autrement | route POST /courrier/journal/purger | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | @action StoragePathViewSet.test [POST] liste | src/documents/views.py:2347 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | @action TasksViewSet.acknowledge [POST] liste | src/documents/views.py:2566 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
 | @action TasksViewSet.run [POST] liste | src/documents/views.py:2583 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
@@ -155,8 +176,8 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | PaperlessTaskFilterSet.status | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | PaperlessTaskFilterSet.task_name | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | PaperlessTaskFilterSet.type | src/documents/filters.py:807 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ProcessedMailFilterSet.rule | src/paperless_mail/filters.py:9 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ProcessedMailFilterSet.status | src/paperless_mail/filters.py:9 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| ProcessedMailFilterSet.rule | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
+| ProcessedMailFilterSet.status | src/paperless_mail/filters.py:9 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testLeJournalSeFiltreParRegleEtParStatut (couche 1) |  |
 | ShareLinkFilterSet.created | src/documents/filters.py:793 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | ShareLinkFilterSet.expiration | src/documents/filters.py:793 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | StoragePathFilterSet.id | src/documents/filters.py:114 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -211,12 +232,12 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | re_path ^api/^search/^$ -> global_search [GlobalSearchView.as_view] | src/paperless/urls.py:100 | couvert-autrement | route GET /recherche | phpunit Ged\Tests\Recherche\EcranTest::testLesVraisResultatsArriventDansLeGabarit (couche 1) |  |
 | router /api/groups/ -> GroupViewSet | src/paperless/urls.py:72 | couvert-autrement | route GET /administration/groupes | phpunit Ged\Tests\Securite\V213DroitsRolesTest::testAdministrationCreeUnCompteEtUnGroupeAvecTraceDaudit (couche 1) |  |
 | router /api/logs/ -> LogViewSet | src/paperless/urls.py:66 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| router /api/mail_accounts/ -> MailAccountViewSet | src/paperless/urls.py:73 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| router /api/mail_rules/ -> MailRuleViewSet | src/paperless/urls.py:74 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| router /api/mail_accounts/ -> MailAccountViewSet | src/paperless/urls.py:73 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| router /api/mail_rules/ -> MailRuleViewSet | src/paperless/urls.py:74 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | path accounts/2fa/authenticate/ -> mfa_authenticate [allauth_mfa_views.authenticate] | src/paperless/urls.py:344 | exclu (exclu : infrastructure-django) | - | - |  |
 | re_path ^api/^oauth/callback/ -> oauth_callback [OauthCallbackView.as_view] | src/paperless/urls.py:203 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | re_path ^api/^documents/^post_document/ -> post_document [PostDocumentView.as_view] | src/paperless/urls.py:122 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
-| router /api/processed_mail/ -> ProcessedMailViewSet | src/paperless/urls.py:81 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| router /api/processed_mail/ -> ProcessedMailViewSet | src/paperless/urls.py:81 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | re_path ^api/^profile/^$ -> profile_view [ProfileView.as_view] | src/paperless/urls.py:168 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
 | re_path ^api/^remote_version/ -> remoteversion [RemoteVersionView.as_view] | src/paperless/urls.py:150 | exclu (exclu : infrastructure-django) | - | - |  |
 | router /api/saved_views/ -> SavedViewViewSet | src/paperless/urls.py:68 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
@@ -276,21 +297,21 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | GroupViewSet.partial_update (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | GroupViewSet.retrieve (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | GroupViewSet.update (DRF ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.create (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.destroy (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.list (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.partial_update (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.retrieve (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailAccountViewSet.update (DRF ModelViewSet) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.create (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.destroy (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.list (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.partial_update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.retrieve (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| MailRuleViewSet.update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| MailAccountViewSet.create (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailAccountViewSet.destroy (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+}/basculer | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailAccountViewSet.list (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailAccountViewSet.partial_update (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailAccountViewSet.retrieve (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier/comptes/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailAccountViewSet.update (DRF ModelViewSet) | src/paperless_mail/views.py:68 | couvert-autrement | route POST /courrier/comptes/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.create (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.destroy (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles/{id:[0-9]+}/basculer | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.list (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.partial_update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.retrieve (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| MailRuleViewSet.update (DRF ModelViewSet) | src/paperless_mail/views.py:165 | couvert-autrement | route POST /courrier/regles/{id:[0-9]+} | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | OauthCallbackView.get | src/paperless_mail/views.py:184 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | PostDocumentView.post | src/documents/views.py:1666 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| ProcessedMailViewSet.list (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| ProcessedMailViewSet.list (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | ProcessedMailViewSet.retrieve (DRF ReadOnlyModelViewSet) | src/paperless_mail/views.py:137 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | ProfileView.get | src/paperless/views.py:189 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | ProfileView.patch | src/paperless/views.py:195 | absent (ecart assume, lot a creer) | - | - | V2-05 |
@@ -373,13 +394,13 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | classe GroupViewSet(ModelViewSet) | src/paperless/views.py:168 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | classe IndexView(TemplateView) | src/documents/views.py:209 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe LogViewSet(ViewSet) | src/documents/views.py:1402 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe MailAccountViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:68 | absent (ecart assume, lot a creer) | - | - | V2-05 |
-| classe MailRuleViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:165 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe MailAccountViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:68 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
+| classe MailRuleViewSet(ModelViewSet, PassUserMixin) | src/paperless_mail/views.py:165 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | classe OauthCallbackView(GenericAPIView) | src/paperless_mail/views.py:181 | absent (ecart assume, lot a creer) | - | - | V2-05 |
 | classe PaperlessObtainAuthTokenView(ObtainAuthToken) | src/paperless/views.py:48 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PassUserMixin(GenericAPIView) | src/documents/views.py:251 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe PostDocumentView(GenericAPIView) | src/documents/views.py:1661 | couvert-autrement | route POST /api/v1/documents | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testDeposerUnFichierPasseParLAChaineDIngestionEtEstIdempotent (couche 1) |  |
-| classe ProcessedMailViewSet(ReadOnlyModelViewSet, PassUserMixin) | src/paperless_mail/views.py:137 | absent (ecart assume, lot a creer) | - | - | V2-05 |
+| classe ProcessedMailViewSet(ReadOnlyModelViewSet, PassUserMixin) | src/paperless_mail/views.py:137 | couvert-autrement | route GET /courrier | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | classe ProfileView(GenericAPIView) | src/paperless/views.py:181 | couvert-autrement | route GET /profil | phpunit Ged\Tests\Jonctions\ProfilTest::testLAdresseEstVerifieeParUnLienEnvoyeParCourriel (couche 1) |  |
 | classe RemoteVersionView(GenericAPIView) | src/documents/views.py:2455 | exclu (exclu : infrastructure-django) | - | - |  |
 | classe SavedViewViewSet(ModelViewSet, PassUserMixin) | src/documents/views.py:1452 | couvert-autrement | route GET /api/v1/vues | phpunit Ged\Tests\Jonctions\DocumentsApiTest::testLesReferentielsSontExposes (couche 1) |  |
@@ -487,7 +508,7 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | documents manage.py loaddata_stdin | src/documents/management/commands/loaddata_stdin.py:1 | exclu (exclu : infrastructure-django) | - | - |  |
 | documents manage.py manage_superuser | src/documents/management/commands/manage_superuser.py:1 | couvert-autrement | service Ged\Socle\Schema | phpunit Ged\Tests\Socle\InstallateurTest::testPoseUnSchemaNeufAvecCompteAdmin (couche 1) |  |
 | documents manage.py prune_audit_logs | src/documents/management/commands/prune_audit_logs.py:1 | absent (ecart assume, lot a creer) | - | - | V2-00 |
-| paperless_mail manage.py mail_fetcher | src/paperless_mail/management/commands/mail_fetcher.py:1 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
+| paperless_mail manage.py mail_fetcher | src/paperless_mail/management/commands/mail_fetcher.py:1 | couvert-autrement | service Ged\Ingestion\Courrier\Moteur | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 
 ## correspondance
 
@@ -526,10 +547,10 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | route UI 'documents/:id/:section' -> DocumentDetailComponent | src-ui/src/app/app-routing.module.ts:85 | couvert-autrement | ecran templates/ecrans/document.twig | phpunit Ged\Tests\EcransTest::testEcranRepondEtSeDesigne (couche 1) |  |
 | route UI 'documenttypes' -> DocumentTypeListComponent | src-ui/src/app/app-routing.module.ts:121 | couvert-autrement | ecran templates/ecrans/metadonnees.twig | phpunit Ged\Tests\Socle\EcranMetadonneesTest::testLOuvertureDeLÉcranNEcritJamaisDansLeFonds (couche 1) |  |
 | route UI 'logs' -> LogsComponent | src-ui/src/app/app-routing.module.ts:157 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'mail' -> MailComponent | src-ui/src/app/app-routing.module.ts:265 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'mail' -> MailComponent | src-ui/src/app/app-routing.module.ts:265 | couvert-autrement | ecran templates/ecrans/courrier.twig | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | route UI 'savedviews' -> SavedViewsComponent | src-ui/src/app/app-routing.module.ts:289 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | route UI 'settings' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:191 | absent (ecart assume, lot a creer) | - | - | V2-03 |
-| route UI 'settings/mail' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:179 | absent (ecart assume, lot a creer) | - | - | V2-03 |
+| route UI 'settings/mail' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:179 | couvert-autrement | ecran templates/ecrans/courrier.twig | phpunit Ged\Tests\Ingestion\Courrier\ModuleTest::testLAdministrateurCreeUnCompteLeTesteCreeUneRegleEtTraiteLeCourrier (couche 1) |  |
 | route UI 'settings/savedviews' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:187 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | route UI 'settings/:section' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:204 | absent (ecart assume, lot a creer) | - | - | V2-03 |
 | route UI 'settings/usersgroups' -> SettingsComponent | src-ui/src/app/app-routing.module.ts:183 | absent (ecart assume, lot a creer) | - | - | V2-03 |
@@ -604,40 +625,40 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | Document.storage_type | src/documents/models.py:253 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | Document.tags | src/documents/models.py:204 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.title | src/documents/models.py:182 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| MailAccount.account_type | src/paperless_mail/models.py:59 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.character_set | src/paperless_mail/models.py:49 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.expiration | src/paperless_mail/models.py:74 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.imap_port | src/paperless_mail/models.py:27 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.imap_security | src/paperless_mail/models.py:37 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.imap_server | src/paperless_mail/models.py:25 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.is_token | src/paperless_mail/models.py:47 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.name | src/paperless_mail/models.py:23 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.password | src/paperless_mail/models.py:45 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.refresh_token | src/paperless_mail/models.py:65 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccount.username | src/paperless_mail/models.py:43 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.account | src/paperless_mail/models.py:147 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.action | src/paperless_mail/models.py:246 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.action_parameter | src/paperless_mail/models.py:252 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_correspondent | src/paperless_mail/models.py:291 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_correspondent_from | src/paperless_mail/models.py:285 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_document_type | src/paperless_mail/models.py:277 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_owner_from_rule | src/paperless_mail/models.py:299 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_tags | src/paperless_mail/models.py:271 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.assign_title_from | src/paperless_mail/models.py:265 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.attachment_type | src/paperless_mail/models.py:224 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.consumption_scope | src/paperless_mail/models.py:234 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.enabled | src/paperless_mail/models.py:154 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_attachment_filename_exclude | src/paperless_mail/models.py:206 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_attachment_filename_include | src/paperless_mail/models.py:194 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_body | src/paperless_mail/models.py:187 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_from | src/paperless_mail/models.py:166 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_subject | src/paperless_mail/models.py:180 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.filter_to | src/paperless_mail/models.py:173 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.folder | src/paperless_mail/models.py:156 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.maximum_age | src/paperless_mail/models.py:218 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.name | src/paperless_mail/models.py:143 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.order | src/paperless_mail/models.py:145 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailRule.pdf_layout | src/paperless_mail/models.py:240 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| MailAccount.account_type | src/paperless_mail/models.py:59 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.character_set | src/paperless_mail/models.py:49 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.expiration | src/paperless_mail/models.py:74 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.imap_port | src/paperless_mail/models.py:27 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.imap_security | src/paperless_mail/models.py:37 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.imap_server | src/paperless_mail/models.py:25 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.is_token | src/paperless_mail/models.py:47 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.name | src/paperless_mail/models.py:23 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.password | src/paperless_mail/models.py:45 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.refresh_token | src/paperless_mail/models.py:65 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailAccount.username | src/paperless_mail/models.py:43 | couvert-autrement | service Ged\Ingestion\Courrier\Comptes | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| MailRule.account | src/paperless_mail/models.py:147 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.action | src/paperless_mail/models.py:246 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.action_parameter | src/paperless_mail/models.py:252 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_correspondent | src/paperless_mail/models.py:291 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_correspondent_from | src/paperless_mail/models.py:285 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_document_type | src/paperless_mail/models.py:277 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_owner_from_rule | src/paperless_mail/models.py:299 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_tags | src/paperless_mail/models.py:271 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.assign_title_from | src/paperless_mail/models.py:265 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.attachment_type | src/paperless_mail/models.py:224 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.consumption_scope | src/paperless_mail/models.py:234 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.enabled | src/paperless_mail/models.py:154 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_attachment_filename_exclude | src/paperless_mail/models.py:206 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_attachment_filename_include | src/paperless_mail/models.py:194 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_body | src/paperless_mail/models.py:187 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_from | src/paperless_mail/models.py:166 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_subject | src/paperless_mail/models.py:180 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.filter_to | src/paperless_mail/models.py:173 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.folder | src/paperless_mail/models.py:156 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.maximum_age | src/paperless_mail/models.py:218 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.name | src/paperless_mail/models.py:143 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.order | src/paperless_mail/models.py:145 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
+| MailRule.pdf_layout | src/paperless_mail/models.py:240 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
 | MatchingModel.is_insensitive | src/documents/models.py:74 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | MatchingModel.match | src/documents/models.py:66 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | MatchingModel.matching_algorithm | src/documents/models.py:68 | absent (ecart assume, lot a creer) | - | - | V2-04 |
@@ -657,14 +678,14 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | PaperlessTask.task_id | src/documents/models.py:602 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | PaperlessTask.task_name | src/documents/models.py:622 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | PaperlessTask.type | src/documents/models.py:668 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.error | src/paperless_mail/models.py:362 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.folder | src/paperless_mail/models.py:317 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.processed | src/paperless_mail/models.py:348 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.received | src/paperless_mail/models.py:341 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.rule | src/paperless_mail/models.py:309 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.status | src/paperless_mail/models.py:354 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.subject | src/paperless_mail/models.py:333 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ProcessedMail.uid | src/paperless_mail/models.py:325 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| ProcessedMail.error | src/paperless_mail/models.py:362 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.folder | src/paperless_mail/models.py:317 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.processed | src/paperless_mail/models.py:348 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.received | src/paperless_mail/models.py:341 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.rule | src/paperless_mail/models.py:309 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.status | src/paperless_mail/models.py:354 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.subject | src/paperless_mail/models.py:333 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
+| ProcessedMail.uid | src/paperless_mail/models.py:325 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | SavedView.display_fields | src/documents/models.py:488 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | SavedView.display_mode | src/documents/models.py:480 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | SavedView.name | src/documents/models.py:456 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
@@ -767,13 +788,13 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | classe CustomFieldInstance(SoftDeleteModel) | src/documents/models.py:837 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | classe Document(SoftDeleteModel, ModelWithOwner) | src/documents/models.py:156 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | classe DocumentType(MatchingModel) | src/documents/models.py:140 | couvert-autrement | service Ged\Socle\Nomenclature | phpunit Ged\Tests\Socle\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase (couche 1) |  |
-| classe MailAccount(document_models.ModelWithOwner) | src/paperless_mail/models.py:8 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
-| classe MailRule(document_models.ModelWithOwner) | src/paperless_mail/models.py:87 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| classe MailAccount(document_models.ModelWithOwner) | src/paperless_mail/models.py:8 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\CoffreTest::testLeMotDePasseNEstJamaisEnClairDansLeFichierNiALEcran (couche 1) |  |
+| classe MailRule(document_models.ModelWithOwner) | src/paperless_mail/models.py:87 | couvert-autrement | service Ged\Ingestion\Courrier\Regles | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testUneRegleSeRelitALEIdentique (couche 1) |  |
 | classe MatchingModel(ModelWithOwner) | src/documents/models.py:45 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | classe ModelWithOwner(models.Model) | src/documents/models.py:31 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | classe Note(SoftDeleteModel) | src/documents/models.py:680 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex (couche 1) |  |
 | classe PaperlessTask(ModelWithOwner) | src/documents/models.py:587 | exclu (exclu : infrastructure-celery-redis) | - | - |  |
-| classe ProcessedMail(document_models.ModelWithOwner) | src/paperless_mail/models.py:308 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| classe ProcessedMail(document_models.ModelWithOwner) | src/paperless_mail/models.py:308 | couvert-autrement | service Ged\Ingestion\Courrier\Traites | phpunit Ged\Tests\Ingestion\Courrier\TraitesTest::testUnMessageVUUneFoisNEstPlusJamaisTraite (couche 1) |  |
 | classe SavedView(ModelWithOwner) | src/documents/models.py:435 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
 | classe SavedViewFilterRule(models.Model) | src/documents/models.py:503 | couvert-autrement | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testCompilerDesFiltresTypés (couche 1) |  |
 | classe ShareLink(SoftDeleteModel) | src/documents/models.py:720 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
@@ -796,15 +817,15 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | CustomField type SELECT | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | CustomField type STRING | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | CustomField type URL | src/documents/models.py:843 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| AttachmentProcessing.ATTACHMENTS_ONLY | src/paperless_mail/models.py:115 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| AttachmentProcessing.EVERYTHING | src/paperless_mail/models.py:116 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ConsumptionScope.ATTACHMENTS_ONLY | src/paperless_mail/models.py:104 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ConsumptionScope.EML_ONLY | src/paperless_mail/models.py:105 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| ConsumptionScope.EVERYTHING | src/paperless_mail/models.py:106 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CorrespondentSource.FROM_CUSTOM | src/paperless_mail/models.py:141 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CorrespondentSource.FROM_EMAIL | src/paperless_mail/models.py:139 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CorrespondentSource.FROM_NAME | src/paperless_mail/models.py:140 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| CorrespondentSource.FROM_NOTHING | src/paperless_mail/models.py:138 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| AttachmentProcessing.ATTACHMENTS_ONLY | src/paperless_mail/models.py:115 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| AttachmentProcessing.EVERYTHING | src/paperless_mail/models.py:116 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| ConsumptionScope.ATTACHMENTS_ONLY | src/paperless_mail/models.py:104 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| ConsumptionScope.EML_ONLY | src/paperless_mail/models.py:105 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| ConsumptionScope.EVERYTHING | src/paperless_mail/models.py:106 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| CorrespondentSource.FROM_CUSTOM | src/paperless_mail/models.py:141 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| CorrespondentSource.FROM_EMAIL | src/paperless_mail/models.py:139 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| CorrespondentSource.FROM_NAME | src/paperless_mail/models.py:140 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| CorrespondentSource.FROM_NOTHING | src/paperless_mail/models.py:138 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | DisplayFields.ADDED | src/documents/models.py:444 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | DisplayFields.ASN | src/documents/models.py:452 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | DisplayFields.CORRESPONDENT | src/documents/models.py:446 | absent (ecart assume, lot a creer) | - | - | V2-04 |
@@ -837,22 +858,22 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | FieldDataType.URL | src/documents/models.py:787 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | FileVersion.ARCHIVE | src/documents/models.py:722 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve (couche 1) |  |
 | FileVersion.ORIGINAL | src/documents/models.py:723 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu (couche 1) |  |
-| ImapSecurity.NONE | src/paperless_mail/models.py:14 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
-| ImapSecurity.SSL | src/paperless_mail/models.py:15 | couvert-autrement | service Ged\Ingestion\Imap\ImapBoite | phpunit Ged\Tests\Ingestion\SourceAdresseTest::testClientImapContreServeurLocal (couche 1) |  |
-| ImapSecurity.STARTTLS | src/paperless_mail/models.py:16 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccountType.GMAIL_OAUTH | src/paperless_mail/models.py:20 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccountType.IMAP | src/paperless_mail/models.py:19 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAccountType.OUTLOOK_OAUTH | src/paperless_mail/models.py:21 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAction.DELETE | src/paperless_mail/models.py:126 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAction.FLAG | src/paperless_mail/models.py:129 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAction.MARK_READ | src/paperless_mail/models.py:128 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAction.MOVE | src/paperless_mail/models.py:127 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| MailAction.TAG | src/paperless_mail/models.py:130 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PdfLayout.DEFAULT | src/paperless_mail/models.py:119 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PdfLayout.HTML_ONLY | src/paperless_mail/models.py:122 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PdfLayout.HTML_TEXT | src/paperless_mail/models.py:121 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PdfLayout.TEXT_HTML | src/paperless_mail/models.py:120 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| PdfLayout.TEXT_ONLY | src/paperless_mail/models.py:123 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| ImapSecurity.NONE | src/paperless_mail/models.py:14 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| ImapSecurity.SSL | src/paperless_mail/models.py:15 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| ImapSecurity.STARTTLS | src/paperless_mail/models.py:16 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAccountType.GMAIL_OAUTH | src/paperless_mail/models.py:20 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAccountType.IMAP | src/paperless_mail/models.py:19 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAccountType.OUTLOOK_OAUTH | src/paperless_mail/models.py:21 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAction.DELETE | src/paperless_mail/models.py:126 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAction.FLAG | src/paperless_mail/models.py:129 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAction.MARK_READ | src/paperless_mail/models.py:128 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAction.MOVE | src/paperless_mail/models.py:127 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| MailAction.TAG | src/paperless_mail/models.py:130 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| PdfLayout.DEFAULT | src/paperless_mail/models.py:119 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| PdfLayout.HTML_ONLY | src/paperless_mail/models.py:122 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| PdfLayout.HTML_TEXT | src/paperless_mail/models.py:121 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| PdfLayout.TEXT_HTML | src/paperless_mail/models.py:120 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| PdfLayout.TEXT_ONLY | src/paperless_mail/models.py:123 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | ScheduleDateField.ADDED | src/documents/models.py:1003 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
 | ScheduleDateField.CREATED | src/documents/models.py:1004 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
 | ScheduleDateField.CUSTOM_FIELD | src/documents/models.py:1006 | couvert-autrement | service Ged\Workflows\Declencheur | phpunit Ged\Tests\Workflows\DeclencheurTest::testLaPlanificationSurLeChampDeDateEtLeDecalage (couche 1) |  |
@@ -864,9 +885,9 @@ vrai moteur Workflows de GEDv2 sur gedv2_test. Les traits propres a Django/Celer
 | TaskType.AUTO | src/documents/models.py:592 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TaskType.MANUAL_TASK | src/documents/models.py:594 | absent (ecart assume, lot a creer) | - | - | V2-04 |
 | TaskType.SCHEDULED_TASK | src/documents/models.py:593 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TitleSource.FROM_FILENAME | src/paperless_mail/models.py:134 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TitleSource.FROM_SUBJECT | src/paperless_mail/models.py:133 | absent (ecart assume, lot a creer) | - | - | V2-04 |
-| TitleSource.NONE | src/paperless_mail/models.py:135 | absent (ecart assume, lot a creer) | - | - | V2-04 |
+| TitleSource.FROM_FILENAME | src/paperless_mail/models.py:134 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| TitleSource.FROM_SUBJECT | src/paperless_mail/models.py:133 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
+| TitleSource.NONE | src/paperless_mail/models.py:135 | couvert-autrement | service Ged\Ingestion\Courrier\Regle | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | WorkflowActionType.ASSIGNMENT | src/documents/models.py:1274 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
 | WorkflowActionType.EMAIL | src/documents/models.py:1282 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
 | WorkflowActionType.REMOVAL | src/documents/models.py:1278 | couvert-autrement | service Ged\Workflows\Action | phpunit Ged\Tests\Workflows\ActionTest::testLesEnumerationsDeActionSontCellesDuModele (couche 1) |  |
@@ -908,9 +929,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:action:DocumentViewSet.email_document | api | src/documents/views.py:1187 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:DocumentViewSet.email_documents | api | src/documents/views.py:1199 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:DocumentViewSet.metadata | api | src/documents/views.py:830 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:MailAccountViewSet.process | api | src/paperless_mail/views.py:130 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:MailAccountViewSet.test | api | src/paperless_mail/views.py:84 | absent | ecart assume, lot a creer | V2-05 |
-| api:action:ProcessedMailViewSet.bulk_delete | api | src/paperless_mail/views.py:151 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:StoragePathViewSet.test | api | src/documents/views.py:2347 | absent | ecart assume, lot a creer | V2-05 |
 | api:action:TasksViewSet.acknowledge | api | src/documents/views.py:2566 | exclu | infrastructure-celery-redis |  |
 | api:action:TasksViewSet.run | api | src/documents/views.py:2583 | exclu | infrastructure-celery-redis |  |
@@ -941,8 +959,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:filtre:PaperlessTaskFilterSet.status | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:PaperlessTaskFilterSet.task_name | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:PaperlessTaskFilterSet.type | api | src/documents/filters.py:807 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:ProcessedMailFilterSet.rule | api | src/paperless_mail/filters.py:9 | absent | ecart assume, lot a creer | V2-05 |
-| api:filtre:ProcessedMailFilterSet.status | api | src/paperless_mail/filters.py:9 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:ShareLinkFilterSet.created | api | src/documents/filters.py:793 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:ShareLinkFilterSet.expiration | api | src/documents/filters.py:793 | absent | ecart assume, lot a creer | V2-05 |
 | api:filtre:StoragePathFilterSet.id | api | src/documents/filters.py:114 | absent | ecart assume, lot a creer | V2-05 |
@@ -988,11 +1004,8 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:route:config | api | src/paperless/urls.py:80 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:favicon | api | src/paperless/urls.py:234 | exclu | infrastructure-django |  |
 | api:route:logs | api | src/paperless/urls.py:66 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:mail-accounts | api | src/paperless/urls.py:73 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:mail-rules | api | src/paperless/urls.py:74 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:mfa_authenticate | api | src/paperless/urls.py:344 | exclu | infrastructure-django |  |
 | api:route:oauth_callback | api | src/paperless/urls.py:203 | absent | ecart assume, lot a creer | V2-05 |
-| api:route:processed-mail | api | src/paperless/urls.py:81 | absent | ecart assume, lot a creer | V2-05 |
 | api:route:remoteversion | api | src/paperless/urls.py:150 | exclu | infrastructure-django |  |
 | api:route:schema | api | src/paperless/urls.py:212 | exclu | infrastructure-django |  |
 | api:route:selection_data | api | src/paperless/urls.py:137 | absent | ecart assume, lot a creer | V2-05 |
@@ -1041,21 +1054,8 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:verbe:GroupViewSet.partial_update | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:GroupViewSet.retrieve | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:GroupViewSet.update | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.create | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.destroy | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.list | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.partial_update | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.retrieve | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailAccountViewSet.update | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.create | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.destroy | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.list | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.partial_update | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.retrieve | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:MailRuleViewSet.update | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:OauthCallbackView.get | api | src/paperless_mail/views.py:184 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:PostDocumentView.post | api | src/documents/views.py:1666 | absent | ecart assume, lot a creer | V2-05 |
-| api:verbe:ProcessedMailViewSet.list | api | src/paperless_mail/views.py:137 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:ProcessedMailViewSet.retrieve | api | src/paperless_mail/views.py:137 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:ProfileView.get | api | src/paperless/views.py:189 | absent | ecart assume, lot a creer | V2-05 |
 | api:verbe:ProfileView.patch | api | src/paperless/views.py:195 | absent | ecart assume, lot a creer | V2-05 |
@@ -1131,12 +1131,9 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:vue:GroupViewSet | api | src/paperless/views.py:168 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:IndexView | api | src/documents/views.py:209 | exclu | infrastructure-django |  |
 | api:vue:LogViewSet | api | src/documents/views.py:1402 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:MailAccountViewSet | api | src/paperless_mail/views.py:68 | absent | ecart assume, lot a creer | V2-05 |
-| api:vue:MailRuleViewSet | api | src/paperless_mail/views.py:165 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:OauthCallbackView | api | src/paperless_mail/views.py:181 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:PaperlessObtainAuthTokenView | api | src/paperless/views.py:48 | exclu | infrastructure-django |  |
 | api:vue:PassUserMixin | api | src/documents/views.py:251 | exclu | infrastructure-django |  |
-| api:vue:ProcessedMailViewSet | api | src/paperless_mail/views.py:137 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:RemoteVersionView | api | src/documents/views.py:2455 | exclu | infrastructure-django |  |
 | api:vue:SearchAutoCompleteView | api | src/documents/views.py:1877 | absent | ecart assume, lot a creer | V2-05 |
 | api:vue:SelectionDataView | api | src/documents/views.py:1780 | absent | ecart assume, lot a creer | V2-05 |
@@ -1176,10 +1173,8 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | ecran:route:config | ecran | src-ui/src/app/app-routing.module.ts:217 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:dashboard | ecran | src-ui/src/app/app-routing.module.ts:40 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:logs | ecran | src-ui/src/app/app-routing.module.ts:157 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:mail | ecran | src-ui/src/app/app-routing.module.ts:265 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:savedviews | ecran | src-ui/src/app/app-routing.module.ts:289 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:settings | ecran | src-ui/src/app/app-routing.module.ts:191 | absent | ecart assume, lot a creer | V2-03 |
-| ecran:route:settings-mail | ecran | src-ui/src/app/app-routing.module.ts:179 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:settings-savedviews | ecran | src-ui/src/app/app-routing.module.ts:187 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:settings-section | ecran | src-ui/src/app/app-routing.module.ts:204 | absent | ecart assume, lot a creer | V2-03 |
 | ecran:route:settings-usersgroups | ecran | src-ui/src/app/app-routing.module.ts:183 | absent | ecart assume, lot a creer | V2-03 |
@@ -1205,40 +1200,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:champ:Document.modified | modele | src/documents/models.py:246 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:Document.page_count | modele | src/documents/models.py:228 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:Document.storage_type | modele | src/documents/models.py:253 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.account_type | modele | src/paperless_mail/models.py:59 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.character_set | modele | src/paperless_mail/models.py:49 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.expiration | modele | src/paperless_mail/models.py:74 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.imap_port | modele | src/paperless_mail/models.py:27 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.imap_security | modele | src/paperless_mail/models.py:37 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.imap_server | modele | src/paperless_mail/models.py:25 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.is_token | modele | src/paperless_mail/models.py:47 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.name | modele | src/paperless_mail/models.py:23 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.password | modele | src/paperless_mail/models.py:45 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.refresh_token | modele | src/paperless_mail/models.py:65 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailAccount.username | modele | src/paperless_mail/models.py:43 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.account | modele | src/paperless_mail/models.py:147 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.action | modele | src/paperless_mail/models.py:246 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.action_parameter | modele | src/paperless_mail/models.py:252 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_correspondent | modele | src/paperless_mail/models.py:291 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_correspondent_from | modele | src/paperless_mail/models.py:285 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_document_type | modele | src/paperless_mail/models.py:277 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_owner_from_rule | modele | src/paperless_mail/models.py:299 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_tags | modele | src/paperless_mail/models.py:271 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.assign_title_from | modele | src/paperless_mail/models.py:265 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.attachment_type | modele | src/paperless_mail/models.py:224 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.consumption_scope | modele | src/paperless_mail/models.py:234 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.enabled | modele | src/paperless_mail/models.py:154 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_attachment_filename_exclude | modele | src/paperless_mail/models.py:206 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_attachment_filename_include | modele | src/paperless_mail/models.py:194 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_body | modele | src/paperless_mail/models.py:187 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_from | modele | src/paperless_mail/models.py:166 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_subject | modele | src/paperless_mail/models.py:180 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.filter_to | modele | src/paperless_mail/models.py:173 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.folder | modele | src/paperless_mail/models.py:156 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.maximum_age | modele | src/paperless_mail/models.py:218 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.name | modele | src/paperless_mail/models.py:143 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.order | modele | src/paperless_mail/models.py:145 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:MailRule.pdf_layout | modele | src/paperless_mail/models.py:240 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:MatchingModel.is_insensitive | modele | src/documents/models.py:74 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:MatchingModel.match | modele | src/documents/models.py:66 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:MatchingModel.matching_algorithm | modele | src/documents/models.py:68 | absent | ecart assume, lot a creer | V2-04 |
@@ -1254,14 +1215,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:champ:PaperlessTask.task_id | modele | src/documents/models.py:602 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:PaperlessTask.task_name | modele | src/documents/models.py:622 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:PaperlessTask.type | modele | src/documents/models.py:668 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.error | modele | src/paperless_mail/models.py:362 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.folder | modele | src/paperless_mail/models.py:317 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.processed | modele | src/paperless_mail/models.py:348 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.received | modele | src/paperless_mail/models.py:341 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.rule | modele | src/paperless_mail/models.py:309 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.status | modele | src/paperless_mail/models.py:354 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.subject | modele | src/paperless_mail/models.py:333 | absent | ecart assume, lot a creer | V2-04 |
-| modele:champ:ProcessedMail.uid | modele | src/paperless_mail/models.py:325 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:SavedView.display_fields | modele | src/documents/models.py:488 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:SavedView.display_mode | modele | src/documents/models.py:480 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:SavedView.page_size | modele | src/documents/models.py:473 | absent | ecart assume, lot a creer | V2-04 |
@@ -1274,11 +1227,9 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:champ:Tag.is_inbox_tag | modele | src/documents/models.py:106 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:UiSettings.settings | modele | src/documents/models.py:581 | absent | ecart assume, lot a creer | V2-04 |
 | modele:champ:UiSettings.user | modele | src/documents/models.py:576 | absent | ecart assume, lot a creer | V2-04 |
-| modele:classe:MailRule | modele | src/paperless_mail/models.py:87 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:MatchingModel | modele | src/documents/models.py:45 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:ModelWithOwner | modele | src/documents/models.py:31 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:PaperlessTask | modele | src/documents/models.py:587 | exclu | infrastructure-celery-redis |  |
-| modele:classe:ProcessedMail | modele | src/paperless_mail/models.py:308 | absent | ecart assume, lot a creer | V2-04 |
 | modele:classe:UiSettings | modele | src/documents/models.py:575 | absent | ecart assume, lot a creer | V2-04 |
 | modele:customfield-type:BOOL | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
 | modele:customfield-type:DATE | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
@@ -1290,15 +1241,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:customfield-type:SELECT | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
 | modele:customfield-type:STRING | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
 | modele:customfield-type:URL | modele | src/documents/models.py:843 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:AttachmentProcessing.ATTACHMENTS_ONLY | modele | src/paperless_mail/models.py:115 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:AttachmentProcessing.EVERYTHING | modele | src/paperless_mail/models.py:116 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ConsumptionScope.ATTACHMENTS_ONLY | modele | src/paperless_mail/models.py:104 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ConsumptionScope.EML_ONLY | modele | src/paperless_mail/models.py:105 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ConsumptionScope.EVERYTHING | modele | src/paperless_mail/models.py:106 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:CorrespondentSource.FROM_CUSTOM | modele | src/paperless_mail/models.py:141 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:CorrespondentSource.FROM_EMAIL | modele | src/paperless_mail/models.py:139 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:CorrespondentSource.FROM_NAME | modele | src/paperless_mail/models.py:140 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:CorrespondentSource.FROM_NOTHING | modele | src/paperless_mail/models.py:138 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:DisplayFields.ADDED | modele | src/documents/models.py:444 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:DisplayFields.ASN | modele | src/documents/models.py:452 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:DisplayFields.CORRESPONDENT | modele | src/documents/models.py:446 | absent | ecart assume, lot a creer | V2-04 |
@@ -1317,20 +1259,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:type:DisplayMode.TABLE | modele | src/documents/models.py:437 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:FieldDataType.DOCUMENTLINK | modele | src/documents/models.py:793 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:FieldDataType.URL | modele | src/documents/models.py:787 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:ImapSecurity.STARTTLS | modele | src/paperless_mail/models.py:16 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAccountType.GMAIL_OAUTH | modele | src/paperless_mail/models.py:20 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAccountType.IMAP | modele | src/paperless_mail/models.py:19 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAccountType.OUTLOOK_OAUTH | modele | src/paperless_mail/models.py:21 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAction.DELETE | modele | src/paperless_mail/models.py:126 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAction.FLAG | modele | src/paperless_mail/models.py:129 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAction.MARK_READ | modele | src/paperless_mail/models.py:128 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAction.MOVE | modele | src/paperless_mail/models.py:127 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:MailAction.TAG | modele | src/paperless_mail/models.py:130 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:PdfLayout.DEFAULT | modele | src/paperless_mail/models.py:119 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:PdfLayout.HTML_ONLY | modele | src/paperless_mail/models.py:122 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:PdfLayout.HTML_TEXT | modele | src/paperless_mail/models.py:121 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:PdfLayout.TEXT_HTML | modele | src/paperless_mail/models.py:120 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:PdfLayout.TEXT_ONLY | modele | src/paperless_mail/models.py:123 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.CHECK_SANITY | modele | src/documents/models.py:599 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.CONSUME_FILE | modele | src/documents/models.py:597 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskName.INDEX_OPTIMIZE | modele | src/documents/models.py:600 | absent | ecart assume, lot a creer | V2-04 |
@@ -1338,9 +1266,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | modele:type:TaskType.AUTO | modele | src/documents/models.py:592 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskType.MANUAL_TASK | modele | src/documents/models.py:594 | absent | ecart assume, lot a creer | V2-04 |
 | modele:type:TaskType.SCHEDULED_TASK | modele | src/documents/models.py:593 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TitleSource.FROM_FILENAME | modele | src/paperless_mail/models.py:134 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TitleSource.FROM_SUBJECT | modele | src/paperless_mail/models.py:133 | absent | ecart assume, lot a creer | V2-04 |
-| modele:type:TitleSource.NONE | modele | src/paperless_mail/models.py:135 | absent | ecart assume, lot a creer | V2-04 |
 | permissions:classe:AcknowledgeTasksPermissions | permissions | src/documents/permissions.py:207 | exclu | infrastructure-celery-redis |  |
 | permissions:classe:PaperlessObjectPermissions | permissions | src/documents/permissions.py:19 | absent | ecart assume, lot a creer | V2-07 |
 | permissions:fonction:get_groups_with_only_permission | permissions | src/documents/permissions.py:50 | absent | ecart assume, lot a creer | V2-07 |

@@ -495,6 +495,47 @@ if ($modeleWorkflows === [] || !isset($modeleWorkflows['categorie'])) {
 }
 $lignes[] = '';
 
+// Phase 6 : parite d'effet du MODELE COURRIER (vecteurs extraits des tests Paperless, rejoues cote GEDv2 par
+// tests/php/Parite/ModeleCourrierTest.php). Additif : ne change pas le verdict de la couche.
+$lignes[] = '## Modele — courrier (phase 6)';
+$lignes[] = '';
+$modeleCourrier = chargerJson($racine . '/var/parite/modele-courrier.json');
+if ($modeleCourrier === [] || !isset($modeleCourrier['categorie'])) {
+    $lignes[] = 'Aucune mesure de modele courrier disponible (lancer tests/php/Parite/ModeleCourrierTest.php).';
+} else {
+    $totalCourrier = (int) ($modeleCourrier['total'] ?? 0);
+    $passesCourrier = (int) ($modeleCourrier['passes'] ?? 0);
+    $lignes[] = 'Vecteurs {courriel, regle} extraits des tests Paperless (MailRule, MailAccountHandler, actions';
+    $lignes[] = 'marquer / supprimer / deplacer / etiqueter, filtres de pieces), rejoues contre le vrai moteur';
+    $lignes[] = 'courrier de GEDv2 sur gedv2_test. Les traits propres a Django/Celery/OAuth sont listes';
+    $lignes[] = '`non_rejouables` avec leur raison.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Non rejouables | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: | ---: |';
+    $lignes[] = sprintf(
+        '| modele-courrier | tests/parite/vecteurs/modele-courrier.json | %d | %d | %d | %s %% |',
+        $passesCourrier,
+        $totalCourrier,
+        (int) ($modeleCourrier['non_rejouables'] ?? 0),
+        number_format($totalCourrier > 0 ? round($passesCourrier / $totalCourrier * 100, 2) : 0.0, 2, ',', ' '),
+    );
+    foreach ((array) ($modeleCourrier['familles'] ?? []) as $famille => $mesure) {
+        if (!is_array($mesure)) {
+            continue;
+        }
+        $t = (int) ($mesure['total'] ?? 0);
+        $p = (int) ($mesure['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| — %s | — | %d | %d | — | %s %% |',
+            (string) $famille,
+            $p,
+            $t,
+            number_format($t > 0 ? round($p / $t * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
+
 $index = [];
 foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $element) {
     if (is_array($element)) {

@@ -32,7 +32,8 @@ final class ImapBoite implements Boite
         int $delaiS = 30,
     ) {
         $contexte = stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true]]);
-        $flux = @stream_socket_client("{$this->chiffrement}://{$this->hote}:{$this->port}", $code, $message, $delaiS, STREAM_CLIENT_CONNECT, $contexte);
+        $schema = $this->chiffrement === 'starttls' ? 'tcp' : $this->chiffrement;
+        $flux = @stream_socket_client("{$schema}://{$this->hote}:{$this->port}", $code, $message, $delaiS, STREAM_CLIENT_CONNECT, $contexte);
         if ($flux === false) {
             throw new ImapErreur("Connexion impossible à {$this->hote}:{$this->port} : $message ($code)");
         }
@@ -42,6 +43,12 @@ final class ImapBoite implements Boite
         $accueil = $this->ligne();
         if (!str_starts_with($accueil, '* OK')) {
             throw new ImapErreur('Serveur IMAP inattendu : ' . trim($accueil));
+        }
+        if ($this->chiffrement === 'starttls') {
+            $this->commande('STARTTLS');
+            if (stream_socket_enable_crypto($this->flux, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) !== true) {
+                throw new ImapErreur('STARTTLS refusé par le serveur');
+            }
         }
         $this->commande('LOGIN ' . self::chaine($utilisateur) . ' ' . self::chaine($motDePasse), '[identifiants masqués]');
         foreach ($this->commande('CAPABILITY')['lignes'] as $l) {
@@ -95,6 +102,98 @@ final class ImapBoite implements Boite
         } else {
             $this->commande("UID COPY $uid $nom");   // le message reste lu dans la réception : rien n'est effacé
         }
+    }
+
+    /** Sélectionne un dossier (boîte de réception, dossier de règle, corbeille). */
+    public function select(string $dossier): void
+    {
+        $this->commande('SELECT ' . self::chaine($dossier));
+    }
+
+    /**
+     * UID des messages du dossier courant correspondant au critère IMAP.
+     *
+     * @return list<int>
+     */
+    public function rechercher(string $critere = 'ALL'): array
+    {
+        $uids = [];
+        foreach ($this->commande('UID SEARCH ' . $critere)['lignes'] as $ligne) {
+            if (str_starts_with($ligne, '* SEARCH')) {
+                foreach (preg_split('/\s+/', trim(substr($ligne, 8))) ?: [] as $nombre) {
+                    if (ctype_digit($nombre)) {
+                        $uids[] = (int) $nombre;
+                    }
+                }
+            }
+        }
+        sort($uids);
+
+        return $uids;
+    }
+
+    /**
+     * Drapeaux et mots-clés d'un message.
+     *
+     * @return array{vu:bool, signale:bool, mots_cles:list<string>}
+     */
+    public function drapeaux(int $uid): array
+    {
+        $vu = false;
+        $signale = false;
+        $motsCles = [];
+        foreach ($this->commande("UID FETCH $uid (FLAGS)")['lignes'] as $ligne) {
+            if (preg_match('/FLAGS \(([^)]*)\)/', $ligne, $trouve) !== 1) {
+                continue;
+            }
+            foreach (preg_split('/\s+/', trim($trouve[1])) ?: [] as $drapeau) {
+                if (strcasecmp($drapeau, '\\Seen') === 0) {
+                    $vu = true;
+                } elseif (strcasecmp($drapeau, '\\Flagged') === 0) {
+                    $signale = true;
+                } elseif ($drapeau !== '' && !str_starts_with($drapeau, '\\')) {
+                    $motsCles[] = $drapeau;
+                }
+            }
+        }
+
+        return ['vu' => $vu, 'signale' => $signale, 'mots_cles' => $motsCles];
+    }
+
+    /** Pose ou retire un drapeau (jamais \Deleted : GEDv2 n'efface pas). */
+    public function marquer(int $uid, string $drapeau, bool $valeur): void
+    {
+        $signe = $valeur ? '+' : '-';
+        $this->commande('UID STORE ' . $uid . ' ' . $signe . 'FLAGS.SILENT (' . $drapeau . ')');
+    }
+
+    /** Déplace un message vers un dossier (CREATE puis MOVE, ou COPY si le serveur n'a pas MOVE). */
+    public function deplacer(int $uid, string $dossier): void
+    {
+        $nom = self::chaine($dossier);
+        $this->commande("CREATE $nom", null, true);
+        if (in_array('MOVE', $this->capacites, true)) {
+            $this->commande("UID MOVE $uid $nom");
+        } else {
+            $this->commande("UID COPY $uid $nom");
+        }
+    }
+
+    /** Dossiers listés par le serveur (LIST "" "*").
+     * @return list<string> */
+    public function dossiers(): array
+    {
+        $dossiers = [];
+        foreach ($this->commande('LIST "" "*"')['lignes'] as $ligne) {
+            if (preg_match('/^\* LIST \([^)]*\)\s+(?:"[^"]*"|NIL)\s+"?([^"]*)"?$/', $ligne, $trouve) === 1) {
+                $nom = rtrim(trim($trouve[1]), '"');
+                if ($nom !== '') {
+                    $dossiers[] = $nom;
+                }
+            }
+        }
+
+        return array_values(array_unique($dossiers));
     }
 
     public function fermer(): void

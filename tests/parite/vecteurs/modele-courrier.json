@@ -1,0 +1,1521 @@
+{
+  "version": 1,
+  "categorie": "modele-courrier",
+  "reference": {
+    "depot": "C:/ged/ref/paperless-ngx",
+    "tag": "v2.20.5",
+    "fichier": "src/paperless_mail/tests/test_mail.py"
+  },
+  "vecteurs": [
+    {
+      "id": "filtres-fichiers-pdf-wildcard",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:657",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*.pdf",
+        "exclude": null
+      },
+      "sortie": {
+        "retenus": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "file.PDf",
+          "f1.Pdf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-f1-pdf-only",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:663",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "f1.pdf",
+        "exclude": null
+      },
+      "sortie": {
+        "retenus": [
+          "f1.pdf",
+          "f1.Pdf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-all-files",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:669",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*",
+        "exclude": null
+      },
+      "sortie": {
+        "retenus": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-png-only",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:682",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*.png",
+        "exclude": null
+      },
+      "sortie": {
+        "retenus": [
+          "f2.png"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-pdf-files-with-f2-and-f3",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:688",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "f2.pdf,f3*",
+        "exclude": null
+      },
+      "sortie": {
+        "retenus": [
+          "f2.pdf",
+          "f3.pdf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-pdf-files-without-f1",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:694",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*.pdf",
+        "exclude": "f1*"
+      },
+      "sortie": {
+        "retenus": [
+          "f2.pdf",
+          "f3.pdf",
+          "file.PDf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-pdf-files-without-f1-and-f2",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:700",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*.pdf",
+        "exclude": "f1*,f2*"
+      },
+      "sortie": {
+        "retenus": [
+          "f3.pdf",
+          "file.PDf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-pdf-files-without-f1-and-f2-and-f3",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:706",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*.pdf",
+        "exclude": "f1*,f2*,f3*"
+      },
+      "sortie": {
+        "retenus": [
+          "file.PDf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-fichiers-all-files,-no-png",
+      "famille": "filtres-fichiers",
+      "reference": "src/paperless_mail/tests/test_mail.py:712",
+      "entree": {
+        "noms": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "f2.png",
+          "file.PDf",
+          "f1.Pdf"
+        ],
+        "include": "*",
+        "exclude": "*.png"
+      },
+      "sortie": {
+        "retenus": [
+          "f1.pdf",
+          "f2.pdf",
+          "f3.pdf",
+          "file.PDf",
+          "f1.Pdf"
+        ]
+      }
+    },
+    {
+      "id": "filtres-claim",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1303",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": null,
+        "filter_to": null,
+        "filter_subject": "Claim",
+        "filter_body": null
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "filtres-electronic",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1304",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": null,
+        "filter_to": null,
+        "filter_subject": null,
+        "filter_body": "electronic"
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "filtres-amazon",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1305",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": "amazon",
+        "filter_to": null,
+        "filter_subject": null,
+        "filter_body": null
+      },
+      "sortie": {
+        "retenus": 2
+      }
+    },
+    {
+      "id": "filtres-invoice-amazon-cables",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1306",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": "amazon",
+        "filter_to": null,
+        "filter_subject": "Invoice",
+        "filter_body": "cables"
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "filtres-test_email.com",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1307",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": null,
+        "filter_to": "test@email.com",
+        "filter_subject": null,
+        "filter_body": null
+      },
+      "sortie": {
+        "retenus": 0
+      }
+    },
+    {
+      "id": "filtres-invoices_mycompany.com",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1308",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": null,
+        "filter_to": "invoices@mycompany.com",
+        "filter_subject": null,
+        "filter_body": null
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "filtres-invoices_mycompany.com-electronic",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1309",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": null,
+        "filter_to": "invoices@mycompany.com",
+        "filter_subject": null,
+        "filter_body": "electronic"
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "filtres-amazon-me_myselfandi.com",
+      "famille": "filtres",
+      "reference": "src/paperless_mail/tests/test_mail.py:1310",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "filter_from": "amazon",
+        "filter_to": "me@myselfandi.com",
+        "filter_subject": null,
+        "filter_body": null
+      },
+      "sortie": {
+        "retenus": 1
+      }
+    },
+    {
+      "id": "titre-from_filename",
+      "famille": "titre",
+      "reference": "src/paperless_mail/tests/test_mail.py:488",
+      "entree": {
+        "sujet": "the message title",
+        "nom_fichier": "this_is_the_file.pdf",
+        "assign_title_from": 2
+      },
+      "sortie": {
+        "titre": "this_is_the_file"
+      }
+    },
+    {
+      "id": "titre-from_subject",
+      "famille": "titre",
+      "reference": "src/paperless_mail/tests/test_mail.py:493",
+      "entree": {
+        "sujet": "the message title",
+        "nom_fichier": "this_is_the_file.pdf",
+        "assign_title_from": 1
+      },
+      "sortie": {
+        "titre": "the message title"
+      }
+    },
+    {
+      "id": "titre-none",
+      "famille": "titre",
+      "reference": "src/paperless_mail/tests/test_mail.py:498",
+      "entree": {
+        "sujet": "the message title",
+        "nom_fichier": "this_is_the_file.pdf",
+        "assign_title_from": 3
+      },
+      "sortie": {
+        "titre": null
+      }
+    },
+    {
+      "id": "emetteur-from-nothing",
+      "famille": "emetteur",
+      "reference": "src/paperless_mail/tests/test_mail.py:417",
+      "entree": {
+        "de": "someone@somewhere.com",
+        "de_nom": "Someone!",
+        "assign_correspondent_from": 1
+      },
+      "sortie": {
+        "emetteur": null
+      }
+    },
+    {
+      "id": "emetteur-from-email",
+      "famille": "emetteur",
+      "reference": "src/paperless_mail/tests/test_mail.py:417",
+      "entree": {
+        "de": "someone@somewhere.com",
+        "de_nom": "Someone!",
+        "assign_correspondent_from": 2
+      },
+      "sortie": {
+        "emetteur": "someone@somewhere.com"
+      }
+    },
+    {
+      "id": "emetteur-from-name",
+      "famille": "emetteur",
+      "reference": "src/paperless_mail/tests/test_mail.py:417",
+      "entree": {
+        "de": "someone@somewhere.com",
+        "de_nom": "Someone!",
+        "assign_correspondent_from": 3
+      },
+      "sortie": {
+        "emetteur": "Someone!"
+      }
+    },
+    {
+      "id": "emetteur-from-name-sans-nom",
+      "famille": "emetteur",
+      "reference": "src/paperless_mail/tests/test_mail.py:417",
+      "entree": {
+        "de": "me@localhost.com",
+        "de_nom": "",
+        "assign_correspondent_from": 3
+      },
+      "sortie": {
+        "emetteur": "me@localhost.com"
+      }
+    },
+    {
+      "id": "emetteur-from-custom",
+      "famille": "emetteur",
+      "reference": "src/paperless_mail/tests/test_mail.py:417",
+      "entree": {
+        "de": "someone@somewhere.com",
+        "de_nom": "Someone!",
+        "assign_correspondent_from": 4,
+        "emetteur_choisi": "someone else"
+      },
+      "sortie": {
+        "emetteur": "someone else"
+      }
+    },
+    {
+      "id": "pieces-from-filename",
+      "famille": "pieces",
+      "reference": "src/paperless_mail/tests/test_mail.py:501",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "the message title",
+            "de": "Myself",
+            "de_nom": "",
+            "a": [
+              "tosomeone@somewhere.com"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false,
+            "pieces": [
+              {
+                "nom": "file_0.pdf",
+                "type": "application/pdf",
+                "disposition": "attachment"
+              },
+              {
+                "nom": "file_1.pdf",
+                "type": "application/pdf",
+                "disposition": "attachment"
+              }
+            ]
+          }
+        ],
+        "regle": {
+          "attachment_type": 1
+        }
+      },
+      "sortie": {
+        "pieces_retenues": [
+          "file_0.pdf",
+          "file_1.pdf"
+        ]
+      }
+    },
+    {
+      "id": "pieces-disposition",
+      "famille": "pieces",
+      "reference": "src/paperless_mail/tests/test_mail.py:570",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "",
+            "de": "",
+            "de_nom": "",
+            "a": [
+              "tosomeone@somewhere.com"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false,
+            "pieces": [
+              {
+                "nom": "f1.pdf",
+                "type": "application/octet-stream",
+                "disposition": "inline"
+              },
+              {
+                "nom": "f2.pdf",
+                "type": "application/octet-stream",
+                "disposition": "attachment"
+              }
+            ]
+          }
+        ],
+        "regle": {
+          "attachment_type": 1
+        }
+      },
+      "sortie": {
+        "pieces_retenues": [
+          "f2.pdf"
+        ]
+      }
+    },
+    {
+      "id": "pieces-inline",
+      "famille": "pieces",
+      "reference": "src/paperless_mail/tests/test_mail.py:598",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "",
+            "de": "",
+            "de_nom": "",
+            "a": [
+              "tosomeone@somewhere.com"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false,
+            "pieces": [
+              {
+                "nom": "f1.pdf",
+                "type": "application/octet-stream",
+                "disposition": "inline"
+              },
+              {
+                "nom": "f2.pdf",
+                "type": "application/octet-stream",
+                "disposition": "attachment"
+              }
+            ]
+          }
+        ],
+        "regle": {
+          "attachment_type": 2
+        }
+      },
+      "sortie": {
+        "pieces_retenues": [
+          "f1.pdf",
+          "f2.pdf"
+        ]
+      }
+    },
+    {
+      "id": "pieces-type-inconnu",
+      "famille": "pieces",
+      "reference": "src/paperless_mail/tests/test_mail.py:541",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "",
+            "de": "",
+            "de_nom": "",
+            "a": [
+              "tosomeone@somewhere.com"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false,
+            "pieces": [
+              {
+                "nom": "f1.pdf",
+                "type": "application/octet-stream",
+                "disposition": "attachment"
+              },
+              {
+                "nom": "f2.json",
+                "type": "application/octet-stream",
+                "disposition": "attachment"
+              }
+            ]
+          }
+        ],
+        "regle": {
+          "attachment_type": 1
+        }
+      },
+      "sortie": {
+        "pieces_retenues": [
+          "f1.pdf"
+        ]
+      }
+    },
+    {
+      "id": "portee-sans-piece",
+      "famille": "portee",
+      "reference": "src/paperless_mail/tests/test_mail.py:529",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "sans piece",
+            "de": "a@b.test",
+            "de_nom": "",
+            "a": [],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false,
+            "pieces": []
+          }
+        ],
+        "regle": {
+          "consumption_scope": 1
+        }
+      },
+      "sortie": {
+        "pieces_retenues": [],
+        "traites": 0
+      }
+    },
+    {
+      "id": "actions-marquer-lu",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:790",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 3
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 0,
+        "non_signales": 2,
+        "etiquettes": 2
+      }
+    },
+    {
+      "id": "actions-supprimer-filtre-objet",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:820",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 1,
+          "filter_subject": "Invoice"
+        }
+      },
+      "sortie": {
+        "inbox": 1,
+        "spam": 0
+      }
+    },
+    {
+      "id": "actions-supprimer-sans-filtre",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:842",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 1,
+          "maximum_age": 0
+        }
+      },
+      "sortie": {
+        "inbox": 0,
+        "spam": 0
+      }
+    },
+    {
+      "id": "actions-drapeau",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:865",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 4,
+          "filter_subject": "Invoice"
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 2,
+        "non_signales": 1,
+        "etiquettes": 2
+      }
+    },
+    {
+      "id": "actions-deplacer",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:896",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 2,
+          "action_parameter": "spam",
+          "filter_subject": "Claim"
+        }
+      },
+      "sortie": {
+        "inbox": 2,
+        "spam": 1
+      }
+    },
+    {
+      "id": "actions-etiqueter",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:946",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 5,
+          "action_parameter": "processed"
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 2,
+        "non_signales": 2,
+        "etiquettes": 0
+      }
+    },
+    {
+      "id": "actions-etiqueter-gmail",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:986",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 5,
+          "action_parameter": "processed"
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 2,
+        "non_signales": 2,
+        "etiquettes": 0
+      }
+    },
+    {
+      "id": "actions-etiqueter-apple",
+      "famille": "actions",
+      "reference": "src/paperless_mail/tests/test_mail.py:1028",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "action": 5,
+          "action_parameter": "apple:green"
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 2,
+        "non_signales": 0,
+        "etiquettes": 2
+      }
+    },
+    {
+      "id": "regles-desactivee",
+      "famille": "regles",
+      "reference": "src/paperless_mail/tests/test_mail.py:1456",
+      "entree": {
+        "messages": [
+          {
+            "uid": 1,
+            "sujet": "Invoice 1",
+            "de": "amazon@amazon.de",
+            "a": [
+              "me@myselfandi.com",
+              "helpdesk@mydomain.com"
+            ],
+            "corps": "cables",
+            "vu": true,
+            "signale": false,
+            "traite": false
+          },
+          {
+            "uid": 2,
+            "sujet": "Invoice 2",
+            "de": "no_one@mail.com",
+            "a": [
+              "invoices@mycompany.com"
+            ],
+            "corps": "from my favorite electronic store",
+            "vu": false,
+            "signale": true,
+            "traite": true
+          },
+          {
+            "uid": 3,
+            "sujet": "Claim your $10M price now!",
+            "de": "amazon@amazon-some-indian-site.org",
+            "a": [
+              "special@me.me"
+            ],
+            "corps": "",
+            "vu": false,
+            "signale": false,
+            "traite": false
+          }
+        ],
+        "regle": {
+          "enabled": false
+        }
+      },
+      "sortie": {
+        "inbox": 3,
+        "spam": 0,
+        "non_lus": 2,
+        "non_signales": 2,
+        "etiquettes": 2
+      }
+    },
+    {
+      "id": "validation-parametre-action",
+      "famille": "validation",
+      "reference": "src/paperless_mail/tests/test_mail.py:1886",
+      "entree": {
+        "regle": {
+          "action": 2,
+          "action_parameter": ""
+        }
+      },
+      "sortie": {
+        "valide": false,
+        "cause": "action parameter is required"
+      }
+    },
+    {
+      "id": "journal-succes",
+      "famille": "journal",
+      "reference": "src/paperless_mail/tests/test_mail.py:1495",
+      "entree": {
+        "uid": "12345",
+        "sujet": "Test Subject",
+        "action": 3
+      },
+      "sortie": {
+        "statut": "SUCCESS"
+      }
+    },
+    {
+      "id": "journal-echec",
+      "famille": "journal",
+      "reference": "src/paperless_mail/tests/test_mail.py:1495",
+      "entree": {
+        "uid": "12345",
+        "sujet": "Test Subject",
+        "action": 3,
+        "panne_action": true
+      },
+      "sortie": {
+        "statut": "FAILED"
+      }
+    }
+  ],
+  "non_rejouables": [
+    {
+      "id": "test_auth_plain_fallback",
+      "raison": "AUTH=PLAIN et encodage UTF-8 du mot de passe relevent du client IMAP reel (hors moteur de regles)",
+      "reference": "src/paperless_mail/tests/test_mail.py:1344"
+    },
+    {
+      "id": "test_auth_with_valid_token",
+      "raison": "jeton OAuth XOAUTH2 : necessite un serveur reel (ecart assume, aucun reseau en test)",
+      "reference": "src/paperless_mail/tests/test_mail.py:1415"
+    },
+    {
+      "id": "test_mail_account_test_view_refresh_token",
+      "raison": "rafraichissement OAuth Gmail/Outlook : non realisable sans reseau (ecart assume)",
+      "reference": "src/paperless_mail/tests/test_mail_oauth.py"
+    },
+    {
+      "id": "test_mail_fetcher / TestTasks",
+      "raison": "orchestration Celery (chord, delay) propre a Paperless, non transposable",
+      "reference": "src/paperless_mail/tests/test_mail.py:1584"
+    }
+  ]
+}
