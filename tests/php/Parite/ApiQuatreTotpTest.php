@@ -39,7 +39,11 @@ final class ApiQuatreTotpTest extends TestCase
     protected function tearDown(): void
     {
         $this->pdo->exec("DELETE FROM comptes WHERE identifiant LIKE 'api4-%'");
-        $this->pdo->exec('DELETE FROM securite_totp WHERE compte_id NOT IN (SELECT id FROM comptes)');
+        // La table TOTP est créée à la demande : son absence n'est jamais un échec de nettoyage.
+        try {
+            $this->pdo->exec('DELETE FROM securite_totp WHERE compte_id NOT IN (SELECT id FROM comptes)');
+        } catch (\PDOException) {
+        }
         $this->tearDownJonctions();
     }
 

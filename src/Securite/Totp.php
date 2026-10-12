@@ -30,9 +30,23 @@ final class Totp
     {
     }
 
+    /**
+     * Pose la table `securite_totp` À LA DEMANDE (idempotent). Elle n'est PAS posée par l'installateur :
+     * le plafond de tables de l'oracle V2-01 (21) reste intact, et un fonds sans 2FA ne porte pas de table
+     * de secrets. Ligne hors secteur (Jonctions), signalée dans docs/lots/ged-parite-api-4.md.
+     */
     public function assurer(): void
     {
-        Schema::installer($this->pdo);
+        $this->pdo->exec(<<<'SQL'
+            CREATE TABLE IF NOT EXISTS securite_totp (
+              compte_id INT UNSIGNED PRIMARY KEY,
+              secret VARCHAR(64) NOT NULL,
+              codes_secours TEXT NOT NULL,
+              actif TINYINT(1) NOT NULL DEFAULT 0,
+              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              active_le DATETIME NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            SQL);
     }
 
     /** Secret aléatoire codé en base32 (sans remplissage) : 20 octets = 160 bits. */
@@ -142,16 +156,21 @@ final class Totp
         return ['secret' => (string) $ligne['secret'], 'actif' => (int) $ligne['actif'] === 1];
     }
 
-    /** Désactive le TOTP d'un compte ; rend faux s'il n'était pas activé (404 nommé côté API). */
+    /**
+     * Désactive le TOTP d'un compte ; rend faux s'il n'était pas activé (404 nommé côté API). La ligne
+     * reste (règle « zéro suppression ») : le secret est neutralisé par `actif = 0` et remplacé à la
+     * réactivation ; les codes de secours ne sont plus acceptés.
+     */
     public function desactiver(int $compteId): bool
     {
         try {
-            $requete = $this->pdo->prepare('SELECT 1 FROM securite_totp WHERE compte_id = ?');
+            $requete = $this->pdo->prepare('SELECT actif FROM securite_totp WHERE compte_id = ?');
             $requete->execute([$compteId]);
-            if ($requete->fetchColumn() === false) {
+            $actif = $requete->fetchColumn();
+            if ($actif === false || (int) $actif !== 1) {
                 return false;
             }
-            $this->pdo->prepare('DELETE FROM securite_totp WHERE compte_id = ?')->execute([$compteId]);
+            $this->pdo->prepare('UPDATE securite_totp SET actif = 0 WHERE compte_id = ?')->execute([$compteId]);
         } catch (\PDOException) {
             return false;
         }

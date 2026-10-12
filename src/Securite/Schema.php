@@ -83,19 +83,6 @@ final class Schema
               KEY k_securite_droit_groupe (groupe_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             SQL);
-        // Lot ged-parite-api-4 (Jonctions) : double authentification TOTP par compte. Le secret n'est
-        // jamais relu en clair par l'API ; les codes de secours sont stockés hachés. Ligne hors secteur
-        // (Securite), signalée dans docs/lots/ged-parite-api-4.md.
-        $pdo->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS securite_totp (
-              compte_id INT UNSIGNED PRIMARY KEY,
-              secret VARCHAR(64) NOT NULL,
-              codes_secours TEXT NOT NULL,
-              actif TINYINT(1) NOT NULL DEFAULT 0,
-              cree_le DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              active_le DATETIME NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-            SQL);
         // L'audit reste le journal NDJSON en ajout seul (V2-07a) : aucune table supplémentaire.
         $audit ??= new JournalAudit((getenv('SECURITE_DOSSIER') ?: dirname(__DIR__, 2) . '/var/securite') . '/audit.ndjson');
         self::migrerRolesHistoriques($pdo, $audit);
