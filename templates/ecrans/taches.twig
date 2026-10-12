@@ -1,0 +1,52 @@
+{% extends 'layout.twig' %}
+{% block titre %}Suivi des traitements{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-taches">
+  <div class="page-tete">
+    <div class="titre"><h1>Suivi des traitements</h1>
+      <span class="chip" data-testid="taches-bilan">{{ bilan.total }} tâche(s) · {{ bilan.en_cours }} en cours · {{ bilan.echouees }} en échec</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/application" data-testid="taches-retour">Application</a>
+    </div>
+  </div>
+  <p class="muted">Les traitements (consommation, OCR, courrier) sont des jobs courts et reprenables. Aucun démon : leur avancement suit le dossier et reste visible ici.</p>
+  <section class="carte" aria-label="Tâches suivies">
+    <h2>Tâches suivies</h2>
+    <table class="table" data-testid="taches-liste">
+      <thead><tr><th>Fichier</th><th>Tâche</th><th>Type</th><th>Statut</th><th>Créée le</th><th>Résultat</th><th></th></tr></thead>
+      <tbody>
+      {% for t in taches %}
+        <tr data-testid="tache-{{ t.id }}">
+          <td>{{ t.task_file_name }}</td>
+          <td class="mono">{{ t.task_name }}</td>
+          <td>{{ t.type }}</td>
+          <td data-testid="tache-{{ t.id }}-statut">{{ t.status }}</td>
+          <td>{{ t.date_created ? t.date_created|date('d.m.Y H:i') : '—' }}</td>
+          <td>{{ t.result ?: '—' }}</td>
+          <td>
+            {% if not t.acknowledged %}
+            <form method="post" action="/taches/{{ t.id }}/accuser"><input type="hidden" name="csrf" value="{{ csrf }}">
+              <button class="btn discret" type="submit" data-testid="action-accuser-{{ t.id }}">Acquitter</button>
+            </form>
+            {% else %}<span class="muted" data-testid="tache-{{ t.id }}-acquittee">acquittée</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted" data-testid="taches-vide">Aucun traitement suivi pour l’instant.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section class="carte" aria-label="Consommation en cours">
+    <h2>Consommation en cours (file d’ingestion)</h2>
+    <ul class="liste" data-testid="taches-travaux">
+      {% for t in travaux %}
+        <li><span class="l1">{{ t.task_file_name }}</span><span class="l2">{{ t.status }}{% if t.result and t.result != 'range' and t.result != 'recu' and t.result != 'pret' %} · {{ t.result }}{% endif %}</span></li>
+      {% else %}
+        <li class="muted" data-testid="taches-travaux-vide">Aucune consommation en cours.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

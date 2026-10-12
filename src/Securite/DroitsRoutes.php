@@ -106,6 +106,14 @@ final class DroitsRoutes
         'GET /metadonnees' => 'application:administrer',
         'POST /metadonnees/type' => 'application:administrer',
         'POST /metadonnees/champ' => 'application:administrer',
+        'POST /metadonnees/etiquette' => 'application:administrer',
+        // Lot ged-parite-modele-3 : suivi des tâches (administration) et administration des vues
+        // enregistrées. Lignes hors secteur (Securite), signalées dans docs/secteurs/socle.md.
+        'GET /taches' => 'application:administrer',
+        'POST /taches/{id:[0-9]+}/accuser' => 'application:administrer',
+        'GET /vues' => 'documents:lire',
+        'POST /vues' => 'documents:lire',
+        'POST /vues/{id:[0-9]+}' => 'documents:lire',
         'POST /bibliotheque/vue' => 'documents:lire',
         // Lot ged-parite-masse : modification en masse. La permission globale est vérifiée ici ; le
         // niveau `modifier` sur CHAQUE dossier est vérifié par le service, document par document.
@@ -263,6 +271,13 @@ final class DroitsRoutes
             }
             if (preg_match('#^/workflows/admin/[0-9]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/admin/{id:[0-9]+}'];
+            }
+            // Suivi des traitements et vues enregistrées (lot ged-parite-modele-3).
+            if (preg_match('#^/taches/[0-9]+/accuser$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /taches/{id:[0-9]+}/accuser'];
+            }
+            if (preg_match('#^/vues/[0-9]+$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /vues/{id:[0-9]+}'];
             }
             if (preg_match('#^/workflows/gabarits/[A-Za-z0-9_]+$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /workflows/gabarits/{nom}'];

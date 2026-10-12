@@ -93,6 +93,8 @@
               <option value="date">date</option>
               <option value="liste">liste</option>
               <option value="booleen">oui/non</option>
+              <option value="url">url</option>
+              <option value="lien">lien vers des documents</option>
             </select></div>
           <div class="champ"><label for="champ-options">Options (nature liste — une par ligne)</label>
             <textarea id="champ-options" name="options" data-testid="champ-options" style="width:100%;min-height:56px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;padding:6px 9px"></textarea></div>
@@ -103,6 +105,45 @@
       {% else %}
       <div class="volet-corps"><p class="muted" style="padding:12px 14px">La nomenclature est vide : ajouter un premier type.</p></div>
       {% endif %}
+    </section>
+
+    <section class="carte" data-testid="etiquettes-admin">
+      <h2>Étiquettes</h2>
+      <p class="muted">Une étiquette a un nom, une couleur et peut être la boîte de réception du fonds. Elle n’est jamais supprimée.</p>
+      <table class="table" data-testid="etiquettes-liste">
+        <thead><tr><th>Nom</th><th>Couleur</th><th>Boîte de réception</th><th></th></tr></thead>
+        <tbody>
+        {% for e in etiquettes %}
+          <tr data-testid="etiquette-{{ e.id }}">
+            <td>{{ e.nom }}</td>
+            <td><span class="chip" style="background:{{ e.couleur }};color:#fff" data-testid="etiquette-{{ e.id }}-couleur">{{ e.couleur }}</span></td>
+            <td>
+              <form method="post" action="/metadonnees/etiquette"><input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="boite"><input type="hidden" name="id" value="{{ e.id }}">
+                <input type="hidden" name="valeur" value="{{ e.boite_reception ? '0' : '1' }}">
+                <button class="btn discret" type="submit" data-testid="etiquette-{{ e.id }}-boite">{{ e.boite_reception ? 'Retirer' : 'Poser' }}</button></form>
+            </td>
+            <td>
+              <form method="post" action="/metadonnees/etiquette" style="display:flex;gap:6px"><input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="action" value="couleur"><input type="hidden" name="id" value="{{ e.id }}">
+                <input name="couleur" value="{{ e.couleur }}" size="8" data-testid="etiquette-{{ e.id }}-couleur-saisie">
+                <button class="btn discret" type="submit" data-testid="etiquette-{{ e.id }}-recolorer">Recolorer</button></form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="muted" data-testid="etiquettes-vide">Aucune étiquette.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <form method="post" action="/metadonnees/etiquette">
+        <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="ajouter">
+        <div class="champ"><label for="etiquette-nom">Nom de l’étiquette</label>
+          <input id="etiquette-nom" name="nom" data-testid="etiquette-nom" required></div>
+        <div class="champ"><label for="etiquette-couleur">Couleur (#RRGGBB)</label>
+          <input id="etiquette-couleur" name="couleur" value="{{ couleurEtiquetteDefaut }}" data-testid="etiquette-couleur"></div>
+        <label class="case"><input type="checkbox" name="boite_reception" value="1" data-testid="etiquette-boite"> Boîte de réception</label>
+        <button class="btn primaire" type="submit" data-testid="action-ajouter-etiquette">Ajouter l’étiquette</button>
+      </form>
     </section>
   </div>
 </div>

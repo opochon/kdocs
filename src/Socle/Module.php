@@ -167,6 +167,66 @@ final class Module
                 return self::nommer($vue, $rep, 'POST /metadonnees/champ', $e->getMessage());
             }
         });
+
+        // Étiquettes de classement (modèle Paperless Tag) : ajouter, recolorer, renommer, poser la boîte
+        // de réception. Une étiquette n'est jamais supprimée (le dossier fait foi).
+        $app->post('/metadonnees/etiquette', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $etiquettes = new Etiquettes($config);
+            try {
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => $etiquettes->ajouter((string) ($corps['nom'] ?? ''), (string) ($corps['couleur'] ?? Etiquettes::COULEUR_DEFAUT),
+                        (string) ($corps['boite_reception'] ?? '') === '1'),
+                    'couleur' => $etiquettes->definirCouleur((int) ($corps['id'] ?? 0), (string) ($corps['couleur'] ?? '')),
+                    'renommer' => $etiquettes->renommer((int) ($corps['id'] ?? 0), (string) ($corps['nom'] ?? '')),
+                    'boite' => $etiquettes->definirBoiteReception((int) ($corps['id'] ?? 0), (string) ($corps['valeur'] ?? '1') === '1'),
+                    default => throw new RuntimeException('action inconnue (ajouter, couleur, renommer, boite)'),
+                };
+
+                return $rep->withHeader('Location', '/metadonnees')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /metadonnees/etiquette', $e->getMessage());
+            }
+        });
+
+        // Suivi des traitements (modèle PaperlessTask) : consulter l'avancement et acquitter une tâche.
+        $app->get('/taches', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/taches.twig', (new EcranTaches($config))->donnees(self::csrf($req)));
+        });
+        $app->post('/taches/{id:[0-9]+}/accuser', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            try {
+                (new Taches($config))->accuser((int) $args['id']);
+
+                return $rep->withHeader('Location', '/taches')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /taches/{id}/accuser', $e->getMessage());
+            }
+        });
+
+        // Vues enregistrées (modèle SavedView) : créer, nommer, choisir champs, mode, tri, tableau de bord.
+        $app->get('/vues', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return $vue->rendre($rep, 'ecrans/vues.twig', (new EcranVues($config))->donnees(self::csrf($req)));
+        });
+        $app->post('/vues', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            try {
+                (new Vues($config))->enregistrer((string) ($corps['nom'] ?? ''), $corps, self::auteur($req));
+
+                return $rep->withHeader('Location', '/vues')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /vues', $e->getMessage());
+            }
+        });
+        $app->post('/vues/{id:[0-9]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            try {
+                (new Vues($config))->modifierReglages((int) $args['id'], $corps, self::auteur($req));
+
+                return $rep->withHeader('Location', '/vues')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /vues/{id}', $e->getMessage());
+            }
+        });
     }
 
     /** Le jeton CSRF de la double soumission : le cookie posé par la garde, joint au formulaire. */
