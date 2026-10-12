@@ -135,6 +135,26 @@ try {
                 'POST /api/v1/documents/{id:[0-9]+}/email', 'POST /api/v1/documents/email',
                 'POST /api/v1/documents/bulk_edit', 'POST /api/v1/documents/bulk_download',
                 'POST /api/v1/dossiers/tester' => 401,
+                // Lot ged-parite-api-3 : verbes REST des ressources et vues annexes (mêmes routes sous
+                // jeton que DocumentsApi). Ligne hors secteur Harness, signalée dans la note de lot.
+                'GET /api/v1/etiquettes/{id:[0-9]+}', 'POST /api/v1/etiquettes',
+                'PUT /api/v1/etiquettes/{id:[0-9]+}', 'PATCH /api/v1/etiquettes/{id:[0-9]+}',
+                'GET /api/v1/types/{id:[0-9]+}', 'POST /api/v1/types',
+                'PUT /api/v1/types/{id:[0-9]+}', 'PATCH /api/v1/types/{id:[0-9]+}',
+                'GET /api/v1/champs/{id:[0-9]+}', 'POST /api/v1/champs',
+                'PUT /api/v1/champs/{id:[0-9]+}', 'PATCH /api/v1/champs/{id:[0-9]+}',
+                'GET /api/v1/vues/{id:[0-9]+}', 'POST /api/v1/vues',
+                'PUT /api/v1/vues/{id:[0-9]+}', 'PATCH /api/v1/vues/{id:[0-9]+}',
+                'GET /api/v1/comptes', 'POST /api/v1/comptes', 'GET /api/v1/comptes/{id:[0-9]+}',
+                'PUT /api/v1/comptes/{id:[0-9]+}', 'PATCH /api/v1/comptes/{id:[0-9]+}',
+                'GET /api/v1/groupes', 'POST /api/v1/groupes', 'GET /api/v1/groupes/{id:[0-9]+}',
+                'PUT /api/v1/groupes/{id:[0-9]+}', 'PATCH /api/v1/groupes/{id:[0-9]+}',
+                'POST /api/v1/partages', 'GET /api/v1/partages/{id:[0-9]+}',
+                'DELETE /api/v1/partages/{id:[0-9]+}', 'GET /api/v1/documents/{id:[0-9]+}/partages',
+                'GET /api/v1/corbeille', 'POST /api/v1/corbeille', 'GET /api/v1/taches',
+                'GET /api/v1/taches/{id:[0-9]+}', 'GET /api/v1/courriers/traites/{id:[0-9]+}',
+                'GET /api/v1/profil', 'PATCH /api/v1/profil', 'POST /api/v1/jetons',
+                'GET /api/v1/preferences', 'POST /api/v1/preferences' => 401,
                 // V2-12d : lien externe sans jeton valide, refus nommé.
                 'GET /partages/{jeton:[A-Za-z0-9_-]+}', 'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 403,
                 // Édition depuis le poste (F13) : sans jeton d'appareil, toute l'API refuse 401 nommé.

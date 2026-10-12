@@ -195,6 +195,49 @@ final class DroitsRoutes
         'GET /connexion' => 'publique:connexion',
         'POST /connexion' => 'publique:connexion',
         'POST /deconnexion' => 'session:active',
+        // Lot ged-parite-api-3 (Jonctions) : verbes REST des ressources et vues annexes, sous la même
+        // porte jeton que DocumentsApi. Lignes hors secteur (Securite), signalées dans
+        // docs/lots/ged-parite-api-3.md (rubrique « Lignes hors secteur »).
+        'GET /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/etiquettes' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/etiquettes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/types' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/types/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/champs' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/champs/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'POST /api/v1/vues' => 'publique:api-documents-ecriture',
+        'PUT /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/vues/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/comptes' => 'publique:api-documents-lecture',
+        'POST /api/v1/comptes' => 'publique:api-documents-ecriture',
+        'GET /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'PUT /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/comptes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/groupes' => 'publique:api-documents-lecture',
+        'POST /api/v1/groupes' => 'publique:api-documents-ecriture',
+        'GET /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'PUT /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'PATCH /api/v1/groupes/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'POST /api/v1/partages' => 'publique:api-documents-ecriture',
+        'GET /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'DELETE /api/v1/partages/{id:[0-9]+}' => 'publique:api-documents-ecriture',
+        'GET /api/v1/documents/{id:[0-9]+}/partages' => 'publique:api-documents-lecture',
+        'GET /api/v1/corbeille' => 'publique:api-documents-lecture',
+        'POST /api/v1/corbeille' => 'publique:api-documents-ecriture',
+        'GET /api/v1/taches' => 'publique:api-documents-lecture',
+        'GET /api/v1/taches/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'GET /api/v1/courriers/traites/{id:[0-9]+}' => 'publique:api-documents-lecture',
+        'GET /api/v1/profil' => 'publique:api-documents-lecture',
+        'PATCH /api/v1/profil' => 'publique:api-documents-ecriture',
+        'POST /api/v1/jetons' => 'publique:api-documents-ecriture',
+        'GET /api/v1/preferences' => 'publique:api-documents-lecture',
+        'POST /api/v1/preferences' => 'publique:api-documents-ecriture',
     ];
 
     /** @return array<string, string> Routes et permissions que la sonde offensive doit couvrir. */
@@ -208,6 +251,24 @@ final class DroitsRoutes
         $cle = strtoupper($methode) . ' ' . $chemin;
         if (isset(self::PERMISSIONS[$cle])) {
             return self::PERMISSIONS[$cle];
+        }
+
+        // Verbes REST des ressources (lot ged-parite-api-3) : identifiant concret dans le chemin. La
+        // route est servie par `Ged\Jonctions\RessourcesApi`, la porte réelle étant le jeton.
+        if (preg_match('#^/api/v1/(etiquettes|types|champs|vues|comptes|groupes)/[0-9]+$#', $chemin, $ressource) === 1) {
+            return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/' . $ressource[1] . '/{id:[0-9]+}'] ?? null;
+        }
+        if (preg_match('#^/api/v1/partages/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS[strtoupper($methode) . ' /api/v1/partages/{id:[0-9]+}'] ?? null;
+        }
+        if (strtoupper($methode) === 'GET' && preg_match('#^/api/v1/documents/[0-9]+/partages$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /api/v1/documents/{id:[0-9]+}/partages'];
+        }
+        if (strtoupper($methode) === 'GET' && preg_match('#^/api/v1/taches/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /api/v1/taches/{id:[0-9]+}'];
+        }
+        if (strtoupper($methode) === 'GET' && preg_match('#^/api/v1/courriers/traites/[0-9]+$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /api/v1/courriers/traites/{id:[0-9]+}'];
         }
 
         // Courrier (lot ged-parite-modele-2) : compte ou règle paramétré, et ses gestes.
