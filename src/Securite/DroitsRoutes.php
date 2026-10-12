@@ -79,6 +79,20 @@ final class DroitsRoutes
         'POST /workflows/evenements' => 'workflow.executer',
         'POST /workflows/transitions' => 'workflow.transition',
         'GET /application' => 'application:administrer',
+        // Lot ged-parite-modele-2 (secteur Ingestion) : administration du courrier (comptes, règles,
+        // journal), réservée aux administrateurs comme le reste d'Application. Lignes signalées hors secteur.
+        'GET /courrier' => 'application:administrer',
+        'POST /courrier/comptes' => 'application:administrer',
+        'GET /courrier/comptes/{id:[0-9]+}' => 'application:administrer',
+        'POST /courrier/comptes/{id:[0-9]+}' => 'application:administrer',
+        'POST /courrier/comptes/{id:[0-9]+}/basculer' => 'application:administrer',
+        'POST /courrier/comptes/{id:[0-9]+}/tester' => 'application:administrer',
+        'POST /courrier/comptes/{id:[0-9]+}/traiter' => 'application:administrer',
+        'POST /courrier/regles' => 'application:administrer',
+        'GET /courrier/regles/{id:[0-9]+}' => 'application:administrer',
+        'POST /courrier/regles/{id:[0-9]+}' => 'application:administrer',
+        'POST /courrier/regles/{id:[0-9]+}/basculer' => 'application:administrer',
+        'POST /courrier/journal/purger' => 'application:administrer',
         'GET /administration/comptes' => 'application:administrer',
         'POST /administration/comptes' => 'application:administrer',
         'GET /administration/groupes' => 'application:administrer',
@@ -160,6 +174,11 @@ final class DroitsRoutes
         $cle = strtoupper($methode) . ' ' . $chemin;
         if (isset(self::PERMISSIONS[$cle])) {
             return self::PERMISSIONS[$cle];
+        }
+
+        // Courrier (lot ged-parite-modele-2) : compte ou règle paramétré, et ses gestes.
+        if (preg_match('#^/courrier/(?:comptes|regles)/[0-9]+(?:/(?:basculer|tester|traiter))?$#', $chemin) === 1) {
+            return self::PERMISSIONS['GET /courrier/comptes/{id:[0-9]+}'];
         }
 
         if (strtoupper($methode) === 'GET' && preg_match('#^/documents/[0-9]+$#', $chemin) === 1) {

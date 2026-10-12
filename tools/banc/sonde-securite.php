@@ -422,6 +422,18 @@ try {
         'POST /workflows/admin' => 'nom=',
         'POST /workflows/admin/{id:[0-9]+}' => 'nom=',
         'POST /workflows/admin/{id:[0-9]+}/basculer' => 'actif=0',
+        // Administration du courrier (lot ged-parite-modele-2, Ingestion) : création sans nom, gestes sur un
+        // identifiant inexistant, journal vide ; le métier refuse sans écrire. La sonde ne vérifie que
+        // l'absence et le rejeu du jeton CSRF.
+        'POST /courrier/comptes' => 'nom=',
+        'POST /courrier/comptes/{id:[0-9]+}' => 'nom=',
+        'POST /courrier/comptes/{id:[0-9]+}/basculer' => 'actif=0',
+        'POST /courrier/comptes/{id:[0-9]+}/tester' => 'sonde=1',
+        'POST /courrier/comptes/{id:[0-9]+}/traiter' => 'sonde=1',
+        'POST /courrier/regles' => 'nom=',
+        'POST /courrier/regles/{id:[0-9]+}' => 'nom=',
+        'POST /courrier/regles/{id:[0-9]+}/basculer' => 'actif=0',
+        'POST /courrier/journal/purger' => 'mail_ids[]=0',
         // Édition depuis le poste (F13) : document et copie inexistants, le métier refuse sans écrire ;
         // la sonde ne vérifie que l'absence et le rejeu du jeton CSRF.
         'POST /documents/{id:[0-9]+}/secours/recuperer' => 'copie=sonde',

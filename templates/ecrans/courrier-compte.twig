@@ -1,0 +1,43 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Compte de courrier{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-courrier-compte">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>{{ compte.name }}</h1>
+      <span class="muted">{{ compte.imap_server }}:{{ compte.imap_port }}</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/courrier" data-testid="retour-courrier">{{ ic.i('fleche') }}Courrier</a>
+    </div>
+  </div>
+
+  <section class="carte">
+    <form method="post" action="/courrier/comptes/{{ compte.id }}" data-testid="formulaire-compte-edition">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="e-nom">Nom</label>
+        <input id="e-nom" name="nom" data-testid="compte-nom" value="{{ compte.name }}" maxlength="190" required></div>
+      <div class="champ"><label for="e-serveur">Serveur IMAP</label>
+        <input id="e-serveur" name="serveur" data-testid="compte-serveur" value="{{ compte.imap_server }}" maxlength="190"></div>
+      <div class="champ"><label for="e-port">Port</label>
+        <input id="e-port" name="port" data-testid="compte-port" type="number" value="{{ compte.imap_port }}" min="1" max="65535"></div>
+      <div class="champ"><label for="e-securite">Sécurité</label>
+        <select id="e-securite" name="securite" data-testid="compte-securite">
+          {% for code, libelle in constantes.securites %}<option value="{{ code }}" {{ code == compte.imap_security ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-utilisateur">Utilisateur</label>
+        <input id="e-utilisateur" name="utilisateur" data-testid="compte-utilisateur" value="{{ compte.username }}" maxlength="190"></div>
+      <div class="champ"><label for="e-mdp">Mot de passe (laisser le masque pour conserver)</label>
+        <input id="e-mdp" name="mot_de_passe" data-testid="compte-mot-de-passe" value="{{ compte.password }}" maxlength="190"></div>
+      <div class="champ"><label for="e-type">Type</label>
+        <select id="e-type" name="type_compte" data-testid="compte-type">
+          {% for code, libelle in constantes.types_compte %}<option value="{{ code }}" {{ code == compte.account_type ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-actif">Actif</label>
+        <input id="e-actif" name="actif" data-testid="compte-actif" type="checkbox" value="1" {{ compte.actif ? 'checked' : '' }}></div>
+      <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-enregistrer-compte">Enregistrer</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

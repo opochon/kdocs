@@ -1,0 +1,77 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Règle de courrier{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-courrier-regle">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>{{ regle.nom }}</h1>
+      <span class="muted">{{ regle.compte }}</span>
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/courrier" data-testid="retour-courrier">{{ ic.i('fleche') }}Courrier</a>
+    </div>
+  </div>
+
+  <section class="carte">
+    <form method="post" action="/courrier/regles/{{ regle.id }}" data-testid="formulaire-regle-edition">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="e-nom">Nom</label>
+        <input id="e-nom" name="nom" data-testid="regle-nom" value="{{ dossier.nom }}" maxlength="190" required></div>
+      <div class="champ"><label for="e-compte">Compte</label>
+        <input id="e-compte" name="compte" data-testid="regle-compte" value="{{ dossier.compte }}" maxlength="190"></div>
+      <div class="champ"><label for="e-ordre">Ordre</label>
+        <input id="e-ordre" name="ordre" data-testid="regle-ordre" type="number" value="{{ dossier.ordre }}" min="0" max="9999"></div>
+      <div class="champ"><label for="e-dossier">Dossier</label>
+        <input id="e-dossier" name="dossier" data-testid="regle-dossier" value="{{ dossier.dossier }}" maxlength="190"></div>
+      <div class="champ"><label for="e-objet">Filtre objet</label>
+        <input id="e-objet" name="filtre_objet" data-testid="regle-filtre-objet" value="{{ dossier.filtre_objet }}" maxlength="190"></div>
+      <div class="champ"><label for="e-de">Filtre expéditeur</label>
+        <input id="e-de" name="filtre_de" data-testid="regle-filtre-de" value="{{ dossier.filtre_de }}" maxlength="190"></div>
+      <div class="champ"><label for="e-a">Filtre destinataire</label>
+        <input id="e-a" name="filtre_a" data-testid="regle-filtre-a" value="{{ dossier.filtre_a }}" maxlength="190"></div>
+      <div class="champ"><label for="e-corps">Filtre corps</label>
+        <input id="e-corps" name="filtre_corps" data-testid="regle-filtre-corps" value="{{ dossier.filtre_corps }}" maxlength="190"></div>
+      <div class="champ"><label for="e-inc">Pièces (inclure, jokers)</label>
+        <input id="e-inc" name="filtre_fichiers_inclure" data-testid="regle-filtre-fichiers" value="{{ dossier.filtre_fichiers_inclure }}" maxlength="190"></div>
+      <div class="champ"><label for="e-exc">Pièces (exclure)</label>
+        <input id="e-exc" name="filtre_fichiers_exclure" data-testid="regle-filtre-fichiers-exclure" value="{{ dossier.filtre_fichiers_exclure }}" maxlength="190"></div>
+      <div class="champ"><label for="e-age">Âge maximum (jours)</label>
+        <input id="e-age" name="age_max" data-testid="regle-age-max" type="number" value="{{ dossier.age_max }}" min="0" max="36500"></div>
+      <div class="champ"><label for="e-portee">Traitement</label>
+        <select id="e-portee" name="portee" data-testid="regle-portee">
+          {% for code, libelle in constantes.portees %}<option value="{{ code }}" {{ code == dossier.portee ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-piece">Pièces traitées</label>
+        <select id="e-piece" name="type_piece" data-testid="regle-type-piece">
+          {% for code, libelle in constantes.pieces %}<option value="{{ code }}" {{ code == dossier.type_piece ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-pdf">Mise en page PDF</label>
+        <select id="e-pdf" name="mise_en_page_pdf" data-testid="regle-mise-en-page">
+          {% for code, libelle in constantes.mises_en_page %}<option value="{{ code }}" {{ code == dossier.mise_en_page_pdf ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-action">Action</label>
+        <select id="e-action" name="action" data-testid="regle-action">
+          {% for code, libelle in constantes.actions %}<option value="{{ code }}" {{ code == dossier.action ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-param">Paramètre d’action</label>
+        <input id="e-param" name="parametre_action" data-testid="regle-parametre-action" value="{{ dossier.parametre_action }}" maxlength="190"></div>
+      <div class="champ"><label for="e-titre">Titre</label>
+        <select id="e-titre" name="titre_depuis" data-testid="regle-titre">
+          {% for code, libelle in constantes.titres %}<option value="{{ code }}" {{ code == dossier.titre_depuis ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-emetteur">Émetteur</label>
+        <select id="e-emetteur" name="emetteur_depuis" data-testid="regle-emetteur">
+          {% for code, libelle in constantes.emetteurs %}<option value="{{ code }}" {{ code == dossier.emetteur_depuis ? 'selected' : '' }}>{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="e-etiquettes">Étiquettes (virgules)</label>
+        <input id="e-etiquettes" name="etiquettes" data-testid="regle-etiquettes" value="{{ dossier.etiquettes|join(', ') }}" maxlength="190"></div>
+      <div class="champ"><label for="e-type-doc">Type de document</label>
+        <input id="e-type-doc" name="type_document" data-testid="regle-type-document" value="{{ dossier.type_document }}" maxlength="190"></div>
+      <div class="champ"><label for="e-actif">Active</label>
+        <input id="e-actif" name="actif" data-testid="regle-actif" type="checkbox" value="1" {{ dossier.actif ? 'checked' : '' }}></div>
+      <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-enregistrer-regle">Enregistrer</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

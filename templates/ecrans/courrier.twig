@@ -1,0 +1,212 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Courrier{% endblock %}
+{% block contenu %}
+{# Écran d'ADMINISTRATION du courrier (réservé à `application:administrer`) : comptes, règles, journal des
+   courriels traités. Le test de connexion branche le port injectable ; en test, un faux en mémoire. #}
+<div class="page" data-testid="ecran-courrier">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Courrier</h1>
+      <span class="muted">{{ comptes|length }} compte{{ comptes|length > 1 ? 's' }}, {{ regles|length }} règle{{ regles|length > 1 ? 's' }}</span>
+      {% if faux %}<span class="chip warn" data-testid="courrier-faux">Boîte de test (aucun serveur réel)</span>{% endif %}
+    </div>
+    <div class="actions">
+      <a class="btn discret" href="/application" data-testid="lien-application">{{ ic.i('reglages') }}Application</a>
+    </div>
+  </div>
+
+  {% if essai is defined %}
+  <section class="carte" data-testid="courrier-essai">
+    <div class="panneau">
+      {% if essai.ok %}<p class="chip ok" data-testid="courrier-essai-ok">Connexion acceptée pour « {{ essai.compte }} »</p>
+      {% else %}<p class="chip warn" data-testid="courrier-essai-echec">Connexion refusée pour « {{ essai.compte }} » : {{ essai.message }}</p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+  {% if rapport is defined %}
+  <section class="carte" data-testid="courrier-rapport">
+    <div class="panneau">
+      <p class="chip" data-testid="courrier-rapport-traites">{{ rapport.traites }} courriel(s) traité(s), {{ rapport.pieces }} pièce(s) déposée(s)</p>
+      {% for erreur in rapport.erreurs %}<p class="l2" data-testid="courrier-rapport-erreur">{{ erreur }}</p>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if not installe %}
+  <section class="carte" data-testid="courrier-non-installe">
+    <div class="panneau"><p class="muted">Le journal n’est pas posé : lancez <span class="mono">php tools/installer.php</span>.</p></div>
+  </section>
+  {% else %}
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('plus') }}Nouveau compte</div>
+    <form method="post" action="/courrier/comptes" data-testid="formulaire-compte">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="c-nom">Nom</label>
+        <input id="c-nom" name="nom" data-testid="compte-nom" placeholder="p. ex. Boîte fournisseurs" maxlength="190" required></div>
+      <div class="champ"><label for="c-serveur">Serveur IMAP</label>
+        <input id="c-serveur" name="serveur" data-testid="compte-serveur" placeholder="imap.exemple.test" maxlength="190"></div>
+      <div class="champ"><label for="c-port">Port</label>
+        <input id="c-port" name="port" data-testid="compte-port" type="number" value="993" min="1" max="65535"></div>
+      <div class="champ"><label for="c-securite">Sécurité</label>
+        <select id="c-securite" name="securite" data-testid="compte-securite">
+          {% for code, libelle in constantes.securites %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="c-utilisateur">Utilisateur</label>
+        <input id="c-utilisateur" name="utilisateur" data-testid="compte-utilisateur" maxlength="190"></div>
+      <div class="champ"><label for="c-mdp">Mot de passe (chiffré au repos)</label>
+        <input id="c-mdp" name="mot_de_passe" data-testid="compte-mot-de-passe" type="password" maxlength="190"></div>
+      <div class="champ"><label for="c-type">Type</label>
+        <select id="c-type" name="type_compte" data-testid="compte-type">
+          {% for code, libelle in constantes.types_compte %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="c-actif">Actif</label>
+        <input id="c-actif" name="actif" data-testid="compte-actif" type="checkbox" value="1" checked></div>
+      <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-creer-compte">Créer le compte</button></div>
+    </form>
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('flux') }}Comptes</div>
+    {% if comptes %}
+    <div class="panneau">
+      {% for c in comptes %}
+      <div class="carte" data-testid="compte-{{ c.id }}">
+        <div class="volet-tete">
+          <strong data-testid="compte-nom-{{ c.id }}">{{ c.name }}</strong>
+          <span class="chip">{{ c.imap_server }}:{{ c.imap_port }}</span>
+          <span class="chip">{{ c.username }}</span>
+          {% if c.actif %}<span class="chip ok" data-testid="compte-etat-{{ c.id }}">actif</span>
+          {% else %}<span class="chip warn" data-testid="compte-etat-{{ c.id }}">en veille</span>{% endif %}
+          <a class="btn" href="/courrier/comptes/{{ c.id }}" data-testid="editer-compte-{{ c.id }}" style="margin-left:auto">{{ ic.i('reglages') }}Ouvrir</a>
+        </div>
+        <div class="panneau">
+          <p class="muted">Mot de passe : {{ c.password }} (jamais en clair)</p>
+          <form method="post" action="/courrier/comptes/{{ c.id }}/tester" style="display:inline">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn" type="submit" data-testid="tester-compte-{{ c.id }}">Tester la connexion</button>
+          </form>
+          <form method="post" action="/courrier/comptes/{{ c.id }}/basculer" style="display:inline">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="actif" value="{{ c.actif ? '0' : '1' }}">
+            <button class="btn" type="submit" data-testid="basculer-compte-{{ c.id }}">{{ c.actif ? 'Mettre en veille' : 'Activer' }}</button>
+          </form>
+          <form method="post" action="/courrier/comptes/{{ c.id }}/traiter" style="display:inline">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn primaire" type="submit" data-testid="traiter-compte-{{ c.id }}">Traiter maintenant</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="panneau"><p class="muted" data-testid="aucun-compte">Aucun compte : créez-en un ci-dessus.</p></div>
+    {% endif %}
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('plus') }}Nouvelle règle</div>
+    <form method="post" action="/courrier/regles" data-testid="formulaire-regle">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="champ"><label for="r-nom">Nom</label>
+        <input id="r-nom" name="nom" data-testid="regle-nom" maxlength="190" required></div>
+      <div class="champ"><label for="r-compte">Compte</label>
+        <select id="r-compte" name="compte" data-testid="regle-compte">
+          {% for c in comptes %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="r-dossier">Dossier</label>
+        <input id="r-dossier" name="dossier" data-testid="regle-dossier" value="INBOX" maxlength="190"></div>
+      <div class="champ"><label for="r-objet">Filtre objet (sous-chaîne)</label>
+        <input id="r-objet" name="filtre_objet" data-testid="regle-filtre-objet" maxlength="190"></div>
+      <div class="champ"><label for="r-exp">Filtre expéditeur</label>
+        <input id="r-exp" name="filtre_de" data-testid="regle-filtre-de" maxlength="190"></div>
+      <div class="champ"><label for="r-fichiers">Filtre pièces (jokers, virgules)</label>
+        <input id="r-fichiers" name="filtre_fichiers_inclure" data-testid="regle-filtre-fichiers" placeholder="*.pdf" maxlength="190"></div>
+      <div class="champ"><label for="r-portee">Traitement</label>
+        <select id="r-portee" name="portee" data-testid="regle-portee">
+          {% for code, libelle in constantes.portees %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="r-action">Action sur le courriel</label>
+        <select id="r-action" name="action" data-testid="regle-action">
+          {% for code, libelle in constantes.actions %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="r-param">Paramètre (dossier ou étiquette)</label>
+        <input id="r-param" name="parametre_action" data-testid="regle-parametre-action" maxlength="190"></div>
+      <div class="champ"><label for="r-titre">Titre</label>
+        <select id="r-titre" name="titre_depuis" data-testid="regle-titre">
+          {% for code, libelle in constantes.titres %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="r-emetteur">Émetteur</label>
+        <select id="r-emetteur" name="emetteur_depuis" data-testid="regle-emetteur">
+          {% for code, libelle in constantes.emetteurs %}<option value="{{ code }}">{{ libelle }}</option>{% endfor %}
+        </select></div>
+      <div class="champ"><label for="r-etiquettes">Étiquettes (virgules)</label>
+        <input id="r-etiquettes" name="etiquettes" data-testid="regle-etiquettes" maxlength="190"></div>
+      <div class="champ"><label for="r-actif">Active dès la création</label>
+        <input id="r-actif" name="actif" data-testid="regle-actif" type="checkbox" value="1" checked></div>
+      <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-creer-regle">Créer la règle</button></div>
+    </form>
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('flux') }}Règles</div>
+    {% if regles %}
+    <div class="panneau">
+      {% for r in regles %}
+      <div class="carte" data-testid="regle-{{ r.id }}">
+        <div class="volet-tete">
+          <strong data-testid="regle-nom-{{ r.id }}">{{ r.nom }}</strong>
+          <span class="chip">{{ r.compte }}</span>
+          <span class="chip">{{ r.action_libelle }}{{ r.parametre_action ? ' : ' ~ r.parametre_action : '' }}</span>
+          {% if r.actif %}<span class="chip ok" data-testid="regle-etat-{{ r.id }}">active</span>
+          {% else %}<span class="chip warn" data-testid="regle-etat-{{ r.id }}">en veille</span>{% endif %}
+          <a class="btn" href="/courrier/regles/{{ r.id }}" data-testid="editer-regle-{{ r.id }}" style="margin-left:auto">{{ ic.i('reglages') }}Ouvrir</a>
+        </div>
+        <div class="panneau">
+          <p class="l2">Filtres : {{ r.filtres|join(' ; ') ?: 'aucun' }}</p>
+          <p class="muted">Traitement : {{ r.portee_libelle }} · Titre : {{ r.titre_libelle }} · Émetteur : {{ r.emetteur_libelle }}</p>
+          <form method="post" action="/courrier/regles/{{ r.id }}/basculer">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="actif" value="{{ r.actif ? '0' : '1' }}">
+            <button class="btn" type="submit" data-testid="basculer-regle-{{ r.id }}">{{ r.actif ? 'Mettre en veille' : 'Activer' }}</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="panneau"><p class="muted" data-testid="aucune-regle">Aucune règle : créez-en une ci-dessus.</p></div>
+    {% endif %}
+  </section>
+
+  <section class="carte">
+    <div class="volet-tete">{{ ic.i('historique') }}Journal des courriels traités</div>
+    <form method="post" action="/courrier/journal/purger" data-testid="formulaire-journal">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      {% if journal %}
+      <div class="panneau">
+        <table class="table" data-testid="table-journal">
+          <thead><tr><th></th><th>Compte</th><th>Règle</th><th>Dossier</th><th>UID</th><th>Objet</th><th>Statut</th><th>Traité le</th></tr></thead>
+          <tbody>
+          {% for m in journal %}
+            <tr data-testid="journal-{{ m.id }}">
+              <td><input type="checkbox" name="mail_ids[]" value="{{ m.id }}" data-testid="journal-case-{{ m.id }}"></td>
+              <td>{{ m.boite }}</td><td>{{ m.regle }}</td><td>{{ m.dossier }}</td><td>{{ m.uid }}</td>
+              <td data-testid="journal-sujet-{{ m.id }}">{{ m.sujet }}</td>
+              <td data-testid="journal-statut-{{ m.id }}">{{ m.statut }}</td>
+              <td>{{ m.traite_le }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <div style="padding:10px 0"><button class="btn" type="submit" data-testid="action-purger-journal">Retirer les lignes cochées</button></div>
+      </div>
+      {% else %}
+      <div class="panneau"><p class="muted" data-testid="journal-vide">Aucun courriel traité pour l’instant.</p></div>
+      {% endif %}
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
