@@ -56,6 +56,7 @@ final class Correspondance
 
         return match ($algorithme) {
             self::TOUS => self::tousLesMots($motif, $texte, $drapeaux),
+            self::UN => self::unMot($motif, $texte, $drapeaux),
             default => false,
         };
     }
@@ -74,6 +75,18 @@ final class Correspondance
         }
 
         return true;
+    }
+
+    /** Au moins un mot du motif se lit comme un mot entier du texte. */
+    private static function unMot(string $motif, string $texte, string $drapeaux): bool
+    {
+        foreach (self::mots($motif) as $mot) {
+            if (preg_match('/\b' . $mot . '\b/' . $drapeaux, $texte) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
