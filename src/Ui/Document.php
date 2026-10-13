@@ -32,7 +32,7 @@ final class Document
     }
 
     /** @return array<string, mixed>|null */
-    public function donnees(int $id, ?int $compte = null): ?array
+    public function donnees(int $id, ?int $compte = null, bool $administrateur = false): ?array
     {
         $fonds = new Fonds($this->config);
         $pdo = null;
@@ -95,7 +95,7 @@ final class Document
             'liens' => $collaboration?->liens((int) $doc['id'], $compte) ?? [],
             // Famille M-Files nº 2 (lot ged-mfiles-relations-1) : les relations TYPÉES du document,
             // lues du `.meta.json` (le dossier fait foi), navigables dans les deux sens.
-            'relations' => $this->relations($chemin, $pdo),
+            'relations' => $this->relations($chemin, $pdo, $compte, $administrateur),
             'relations_types' => $this->relationsTypes(),
             'partages' => $collaboration?->partages((int) $doc['id']) ?? [],
             'ouverture' => $ouverture,
@@ -177,7 +177,7 @@ final class Document
      *
      * @return list<array<string, mixed>>
      */
-    private function relations(string $chemin, ?PDO $pdo): array
+    private function relations(string $chemin, ?PDO $pdo, ?int $compte = null, bool $administrateur = false): array
     {
         try {
             $service = new \Ged\Socle\Relations($this->config);
@@ -193,7 +193,31 @@ final class Document
         }
         unset($relation);
 
-        return $relations;
+        // Un lien ne révèle jamais le titre d'une pièce hors de ses droits (comme les liens de la fiche) :
+        // sans droit de LECTURE sur l'autre extrémité, la relation n'est pas montrée à cet utilisateur.
+        if ($compte === null || $administrateur) {
+            return $relations;
+        }
+
+        return array_values(array_filter($relations, fn (array $relation): bool => $this->peutLireDocument($compte, (string) $relation['cible'], $pdo)));
+    }
+
+    /** L'utilisateur lit-il la pièce à ce chemin ? (aucun schéma d'ACL : on ne masque rien) */
+    private function peutLireDocument(int $compte, string $chemin, ?PDO $pdo): bool
+    {
+        if ($pdo === null || $chemin === '' || !class_exists(\Ged\Securite\DroitsDossiers::class)) {
+            return true;
+        }
+        try {
+            $droits = new \Ged\Securite\DroitsDossiers($pdo);
+            $dossier = $droits->dossierPourChemin($chemin);
+
+            return $dossier !== null && $droits->autorise($compte, $dossier, 'lire');
+        } catch (Throwable $e) {
+            error_log(sprintf('[GEDv2 document] droits illisibles pour « %s » : %s', $chemin, $e->getMessage()));
+
+            return false;
+        }
     }
 
     /** @return list<array{id:int, nom:string, cle:string, nature:string, classe_source:?string, classe_cible:?string, multiple:bool, actif:bool}> */

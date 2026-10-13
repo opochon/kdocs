@@ -168,7 +168,8 @@ final class Ecrans
         try {
             $session = $req->getAttribute('ged.session');
             $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
-            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id, $compte);
+            $administrateur = is_array($session) && in_array('*', array_values(array_map('strval', (array) ($session['permissions'] ?? []))), true);
+            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id, $compte, $administrateur);
         } catch (\Throwable) {
             $reel = null;
         }
