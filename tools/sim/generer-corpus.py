@@ -105,15 +105,6 @@ LIBELLES = {
            "reçu": "Receipt", "facture": "INVOICE", "mouvements": "Movements", "charges": "Charges"},
 }
 
-TYPES_PAR_LANGUE = {
-    "fr": ["Facture", "Note de crédit", "Reçu", "Contrat", "Courrier", "Document RH", "Décompte",
-           "Relevé", "Attestation", TYPE_POLICE, TYPE_AVIS, "Décision"],
-    "de": ["Facture", "Note de crédit", "Reçu", "Contrat", "Relevé", "Décompte", TYPE_POLICE,
-           TYPE_AVIS, "Décision"],
-    "it": ["Facture", "Relevé", TYPE_POLICE, TYPE_AVIS, "Décision"],
-    "en": ["Facture", "Note de crédit", "Courrier"],
-}
-
 # Indices de vocabulaire de type par langue : la ligne doit rendre le type attendu par le classeur.
 MOT_TYPE = {
     ("Facture", "fr"): "FACTURE", ("Facture", "de"): "RECHNUNG", ("Facture", "it"): "FATTURA",

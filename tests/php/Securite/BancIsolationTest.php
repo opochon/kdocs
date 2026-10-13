@@ -25,7 +25,8 @@ final class BancIsolationTest extends TestCase
             self::assertMatchesRegularExpression("/DB_NAME[^\\n]+!==?\\s*'gedv2_test'/", $source,
                 basename($fichier) . ' refuse une autre base avant PDO');
         }
-        self::assertSame(['charge.php', 'contrat.php', 'mesurer-classement.php', 'rejouer-ingestion.php', 'sonde-securite.php'], $bancsPdo);
+        self::assertSame(['charge.php', 'contrat.php', 'mesurer-classement.php', 'mesurer-sim-corpus.php',
+            'rejouer-ingestion.php', 'sonde-securite.php'], $bancsPdo);
     }
 
     public function testLeCompteReelDeLaSondeEstMarqueEtNettoye(): void
