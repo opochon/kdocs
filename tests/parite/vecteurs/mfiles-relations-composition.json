@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "categorie": "mfiles-relations-composition",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/",
+    "modele": "Famille M-Files 2 : composition parent-enfant (sous-objets), détachement (demoting objects), intégrité des références croisées"
+  },
+  "total": 6,
+  "vecteurs": [
+    {
+      "id": "mfiles:relations:composition-parent-enfant",
+      "entree": { "scenario": "composition-parent-enfant" },
+      "sortie": { "enfants": 2, "parents_piece": 1, "parent_nomme": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/#get"
+    },
+    {
+      "id": "mfiles:relations:composition-comptage",
+      "entree": { "scenario": "composition-comptage" },
+      "sortie": { "sous_objets": 2, "relations_totales": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/count/#get"
+    },
+    {
+      "id": "mfiles:relations:detachement",
+      "entree": { "scenario": "composition-detachement" },
+      "sortie": { "detaches": 1, "enfants_apres": 1, "parents_piece_apres": 0, "journal": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/demoting-objects/#put"
+    },
+    {
+      "id": "mfiles:relations:corbeille-tracable",
+      "entree": { "scenario": "reference-corbeille" },
+      "sortie": { "relations": 1, "etat": "corbeille", "titre_conserve": true, "empreinte_conservee": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:deplacement-tracable",
+      "entree": { "scenario": "reference-deplacement" },
+      "sortie": { "relations": 1, "etat": "deplace", "chemin_change": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:hierarchie-fs",
+      "entree": { "scenario": "hierarchie-fs" },
+      "sortie": { "dossier_du_chemin": true, "piece_soeur": true, "enfants_fs": 0 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/#get"
+    }
+  ]
+}
