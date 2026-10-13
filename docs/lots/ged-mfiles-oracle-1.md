@@ -84,8 +84,43 @@ Branche : `ged/ged-mfiles-oracle-1` · point de départ : `3625f88` (v2).
 - Ce secteur ajoute `.<fichier>` à côté de `.versions/<fichier>/` du Socle : réconciliation proposée
   au juge (demande dans `docs/secteurs/depot-fileserver.md`).
 
+## Liste des `mfiles:*` restants proposés au juge (103, statut `absent`)
+
+Aucune exclusion n'est posée par l'agent : chaque opération sans équivalent GEDv2 mesuré reste
+`absent` et est PROPOSÉE au juge. Répartition par ressource publique M-Files (détail complet, id par
+id, dans `docs/parite/PARITE-MFILES.md`, section « Carnet de commandes (ecarts) ») :
+
+| Ressource publique M-Files | Opérations `absent` | Famille M-Files visée |
+| --- | ---: | --- |
+| `objects/*` (propriétés, fichiers, relations, sous-objets, checked out, historique, corbeille) | 41 (moins les couverts) | 2 relations, 6 archivage/versions, 7 rétention |
+| `structure/*` (classes, types d'objets, propriétés, listes de valeurs, workflows, états, transitions) | 32 | 1 classes/métadonnées, 4 workflows |
+| `session`, `server`, `repositories` (authentification, vaults, capacités) | 17 | hors périmètre GED (identité/serveur) |
+| `valuelists/*` (listes de valeurs nommées) | 8 | 1 classes/métadonnées |
+| `favorites`, `recentlyaccessedbyme`, `views`, `sharedlinks`, `files` | 14 | 3 vues dynamiques, 7 recherche/partage |
+
+Traitement pressenti, à confirmer par le juge : familles 1 à 7 une par lot (`ged-mfiles-2..7`), les
+opérations de serveur/session/vault restant probablement à exclure par le juge (jamais par l'agent).
+
 ## Chiffres du harness
 
-_(à compléter après le passage complet `-SansBanc`.)_
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` sur le commit `66751dd`
+(durée 1 027 s, registre `recette/registre.json`) :
 
-ETAT: en cours
+| Couche | État | Détail exact |
+| --- | --- | --- |
+| 0 garde-fous | VERT | vendor et node_modules présents ; `DB_NAME=gedv2_test` imposé |
+| 1 unitaire | VERT | **890 tests, 13 212 assertions**, 1 sauté |
+| 2 contrat | VERT | toutes les routes déclarées couvertes (dont les 4 routes DepotFileserver) |
+| 3 banc | ROUGE | sautée (`-SansBanc`), par construction |
+| 4 écrans | VERT | **99 parcours passés** (dont `depot-fileserver.spec.ts` **4/4**) |
+| 5 personas | VERT | administrateur 4/4, auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
+| 6 charge | VERT | 3 puis 10 utilisateurs, p95 lecture **782 ms**, p95 écriture **547 ms**, 0 erreur, 0 collision |
+| 7 sécurité | VERT | aucune charge CSRF acceptée (dont les 3 mutations DepotFileserver) |
+| 8 statique | VERT | PHPStan niveau 6 : **0 erreur hors baseline** ; `composer audit` : aucune vulnérabilité |
+| 9 parité Paperless | VERT | 780 éléments, couverts **737**, strict 94,49 %, hors exclusions **100,00 %**, écarts 43 |
+| 9b parité M-Files | VERT | 112 éléments, couverts **9**, strict **8,04 %**, écarts 103, inventaire rejoué à l'identique |
+
+Note : `tools/composer.phar` (outil local, ignoré de git) était absent du worktree au premier passage
+et faisait ROUGE la couche 8 ; recopié depuis le dépôt principal, le second passage complet est vert.
+
+ETAT: fini
