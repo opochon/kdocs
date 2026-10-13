@@ -152,7 +152,8 @@ final class Nomenclature
      * lecture par requête.
      *
      * @return array{types:list<array{id:int, nom:string, actif:bool}>, champs:list<array{id:int, type_id:int,
-     *               cle:string, nom:string, nature:string, options:list<string>, actif:bool}>}
+     *               cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool,
+     *               liste:?string}>}
      */
     public function contenu(): array
     {
@@ -168,7 +169,9 @@ final class Nomenclature
             $champs[] = ['id' => (int) $c['id'], 'type_id' => (int) $c['type_id'], 'cle' => (string) $c['cle'],
                 'nom' => (string) $c['nom'], 'nature' => (string) $c['nature'],
                 'options' => array_values(array_map('strval', (array) ($c['options'] ?? []))),
-                'actif' => (bool) ($c['actif'] ?? true)];
+                'actif' => (bool) ($c['actif'] ?? true),
+                'obligatoire' => (bool) ($c['obligatoire'] ?? false),
+                'liste' => isset($c['liste']) && is_string($c['liste']) && $c['liste'] !== '' ? (string) $c['liste'] : null];
         }
 
         return ['types' => $types, 'champs' => $champs];

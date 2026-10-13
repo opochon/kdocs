@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "categorie": "mfiles-classes-carte",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/",
+    "modele": "Famille M-Files 1 : classes d'objets et carte de metadonnees dynamique, valeurs dans le .meta.json"
+  },
+  "total": 8,
+  "vecteurs": [
+    {
+      "id": "mfiles:classes:carte-classe",
+      "entree": { "scenario": "carte-classe", "classe": "Contrat", "proprietes": [{ "nom": "Échéance", "nature": "date", "obligatoire": true }] },
+      "sortie": { "classe": "Contrat", "cles": ["echeance"], "obligatoires": ["echeance"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/id/#get"
+    },
+    {
+      "id": "mfiles:classes:carte-document",
+      "entree": { "scenario": "carte-document", "classe": "Contrat", "propriete": { "nom": "Statut", "nature": "liste", "liste": "statut" }, "valeur": "Validé" },
+      "sortie": { "classe": "Contrat", "valeur": "Validé", "options": ["À traiter", "En cours", "Validé", "Payé", "Refusé"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#get"
+    },
+    {
+      "id": "mfiles:classes:carte-obligatoire",
+      "entree": { "scenario": "carte-obligatoire", "classe": "Contrat", "propriete": { "nom": "Échéance", "nature": "date", "obligatoire": true } },
+      "sortie": { "refus": true, "nomme": "obligatoire" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/#get"
+    },
+    {
+      "id": "mfiles:classes:carte-liste-inconnue",
+      "entree": { "scenario": "carte-liste-inconnue", "classe": "Contrat", "propriete": { "nom": "Statut", "nature": "liste", "liste": "liste-absente" } },
+      "sortie": { "refus": true, "nomme": "liste-absente" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/#get"
+    },
+    {
+      "id": "mfiles:classes:carte-valeur-hors-liste",
+      "entree": { "scenario": "carte-valeur-hors-liste", "classe": "Contrat", "propriete": { "nom": "Statut", "nature": "liste", "liste": "statut" }, "valeur": "Inventé" },
+      "sortie": { "refus": true, "nomme": "statut" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/valuelist-items/#get"
+    },
+    {
+      "id": "mfiles:classes:carte-alias-structure",
+      "entree": { "scenario": "carte-alias-structure", "classe": "Contrat", "propriete": { "nom": "Échéance", "nature": "date" }, "alias": "echeance" },
+      "sortie": { "type": "propriete" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/itemidbyalias/#post"
+    },
+    {
+      "id": "mfiles:classes:carte-lots",
+      "entree": { "scenario": "carte-lots", "classe": "Contrat", "propriete": { "nom": "Statut", "nature": "liste", "liste": "statut" }, "valeur": "En cours", "documents": 2 },
+      "sortie": { "documents": 2, "valeurs": ["En cours", "En cours"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/setmultipleobjproperties/#put"
+    },
+    {
+      "id": "mfiles:classes:definition-reversible",
+      "entree": { "scenario": "definition-reversible", "classe": "Contrat", "propriete": { "nom": "Statut", "nature": "liste", "liste": "statut", "obligatoire": true } },
+      "sortie": { "identique": true, "proprietes_exportees": 1 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/#get"
+    }
+  ]
+}

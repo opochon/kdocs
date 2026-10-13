@@ -8767,10 +8767,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:delete:objects-type-objectid-version-properties-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier"
+            },
+            "note": "Effacer une valeur de propriété : la valeur quitte le .meta.json, le fichier et son historique restent intacts."
         },
         "mfiles:rest:delete:repositories-targetid-session": {
             "statut": "absent",
@@ -8791,10 +8797,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:delete:valuelists-id-items-objectid": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur"
+            },
+            "note": "Retirer une valeur SANS l’effacer : retrait daté et attribué, la valeur reste traçable dans le dossier."
         },
         "mfiles:rest:get:favorites": {
             "statut": "absent",
@@ -8821,16 +8833,28 @@
             "note": "Objets = documents du fonds, indexés depuis le dossier (le dossier fait foi)."
         },
         "mfiles:rest:get:objects-properties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/properties/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserPlusieursEtSurPlusieursDocuments"
+            },
+            "note": "Lire les propriétés de plusieurs documents (cartes indexées par chemin)."
         },
         "mfiles:rest:get:objects-type": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testDocumentsDeClasseNeRendQueLesVivantsDeCetteClasse"
+            },
+            "note": "Les documents vivants d’une classe (le fonds, pas la base)."
         },
         "mfiles:rest:get:objects-type-objectid-deleted": {
             "statut": "couvert",
@@ -8918,16 +8942,28 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:objects-type-objectid-version-properties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testLaCarteDunDocumentSuitSaClasseEtRelitSesValeurs"
+            },
+            "note": "La carte de métadonnées d’un document : ses propriétés et leurs valeurs, lues du .meta.json."
         },
         "mfiles:rest:get:objects-type-objectid-version-properties-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testLaCarteDunDocumentSuitSaClasseEtRelitSesValeurs"
+            },
+            "note": "Une valeur de propriété d’un document."
         },
         "mfiles:rest:get:objects-type-objectid-version-relationships": {
             "statut": "absent",
@@ -9062,10 +9098,16 @@
             "note": "Classes d’objets et listes de valeurs nommées (nomenclature du fonds)."
         },
         "mfiles:rest:get:structure-classes-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/id/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testLaCarteDuneClasseNeMontreQueSesPropresProprietes"
+            },
+            "note": "La carte d’une classe : ses propriétés attendues, lues dans le fonds."
         },
         "mfiles:rest:get:structure-classes-id-icon": {
             "statut": "absent",
@@ -9074,40 +9116,76 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:structure-classes-itemidbyalias-alias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/alias/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un alias de classe (clé slug) vers son identifiant."
         },
         "mfiles:rest:get:structure-classes-itemidbyguid-guid-item": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyguid/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un alias stable de classe (la clé slug joue le rôle du GUID), sans identifiant propriétaire."
         },
         "mfiles:rest:get:structure-objecttypes": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            },
+            "note": "GEDv2 a un seul niveau type/classe : la nomenclature du fonds joue le rôle des types d’objets."
         },
         "mfiles:rest:get:structure-objecttypes-itemidbyalias-alias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/alias/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un alias de type/classe."
         },
         "mfiles:rest:get:structure-objecttypes-type": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            },
+            "note": "Un type d’objet = une classe du fonds (nomenclature), lue telle quelle."
         },
         "mfiles:rest:get:structure-objecttypes-type-classes": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/classes/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Les classes d’un type : la carte d’une classe liste ses propriétés attendues."
         },
         "mfiles:rest:get:structure-objecttypes-type-icon": {
             "statut": "absent",
@@ -9128,22 +9206,40 @@
             "note": "Définitions de champs (métadonnées dynamiques) dans le fonds."
         },
         "mfiles:rest:get:structure-properties-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testUnChampSeRelitParIdEtParCle"
+            },
+            "note": "Définition d’une propriété (champ typé) par son identifiant."
         },
         "mfiles:rest:get:structure-properties-id-valuelist-items": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/valuelist-items/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testValeursDeProprieteViennentDeLaListeNommee"
+            },
+            "note": "Les valeurs proposées par une propriété viennent de sa liste nommée."
         },
         "mfiles:rest:get:structure-properties-itemidbyalias-alias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/alias/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testUnChampSeRelitParIdEtParCle"
+            },
+            "note": "Définition d’une propriété par sa clé stable (slug)."
         },
         "mfiles:rest:get:structure-statetransitions-itemidbyalias-alias": {
             "statut": "absent",
@@ -9152,10 +9248,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:structure-valuelists-itemidbyalias-alias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/alias/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testResoudreUnAliasDeListe"
+            },
+            "note": "Résolution d’un alias de liste nommée."
         },
         "mfiles:rest:get:structure-workflows": {
             "statut": "absent",
@@ -9200,34 +9302,64 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:valuelists": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testLaGrainePorteLesVocabulairesLivresEtEstIdempotente"
+            },
+            "note": "Listes de valeurs nommées du fonds (configuration portable)."
         },
         "mfiles:rest:get:valuelists-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjouterRenommerDesactiverSansJamaisSupprimer"
+            },
+            "note": "Une liste nommée par son identifiant."
         },
         "mfiles:rest:get:valuelists-id-items": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testCompletRendLesValeursPourLAdministration"
+            },
+            "note": "Les valeurs d’une liste nommée, valeurs retirées comprises."
         },
         "mfiles:rest:get:valuelists-id-items-objectid": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur"
+            },
+            "note": "Une valeur de liste par son identifiant, retirée ou active."
         },
         "mfiles:rest:get:valuelists-id-items-objectid-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur"
+            },
+            "note": "Le libellé d’une valeur de liste nommée."
         },
         "mfiles:rest:get:views-path-items": {
             "statut": "couvert",
@@ -9272,16 +9404,28 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:objects-properties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/properties/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserPlusieursEtSurPlusieursDocuments"
+            },
+            "note": "Lire les propriétés de plusieurs objets/documents."
         },
         "mfiles:rest:post:objects-type": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RangementTest::testDepotRangeFichierMetaEtVersion1"
+            },
+            "note": "Créer un objet d’un type = déposer un document portant cette classe (le .meta.json porte le type)."
         },
         "mfiles:rest:post:objects-type-objectid-version-files": {
             "statut": "absent",
@@ -9290,10 +9434,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:objects-type-objectid-version-properties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier"
+            },
+            "note": "Poser une propriété typée sur un document : le .meta.json fait foi, le fichier ne bouge pas."
         },
         "mfiles:rest:post:recentlyaccessedbyme": {
             "statut": "absent",
@@ -9320,28 +9470,52 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:structure-classes-itemidbyalias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un lot d’alias de classes (classesParAlias)."
         },
         "mfiles:rest:post:structure-metadatastructure-itemidbyalias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/itemidbyalias/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un alias de structure : classe, propriété ou liste nommée."
         },
         "mfiles:rest:post:structure-objecttypes-itemidbyalias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testResoudreLesAliasDeLaStructure"
+            },
+            "note": "Résolution d’un lot d’alias de types/classes."
         },
         "mfiles:rest:post:structure-properties-itemidbyalias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testUnChampSeRelitParIdEtParCle"
+            },
+            "note": "Résolution d’un lot d’alias de propriétés (parCle)."
         },
         "mfiles:rest:post:structure-statetransitions-itemidbyalias": {
             "statut": "absent",
@@ -9350,10 +9524,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:structure-valuelists-itemidbyalias": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testResoudreUnAliasDeListe"
+            },
+            "note": "Résolution d’un alias de liste nommée (parCle)."
         },
         "mfiles:rest:post:structure-workflows-itemidbyalias": {
             "statut": "absent",
@@ -9368,10 +9548,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:valuelists-id-items": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur"
+            },
+            "note": "Ajouter une valeur à une liste nommée."
         },
         "mfiles:rest:put:objects-demotemultiobjects": {
             "statut": "absent",
@@ -9380,10 +9566,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:objects-setmultipleobjproperties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/setmultipleobjproperties/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserPlusieursEtSurPlusieursDocuments"
+            },
+            "note": "Poser les mêmes propriétés sur plusieurs documents (poserSurPlusieurs)."
         },
         "mfiles:rest:put:objects-type-objectid-deleted": {
             "statut": "couvert",
@@ -9428,16 +9620,28 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:objects-type-objectid-version-properties": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserPlusieursEtSurPlusieursDocuments"
+            },
+            "note": "Poser plusieurs propriétés sur un document (validation avant écriture)."
         },
         "mfiles:rest:put:objects-type-objectid-version-properties-id": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\ClassesMetadata\\Carte"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\ClassesMetadata\\CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier"
+            },
+            "note": "Remplacer une propriété d’un document."
         },
         "mfiles:rest:put:objects-type-objectid-version-title": {
             "statut": "absent",
@@ -9470,10 +9674,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:valuelists-id-items-objectid-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Listes"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur"
+            },
+            "note": "Renommer le libellé d’une valeur de liste nommée."
         }
     }
 }

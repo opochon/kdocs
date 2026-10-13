@@ -154,16 +154,19 @@ final class Module
         });
 
         // Créer un champ personnalisé typé sur un type de la nomenclature, ou le mettre en veille
-        // (jamais le supprimer : ses valeurs restent dans les `.meta.json`).
+        // (jamais le supprimer : ses valeurs restent dans les `.meta.json`). Famille M-Files nº 1 :
+        // une propriété peut être obligatoire et, de nature liste, référencer une liste nommée.
         $app->post('/metadonnees/champ', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
             $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
             $options = array_values(array_filter(array_map('trim', explode("\n", (string) ($corps['options'] ?? ''))),
                 static fn (string $o) => $o !== ''));
+            $liste = trim((string) ($corps['liste'] ?? ''));
             $retour = '/metadonnees?type=' . (int) ($corps['type'] ?? 0);
             try {
                 match ((string) ($corps['action'] ?? 'ajouter')) {
                     'ajouter' => (new Champs($config))->ajouter((int) ($corps['type'] ?? 0), (string) ($corps['nom'] ?? ''),
-                        (string) ($corps['nature'] ?? ''), $options),
+                        (string) ($corps['nature'] ?? ''), $options, (string) ($corps['obligatoire'] ?? '') === '1',
+                        $liste === '' ? null : $liste),
                     'desactiver' => (new Champs($config))->definirActif((int) ($corps['id'] ?? 0), false),
                     'reactiver' => (new Champs($config))->definirActif((int) ($corps['id'] ?? 0), true),
                     default => throw new RuntimeException('action inconnue (ajouter, desactiver, reactiver)'),
@@ -172,6 +175,67 @@ final class Module
                 return $rep->withHeader('Location', $retour)->withStatus(303);
             } catch (RuntimeException $e) {
                 return self::nommer($vue, $rep, 'POST /metadonnees/champ', $e->getMessage());
+            }
+        });
+
+        // Listes de valeurs nommées (famille M-Files nº 1) : créer, renommer, activer/désactiver une
+        // liste. Une liste n'est jamais supprimée : des propriétés et des documents la référencent.
+        $app->post('/metadonnees/liste', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $listes = new Listes($config);
+            try {
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => $listes->ajouter((string) ($corps['nom'] ?? '')),
+                    'renommer' => $listes->renommer((int) ($corps['id'] ?? 0), (string) ($corps['nom'] ?? '')),
+                    'activer' => $listes->definirActif((int) ($corps['id'] ?? 0), true),
+                    'desactiver' => $listes->definirActif((int) ($corps['id'] ?? 0), false),
+                    default => throw new RuntimeException('action inconnue (ajouter, renommer, activer, desactiver)'),
+                };
+
+                return $rep->withHeader('Location', '/metadonnees')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /metadonnees/liste', $e->getMessage());
+            }
+        });
+
+        // Valeurs d'une liste nommée : ajouter, renommer, RETIRER (jamais effacer : le retrait est daté
+        // et attribué, la valeur reste traçable) ou réactiver.
+        $app->post('/metadonnees/liste/valeur', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $listes = new Listes($config);
+            try {
+                match ((string) ($corps['action'] ?? 'ajouter')) {
+                    'ajouter' => $listes->ajouterValeur((int) ($corps['liste'] ?? 0), (string) ($corps['libelle'] ?? '')),
+                    'renommer' => $listes->renommerValeur((int) ($corps['liste'] ?? 0), (int) ($corps['valeur'] ?? 0),
+                        (string) ($corps['libelle'] ?? '')),
+                    'retirer' => $listes->retirerValeur((int) ($corps['liste'] ?? 0), (int) ($corps['valeur'] ?? 0),
+                        self::auteur($req)),
+                    'reactiver' => $listes->reactiverValeur((int) ($corps['liste'] ?? 0), (int) ($corps['valeur'] ?? 0)),
+                    default => throw new RuntimeException('action inconnue (ajouter, renommer, retirer, reactiver)'),
+                };
+
+                return $rep->withHeader('Location', '/metadonnees')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /metadonnees/liste/valeur', $e->getMessage());
+            }
+        });
+
+        // Définition portable des classes et des listes (famille M-Files nº 1) : exporter dans le fonds
+        // (`.ged/definition.json`, versionnable) ou l'importer (idempotent, jamais destructif).
+        $app->post('/metadonnees/definition', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            $corps = is_array($req->getParsedBody()) ? $req->getParsedBody() : [];
+            $definition = new \Ged\ClassesMetadata\Definition($config);
+            $fichier = rtrim(str_replace('\\', '/', $config->chemin('STORAGE_ROOT', 'storage/documents')), '/') . '/' . Registre::DOSSIER . '/definition.json';
+            try {
+                match ((string) ($corps['action'] ?? '')) {
+                    'exporter' => $definition->exporterVersFichier($fichier),
+                    'importer' => $definition->importerFichier($fichier),
+                    default => throw new RuntimeException('action inconnue (exporter, importer)'),
+                };
+
+                return $rep->withHeader('Location', '/metadonnees')->withStatus(303);
+            } catch (RuntimeException $e) {
+                return self::nommer($vue, $rep, 'POST /metadonnees/definition', $e->getMessage());
             }
         });
 

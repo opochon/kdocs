@@ -13,6 +13,10 @@ use RuntimeException;
  * document de référence avec les types) ; la VALEUR vit dans le `.meta.json` du document
  * (`champs.<cle>`, le dossier fait foi) et est portée par la colonne `meta` de l'index, donc par
  * toute reconstruction (F12 rend le même hash, champs posés).
+ *
+ * Famille M-Files nº 1 (lot ged-mfiles-classes-1) : une propriété porte `obligatoire` (la carte de
+ * la classe le redit et sa validation le contrôle) et, pour la nature `liste`, peut RÉFÉRENCER une
+ * liste de valeurs nommée (`liste` = clé, cf. {@see Listes}) au lieu de recopier ses options.
  */
 final class Champs
 {
@@ -25,11 +29,13 @@ final class Champs
     private const PLAFOND_TEXTE = 500;
 
     private readonly Nomenclature $nomenclature;
+    private readonly Listes $listes;
     private readonly DepotFichiers $depot;
 
     public function __construct(Config $config)
     {
         $this->nomenclature = new Nomenclature($config);
+        $this->listes = new Listes($config);
         $this->depot = new DepotFichiers($config);
     }
 
@@ -37,10 +43,12 @@ final class Champs
      * Crée un champ sur un type. La clé (slug du nom) adresse les valeurs dans le `.meta.json` :
      * elle est fixée ici et ne change plus, même si le nom affiché est renommé ensuite.
      *
-     * @param list<string> $options choix de la nature liste
-     * @return array{id:int, cle:string, nom:string, nature:string, options:list<string>}
+     * @param list<string> $options choix de la nature liste quand elle est écrite en ligne
+     * @param bool $obligatoire propriété obligatoire de la classe (lue par la carte et sa validation)
+     * @param ?string $liste clé d'une liste nommée du fonds (nature liste) : les valeurs viennent d'elle
+     * @return array{id:int, cle:string, nom:string, nature:string, options:list<string>, obligatoire:bool, liste:?string}
      */
-    public function ajouter(int $typeId, string $nom, string $nature, array $options = []): array
+    public function ajouter(int $typeId, string $nom, string $nature, array $options = [], bool $obligatoire = false, ?string $liste = null): array
     {
         $nom = trim($nom);
         if ($nom === '' || mb_strlen($nom) > 100) {
@@ -50,9 +58,8 @@ final class Champs
             throw new RuntimeException("champ : nature inconnue « $nature » (attendues : " . implode(', ', self::NATURES) . ')');
         }
         $options = self::nettoyerOptions($options);
-        if ($nature === 'liste' && $options === []) {
-            throw new RuntimeException('champ : une liste a besoin d’au moins une option');
-        }
+        $liste = self::nettoyerListe($liste);
+        $this->exigerCoherenceListe($nature, $options, $liste);
         $cle = Fichiers::slug($nom);
         if ($cle === '') {
             throw new RuntimeException('champ : ce nom ne donne aucune clé utilisable');
@@ -64,10 +71,10 @@ final class Champs
         }
 
         $id = 0;
-        $this->nomenclature->transformer(static function (array $etat) use ($typeId, $cle, $nom, $nature, $options, &$id): array {
+        $this->nomenclature->transformer(static function (array $etat) use ($typeId, $cle, $nom, $nature, $options, $obligatoire, $liste, &$id): array {
             $id = self::prochainId($etat['champs']);
             $etat['champs'][] = ['id' => $id, 'type_id' => $typeId, 'cle' => $cle, 'nom' => $nom,
-                'nature' => $nature, 'options' => $options];
+                'nature' => $nature, 'options' => $options, 'obligatoire' => $obligatoire, 'liste' => $liste];
 
             return $etat;
         });
@@ -80,12 +87,13 @@ final class Champs
     }
 
     /**
-     * Modifie un champ : nom affiché et options de liste seulement. La nature ne se change pas après
-     * création — des valeurs typées vivent déjà dans le dossier — et la clé ne bouge jamais.
+     * Modifie un champ : nom affiché, options de liste, obligation et liste nommée référencée seulement.
+     * La nature ne se change pas après création — des valeurs typées vivent déjà dans le dossier — et la
+     * clé ne bouge jamais.
      *
      * @param list<string>|null $options
      */
-    public function modifier(int $id, ?string $nom = null, ?array $options = null): void
+    public function modifier(int $id, ?string $nom = null, ?array $options = null, ?bool $obligatoire = null, ?string $liste = null): void
     {
         $def = $this->def($id);
         if ($def === null) {
@@ -96,14 +104,16 @@ final class Champs
             throw new RuntimeException('champ : nom vide ou trop long (100 caractères au plus)');
         }
         $options = self::nettoyerOptions($options ?? $def['options']);
-        if ($def['nature'] === 'liste' && $options === []) {
-            throw new RuntimeException('champ : une liste a besoin d’au moins une option');
-        }
-        $this->nomenclature->transformer(static function (array $etat) use ($id, $nom, $options): array {
+        $liste = self::nettoyerListe($liste ?? $def['liste']);
+        $this->exigerCoherenceListe($def['nature'], $options, $liste);
+        $obligation = $obligatoire ?? $def['obligatoire'];
+        $this->nomenclature->transformer(static function (array $etat) use ($id, $nom, $options, $obligation, $liste): array {
             foreach ($etat['champs'] as &$c) {
                 if ((int) $c['id'] === $id) {
                     $c['nom'] = $nom;
                     $c['options'] = $options;
+                    $c['obligatoire'] = $obligation;
+                    $c['liste'] = $liste;
                 }
             }
 
@@ -113,30 +123,63 @@ final class Champs
 
     /**
      * Définitions des champs d'un type (par son nom, tel qu'il vit dans le `.meta.json` des documents).
+     * Les options d'une propriété `liste` qui référence une liste nommée sont RÉSOLUES depuis la liste :
+     * la carte suit le vocabulaire du fonds, sans copie en ligne.
      *
-     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>}>
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool, liste:?string}>
      */
     public function pourType(string $type): array
     {
-        return array_values(array_filter($this->defs(), static fn (array $d): bool => $d['type'] === $type));
+        $defs = [];
+        foreach ($this->defs() as $d) {
+            if ($d['type'] === $type) {
+                $defs[] = $this->resoudre($d);
+            }
+        }
+
+        return $defs;
+    }
+
+    /**
+     * Une définition de champ par son identifiant, ou null.
+     *
+     * @return array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool, liste:?string}|null
+     */
+    public function parId(int $id): ?array
+    {
+        foreach ($this->defs() as $d) {
+            if ($d['id'] === $id) {
+                return $this->resoudre($d);
+            }
+        }
+
+        return null;
     }
 
     /** Toutes les définitions portant cette clé, tous types confondus (une vue filtre par clé).
      *
-     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>}>
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool, liste:?string}>
      */
     public function parCle(string $cle): array
     {
-        return array_values(array_filter($this->defs(), static fn (array $d): bool => $d['cle'] === $cle));
+        $defs = [];
+        foreach ($this->defs() as $d) {
+            if ($d['cle'] === $cle) {
+                $defs[] = $this->resoudre($d);
+            }
+        }
+
+        return $defs;
     }
 
-    /** @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>}> */
+    /** @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>, obligatoire:bool, liste:?string}> */
     public function tous(): array
     {
         $actifs = [];
         foreach ($this->defs() as $d) {
             if ($d['actif'] === true) {
-                $actifs[] = ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'], 'options' => $d['options']];
+                $actifs[] = ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'],
+                    'options' => $this->optionsResolues($d), 'obligatoire' => $d['obligatoire'], 'liste' => $d['liste']];
             }
         }
 
@@ -147,13 +190,14 @@ final class Champs
      * Toutes les définitions, actives ET en veille : sert aux lectures d'administration (un champ
      * retiré reste lisible et réactivable), jamais à la proposition d'un formulaire.
      *
-     * @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool}>
+     * @return list<array{id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool, liste:?string}>
      */
     public function tousInclusifs(): array
     {
-        return array_map(static fn (array $d): array => [
+        return array_map(fn (array $d): array => [
             'id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'], 'nature' => $d['nature'],
-            'options' => $d['options'], 'actif' => $d['actif'],
+            'options' => $this->optionsResolues($d), 'actif' => $d['actif'],
+            'obligatoire' => $d['obligatoire'], 'liste' => $d['liste'],
         ], $this->defs());
     }
 
@@ -186,6 +230,17 @@ final class Champs
      */
     public function poserValeur(string $cheminRelatif, string $cle, string $valeurBrute): array
     {
+        return $this->poserValeurTypée($cheminRelatif, $cle, $valeurBrute);
+    }
+
+    /**
+     * Variante typée de `poserValeur` : booléen, nombre, montant, liste d'identifiants de liens ou
+     * chaîne. Une valeur nulle ou vide efface le champ (le fichier et son historique restent).
+     *
+     * @return array<string, mixed> le meta final du document
+     */
+    public function poserValeurTypée(string $cheminRelatif, string $cle, mixed $valeur): array
+    {
         $absolu = $this->depot->cheminAbsolu($cheminRelatif);
         if (!is_file($absolu)) {
             throw new RuntimeException("champ : document introuvable dans le fonds ($cheminRelatif)");
@@ -209,10 +264,10 @@ final class Champs
         }
 
         $champs = isset($meta['champs']) && is_array($meta['champs']) ? $meta['champs'] : [];
-        if (trim($valeurBrute) === '') {
+        if ($valeur === null || (is_string($valeur) && trim($valeur) === '')) {
             unset($champs[$cle]);
         } else {
-            $champs[$cle] = self::valider($def['nature'], $def['options'], $valeurBrute);
+            $champs[$cle] = $this->validerDefinition($def, $valeur);
         }
         if ($champs === []) {
             unset($meta['champs']);
@@ -399,7 +454,7 @@ final class Champs
      * Toutes les définitions, jointes au nom de leur type. La nomenclature entière tient en une
      * lecture (mise en cache par le Registre) : la jointure se fait en mémoire.
      *
-     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool}>
+     * @return list<array{id:int, type:string, type_id:int, cle:string, nom:string, nature:string, options:list<string>, actif:bool, obligatoire:bool, liste:?string}>
      */
     private function defs(): array
     {
@@ -420,17 +475,100 @@ final class Champs
         return $defs;
     }
 
-    /** @return array{id:int, cle:string, nom:string, nature:string, options:list<string>}|null */
+    /** @return array{id:int, cle:string, nom:string, nature:string, options:list<string>, obligatoire:bool, liste:?string}|null */
     private function def(int $id): ?array
     {
         foreach ($this->defs() as $d) {
             if ($d['id'] === $id) {
                 return ['id' => $d['id'], 'cle' => $d['cle'], 'nom' => $d['nom'],
-                    'nature' => $d['nature'], 'options' => $d['options']];
+                    'nature' => $d['nature'], 'options' => $this->optionsResolues($d),
+                    'obligatoire' => $d['obligatoire'], 'liste' => $d['liste']];
             }
         }
 
         return null;
+    }
+
+    /**
+     * Une définition jointe à ses options résolues : une liste nommée remplace les options en ligne.
+     *
+     * @param array<string,mixed> $d
+     * @return array<string,mixed>
+     */
+    private function resoudre(array $d): array
+    {
+        $d['options'] = $this->optionsResolues($d);
+
+        return $d;
+    }
+
+    /**
+     * @param array<string,mixed> $d
+     * @return list<string>
+     */
+    private function optionsResolues(array $d): array
+    {
+        $liste = $d['liste'] ?? null;
+        if (is_string($liste) && $liste !== '') {
+            return $this->listes->valeursDe($liste);
+        }
+
+        return array_values(array_map('strval', (array) ($d['options'] ?? [])));
+    }
+
+    /**
+     * Valide une valeur pour une définition de champ : une liste nommée exige une valeur ACTIVE de
+     * cette liste, les autres natures passent par la validation commune (type PHP quelconque).
+     *
+     * @param array<string,mixed> $def
+     */
+    public function validerDefinition(array $def, mixed $valeur): mixed
+    {
+        $nature = (string) ($def['nature'] ?? '');
+        $liste = $def['liste'] ?? null;
+        if ($nature === 'liste' && is_string($liste) && $liste !== '') {
+            $texte = is_string($valeur) ? trim($valeur) : (string) $valeur;
+            if (!in_array($texte, $this->listes->valeursDe($liste), true)) {
+                throw new RuntimeException("champ liste : « $texte » n’est pas une valeur active de la liste nommée « $liste »");
+            }
+
+            return $texte;
+        }
+
+        return self::validerValeur($nature, array_values(array_map('strval', (array) ($def['options'] ?? []))), $valeur);
+    }
+
+    private static function nettoyerListe(?string $liste): ?string
+    {
+        $liste = trim((string) $liste);
+
+        return $liste === '' ? null : $liste;
+    }
+
+    /**
+     * Une propriété ne peut référencer qu'une liste EXISTANTE, et seulement si elle est de nature
+     * liste ; les options en ligne et une liste nommée ne se cumulent pas.
+     *
+     * @param list<string> $options
+     */
+    private function exigerCoherenceListe(string $nature, array $options, ?string $liste): void
+    {
+        if ($liste !== null) {
+            if ($nature !== 'liste') {
+                throw new RuntimeException("champ : la référence à une liste nommée (« $liste ») n’a de sens que pour la nature liste");
+            }
+            if ($options !== []) {
+                throw new RuntimeException('champ : une liste nommée remplace les options en ligne (laisser les options vides)');
+            }
+            if ($this->listes->parCle($liste) === null) {
+                throw new RuntimeException("champ : liste nommée « $liste » introuvable dans le fonds");
+            }
+
+            return;
+        }
+        if ($nature === 'liste' && $options === []) {
+            throw new RuntimeException('champ : une liste a besoin d’au moins une option');
+        }
     }
 
     /**

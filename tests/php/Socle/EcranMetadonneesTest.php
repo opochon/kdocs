@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Ged\Tests\Socle;
 
+use Ged\Socle\Champs;
 use Ged\Socle\EcranMetadonnees;
+use Ged\Socle\Listes;
 use Ged\Socle\Nomenclature;
 use PHPUnit\Framework\TestCase;
 
@@ -52,5 +54,22 @@ final class EcranMetadonneesTest extends TestCase
         );
         self::assertFalse($donnees['graineAPoser']);
         self::assertSame('facture', $donnees['typeChoisi']['slug'], 'le type affiché en premier se désigne par son slug');
+    }
+
+    public function testLÉcranExposeLesListesNommeesEtLaCarteDynamiqueDeLaClasseChoisie(): void
+    {
+        (new Nomenclature($this->config))->assurer();
+        (new Listes($this->config))->assurer();
+        $contrat = (new Nomenclature($this->config))->idDuType('Contrat');
+        self::assertNotNull($contrat);
+        (new Champs($this->config))->ajouter($contrat, 'Statut', 'liste', [], true, 'statut');
+
+        $donnees = (new EcranMetadonnees($this->config))->donnees(['type' => (string) $contrat], 'jeton');
+
+        self::assertNotEmpty($donnees['listes'], 'l’écran expose les listes de valeurs nommées du fonds');
+        self::assertContains('Statut', array_column($donnees['listes'], 'nom'));
+        self::assertNotEmpty($donnees['carteApercu']['proprietes'], 'la carte dynamique de la classe choisie est affichée');
+        self::assertSame('statut', $donnees['carteApercu']['proprietes'][0]['cle']);
+        self::assertTrue($donnees['carteApercu']['proprietes'][0]['obligatoire']);
     }
 }
