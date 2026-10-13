@@ -20,14 +20,14 @@ use PHPUnit\Framework\TestCase;
  */
 final class RelationsTest extends TestCase
 {
-    use SupportCorpus;
+    use SupportRelations;
 
     private Relations $relations;
     private DepotFichiers $depot;
 
     protected function setUp(): void
     {
-        $this->setUpCorpus();
+        $this->setUpRelations();
         $this->relations = new Relations($this->config);
         $this->depot = new DepotFichiers($this->config);
         $this->relations->assurer();
@@ -35,7 +35,7 @@ final class RelationsTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->tearDownCorpus();
+        $this->tearDownRelations();
     }
 
     public function testLaGraineDesTypesVientDeLaDocumentationPubliqueEtVitDansLeFonds(): void

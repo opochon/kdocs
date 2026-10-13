@@ -68,6 +68,7 @@ $testJonctions = 'Ged' . $bs . 'Tests' . $bs . 'Jonctions' . $bs;
 $testSocle = 'Ged' . $bs . 'Tests' . $bs . 'Socle' . $bs;
 $testClasses = 'Ged' . $bs . 'Tests' . $bs . 'ClassesMetadata' . $bs;
 $testDepot = 'Ged' . $bs . 'Tests' . $bs . 'DepotFileserver' . $bs;
+$testParite = 'Ged' . $bs . 'Tests' . $bs . 'Parite' . $bs;
 
 /**
  * Couvertures revendiquées : id M-Files => [gedv2, preuve(), note, couvert-autrement ?].
@@ -309,6 +310,35 @@ $couverts = [
         service($serviceSocle . 'DepotFichiers'),
         p($testSocle . 'RangementTest::testDepotRangeFichierMetaEtVersion1'),
         'Créer un objet d’un type = déposer un document portant cette classe (le .meta.json porte le type).',
+        true,
+    ],
+    // --- Famille 2 : relations entre objets, composition parent-enfant, références croisées -------------
+    // (lot ged-mfiles-relations-1 ; service Ged\Socle\Relations, définitions portables dans
+    // `.ged/relations.json`, valeurs par document dans le `.meta.json`).
+    'mfiles:rest:get:objects-type-objectid-version-relationships' => [
+        service($serviceSocle . 'Relations'),
+        p($testSocle . 'RelationsTest::testUnLienTypeEstNavigableDansLesDeuxSens'),
+        'Les relations typées d’un document (Référence, Dépendance, Affectation, Sous-objet), navigables dans les deux sens : la fiche montre ses liens sortants ET entrants.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-relationships-count' => [
+        service($serviceSocle . 'Relations'),
+        p($testSocle . 'RelationsTest::testCompterLesRelationsDesDeuxSens'),
+        'Comptage des relations d’un document, les deux sens compris.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-subobjects' => [
+        service($serviceSocle . 'Relations'),
+        p($testSocle . 'RelationsTest::testCompositionParentEnfantEtDetachement'),
+        'Composition parent-enfant : un dossier contient des pièces (liens Sous-objet), une pièce appartient à un dossier ; le contenant physique se lit du chemin.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-subobjects-count' => [
+        service($serviceSocle . 'Relations'),
+        p($testSocle . 'RelationsTest::testCompositionParentEnfantEtDetachement'),
+        'Comptage des sous-objets (relations de composition actives d’un document).',
+    ],
+    'mfiles:rest:put:objects-demotemultiobjects' => [
+        service($serviceSocle . 'Relations'),
+        p($testParite . 'MfilesRelationsVecteursTest::testRejoueLesVecteursDeLaCompositionEtDeLIntegrite'),
+        'Détacher un sous-objet (M-Files « demoting objects ») : le lien de composition est retiré, l’enfant devient indépendant, le geste est tracé.',
         true,
     ],
 ];

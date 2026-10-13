@@ -7,7 +7,7 @@ namespace Ged\Tests\Parite;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Registre;
 use Ged\Socle\Relations;
-use Ged\Tests\Socle\SupportCorpus;
+use Ged\Tests\Socle\SupportRelations;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,20 +21,20 @@ use PHPUnit\Framework\TestCase;
  */
 final class MfilesRelationsVecteursTest extends TestCase
 {
-    use SupportCorpus;
+    use SupportRelations;
 
     private Relations $relations;
     private DepotFichiers $depot;
 
     protected function setUp(): void
     {
-        $this->setUpCorpus();
+        $this->setUpRelations();
         $this->services();
     }
 
     protected function tearDown(): void
     {
-        $this->tearDownCorpus();
+        $this->tearDownRelations();
     }
 
     public function testRejoueLesVecteursDesLiensTypes(): void
@@ -66,8 +66,8 @@ final class MfilesRelationsVecteursTest extends TestCase
 
     private function fondsNeuf(): void
     {
-        $this->tearDownCorpus();
-        $this->setUpCorpus();
+        $this->tearDownRelations();
+        $this->setUpRelations();
         $this->services();
     }
 
