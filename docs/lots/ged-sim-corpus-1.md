@@ -99,5 +99,3 @@ Environnement du poste : `node_modules` du dépôt partagé vide (Playwright int
   constatés sont **étrangers au lot** (aucun chemin d'Interface touché) et rejoués verts isolément.
 
 ETAT: fini
-
-
