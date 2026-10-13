@@ -148,8 +148,7 @@ foreach ($idsInventaire as $id => $reference) {
         $elements[$id] = [
             'statut' => 'absent',
             'doc' => $reference,
-            'note' => 'Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. '
-                . 'Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).',
+            'note' => 'Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).',
             'lot' => 'ged-mfiles-2..7',
         ];
     }

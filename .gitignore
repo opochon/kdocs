@@ -12,4 +12,6 @@
 /recette/preuves/**/*.png
 # Rapport de parite genere par la couche 9 du harness (le livrable versionne est docs/parite/PARITE-PAPERLESS.md)
 /recette/parite-paperless.json
+# Rapport de parite M-Files genere par la couche 9b (livrable versionne : docs/parite/PARITE-MFILES.md)
+/recette/parite-mfiles.json
 __pycache__/

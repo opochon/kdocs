@@ -209,6 +209,15 @@ $rapport = $juge->analyser(
 );
 $erreurs = array_values(array_unique(array_merge($erreurs, is_array($rapport['erreurs']) ? $rapport['erreurs'] : [])));
 
+// Comportement : mesures ecrites par tests/php/Parite/MfilesVecteursTest.php.
+$comportement = [];
+foreach (glob($racine . '/var/parite/mfiles-*.json') ?: [] as $fichierMesure) {
+    $mesure = chargerJson($fichierMesure);
+    if ($mesure !== [] && isset($mesure['categorie'])) {
+        $comportement[(string) $mesure['categorie']] = $mesure;
+    }
+}
+
 $resultat = [
     'version' => 1,
     'date' => (new DateTimeImmutable())->format('c'),
@@ -220,6 +229,7 @@ $resultat = [
     'total' => $rapport['total'],
     'global' => $rapport['global'],
     'categories' => $rapport['categories'],
+    'comportement' => array_map(static fn (array $m): array => ['total' => $m['total'] ?? 0, 'passes' => $m['passes'] ?? 0], $comportement),
     'erreurs' => $erreurs,
     'ecarts' => $rapport['ecarts'],
     'exclusions' => $rapport['exclusions'],
@@ -323,6 +333,34 @@ foreach ($categories as $categorie) {
     }
     $lignes[] = '';
 }
+
+// Comportement (vecteurs) : $comportement est déjà calculé pour le JSON ci-dessus.
+$lignes[] = '## Comportement (vecteurs)';
+$lignes[] = '';
+if ($comportement === []) {
+    $lignes[] = 'Aucune mesure de comportement disponible (lancer tests/php/Parite/MfilesVecteursTest.php).';
+} else {
+    $lignes[] = 'Vecteurs de comportement derives de la documentation PUBLIQUE M-Files (versions, historique,';
+    $lignes[] = 'corbeille, fichiers), rejoues contre le vrai service `Ged\\DepotFileserver`. Un ecart fait echouer';
+    $lignes[] = 'le rejeu PHPUnit.';
+    $lignes[] = '';
+    $lignes[] = '| Famille | Fichier de vecteurs | Passes | Total | Taux |';
+    $lignes[] = '| --- | --- | ---: | ---: | ---: |';
+    ksort($comportement);
+    foreach ($comportement as $nomMesure => $mesure) {
+        $total = (int) ($mesure['total'] ?? 0);
+        $passes = (int) ($mesure['passes'] ?? 0);
+        $lignes[] = sprintf(
+            '| %s | tests/parite/vecteurs/%s.json | %d | %d | %s %% |',
+            (string) $nomMesure,
+            (string) $nomMesure,
+            $passes,
+            $total,
+            number_format($total > 0 ? round($passes / $total * 100, 2) : 0.0, 2, ',', ' '),
+        );
+    }
+}
+$lignes[] = '';
 
 $lignes[] = '## Carnet de commandes (ecarts)';
 $lignes[] = '';
