@@ -102,6 +102,8 @@ final class Rail
         if ($this->peut('application:administrer')) {
             $sections[] = ['titre' => 'Administration', 'entrees' => [
                 ['id' => 'metadonnees', 'libelle' => 'Métadonnées', 'icone' => 'vue', 'url' => '/metadonnees'],
+                // Lot ged-mfiles-oracle-1 : veille du serveur de fichiers (versions, écarts hors GED).
+                ['id' => 'depot-fileserver', 'libelle' => 'Dépôt fichier', 'icone' => 'versions', 'url' => '/depot-fileserver'],
                 ['id' => 'journaux', 'libelle' => 'Journaux', 'icone' => 'versions', 'url' => '/journaux'],
                 ['id' => 'corbeille', 'libelle' => 'Corbeille', 'icone' => 'corbeille', 'url' => '/corbeille'],
                 ['id' => 'comptes', 'libelle' => 'Comptes', 'icone' => 'appareil', 'url' => '/administration/comptes'],

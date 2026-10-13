@@ -1,0 +1,43 @@
+{% extends 'layout.twig' %}
+{% block titre %}Dépôt fichier{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-depot-fileserver">
+  <div class="page-tete">
+    <div class="titre"><h1>Dépôt fichier</h1><span class="chip">{{ resume.fichiers }} fichier(s)</span></div>
+    <div class="actions">
+      <form method="post" action="/depot-fileserver/scanner"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="confirmation" value="1"><button class="btn" type="submit" data-testid="depot-fileserver-scanner">Scanner le dépôt</button></form>
+      <form method="post" action="/depot-fileserver/verifier"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="confirmation" value="1"><button class="btn" type="submit" data-testid="depot-fileserver-verifier">Vérifier la garantie</button></form>
+      <form method="post" action="/depot-fileserver/exporter"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="confirmation" value="1"><button class="btn" type="submit" data-testid="depot-fileserver-exporter">Exporter une arborescence classique</button></form>
+    </div>
+  </div>
+  {% if erreur %}<p class="alerte erreur" data-testid="depot-fileserver-erreur">{{ erreur }}</p>{% endif %}
+  {% if message %}<p class="alerte ok" data-testid="depot-fileserver-message">{{ message }}</p>{% endif %}
+  <section class="carte" data-testid="depot-fileserver-resume">
+    <h2>Manifeste d’empreintes</h2>
+    <p class="muted">Le dossier fait foi : chaque fichier porte son empreinte sha256, pour retrouver une modification, un déplacement ou une suppression faits hors de la GED. Les versions vivent dans un dossier masqué <code>.<em>fichier</em></code>, doublées dans un dépôt séparé (la garantie).</p>
+    <table class="table">
+      <tbody>
+        <tr><th>Dépôt</th><td class="mono">{{ racine }}</td></tr>
+        <tr><th>Dépôt séparé (garantie)</th><td class="mono">{{ garantie }}</td></tr>
+        <tr><th>Fichiers suivis</th><td data-testid="depot-fileserver-presents">{{ resume.presents }} présent(s) · {{ resume.absents }} absent(s)</td></tr>
+        <tr><th>Contenus garantis</th><td data-testid="depot-fileserver-garantis">{{ resume.versions_garanties }}</td></tr>
+        <tr><th>Dernier relevé</th><td>{{ resume.instance ?: '—' }}</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <section class="carte" aria-label="Écarts détectés hors GED">
+    <h2>Écarts détectés hors GED</h2>
+    <p class="muted">Journal des gestes faits directement sur le serveur de fichiers : modification, déplacement, suppression. Aucun fichier n’est jamais effacé par la GED.</p>
+    <table class="table" data-testid="depot-fileserver-journal">
+      <thead><tr><th>Instant</th><th>Écart</th><th>Fichier</th><th>Emplacement précédent</th><th>Empreinte</th></tr></thead>
+      <tbody>
+      {% for evenement in journal %}
+        <tr><td>{{ evenement.instant }}</td><td data-testid="depot-fileserver-ecart-{{ evenement.type }}">{{ evenement.libelle }}</td><td class="mono">{{ evenement.chemin }}</td><td class="mono">{{ evenement.ancien_chemin ?: '—' }}</td><td class="mono">{{ evenement.empreinte }}</td></tr>
+      {% else %}
+        <tr><td colspan="5" class="muted" data-testid="depot-fileserver-journal-vide">Aucun écart détecté pour l’instant. Lancez un scan.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

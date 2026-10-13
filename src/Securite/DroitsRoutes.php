@@ -107,6 +107,12 @@ final class DroitsRoutes
         'POST /dossiers/{id:[0-9]+}/droits' => 'dossiers:gerer',
         'GET /archives' => 'archivage:consulter',
         'POST /archives/verifier' => 'archivage:consulter',
+        // DepotFileserver (famille archivage / versions, lot ged-mfiles-oracle-1) : la veille et
+        // l'export touchent tout le fonds, réservés à l'administration. Lignes signalées hors secteur.
+        'GET /depot-fileserver' => 'application:administrer',
+        'POST /depot-fileserver/scanner' => 'application:administrer',
+        'POST /depot-fileserver/verifier' => 'application:administrer',
+        'POST /depot-fileserver/exporter' => 'application:administrer',
         // Socle V2-04 : bibliothèque réelle, vues enregistrées, écran métadonnées de l'administrateur.
         'GET /metadonnees' => 'application:administrer',
         'POST /metadonnees/type' => 'application:administrer',
