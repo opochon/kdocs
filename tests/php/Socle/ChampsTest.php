@@ -8,6 +8,7 @@ use Ged\Socle\Champs;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Export;
 use Ged\Socle\Indexeur;
+use Ged\Socle\Listes;
 use Ged\Socle\Nomenclature;
 use Ged\Socle\Reconstructeur;
 use PHPUnit\Framework\TestCase;
@@ -235,5 +236,89 @@ final class ChampsTest extends TestCase
         self::assertGreaterThanOrEqual(1, $stats['metas'], 'l’indexeur a vu le .meta.json changer');
         $index = json_decode((string) $this->pdo->query('SELECT meta FROM documents WHERE id = ' . $id)->fetchColumn(), true) ?: [];
         self::assertSame('2026-11-15', $index['champs']['echeance'] ?? null, 'la valeur posée hors application rejoint l’index');
+    }
+
+    // --- Famille M-Files nº 1 : propriétés obligatoires et référençant une liste nommée ----------------
+
+    public function testUneProprietePeutEtreObligatoire(): void
+    {
+        $champ = $this->champs->ajouter($this->idDuType('Contrat'), 'Échéance', 'date', [], true);
+        self::assertTrue($champ['obligatoire'], 'la propriété est marquée obligatoire à la création');
+        self::assertTrue($this->champs->pourType('Contrat')[0]['obligatoire'],
+            'la carte de la classe redit l’obligation');
+
+        $this->champs->modifier($champ['id'], obligatoire: false);
+        self::assertFalse($this->champs->pourType('Contrat')[0]['obligatoire'],
+            'l’administrateur peut repasser la propriété en optionnel');
+    }
+
+    public function testUnChampListeReferencantUneListeNommeeTireSesValeursDeLaListe(): void
+    {
+        (new Listes($this->config))->assurer();
+        $champ = $this->champs->ajouter($this->idDuType('Contrat'), 'Statut du contrat', 'liste', [], false, 'statut');
+
+        self::assertSame('statut', $champ['liste'], 'la propriété référence la liste par sa clé stable');
+        $def = $this->champs->pourType('Contrat')[0];
+        self::assertSame('statut', $def['liste']);
+        self::assertSame((new Listes($this->config))->valeursDe('statut'), $def['options'],
+            'les options du champ viennent de la liste nommée, jamais d’une copie en ligne');
+
+        [, $chemin] = $this->deposerContrat();
+        $this->champs->poserValeur($chemin, 'statut-du-contrat', 'Validé');
+        self::assertSame('Validé', $this->meta($chemin)['champs']['statut-du-contrat'] ?? null);
+
+        try {
+            $this->champs->poserValeur($chemin, 'statut-du-contrat', 'Inventé');
+            self::fail('une valeur hors liste nommée devait être refusée');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsString('statut', $e->getMessage(), 'l’erreur nomme la liste');
+        }
+    }
+
+    public function testUneValeurRetireeDeLaListeResteLisibleSurLeDocumentEtNestPlusProposable(): void
+    {
+        $listes = new Listes($this->config);
+        $listes->assurer();
+        $statut = $listes->parCle('statut');
+        self::assertNotNull($statut);
+        $valeurId = 0;
+        foreach ($listes->trouver((int) $statut['id'])['valeurs'] as $valeur) {
+            if ($valeur['libelle'] === 'Payé') {
+                $valeurId = (int) $valeur['id'];
+            }
+        }
+
+        $this->champs->ajouter($this->idDuType('Contrat'), 'Statut', 'liste', [], false, 'statut');
+        [, $chemin] = $this->deposerContrat();
+        $this->champs->poserValeur($chemin, 'statut', 'Payé');
+        $listes->retirerValeur((int) $statut['id'], $valeurId, 'admin@gedv2.test');
+
+        try {
+            $this->champs->poserValeur($chemin, 'statut', 'Payé');
+            self::fail('une valeur retirée de la liste ne doit plus être proposable');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsString('statut', $e->getMessage());
+        }
+        self::assertSame('Payé', $this->meta($chemin)['champs']['statut'] ?? null,
+            'le document qui portait la valeur retirée la garde : aucune perte, la valeur est traçable');
+    }
+
+    public function testUnChampSeRelitParIdEtParCle(): void
+    {
+        $champ = $this->champs->ajouter($this->idDuType('Contrat'), 'Échéance', 'date');
+        self::assertSame('echeance', $this->champs->parId($champ['id'])['cle'] ?? null);
+        self::assertNull($this->champs->parId(999999));
+        self::assertSame($champ['id'], $this->champs->parCle('echeance')[0]['id'] ?? null);
+    }
+
+    public function testUneListeNommeeInconnueEstRefuseeALaCreationDuChamp(): void
+    {
+        (new Listes($this->config))->assurer();
+        try {
+            $this->champs->ajouter($this->idDuType('Contrat'), 'Statut', 'liste', [], false, 'liste-qui-nexiste-pas');
+            self::fail('référencer une liste nommée inconnue devait être refusé');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsString('liste-qui-nexiste-pas', $e->getMessage());
+        }
     }
 }
