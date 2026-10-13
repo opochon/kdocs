@@ -111,6 +111,36 @@ if ($versionne === []) {
 $correspondance = chargerJson($racine . '/docs/parite/correspondance.json');
 $entrees = is_array($correspondance['elements'] ?? null) ? $correspondance['elements'] : [];
 
+// Inventaire M-Files (lot ged-mfiles-oracle-1) : ses ids sont connus de la correspondance mais juges
+// par `tools/parite/juge-mfiles.php`. Le juge Paperless ne voit donc que ses propres ids, et tout id
+// qui n'appartient a AUCUN inventaire reste une erreur.
+$inventaireMfiles = chargerJson($racine . '/docs/parite/inventaire-mfiles.json');
+$idsInventaires = [];
+foreach (array_merge(
+    is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [],
+    is_array($inventaireMfiles['elements'] ?? null) ? $inventaireMfiles['elements'] : [],
+) as $elementInventaire) {
+    if (is_array($elementInventaire)) {
+        $idsInventaires[(string) ($elementInventaire['id'] ?? '')] = true;
+    }
+}
+foreach (array_keys($entrees) as $idEntree) {
+    if (!isset($idsInventaires[(string) $idEntree])) {
+        $erreurs[] = 'correspondance cite un id inconnu : ' . (string) $idEntree;
+    }
+}
+$idsPaperless = [];
+foreach (is_array($versionne['elements'] ?? null) ? $versionne['elements'] : [] as $elementPaperless) {
+    if (is_array($elementPaperless)) {
+        $idsPaperless[(string) ($elementPaperless['id'] ?? '')] = true;
+    }
+}
+$entrees = array_filter(
+    $entrees,
+    static fn (string $cle): bool => isset($idsPaperless[$cle]),
+    ARRAY_FILTER_USE_KEY,
+);
+
 /** @var array{routes:list<string>, ecrans:list<string>, services:list<string>} $connu */
 $connu = ['routes' => [], 'ecrans' => [], 'services' => []];
 

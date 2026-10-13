@@ -8747,6 +8747,733 @@
                 "type": "phpunit",
                 "cible": "Ged\\Tests\\Socle\\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair"
             }
+        },
+        "mfiles:rest:delete:favorites-type-objectid": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:objects-type-objectid-version": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:objects-type-objectid-version-files-file": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:objects-type-objectid-version-properties-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:repositories-targetid-session": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:session": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:sharedlinks-sharepublicaccesskey": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/delete/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:delete:valuelists-id-items-objectid": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#delete",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:favorites": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:favorites-type-objectid": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\IndexeurTest::testUnDossierRenommeHorsApplicationEstSuiviSansPerdreLesVersions"
+            },
+            "note": "Objets = documents du fonds, indexés depuis le dossier (le dossier fait foi)."
+        },
+        "mfiles:rest:get:objects-properties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/properties/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-deleted": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\CorbeilleTest::testLaCorbeilleDeplaceDrapeauteEtNeffaceRien"
+            },
+            "note": "Corbeille du Socle : un document mis à la corbeille reste sur le serveur de fichiers, jamais supprimé."
+        },
+        "mfiles:rest:get:objects-type-objectid-history": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/history/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\DepotFileserver\\Veille"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\DepotFileserver\\VeilleTest::testUneModificationHorsGedArchiveLaVersionPrecedenteDansUnDossierMasque"
+            },
+            "note": "Versions gérées dans le dossier masqué `.<fichier>` à côté du document (docs/ARCHIVAGE-FILESERVER.md), doublées dans un dépôt séparé."
+        },
+        "mfiles:rest:get:objects-type-objectid-version-checkedout": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/checkedout/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-comments": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/comments/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-files": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-files-file": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-files-file-content": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/api/v1/documents/{id:[0-9]+}/fichier"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Jonctions\\DocumentsApiTest::testPaginationBorneeEtVersionTelechargeable"
+            },
+            "note": "Téléchargement du fichier d’un document par l’API documentaire."
+        },
+        "mfiles:rest:get:objects-type-objectid-version-files-file-preview": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/preview/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-files-file-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/title/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-preview": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/preview/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-properties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-properties-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-relationships": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-relationships-count": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/count/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-subobjects": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-subobjects-count": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/count/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/title/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:objects-type-objectid-version-workflowstate": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:recentlyaccessedbyme": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:repositories": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:server-capabilities": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/capabilities/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:server-publickey": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/publickey/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:server-status": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/status/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:server-vaults": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:server-vaults-vault-status": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/vault/status/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:session": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:session-authenticationtoken": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/authenticationtoken/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:session-userid": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/userid/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:session-vault": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:session-vaults": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vaults/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:sharedlinks": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:sharedlinks-vaultguid-sharepublicaccesskey-content": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/content/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-classes": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Nomenclature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase"
+            },
+            "note": "Classes d’objets et listes de valeurs nommées (nomenclature du fonds)."
+        },
+        "mfiles:rest:get:structure-classes-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-classes-id-icon": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/id/icon/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-classes-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-classes-itemidbyguid-guid-item": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyguid/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-objecttypes": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-objecttypes-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-objecttypes-type": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-objecttypes-type-classes": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/classes/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-objecttypes-type-icon": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/icon/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-properties": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Champs"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug"
+            },
+            "note": "Définitions de champs (métadonnées dynamiques) dans le fonds."
+        },
+        "mfiles:rest:get:structure-properties-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-properties-id-valuelist-items": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/valuelist-items/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-properties-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-statetransitions-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-valuelists-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows-id-states": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows-id-states-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows-id-statetransitions": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflows-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:structure-workflowstates-itemidbyalias-alias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/itemidbyalias/alias/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:valuelists": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:valuelists-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:valuelists-id-items": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:valuelists-id-items-objectid": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:valuelists-id-items-objectid-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:views-path-items": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier"
+            },
+            "note": "Vues enregistrées du fonds (dossiers virtuels posés sur le dossier physique)."
+        },
+        "mfiles:rest:get:views-path-items-count": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:get:views-path-objects": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:favorites": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:files": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/files/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:objects-automaticmetadata": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/automaticmetadata/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:objects-properties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/properties/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:objects-type": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:objects-type-objectid-version-files": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:objects-type-objectid-version-properties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:recentlyaccessedbyme": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:repositories-targetid-session": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:server-authenticationtokens": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/authenticationtokens/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:sharedlinks": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-classes-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-metadatastructure-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-objecttypes-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-properties-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-statetransitions-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-valuelists-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-workflows-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:structure-workflowstates-itemidbyalias": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/itemidbyalias/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:post:valuelists-id-items": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/#post",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-demotemultiobjects": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/demoting-objects/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-setmultipleobjproperties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/setmultipleobjproperties/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-deleted": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\CorbeilleTest::testLaRestaurationRemetLeDocumentOctetPourOctet"
+            },
+            "note": "Restauration depuis la corbeille : le document revient octet pour octet."
+        },
+        "mfiles:rest:put:objects-type-objectid-version-checkedout": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/checkedout/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-comments": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/comments/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-files-file-content": {
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\DepotFileserver\\DepotSepare"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\DepotFileserver\\DepotSepareTest::testUneVersionEstConserveeDansLeDepotSepareAvecSaCorrespondance"
+            },
+            "note": "Le contenu d’une nouvelle version est copié dans le dépôt séparé (garantie), avec la correspondance vers l’emplacement d’origine."
+        },
+        "mfiles:rest:put:objects-type-objectid-version-files-file-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/title/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-properties": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-properties-id": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/title/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:objects-type-objectid-version-workflowstate": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:session": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:session-vault": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:structure-objecttypes-type-refreshstatus": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/objecttypes/type/refreshstatus/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
+        },
+        "mfiles:rest:put:valuelists-id-items-objectid-title": {
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/#put",
+            "note": "Fonction M-Files documentée publiquement ; pas encore d’équivalent GEDv2 mesuré. Reste `absent` et est PROPOSÉ au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         }
     }
 }
