@@ -51,6 +51,12 @@ async function choisirClasse(page: Page, nom: string): Promise<void> {
   await lien.focus();
   await page.keyboard.press('Enter');
 }
+/** Ouvre le contrat préparé depuis la bibliothèque, par sa ligne réelle (attente large : machine chargée). */
+async function ouvrirDocumentContrat(page: Page): Promise<void> {
+  const ligne = page.getByTestId(`ligne-${prep.document}`);
+  await expect(ligne).toBeVisible({ timeout: 15_000 });
+  await ligne.getByRole('link').click({ timeout: 15_000 });
+}
 
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(async () => {
@@ -117,7 +123,7 @@ test('le document de la classe Contrat porte sa carte dynamique et garde la vale
   try {
     await page.getByTestId('menu-bibliotheque').click();
     await expect(page).toHaveURL(/\/bibliotheque/);
-    await page.getByRole('link', { name: 'Contrat de maintenance synthétique' }).click();
+    await ouvrirDocumentContrat(page);
 
     await expect(page.getByTestId('formulaire-champs')).toBeVisible();
     await expect(page.getByTestId('saisie-champ-service-responsable-obligatoire')).toBeVisible();
@@ -142,7 +148,7 @@ test('retirer une valeur la rend traçable et le document qui la porte la montre
 
     // Le document n'a rien perdu : la valeur retirée reste affichée sur sa carte, marquée.
     await page.getByTestId('menu-bibliotheque').click();
-    await page.getByRole('link', { name: 'Contrat de maintenance synthétique' }).click();
+    await ouvrirDocumentContrat(page);
     await expect(page.getByTestId('saisie-champ-service-responsable-retiree')).toBeAttached();
     await expect(page.getByTestId('saisie-champ-service-responsable')).toHaveValue('Audit');
   } finally { await ctx.close(); }
