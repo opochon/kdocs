@@ -39,7 +39,7 @@ lié. Droits cohérents (lecture exigée des deux extrémités).
 
 ### Reste
 
-- Porte qualité ECC (revue du diff) et harness complet `-SansBanc` (ci-dessous).
+- _(aucun)_
 
 ## Mesures exactes
 
@@ -79,9 +79,29 @@ lié. Droits cohérents (lecture exigée des deux extrémités).
 | Parcours Playwright `relations.spec.ts` | **2/2** |
 | PHPStan niveau 6 | **0 erreur** (baseline vide inchangée) |
 
-### Harness complet `-SansBanc`
+### Harness complet `-SansBanc` (2e passage, vert)
 
-_(renseigné après le passage vert — voir ci-dessous.)_
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` — couche 3 ROUGE par
+construction (`-SansBanc`), toutes les autres couches VERTES (registre `recette/registre.json`,
+`commit b0baef8`, durée 1 109 s) :
+
+| Couche | État | Détail exact |
+| --- | --- | --- |
+| 0 garde-fous | VERT | vendor et `node_modules/@playwright/test` présents ; `DB_NAME=gedv2_test` imposé |
+| 1 unitaire | VERT | **937 tests, 17 975 assertions**, 1 sauté |
+| 3 banc | ROUGE | sautée (`-SansBanc`), par construction |
+| 4 écrans | VERT | **105 parcours passés** (4,9 min), dont `relations.spec.ts` 2/2 |
+| 7 sécurité | VERT | aucun contournement accepté (dont la charge CSRF de `POST /documents/{id}/relations`) |
+| 2 contrat | VERT | toutes les routes déclarées couvertes (dont `POST /documents/{id}/relations`) |
+| 6 charge | VERT | p95 lecture **730 ms**, p95 écriture **263 ms**, 0 erreur, 0 collision |
+| 8 statique | VERT | PHPStan niveau 6 : **0 erreur** ; `composer audit` : aucune vulnérabilité |
+| 5 personas | VERT | administrateur 4/4, auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
+| 9 parité Paperless | VERT | 780 éléments, couverts **737**, strict **94,49 %**, hors exclusions **100,00 %** |
+| 9b parité M-Files | VERT | 112 éléments, couverts **49**, strict **43,75 %**, écarts 63, inventaire rejoué à l'identique |
+
+Note d'environnement : `tools/composer.phar` est ignoré par git et n'avait pas été copié dans ce
+worktree ; il a été copié depuis `C:\ged\GEDv2\tools\composer.phar` pour que la couche 8 puisse
+s'exécuter (aucune modification du dépôt : le fichier reste ignoré).
 
 ## `mfiles:*` restants proposés au juge (63, statut `absent`)
 
@@ -126,4 +146,4 @@ l'agent.
 
 Toutes sont notées dans `docs/secteurs/relations.md` (« Modifications minimales signalées »).
 
-ETAT: en cours
+ETAT: fini

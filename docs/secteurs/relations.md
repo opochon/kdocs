@@ -54,3 +54,8 @@ document, et naviguer vers l'objet lié. Droits cohérents (permission `document
 
 - 13.10.2026 — ouverture du lot `ged-mfiles-relations-1` (DeepCode) : relations typées bidirectionnelles,
   composition parent-enfant, intégrité des références croisées, écran fiche et parité M-Files famille 2.
+- 13.10.2026 — livré : `Ged\Socle\Relations` (définitions portables dans `.ged/relations.json`, valeurs
+  dans le `.meta.json`, liens typés bidirectionnels, `sous-objet`, résolution par empreinte, traçabilité
+  des cibles supprimées, journal), onglet « Relations » de la fiche (lier / retirer / détacher) avec
+  droits cohérents, vecteurs `mfiles-relations-liens` 7/7 et `mfiles-relations-composition` 6/6, porte
+  7/7 clauses. Parité M-Files **49/112, 43,75 %, 0 non-prouvé** ; harness `-SansBanc` vert (937 tests).
