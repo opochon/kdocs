@@ -69,8 +69,8 @@
         <ul class="liste" data-testid="champs-{{ typeChoisi.slug }}">
           {% for c in champsDuType %}
           <li class="champ" data-testid="champ-{{ c.cle }}">
-            <span class="l1">{{ c.nom }}</span>
-            <span class="l2">clé `{{ c.cle }}` · nature {{ c.nature }}{% if c.options %} · options : {{ c.options|join(', ') }}{% endif %}</span>
+            <span class="l1">{{ c.nom }}{% if c.obligatoire %} <span class="chip warn" data-testid="champ-{{ c.cle }}-obligatoire">obligatoire</span>{% endif %}</span>
+            <span class="l2">clé `{{ c.cle }}` · nature {{ c.nature }}{% if c.liste %} · liste nommée « {{ c.liste }} »{% endif %}{% if c.options %} · valeurs : {{ c.options|join(', ') }}{% endif %}</span>
             <form method="post" action="/metadonnees/champ" class="inline">
               <input type="hidden" name="csrf" value="{{ csrf }}">
               <input type="hidden" name="action" value="{{ c.actif ? 'desactiver' : 'reactiver' }}">
@@ -84,6 +84,24 @@
           <li class="champ muted" data-testid="aucun-champ">Aucun champ sur ce type.</li>
           {% endfor %}
         </ul>
+        {% if carteApercu and carteApercu.proprietes %}
+        <div class="panneau" data-testid="carte-classe-{{ typeChoisi.slug }}">
+          <div class="titre-section">Carte de la classe « {{ typeChoisi.nom }} »</div>
+          <table class="table" data-testid="carte-classe-table">
+            <thead><tr><th>Propriété</th><th>Nature</th><th>Obligatoire</th><th>Valeurs</th></tr></thead>
+            <tbody>
+            {% for p in carteApercu.proprietes %}
+              <tr data-testid="carte-propriete-{{ p.cle }}">
+                <td>{{ p.nom }}</td>
+                <td>{{ p.nature }}</td>
+                <td data-testid="carte-propriete-{{ p.cle }}-obligatoire">{{ p.obligatoire ? 'oui' : 'non' }}</td>
+                <td>{% if p.liste %}liste « {{ p.liste }} » : {{ p.options|join(', ') }}{% elseif p.options %}{{ p.options|join(', ') }}{% else %}—{% endif %}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
         <form method="post" action="/metadonnees/champ" data-testid="formulaire-nouveau-champ">
           <input type="hidden" name="csrf" value="{{ csrf }}">
           <div class="titre-section" style="padding:10px 14px 0">Ajouter un champ sur un type</div>
@@ -104,7 +122,13 @@
               <option value="url">url</option>
               <option value="lien">lien vers des documents</option>
             </select></div>
-          <div class="champ"><label for="champ-options">Options (nature liste — une par ligne)</label>
+          <div class="champ"><label for="champ-liste">Liste nommée (nature liste)</label>
+            <select id="champ-liste" name="liste" data-testid="champ-liste">
+              <option value="">— aucune (options en ligne) —</option>
+              {% for l in listesPourChamp %}<option value="{{ l.cle }}">{{ l.nom }}</option>{% endfor %}
+            </select></div>
+          <label class="case"><input type="checkbox" name="obligatoire" value="1" data-testid="champ-obligatoire"> Propriété obligatoire de la classe</label>
+          <div class="champ"><label for="champ-options">Options (nature liste SANS liste nommée — une par ligne)</label>
             <textarea id="champ-options" name="options" data-testid="champ-options" style="width:100%;min-height:56px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;padding:6px 9px"></textarea></div>
           <div style="padding:10px 14px"><button class="btn primaire" type="submit" data-testid="action-ajouter-champ">Ajouter le champ</button>
             <p class="muted" style="margin:8px 0 0">La nature ne se change plus après création : des valeurs typées vivront dans le dossier.</p></div>
@@ -113,6 +137,82 @@
       {% else %}
       <div class="volet-corps"><p class="muted" style="padding:12px 14px">La nomenclature est vide : ajouter un premier type.</p></div>
       {% endif %}
+    </section>
+
+    <section class="carte" data-testid="listes-admin">
+      <h2>Listes de valeurs nommées</h2>
+      <p class="muted">Un vocabulaire contrôlé réutilisable qu’une propriété de nature liste référence. Une valeur n’est jamais effacée : on la retire (datée et attribuée), elle reste traçable.</p>
+      {% for l in listes %}
+      <div data-testid="liste-{{ l.id }}">
+        <div class="titre-section">{{ l.nom }} <span class="mono muted">{{ l.cle }}</span>
+          {% if l.actif %}<span class="chip">active</span>{% else %}<span class="chip warn">en veille</span>{% endif %}</div>
+        <table class="table" data-testid="liste-{{ l.id }}-valeurs">
+          <thead><tr><th>Valeur</th><th>État</th><th>Trace du retrait</th><th>Actions</th></tr></thead>
+          <tbody>
+          {% for v in l.valeurs %}
+            <tr data-testid="liste-{{ l.id }}-valeur-{{ v.id }}">
+              <td>{{ v.libelle }}</td>
+              <td>{% if v.actif %}<span class="chip">active</span>{% else %}<span class="chip warn">retirée</span>{% endif %}</td>
+              <td class="muted">{% if v.retire_le is defined and v.retire_le %}retirée le {{ v.retire_le }}{% if v.retire_par is defined and v.retire_par %} par {{ v.retire_par }}{% endif %}{% endif %}</td>
+              <td>
+                <form method="post" action="/metadonnees/liste/valeur" style="display:flex;gap:6px;align-items:center">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <input type="hidden" name="liste" value="{{ l.id }}">
+                  <input type="hidden" name="valeur" value="{{ v.id }}">
+                  <input type="hidden" name="action" value="{{ v.actif ? 'retirer' : 'reactiver' }}">
+                  <button class="btn discret" type="submit" data-testid="liste-{{ l.id }}-valeur-{{ v.id }}-basculer">{{ v.actif ? 'Retirer' : 'Réactiver' }}</button>
+                </form>
+                <form method="post" action="/metadonnees/liste/valeur" style="display:flex;gap:6px;align-items:center;margin-top:4px">
+                  <input type="hidden" name="csrf" value="{{ csrf }}">
+                  <input type="hidden" name="liste" value="{{ l.id }}">
+                  <input type="hidden" name="valeur" value="{{ v.id }}">
+                  <input type="hidden" name="action" value="renommer">
+                  <input name="libelle" value="{{ v.libelle }}" size="14" aria-label="Renommer {{ v.libelle }}" data-testid="liste-{{ l.id }}-valeur-{{ v.id }}-libelle">
+                  <button class="btn discret" type="submit" data-testid="liste-{{ l.id }}-valeur-{{ v.id }}-renommer">Renommer</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="muted" data-testid="liste-{{ l.id }}-vide">Aucune valeur.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <form method="post" action="/metadonnees/liste/valeur" style="display:flex;gap:6px;align-items:center;padding:0 14px 10px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="liste" value="{{ l.id }}">
+          <input type="hidden" name="action" value="ajouter">
+          <input name="libelle" placeholder="nouvelle valeur" aria-label="Nouvelle valeur de {{ l.nom }}" data-testid="liste-{{ l.id }}-nouvelle-valeur">
+          <button class="btn primaire" type="submit" data-testid="liste-{{ l.id }}-ajouter-valeur">Ajouter la valeur</button>
+        </form>
+        <form method="post" action="/metadonnees/liste" style="display:flex;gap:6px;align-items:center;padding:0 14px 10px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="id" value="{{ l.id }}">
+          <input type="hidden" name="action" value="renommer">
+          <input name="nom" value="{{ l.nom }}" size="16" aria-label="Renommer la liste {{ l.nom }}" data-testid="liste-{{ l.id }}-nom">
+          <button class="btn discret" type="submit" data-testid="liste-{{ l.id }}-renommer">Renommer la liste</button>
+        </form>
+        <form method="post" action="/metadonnees/liste" style="padding:0 14px 12px">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="id" value="{{ l.id }}">
+          <input type="hidden" name="action" value="{{ l.actif ? 'desactiver' : 'activer' }}">
+          <button class="btn discret" type="submit" data-testid="liste-{{ l.id }}-basculer">{{ l.actif ? 'Mettre en veille' : 'Réactiver' }}</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="muted" style="padding:0 14px" data-testid="listes-vide">Aucune liste nommée.</p>
+      {% endfor %}
+      <form method="post" action="/metadonnees/liste">
+        <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="ajouter">
+        <div class="champ"><label for="liste-nom">Nom de la liste</label>
+          <input id="liste-nom" name="nom" data-testid="liste-nouveau-nom" placeholder="p. ex. Service"></div>
+        <button class="btn primaire" type="submit" data-testid="action-ajouter-liste">Ajouter la liste</button>
+      </form>
+      <form method="post" action="/metadonnees/definition" style="padding:0 14px 12px;display:flex;gap:8px;align-items:center">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn discret" type="submit" name="action" value="exporter" data-testid="action-exporter-definition">Exporter la définition</button>
+        <button class="btn discret" type="submit" name="action" value="importer" data-testid="action-importer-definition">Importer la définition</button>
+        <span class="muted">fichier portable <span class="mono">.ged/definition.json</span></span>
+      </form>
     </section>
 
     <section class="carte" data-testid="etiquettes-admin">

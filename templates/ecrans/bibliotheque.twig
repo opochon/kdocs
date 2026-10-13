@@ -220,11 +220,13 @@
           <input type="hidden" name="doc" value="{{ apercu.id }}">
           <div class="titre-section">Champs personnalisés</div>
           {% for c in apercu.champs %}
-          <div class="champ"><label for="champ-{{ c.cle }}">{{ c.nom }}{% if c.nature == 'montant' %} (CHF){% endif %}</label>
+          <div class="champ"><label for="champ-{{ c.cle }}">{{ c.nom }}{% if c.nature == 'montant' %} (CHF){% endif %}{% if c.obligatoire %} <span class="chip warn" data-testid="saisie-champ-{{ c.cle }}-obligatoire">obligatoire</span>{% endif %}</label>
             {% if c.nature == 'liste' %}
             <select id="champ-{{ c.cle }}" name="champ[{{ c.cle }}]" data-testid="saisie-champ-{{ c.cle }}">
               <option value="">—</option>
               {% for o in c.options %}<option value="{{ o }}" {% if c.valeur == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+              {# Une valeur retirée de la liste n'est plus proposée, mais reste affichée sur le document qui la porte : rien n'est perdu. #}
+              {% if c.valeur and c.valeur not in c.options %}<option value="{{ c.valeur }}" selected data-testid="saisie-champ-{{ c.cle }}-retiree">{{ c.valeur }} (valeur retirée)</option>{% endif %}
             </select>
             {% elseif c.nature == 'booleen' %}
             <select id="champ-{{ c.cle }}" name="champ[{{ c.cle }}]" data-testid="saisie-champ-{{ c.cle }}">

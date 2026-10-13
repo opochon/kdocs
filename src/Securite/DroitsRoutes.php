@@ -118,6 +118,11 @@ final class DroitsRoutes
         'POST /metadonnees/type' => 'application:administrer',
         'POST /metadonnees/champ' => 'application:administrer',
         'POST /metadonnees/etiquette' => 'application:administrer',
+        // Lot ged-mfiles-classes-1 (famille M-Files nº 1) : listes de valeurs nommées et définition
+        // portable des classes. Lignes hors secteur, signalées dans docs/secteurs/classes-metadonnees.md.
+        'POST /metadonnees/liste' => 'application:administrer',
+        'POST /metadonnees/liste/valeur' => 'application:administrer',
+        'POST /metadonnees/definition' => 'application:administrer',
         // Lot ged-parite-modele-3 : suivi des tâches (administration) et administration des vues
         // enregistrées. Lignes hors secteur (Securite), signalées dans docs/secteurs/socle.md.
         'GET /taches' => 'application:administrer',

@@ -4,23 +4,32 @@ declare(strict_types=1);
 
 namespace Ged\Socle;
 
+use Ged\ClassesMetadata\Carte;
 use Ged\Config;
 
 /**
  * Écran Métadonnées de l'administrateur (V2-04) : la nomenclature des types (ajouter, renommer,
  * activer, désactiver — jamais supprimer) et les champs personnalisés typés rattachés à chaque type.
+ *
+ * Famille M-Files nº 1 (lot ged-mfiles-classes-1) : l'écran gère aussi les LISTES DE VALEURS NOMMÉES
+ * (vocabulaires contrôlés qu'une propriété référence) et montre la CARTE DYNAMIQUE de la classe
+ * choisie — les propriétés attendues, leur obligation et leur source de valeurs.
  */
 final class EcranMetadonnees
 {
     private readonly Config $config;
     private readonly Nomenclature $nomenclature;
     private readonly Champs $champs;
+    private readonly Listes $listes;
+    private readonly Carte $carte;
 
     public function __construct(Config $config)
     {
         $this->config = $config;
         $this->nomenclature = new Nomenclature($config);
         $this->champs = new Champs($config);
+        $this->listes = new Listes($config);
+        $this->carte = new Carte($config);
     }
 
     /**
@@ -55,6 +64,11 @@ final class EcranMetadonnees
             'typeChoisi' => $choisi === null ? null : $choisi + ['slug' => Fichiers::slug($choisi['nom'])],
             'champsDuType' => $choisi === null ? [] : $this->champs->pourType($choisi['nom']),
             'natures' => Champs::NATURES,
+            // Famille M-Files nº 1 : les listes nommées (avec leurs valeurs retirées, traçables) et la
+            // carte dynamique de la classe choisie (propriétés attendues, obligation, source de valeurs).
+            'listes' => $this->listes->complet(),
+            'listesPourChamp' => $this->listes->lister(false),
+            'carteApercu' => $choisi === null ? null : $this->carte->pourClasse($choisi['nom']),
             'etiquettes' => $etiquettes,
             'parentsEtiquettePossibles' => $etiquettes,
             'couleurEtiquetteDefaut' => Etiquettes::COULEUR_DEFAUT,

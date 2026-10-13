@@ -363,6 +363,11 @@ try {
         // Charges défensives du Socle (V2-04) : chaque charge est refusée par le métier sans écrire.
         'POST /metadonnees/type' => 'action=inconnue',
         'POST /metadonnees/champ' => 'type=0&nom=',
+        // Lot ged-mfiles-classes-1 (famille M-Files nº 1) : listes de valeurs nommées et définition
+        // portable — action inconnue, liste inconnue, valeur inconnue : refusées sans écrire.
+        'POST /metadonnees/liste' => 'action=inconnue',
+        'POST /metadonnees/liste/valeur' => 'liste=0&action=inconnue',
+        'POST /metadonnees/definition' => 'action=inconnue',
         'POST /bibliotheque/vue' => 'nom=',
         // Lot ged-parite-masse : action inconnue et tâche inconnue, refusées par le métier sans écrire.
         'POST /bibliotheque/masse' => 'documents=&action=inconnue',
