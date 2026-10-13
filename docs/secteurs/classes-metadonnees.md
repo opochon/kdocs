@@ -41,7 +41,7 @@ Oracle M-Files (mêmes conventions que le lot `ged-mfiles-oracle-1`) :
 
 - `src/Socle/Module.php` : routes `POST /metadonnees/liste` et `POST /metadonnees/liste/valeur`
   (gestion des listes nommées et de leurs valeurs).
-- `src/Securite/DroitsRoutes.php` : permissions `application:administrer` pour ces deux routes.
+- `src/Securite/DroitsRoutes.php` : permissions `application:administrer` pour ces trois routes.
 - `tools/banc/sonde-securite.php` : charges défensives correspondantes (refus métier sans écriture).
 
 ## Demandes au Socle
@@ -55,3 +55,10 @@ restent verts. Si le Socle veut reprendre la main, ces additions sont isolées e
 
 - 13.10.2026 — ouverture du lot `ged-mfiles-classes-1` (DeepCode) : listes nommées, propriétés
   obligatoires/référençant une liste, carte dynamique et couverture de parité M-Files famille 1.
+- 13.10.2026 — livré : `Ged\Socle\Listes` (listes nommées dans `.ged/listes.json`, retrait daté et
+  attribué, jamais d'effacement), `Champs` étendu (`obligatoire`, référence `liste`), `Ged\ClassesMetadata\Carte`
+  (carte par classe/document, alias, lots, validation) et `Definition` (export/import portable et
+  réversible). Écrans : gestion des listes et carte dynamique dans `metadonnees.twig`, marque
+  « obligatoire » dans la bibliothèque. Parité M-Files : 44/112 couverts (39,29 %), 0 non-prouvé,
+  vecteurs `mfiles-classes-carte` 8/8 et `mfiles-classes-listes` 4/4.
+
