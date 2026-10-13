@@ -32,7 +32,7 @@ final class Document
     }
 
     /** @return array<string, mixed>|null */
-    public function donnees(int $id, ?int $compte = null): ?array
+    public function donnees(int $id, ?int $compte = null, bool $administrateur = false): ?array
     {
         $fonds = new Fonds($this->config);
         $pdo = null;
@@ -93,6 +93,10 @@ final class Document
             'historique' => array_merge($this->historique($pdo, (int) $doc['id']), $collaboration?->historique((int) $doc['id']) ?? []),
             'notes' => $collaboration?->notes((int) $doc['id']) ?? [],
             'liens' => $collaboration?->liens((int) $doc['id'], $compte) ?? [],
+            // Famille M-Files nº 2 (lot ged-mfiles-relations-1) : les relations TYPÉES du document,
+            // lues du `.meta.json` (le dossier fait foi), navigables dans les deux sens.
+            'relations' => $this->relations($chemin, $pdo, $compte, $administrateur),
+            'relations_types' => $this->relationsTypes(),
             'partages' => $collaboration?->partages((int) $doc['id']) ?? [],
             'ouverture' => $ouverture,
             'secours' => $secours,
@@ -164,6 +168,89 @@ final class Document
             // de Paperless, équivalent de `storage_type: unencrypted`.
             'storage_type' => 'unencrypted',
         ];
+    }
+
+    /**
+     * Les relations typées du document, prêtes pour la fiche : chaque lien porte l'identifiant du
+     * document lié quand il est vivant (navigation), et son état sinon. Une panne de lecture rend une
+     * liste vide (l'écran dit « aucune relation », il ne tombe jamais).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function relations(string $chemin, ?PDO $pdo, ?int $compte = null, bool $administrateur = false): array
+    {
+        try {
+            $service = new \Ged\Socle\Relations($this->config);
+            $relations = $service->pourDocument($chemin);
+        } catch (Throwable $e) {
+            error_log(sprintf('[GEDv2 document] relations illisibles pour « %s » : %s', $chemin, $e->getMessage()));
+
+            return [];
+        }
+        $ids = $this->idsParChemin($pdo);
+        foreach ($relations as &$relation) {
+            $relation['cible_id'] = $ids[strtolower(str_replace('\\', '/', (string) $relation['cible']))] ?? null;
+        }
+        unset($relation);
+
+        // Un lien ne révèle jamais le titre d'une pièce hors de ses droits (comme les liens de la fiche) :
+        // sans droit de LECTURE sur l'autre extrémité, la relation n'est pas montrée à cet utilisateur.
+        if ($compte === null || $administrateur) {
+            return $relations;
+        }
+
+        return array_values(array_filter($relations, fn (array $relation): bool => $this->peutLireDocument($compte, (string) $relation['cible'], $pdo)));
+    }
+
+    /** L'utilisateur lit-il la pièce à ce chemin ? (aucun schéma d'ACL : on ne masque rien) */
+    private function peutLireDocument(int $compte, string $chemin, ?PDO $pdo): bool
+    {
+        if ($pdo === null || $chemin === '' || !class_exists(\Ged\Securite\DroitsDossiers::class)) {
+            return true;
+        }
+        try {
+            $droits = new \Ged\Securite\DroitsDossiers($pdo);
+            $dossier = $droits->dossierPourChemin($chemin);
+
+            return $dossier !== null && $droits->autorise($compte, $dossier, 'lire');
+        } catch (Throwable $e) {
+            error_log(sprintf('[GEDv2 document] droits illisibles pour « %s » : %s', $chemin, $e->getMessage()));
+
+            return false;
+        }
+    }
+
+    /** @return list<array{id:int, nom:string, cle:string, nature:string, classe_source:?string, classe_cible:?string, multiple:bool, actif:bool}> */
+    private function relationsTypes(): array
+    {
+        try {
+            return (new \Ged\Socle\Relations($this->config))->types();
+        } catch (Throwable $e) {
+            error_log('[GEDv2 document] types de relation illisibles : ' . $e->getMessage());
+
+            return [];
+        }
+    }
+
+    /** @return array<string, int> chemin normalisé en minuscules => identifiant du document vivant */
+    private function idsParChemin(?PDO $pdo): array
+    {
+        if ($pdo === null) {
+            return [];
+        }
+        try {
+            $lignes = $pdo->query('SELECT id, chemin_relatif FROM documents WHERE supprime_le IS NULL AND absent_depuis IS NULL')->fetchAll();
+        } catch (Throwable $e) {
+            error_log('[GEDv2 document] index des chemins illisible : ' . $e->getMessage());
+
+            return [];
+        }
+        $ids = [];
+        foreach ($lignes as $ligne) {
+            $ids[strtolower(str_replace('\\', '/', (string) $ligne['chemin_relatif']))] = (int) $ligne['id'];
+        }
+
+        return $ids;
     }
 
     /**

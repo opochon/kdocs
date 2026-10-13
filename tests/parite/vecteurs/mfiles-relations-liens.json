@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "categorie": "mfiles-relations-liens",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/",
+    "modele": "Famille M-Files 2 : relations typées entre objets, navigables dans les deux sens, définitions portables, valeurs dans le .meta.json"
+  },
+  "total": 7,
+  "vecteurs": [
+    {
+      "id": "mfiles:relations:ajout-type",
+      "entree": { "scenario": "relation-ajout", "type": "reference" },
+      "sortie": { "sortantes": 1, "entrantes": 1, "type": "reference", "nom": "Référence", "sens_source": "sortante", "sens_cible": "entrante" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:comptage",
+      "entree": { "scenario": "relation-comptage" },
+      "sortie": { "source": 2, "cible": 1, "autre": 1 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/count/#get"
+    },
+    {
+      "id": "mfiles:relations:refus-auto-lien",
+      "entree": { "scenario": "relation-refus", "geste": "auto-lien", "motif": "distincts" },
+      "sortie": { "refus": true, "nomme": "distincts" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:refus-type-inconnu",
+      "entree": { "scenario": "relation-refus", "geste": "type-inconnu", "motif": "inconnu" },
+      "sortie": { "refus": true, "nomme": "inconnu" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:refus-doublon",
+      "entree": { "scenario": "relation-refus", "geste": "doublon", "motif": "existe" },
+      "sortie": { "refus": true, "nomme": "existe" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:retrait-trace",
+      "entree": { "scenario": "relation-retrait", "auteur": "carol@gedv2.test" },
+      "sortie": { "actives_apres": 0, "retirees": 1, "date_posee": true, "auteur": "carol@gedv2.test", "cible_conservee": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    },
+    {
+      "id": "mfiles:relations:definition-portable",
+      "entree": { "scenario": "relation-definition" },
+      "sortie": { "identique": true, "types": 4 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get"
+    }
+  ]
+}

@@ -36,6 +36,9 @@ final class DroitsRoutes
         // V2-12d : notes et liens relevent du role Utilisateur (droit de dossier Lecture, voir GardeCentrale).
         'POST /documents/{id:[0-9]+}/notes' => 'documents:lire',
         'POST /documents/{id:[0-9]+}/liens' => 'documents:lire',
+        // Famille M-Files nº 2 (lot ged-mfiles-relations-1) : relations typées de la fiche, même droit
+        // de lecteur que les notes et les liens. Ligne hors secteur, signalée dans docs/secteurs/relations.md.
+        'POST /documents/{id:[0-9]+}/relations' => 'documents:lire',
         // Partage interne (et sa revocation) : geste de lecteur ; le controleur verifie que le destinataire
         // lit deja le dossier. Le lien externe a sa route propre ci-dessous.
         'POST /documents/{id:[0-9]+}/partages' => 'documents:lire',
@@ -350,7 +353,7 @@ final class DroitsRoutes
         if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/partages/externe$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/partages/externe'];
         }
-        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|partages)$#', $chemin, $m) === 1) {
+        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|relations|partages)$#', $chemin, $m) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/' . $m[1]];
         }
         if (strtoupper($methode) === 'POST' && preg_match('#^/application/reconstruction-index/[0-9]+/tranche$#', $chemin) === 1) {
@@ -503,7 +506,7 @@ final class DroitsRoutes
         if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
             return 'gerer';
         }
-        if (preg_match('#^/documents/[0-9]+/(?:notes|liens|partages)(?:/externe)?$#', $chemin) === 1) {
+        if (preg_match('#^/documents/[0-9]+/(?:notes|liens|relations|partages)(?:/externe)?$#', $chemin) === 1) {
             return 'lire';
         }
         if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {

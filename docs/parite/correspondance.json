@@ -8966,28 +8966,52 @@
             "note": "Une valeur de propriété d’un document."
         },
         "mfiles:rest:get:objects-type-objectid-version-relationships": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Relations"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RelationsTest::testUnLienTypeEstNavigableDansLesDeuxSens"
+            },
+            "note": "Les relations typées d’un document (Référence, Dépendance, Affectation, Sous-objet), navigables dans les deux sens : la fiche montre ses liens sortants ET entrants."
         },
         "mfiles:rest:get:objects-type-objectid-version-relationships-count": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/count/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Relations"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RelationsTest::testCompterLesRelationsDesDeuxSens"
+            },
+            "note": "Comptage des relations d’un document, les deux sens compris."
         },
         "mfiles:rest:get:objects-type-objectid-version-subobjects": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Relations"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RelationsTest::testCompositionParentEnfantEtDetachement"
+            },
+            "note": "Composition parent-enfant : un dossier contient des pièces (liens Sous-objet), une pièce appartient à un dossier ; le contenant physique se lit du chemin."
         },
         "mfiles:rest:get:objects-type-objectid-version-subobjects-count": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/count/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Relations"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\RelationsTest::testCompositionParentEnfantEtDetachement"
+            },
+            "note": "Comptage des sous-objets (relations de composition actives d’un document)."
         },
         "mfiles:rest:get:objects-type-objectid-version-title": {
             "statut": "absent",
@@ -9560,10 +9584,16 @@
             "note": "Ajouter une valeur à une liste nommée."
         },
         "mfiles:rest:put:objects-demotemultiobjects": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/demoting-objects/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Relations"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesRelationsVecteursTest::testRejoueLesVecteursDeLaCompositionEtDeLIntegrite"
+            },
+            "note": "Détacher un sous-objet (M-Files « demoting objects ») : le lien de composition est retiré, l’enfant devient indépendant, le geste est tracé."
         },
         "mfiles:rest:put:objects-setmultipleobjproperties": {
             "statut": "couvert",

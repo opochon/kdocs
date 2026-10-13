@@ -83,7 +83,7 @@
     </section>
     <section class="carte volet" aria-label="Fiche" data-onglets>
       <div class="onglets" role="tablist">
-        {% for o in ['Métadonnées', 'Versions', 'Historique', 'Notes', 'Liens', 'Partager'] %}
+        {% for o in ['Métadonnées', 'Versions', 'Historique', 'Notes', 'Liens', 'Partager', 'Relations'] %}
           <button type="button" role="tab" aria-selected="{{ loop.first ? 'true' : 'false' }}" aria-controls="p-{{ loop.index }}" data-testid="onglet-{{ o|lower }}">{{ o }}</button>
         {% endfor %}
       </div>
@@ -143,6 +143,37 @@
           {% if peut_partager_externe %}<form method="post" action="/documents/{{ doc.id }}/partages/externe" data-testid="partage-externe-creer"><input type="hidden" name="csrf" value="{{ csrf }}"><label>Expiration obligatoire <input type="date" name="expiration" required data-testid="partage-expiration"></label><button class="btn" type="submit" data-testid="partage-externe-envoyer">Créer le lien externe</button></form>{% endif %}
           {% if partage_lien %}<p class="alerte ok" data-testid="partage-lien">Copiez ce lien maintenant : <code>{{ partage_lien }}</code></p>{% endif %}
           <ul class="chrono">{% for partage in doc.partages %}<li><span>{{ partage.type }} · {{ partage.cible }}</span>{% if partage.revoque_le %}<span class="muted" data-testid="partage-etat-revoque-{{ partage.id }}">révoqué le {{ partage.revoque_le }}</span>{% elseif partage.expire_le and partage.expire_le < 'now'|date('Y-m-d H:i:s') %}<span class="muted" data-testid="partage-etat-expire-{{ partage.id }}">expiré le {{ partage.expire_le }}</span>{% elseif partage.expire_le %}<span class="muted" data-testid="partage-etat-echance-{{ partage.id }}">expire le {{ partage.expire_le }}</span>{% endif %}{% if not partage.revoque_le and (partage.type == 'interne' or peut_partager_externe) %}<form method="post" action="/documents/{{ doc.id }}/partages{% if partage.type == 'externe' %}/externe{% endif %}"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="revoquer"><input type="hidden" name="partage" value="{{ partage.id }}"><button class="btn discret" type="submit" data-testid="partage-{{ partage.type }}-revoquer-{{ partage.id }}">Révoquer</button></form>{% endif %}</li>{% else %}<li class="muted">Aucun partage.</li>{% endfor %}</ul>
+        </div>
+        {# Famille M-Files nº 2 (lot ged-mfiles-relations-1) : relations TYPÉES, navigables dans les deux
+           sens. Les valeurs vivent dans le .meta.json (le dossier fait foi) ; l'ajout, le retrait et le
+           détachement d'un sous-objet passent par POST /documents/{id}/relations. #}
+        <div class="panneau" id="p-7" role="tabpanel" hidden data-testid="panneau-relations">
+          {% if relation_succes %}<p class="alerte ok" data-testid="relation-succes">Relation enregistrée.</p>{% endif %}
+          {% if relation_erreur %}<p class="alerte erreur" data-testid="relation-erreur">Relation refusée : {{ relation_erreur }}</p>{% endif %}
+          {% if doc.relations_types is not empty %}
+          <form method="post" action="/documents/{{ doc.id }}/relations" data-testid="relation-ajouter">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="action" value="lier">
+            <label>Type de relation
+              <select name="type" data-testid="relation-type">
+                {% for t in doc.relations_types %}<option value="{{ t.cle }}">{{ t.nom }}</option>{% endfor %}
+              </select>
+            </label>
+            <label>Document cible <input name="cible" type="number" min="1" required data-testid="relation-cible"></label>
+            <button class="btn" type="submit" data-testid="relation-enregistrer">Lier</button>
+          </form>
+          {% endif %}
+          <ul class="chrono" data-testid="panneau-relations-liste">
+            {% for r in doc.relations %}
+            <li data-testid="relation-{{ r.id }}">
+              <span class="chip">{{ r.type_nom }}</span>
+              {% if r.cible_id %}<a href="/documents/{{ r.cible_id }}" data-testid="relation-{{ r.id }}-objet">{{ r.cible_titre }}</a>{% else %}<span data-testid="relation-{{ r.id }}-objet">{{ r.cible_titre }}</span>{% endif %}
+              <span class="muted">{{ r.sens == 'sortante' ? 'lie vers' : 'lié depuis' }} · {{ r.etat_libelle }}</span>
+              <form method="post" action="/documents/{{ doc.id }}/relations"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="retirer"><input type="hidden" name="proprietaire" value="{{ r.proprietaire }}"><input type="hidden" name="relation" value="{{ r.id }}"><button class="btn discret" type="submit" data-testid="relation-retirer-{{ r.id }}">Retirer</button></form>
+              {% if r.nature == 'sous-objet' %}<form method="post" action="/documents/{{ doc.id }}/relations"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="detacher"><input type="hidden" name="proprietaire" value="{{ r.proprietaire }}"><input type="hidden" name="cible" value="{{ r.cible }}"><button class="btn discret" type="submit" data-testid="relation-detacher-{{ r.id }}">Détacher</button></form>{% endif %}
+            </li>
+            {% else %}<li class="muted" data-testid="relations-vides">Aucune relation.</li>{% endfor %}
+          </ul>
         </div>
       </div>
     </section>

@@ -383,6 +383,10 @@ try {
         // le lancement de reconstruction n'est jamais atteint (CSRF absent ou rejoue).
         'POST /documents/{id:[0-9]+}/notes' => 'texte=',
         'POST /documents/{id:[0-9]+}/liens' => 'cible=0',
+        // Famille M-Files nº 2 (lot ged-mfiles-relations-1) : cible inexistante, le métier refuse
+        // (« document cible introuvable ») SANS écrire ; la sonde ne vérifie que l'absence et le rejeu
+        // du jeton CSRF de la route de relation.
+        'POST /documents/{id:[0-9]+}/relations' => 'action=lier&type=reference&cible=0',
         'POST /documents/{id:[0-9]+}/partages' => 'action=inconnue',
         'POST /documents/{id:[0-9]+}/partages/externe' => 'expiration=',
         'POST /application/reconstruction-index' => 'confirmation=',

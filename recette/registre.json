@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-12T23:12:05",
-    "duree_s":  1026,
-    "commit":  "c7b5380",
+    "date":  "2026-10-13T21:47:47",
+    "duree_s":  1109,
+    "commit":  "b0baef8",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[30;42mTests: 863\u001b[0m\u001b[30;42m, Assertions: 11538\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
+                                       "detail":  "\u001b[30;42mTests: 937\u001b[0m\u001b[30;42m, Assertions: 17975\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
                                        "ok":  true
                                    },
                     "3-banc":  {
@@ -16,7 +16,7 @@
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  95 passed (5.3m)",
+                                     "detail":  "  105 passed (4.9m)",
                                      "ok":  true
                                  },
                     "7-securite":  {
@@ -28,7 +28,7 @@
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 673 ms, p95 ├®criture 242 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
+                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 730 ms, p95 ├®criture 263 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
                                      "ok":  true
                                  },
                     "8-statique":  {
@@ -36,12 +36,16 @@
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 700 ms) | auditeur: 4/4 (mÃ©diane 415 ms) | comptable: 4/4 (mÃ©diane 561 ms) | debutant: 4/4 (mÃ©diane 382 ms) | fiduciaire: 4/4 (mÃ©diane 370 ms) | secretaire: 3/3 (mÃ©diane 534 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 694 ms) | auditeur: 4/4 (mÃ©diane 409 ms) | comptable: 4/4 (mÃ©diane 583 ms) | debutant: 4/4 (mÃ©diane 350 ms) | fiduciaire: 4/4 (mÃ©diane 402 ms) | secretaire: 3/3 (mÃ©diane 537 ms)",
                                        "ok":  true
                                    },
                     "9-parite":  {
-                                     "detail":  "parite : 780 elements | couverts 737 | strict 94,49 % | hors exclusions 97,49 % | ecarts 43 | VERT",
+                                     "detail":  "parite : 780 elements | couverts 737 | strict 94,49 % | hors exclusions 100,00 % | ecarts 43 | VERT",
                                      "ok":  true
-                                 }
+                                 },
+                    "9-parite-mfiles":  {
+                                            "detail":  "parite M-Files : 112 elements | couverts 49 | strict 43,75 % | hors exclusions 43,75 % | ecarts 63 | VERT",
+                                            "ok":  true
+                                        }
                 }
 }

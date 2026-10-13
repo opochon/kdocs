@@ -204,6 +204,43 @@ final class Module
             $c=(array)($req->getParsedBody() ?: []);$id=(int)$args['id'];$s=new \Ged\Socle\Collaboration($config);
             try { if((string)($c['action']??'lier')==='retirer')$s->retirerLien((int)($c['lien']??0),self::auteur($req));else $s->lier($id,(int)($c['cible']??0),(string)($c['libelle']??''),self::auteur($req),self::compte($req)); return $rep->withHeader('Location','/documents/'.$id.'?lien_succes=1')->withStatus(303); } catch(\Throwable $e) { return self::erreur($vue,$rep,'POST /documents/{id}/liens',$e->getMessage()); }
         });
+        // Famille M-Files nº 2 (lot ged-mfiles-relations-1) : relations TYPÉES de la fiche. Le service
+        // résout les chemins depuis l'index, écrit le `.meta.json` (le dossier fait foi) et trace chaque
+        // geste ; les règles de session/CSRF sont déjà appliquées par la garde centrale.
+        $app->post('/documents/{id:[0-9]+}/relations', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            $corps = (array) ($req->getParsedBody() ?: []);
+            $id = (int) $args['id'];
+            $compte = self::compte($req);
+            $administrateur = self::administrateur($req);
+            $depot = new \Ged\Socle\DepotFichiers($config);
+            $relations = new \Ged\Socle\Relations($config);
+            try {
+                $action = (string) ($corps['action'] ?? 'lier');
+                if ($action === 'retirer') {
+                    $proprietaire = (string) ($corps['proprietaire'] ?? '');
+                    self::exigerLecture($config, $compte, $administrateur, $proprietaire);
+                    $relations->retirer($proprietaire, (int) ($corps['relation'] ?? 0), self::auteur($req));
+                } elseif ($action === 'detacher') {
+                    // Détacher (M-Files « demoting objects ») : le lien de composition est retiré, l'enfant
+                    // devient indépendant. Chemins fournis par la fiche (propriétaire + cible).
+                    $proprietaire = (string) ($corps['proprietaire'] ?? '');
+                    $cible = (string) ($corps['cible'] ?? '');
+                    self::exigerLecture($config, $compte, $administrateur, $proprietaire);
+                    self::exigerLecture($config, $compte, $administrateur, $cible);
+                    $relations->detacher($proprietaire, $cible, self::auteur($req));
+                } else {
+                    $source = self::cheminDocument($depot, $id) ?? throw new \RuntimeException("relation : document $id introuvable dans le fonds");
+                    $cible = self::cheminDocument($depot, (int) ($corps['cible'] ?? 0)) ?? throw new \RuntimeException('relation : document cible introuvable dans le fonds');
+                    self::exigerLecture($config, $compte, $administrateur, $source);
+                    self::exigerLecture($config, $compte, $administrateur, $cible);
+                    $relations->lier($source, $cible, (string) ($corps['type'] ?? ''), self::auteur($req));
+                }
+
+                return $rep->withHeader('Location', '/documents/' . $id . '?relation_succes=1')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /documents/{id}/relations', $e->getMessage());
+            }
+        });
         $app->post('/documents/{id:[0-9]+}/partages', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
             return self::partageInterne($req, $rep, $args, $config, $vue);
         });
@@ -441,6 +478,10 @@ final class Module
     }
 
     private static function auteur(Requete $req): string { $s=$req->getAttribute('ged.session'); return is_array($s)?(string)($s['utilisateur']??'inconnu'):'inconnu'; }
+    /** Chemin du fonds d'un document de l'index, ou null : les relations s'adressent par le dossier. */
+    private static function cheminDocument(\Ged\Socle\DepotFichiers $depot, int $id): ?string { if ($id < 1) { return null; } $fiche = $depot->fiche($id); return $fiche === null ? null : (string) $fiche["chemin_relatif"]; }
+    /** Une relation n'est jamais posée, retirée ni détachée sur un document hors des droits de l'utilisateur. */
+    private static function exigerLecture(Config $config, ?int $compte, bool $administrateur, string $chemin): void { if ($compte === null || $administrateur || $chemin === '' || !class_exists(\Ged\Securite\DroitsDossiers::class)) { return; } $droits = new \Ged\Securite\DroitsDossiers(\Ged\Base::pdo($config)); $dossier = $droits->dossierPourChemin($chemin); if ($dossier === null || !$droits->autorise($compte, $dossier, 'lire')) { throw new \RuntimeException('relation : document hors de vos droits'); } }
     private static function compte(Requete $req): ?int { $s=$req->getAttribute('ged.session');$c=is_array($s)?($s['compte']??null):null;return is_int($c)&&$c>0?$c:null; }
     private static function administrateur(Requete $req): bool { $s=$req->getAttribute('ged.session');return is_array($s)&&in_array('*', array_values(array_map('strval',(array)($s['permissions']??[]))),true); }
     private static function erreur(Vue $vue, Reponse $rep, string $etape, string $cause, int $code=422): Reponse { return $vue->rendre($rep,'erreur.twig',['code'=>$code,'etape'=>$etape,'cause'=>$cause,'reference'=>''],$code); }

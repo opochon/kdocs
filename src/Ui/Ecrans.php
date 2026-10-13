@@ -168,7 +168,8 @@ final class Ecrans
         try {
             $session = $req->getAttribute('ged.session');
             $compte = is_array($session) && is_int($session['compte'] ?? null) ? $session['compte'] : null;
-            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id, $compte);
+            $administrateur = is_array($session) && in_array('*', array_values(array_map('strval', (array) ($session['permissions'] ?? []))), true);
+            $reel = Document::depuisRacine(dirname(__DIR__, 2))->donnees($id, $compte, $administrateur);
         } catch (\Throwable) {
             $reel = null;
         }
@@ -181,6 +182,8 @@ final class Ecrans
             // l'écran ne casse jamais et dit « — » quand l'information n'existe pas.
             'proprietaire' => '', 'proprietaire_id' => null, 'nom_origine' => '', 'pages' => 0,
             'asn' => '', 'storage_type' => 'unencrypted',
+            // Famille M-Files nº 2 : l'onglet Relations est toujours là, même sur le repli de maquette.
+            'relations' => [], 'relations_types' => [],
             'pdfa' => ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '', 'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''],
             'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
         $session = $req->getAttribute('ged.session');
@@ -208,6 +211,8 @@ final class Ecrans
             'version_erreur' => (string) ($req->getQueryParams()['version_erreur'] ?? ''),
             'secours_succes' => (int) ($req->getQueryParams()['secours_succes'] ?? 0),
             'secours_erreur' => (string) ($req->getQueryParams()['secours_erreur'] ?? ''),
+            'relation_succes' => (string) ($req->getQueryParams()['relation_succes'] ?? '') === '1',
+            'relation_erreur' => (string) ($req->getQueryParams()['relation_erreur'] ?? ''),
             // Le secret ne transite jamais dans l'URL : le flash serveur est consommé à ce seul rendu.
             'partage_lien' => ($jeton = (new \Ged\Socle\JetonPartageSession($config))->consommer(
                 (string) ($req->getCookieParams()['gedv2_session'] ?? '')
