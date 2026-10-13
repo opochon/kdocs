@@ -128,6 +128,13 @@ $sortie = & php tools\parite\juge.php 2>&1
 New-Item -ItemType Directory -Force var\harness | Out-Null; $sortie | Out-File var\harness\9-parite.txt -Encoding utf8
 $couches['9-parite'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match '^parite' } | Select-Object -Last 1) -join '' }
 
+# 9b. Parite M-Files (lot ged-mfiles-oracle-1) : meme methode, sur l'inventaire extrait de la
+#     DOCUMENTATION PUBLIQUE M-Files (capture versionnee). Vert si l'inventaire est complet et rejoue
+#     a l'identique ; ecrit recette\parite-mfiles.json et docs\parite\PARITE-MFILES.md.
+$sortie = & php tools\parite\juge-mfiles.php 2>&1
+$sortie | Out-File var\harness\9-parite-mfiles.txt -Encoding utf8
+$couches['9-parite-mfiles'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Where-Object { $_ -match '^parite M-Files' } | Select-Object -Last 1) -join '' }
+
 $registre = [ordered]@{
   date = (Get-Date).ToString('s'); duree_s = [int]((Get-Date) - $debut).TotalSeconds
   commit = (git rev-parse --short HEAD 2>$null); couches = $couches

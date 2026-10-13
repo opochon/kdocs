@@ -47,7 +47,9 @@ final class Kernel
         // docs/secteurs/interface.md (l'écran « À traiter » porte sa route de validation).
         // « Edition » (édition depuis le poste, F13) ajouté par le lot ged-edition-serveur : une ligne,
         // signalée dans docs/secteurs/edition-poste.md (rubrique « Chemins »).
-        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Edition', 'Ui', 'Archivage'] as $secteur) {
+        // « DepotFileserver » (famille archivage / versions, lot ged-mfiles-oracle-1) ajouté par le
+        // même mécanisme : une ligne, signalée dans docs/secteurs/depot-fileserver.md.
+        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Edition', 'Ui', 'Archivage', 'DepotFileserver'] as $secteur) {
             $module = 'Ged\\' . $secteur . '\\Module';
             if (class_exists($module)) {
                 $module::enregistrer($app, $config, $vue);

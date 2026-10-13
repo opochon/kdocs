@@ -1,0 +1,738 @@
+{
+  "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/",
+  "licence": "documentation publique M-Files (developer.m-files.com), consultee sans copie de code",
+  "total": 89,
+  "ressources": [
+    {
+      "page": "/APIs/REST-API/Reference/resources/favorites/",
+      "titre": "Favorites",
+      "chemin": "/favorites",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/favorites/type/objectid/",
+      "titre": "Favorite object",
+      "chemin": "/favorites/(type)/(objectid)",
+      "methodes": [
+        "DELETE",
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/files/",
+      "titre": "Temporary upload",
+      "chemin": "/files",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/",
+      "titre": "Objects",
+      "chemin": "/objects",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/automaticmetadata/",
+      "titre": "Automatic metadata",
+      "chemin": "/objects/automaticmetadata",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/demoting-objects/",
+      "titre": "Demoting objects",
+      "chemin": "/objects/demotemultiobjects",
+      "methodes": [
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/properties/",
+      "titre": "Properties of multiple objects",
+      "chemin": "/objects/properties",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/setmultipleobjproperties/",
+      "titre": "Setting properties on multiple objects",
+      "chemin": "/objects/setmultipleobjproperties",
+      "methodes": [
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/",
+      "titre": "Objects of type",
+      "chemin": "/objects/(type)",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/",
+      "titre": "Object",
+      "chemin": "/objects/(type)/(objectid)",
+      "methodes": []
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/deleted/",
+      "titre": "Deleted",
+      "chemin": "/objects/(type)/(objectid)/deleted",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/history/",
+      "titre": "History",
+      "chemin": "/objects/(type)/(objectid)/history",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/",
+      "titre": "Object version",
+      "chemin": "/objects/(type)/(objectid)/(version)",
+      "methodes": [
+        "DELETE",
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/checkedout/",
+      "titre": "Check out status",
+      "chemin": "/objects/(type)/(objectid)/(version)/checkedout",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/comments/",
+      "titre": "Comments",
+      "chemin": "/objects/(type)/(objectid)/(version)/comments",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/",
+      "titre": "Object files",
+      "chemin": "/objects/(type)/(objectid)/(version)/files",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/",
+      "titre": "Object file",
+      "chemin": "/objects/(type)/(objectid)/(version)/files/(file)",
+      "methodes": [
+        "DELETE",
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/content/",
+      "titre": "Contents",
+      "chemin": "/objects/(type)/(objectid)/(version)/files/(file)/content",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/preview/",
+      "titre": "File thumbnail",
+      "chemin": "/objects/(type)/(objectid)/(version)/files/(file)/preview",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/title/",
+      "titre": "File name",
+      "chemin": "/objects/(type)/(objectid)/(version)/files/(file)/title",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/preview/",
+      "titre": "Object thumbnail",
+      "chemin": "/objects/(type)/(objectid)/(version)/preview",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/",
+      "titre": "Object properties",
+      "chemin": "/objects/(type)/(objectid)/(version)/properties",
+      "methodes": [
+        "GET",
+        "POST",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/id/",
+      "titre": "Single object property",
+      "chemin": "/objects/(type)/(objectid)/(version)/properties/(id)",
+      "methodes": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/",
+      "titre": "Relationships",
+      "chemin": "/objects/(type)/(objectid)/(version)/relationships",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/relationships/count/",
+      "titre": "Relationship count",
+      "chemin": "/objects/(type)/(objectid)/(version)/relationships/count",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/",
+      "titre": "Sub-objects",
+      "chemin": "/objects/(type)/(objectid)/(version)/subobjects",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/subobjects/count/",
+      "titre": "Sub-object count",
+      "chemin": "/objects/(type)/(objectid)/(version)/subobjects/count",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/title/",
+      "titre": "Object title",
+      "chemin": "/objects/(type)/(objectid)/(version)/title",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/",
+      "titre": "Object workflow state",
+      "chemin": "/objects/(type)/(objectid)/(version)/workflowstate",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/recentlyaccessedbyme/",
+      "titre": "Recently accessed by the user",
+      "chemin": "/recentlyaccessedbyme",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/repositories/",
+      "titre": "Repositories",
+      "chemin": "/repositories",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/repositories/session/",
+      "titre": "Repository session",
+      "chemin": "/repositories/(targetid)/session",
+      "methodes": [
+        "DELETE",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/",
+      "titre": "Server resources",
+      "chemin": "/server",
+      "methodes": []
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/authenticationtokens/",
+      "titre": "Authentication tokens",
+      "chemin": "/server/authenticationtokens",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/capabilities/",
+      "titre": "Vaults",
+      "chemin": "/server/capabilities",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/publickey/",
+      "titre": "Server public key",
+      "chemin": "/server/publickey",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/status/",
+      "titre": "Server status",
+      "chemin": "/server/status",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/vaults/",
+      "titre": "Vaults",
+      "chemin": "/server/vaults",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/server/vaults/vault/status/",
+      "titre": "Vault status",
+      "chemin": "/server/vaults/(vault)/status",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/session/",
+      "titre": "Session",
+      "chemin": "/session",
+      "methodes": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/session/authenticationtoken/",
+      "titre": "Session",
+      "chemin": "/session/authenticationtoken",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/session/userid/",
+      "titre": "User ID",
+      "chemin": "/session/userid",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/session/vault/",
+      "titre": "Session",
+      "chemin": "/session/vault",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/session/vaults/",
+      "titre": "Session",
+      "chemin": "/session/vaults",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/sharedlinks/",
+      "titre": "Shared Links",
+      "chemin": "/sharedlinks",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/sharedlinks/content/",
+      "titre": "Download shared file",
+      "chemin": "/sharedlinks/(VaultGUID)/(SharePublicAccessKey)/content",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/sharedlinks/delete/",
+      "titre": "Delete shared file link",
+      "chemin": "/sharedlinks/(SharePublicAccessKey)",
+      "methodes": [
+        "DELETE"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/",
+      "titre": "Vault structure",
+      "chemin": "/structure",
+      "methodes": []
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/",
+      "titre": "Object classes",
+      "chemin": "/structure/classes",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/id/",
+      "titre": "Object class",
+      "chemin": "/structure/classes/(id)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/id/icon/",
+      "titre": "Class icon",
+      "chemin": "/structure/classes/(id)/icon",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/",
+      "titre": "Object class ID by alias",
+      "chemin": "/structure/classes/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/itemidbyalias/alias/",
+      "titre": "Object class ID by alias",
+      "chemin": "/structure/classes/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/classes/itemidbyguid/",
+      "titre": "Object class",
+      "chemin": "/structure/classes/itemidbyguid/(:guid)/item",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/itemidbyalias/",
+      "titre": "Vault structural element alias to ID resolution",
+      "chemin": "/structure/metadatastructure/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/",
+      "titre": "Object types",
+      "chemin": "/structure/objecttypes",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/",
+      "titre": "Object type ID by alias",
+      "chemin": "/structure/objecttypes/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/itemidbyalias/alias/",
+      "titre": "Object type ID by alias",
+      "chemin": "/structure/objecttypes/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/type/",
+      "titre": "Object type",
+      "chemin": "/structure/objecttypes/(type)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/type/classes/",
+      "titre": "Object type classes",
+      "chemin": "/structure/objecttypes/(type)/classes",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/type/icon/",
+      "titre": "Object type icon",
+      "chemin": "/structure/objecttypes/(type)/icon",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/objecttypes/type/refreshstatus/",
+      "titre": "External source refresh",
+      "chemin": "/structure/objecttypes/(type)/refreshstatus",
+      "methodes": [
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/properties/",
+      "titre": "Property definitions",
+      "chemin": "/structure/properties",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/properties/id/",
+      "titre": "Property definition",
+      "chemin": "/structure/properties/(id)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/properties/id/valuelist-items/",
+      "titre": "Property definition",
+      "chemin": "/structure/properties/(id)/valuelist/items",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/",
+      "titre": "Property definition ID by alias",
+      "chemin": "/structure/properties/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/properties/itemidbyalias/alias/",
+      "titre": "Property definition ID by alias",
+      "chemin": "/structure/properties/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/",
+      "titre": "Value lists",
+      "chemin": "/valuelists",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/id/",
+      "titre": "Workflow",
+      "chemin": "/valuelists/(id)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/id/items/",
+      "titre": "Value list items",
+      "chemin": "/valuelists/(id)/items",
+      "methodes": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/",
+      "titre": "Value list item",
+      "chemin": "/valuelists/(id)/items/(objectid)",
+      "methodes": [
+        "DELETE",
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/",
+      "titre": "Value list item title",
+      "chemin": "/valuelists/(id)/items/(objectid)/title",
+      "methodes": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/",
+      "titre": "Value list ID by alias",
+      "chemin": "/structure/valuelists/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/alias/",
+      "titre": "Value list ID by alias",
+      "chemin": "/structure/valuelists/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/",
+      "titre": "Workflows",
+      "chemin": "/structure/workflows",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/",
+      "titre": "Workflow",
+      "chemin": "/structure/workflows/(id)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/states/",
+      "titre": "Workflow states",
+      "chemin": "/structure/workflows/(id)/states",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/states/id/",
+      "titre": "Workflow state",
+      "chemin": "/structure/workflows/(id)/states/(id)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/states/itemidbyalias/",
+      "titre": "Workflow state IDs by alias",
+      "chemin": "/structure/workflowstates/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/states/itemidbyalias/alias/",
+      "titre": "Workflow state ID by alias",
+      "chemin": "/structure/workflowstates/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/",
+      "titre": "Workflow state transitions",
+      "chemin": "/structure/workflows/(id)/statetransitions",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/itemidbyalias/",
+      "titre": "Workflow state transition ID by alias",
+      "chemin": "/structure/statetransitions/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/itemidbyalias/alias/",
+      "titre": "Workflow state transition ID by alias",
+      "chemin": "/structure/statetransitions/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/itemidbyalias/",
+      "titre": "Workflow ID by alias",
+      "chemin": "/structure/workflows/itemidbyalias",
+      "methodes": [
+        "POST"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/structure/workflows/itemidbyalias/alias/",
+      "titre": "Workflow ID by alias",
+      "chemin": "/structure/workflows/itemidbyalias/(alias)",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/views/path/",
+      "titre": "View",
+      "chemin": "/views/(path)",
+      "methodes": []
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/views/path/items/",
+      "titre": "View contents",
+      "chemin": "/views/(path)/items",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/views/path/items/count/",
+      "titre": "View contents count",
+      "chemin": "/views/(path)/items/count",
+      "methodes": [
+        "GET"
+      ]
+    },
+    {
+      "page": "/APIs/REST-API/Reference/resources/views/path/objects/",
+      "titre": "Search view contents",
+      "chemin": "/views/(path)/objects",
+      "methodes": [
+        "GET"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "categorie": "mfiles-versions",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/",
+    "modele": "docs/ARCHIVAGE-FILESERVER.md : le dossier fait foi, versions dans un dossier masque doublees d'un depot separe"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "mfiles:version:modification-hors-ged",
+      "entree": { "scenario": "modification", "fichier": "2026/facture.txt", "avant": "v1", "apres": "v2" },
+      "sortie": { "type": "modifie", "versions_apres": 2, "version_ancienne": "v1", "version_courante": "v2" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/#put"
+    },
+    {
+      "id": "mfiles:version:deplacement-hors-ged",
+      "entree": { "scenario": "deplacement", "avant": "2026/facture.txt", "apres": "2026/archives/facture.txt" },
+      "sortie": { "type": "deplace", "meme_empreinte": true, "ancien_chemin": "2026/facture.txt" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/history/#get"
+    },
+    {
+      "id": "mfiles:version:suppression-hors-ged",
+      "entree": { "scenario": "suppression", "fichier": "contrat.txt", "contenu": "important" },
+      "sortie": { "type": "supprime", "etat_manifeste": "absent", "conserve_garantie": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/deleted/#get"
+    },
+    {
+      "id": "mfiles:version:restauration-sans-perte",
+      "entree": { "scenario": "restauration", "fichier": "contrat.txt", "v1": "contrat-v1", "v2": "contrat-v2" },
+      "sortie": { "type": "restaure", "courant": "contrat-v1", "versions_conservees": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/#get"
+    }
+  ]
+}

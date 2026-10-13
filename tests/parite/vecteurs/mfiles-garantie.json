@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "categorie": "mfiles-garantie",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/",
+    "modele": "docs/ARCHIVAGE-FILESERVER.md : dossier masque = confort, depot separe = garantie, reversibilite"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "mfiles:garantie:scan-initial-tous-les-fichiers",
+      "entree": { "scenario": "scan-initial", "fichiers": ["2026/facture.txt", "divers/notes.md", "2026/contrat.txt"] },
+      "sortie": { "empreintes": 3, "garantis": 3, "versions": 3 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/#get"
+    },
+    {
+      "id": "mfiles:garantie:depot-separe-idempotent",
+      "entree": { "scenario": "depot-separe", "chemins": ["a.txt", "b.txt"], "contenu": "meme-contenu" },
+      "sortie": { "contenus_garantis": 1, "origines": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/#post"
+    },
+    {
+      "id": "mfiles:garantie:reversibilite-sans-interne",
+      "entree": { "scenario": "reversibilite", "fichiers": ["2026/facture.txt", "2026/facture.txt.meta.json", "divers/notes.md"] },
+      "sortie": { "exportes": 3, "identiques": 3, "ecarts": 0, "interne_absent": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/content/#get"
+    }
+  ]
+}
