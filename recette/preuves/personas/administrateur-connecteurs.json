@@ -3,7 +3,7 @@
   "fonction": "F3",
   "libelle": "Lire l’état des connecteurs K-Time et ClearMyMails",
   "trouve": true,
-  "temps_ms": 716,
-  "ecran": "http://127.0.0.1:64400/application — Application",
+  "temps_ms": 743,
+  "ecran": "http://127.0.0.1:52368/application — Application",
   "erreur": ""
 }

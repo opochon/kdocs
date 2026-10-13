@@ -3,7 +3,7 @@
   "fonction": "F7",
   "libelle": "Lire l’arbre des dossiers du fonds dans la bibliothèque",
   "trouve": true,
-  "temps_ms": 281,
-  "ecran": "http://127.0.0.1:62286/bibliotheque — Bibliothèque",
+  "temps_ms": 262,
+  "ecran": "http://127.0.0.1:55677/bibliotheque — Bibliothèque",
   "erreur": ""
 }
