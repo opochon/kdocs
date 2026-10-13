@@ -230,6 +230,17 @@ final class Champs
      */
     public function poserValeur(string $cheminRelatif, string $cle, string $valeurBrute): array
     {
+        return $this->poserValeurTypée($cheminRelatif, $cle, $valeurBrute);
+    }
+
+    /**
+     * Variante typée de `poserValeur` : booléen, nombre, montant, liste d'identifiants de liens ou
+     * chaîne. Une valeur nulle ou vide efface le champ (le fichier et son historique restent).
+     *
+     * @return array<string, mixed> le meta final du document
+     */
+    public function poserValeurTypée(string $cheminRelatif, string $cle, mixed $valeur): array
+    {
         $absolu = $this->depot->cheminAbsolu($cheminRelatif);
         if (!is_file($absolu)) {
             throw new RuntimeException("champ : document introuvable dans le fonds ($cheminRelatif)");
@@ -253,10 +264,10 @@ final class Champs
         }
 
         $champs = isset($meta['champs']) && is_array($meta['champs']) ? $meta['champs'] : [];
-        if (trim($valeurBrute) === '') {
+        if ($valeur === null || (is_string($valeur) && trim($valeur) === '')) {
             unset($champs[$cle]);
         } else {
-            $champs[$cle] = $this->validerDef($def, $valeurBrute);
+            $champs[$cle] = $this->validerDefinition($def, $valeur);
         }
         if ($champs === []) {
             unset($meta['champs']);
@@ -506,25 +517,25 @@ final class Champs
     }
 
     /**
-     * Valide une saisie pour une définition de champ : une liste nommée exige une valeur ACTIVE de
-     * cette liste, les autres natures passent par la validation commune.
+     * Valide une valeur pour une définition de champ : une liste nommée exige une valeur ACTIVE de
+     * cette liste, les autres natures passent par la validation commune (type PHP quelconque).
      *
      * @param array<string,mixed> $def
      */
-    private function validerDef(array $def, string $brute): mixed
+    public function validerDefinition(array $def, mixed $valeur): mixed
     {
         $nature = (string) ($def['nature'] ?? '');
         $liste = $def['liste'] ?? null;
         if ($nature === 'liste' && is_string($liste) && $liste !== '') {
-            $brute = trim($brute);
-            if (!in_array($brute, $this->listes->valeursDe($liste), true)) {
-                throw new RuntimeException("champ liste : « $brute » n’est pas une valeur active de la liste nommée « $liste »");
+            $texte = is_string($valeur) ? trim($valeur) : (string) $valeur;
+            if (!in_array($texte, $this->listes->valeursDe($liste), true)) {
+                throw new RuntimeException("champ liste : « $texte » n’est pas une valeur active de la liste nommée « $liste »");
             }
 
-            return $brute;
+            return $texte;
         }
 
-        return self::valider($nature, array_values(array_map('strval', (array) ($def['options'] ?? []))), $brute);
+        return self::validerValeur($nature, array_values(array_map('strval', (array) ($def['options'] ?? []))), $valeur);
     }
 
     private static function nettoyerListe(?string $liste): ?string
