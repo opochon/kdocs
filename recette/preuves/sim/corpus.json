@@ -1,13 +1,13 @@
 {
     "lot": "ged-sim-corpus-1",
-    "date": "2026-10-13T14:46:55+00:00",
+    "date": "2026-10-13T14:49:36+00:00",
     "seed": 20261013,
     "documents": 237,
     "pages": 1240,
     "gros_pdf": 6,
     "corpus": "var/sim/corpus",
     "verite": "recette/sim/verite-corpus.json",
-    "duree_ingestion_s": 35.37,
+    "duree_ingestion_s": 38.97,
     "documents_indexes": 237,
     "poses_index": 237,
     "erreurs_depot": [],
@@ -29,7 +29,7 @@
         "requetes": 12,
         "precision_moyenne": 1,
         "rappel_moyen": 1,
-        "temps_max_ms": 5.5,
+        "temps_max_ms": 6.2,
         "erreurs": [],
         "detail": [
             {
@@ -42,7 +42,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.5
+                "duree_ms": 6.2
             },
             {
                 "id": "mot-elagage",
@@ -54,7 +54,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.4
+                "duree_ms": 6.2
             },
             {
                 "id": "mot-desinsectisation",
@@ -66,7 +66,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 4.7
+                "duree_ms": 5.4
             },
             {
                 "id": "mot-debouchage",
@@ -78,7 +78,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 4.7
+                "duree_ms": 4.9
             },
             {
                 "id": "mot-etancheite",
@@ -90,7 +90,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5
+                "duree_ms": 5.3
             },
             {
                 "id": "mot-carrelage",
@@ -102,7 +102,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.1
+                "duree_ms": 5.4
             },
             {
                 "id": "mot-vitrerie",
@@ -114,7 +114,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.2
+                "duree_ms": 4.9
             },
             {
                 "id": "mot-serrurerie",
@@ -126,7 +126,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.4
+                "duree_ms": 5.7
             },
             {
                 "id": "filtre-type-contrat",
@@ -170,7 +170,7 @@
                 "intersection": 15,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 2.5
+                "duree_ms": 2.6
             },
             {
                 "id": "fragment-like",
@@ -182,7 +182,7 @@
                 "intersection": 10,
                 "precision": 1,
                 "rappel": 1,
-                "duree_ms": 5.2
+                "duree_ms": 5.6
             }
         ]
     },

@@ -38,6 +38,7 @@ const SEUIL_EMETTEURS_VIDES = 0.15;       // part maximale d'émetteurs non lus
 const SEUIL_PRECISION = 0.90;             // précision moyenne de la recherche
 const SEUIL_RAPPEL = 0.90;                // rappel moyen de la recherche
 const BUDGET_MS_PAR_REQUETE = 1000;       // budget de temps par requête
+const LIMITE_REQUETE = 200;               // résultats ramenés par requête (au-delà : non mesuré)
 
 $racine = dirname(__DIR__, 2);
 require $racine . '/vendor/autoload.php';
@@ -72,9 +73,17 @@ foreach ((array) $lectures['documents'] as $lecture) {
 }
 
 // Fonds de simulation régénérable : le dossier fait foi, il est rangé par le vrai Socle.
+// Un fonds mal vidé fausserait la mesure : on refuse de continuer plutôt que de mesurer un reste.
 $fonds = $racine . '/var/sim/fonds';
-viderDossier($fonds);
-@mkdir($fonds, 0775, true);
+$restes = viderDossier($fonds);
+if ($restes > 0) {
+    fwrite(STDERR, "fonds de simulation non vidé ($restes élément(s) restant(s)) : $fonds\n");
+    exit(2);
+}
+if (!is_dir($fonds) && !mkdir($fonds, 0775, true) && !is_dir($fonds)) {
+    fwrite(STDERR, "fonds de simulation impossible à préparer : $fonds\n");
+    exit(2);
+}
 putenv('STORAGE_ROOT=' . $fonds);
 
 Base::assurerBase($config);
@@ -159,7 +168,7 @@ $sommeRappel = 0.0;
 $maxMs = 0.0;
 $erreursRequetes = [];
 foreach ($requetes as $requete) {
-    $parametres = array_merge(['q' => (string) ($requete['q'] ?? ''), 'limite' => 200],
+    $parametres = array_merge(['q' => (string) ($requete['q'] ?? ''), 'limite' => LIMITE_REQUETE],
         (array) ($requete['filtres'] ?? []));
     $resultat = $moteur->rechercher(Requete::depuisParametres($parametres));
     if ($resultat->erreur !== null) {
@@ -360,19 +369,29 @@ function reinitialiser(PDO $pdo): void
     }
 }
 
-/** Vide un dossier régénérable sans supprimer le dossier racine (fonds de simulation). */
-function viderDossier(string $chemin): void
+/**
+ * Vide un dossier régénérable sans supprimer le dossier racine (fonds de simulation).
+ * Rend le nombre d'éléments qui n'ont PAS pu être supprimés : l'appelant refuse de mesurer un reste.
+ */
+function viderDossier(string $chemin): int
 {
     if (!is_dir($chemin)) {
-        return;
+        return 0;
     }
+    $echecs = 0;
     $it = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($chemin, FilesystemIterator::SKIP_DOTS),
         RecursiveIteratorIterator::CHILD_FIRST
     );
     foreach ($it as $element) {
-        if ($element instanceof SplFileInfo) {
-            $element->isDir() ? @rmdir($element->getPathname()) : @unlink($element->getPathname());
+        if (!$element instanceof SplFileInfo) {
+            continue;
+        }
+        $supprime = $element->isDir() ? @rmdir($element->getPathname()) : @unlink($element->getPathname());
+        if (!$supprime) {
+            ++$echecs;
         }
     }
+
+    return $echecs;
 }
