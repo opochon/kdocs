@@ -37,8 +37,7 @@ famille structurante du modèle M-Files, prouvés par des vecteurs rejoués et d
 
 ### En cours
 
-- Rejeu du harness complet de fin de lot (couche 4 instable sous charge machine : les 4 parcours en
-  échec au premier passage repassent 13/13 en isolation).
+- _(aucun)_
 
 ### Reste
 
@@ -71,13 +70,29 @@ famille structurante du modèle M-Files, prouvés par des vecteurs rejoués et d
 | Parcours E2E `classes-metadonnees.spec.ts` | 4/4 |
 | PHPStan niveau 6 | 0 erreur hors baseline (baseline vide, inchangée) |
 
-### Couche 4 du harness — stabilité
+### Harness complet `-SansBanc` (3e passage, vert)
 
-Le premier passage complet du harness a vu 4 parcours E2E en échec (dont 3 hors de ce lot :
-`a-traiter` 20 s dépassées, `asn` et `collaboration` attentes d'URL 5 s). Rejoués en isolation :
-**13/13 verts en 48 s**. Ces échecs sont des effets de charge machine (plusieurs `node`/`php`
-d'autres ateliers tournaient en parallèle), pas des défauts produit : le parcours
-`classes-metadonnees` et les trois voisins repassent sans changement de code.
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` — couche 3 ROUGE par
+construction (`-SansBanc`), toutes les autres couches VERTES (registre `recette/registre.json`) :
+
+| Couche | État | Détail exact |
+| --- | --- | --- |
+| 0 garde-fous | VERT | vendor et `node_modules/@playwright/test` présents ; `DB_NAME=gedv2_test` imposé |
+| 1 unitaire | VERT | **919 tests, 13 376 assertions**, 1 sauté |
+| 3 banc | ROUGE | sautée (`-SansBanc`), par construction |
+| 4 écrans | VERT | **103 parcours passés** (5,3 min), dont `classes-metadonnees.spec.ts` 4/4 |
+| 7 sécurité | VERT | aucune charge CSRF acceptée (dont les 3 routes du lot) |
+| 2 contrat | VERT | toutes les routes déclarées couvertes (dont les 3 routes du lot) |
+| 6 charge | VERT | p95 lecture **749 ms**, p95 écriture **256 ms**, 0 erreur, 0 collision |
+| 8 statique | VERT | PHPStan niveau 6 : **0 erreur** ; composer audit : aucune vulnérabilité |
+| 5 personas | VERT | administrateur 4/4, auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
+| 9 parité Paperless | VERT | 780 éléments, couverts **737**, strict **94,49 %**, hors exclusions **100,00 %** |
+| 9b parité M-Files | VERT | 112 éléments, couverts **44**, strict **39,29 %**, écarts 68, inventaire rejoué à l'identique |
+
+Note d'exploitation : le premier passage complet a vu 4 parcours E2E en échec sous charge machine
+(3 hors de ce lot), rejoués 13/13 verts en isolation ; le deuxième passage a été empêché par des
+serveurs `php -S` orphelins restés sur les ports 8871/8872. Après nettoyage (consigne du harness), le
+troisième passage est vert de bout en bout.
 
 ## `mfiles:*` restants proposés au juge (68, statut `absent`)
 
@@ -112,4 +127,4 @@ Aucune exclusion n'est posée par l'agent. Répartition par ressource publique M
   avant le code et vus rouges (5 échecs/erreurs sur `ChampsTest`, 8 erreurs sur `CarteTest`,
   4 sur `DefinitionTest`), puis verts.
 
-ETAT: en cours
+ETAT: fini
