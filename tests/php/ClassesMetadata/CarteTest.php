@@ -9,7 +9,6 @@ use Ged\Socle\Champs;
 use Ged\Socle\DepotFichiers;
 use Ged\Socle\Listes;
 use Ged\Socle\Nomenclature;
-use Ged\Tests\Socle\SupportCorpus;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class CarteTest extends TestCase
 {
-    use SupportCorpus;
+    use SupportClassesMetadata;
 
     private Carte $carte;
     private Champs $champs;
@@ -28,7 +27,7 @@ final class CarteTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->setUpCorpus();
+        $this->setUpClassesMetadata();
         (new Nomenclature($this->config))->assurer();
         (new Listes($this->config))->assurer();
         $this->carte = new Carte($this->config);
@@ -38,7 +37,7 @@ final class CarteTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->tearDownCorpus();
+        $this->tearDownClassesMetadata();
     }
 
     private function idDuType(string $nom): int

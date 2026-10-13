@@ -62,9 +62,11 @@ function p(string $cible): array
 }
 
 $serviceSocle = 'Ged' . $bs . 'Socle' . $bs;
+$serviceClasses = 'Ged' . $bs . 'ClassesMetadata' . $bs;
 $serviceDepot = 'Ged' . $bs . 'DepotFileserver' . $bs;
 $testJonctions = 'Ged' . $bs . 'Tests' . $bs . 'Jonctions' . $bs;
 $testSocle = 'Ged' . $bs . 'Tests' . $bs . 'Socle' . $bs;
+$testClasses = 'Ged' . $bs . 'Tests' . $bs . 'ClassesMetadata' . $bs;
 $testDepot = 'Ged' . $bs . 'Tests' . $bs . 'DepotFileserver' . $bs;
 
 /**
@@ -122,6 +124,192 @@ $couverts = [
         service($serviceSocle . 'Nomenclature'),
         p($testSocle . 'NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase'),
         'Classes d’objets et listes de valeurs nommées (nomenclature du fonds).',
+    ],
+    // --- Famille 1 : classes d’objets, métadonnées dynamiques, listes de valeurs nommées -------------
+    // (lot ged-mfiles-classes-1 ; services Ged\ClassesMetadata\Carte et Ged\Socle\Listes).
+    'mfiles:rest:get:structure-classes-id' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testLaCarteDuneClasseNeMontreQueSesPropresProprietes'),
+        'La carte d’une classe : ses propriétés attendues, lues dans le fonds.',
+    ],
+    'mfiles:rest:get:structure-classes-itemidbyalias-alias' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un alias de classe (clé slug) vers son identifiant.',
+    ],
+    'mfiles:rest:get:structure-classes-itemidbyguid-guid-item' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un alias stable de classe (la clé slug joue le rôle du GUID), sans identifiant propriétaire.',
+        true,
+    ],
+    'mfiles:rest:post:structure-classes-itemidbyalias' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un lot d’alias de classes (classesParAlias).',
+    ],
+    'mfiles:rest:get:structure-objecttypes' => [
+        service($serviceSocle . 'Nomenclature'),
+        p($testSocle . 'NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase'),
+        'GEDv2 a un seul niveau type/classe : la nomenclature du fonds joue le rôle des types d’objets.',
+        true,
+    ],
+    'mfiles:rest:get:structure-objecttypes-type' => [
+        service($serviceSocle . 'Nomenclature'),
+        p($testSocle . 'NomenclatureTest::testLaNomenclatureVitDansLeFondsPasDansLaBase'),
+        'Un type d’objet = une classe du fonds (nomenclature), lue telle quelle.',
+        true,
+    ],
+    'mfiles:rest:get:structure-objecttypes-type-classes' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Les classes d’un type : la carte d’une classe liste ses propriétés attendues.',
+        true,
+    ],
+    'mfiles:rest:get:structure-objecttypes-itemidbyalias-alias' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un alias de type/classe.',
+        true,
+    ],
+    'mfiles:rest:post:structure-objecttypes-itemidbyalias' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un lot d’alias de types/classes.',
+        true,
+    ],
+    'mfiles:rest:get:structure-properties-id' => [
+        service($serviceSocle . 'Champs'),
+        p($testSocle . 'ChampsTest::testUnChampSeRelitParIdEtParCle'),
+        'Définition d’une propriété (champ typé) par son identifiant.',
+    ],
+    'mfiles:rest:get:structure-properties-itemidbyalias-alias' => [
+        service($serviceSocle . 'Champs'),
+        p($testSocle . 'ChampsTest::testUnChampSeRelitParIdEtParCle'),
+        'Définition d’une propriété par sa clé stable (slug).',
+    ],
+    'mfiles:rest:post:structure-properties-itemidbyalias' => [
+        service($serviceSocle . 'Champs'),
+        p($testSocle . 'ChampsTest::testUnChampSeRelitParIdEtParCle'),
+        'Résolution d’un lot d’alias de propriétés (parCle).',
+    ],
+    'mfiles:rest:get:structure-properties-id-valuelist-items' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testValeursDeProprieteViennentDeLaListeNommee'),
+        'Les valeurs proposées par une propriété viennent de sa liste nommée.',
+    ],
+    'mfiles:rest:post:structure-metadatastructure-itemidbyalias' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testResoudreLesAliasDeLaStructure'),
+        'Résolution d’un alias de structure : classe, propriété ou liste nommée.',
+    ],
+    'mfiles:rest:get:valuelists' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testLaGrainePorteLesVocabulairesLivresEtEstIdempotente'),
+        'Listes de valeurs nommées du fonds (configuration portable).',
+    ],
+    'mfiles:rest:get:valuelists-id' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjouterRenommerDesactiverSansJamaisSupprimer'),
+        'Une liste nommée par son identifiant.',
+    ],
+    'mfiles:rest:get:valuelists-id-items' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testCompletRendLesValeursPourLAdministration'),
+        'Les valeurs d’une liste nommée, valeurs retirées comprises.',
+    ],
+    'mfiles:rest:get:valuelists-id-items-objectid' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur'),
+        'Une valeur de liste par son identifiant, retirée ou active.',
+    ],
+    'mfiles:rest:get:valuelists-id-items-objectid-title' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur'),
+        'Le libellé d’une valeur de liste nommée.',
+    ],
+    'mfiles:rest:post:valuelists-id-items' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur'),
+        'Ajouter une valeur à une liste nommée.',
+    ],
+    'mfiles:rest:delete:valuelists-id-items-objectid' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur'),
+        'Retirer une valeur SANS l’effacer : retrait daté et attribué, la valeur reste traçable dans le dossier.',
+        true,
+    ],
+    'mfiles:rest:put:valuelists-id-items-objectid-title' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur'),
+        'Renommer le libellé d’une valeur de liste nommée.',
+    ],
+    'mfiles:rest:get:structure-valuelists-itemidbyalias-alias' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testResoudreUnAliasDeListe'),
+        'Résolution d’un alias de liste nommée.',
+    ],
+    'mfiles:rest:post:structure-valuelists-itemidbyalias' => [
+        service($serviceSocle . 'Listes'),
+        p($testSocle . 'ListesTest::testResoudreUnAliasDeListe'),
+        'Résolution d’un alias de liste nommée (parCle).',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-properties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testLaCarteDunDocumentSuitSaClasseEtRelitSesValeurs'),
+        'La carte de métadonnées d’un document : ses propriétés et leurs valeurs, lues du .meta.json.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-properties-id' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testLaCarteDunDocumentSuitSaClasseEtRelitSesValeurs'),
+        'Une valeur de propriété d’un document.',
+    ],
+    'mfiles:rest:post:objects-type-objectid-version-properties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier'),
+        'Poser une propriété typée sur un document : le .meta.json fait foi, le fichier ne bouge pas.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-properties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserPlusieursEtSurPlusieursDocuments'),
+        'Poser plusieurs propriétés sur un document (validation avant écriture).',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-properties-id' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier'),
+        'Remplacer une propriété d’un document.',
+    ],
+    'mfiles:rest:delete:objects-type-objectid-version-properties-id' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserRelireEtEffacerUneValeurTypeeSansToucherAuFichier'),
+        'Effacer une valeur de propriété : la valeur quitte le .meta.json, le fichier et son historique restent intacts.',
+        true,
+    ],
+    'mfiles:rest:get:objects-properties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserPlusieursEtSurPlusieursDocuments'),
+        'Lire les propriétés de plusieurs documents (cartes indexées par chemin).',
+    ],
+    'mfiles:rest:post:objects-properties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserPlusieursEtSurPlusieursDocuments'),
+        'Lire les propriétés de plusieurs objets/documents.',
+    ],
+    'mfiles:rest:put:objects-setmultipleobjproperties' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testPoserPlusieursEtSurPlusieursDocuments'),
+        'Poser les mêmes propriétés sur plusieurs documents (poserSurPlusieurs).',
+    ],
+    'mfiles:rest:get:objects-type' => [
+        service($serviceClasses . 'Carte'),
+        p($testClasses . 'CarteTest::testDocumentsDeClasseNeRendQueLesVivantsDeCetteClasse'),
+        'Les documents vivants d’une classe (le fonds, pas la base).',
+    ],
+    'mfiles:rest:post:objects-type' => [
+        service($serviceSocle . 'DepotFichiers'),
+        p($testSocle . 'RangementTest::testDepotRangeFichierMetaEtVersion1'),
+        'Créer un objet d’un type = déposer un document portant cette classe (le .meta.json porte le type).',
+        true,
     ],
 ];
 

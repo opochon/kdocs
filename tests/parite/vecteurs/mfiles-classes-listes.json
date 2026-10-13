@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "categorie": "mfiles-classes-listes",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/",
+    "modele": "Famille M-Files 1 : listes de valeurs nommees reutilisables, CRUD, integrite tracee"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "mfiles:classes:liste-creation",
+      "entree": { "scenario": "liste-creation", "nom": "Service", "valeurs": ["Audit", "Révision"] },
+      "sortie": { "nom": "Service", "cle": "service", "valeurs": ["Audit", "Révision"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/#get"
+    },
+    {
+      "id": "mfiles:classes:liste-retrait-trace",
+      "entree": { "scenario": "liste-retrait", "cle": "statut", "libelle": "Validé", "auteur": "juge@gedv2.test" },
+      "sortie": { "active_avant": true, "active_apres": false, "proposee_apres": false, "visible_inclusive": true, "date_posee": true, "auteur": "juge@gedv2.test" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#delete"
+    },
+    {
+      "id": "mfiles:classes:liste-alias",
+      "entree": { "scenario": "liste-alias", "alias": "statut" },
+      "sortie": { "cle": "statut", "type": "liste" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/itemidbyalias/alias/#get"
+    },
+    {
+      "id": "mfiles:classes:propriete-reference-liste",
+      "entree": { "scenario": "propriete-reference-liste", "classe": "Contrat", "nom": "Statut", "cle_liste": "statut", "obligatoire": true },
+      "sortie": { "liste": "statut", "obligatoire": true, "options": ["À traiter", "En cours", "Validé", "Payé", "Refusé"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/properties/id/valuelist-items/#get"
+    }
+  ]
+}

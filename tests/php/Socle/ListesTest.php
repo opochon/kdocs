@@ -163,4 +163,23 @@ final class ListesTest extends TestCase
             'un alias (clé ou slug) résout l’identifiant de la liste');
         self::assertNull($this->listes->resoudreAlias('inexistant'));
     }
+
+    public function testCompletRendLesValeursPourLAdministration(): void
+    {
+        $this->listes->assurer();
+        $id = $this->listes->ajouter('Service');
+        $valeurId = $this->listes->ajouterValeur($id, 'Audit');
+        $this->listes->retirerValeur($id, $valeurId, 'admin@gedv2.test');
+
+        $service = null;
+        foreach ($this->listes->complet() as $liste) {
+            if ($liste['nom'] === 'Service') {
+                $service = $liste;
+            }
+        }
+        self::assertNotNull($service, 'la lecture complète rend chaque liste avec ses valeurs');
+        self::assertSame('Audit', $service['valeurs'][0]['libelle']);
+        self::assertFalse($service['valeurs'][0]['actif'], 'la lecture d’administration voit les valeurs retirées');
+        self::assertArrayHasKey('retire_le', $service['valeurs'][0]);
+    }
 }

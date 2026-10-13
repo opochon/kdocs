@@ -88,6 +88,28 @@ final class Listes
     }
 
     /**
+     * Les listes complètes (avec leurs valeurs), pour l'écran d'administration et l'export portable.
+     * Les valeurs retirées restent visibles (traçabilité), filtrables par `$activesSeules`.
+     *
+     * @return list<array{id:int, nom:string, cle:string, actif:bool, valeurs:list<array<string,mixed>>}>
+     */
+    public function complet(bool $activesSeules = false): array
+    {
+        $listes = [];
+        foreach ($this->contenu() as $liste) {
+            if ($activesSeules && $liste['actif'] === false) {
+                continue;
+            }
+            if ($activesSeules) {
+                $liste['valeurs'] = array_values(array_filter($liste['valeurs'], static fn (array $v): bool => $v['actif'] === true));
+            }
+            $listes[] = $liste;
+        }
+
+        return $listes;
+    }
+
+    /**
      * Une liste complète (avec ses valeurs), par identifiant.
      *
      * @return array{id:int, nom:string, cle:string, actif:bool, valeurs:list<array<string,mixed>>}|null

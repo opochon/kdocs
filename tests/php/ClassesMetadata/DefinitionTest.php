@@ -10,7 +10,6 @@ use Ged\Socle\Champs;
 use Ged\Socle\Listes;
 use Ged\Socle\Nomenclature;
 use Ged\Socle\Registre;
-use Ged\Tests\Socle\SupportCorpus;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class DefinitionTest extends TestCase
 {
-    use SupportCorpus;
+    use SupportClassesMetadata;
 
     private Definition $definition;
     private Nomenclature $nomenclature;
@@ -30,7 +29,7 @@ final class DefinitionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->setUpCorpus();
+        $this->setUpClassesMetadata();
         $this->nomenclature = new Nomenclature($this->config);
         $this->champs = new Champs($this->config);
         $this->listes = new Listes($this->config);
@@ -41,7 +40,7 @@ final class DefinitionTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->tearDownCorpus();
+        $this->tearDownClassesMetadata();
     }
 
     private function idDuType(string $nom): int
