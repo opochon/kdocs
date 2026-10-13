@@ -255,6 +255,26 @@ final class Listes
     }
 
     /**
+     * Une valeur par son libellé (exact), retirée ou active, ou null.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function valeurParLibelle(int $listeId, string $libelle): ?array
+    {
+        $liste = $this->trouver($listeId);
+        if ($liste === null) {
+            return null;
+        }
+        foreach ($liste['valeurs'] as $valeur) {
+            if ((string) $valeur['libelle'] === $libelle) {
+                return $valeur;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Les libellés d'une liste, par sa clé. Actifs seuls par défaut ; `false` rend aussi les valeurs
      * retirées (lecture d'administration et de traçabilité).
      *
