@@ -1,0 +1,197 @@
+{
+    "lot": "ged-sim-corpus-1",
+    "date": "2026-10-13T14:46:55+00:00",
+    "seed": 20261013,
+    "documents": 237,
+    "pages": 1240,
+    "gros_pdf": 6,
+    "corpus": "var/sim/corpus",
+    "verite": "recette/sim/verite-corpus.json",
+    "duree_ingestion_s": 35.37,
+    "documents_indexes": 237,
+    "poses_index": 237,
+    "erreurs_depot": [],
+    "classement": {
+        "documents": 237,
+        "types_ok": 237,
+        "emetteurs_ok": 237,
+        "emetteurs_vides": 0,
+        "dates_ok": 237,
+        "dates_attendues": 237,
+        "valides": 0,
+        "valides_faux": 0,
+        "taux_type": 1,
+        "taux_emetteurs_vides": 0,
+        "duree_s": 0.34,
+        "anomalies": []
+    },
+    "recherche": {
+        "requetes": 12,
+        "precision_moyenne": 1,
+        "rappel_moyen": 1,
+        "temps_max_ms": 5.5,
+        "erreurs": [],
+        "detail": [
+            {
+                "id": "mot-ramonage",
+                "q": "ramonage",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.5
+            },
+            {
+                "id": "mot-elagage",
+                "q": "elagage",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.4
+            },
+            {
+                "id": "mot-desinsectisation",
+                "q": "desinsectisation",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 4.7
+            },
+            {
+                "id": "mot-debouchage",
+                "q": "debouchage",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 4.7
+            },
+            {
+                "id": "mot-etancheite",
+                "q": "etancheite",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5
+            },
+            {
+                "id": "mot-carrelage",
+                "q": "carrelage",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.1
+            },
+            {
+                "id": "mot-vitrerie",
+                "q": "vitrerie",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.2
+            },
+            {
+                "id": "mot-serrurerie",
+                "q": "serrurerie",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.4
+            },
+            {
+                "id": "filtre-type-contrat",
+                "q": "",
+                "filtres": {
+                    "type": "Contrat"
+                },
+                "mode": "liste",
+                "attendus": 27,
+                "obtenus": 27,
+                "intersection": 27,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 2.3
+            },
+            {
+                "id": "filtre-emetteur-energie",
+                "q": "",
+                "filtres": {
+                    "emetteur": "Énergies du Lac Fictif SA"
+                },
+                "mode": "liste",
+                "attendus": 19,
+                "obtenus": 19,
+                "intersection": 19,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 1.9
+            },
+            {
+                "id": "filtre-dates-factures-2026",
+                "q": "",
+                "filtres": {
+                    "type": "Facture",
+                    "date_debut": "2026-01-01",
+                    "date_fin": "2026-12-31"
+                },
+                "mode": "liste",
+                "attendus": 15,
+                "obtenus": 15,
+                "intersection": 15,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 2.5
+            },
+            {
+                "id": "fragment-like",
+                "q": "ramona",
+                "filtres": [],
+                "mode": "fulltext",
+                "attendus": 10,
+                "obtenus": 10,
+                "intersection": 10,
+                "precision": 1,
+                "rappel": 1,
+                "duree_ms": 5.2
+            }
+        ]
+    },
+    "seuils": {
+        "type_correct": 0.9,
+        "emetteurs_vides_max": 0.15,
+        "precision": 0.9,
+        "rappel": 0.9,
+        "budget_ms": 1000
+    },
+    "porte": "FRANCHIE"
+}

@@ -740,10 +740,10 @@ def construire_requetes(documents: list[dict]) -> list[dict]:
                          "filtres": {"type": "Facture", "date_debut": "2026-01-01", "date_fin": "2026-12-31"},
                          "attendu": factures_2026, "note": "type + plage de dates"})
 
-    # Requête par fragment (le moteur doit retomber sur LIKE quand le plein texte ne suffit pas).
+    # Requête par fragment : le plein texte (préfixe) ou le repli LIKE doit retrouver le mot entier.
     mot_fragment = MOTS_CLES[0]
     requetes.append({"id": "fragment-like", "q": mot_fragment[:-2], "attendu": sorted(par_mot.get(mot_fragment, [])),
-                     "note": f"fragment de « {mot_fragment} » : repli mot à mot"})
+                     "note": f"fragment de « {mot_fragment} » : plein texte en préfixe, sinon LIKE"})
     return requetes
 
 

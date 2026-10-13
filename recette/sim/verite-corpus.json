@@ -4679,7 +4679,7 @@
     "sim-0155",
     "sim-0203"
    ],
-   "note": "fragment de « ramonage » : repli mot à mot"
+   "note": "fragment de « ramonage » : plein texte en préfixe, sinon LIKE"
   }
  ]
 }

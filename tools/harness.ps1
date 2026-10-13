@@ -22,7 +22,7 @@ $couches['1-unitaire'] = @{ ok = ($LASTEXITCODE -eq 0); detail = ($sortie | Sele
 if ($SansBanc) {
   $couches['3-banc'] = @{ ok = $false; detail = 'sautée (-SansBanc)' }
 } else {
-  $bancs = [ordered]@{ 'decoupe' = 'tools\banc\mesurer-decoupe.php'; 'classement' = 'tools\banc\mesurer-classement.php'; 'bout-en-bout' = 'tools\banc\rejouer-ingestion.php' }
+  $bancs = [ordered]@{ 'decoupe' = 'tools\banc\mesurer-decoupe.php'; 'classement' = 'tools\banc\mesurer-classement.php'; 'bout-en-bout' = 'tools\banc\rejouer-ingestion.php'; 'sim-corpus' = 'tools\banc\mesurer-sim-corpus.php' }
   $ok = $true; $details = @()
   foreach ($b in $bancs.Keys) {
     if (-not (Test-Path $bancs[$b])) { $ok = $false; $details += "$b : à écrire"; continue }
