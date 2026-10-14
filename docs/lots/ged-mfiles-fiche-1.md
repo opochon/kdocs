@@ -37,10 +37,13 @@ posée par l'agent).
   réel — fichier, `.meta.json` et `.versions/` suivent, index et trace `renommage`, titre d'objet intact,
   extension conservée, nom vide refusé, droits `modifier` exigés) ; oracles `NomTest` (3 tests) et
   `TitreTest` (2 tests : le titre d'objet se lit/écrit dans le `.meta.json` sans renommer le fichier).
+- **Verrouillage / check-out** : service `Ged\Fiche\Verrou` (état dans le `.meta.json`, délai de 30 min
+  prolongeable, expiration qui libère, refus par un autre compte, libération forcée administrateur,
+  gestes tracés dans `document_collaboration`). Oracle rouge d'abord (3 erreurs « classe absente »),
+  puis vert : **3 tests, 19 assertions**.
 
 ### Reste
 
-- Check-out : service `Ged\Fiche\Verrou`, état dans le `.meta.json`, test.
 - Interface : barre d'actions de la fiche, routes `Ged\Fiche\Module`, permissions, ligne Kernel.
 - Parité M-Files famille 5 ; porte qualité ECC ; harness `-SansBanc`.
 
