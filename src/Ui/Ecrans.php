@@ -198,6 +198,24 @@ final class Ecrans
         $peutOuvrirPoste = $peutModifier && \Ged\Edition\Formats::editable((string) ($doc['fichier'] ?? ''));
         $libelleOuverture = \Ged\Edition\Pieces::libelleOuverture((string) ($doc['fichier'] ?? ''));
 
+        // Lot ged-mfiles-espace-1 : l'espace personnel. La fiche dit si la pièce est en favori ; ouvrir une
+        // pièce RÉELLE la fait remonter dans « récemment consultés ». Une panne d'index ne casse pas la fiche
+        // (le favori vaut faux, la consultation n'est pas enregistrée).
+        $utilisateur = is_array($session) ? (string) ($session['utilisateur'] ?? '') : '';
+        $estFavori = false;
+        if ($reel !== null && $utilisateur !== '') {
+            try {
+                $espace = new \Ged\EspacePartage\EspacePerso($config);
+                $estFavori = $espace->estFavori($utilisateur, (int) ($reel['id'] ?? 0));
+                $espace->enregistrerConsultation($utilisateur, (int) ($reel['id'] ?? 0));
+            } catch (\Throwable $e) {
+                // L'espace personnel est un confort : une panne d'index ne casse pas la fiche, mais elle
+                // se TRACE (jamais un échec muet).
+                error_log('[GEDv2 espace-perso] consultation non enregistrée pour le document ' . (int) ($reel['id'] ?? 0) . ' : ' . $e->getMessage());
+                $estFavori = false;
+            }
+        }
+
         return $this->vue->rendre($rep, 'ecrans/document.twig', $this->commun('bibliotheque') + [
             'avis_ordinateur' => false, 'doc' => $doc, 'csrf' => self::jetonCsrf($req),
             'peut_modifier' => $peutModifier,
@@ -219,7 +237,10 @@ final class Ecrans
             )) !== '' ? '/partages/' . $jeton : '',
             'peut_partager_externe' => in_array('*', $permissions, true)
                 || in_array('documents:partager-externe', $permissions, true),
-            'auteur_courant' => is_array($session) ? (string) ($session['utilisateur'] ?? '') : '',
+            'auteur_courant' => $utilisateur,
+            'est_favori' => $estFavori,
+            'document_reel' => $reel !== null,
+            'favori_succes' => (string) ($req->getQueryParams()['favori_succes'] ?? '') === '1',
         ]);
     }
 

@@ -1,0 +1,53 @@
+{% extends 'layout.twig' %}
+{% import 'partiels/icones.twig' as ic %}
+{% block titre %}Mon espace{% endblock %}
+{% block contenu %}
+<div class="page" data-testid="ecran-espace-perso">
+  <div class="page-tete">
+    <div class="titre">
+      <h1>Mon espace</h1>
+      <span class="muted">{{ utilisateur }} · favoris et documents récemment consultés</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/bibliotheque" data-testid="espace-lien-bibliotheque">{{ ic.i('biblio') }}Bibliothèque</a>
+      <a class="btn discret" href="/liens-partages" data-testid="espace-lien-partages">{{ ic.i('partage') }}Liens partagés</a>
+    </div>
+  </div>
+
+  {% if favori_succes %}<p class="alerte ok" data-testid="favori-succes">Favori mis à jour.</p>{% endif %}
+
+  <div class="volets fiche">
+    <section class="carte volet" aria-label="Favoris" data-testid="favoris">
+      <div class="titre-section">Favoris <span class="chip" data-testid="favoris-total">{{ favoris|length }}</span></div>
+      <ul class="chrono" data-testid="favoris-liste">
+        {% for f in favoris %}
+        <li data-testid="favori-document-{{ f.document }}">
+          <a href="/documents/{{ f.document }}" data-testid="favori-ouvrir-{{ f.document }}">{{ f.titre }}</a>
+          <span class="muted">ajouté le {{ f.ajoute_le }}</span>
+          <form method="post" action="/favoris/{{ f.document }}/retirer">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn discret" type="submit" data-testid="favori-retirer-{{ f.document }}">Retirer</button>
+          </form>
+        </li>
+        {% else %}
+        <li class="muted" data-testid="favoris-vide">Aucun favori. Ouvrez une fiche et marquez-la « Favori ».</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="carte volet" aria-label="Récemment consultés" data-testid="recents">
+      <div class="titre-section">Récemment consultés</div>
+      <ul class="chrono" data-testid="recents-liste">
+        {% for r in recents %}
+        <li data-testid="recent-document-{{ r.document }}">
+          <a href="/documents/{{ r.document }}" data-testid="recent-ouvrir-{{ r.document }}">{{ r.titre }}</a>
+          <span class="muted">consulté le {{ r.quand }}</span>
+        </li>
+        {% else %}
+        <li class="muted" data-testid="recents-vide">Aucune consultation enregistrée.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

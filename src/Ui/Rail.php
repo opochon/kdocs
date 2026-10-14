@@ -85,6 +85,8 @@ final class Rail
             ['id' => 'bibliotheque', 'libelle' => 'Bibliothèque', 'icone' => 'biblio', 'url' => '/bibliotheque', 'compte' => null],
             ['id' => 'recherche', 'libelle' => 'Recherche', 'icone' => 'loupe', 'url' => '/recherche', 'compte' => null],
             ['id' => 'partages', 'libelle' => 'Partagés avec moi', 'icone' => 'partage', 'url' => '/partages-avec-moi', 'compte' => null],
+            // Lot ged-mfiles-espace-1 : espace personnel (favoris et récemment consultés).
+            ['id' => 'favoris', 'libelle' => 'Mon espace', 'icone' => 'favori', 'url' => '/favoris', 'compte' => null],
             ['id' => 'archives', 'libelle' => 'Archives', 'icone' => 'versions', 'url' => '/archives', 'compte' => null],
             ['id' => 'workflows', 'libelle' => 'Workflows', 'icone' => 'flux', 'url' => '/workflows', 'compte' => null],
         ];

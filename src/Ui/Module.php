@@ -254,6 +254,43 @@ final class Module
                 'ecran' => 'partages', 'partages' => $partages,
             ]);
         });
+        // Lot ged-mfiles-espace-1 : espace personnel (favoris, récemment consultés) et liens de partage.
+        // Lignes signalées hors secteur (Interface) : aucune route n'est déclarable ailleurs, Kernel
+        // (non modifiable) n'appelle que les modules de secteur déjà enregistrés.
+        $app->get('/favoris', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return self::espacePerso($req, $rep, $config, $vue);
+        });
+        $app->post('/documents/{id:[0-9]+}/favori', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return self::basculerFavori($rep, $config, $vue, $req, true, (int) $args['id'], '/documents/' . (int) $args['id']);
+        });
+        $app->post('/documents/{id:[0-9]+}/favori/retirer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return self::basculerFavori($rep, $config, $vue, $req, false, (int) $args['id'], '/documents/' . (int) $args['id']);
+        });
+        $app->post('/favoris/{id:[0-9]+}/retirer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            return self::basculerFavori($rep, $config, $vue, $req, false, (int) $args['id'], '/favoris');
+        });
+        $app->get('/liens-partages', function (Requete $req, Reponse $rep) use ($config, $vue): Reponse {
+            return self::liensPartages($req, $rep, $config, $vue);
+        });
+        $app->post('/liens-partages/{id:[0-9]+}/revoquer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            try {
+                // Le service vérifie que le document du lien est lisible par l'appelant (un compte qui
+                // n'a pas le droit ne peut pas révoquer le lien d'autrui en devinant son identifiant).
+                $compte = self::administrateur($req) ? null : self::compte($req);
+                (new \Ged\EspacePartage\Partages($config))->revoquer((int) $args['id'], $compte, self::auteur($req));
+                return $rep->withHeader('Location', '/liens-partages')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /liens-partages/{id}/revoquer', $e->getMessage());
+            }
+        });
+        $app->post('/liens-partages/cle/{jeton:[A-Za-z0-9_-]+}/revoquer', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
+            try {
+                (new \Ged\EspacePartage\Partages($config))->revoquerParCle((string) $args['jeton'], self::auteur($req));
+                return $rep->withHeader('Location', '/liens-partages')->withStatus(303);
+            } catch (\Throwable $e) {
+                return self::erreur($vue, $rep, 'POST /liens-partages/cle/{jeton}/revoquer', $e->getMessage());
+            }
+        });
         // Ces deux routes sont publiques seulement au sens de la garde : le jeton long, expirant et
         // révocable est vérifié ICI. Aucun autre chemin n'accepte un jeton.
         $app->get('/partages/{jeton:[A-Za-z0-9_-]+}', function (Requete $req, Reponse $rep, array $args) use ($config, $vue): Reponse {
@@ -450,6 +487,58 @@ final class Module
         } catch (\Throwable $e) {
             return self::erreur($vue, $rep, 'POST /documents/{id}/partages/externe', $e->getMessage());
         }
+    }
+
+    /** Écran « Mon espace » : mes favoris et mes récemment consultés, filtrés par mes droits. */
+    private static function espacePerso(Requete $req, Reponse $rep, Config $config, Vue $vue): Reponse
+    {
+        $utilisateur = self::auteur($req);
+        $compte = self::administrateur($req) ? null : self::compte($req);
+        try {
+            $espace = new \Ged\EspacePartage\EspacePerso($config);
+            $favoris = $espace->favoris($utilisateur, $compte);
+            $recents = $espace->recents($utilisateur, $compte);
+        } catch (\Throwable $e) {
+            return self::erreur($vue, $rep, 'GET /favoris', $e->getMessage());
+        }
+
+        return $vue->rendre($rep, 'ecrans/espace-perso.twig', [
+            'ecran' => 'favoris', 'favoris' => $favoris, 'recents' => $recents,
+            'csrf' => Ecrans::jetonCsrf($req), 'utilisateur' => $utilisateur,
+            'favori_succes' => (string) ($req->getQueryParams()['favori_succes'] ?? '') === '1',
+        ]);
+    }
+
+    /** Ajoute ou retire un favori ; l'écran d'origine décide de la redirection (fiche ou Mon espace). */
+    private static function basculerFavori(Reponse $rep, Config $config, Vue $vue, Requete $req, bool $ajouter, int $document, string $cible): Reponse
+    {
+        try {
+            $espace = new \Ged\EspacePartage\EspacePerso($config);
+            if ($ajouter) {
+                $espace->ajouterFavori(self::auteur($req), $document);
+            } else {
+                $espace->retirerFavori(self::auteur($req), $document);
+            }
+        } catch (\Throwable $e) {
+            return self::erreur($vue, $rep, $ajouter ? 'POST /documents/{id}/favori' : 'POST /documents/{id}/favori/retirer', $e->getMessage());
+        }
+
+        return $rep->withHeader('Location', $cible)->withStatus(303);
+    }
+
+    /** Écran des liens de partage externes actifs ; une liste ne montre que ce que l'on peut lire. */
+    private static function liensPartages(Requete $req, Reponse $rep, Config $config, Vue $vue): Reponse
+    {
+        $compte = self::administrateur($req) ? null : self::compte($req);
+        try {
+            $partages = (new \Ged\EspacePartage\Partages($config))->liens($compte);
+        } catch (\Throwable $e) {
+            return self::erreur($vue, $rep, 'GET /liens-partages', $e->getMessage());
+        }
+
+        return $vue->rendre($rep, 'ecrans/liens-partages.twig', [
+            'ecran' => 'liens-partages', 'partages' => $partages, 'csrf' => Ecrans::jetonCsrf($req),
+        ]);
     }
 
     /** @param array<string, string> $args */

@@ -46,6 +46,16 @@ final class DroitsRoutes
         // l'administrateur (permission '*') porte documents:partager-externe.
         'POST /documents/{id:[0-9]+}/partages/externe' => 'documents:partager-externe',
         'GET /partages-avec-moi' => 'documents:lire',
+        // Lot ged-mfiles-espace-1 : espace personnel (favoris, récemment consultés) et liens de partage.
+        // Épingler/retirer un favori est un geste de LECTEUR sur le document ; la révocation d'un lien
+        // externe garde le droit du partage externe. Lignes signalées hors secteur (Sécurité).
+        'GET /favoris' => 'documents:lire',
+        'POST /documents/{id:[0-9]+}/favori' => 'documents:lire',
+        'POST /documents/{id:[0-9]+}/favori/retirer' => 'documents:lire',
+        'POST /favoris/{id:[0-9]+}/retirer' => 'documents:lire',
+        'GET /liens-partages' => 'documents:lire',
+        'POST /liens-partages/{id:[0-9]+}/revoquer' => 'documents:partager-externe',
+        'POST /liens-partages/cle/{jeton:[A-Za-z0-9_-]+}/revoquer' => 'documents:partager-externe',
         // Lien externe : seules ces deux routes sont publiques ; le controleur verifie le jeton hache.
         'GET /partages/{jeton:[A-Za-z0-9_-]+}' => 'publique:partage-externe',
         'GET /partages/{jeton:[A-Za-z0-9_-]+}/fichier' => 'publique:partage-externe',
@@ -358,6 +368,19 @@ final class DroitsRoutes
         if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/partages/externe$#', $chemin) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/partages/externe'];
         }
+        // Espace personnel & liens de partage (lot ged-mfiles-espace-1) : identifiant/cle concret dans le chemin.
+        if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/favori(?:/retirer)?$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /documents/{id:[0-9]+}/favori' . (str_ends_with($chemin, '/retirer') ? '/retirer' : '')];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/favoris/[0-9]+/retirer$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /favoris/{id:[0-9]+}/retirer'];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/liens-partages/[0-9]+/revoquer$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /liens-partages/{id:[0-9]+}/revoquer'];
+        }
+        if (strtoupper($methode) === 'POST' && preg_match('#^/liens-partages/cle/[A-Za-z0-9_-]+/revoquer$#', $chemin) === 1) {
+            return self::PERMISSIONS['POST /liens-partages/cle/{jeton:[A-Za-z0-9_-]+}/revoquer'];
+        }
         if (strtoupper($methode) === 'POST' && preg_match('#^/documents/[0-9]+/(notes|liens|relations|partages)$#', $chemin, $m) === 1) {
             return self::PERMISSIONS['POST /documents/{id:[0-9]+}/' . $m[1]];
         }
@@ -523,6 +546,10 @@ final class DroitsRoutes
         }
         if (preg_match('#^/documents/[0-9]+/(?:versions(?:/[0-9]+/restaurer)?)$#', $chemin) === 1) {
             return 'modifier';
+        }
+        // Espace personnel (lot ged-mfiles-espace-1) : épingler/retirer un favori n'exige que la LECTURE.
+        if (preg_match('#^/documents/[0-9]+/favori(?:/retirer)?$#', $chemin) === 1) {
+            return 'lire';
         }
         if (preg_match('#^/documents/[0-9]+(?:/|$)#', $chemin) === 1) {
             return strtoupper($methode) === 'GET' || strtoupper($methode) === 'HEAD' ? 'lire' : 'modifier';
