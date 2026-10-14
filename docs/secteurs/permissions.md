@@ -64,3 +64,11 @@ l'état porté par l'objet (`workflowstate`), axe « droits selon l'état ».
 
 - 14.10.2026 — ouverture du lot `ged-mfiles-permissions-1` (DeepCode) : règles nommées portables, évaluation
   classe / métadonnée / état, visibilité conditionnelle liste + recherche, écran de gestion, parité M-Files.
+- 14.10.2026 — livré : service `Ged\Permissions\{Regles,Moteur}` (règles portables `.ged/permissions.json`,
+  jamais de suppression), visibilité conditionnelle dans la liste `EcranBibliotheque` et le moteur
+  `Recherche` (après l'ACL, restriction seule), écran `/permissions` (menu Administration → Permissions),
+  vecteurs `mfiles-permissions-regles` 11/11, `mfiles-permissions-visibilite` 4/4,
+  `mfiles-permissions-etats` 4/4 ; cinq éléments REST M-Files passés en `couvert`/`couvert-autrement` :
+  parité M-Files **56/112, 50,00 %, 0 non-prouvé**. Harness `-SansBanc` vert (955 tests, 106 parcours,
+  sonde offensive verte, p95 lecture 607 ms), registre `recette/registre.json`, journal complet dans
+  `docs/lots/ged-mfiles-permissions-1.md`.

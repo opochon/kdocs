@@ -3,7 +3,7 @@
   "fonction": "F6",
   "libelle": "Ouvrir la fiche d’un document et trouver « Nouvelle version »",
   "trouve": true,
-  "temps_ms": 904,
-  "ecran": "http://127.0.0.1:62436/documents/10078 — Courrier Fiduciaire ORACLE",
+  "temps_ms": 884,
+  "ecran": "http://127.0.0.1:54810/documents/10078 — Courrier Fiduciaire ORACLE",
   "erreur": ""
 }
