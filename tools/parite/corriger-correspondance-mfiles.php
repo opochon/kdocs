@@ -451,6 +451,7 @@ $couverts = [
 
 $poses = 0;
 $couvertsPoses = 0;
+$exclusionsPreservees = 0;
 $manquants = [];
 $idsInventaire = [];
 foreach ($inventaire['elements'] as $element) {
@@ -469,12 +470,21 @@ foreach ($idsInventaire as $id => $reference) {
         ];
         ++$couvertsPoses;
     } else {
-        $elements[$id] = [
-            'statut' => 'absent',
-            'doc' => $reference,
-            'note' => 'Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).',
-            'lot' => 'ged-mfiles-2..7',
-        ];
+        $existant = is_array($elements[$id] ?? null) ? $elements[$id] : null;
+        if (($existant['statut'] ?? null) === 'exclu') {
+            // Exclusion déjà ratifiée par le juge (décision Olivier 14.10.2026) : l'agent ne la POSE
+            // pas, mais la régénération ne l'EFFACE jamais. Sans cette garde, le simple rejeu du
+            // générateur retirerait une décision du juge et ferait remonter le dénominateur.
+            $elements[$id] = $existant;
+            ++$exclusionsPreservees;
+        } else {
+            $elements[$id] = [
+                'statut' => 'absent',
+                'doc' => $reference,
+                'note' => 'Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).',
+                'lot' => 'ged-mfiles-2..7',
+            ];
+        }
     }
     ++$poses;
 }
@@ -508,4 +518,10 @@ file_put_contents(
     $cheminCorrespondance,
     json_encode($document, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n",
 );
-printf("OK: %d elements mfiles poses (couverts %d, absents %d)\n", $poses, $couvertsPoses, $poses - $couvertsPoses);
+printf(
+    "OK: %d elements mfiles poses (couverts %d, exclus %d preserves, absents %d)\n",
+    $poses,
+    $couvertsPoses,
+    $exclusionsPreservees,
+    $poses - $couvertsPoses - $exclusionsPreservees,
+);
