@@ -99,4 +99,31 @@ final class PartagesTest extends TestCase
 
         self::assertSame([$id], array_column($partages->liens($compte), 'document'));
     }
+
+    public function testUnCompteSansDroitNePeutPasRevoquerLeLienDAutrui(): void
+    {
+        $id = $this->deposerPiece('Pièce réservée', 'espace/reserve');
+        $partages = new Partages($this->config);
+        $lien = $partages->creer($id, 'alice@exemple.test', '2099-01-05');
+        $compte = $this->compteUnique();
+
+        // Sans droit de lecture sur le document, la révocation par identifiant est refusée et le lien reste ouvert.
+        try {
+            $partages->revoquer($lien['id'], $compte, 'bob@exemple.test');
+            self::fail('une révocation hors droits doit être refusée');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsString('hors de vos droits', $e->getMessage());
+        }
+        self::assertNotNull($partages->ouvrir($lien['jeton']));
+
+        // Une fois le droit accordé, la révocation aboutit.
+        $droits = new DroitsDossiers($this->pdo);
+        $groupe = $droits->creerGroupe('Espace ' . bin2hex(random_bytes(3)), 'lecteur');
+        $droits->ajouterCompteAuGroupe($compte, $groupe);
+        $dossier = $droits->dossierPourDocument($id);
+        self::assertNotNull($dossier);
+        $droits->poserRegle($dossier, $groupe, 'lire', true);
+        $partages->revoquer($lien['id'], $compte, 'bob@exemple.test');
+        self::assertNull($partages->ouvrir($lien['jeton']));
+    }
 }

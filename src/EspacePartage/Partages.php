@@ -74,11 +74,7 @@ final class Partages
             . '  AND d.supprime_le IS NULL AND d.absent_depuis IS NULL';
         $parametres = [];
         if ($compte !== null) {
-            try {
-                [$predicat, $valeurs] = DroitsDossiers::predicatLecture('d', $compte);
-            } catch (PDOException) {
-                return [];   // schéma de droits absent : refus (fail-closed)
-            }
+            [$predicat, $valeurs] = DroitsDossiers::predicatLecture('d', $compte);
             $sql .= ' AND ' . $predicat;
             $parametres = $valeurs;
         }
@@ -119,5 +115,32 @@ final class Partages
             throw new RuntimeException('lien de partage : introuvable ou déjà révoqué');
         }
         $this->audit->ajouter('partage_externe_revoque_cle', $auteur, ['empreinte' => substr($empreinte, 0, 12)]);
+    }
+
+    /**
+     * Révoque un lien par son identifiant interne, après avoir vérifié que le compte lit le document visé :
+     * un compte qui n'a pas le droit ne peut pas révoquer le lien d'autrui en devinant son identifiant
+     * (fail-closed si le schéma de droits est indisponible).
+     */
+    public function revoquer(int $partage, ?int $compte, string $auteur): void
+    {
+        if ($compte !== null) {
+            $requete = $this->pdo->prepare("SELECT document_id FROM document_collaboration"
+                . " WHERE id = ? AND type = 'partage' AND type_partage = 'externe' AND revoque_le IS NULL");
+            $requete->execute([$partage]);
+            $document = (int) $requete->fetchColumn();
+            try {
+                $droits = new DroitsDossiers($this->pdo);
+                $dossier = $document > 0 ? $droits->dossierPourDocument($document) : null;
+                $autorise = $dossier !== null && $droits->autorise($compte, $dossier, 'lire');
+            } catch (PDOException $e) {
+                error_log('[GEDv2 espace-partage] droits indisponibles à la révocation du lien ' . $partage . ' : ' . $e->getMessage());
+                $autorise = false;
+            }
+            if (!$autorise) {
+                throw new RuntimeException('lien de partage : introuvable ou hors de vos droits');
+            }
+        }
+        $this->collaboration->revoquerPartageExterne($partage, $auteur);
     }
 }
