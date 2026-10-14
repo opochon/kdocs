@@ -3,7 +3,7 @@
   "fonction": "F1",
   "libelle": "Se repérer dans les entrées de menu depuis l’écran d’accueil",
   "trouve": true,
-  "temps_ms": 73,
-  "ecran": "http://127.0.0.1:63623/a-traiter — À traiter",
+  "temps_ms": 11,
+  "ecran": "http://127.0.0.1:62191/a-traiter — À traiter",
   "erreur": ""
 }

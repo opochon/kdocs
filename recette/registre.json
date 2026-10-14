@@ -1,23 +1,23 @@
 ﻿{
-    "date":  "2026-10-14T12:15:41",
-    "duree_s":  978,
-    "commit":  "e3a65c7",
+    "date":  "2026-10-14T21:04:43",
+    "duree_s":  737,
+    "commit":  "0b2f917",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[30;42mTests: 955\u001b[0m\u001b[30;42m, Assertions: 18062\u001b[0m\u001b[30;42m, Skipped: 1\u001b[0m\u001b[30;42m.\u001b[0m",
-                                       "ok":  true
+                                       "detail":  "\u001b[37;41mTests: 970\u001b[0m\u001b[37;41m, Assertions: 17926\u001b[0m\u001b[37;41m, Errors: 7\u001b[0m\u001b[37;41m, Failures: 18\u001b[0m\u001b[37;41m, Warnings: 4\u001b[0m\u001b[37;41m, Skipped: 2\u001b[0m\u001b[37;41m.\u001b[0m",
+                                       "ok":  false
                                    },
                     "3-banc":  {
                                    "detail":  "sautÃ©e (-SansBanc)",
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  106 passed (4.5m)",
-                                     "ok":  true
+                                     "detail":  "  3 failed   96 passed (3.7m)",
+                                     "ok":  false
                                  },
                     "7-securite":  {
                                        "detail":  "OK: sonde s├®curit├® ÔÇö aucun contournement accept├®",
@@ -28,23 +28,23 @@
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "OK: charge ÔÇö 3 puis 10 utilisateurs, p95 lecture 607 ms, p95 ├®criture 255 ms, 0 erreur(s), 0 collision(s), ingestion finie (porte franchie)",
-                                     "ok":  true
+                                     "detail":  "PHP Warning:  proc_open(): CreateProcess failed: La syntaxe du nom de fichier, de r├®pertoire ou de volume est in)",
+                                     "ok":  false
                                  },
                     "8-statique":  {
                                        "detail":  "phpstan : 0 erreur(s) hors baseline | audit : \u001b[32mNo security vulnerability advisories found.\u001b[39m",
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 646 ms) | auditeur: 4/4 (mÃ©diane 428 ms) | comptable: 4/4 (mÃ©diane 594 ms) | debutant: 4/4 (mÃ©diane 393 ms) | fiduciaire: 4/4 (mÃ©diane 424 ms) | secretaire: 3/3 (mÃ©diane 570 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 658 ms) | auditeur: 4/4 (mÃ©diane 294 ms) | comptable: 4/4 (mÃ©diane 493 ms) | debutant: 4/4 (mÃ©diane 268 ms) | fiduciaire: 4/4 (mÃ©diane 279 ms) | secretaire: 3/3 (mÃ©diane 513 ms)",
                                        "ok":  true
                                    },
                     "9-parite":  {
-                                     "detail":  "parite : 780 elements | couverts 737 | strict 94,49 % | hors exclusions 100,00 % | ecarts 43 | VERT",
-                                     "ok":  true
+                                     "detail":  "parite : 780 elements | couverts 727 | strict 93,21 % | hors exclusions 98,64 % | ecarts 53 | ROUGE",
+                                     "ok":  false
                                  },
                     "9-parite-mfiles":  {
-                                            "detail":  "parite M-Files : 112 elements | couverts 56 | strict 50,00 % | hors exclusions 50,00 % | ecarts 56 | VERT",
+                                            "detail":  "parite M-Files : 112 elements | couverts 66 | strict 58,93 % | hors exclusions 69,47 % | ecarts 46 | VERT",
                                             "ok":  true
                                         }
                 }

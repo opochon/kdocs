@@ -40,15 +40,20 @@ Sont hors de ce lot (autre agent) : aperçu / vignette / titre / historique / co
 
 ## Modifications minimales signalées (hors chemins du secteur)
 
-- `src/Ui/Module.php` : routes `GET /favoris`, `POST /favoris`, `POST /favoris/{id}/retirer`,
-  `GET /liens-partages`, `POST /liens-partages/{id}/revoquer`, `POST /liens-partages/cle/{jeton}/revoquer`.
-  Aucune route n'est déclarable ailleurs : `Kernel` (non modifiable) n'appelle que les modules de secteur
-  déjà enregistrés.
-- `src/Ui/Ecrans.php` : la fiche document expose `est_favori` et enregistre la consultation (recents) ;
-  aucune autre donnée d'écran ne change.
-- `src/Ui/Rail.php` : une entrée principale « Favoris » (découvrabilité de l'espace perso).
+- `src/Ui/Module.php` : routes `GET /favoris`, `POST /documents/{id}/favori`,
+  `POST /documents/{id}/favori/retirer`, `POST /favoris/{id}/retirer`, `GET /liens-partages`,
+  `POST /liens-partages/{id}/revoquer`, `POST /liens-partages/cle/{jeton}/revoquer`. Aucune route n'est
+  déclarable ailleurs : `Kernel` (non modifiable) n'appelle que les modules de secteur déjà enregistrés.
+- `src/Securite/DroitsRoutes.php` : déclaration des permissions des routes ci-dessus (une route absente y
+  est interdite : le favori est un geste de LECTEUR, la révocation d'un lien garde `documents:partager-externe`).
+- `src/Ui/Ecrans.php` : la fiche document expose `est_favori`/`document_reel` et enregistre la consultation
+  (récents) ; aucune autre donnée d'écran ne change.
+- `src/Ui/Rail.php` : une entrée principale « Mon espace » (`/favoris`) pour la découvrabilité.
 - `templates/ecrans/document.twig` : bouton « Favori » (bascule) et lien vers les liens partagés ;
-  `templates/ecrans/espace-perso.twig`, `templates/ecrans/liens-partages.twig` (nouveaux).
+  `templates/ecrans/espace-perso.twig`, `templates/ecrans/liens-partages.twig`,
+  `templates/partiels/icones.twig` (icône `favori`).
+- `tools/parite/corriger-correspondance-mfiles.php` : une exclusion RATIFIÉE par le juge est désormais
+  conservée telle quelle (elle n'est plus dégradée en `absent` par le générateur).
 
 ## Demandes au Socle / à Interface
 
@@ -59,3 +64,8 @@ Sont hors de ce lot (autre agent) : aperçu / vignette / titre / historique / co
 
 - 14.10.2026 — ouverture du lot `ged-mfiles-espace-1` (DeepCode) : favoris, récemment consultés et liens de
   partage, parité M-Files (famille espace perso & partage). Chemins posés ci-dessus.
+- 14.10.2026 — livré : services `Ged\EspacePartage\EspacePerso` (favoris/récents, registre portable,
+  filtrage ACL) et `Ged\EspacePartage\Partages` (liens externes, révocation par clé/identifiant sous droits),
+  écrans `/favoris` et `/liens-partages`, favori sur la fiche, parcours e2e vert. Parité M-Files **66/112,
+  58,93 %, 0 non-prouvé** (hors exclusions 69,47 %).
+
