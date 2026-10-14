@@ -8779,14 +8779,16 @@
             "note": "Effacer une valeur de propriété : la valeur quitte le .meta.json, le fichier et son historique restent intacts."
         },
         "mfiles:rest:delete:repositories-targetid-session": {
-            "statut": "exclu",
-            "exclusion": "depots-externes-mfiles",
-            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#delete",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:delete:session": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#delete",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:delete:sharedlinks-sharepublicaccesskey": {
             "statut": "absent",
@@ -8867,10 +8869,16 @@
             "note": "Corbeille du Socle : un document mis à la corbeille reste sur le serveur de fichiers, jamais supprimé."
         },
         "mfiles:rest:get:objects-type-objectid-history": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/history/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Fiche\\Historique"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\HistoriqueTest::testLHistoriqueReunitVersionsEtDeplacementsDuPlusRecentAuPlusAncien"
+            },
+            "note": "Historique d’un objet : versions archivées et déplacements réels, du plus récent au plus ancien, lus du fonds — aucune date inventée."
         },
         "mfiles:rest:get:objects-type-objectid-version": {
             "statut": "couvert",
@@ -8885,16 +8893,28 @@
             "note": "Versions gérées dans le dossier masqué `.<fichier>` à côté du document (docs/ARCHIVAGE-FILESERVER.md), doublées dans un dépôt séparé."
         },
         "mfiles:rest:get:objects-type-objectid-version-checkedout": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/checkedout/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Fiche\\Verrou"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\VerrouTest::testPoseLitEtRetireLeVerrouDUneFiche"
+            },
+            "note": "Statut de verrouillage / check-out : lu du `.meta.json` (le dossier fait foi, donc reconstructible) ; un verrou expiré ne tient plus."
         },
         "mfiles:rest:get:objects-type-objectid-version-comments": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/comments/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            },
+            "note": "Commentaires d’un objet : les notes de la fiche (collaboration), relues et cherchables dans le même index plein texte."
         },
         "mfiles:rest:get:objects-type-objectid-version-files": {
             "statut": "absent",
@@ -8922,22 +8942,42 @@
             "note": "Téléchargement du fichier d’un document par l’API documentaire."
         },
         "mfiles:rest:get:objects-type-objectid-version-files-file-preview": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/preview/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/documents/{id:[0-9]+}/miniature"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\ModuleTest::testMiniatureServieEnPng"
+            },
+            "note": "Vignette d’un fichier : PNG de première page, fichier DÉRIVÉ régénérable, jamais la source ; 404 nommé si la vignette manque (jamais un 500)."
         },
         "mfiles:rest:get:objects-type-objectid-version-files-file-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/title/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Fiche\\Nom"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\NomTest::testLeNomDeFichierSeLitSurLIndex"
+            },
+            "note": "Nom du fichier d’un objet : le nom rangé (titre assaini + extension d’origine), lu du fonds."
         },
         "mfiles:rest:get:objects-type-objectid-version-preview": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/preview/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "route",
+                "methode": "GET",
+                "chemin": "/documents/{id:[0-9]+}/apercu"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Apercu\\ModuleTest::testPageApercuPdfSeDesigne"
+            },
+            "note": "Aperçu d’un objet : GEDv2 ouvre la visionneuse réelle (aperçu/vignette dérivés du fichier, jamais la source) plutôt qu’une image nue — même fonction, rendu plus riche."
         },
         "mfiles:rest:get:objects-type-objectid-version-properties": {
             "statut": "couvert",
@@ -9012,10 +9052,16 @@
             "note": "Comptage des sous-objets (relations de composition actives d’un document)."
         },
         "mfiles:rest:get:objects-type-objectid-version-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/title/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\TitreTest::testLeTitreDeLObjetSeLitDuMetaJsonQuiFaitFoi"
+            },
+            "note": "Titre d’un objet : lu du `.meta.json` à côté du fichier (le dossier fait foi), la colonne `titre` n’en est que l’index reconstructible."
         },
         "mfiles:rest:get:objects-type-objectid-version-workflowstate": {
             "statut": "couvert",
@@ -9036,59 +9082,70 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:repositories": {
-            "statut": "exclu",
-            "exclusion": "depots-externes-mfiles",
-            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:server-capabilities": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/capabilities/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:server-publickey": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/publickey/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:server-status": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/status/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:server-vaults": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:server-vaults-vault-status": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/vault/status/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:session": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:session-authenticationtoken": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/authenticationtoken/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:session-userid": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/userid/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:session-vault": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:session-vaults": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vaults/#get",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:sharedlinks": {
             "statut": "absent",
@@ -9499,14 +9556,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:repositories-targetid-session": {
-            "statut": "exclu",
-            "exclusion": "depots-externes-mfiles",
-            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#post",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:server-authenticationtokens": {
-            "statut": "exclu",
-            "exclusion": "serveur-coffres-mfiles",
-            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/authenticationtokens/#post",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:sharedlinks": {
             "statut": "absent",
@@ -9641,16 +9700,28 @@
             "note": "Restauration depuis la corbeille : le document revient octet pour octet."
         },
         "mfiles:rest:put:objects-type-objectid-version-checkedout": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/checkedout/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Fiche\\Verrou"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\VerrouTest::testUnAutreCompteNeRetirePasLeVerrouSansForce"
+            },
+            "note": "Poser / lever le check-out : un autre compte ne libère pas sans force, l’administrateur force, chaque geste est tracé dans l’historique."
         },
         "mfiles:rest:put:objects-type-objectid-version-comments": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/comments/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Collaboration"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex"
+            },
+            "note": "Ajouter un commentaire : note attribuée à son auteur et tracée ; seule la sienne peut être modifiée ou retirée."
         },
         "mfiles:rest:put:objects-type-objectid-version-files-file-content": {
             "statut": "couvert",
@@ -9665,10 +9736,16 @@
             "note": "Le contenu d’une nouvelle version est copié dans le dépôt séparé (garantie), avec la correspondance vers l’emplacement d’origine."
         },
         "mfiles:rest:put:objects-type-objectid-version-files-file-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/files/file/title/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Fiche\\Nom"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\NomTest::testRenommerLeFichierDeplaceMetaEtVersionsEtTraceSansRienPerdre"
+            },
+            "note": "Renommer le fichier : acte RÉEL (fichier, `.meta.json` et `.versions/` suivent ensemble), tracé `renommage`, aucune version perdue, titre d’objet intact."
         },
         "mfiles:rest:put:objects-type-objectid-version-properties": {
             "statut": "couvert",
@@ -9695,10 +9772,16 @@
             "note": "Remplacer une propriété d’un document."
         },
         "mfiles:rest:put:objects-type-objectid-version-title": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/title/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\DepotFichiers"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Fiche\\TitreTest::testChangerLeTitreMetAJourLeMetaEtLIndexSansRenommerLeFichierNiCreerDeVersion"
+            },
+            "note": "Changer le titre de l’objet : le `.meta.json` fait foi, le fichier n’est pas renommé et aucune version n’est créée."
         },
         "mfiles:rest:put:objects-type-objectid-version-workflowstate": {
             "statut": "couvert",
@@ -9713,14 +9796,16 @@
             "note": "Changer l’état d’un document (transition) : soumis au droit de la transition (moteur Ged\\Workflows) et tracé."
         },
         "mfiles:rest:put:session": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#put",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:session-vault": {
-            "statut": "exclu",
-            "exclusion": "auth-mfiles",
-            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
+            "statut": "absent",
+            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#put",
+            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
+            "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:structure-objecttypes-type-refreshstatus": {
             "statut": "absent",

@@ -65,10 +65,13 @@ $serviceSocle = 'Ged' . $bs . 'Socle' . $bs;
 $serviceClasses = 'Ged' . $bs . 'ClassesMetadata' . $bs;
 $serviceDepot = 'Ged' . $bs . 'DepotFileserver' . $bs;
 $servicePermissions = 'Ged' . $bs . 'Permissions' . $bs;
+$serviceFiche = 'Ged' . $bs . 'Fiche' . $bs;
 $testJonctions = 'Ged' . $bs . 'Tests' . $bs . 'Jonctions' . $bs;
 $testSocle = 'Ged' . $bs . 'Tests' . $bs . 'Socle' . $bs;
 $testClasses = 'Ged' . $bs . 'Tests' . $bs . 'ClassesMetadata' . $bs;
 $testDepot = 'Ged' . $bs . 'Tests' . $bs . 'DepotFileserver' . $bs;
+$testApercu = 'Ged' . $bs . 'Tests' . $bs . 'Apercu' . $bs;
+$testFiche = 'Ged' . $bs . 'Tests' . $bs . 'Fiche' . $bs;
 $testParite = 'Ged' . $bs . 'Tests' . $bs . 'Parite' . $bs;
 
 /**
@@ -385,6 +388,64 @@ $couverts = [
         p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
         'Les transitions nommées d’un circuit, chacune avec sa permission : le droit est vérifié avant le changement d’état.',
         true,
+    ],
+    // --- Famille 5 : fiche document et son rendu (aperçu/vignette, titre, historique, commentaires, check-out) --
+    // (lot ged-mfiles-fiche-1 ; secteur Fiche ; services Ged\Fiche\* et Ged\Socle\Collaboration).
+    'mfiles:rest:get:objects-type-objectid-version-preview' => [
+        route('GET', '/documents/{id:[0-9]+}/apercu'),
+        p($testApercu . 'ModuleTest::testPageApercuPdfSeDesigne'),
+        'Aperçu d’un objet : GEDv2 ouvre la visionneuse réelle (aperçu/vignette dérivés du fichier, jamais la source) plutôt qu’une image nue — même fonction, rendu plus riche.',
+        true,
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-files-file-preview' => [
+        route('GET', '/documents/{id:[0-9]+}/miniature'),
+        p($testApercu . 'ModuleTest::testMiniatureServieEnPng'),
+        'Vignette d’un fichier : PNG de première page, fichier DÉRIVÉ régénérable, jamais la source ; 404 nommé si la vignette manque (jamais un 500).',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-title' => [
+        service($serviceSocle . 'DepotFichiers'),
+        p($testFiche . 'TitreTest::testLeTitreDeLObjetSeLitDuMetaJsonQuiFaitFoi'),
+        'Titre d’un objet : lu du `.meta.json` à côté du fichier (le dossier fait foi), la colonne `titre` n’en est que l’index reconstructible.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-title' => [
+        service($serviceSocle . 'DepotFichiers'),
+        p($testFiche . 'TitreTest::testChangerLeTitreMetAJourLeMetaEtLIndexSansRenommerLeFichierNiCreerDeVersion'),
+        'Changer le titre de l’objet : le `.meta.json` fait foi, le fichier n’est pas renommé et aucune version n’est créée.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-files-file-title' => [
+        service($serviceFiche . 'Nom'),
+        p($testFiche . 'NomTest::testLeNomDeFichierSeLitSurLIndex'),
+        'Nom du fichier d’un objet : le nom rangé (titre assaini + extension d’origine), lu du fonds.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-files-file-title' => [
+        service($serviceFiche . 'Nom'),
+        p($testFiche . 'NomTest::testRenommerLeFichierDeplaceMetaEtVersionsEtTraceSansRienPerdre'),
+        'Renommer le fichier : acte RÉEL (fichier, `.meta.json` et `.versions/` suivent ensemble), tracé `renommage`, aucune version perdue, titre d’objet intact.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-history' => [
+        service($serviceFiche . 'Historique'),
+        p($testFiche . 'HistoriqueTest::testLHistoriqueReunitVersionsEtDeplacementsDuPlusRecentAuPlusAncien'),
+        'Historique d’un objet : versions archivées et déplacements réels, du plus récent au plus ancien, lus du fonds — aucune date inventée.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-comments' => [
+        service($serviceSocle . 'Collaboration'),
+        p($testSocle . 'V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex'),
+        'Commentaires d’un objet : les notes de la fiche (collaboration), relues et cherchables dans le même index plein texte.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-comments' => [
+        service($serviceSocle . 'Collaboration'),
+        p($testSocle . 'V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex'),
+        'Ajouter un commentaire : note attribuée à son auteur et tracée ; seule la sienne peut être modifiée ou retirée.',
+    ],
+    'mfiles:rest:get:objects-type-objectid-version-checkedout' => [
+        service($serviceFiche . 'Verrou'),
+        p($testFiche . 'VerrouTest::testPoseLitEtRetireLeVerrouDUneFiche'),
+        'Statut de verrouillage / check-out : lu du `.meta.json` (le dossier fait foi, donc reconstructible) ; un verrou expiré ne tient plus.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-checkedout' => [
+        service($serviceFiche . 'Verrou'),
+        p($testFiche . 'VerrouTest::testUnAutreCompteNeRetirePasLeVerrouSansForce'),
+        'Poser / lever le check-out : un autre compte ne libère pas sans force, l’administrateur force, chaque geste est tracé dans l’historique.',
     ],
 ];
 

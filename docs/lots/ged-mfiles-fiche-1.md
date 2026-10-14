@@ -48,10 +48,52 @@ posée par l'agent).
 
 ### Reste
 
-- Parité M-Files famille 5 ; porte qualité ECC ; harness `-SansBanc`.
+- Porte qualité ECC ; harness `-SansBanc` ; rapport de lot.
 
 ## Mesures exactes
 
-_(complétées au fil du lot)_
+### Parité M-Files (juge `tools/parite/juge-mfiles.php`)
+
+| Mesure | Valeur |
+| --- | --- |
+| Inventaire public M-Files rejoué à l'identique | oui (112 éléments) |
+| Couverts (avant lot → après lot) | **56 → 67** |
+| Absents (proposés au juge) | **45** |
+| Non prouvés | **0** |
+| Parité stricte (= hors exclusions) | **50,00 % → 59,82 %** |
+| Erreurs du juge | 0 |
+
+Les 11 éléments `mfiles:rest:*` passés de `absent` à couvert :
+
+| Élément M-Files | Statut | Équivalent GEDv2 | Preuve |
+| --- | --- | --- | --- |
+| GET `…/version/preview` (objet) | couvert-autrement | route `GET /documents/{id}/apercu` | `Apercu\ModuleTest::testPageApercuPdfSeDesigne` |
+| GET `…/files/{file}/preview` (fichier) | couvert | route `GET /documents/{id}/miniature` | `Apercu\ModuleTest::testMiniatureServieEnPng` |
+| GET `…/version/title` (objet) | couvert | service `Ged\Socle\DepotFichiers` | `Fiche\TitreTest::testLeTitreDeLObjetSeLitDuMetaJsonQuiFaitFoi` |
+| PUT `…/version/title` (objet) | couvert | service `Ged\Socle\DepotFichiers` | `Fiche\TitreTest::testChangerLeTitreMetAJourLeMetaEtLIndexSansRenommerLeFichierNiCreerDeVersion` |
+| GET `…/files/{file}/title` (fichier) | couvert | service `Ged\Fiche\Nom` | `Fiche\NomTest::testLeNomDeFichierSeLitSurLIndex` |
+| PUT `…/files/{file}/title` (fichier) | couvert | service `Ged\Fiche\Nom` | `Fiche\NomTest::testRenommerLeFichierDeplaceMetaEtVersionsEtTraceSansRienPerdre` |
+| GET `…/history` | couvert | service `Ged\Fiche\Historique` | `Fiche\HistoriqueTest::testLHistoriqueReunitVersionsEtDeplacementsDuPlusRecentAuPlusAncien` |
+| GET `…/version/comments` | couvert | service `Ged\Socle\Collaboration` | `Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex` |
+| PUT `…/version/comments` | couvert | service `Ged\Socle\Collaboration` | `Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex` |
+| GET `…/version/checkedout` | couvert | service `Ged\Fiche\Verrou` | `Fiche\VerrouTest::testPoseLitEtRetireLeVerrouDUneFiche` |
+| PUT `…/version/checkedout` | couvert | service `Ged\Fiche\Verrou` | `Fiche\VerrouTest::testUnAutreCompteNeRetirePasLeVerrouSansForce` |
+
+### Tests
+
+| Mesure | Valeur |
+| --- | --- |
+| Suite PHPUnit complète | 970 tests, 17 969 assertions, 8 erreurs / 9 échecs d'environnement (voir ci-dessous) |
+| Dont `tests/php/Fiche` | **15 tests, 81 assertions** |
+| PHPStan niveau 6 | **0 erreur** (baseline vide) |
+
+Échecs d'environnement de la suite complète (aucun dans les chemins du lot) : `EditeurPdfTest`,
+`EditionPiecesTest`, `DeplacementDroitsTest`, `EcransTest::testApplicationDiagnostiqueLeMoteurDeRetouche`
+et `InstallateurTest` exigent PyMuPDF/`CMD4_PYTHON` (moteur PDF absent sur ce poste) ; `InfomaniakClientTest`
+exige le service externe. `V212cTest::testValidationDeLot…` est une fragilité d'ORDRE préexistante
+(`recherche_textes` retiré par `SupportCorpus`) ; il passe seul et passe juste après `tests/php/Fiche`
+(reproduit : `phpunit tests/php/Fiche tests/php/Socle/V212cTest.php` → 20/20 vert). Le secteur Fiche
+repose désormais `recherche_textes` dans son `setUpCorpus` pour ne pas casser l'ordre des suites suivantes.
 
 ETAT: bloqué (lot en cours)
+
