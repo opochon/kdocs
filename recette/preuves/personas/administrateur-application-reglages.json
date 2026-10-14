@@ -3,7 +3,7 @@
   "fonction": "F12",
   "libelle": "Trouver les réglages de l’application par le menu",
   "trouve": true,
-  "temps_ms": 595,
-  "ecran": "http://127.0.0.1:49177/application — Application",
+  "temps_ms": 459,
+  "ecran": "http://127.0.0.1:52789/application — Application",
   "erreur": ""
 }
