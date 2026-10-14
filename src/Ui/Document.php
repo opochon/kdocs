@@ -87,6 +87,10 @@ final class Document
             'montant' => $doc['montant'],
             'dossier' => dirname($chemin) === '.' ? '' : dirname($chemin),
             'fichier' => basename($chemin),
+            // Famille M-Files nº 5 (lot ged-mfiles-fiche-1) : le nom du fichier (distinct du titre de
+            // l'objet) et l'état de verrouillage / check-out, lus du dossier.
+            'nom_fichier' => basename($chemin),
+            'verrou' => $this->verrou((int) $doc['id']),
             'texte' => self::lignesTexte($meta['texte'] ?? null),
             'rendu' => Rendu::pour((int) $doc['id'], $absolu, $meta),
             'versions' => $this->versions($pdo, (int) $doc['id']),
@@ -327,6 +331,25 @@ final class Document
             'taille' => self::taille((int) $v['taille']),
             'restaurable' => true,
         ], $lignes);
+    }
+
+    /**
+     * État du verrouillage / check-out du document (famille M-Files nº 5), lu du `.meta.json` par le
+     * service du secteur Fiche. Une panne de lecture rend un état neutre et TRACÉ : la fiche dit « non
+     * verrouillé », elle ne tombe jamais.
+     *
+     * @return array{verrouille:bool, par:string, depuis:string, expire_le:string}
+     */
+    private function verrou(int $id): array
+    {
+        $neutre = ['verrouille' => false, 'par' => '', 'depuis' => '', 'expire_le' => ''];
+        try {
+            return (new \Ged\Fiche\Verrou($this->config))->etat($id);
+        } catch (\Throwable $e) {
+            error_log(sprintf('[GEDv2 document] verrou illisible pour le document %d : %s', $id, $e->getMessage()));
+
+            return $neutre;
+        }
     }
 
     /**

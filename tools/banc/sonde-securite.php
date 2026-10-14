@@ -387,6 +387,11 @@ try {
         // (« document cible introuvable ») SANS écrire ; la sonde ne vérifie que l'absence et le rejeu
         // du jeton CSRF de la route de relation.
         'POST /documents/{id:[0-9]+}/relations' => 'action=lier&type=reference&cible=0',
+        // Famille M-Files nº 5 (lot ged-mfiles-fiche-1, secteur Fiche) : identifiant inexistant ou corps
+        // vide, le métier refuse sans écrire ; la sonde ne vérifie que l'absence et le rejeu du CSRF.
+        'POST /documents/{id:[0-9]+}/titre' => 'titre=',
+        'POST /documents/{id:[0-9]+}/nom-fichier' => 'nom=',
+        'POST /documents/{id:[0-9]+}/verrou' => 'action=poser',
         'POST /documents/{id:[0-9]+}/partages' => 'action=inconnue',
         'POST /documents/{id:[0-9]+}/partages/externe' => 'expiration=',
         'POST /application/reconstruction-index' => 'confirmation=',

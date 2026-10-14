@@ -41,6 +41,31 @@
   {% if version_erreur %}<p class="alerte erreur" data-testid="version-erreur">Nouvelle version refusée : {{ version_erreur }}</p>{% endif %}
   {% if secours_succes %}<p class="alerte ok" data-testid="secours-succes">Copie de secours récupérée : nouvelle version v{{ secours_succes }} créée.</p>{% endif %}
   {% if secours_erreur %}<p class="alerte erreur" data-testid="secours-erreur">Récupération refusée : {{ secours_erreur }}</p>{% endif %}
+  {% if fiche_succes %}<p class="alerte ok" data-testid="fiche-succes">{{ fiche_succes }}</p>{% endif %}
+  {# Famille M-Files nº 5 (lot ged-mfiles-fiche-1, secteur Fiche) : titre d'objet, nom de fichier,
+     verrouillage / check-out. Chaque élément actionnable porte un data-testid. #}
+  <section class="carte" data-testid="fiche-rendu">
+    <div class="titre-section">Fiche &amp; rendu</div>
+    <form method="post" action="/documents/{{ doc.id }}/titre" class="fiche-action" data-testid="titre-objet-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>Titre de l’objet <input name="titre" value="{{ doc.titre }}" maxlength="200" required data-testid="titre-objet-champ"></label>
+      <button class="btn" type="submit" data-testid="titre-objet-enregistrer">Renommer l’objet</button>
+    </form>
+    <form method="post" action="/documents/{{ doc.id }}/nom-fichier" class="fiche-action" data-testid="nom-fichier-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>Nom du fichier <input name="nom" value="{{ doc.nom_fichier }}" maxlength="200" required data-testid="nom-fichier-champ"></label>
+      <button class="btn" type="submit" data-testid="nom-fichier-enregistrer">Renommer le fichier</button>
+    </form>
+    <div class="fiche-action" data-testid="verrou-etat" data-verrouille="{{ doc.verrou.verrouille ? '1' : '0' }}">
+      {% if doc.verrou.verrouille %}
+      <span data-testid="verrou-detenteur">Verrouillé par {{ doc.verrou.par }} depuis {{ doc.verrou.depuis }}</span>
+      <form method="post" action="/documents/{{ doc.id }}/verrou"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="retirer"><button class="btn" type="submit" data-testid="verrou-liberer">Libérer (check-in)</button></form>
+      {% else %}
+      <span data-testid="verrou-libre">Non verrouillé</span>
+      <form method="post" action="/documents/{{ doc.id }}/verrou"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="action" value="poser"><button class="btn" type="submit" data-testid="verrou-poser">Verrouiller (check-out)</button></form>
+      {% endif %}
+    </div>
+  </section>
   {% if doc.ouverture %}
   <p class="alerte{% if doc.ouverture.abandonnee %} warn{% endif %}" data-testid="document-ouverture">{% if doc.ouverture.abandonnee %}Peut-être abandonné — {% endif %}Ouvert par {{ doc.ouverture.auteur }} sur {{ doc.ouverture.poste }} depuis {{ doc.ouverture.depuis|date('H:i') }}</p>
   {% endif %}

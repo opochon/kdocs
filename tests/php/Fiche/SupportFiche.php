@@ -13,7 +13,21 @@ use Ged\Socle\DepotFichiers;
  */
 trait SupportFiche
 {
-    use \Ged\Tests\Socle\SupportCorpus;
+    use \Ged\Tests\Socle\SupportCorpus {
+        setUpCorpus as private setUpCorpusSocle;
+    }
+
+    /**
+     * Remise à neuf du Socle, PUIS réinstallation de l'index plein texte que `SupportCorpus` retire sans
+     * le reposer. Les suites suivantes de la même passe PHPUnit (Ingestion, Recherche) en dépendent :
+     * un test du secteur Fiche, exécuté tôt, ne doit pas laisser la base de test sans `recherche_textes`
+     * (sinon `Courrier\ModuleTest` échoue en `SQLSTATE[42S02]`, hors de son propre test).
+     */
+    private function setUpCorpus(): void
+    {
+        $this->setUpCorpusSocle();
+        \Ged\Recherche\Schema::installer($this->pdo);
+    }
 
     /** Dépose une pièce de test et rend son identifiant d'index. */
     private function deposerFiche(string $nom, string $titre, string $contenu, array $extra = []): int

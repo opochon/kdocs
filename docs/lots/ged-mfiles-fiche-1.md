@@ -41,10 +41,13 @@ posée par l'agent).
   prolongeable, expiration qui libère, refus par un autre compte, libération forcée administrateur,
   gestes tracés dans `document_collaboration`). Oracle rouge d'abord (3 erreurs « classe absente »),
   puis vert : **3 tests, 19 assertions**.
+- **Interface de la fiche & rendu** : routes `Ged\Fiche\Module` (`POST /documents/{id}/titre`,
+  `/nom-fichier`, `/verrou`), permission `documents:modifier` et niveau ACL, une ligne Kernel signalée,
+  `Ui\Document`/`Ui\Ecrans` passent le nom de fichier et l'état du verrou, barre d'actions de la fiche
+  avec `data-testid`, charge CSRF défensive de la sonde. `ModuleTest` : **5 tests, 26 assertions**.
 
 ### Reste
 
-- Interface : barre d'actions de la fiche, routes `Ged\Fiche\Module`, permissions, ligne Kernel.
 - Parité M-Files famille 5 ; porte qualité ECC ; harness `-SansBanc`.
 
 ## Mesures exactes

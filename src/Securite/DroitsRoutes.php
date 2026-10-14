@@ -29,6 +29,11 @@ final class DroitsRoutes
         'GET /recherche' => 'recherche:lire',
         'GET /documents/{id:[0-9]+}' => 'documents:lire',
         'POST /documents/{id:[0-9]+}/versions' => 'documents:modifier',
+        // Famille M-Files nº 5 (lot ged-mfiles-fiche-1, secteur Fiche) : titre d'objet, nom de fichier,
+        // verrouillage / check-out — gestes d'édition, permission Modifier.
+        'POST /documents/{id:[0-9]+}/titre' => 'documents:modifier',
+        'POST /documents/{id:[0-9]+}/nom-fichier' => 'documents:modifier',
+        'POST /documents/{id:[0-9]+}/verrou' => 'documents:modifier',
         // V2-12c : restaurer vN cree une nouvelle version (jamais d'ecrasement), vue depuis Recherche, lot.
         'POST /documents/{id:[0-9]+}/versions/{numero:[0-9]+}/restaurer' => 'documents:modifier',
         'POST /recherche/vue' => 'documents:lire',
@@ -413,6 +418,10 @@ final class DroitsRoutes
             }
             if (preg_match('#^/documents/[0-9]+/sceller$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/sceller'];
+            }
+            // Famille M-Files nº 5 (secteur Fiche) : titre, nom de fichier, verrou (identifiant concret).
+            if (preg_match('#^/documents/[0-9]+/(titre|nom-fichier|verrou)$#', $chemin, $m) === 1) {
+                return self::PERMISSIONS['POST /documents/{id:[0-9]+}/' . $m[1]];
             }
             if (preg_match('#^/a-traiter/[0-9]+/pages/(tourner|scinder|fusionner|retirer|annuler)$#', $chemin, $m) === 1) {
                 return self::PERMISSIONS['POST /a-traiter/{id:[0-9]+}/pages/' . $m[1]];

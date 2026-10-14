@@ -185,7 +185,10 @@ final class Ecrans
             // Famille M-Files nº 2 : l'onglet Relations est toujours là, même sur le repli de maquette.
             'relations' => [], 'relations_types' => [],
             'pdfa' => ['statut' => 'en_attente', 'niveau' => '2b', 'telechargeable' => false, 'chemin' => '', 'raison' => '', 'empreinte_sha256' => '', 'reprise' => ''],
-            'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => '']];
+            'archivage' => ['scelle' => false, 'scelle_le' => '', 'echeance' => '', 'tsa_jeton' => '', 'tsa_url' => ''],
+            // Famille M-Files nº 5 (lot ged-mfiles-fiche-1) : repli neutre si le dossier ne répond pas,
+            // l'écran ne casse jamais et reste actionnable.
+            'nom_fichier' => '', 'verrou' => ['verrouille' => false, 'par' => '', 'depuis' => '', 'expire_le' => '']];
         $session = $req->getAttribute('ged.session');
         $permissions = is_array($session) ? array_values(array_map('strval', (array) ($session['permissions'] ?? []))) : [];
         $peutSceller = in_array('*', $permissions, true) || in_array('archivage:sceller', $permissions, true);
@@ -213,6 +216,9 @@ final class Ecrans
             'secours_erreur' => (string) ($req->getQueryParams()['secours_erreur'] ?? ''),
             'relation_succes' => (string) ($req->getQueryParams()['relation_succes'] ?? '') === '1',
             'relation_erreur' => (string) ($req->getQueryParams()['relation_erreur'] ?? ''),
+            // Famille M-Files nº 5 (lot ged-mfiles-fiche-1) : message nommé d'un geste de fiche réussi
+            // (titre, nom de fichier, verrou), ramené par le PRG.
+            'fiche_succes' => (string) ($req->getQueryParams()['fiche_succes'] ?? ''),
             // Le secret ne transite jamais dans l'URL : le flash serveur est consommé à ce seul rendu.
             'partage_lien' => ($jeton = (new \Ged\Socle\JetonPartageSession($config))->consommer(
                 (string) ($req->getCookieParams()['gedv2_session'] ?? '')
