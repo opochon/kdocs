@@ -109,6 +109,8 @@ final class Rail
                 ['id' => 'comptes', 'libelle' => 'Comptes', 'icone' => 'appareil', 'url' => '/administration/comptes'],
                 ['id' => 'groupes', 'libelle' => 'Groupes', 'icone' => 'partage', 'url' => '/administration/groupes'],
                 ['id' => 'roles', 'libelle' => 'Rôles', 'icone' => 'reglages', 'url' => '/administration/roles'],
+                // Lot ged-mfiles-permissions-1 : règles de permission dynamiques (classe / métadonnée / état).
+                ['id' => 'permissions', 'libelle' => 'Permissions', 'icone' => 'reglages', 'url' => '/permissions'],
             ]];
         }
 

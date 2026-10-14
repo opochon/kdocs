@@ -1,0 +1,45 @@
+{% extends 'layout.twig' %}{% block contenu %}
+<div data-testid="ecran-permissions">
+  <h1>Permissions</h1>
+  <p class="muted">Règles nommées, portables dans le fonds (<code>.ged/permissions.json</code>) : elles ne font que restreindre l’accès déjà accordé par les droits de dossier. Un document non visible n’apparaît ni dans la liste ni dans la recherche.</p>
+
+  <form method="post" action="/permissions/regles" data-testid="formulaire-regle">
+    <input type="hidden" name="csrf" value="{{ csrf|default('') }}">
+    <label>Nom <input data-testid="regle-nom" name="nom" required maxlength="128"></label>
+    <label>Classe <select data-testid="regle-classe" name="classe">
+      <option value="">Toutes</option>
+      {% for classe in classes %}<option value="{{ classe }}">{{ classe }}</option>{% endfor %}
+    </select></label>
+    <label>État <input data-testid="regle-etat" name="etat" placeholder="ex. a-valider"></label>
+    <label>Métadonnée <input data-testid="regle-champ" name="champ" placeholder="ex. confidentiel"></label>
+    <label>Valeur <input data-testid="regle-valeur" name="valeur" placeholder="ex. oui"></label>
+    <label><input type="checkbox" data-testid="regle-voir" name="voir" value="1" checked> Voir</label>
+    <label><input type="checkbox" data-testid="regle-modifier" name="modifier" value="1"> Modifier</label>
+    <label>Groupe autorisé <select data-testid="regle-groupe" name="groupe">
+      <option value="">Aucun</option>
+      {% for groupe in groupes %}<option value="{{ groupe.id }}">{{ groupe.nom }}</option>{% endfor %}
+    </select></label>
+    <label>Rôle autorisé <select data-testid="regle-role" name="role">
+      <option value="">Aucun</option>
+      {% for role in roles %}<option value="{{ role.code }}">{{ role.libelle }}</option>{% endfor %}
+    </select></label>
+    <button data-testid="action-creer-regle">Créer la règle</button>
+  </form>
+
+  <h2>Règles enregistrées</h2>
+  {% for regle in regles %}
+  <section data-testid="regle-{{ regle.id }}">
+    <p data-testid="regle-resume-{{ regle.id }}">{{ regle.nom }} — {% if regle.conditions.classe %}classe {{ regle.conditions.classe }}{% else %}toutes classes{% endif %}{% if regle.conditions.champ %}, {{ regle.conditions.champ }} = {{ regle.conditions.valeur }}{% endif %}{% if regle.conditions.etat %}, état {{ regle.conditions.etat }}{% endif %} · {{ regle.voir ? 'voir' : '' }}{{ regle.voir and regle.modifier ? ' + ' : '' }}{{ regle.modifier ? 'modifier' : '' }}</p>
+    <p data-testid="regle-cibles-{{ regle.id }}">Autorisé à : {% for cible in regle.cibles %}{{ cible.type }} {{ cible.valeur }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    <p data-testid="regle-etat-{{ regle.id }}">{{ regle.actif ? 'active' : 'désactivée' }}</p>
+    <form method="post" action="/permissions/regles/{{ regle.id }}/basculer">
+      <input type="hidden" name="csrf" value="{{ csrf|default('') }}">
+      <input type="hidden" name="actif" value="{{ regle.actif ? '0' : '1' }}">
+      <button data-testid="action-basculer-{{ regle.id }}">{{ regle.actif ? 'Désactiver' : 'Activer' }}</button>
+    </form>
+  </section>
+  {% else %}
+  <p data-testid="aucune-regle">Aucune règle enregistrée.</p>
+  {% endfor %}
+</div>
+{% endblock %}

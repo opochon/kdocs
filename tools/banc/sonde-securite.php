@@ -407,6 +407,10 @@ try {
         'POST /depot-fileserver/scanner' => 'sonde=1',
         'POST /depot-fileserver/verifier' => 'sonde=1',
         'POST /depot-fileserver/exporter' => 'sonde=1',
+        // Permissions dynamiques (lot ged-mfiles-permissions-1) : nom vide (aucune règle écrite) et
+        // bascule d'une règle inexistante (refusée nommément) ; la sonde ne vérifie que le CSRF.
+        'POST /permissions/regles' => 'nom=',
+        'POST /permissions/regles/{id:[0-9]+}/basculer' => 'actif=1',
         // Charges défensives de l'appairage (V2-08b, Jonctions) : le métier refuse ou ne révoque rien,
         // la sonde ne vérifie que le CSRF absent / rejoué.
         'POST /appairage' => 'application=cmm&nom=sonde&retour=http%3A%2F%2F127.0.0.1%2Fretour&etat=sonde',

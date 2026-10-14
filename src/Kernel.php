@@ -49,7 +49,9 @@ final class Kernel
         // signalée dans docs/secteurs/edition-poste.md (rubrique « Chemins »).
         // « DepotFileserver » (famille archivage / versions, lot ged-mfiles-oracle-1) ajouté par le
         // même mécanisme : une ligne, signalée dans docs/secteurs/depot-fileserver.md.
-        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Edition', 'Ui', 'Archivage', 'DepotFileserver'] as $secteur) {
+        // « Permissions » (famille permissions dynamiques, lot ged-mfiles-permissions-1) : une ligne,
+        // signalée dans docs/secteurs/permissions.md.
+        foreach (['Securite', 'Socle', 'Ingestion', 'Classement', 'Apercu', 'Recherche', 'Workflows', 'Jonctions', 'Edition', 'Ui', 'Archivage', 'DepotFileserver', 'Permissions'] as $secteur) {
             $module = 'Ged\\' . $secteur . '\\Module';
             if (class_exists($module)) {
                 $module::enregistrer($app, $config, $vue);

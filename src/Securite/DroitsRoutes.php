@@ -106,6 +106,11 @@ final class DroitsRoutes
         'GET /administration/groupes' => 'application:administrer',
         'POST /administration/groupes' => 'application:administrer',
         'GET /administration/roles' => 'application:administrer',
+        // Lot ged-mfiles-permissions-1 : règles de permission dynamiques (écran de gestion). Aucune
+        // autre permission touchée ; la bascule est une mutation sous CSRF comme les comptes/groupes.
+        'GET /permissions' => 'application:administrer',
+        'POST /permissions/regles' => 'application:administrer',
+        'POST /permissions/regles/{id:[0-9]+}/basculer' => 'application:administrer',
         'GET /dossiers/{id:[0-9]+}/droits' => 'dossiers:gerer',
         'POST /dossiers/{id:[0-9]+}/droits' => 'dossiers:gerer',
         'GET /archives' => 'archivage:consulter',
@@ -395,6 +400,10 @@ final class DroitsRoutes
             }
             if (preg_match('#^/dossiers/[0-9]+/droits$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /dossiers/{id:[0-9]+}/droits'];
+            }
+            // Bascule d'une règle de permission dynamique (lot ged-mfiles-permissions-1).
+            if (preg_match('#^/permissions/regles/[0-9]+/basculer$#', $chemin) === 1) {
+                return self::PERMISSIONS['POST /permissions/regles/{id:[0-9]+}/basculer'];
             }
             if (preg_match('#^/documents/[0-9]+/versions$#', $chemin) === 1) {
                 return self::PERMISSIONS['POST /documents/{id:[0-9]+}/versions'];
