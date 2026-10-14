@@ -16,7 +16,7 @@
         "etat": "a-valider",
         "circuit": {
           "nom": "Facture à seuil", "actif": true,
-          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "etats": [ { "nom": "recu", "libelle": "Reçu", "initial": true }, { "nom": "a-valider", "libelle": "À valider" }, { "nom": "valide", "libelle": "Validé" } ],
           "transitions": [
             { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
             { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
@@ -36,7 +36,7 @@
         "permissions": [ "workflow.transition.valider" ],
         "circuit": {
           "nom": "Facture à seuil", "actif": true,
-          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "etats": [ { "nom": "recu", "libelle": "Reçu", "initial": true }, { "nom": "a-valider", "libelle": "À valider" }, { "nom": "valide", "libelle": "Validé" } ],
           "transitions": [
             { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
             { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
@@ -56,7 +56,7 @@
         "permissions": [],
         "circuit": {
           "nom": "Facture à seuil", "actif": true,
-          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "etats": [ { "nom": "recu", "libelle": "Reçu", "initial": true }, { "nom": "a-valider", "libelle": "À valider" }, { "nom": "valide", "libelle": "Validé" } ],
           "transitions": [
             { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
             { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
@@ -72,7 +72,7 @@
         "scenario": "catalogue",
         "circuit": {
           "nom": "Facture à seuil", "actif": true,
-          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "etats": [ { "nom": "recu", "libelle": "Reçu", "initial": true }, { "nom": "a-valider", "libelle": "À valider" }, { "nom": "valide", "libelle": "Validé" } ],
           "transitions": [
             { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
             { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }

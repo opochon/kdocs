@@ -53,7 +53,7 @@ final class Ecran
             'regles' => (new Regles($this->config))->toutes(),
             'groupes' => $groupes,
             'roles' => $roles,
-            'classes' => array_values(array_map(static fn (array $t): string => (string) $t['nom'], (new Nomenclature($this->config))->lister())),
+            'classes' => array_map(static fn (array $t): string => (string) $t['nom'], (new Nomenclature($this->config))->lister()),
         ];
     }
 

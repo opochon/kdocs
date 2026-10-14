@@ -102,7 +102,7 @@ final class Regles
                 $regles[] = $final;
             }
 
-            return ['version' => 1, 'regles' => array_values($regles)];
+            return ['version' => 1, 'regles' => $regles];
         }, ['version' => 1, 'regles' => []]);
 
         return (int) $final['id'];
@@ -122,7 +122,29 @@ final class Regles
                 }
             }
 
-            return ['version' => 1, 'regles' => array_values($regles)];
+            return ['version' => 1, 'regles' => $regles];
+        }, ['version' => 1, 'regles' => []]);
+
+        if (!$trouvee) {
+            throw new RuntimeException("règle de permission inconnue : $id");
+        }
+    }
+
+    /** Réactive une règle désactivée (jamais de suppression : la règle reste relisible et tracée). */
+    public function activer(int $id): void
+    {
+        $trouvee = false;
+        $this->registre->modifier(self::NOM, function (array $etat) use ($id, &$trouvee): array {
+            $regles = array_values(array_filter((array) ($etat['regles'] ?? []), 'is_array'));
+            foreach ($regles as $index => $regle) {
+                if ((int) ($regle['id'] ?? 0) === $id) {
+                    $regles[$index]['actif'] = true;
+                    $regles[$index]['maj_le'] = (new \DateTimeImmutable())->format('c');
+                    $trouvee = true;
+                }
+            }
+
+            return ['version' => 1, 'regles' => $regles];
         }, ['version' => 1, 'regles' => []]);
 
         if (!$trouvee) {
@@ -189,7 +211,10 @@ final class Regles
         ];
     }
 
-    /** @param array<string, mixed> $regle @return array<string, mixed> */
+    /**
+     * @param array<string, mixed> $regle
+     * @return array<string, mixed>
+     */
     private function normaliser(array $regle): array
     {
         $conditions = (array) ($regle['conditions'] ?? []);

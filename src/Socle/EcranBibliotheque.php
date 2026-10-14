@@ -55,6 +55,7 @@ final class EcranBibliotheque
     /** @var array<int, string> Erreurs nommées du moteur Recherche, par vue. */
     private array $erreursRecherche = [];
     /** Visibilité conditionnelle (famille permissions dynamiques), calculée une fois par rendu. */
+    /** @var array{0:?string, 1:list<mixed>}|null */
     private ?array $visibilite = null;
     private bool $visibiliteCalculee = false;
 

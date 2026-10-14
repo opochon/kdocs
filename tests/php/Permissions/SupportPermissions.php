@@ -54,6 +54,11 @@ trait SupportPermissions
     {
         $this->storageRootAvant === false ? putenv('STORAGE_ROOT')
             : putenv('STORAGE_ROOT=' . $this->storageRootAvant);
+        // Les circuits créés par les vecteurs d'états sont retirés : la base reste propre pour le
+        // rejeu suivant (la sonde de sécurité rend ensuite /workflows sur un état neutre).
+        $this->pdo->exec('DELETE FROM workflow_instances');
+        $this->pdo->exec('DELETE FROM workflow_definitions');
+        $this->pdo->exec('DELETE FROM workflow_journal');
         $this->supprimerRacine($this->racine);
         Registre::oublier();
     }
