@@ -16,7 +16,7 @@ use Ged\Socle\Fonds;
 use Ged\Socle\Nomenclature;
 use Ged\Socle\Registre;
 use Ged\Socle\Vues;
-use Ged\Tests\Socle\SupportCorpus;
+use Ged\Tests\Socle\SupportVues;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class MfilesVuesVecteursTest extends TestCase
 {
-    use SupportCorpus;
+    use SupportVues;
 
     private Vues $vues;
     private DepotFichiers $depot;
@@ -40,13 +40,13 @@ final class MfilesVuesVecteursTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->setUpCorpus();
+        $this->setUpVues();
         $this->services();
     }
 
     protected function tearDown(): void
     {
-        $this->tearDownCorpus();
+        $this->tearDownVues();
     }
 
     public function testRejoueLesVecteursDesFiltresEtDuContenu(): void
@@ -80,8 +80,8 @@ final class MfilesVuesVecteursTest extends TestCase
 
     private function fondsNeuf(): void
     {
-        $this->tearDownCorpus();
-        $this->setUpCorpus();
+        $this->tearDownVues();
+        $this->setUpVues();
         $this->services();
     }
 
@@ -267,6 +267,9 @@ final class MfilesVuesVecteursTest extends TestCase
             ]);
         }
         SchemaRecherche::installer($this->pdo);
+        // La table est partagee avec d'autres suites : on la vide pour que les identifiants reutilises
+        // du fonds neuf ne rencontrent aucun reste d'indexation.
+        $this->pdo->exec('DELETE FROM recherche_textes');
         (IndexPleinTexte::depuis($this->config, $this->pdo))->synchroniser(null);
 
         $id = $this->vues->enregistrerRecherche('Vue recherche', [

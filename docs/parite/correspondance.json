@@ -9393,21 +9393,33 @@
             },
             "preuve": {
                 "type": "phpunit",
-                "cible": "Ged\\Tests\\Socle\\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier"
+                "cible": "Ged\\Tests\\Parite\\MfilesVuesVecteursTest::testRejoueLesVecteursDesFiltresEtDuContenu"
             },
-            "note": "Vues enregistrées du fonds (dossiers virtuels posés sur le dossier physique)."
+            "note": "Contenu d’une vue : les documents retenus par sa classe et ses valeurs de métadonnées (filtres compilés dans le fonds, aucun fichier déplacé)."
         },
         "mfiles:rest:get:views-path-items-count": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Socle\\VuesTest::testLeContenuEtLeCompteDuneVueEnregistree"
+            },
+            "note": "Comptage du contenu d’une vue par classe et métadonnées, même sémantique que la liste."
         },
         "mfiles:rest:get:views-path-objects": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Socle\\Vues"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesVuesVecteursTest::testRejoueLesVecteursDesVuesRecherchees"
+            },
+            "note": "Contenu d’une vue de recherche : les critères (texte + classe + métadonnées) sont conservés dans le fonds puis rejoués par le moteur de Recherche, jamais un second moteur."
         },
         "mfiles:rest:post:favorites": {
             "statut": "absent",
