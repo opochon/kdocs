@@ -33,10 +33,13 @@ posée par l'agent).
 - **Historique des versions** : service `Ged\Fiche\Historique` (versions archivées + déplacements, du plus
   récent au plus ancien, lus du fonds ; base muette tracée, liste vide jamais 500) ; `Ui\Document::historique`
   lui délègue. Oracle rouge d'abord (2 erreurs « classe absente »), puis vert : **2 tests, 10 assertions**.
+- **Titre d'objet / nom de fichier** : service `Ged\Fiche\Nom` (lire le nom rangé, renommer le fichier
+  réel — fichier, `.meta.json` et `.versions/` suivent, index et trace `renommage`, titre d'objet intact,
+  extension conservée, nom vide refusé, droits `modifier` exigés) ; oracles `NomTest` (3 tests) et
+  `TitreTest` (2 tests : le titre d'objet se lit/écrit dans le `.meta.json` sans renommer le fichier).
 
 ### Reste
 
-- Titre objet / nom de fichier : service `Ged\Fiche\Nom` (renommage réel) et oracles de couverture.
 - Check-out : service `Ged\Fiche\Verrou`, état dans le `.meta.json`, test.
 - Interface : barre d'actions de la fiche, routes `Ged\Fiche\Module`, permissions, ligne Kernel.
 - Parité M-Files famille 5 ; porte qualité ECC ; harness `-SansBanc`.
