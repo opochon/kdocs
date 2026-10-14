@@ -169,6 +169,42 @@ final class VuesTest extends TestCase
             'enregistrer une vue ne trace aucun déplacement');
     }
 
+    public function testLeContenuEtLeCompteDuneVueEnregistree(): void
+    {
+        $id = $this->vues->enregistrer('Factures', ['type' => 'Facture'], 'olivia');
+        $docs = [
+            $this->doc('Facture A', 'Facture', ['date' => '2026-03-01']),
+            $this->doc('Contrat B', 'Contrat', ['date' => '2026-03-02']),
+            $this->doc('Facture C', 'Facture', ['date' => '2026-03-03']),
+        ];
+
+        self::assertSame(['Facture A', 'Facture C'], array_column($this->vues->contenu($id, $docs), 'titre'));
+        self::assertSame(2, $this->vues->compter($id, $docs),
+            'le compte d’une vue est le compte de son contenu, jamais un second parcours divergent');
+    }
+
+    public function testLeContenuDUneVueDeRechercheEstRefuseEtNomme(): void
+    {
+        $id = $this->vues->enregistrerRecherche('Factures recherchées', ['q' => 'energie', 'type' => 'Facture'], 'olivia');
+
+        try {
+            $this->vues->contenu($id, []);
+            self::fail('le contenu d’une vue de recherche doit être refusé (son texte ne vit pas dans les filtres)');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsStringIgnoringCase('recherche', $e->getMessage(), 'le refus se nomme');
+        }
+    }
+
+    public function testLeContenuDUneVueInconnueEstRefuse(): void
+    {
+        try {
+            $this->vues->contenu(999999, []);
+            self::fail('une vue inconnue doit être refusée');
+        } catch (\RuntimeException $e) {
+            self::assertStringContainsStringIgnoringCase('aucune vue', $e->getMessage(), 'le refus se nomme');
+        }
+    }
+
     public function testUnNomDeVueVideEstRefusé(): void
     {
         try {

@@ -390,6 +390,59 @@ final class Vues
     }
 
     /**
+     * Le CONTENU d'une vue enregistrée : ses filtres déjà compilés, appliqués à une liste de documents
+     * du fonds (forme des entrées de `Fonds::tous()`). M-Files « view contents ». Une vue de Recherche
+     * garde EN PLUS un texte : la servir ici laisserait ce critère de côté, elle est donc refusée
+     * nommément — son contenu se rejoue par le moteur de Recherche, jamais par un second moteur.
+     *
+     * @param list<array<string, mixed>> $docs
+     * @return list<array<string, mixed>>
+     */
+    public function contenu(int $id, array $docs): array
+    {
+        return self::filtrerDocs($docs, $this->filtresDeVue($id));
+    }
+
+    /**
+     * Le COMPTE du contenu d'une vue enregistrée (M-Files « view contents count »), sans second parcours.
+     *
+     * @param list<array<string, mixed>> $docs
+     */
+    public function compter(int $id, array $docs): int
+    {
+        return count($this->contenu($id, $docs));
+    }
+
+    /**
+     * Les filtres compilés d'une vue relue ; refuse une vue de Recherche (son texte ne vit pas dans les
+     * filtres documentaires) et une vue inconnue, jamais un résultat silencieusement partiel.
+     *
+     * @return array<string, mixed>
+     */
+    private function filtresDeVue(int $id): array
+    {
+        $vue = $this->lire($id);
+        if ($vue === null) {
+            throw new RuntimeException("vue : aucune vue nº $id");
+        }
+        if (self::estVueRecherche($vue)) {
+            throw new RuntimeException("vue : la vue nº $id est une vue de recherche, son contenu se rejoue par le moteur de recherche");
+        }
+
+        return (array) $vue['filtres'];
+    }
+
+    /**
+     * Une vue de Recherche garde un tableau non vide dans le registre ; une vue documentaire non.
+     *
+     * @param array<string, mixed> $vue
+     */
+    private static function estVueRecherche(array $vue): bool
+    {
+        return isset($vue['recherche']) && is_array($vue['recherche']) && $vue['recherche'] !== [];
+    }
+
+    /**
      * Applique des filtres compilés à une liste de documents du fonds (forme des entrées de Fonds::tous()).
      * Pure : aucune base, aucun fichier — une vue ne déplace rien, elle ne retient que ce qui la satisfait.
      *

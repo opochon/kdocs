@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "categorie": "mfiles-vues-recherchees",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/",
+    "modele": "Famille M-Files 3 : vues recherchees, criteres conserves dans le fonds et rejoues par le moteur de Recherche, aucune copie de document"
+  },
+  "total": 3,
+  "vecteurs": [
+    {
+      "id": "mfiles:vues:recherche-criteres",
+      "entree": {
+        "scenario": "vue-recherche-criteres",
+        "nom": "Factures d'energie",
+        "q": "energie",
+        "classe": "Facture",
+        "emetteur": "Atelier Fictif SA",
+        "de": "2026-01-01",
+        "a": "2026-12-31",
+        "montant_min": "100",
+        "montant_max": "900"
+      },
+      "sortie": { "q": "energie", "classe": "Facture", "emetteur": "Atelier Fictif SA", "debut": "2026-01-01", "fin": "2026-12-31", "min": "100", "max": "900", "portable": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get"
+    },
+    {
+      "id": "mfiles:vues:recherche-contenu",
+      "entree": {
+        "scenario": "vue-recherche-contenu",
+        "q": "energie",
+        "classe": "Facture",
+        "emetteur": "Atelier Fictif SA",
+        "documents": [
+          { "titre": "Facture energie", "classe": "Facture", "texte": "energie solaire pour atelier fictif" },
+          { "titre": "Facture eau", "classe": "Facture", "texte": "eau courante pour atelier fictif" },
+          { "titre": "Contrat energie", "classe": "Contrat", "texte": "energie solaire pour atelier fictif" }
+        ]
+      },
+      "sortie": { "contenus": ["Facture energie"], "compte": 1, "compte_volet": 1, "meme_ordre": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get"
+    },
+    {
+      "id": "mfiles:vues:recherche-portable",
+      "entree": { "scenario": "vue-recherche-portable", "nom": "Contrats energie", "q": "energie", "classe": "Contrat" },
+      "sortie": { "fichier_present": true, "relue_apres_oublier": true, "q_relu": "energie" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get"
+    }
+  ]
+}
