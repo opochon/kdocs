@@ -48,7 +48,26 @@ posée par l'agent).
 
 ### Reste
 
-- _(aucun)_ — rapport de lot complet : `docs/rapports/lots/ged-mfiles-fiche-1.md`.
+- _(aucun)_
+
+### Passe 2 — correcteur (14.10.2026)
+
+Régression silencieuse trouvée puis corrigée, hors des cinq familles mais dans les chemins du secteur
+(`tools/parite/corriger-correspondance-mfiles.php`, `docs/parite/correspondance.json`) :
+
+- **Constat** : le générateur de la correspondance réécrivait en `absent` tout élément mfiles non couvert.
+  Le rejeu qui a posé la famille 5 a donc **effacé les 17 exclusions M-Files ratifiées par le juge**
+  (`dd241cc` : session/auth, serveur/coffres, dépôts externes), faisant remonter le dénominateur de la
+  parité hors exclusions. Le garde-fou du juge était unidirectionnel : la perte ne se voyait pas.
+- **Oracle d'abord (rouge)** : `tests/php/Parite/MfilesFicheVecteursTest.php` — la correspondance
+  versionnée porte encore les 17 exclusions ET le générateur les préserve (2 échecs avant code).
+- **Correctif** : le générateur `PRESERVE` toute entrée déjà `exclu` (il ne la pose jamais lui-même, mais
+  ne l'efface plus) ; les 17 exclusions sont restaurées ; le résumé distingue désormais couverts / exclus /
+  absents. Oracles verts, `MfilesInventaireTest` (juge) toujours vert.
+- **Mesure corrigée** : couverts 67/112, absents 28, exclus 17, non-prouvés 0, strict **59,82 %**,
+  hors exclusions **70,53 %** (juge VERT).
+
+Le rapport de lot complet reste : `docs/rapports/lots/ged-mfiles-fiche-1.md`.
 
 ## Mesures exactes
 
@@ -58,9 +77,11 @@ posée par l'agent).
 | --- | --- |
 | Inventaire public M-Files rejoué à l'identique | oui (112 éléments) |
 | Couverts (avant lot → après lot) | **56 → 67** |
-| Absents (proposés au juge) | **45** |
+| Absents (proposés au juge) | **28** |
+| Exclus (ratifiés par le juge, préservés) | **17** |
 | Non prouvés | **0** |
-| Parité stricte (= hors exclusions) | **50,00 % → 59,82 %** |
+| Parité stricte | **50,00 % → 59,82 %** |
+| Parité hors exclusions | **58,95 % → 70,53 %** |
 | Erreurs du juge | 0 |
 
 Les 11 éléments `mfiles:rest:*` passés de `absent` à couvert sont détaillés dans le rapport de lot

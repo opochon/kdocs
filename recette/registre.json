@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-14T21:40:39",
-    "duree_s":  813,
-    "commit":  "a3df142",
+    "date":  "2026-10-14T22:09:45",
+    "duree_s":  849,
+    "commit":  "ef8423f",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[37;41mTests: 970\u001b[0m\u001b[37;41m, Assertions: 17952\u001b[0m\u001b[37;41m, Errors: 8\u001b[0m\u001b[37;41m, Failures: 9\u001b[0m\u001b[37;41m, Skipped: 1\u001b[0m\u001b[37;41m.\u001b[0m",
+                                       "detail":  "\u001b[37;41mTests: 972\u001b[0m\u001b[37;41m, Assertions: 18062\u001b[0m\u001b[37;41m, Errors: 8\u001b[0m\u001b[37;41m, Failures: 9\u001b[0m\u001b[37;41m, Skipped: 1\u001b[0m\u001b[37;41m.\u001b[0m",
                                        "ok":  false
                                    },
                     "3-banc":  {
@@ -36,7 +36,7 @@
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 474 ms) | auditeur: 4/4 (mÃ©diane 447 ms) | comptable: 4/4 (mÃ©diane 552 ms) | debutant: 4/4 (mÃ©diane 365 ms) | fiduciaire: 4/4 (mÃ©diane 414 ms) | secretaire: 3/3 (mÃ©diane 534 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 524 ms) | auditeur: 4/4 (mÃ©diane 429 ms) | comptable: 4/4 (mÃ©diane 588 ms) | debutant: 4/4 (mÃ©diane 390 ms) | fiduciaire: 4/4 (mÃ©diane 409 ms) | secretaire: 3/3 (mÃ©diane 558 ms)",
                                        "ok":  true
                                    },
                     "9-parite":  {
@@ -44,7 +44,7 @@
                                      "ok":  true
                                  },
                     "9-parite-mfiles":  {
-                                            "detail":  "parite M-Files : 112 elements | couverts 67 | strict 59,82 % | hors exclusions 59,82 % | ecarts 45 | VERT",
+                                            "detail":  "parite M-Files : 112 elements | couverts 67 | strict 59,82 % | hors exclusions 70,53 % | ecarts 45 | VERT",
                                             "ok":  true
                                         }
                 }

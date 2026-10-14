@@ -35,6 +35,7 @@ posée par l'agent).
 | `fbc0463` | **Check-out** : service `Ged\Fiche\Verrou` (état dans le `.meta.json`, délai 30 min prolongeable, expiration qui libère, refus d'autrui, libération forcée admin, gestes tracés). |
 | `1be3aa3` | **Interface** : routes `Ged\Fiche\Module` (`/titre`, `/nom-fichier`, `/verrou`), permission `documents:modifier` + niveau ACL, ligne Kernel signalée, nom de fichier et état du verrou sur la fiche, barre d'actions `data-testid`, charge CSRF de la sonde. |
 | `a3df142` | **Parité M-Files famille 5** : section du générateur, `correspondance.json` et `PARITE-MFILES.md` régénérés. |
+| `ef8423f` | **Passe 2 — correcteur** : le générateur de correspondance préserve désormais les 17 exclusions M-Files ratifiées par le juge (régression introduite par le rejeu famille 5) ; oracles `MfilesFicheVecteursTest` ; parité hors exclusions 58,95 % → 70,53 %. |
 
 ## Éléments passés de `absent` à couvert
 
@@ -64,9 +65,11 @@ posée par l'agent).
 | --- | --- |
 | Inventaire public M-Files rejoué à l'identique | oui (112 éléments) |
 | Couverts (avant lot → après lot) | **56 → 67** |
-| Absents (proposés au juge) | **45** |
+| Absents (proposés au juge) | **28** |
+| Exclus (ratifiés par le juge, préservés) | **17** |
 | Non prouvés | **0** |
-| Parité stricte (= hors exclusions) | **50,00 % → 59,82 %** |
+| Parité stricte | **50,00 % → 59,82 %** |
+| Parité hors exclusions | **58,95 % → 70,53 %** |
 | Erreurs du juge | 0 |
 
 ### Tests
@@ -74,17 +77,19 @@ posée par l'agent).
 | Mesure | Valeur |
 | --- | --- |
 | Dont `tests/php/Fiche` (5 fichiers) | **15 tests, 81 assertions** |
+| Dont `tests/php/Parite/MfilesFicheVecteursTest.php` (passe 2) | **2 tests, 93 assertions** |
 | Oracle rouge d'abord | oui : « classe absente » pour `Historique`, `Nom`, `Verrou` ; les routes de `Module` sans code auraient échoué |
 | PHPStan niveau 6 | **0 erreur** (baseline vide inchangée) |
 
-### Harness complet `-SansBanc` (commit `a3df142`)
+### Harness complet `-SansBanc` (commit `ef8423f`, passe 2)
 
-`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` — durée 813 s.
+`powershell -ExecutionPolicy Bypass -File tools\harness.ps1 -SansBanc` — durée 849 s. Mêmes couches
+vertes/rouges qu'en passe 1 ; aucun échec dans les chemins `Fiche` / `Parite`.
 
 | Couche | État | Détail exact |
 | --- | --- | --- |
 | 0 garde-fous | VERT | vendor et `node_modules/@playwright/test` présents ; `DB_NAME=gedv2_test` imposé |
-| 1 unitaire | ROUGE | **970 tests, 17 952 assertions, 8 erreurs / 9 échecs** — tous d'environnement (voir ci-dessous) |
+| 1 unitaire | ROUGE | **972 tests, 18 062 assertions, 8 erreurs / 9 échecs** — tous d'environnement (voir ci-dessous ; +2 tests = les oracles de la passe 2) |
 | 3 banc | ROUGE | sautée (`-SansBanc`), par construction |
 | 4 écrans | ROUGE | **96 parcours passés, 2 échoués** — les deux à cause de scripts de préparation qui exigent le moteur PDF absent |
 | 7 sécurité | VERT | aucun contournement accepté, dont la charge CSRF des routes `/titre`, `/nom-fichier`, `/verrou` |
@@ -93,7 +98,7 @@ posée par l'agent).
 | 8 statique | VERT | PHPStan niveau 6 : **0 erreur** ; `composer audit` : aucune vulnérabilité |
 | 5 personas | VERT | administrateur 4/4, auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
 | 9 parité Paperless | VERT | 780 éléments, couverts **731**, strict **93,72 %**, hors exclusions **99,19 %** |
-| 9b parité M-Files | VERT | 112 éléments, couverts **67**, strict **59,82 %**, écarts 45, inventaire rejoué à l'identique |
+| 9b parité M-Files | VERT | 112 éléments, couverts **67**, strict **59,82 %**, hors exclusions **70,53 %** (exclus 17), absents 28, inventaire rejoué à l'identique |
 
 Échecs d'environnement (aucun dans les chemins du lot) :
 
@@ -106,6 +111,27 @@ posée par l'agent).
 - **4 écrans** : `preparer-edition-pages.php` (`CMD4_PYTHON` vide → « First element must contain a non-empty program name »)
   et `preparer-ecrans-reels.php` (ingestion Pilote sans moteur PDF → « le document attendu n'a pas été rangé »).
 - **6 charge** : `proc_open` de `PHP_BINARY -S …` refusé par Windows (`CreateProcess failed`), indépendant du lot.
+
+## Passe 2 — correcteur (régression trouvée et corrigée)
+
+La passe 1 avait livré les 11 éléments M-Files de la famille 5, mais la régénération de la correspondance
+avait introduit une **régression silencieuse** dans un chemin pourtant listé au périmètre du secteur
+(`tools/parite/corriger-correspondance-mfiles.php`, `docs/parite/correspondance.json`) :
+
+- **Constat** : le générateur réécrivait en `absent` tout id mfiles non couvert. Le rejeu qui a posé la
+  famille 5 a donc **effacé les 17 exclusions ratifiées par le juge** (`dd241cc`, décision Olivier du
+  14.10.2026 : session/auth propre à M-Files, serveur/coffres, dépôts externes). Le dénominateur de la
+  parité hors exclusions remontait de 95 à 112, et le rapport annonçait à tort « Exclus 0 ». Le garde-fou
+  du juge (`MfilesInventaireTest`) est unidirectionnel : il interdit une exclusion NON ratifiée mais ne
+  détecte pas la disparition d'une exclusion ratifiée.
+- **Oracle d'abord (ROUGE)** : `tests/php/Parite/MfilesFicheVecteursTest.php` (2 tests, 93 assertions) —
+  (a) la correspondance versionnée porte encore les 17 exclusions avec leur raison ; (b) le générateur,
+  rejoué en bac à sable, ne les dégrade jamais. Les deux échouaient avant le code.
+- **Correctif** : le générateur `PRESERVE` toute entrée déjà `exclu` (il ne la pose jamais lui-même, mais
+  ne l'efface plus) ; les 17 exclusions sont restaurées à l'identique ; le résumé distingue désormais
+  couverts / exclus préservés / absents. Commit `ef8423f`.
+- **Mesure corrigée** : 112 éléments, couverts **67**, absents **28**, exclus **17**, non-prouvés **0**,
+  parité stricte **59,82 %**, parité hors exclusions **70,53 %** (juge VERT, `MfilesInventaireTest` vert).
 
 ## Porte qualité (ECC)
 
@@ -130,6 +156,9 @@ posée par l'agent).
   (étape, cause, référence) et rendues en 422, jamais un 500 muet.
 - **TDD** : oracles écrits avant le code et vus rouges (« classe absente »), puis verts ; le reste du lot
   ne les affaiblit pas.
+- **Passe 2 (ECC)** : le correctif du générateur passe PHPStan niveau 6 (**0 erreur**) et l'audit
+  `composer` reste vierge ; l'oracle ne touche ni la base `gedv2_test` ni le fonds (bac à sable temporaire
+  supprimé en `finally`), `declare(strict_types=1)`, classe `final`, aucune `catch` vide.
 
 ## Lignes hors secteur (signalées)
 

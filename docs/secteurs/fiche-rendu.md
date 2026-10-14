@@ -63,3 +63,7 @@ au juge.
   `Ged\Fiche\Verrou` (check-out dans le `.meta.json`, tracé), routes `Ged\Fiche\Module` et barre
   d'actions de la fiche ; les 11 éléments `mfiles:*` passent couverts, **M-Files 67/112, 59,82 %,
   0 non-prouvé**. Rapport : `docs/rapports/lots/ged-mfiles-fiche-1.md`.
+- 14.10.2026 — passe 2 (correcteur) : régression trouvée et corrigée — le générateur de correspondance
+  effaçait les 17 exclusions M-Files ratifiées par le juge à chaque rejeu. Il les préserve désormais ;
+  oracle neuf `tests/php/Parite/MfilesFicheVecteursTest.php` (rouge avant code, vert après) ;
+  parité **hors exclusions 70,53 %**, exclus 17, absents 28. Commit `ef8423f`.

@@ -3,7 +3,7 @@
   "fonction": "F9",
   "libelle": "Ouvrir un contrat dans la bibliothèque et poser son échéance (horloge figée)",
   "trouve": true,
-  "temps_ms": 1000,
-  "ecran": "http://127.0.0.1:56638/bibliotheque?doc=10015 — Bibliothèque",
+  "temps_ms": 1064,
+  "ecran": "http://127.0.0.1:58993/bibliotheque?doc=10015 — Bibliothèque",
   "erreur": ""
 }

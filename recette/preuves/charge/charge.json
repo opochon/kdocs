@@ -1,7 +1,7 @@
 {
-    "date": "2026-10-14T19:39:43+00:00",
-    "commit": "a3df142",
-    "duree_s": 45.5,
+    "date": "2026-10-14T20:08:49+00:00",
+    "commit": "ef8423f",
+    "duree_s": 59.7,
     "documents": 10000,
     "fonds": "C:\\gedv2/var/charge/fonds/documents",
     "seuils": {
@@ -14,37 +14,37 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 9,
-                    "p50_ms": 217,
-                    "p95_ms": 372,
-                    "max_ms": 372
+                    "p50_ms": 290,
+                    "p95_ms": 420,
+                    "max_ms": 420
                 },
                 "recherche": {
                     "n": 9,
-                    "p50_ms": 303,
-                    "p95_ms": 505,
-                    "max_ms": 505
+                    "p50_ms": 290,
+                    "p95_ms": 534,
+                    "max_ms": 534
                 },
                 "a-traiter": {
                     "n": 9,
-                    "p50_ms": 273,
-                    "p95_ms": 347,
-                    "max_ms": 347
+                    "p50_ms": 278,
+                    "p95_ms": 355,
+                    "max_ms": 355
                 },
                 "apercu": {
                     "n": 9,
-                    "p50_ms": 219,
-                    "p95_ms": 287,
-                    "max_ms": 287
+                    "p50_ms": 216,
+                    "p95_ms": 264,
+                    "max_ms": 264
                 },
                 "validation": {
                     "n": 40,
-                    "p50_ms": 236,
-                    "p95_ms": 254,
-                    "max_ms": 259
+                    "p50_ms": 249,
+                    "p95_ms": 255,
+                    "max_ms": 257
                 }
             },
-            "lecture_p95_ms": 505,
-            "ecriture_p95_ms": 254,
+            "lecture_p95_ms": 534,
+            "ecriture_p95_ms": 255,
             "ecriture_n": 40,
             "requetes": 76,
             "erreurs": 0,
@@ -55,37 +55,37 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 30,
-                    "p50_ms": 253,
-                    "p95_ms": 336,
-                    "max_ms": 503
+                    "p50_ms": 261,
+                    "p95_ms": 372,
+                    "max_ms": 502
                 },
                 "recherche": {
                     "n": 30,
-                    "p50_ms": 288,
-                    "p95_ms": 563,
-                    "max_ms": 577
+                    "p50_ms": 293,
+                    "p95_ms": 585,
+                    "max_ms": 601
                 },
                 "a-traiter": {
                     "n": 30,
-                    "p50_ms": 217,
-                    "p95_ms": 282,
-                    "max_ms": 290
+                    "p50_ms": 218,
+                    "p95_ms": 265,
+                    "max_ms": 287
                 },
                 "apercu": {
                     "n": 30,
-                    "p50_ms": 136,
-                    "p95_ms": 227,
-                    "max_ms": 261
+                    "p50_ms": 140,
+                    "p95_ms": 213,
+                    "max_ms": 219
                 },
                 "validation": {
                     "n": 60,
-                    "p50_ms": 171,
-                    "p95_ms": 259,
-                    "max_ms": 407
+                    "p50_ms": 168,
+                    "p95_ms": 253,
+                    "max_ms": 308
                 }
             },
-            "lecture_p95_ms": 563,
-            "ecriture_p95_ms": 259,
+            "lecture_p95_ms": 585,
+            "ecriture_p95_ms": 253,
             "ecriture_n": 60,
             "requetes": 180,
             "erreurs": 0,
@@ -104,7 +104,7 @@
     "ingestion": {
         "finie": false,
         "detail": "code 0, lot 1, 0 travail(x) non fini(s), 1 erreur(s), 0 pièce(s) rangée(s) — Failed loading C:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\nPHP Warning:  proc_open(): CreateProcess failed: La syntaxe du nom de fichier, de répertoire ou de volume est in",
-        "duree_s": 28.5,
+        "duree_s": 28.8,
         "documents_ajoutes": 0,
         "travaux_restants": 0,
         "erreurs": 1,
