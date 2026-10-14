@@ -54,6 +54,9 @@ final class EcranBibliotheque
     private array $idsRecherche = [];
     /** @var array<int, string> Erreurs nommées du moteur Recherche, par vue. */
     private array $erreursRecherche = [];
+    /** Visibilité conditionnelle (famille permissions dynamiques), calculée une fois par rendu. */
+    private ?array $visibilite = null;
+    private bool $visibiliteCalculee = false;
 
     /** @param array<array-key, string> $permissions */
     public function __construct(private readonly Config $config, ?int $compte = null, bool $administrateur = false, array $permissions = [])
@@ -324,6 +327,11 @@ final class EcranBibliotheque
             $clauses[] = $acl;
             $params = [...$params, ...$aclParams];
         }
+        [$visibilite, $visParams] = $this->clauseVisibilite();
+        if ($visibilite !== null) {
+            $clauses[] = $visibilite;
+            $params = [...$params, ...$visParams];
+        }
 
         return [implode(' AND ', $clauses), $params];
     }
@@ -342,6 +350,31 @@ final class EcranBibliotheque
         }
 
         return DroitsDossiers::predicatLecture('d', $this->compte);
+    }
+
+    /**
+     * La VISIBILITÉ CONDITIONNELLE du lecteur (famille permissions dynamiques), posée DANS la requête de
+     * liste APRÈS l'ACL de dossier. Le moteur `Ged\Permissions` traduit les règles nommées du fonds
+     * (classe / métadonnée / état) en un prédicat qui retire les documents protégés à l'encontre de ce
+     * compte. Compte synthétique (id nul) : aucun périmètre dynamique, comme pour l'ACL. Null signifie
+     * « aucune restriction » (aucune règle active, ou lecteur administrateur).
+     *
+     * @return array{0:?string, 1:list<mixed>}
+     */
+    private function clauseVisibilite(): array
+    {
+        if ($this->visibiliteCalculee) {
+            return $this->visibilite ?? [null, []];
+        }
+        $this->visibiliteCalculee = true;
+        if ($this->compte === null) {
+            return [null, []];
+        }
+        $moteur = new \Ged\Permissions\Moteur($this->config, $this->pdo);
+        $clause = $moteur->clauseSql('d', $moteur->contextePourCompte($this->compte, $this->administrateur));
+        $this->visibilite = $clause;
+
+        return $clause;
     }
 
     /**
@@ -416,6 +449,11 @@ final class EcranBibliotheque
             $where .= ' AND ' . $acl;
             $params = $aclParams;
         }
+        [$visibilite, $visParams] = $this->clauseVisibilite();
+        if ($visibilite !== null) {
+            $where .= ' AND ' . $visibilite;
+            $params = [...$params, ...$visParams];
+        }
         $requete = $this->pdo->prepare('SELECT COUNT(*) FROM documents d WHERE ' . $where);
         $requete->execute($params);
 
@@ -454,7 +492,7 @@ final class EcranBibliotheque
         if (isset($this->idsRecherche[$idVue])) {
             return $this->idsRecherche[$idVue];
         }
-        $moteur = new ServiceRecherche($this->pdo, $this->compte, $this->administrateur);
+        $moteur = new ServiceRecherche($this->pdo, $this->compte, $this->administrateur, $this->config);
         $resultat = $moteur->rechercher(RequeteRecherche::depuisParametres($this->vues->criteresRecherche($vue)));
         if ($resultat->erreur !== null) {
             $this->erreursRecherche[$idVue] = 'vue Recherche impossible : étape « ' . $resultat->erreur->etape
@@ -521,6 +559,11 @@ final class EcranBibliotheque
         if ($acl !== null) {
             $where .= ' AND ' . $acl;
             $params = [...$params, ...$aclParams];
+        }
+        [$visibilite, $visParams] = $this->clauseVisibilite();
+        if ($visibilite !== null) {
+            $where .= ' AND ' . $visibilite;
+            $params = [...$params, ...$visParams];
         }
         $requete = $this->pdo->prepare(
             'SELECT d.id, d.chemin_relatif, d.nom, d.titre, d.type, d.emetteur, d.date_document, d.montant, d.etiquettes'

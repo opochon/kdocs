@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ged\Recherche;
 
+use Ged\Config;
 use PDO;
 
 /**
@@ -17,6 +18,10 @@ use PDO;
  *
  * Le classement final se fait en PHP sur un nombre borné de candidats, pour départager titre et corps de
  * façon lisible (pertinence = 3 × occurrence dans le titre + occurrences du corps, plafonnées).
+ *
+ * Depuis le lot ged-mfiles-permissions-1, la VISIBILITÉ CONDITIONNELLE (`Ged\Permissions\Moteur`) est
+ * appliquée dans la même requête que l'ACL : un document protégé par une règle dynamique à l'encontre du
+ * lecteur n'apparaît jamais — ni dans la liste, ni dans le total.
  */
 final class Service implements Moteur
 {
@@ -27,6 +32,7 @@ final class Service implements Moteur
         private readonly PDO $pdo,
         private readonly ?int $compte = null,
         private readonly bool $administrateur = false,
+        private readonly ?Config $config = null,
     ) {
     }
 
@@ -157,6 +163,25 @@ final class Service implements Moteur
             $parametres['acl_compte'] = $this->compte;
             $parametres['acl_compte_refus'] = $this->compte;
             $parametres['acl_compte_proche'] = $this->compte;
+        }
+
+        // Visibilité conditionnelle (famille permissions dynamiques) : la règle nommée s'ajoute DANS la
+        // requête, APRÈS l'ACL de dossier — jamais à sa place. Les marqueurs positionnels du moteur sont
+        // nommés ici, car la requête de recherche est entièrement nommée.
+        if ($this->config !== null && $this->compte !== null) {
+            $moteur = new \Ged\Permissions\Moteur($this->config, $this->pdo);
+            [$visibilite, $valeurs] = $moteur->clauseSql('d', $moteur->contextePourCompte($this->compte, $this->administrateur));
+            if ($visibilite !== null) {
+                $index = 0;
+                $nommee = (string) preg_replace_callback('/\?/', function () use (&$index, $valeurs, &$parametres): string {
+                    $cle = 'vis_' . $index;
+                    $parametres[$cle] = $valeurs[$index];
+                    ++$index;
+
+                    return ':' . $cle;
+                }, $visibilite);
+                $morceaux[] = "t.document_id IS NOT NULL AND EXISTS (SELECT 1 FROM documents d WHERE d.id = t.document_id AND ($nommee))";
+            }
         }
 
         if ($mode === 'fulltext' && $termes->expressionFulltext() !== '') {

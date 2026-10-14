@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "categorie": "mfiles-permissions-regles",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/",
+    "modele": "Famille permissions dynamiques : règles de permission nommées et portables (.ged/permissions.json), droits calculés depuis la classe, une valeur de métadonnée et l'état ; une règle ne fait que restreindre l'ACL existante"
+  },
+  "total": 11,
+  "vecteurs": [
+    {
+      "id": "mfiles:permissions:decision-classe-autorise",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+        ],
+        "doc": { "classe": "Facture", "champs": {}, "etat": null },
+        "contexte": { "compte": 1, "groupes": [10], "roles": ["comptable"], "administrateur": false }
+      },
+      "sortie": { "voir": true, "modifier": true, "appliquees": [] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/"
+    },
+    {
+      "id": "mfiles:permissions:decision-classe-refuse",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+        ],
+        "doc": { "classe": "Facture", "champs": {}, "etat": null },
+        "contexte": { "compte": 2, "groupes": [20], "roles": ["secretaire"], "administrateur": false }
+      },
+      "sortie": { "voir": false, "modifier": true, "appliquees": ["Factures comptables"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/"
+    },
+    {
+      "id": "mfiles:permissions:decision-classe-hors-condition",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+        ],
+        "doc": { "classe": "Contrat", "champs": {}, "etat": null },
+        "contexte": { "compte": 2, "groupes": [20], "roles": ["secretaire"], "administrateur": false }
+      },
+      "sortie": { "voir": true, "modifier": true, "appliquees": [] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/"
+    },
+    {
+      "id": "mfiles:permissions:decision-metadonnee-refuse",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Documents confidentiels", "conditions": { "champ": "confidentiel", "valeur": "oui" }, "voir": true, "modifier": true,
+            "cibles": [ { "type": "role", "valeur": "responsable" } ] }
+        ],
+        "doc": { "classe": "Note", "champs": { "confidentiel": "oui" }, "etat": null },
+        "contexte": { "compte": 3, "groupes": [], "roles": ["secretaire"], "administrateur": false }
+      },
+      "sortie": { "voir": false, "modifier": false, "appliquees": ["Documents confidentiels"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/"
+    },
+    {
+      "id": "mfiles:permissions:decision-metadonnee-autorise",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Documents confidentiels", "conditions": { "champ": "confidentiel", "valeur": "oui" }, "voir": true, "modifier": true,
+            "cibles": [ { "type": "role", "valeur": "responsable" } ] }
+        ],
+        "doc": { "classe": "Note", "champs": { "confidentiel": "oui" }, "etat": null },
+        "contexte": { "compte": 4, "groupes": [], "roles": ["responsable"], "administrateur": false }
+      },
+      "sortie": { "voir": true, "modifier": true, "appliquees": [] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/properties/"
+    },
+    {
+      "id": "mfiles:permissions:decision-etat-refuse",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Validation en cours", "conditions": { "etat": "a-valider" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "role", "valeur": "controleur" } ] }
+        ],
+        "doc": { "classe": "Facture", "champs": {}, "etat": "a-valider" },
+        "contexte": { "compte": 5, "groupes": [], "roles": ["secretaire"], "administrateur": false }
+      },
+      "sortie": { "voir": false, "modifier": true, "appliquees": ["Validation en cours"] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    },
+    {
+      "id": "mfiles:permissions:decision-etat-autorise",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Validation en cours", "conditions": { "etat": "a-valider" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "role", "valeur": "controleur" } ] }
+        ],
+        "doc": { "classe": "Facture", "champs": {}, "etat": "a-valider" },
+        "contexte": { "compte": 6, "groupes": [], "roles": ["controleur"], "administrateur": false }
+      },
+      "sortie": { "voir": true, "modifier": true, "appliquees": [] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    },
+    {
+      "id": "mfiles:permissions:decision-regle-desactivee",
+      "entree": {
+        "scenario": "decision",
+        "regles": [
+          { "nom": "Archives restreintes", "actif": false, "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+            "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+        ],
+        "doc": { "classe": "Facture", "champs": {}, "etat": null },
+        "contexte": { "compte": 2, "groupes": [], "roles": ["secretaire"], "administrateur": false }
+      },
+      "sortie": { "voir": true, "modifier": true, "appliquees": [] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    },
+    {
+      "id": "mfiles:permissions:refus-regle-sans-cible",
+      "entree": {
+        "scenario": "refus-regle",
+        "regle": { "nom": "Sans cible", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false, "cibles": [] }
+      },
+      "sortie": { "refus": true, "nomme": "cible" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    },
+    {
+      "id": "mfiles:permissions:regle-portable",
+      "entree": {
+        "scenario": "portable",
+        "regle": { "nom": "Contrats actifs", "conditions": { "classe": "Contrat" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+      },
+      "sortie": { "fichier_present": true, "relue": true, "nom": "Contrats actifs" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    },
+    {
+      "id": "mfiles:permissions:regle-desactivation-sans-suppression",
+      "entree": {
+        "scenario": "desactivation",
+        "regle": { "nom": "Archives restreintes", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": 10 } ] }
+      },
+      "sortie": { "total": 1, "actives": 0, "actif": false, "relisible": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/"
+    }
+  ]
+}

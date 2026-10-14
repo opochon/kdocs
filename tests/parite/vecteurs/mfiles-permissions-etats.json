@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "categorie": "mfiles-permissions-etats",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/",
+    "modele": "Famille permissions dynamiques, axe « droits selon l'état » : l'état effectif d'un objet se lit (GET workflowstate) et change par transition soumise à un droit (PUT workflowstate) ; les états et transitions nommés du circuit portent la règle (permission de transition) — même moteur que Ged\\Workflows"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "mfiles:permissions:etat-effectif",
+      "entree": {
+        "scenario": "etat-effectif",
+        "document_id": 42,
+        "etat": "a-valider",
+        "circuit": {
+          "nom": "Facture à seuil", "actif": true,
+          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "transitions": [
+            { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
+            { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
+          ]
+        }
+      },
+      "sortie": { "etat": "a-valider" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#get"
+    },
+    {
+      "id": "mfiles:permissions:transition-autorisee",
+      "entree": {
+        "scenario": "transition",
+        "document_id": 42,
+        "depart": "a-valider",
+        "vers": "valide",
+        "permissions": [ "workflow.transition.valider" ],
+        "circuit": {
+          "nom": "Facture à seuil", "actif": true,
+          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "transitions": [
+            { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
+            { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
+          ]
+        }
+      },
+      "sortie": { "refus": false, "vers_etat": "valide", "etat_apres": "valide" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#put"
+    },
+    {
+      "id": "mfiles:permissions:transition-refusee",
+      "entree": {
+        "scenario": "transition",
+        "document_id": 42,
+        "depart": "recu",
+        "vers": "a-valider",
+        "permissions": [],
+        "circuit": {
+          "nom": "Facture à seuil", "actif": true,
+          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "transitions": [
+            { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
+            { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
+          ]
+        }
+      },
+      "sortie": { "refus": true, "nomme": "transition refusée", "etat_apres": "recu" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#put"
+    },
+    {
+      "id": "mfiles:permissions:catalogue-des-etats",
+      "entree": {
+        "scenario": "catalogue",
+        "circuit": {
+          "nom": "Facture à seuil", "actif": true,
+          "etats": [ { "nom": "recu", "initial": true }, { "nom": "a-valider" }, { "nom": "valide" } ],
+          "transitions": [
+            { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
+            { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
+          ]
+        }
+      },
+      "sortie": {
+        "circuits": 1,
+        "nom": "Facture à seuil",
+        "etats": [ "recu", "a-valider", "valide" ],
+        "transitions": [
+          { "de": "recu", "vers": "a-valider", "permission": "workflow.transition.valider" },
+          { "de": "a-valider", "vers": "valide", "permission": "workflow.transition.valider" }
+        ]
+      },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/"
+    }
+  ]
+}

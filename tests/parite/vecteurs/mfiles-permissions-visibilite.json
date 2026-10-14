@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "categorie": "mfiles-permissions-visibilite",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/",
+    "modele": "Famille permissions dynamiques : visibilité conditionnelle évaluée à l'affichage (liste Bibliothèque) et à la recherche ; un document non visible pour le lecteur n'apparaît ni dans la liste ni dans les résultats, sans jamais affaiblir l'ACL de dossier existante"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "mfiles:permissions:visibilite-liste-refuse",
+      "entree": {
+        "scenario": "visibilite-liste",
+        "groupes": [ { "nom": "comptables", "role": "comptable" } ],
+        "comptes": [
+          { "identifiant": "alice@gedv2.test", "role": "utilisateur", "groupes": [] },
+          { "identifiant": "bob@gedv2.test", "role": "comptable", "groupes": ["comptables"] }
+        ],
+        "documents": [
+          { "titre": "Facture A", "classe": "Facture" },
+          { "titre": "Contrat B", "classe": "Contrat" }
+        ],
+        "regle": { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": "comptables" } ] },
+        "lecteur": "alice@gedv2.test"
+      },
+      "sortie": { "titres": ["Contrat B"], "total": 1 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/#get"
+    },
+    {
+      "id": "mfiles:permissions:visibilite-liste-autorise",
+      "entree": {
+        "scenario": "visibilite-liste",
+        "groupes": [ { "nom": "comptables", "role": "comptable" } ],
+        "comptes": [
+          { "identifiant": "alice@gedv2.test", "role": "utilisateur", "groupes": [] },
+          { "identifiant": "bob@gedv2.test", "role": "comptable", "groupes": ["comptables"] }
+        ],
+        "documents": [
+          { "titre": "Facture A", "classe": "Facture" },
+          { "titre": "Contrat B", "classe": "Contrat" }
+        ],
+        "regle": { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": "comptables" } ] },
+        "lecteur": "bob@gedv2.test"
+      },
+      "sortie": { "titres": ["Contrat B", "Facture A"], "total": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/#get"
+    },
+    {
+      "id": "mfiles:permissions:visibilite-liste-administrateur",
+      "entree": {
+        "scenario": "visibilite-liste",
+        "groupes": [ { "nom": "comptables", "role": "comptable" } ],
+        "comptes": [ { "identifiant": "alice@gedv2.test", "role": "utilisateur", "groupes": [] } ],
+        "documents": [
+          { "titre": "Facture A", "classe": "Facture" },
+          { "titre": "Contrat B", "classe": "Contrat" }
+        ],
+        "regle": { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": "comptables" } ] },
+        "lecteur": "alice@gedv2.test",
+        "administrateur": true
+      },
+      "sortie": { "titres": ["Contrat B", "Facture A"], "total": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/#get"
+    },
+    {
+      "id": "mfiles:permissions:visibilite-recherche-refuse",
+      "entree": {
+        "scenario": "visibilite-recherche",
+        "q": "document",
+        "groupes": [ { "nom": "comptables", "role": "comptable" } ],
+        "comptes": [
+          { "identifiant": "alice@gedv2.test", "role": "utilisateur", "groupes": [] },
+          { "identifiant": "bob@gedv2.test", "role": "comptable", "groupes": ["comptables"] }
+        ],
+        "documents": [
+          { "titre": "Facture A", "classe": "Facture", "texte": "document facture septembre" },
+          { "titre": "Contrat B", "classe": "Contrat", "texte": "document contrat septembre" }
+        ],
+        "regle": { "nom": "Factures comptables", "conditions": { "classe": "Facture" }, "voir": true, "modifier": false,
+          "cibles": [ { "type": "groupe", "valeur": "comptables" } ] },
+        "lecteur": "alice@gedv2.test"
+      },
+      "sortie": { "titres": ["Contrat B"], "total": 1 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/#get"
+    }
+  ]
+}
