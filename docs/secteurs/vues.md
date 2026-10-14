@@ -53,3 +53,8 @@ utilisateur n'est pas un element M-Files REST de cette famille).
 
 - 14.10.2026 — ouverture du lot `ged-mfiles-vues-1` (DeepCode) : contenu/comptage des vues par classe et
   metadonnees, vues recherchees rejouees, parite M-Files famille 3.
+- 14.10.2026 — livre : `Ged\Socle\Vues::contenu()` / `compter()` (filtres compiles appliques au fonds,
+  refus nomme d'une vue de recherche et d'une vue inconnue), vecteurs `mfiles-vues-filtres` 6/6 et
+  `mfiles-vues-recherchees` 3/3, les trois elements REST `views` passes en `couvert` : parite M-Files
+  **51/112, 45,54 %, 0 non-prouve**. Harness `-SansBanc` vert (942 tests), registre `recette/registre.json`,
+  journal complet dans `docs/lots/ged-mfiles-vues-1.md`.
