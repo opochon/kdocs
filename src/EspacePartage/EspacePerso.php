@@ -211,7 +211,10 @@ final class EspacePerso
             $dossier = $droits->dossierPourDocument($document);
 
             return $dossier !== null && $droits->autorise($compte, $dossier, 'lire');
-        } catch (PDOException) {
+        } catch (PDOException $e) {
+            // Schéma de droits indisponible : refus, mais TRACÉ (jamais un échec muet).
+            error_log('[GEDv2 espace-perso] droits indisponibles pour le document ' . $document . ' : ' . $e->getMessage());
+
             return false;
         }
     }
