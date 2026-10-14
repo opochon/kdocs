@@ -37,6 +37,9 @@ final class Juge
         'infrastructure-celery-redis',
         'installation-docker',
         'traductions-django',
+        'auth-mfiles',
+        'serveur-coffres-mfiles',
+        'depots-externes-mfiles',
     ];
 
     /**

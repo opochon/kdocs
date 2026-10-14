@@ -8779,16 +8779,14 @@
             "note": "Effacer une valeur de propriété : la valeur quitte le .meta.json, le fichier et son historique restent intacts."
         },
         "mfiles:rest:delete:repositories-targetid-session": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "depots-externes-mfiles",
+            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:delete:session": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:delete:sharedlinks-sharepublicaccesskey": {
             "statut": "absent",
@@ -9038,70 +9036,59 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:repositories": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "depots-externes-mfiles",
+            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:server-capabilities": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/capabilities/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:server-publickey": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/publickey/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:server-status": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/status/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:server-vaults": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:server-vaults-vault-status": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/vaults/vault/status/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:session": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:session-authenticationtoken": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/authenticationtoken/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:session-userid": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/userid/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:session-vault": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:session-vaults": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vaults/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:sharedlinks": {
             "statut": "absent",
@@ -9512,16 +9499,14 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:post:repositories-targetid-session": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/repositories/session/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "depots-externes-mfiles",
+            "note": "Depots/referentiels externes propres a M-Files, hors perimetre GEDv2 ; le multi-racines local reste a reflechir comme fonction GED propre, pas comme parite M-Files (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:post:server-authenticationtokens": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/server/authenticationtokens/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "serveur-coffres-mfiles",
+            "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:post:sharedlinks": {
             "statut": "absent",
@@ -9728,16 +9713,14 @@
             "note": "Changer l’état d’un document (transition) : soumis au droit de la transition (moteur Ged\\Workflows) et tracé."
         },
         "mfiles:rest:put:session": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:put:session-vault": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/session/vault/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "exclu",
+            "exclusion": "auth-mfiles",
+            "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:put:structure-objecttypes-type-refreshstatus": {
             "statut": "absent",

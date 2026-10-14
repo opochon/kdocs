@@ -83,13 +83,41 @@ final class MfilesInventaireTest extends TestCase
             JSON_THROW_ON_ERROR,
         );
         $elements = (array) $correspondance['elements'];
+        // Exclusions M-Files ratifiees par le juge (Olivier, 14.10.2026) : session/auth propre a M-Files,
+        // serveur/coffres (vaults) et depots externes. Toute AUTRE exclusion reste interdite a l agent :
+        // un id exclu hors de cette liste fait echouer ce test.
+        $exclusionsRatifiees = [
+            'mfiles:rest:delete:session',
+            'mfiles:rest:get:session',
+            'mfiles:rest:get:session-authenticationtoken',
+            'mfiles:rest:get:session-userid',
+            'mfiles:rest:get:session-vault',
+            'mfiles:rest:get:session-vaults',
+            'mfiles:rest:put:session',
+            'mfiles:rest:put:session-vault',
+            'mfiles:rest:get:server-capabilities',
+            'mfiles:rest:get:server-publickey',
+            'mfiles:rest:get:server-status',
+            'mfiles:rest:get:server-vaults',
+            'mfiles:rest:get:server-vaults-vault-status',
+            'mfiles:rest:post:server-authenticationtokens',
+            'mfiles:rest:get:repositories',
+            'mfiles:rest:delete:repositories-targetid-session',
+            'mfiles:rest:post:repositories-targetid-session',
+        ];
         foreach ((array) $inventaire['elements'] as $element) {
             $id = (string) $element['id'];
             self::assertArrayHasKey($id, $elements, 'inventaire M-Files sans statut : ' . $id);
             $entree = $elements[$id];
             self::assertIsArray($entree);
             self::assertContains($entree['statut'] ?? null, ['couvert', 'couvert-autrement', 'absent', 'exclu']);
-            self::assertNotSame('exclu', $entree['statut'], 'une exclusion est une decision du juge, pas de l agent : ' . $id);
+            if (($entree['statut'] ?? null) === 'exclu') {
+                self::assertContains(
+                    $id,
+                    $exclusionsRatifiees,
+                    'exclusion non ratifiee par le juge (une exclusion est une decision du juge, pas de l agent) : ' . $id,
+                );
+            }
         }
     }
 
