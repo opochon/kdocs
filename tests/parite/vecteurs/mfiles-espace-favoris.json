@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "categorie": "mfiles-espace-favoris",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/",
+    "modele": "Famille M-Files espace personnel : favoris (lister, savoir, ajouter, retirer) et recemment consultes (lister, enregistrer), donnees d'index portables dans le fonds (.ged/favoris.json, .ged/recents.json)"
+  },
+  "total": 6,
+  "vecteurs": [
+    {
+      "id": "mfiles:favorites:lister",
+      "entree": {
+        "scenario": "favoris-lister",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A", "Contrat B"],
+        "favoris": ["Facture A"]
+      },
+      "sortie": { "titres": ["Facture A"], "portable": true, "deplacements": 0 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#get"
+    },
+    {
+      "id": "mfiles:favorites:objet",
+      "entree": {
+        "scenario": "favori-objet",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A", "Contrat B"],
+        "favori": "Facture A",
+        "interroge": ["Facture A", "Contrat B"]
+      },
+      "sortie": { "reponses": [true, false] },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#get"
+    },
+    {
+      "id": "mfiles:favorites:ajouter",
+      "entree": {
+        "scenario": "favori-ajouter",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A"],
+        "document": "Facture A",
+        "ajouts": 2
+      },
+      "sortie": { "compte": 1, "actif": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#post"
+    },
+    {
+      "id": "mfiles:favorites:retirer",
+      "entree": {
+        "scenario": "favori-retirer",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A"],
+        "document": "Facture A"
+      },
+      "sortie": { "compte_actifs": 0, "actif": false, "trace_retrait": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#delete"
+    },
+    {
+      "id": "mfiles:recentlyaccessedbyme:lister",
+      "entree": {
+        "scenario": "recents-lister",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A", "Contrat B"],
+        "consultations": ["Facture A", "Contrat B", "Facture A"]
+      },
+      "sortie": { "titres": ["Facture A", "Contrat B"], "compte": 2, "portable": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#get"
+    },
+    {
+      "id": "mfiles:recentlyaccessedbyme:enregistrer",
+      "entree": {
+        "scenario": "recent-consulter",
+        "utilisateur": "alice@exemple.test",
+        "documents": ["Facture A", "Contrat B"],
+        "consultations": ["Contrat B", "Facture A"]
+      },
+      "sortie": { "premier": "Facture A", "compte": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#post"
+    }
+  ]
+}

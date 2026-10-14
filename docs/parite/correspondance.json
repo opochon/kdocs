@@ -8749,10 +8749,16 @@
             }
         },
         "mfiles:rest:delete:favorites-type-objectid": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Retirer un favori : marqueur daté (retire_le), jamais une suppression — la trace reste dans le registre."
         },
         "mfiles:rest:delete:objects-type-objectid-version": {
             "statut": "absent",
@@ -8789,10 +8795,16 @@
             "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:delete:sharedlinks-sharepublicaccesskey": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/delete/#delete",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\Partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage"
+            },
+            "note": "Révoquer un lien par sa clé publique : revoque_le daté (jamais un DELETE), le lien se refuse ensuite."
         },
         "mfiles:rest:delete:valuelists-id-items-objectid": {
             "statut": "couvert-autrement",
@@ -8807,16 +8819,28 @@
             "note": "Retirer une valeur SANS l’effacer : retrait daté et attribué, la valeur reste traçable dans le dossier."
         },
         "mfiles:rest:get:favorites": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Favoris : lister mes favoris actifs (registre portable .ged/favoris.json), sans copie du document."
         },
         "mfiles:rest:get:favorites-type-objectid": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/type/objectid/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Un document est-il en favori pour cet utilisateur ? Réponse par utilisateur, jamais partagée."
         },
         "mfiles:rest:get:objects": {
             "statut": "couvert",
@@ -9030,10 +9054,16 @@
             "note": "L’état effectif d’un objet (premier circuit actif) : l’axe « droits selon l’état » des permissions dynamiques."
         },
         "mfiles:rest:get:recentlyaccessedbyme": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Récemment consultés : les documents consultés, du plus récent au plus ancien, filtres par les droits."
         },
         "mfiles:rest:get:repositories": {
             "statut": "exclu",
@@ -9091,16 +9121,28 @@
             "note": "Session/authentification propre a M-Files ; GEDv2 a sa propre authentification (connexion, jeton d'API, TOTP/2FA) jugee de qualite suffisante, rien de mieux a porter (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:get:sharedlinks": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\Partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage"
+            },
+            "note": "Lister les liens de partage externes actifs ; la requête ne retient que les documents que l’appelant peut lire."
         },
         "mfiles:rest:get:sharedlinks-vaultguid-sharepublicaccesskey-content": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/content/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\Partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage"
+            },
+            "note": "Ouvrir/télécharger par le lien : le jeton n’ouvre QUE le document partagé ; inconnu ou expiré se refuse en se nommant."
         },
         "mfiles:rest:get:structure-classes": {
             "statut": "couvert",
@@ -9433,10 +9475,16 @@
             "note": "Contenu d’une vue de recherche : les critères (texte + classe + métadonnées) sont conservés dans le fonds puis rejoués par le moteur de Recherche, jamais un second moteur."
         },
         "mfiles:rest:post:favorites": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Ajouter un favori : idempotent, donnée d’index, le fichier et son .meta.json ne bougent pas."
         },
         "mfiles:rest:post:files": {
             "statut": "absent",
@@ -9493,10 +9541,16 @@
             "note": "Poser une propriété typée sur un document : le .meta.json fait foi, le fichier ne bouge pas."
         },
         "mfiles:rest:post:recentlyaccessedbyme": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/recentlyaccessedbyme/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\EspacePerso"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents"
+            },
+            "note": "Enregistrer une consultation : le document remonte en tête, sans doublon (registre .ged/recents.json)."
         },
         "mfiles:rest:post:repositories-targetid-session": {
             "statut": "exclu",
@@ -9509,10 +9563,16 @@
             "note": "Notion serveur/coffres (vaults) propre a M-Files, sans objet pour GEDv2 ou le dossier fait foi (decision Olivier 14.10.2026)."
         },
         "mfiles:rest:post:sharedlinks": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#post",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\EspacePartage\\Partages"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage"
+            },
+            "note": "Créer un lien de partage : jeton long, expiration obligatoire, seul le condensat SHA-256 est conservé."
         },
         "mfiles:rest:post:structure-classes-itemidbyalias": {
             "statut": "couvert",

@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "categorie": "mfiles-espace-partages",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/",
+    "modele": "Famille M-Files partage : liens de partage de fichier (lister, creer, telecharger par le lien, revoquer), jetons jamais conserves en clair et jamais exposes hors droits"
+  },
+  "total": 4,
+  "vecteurs": [
+    {
+      "id": "mfiles:sharedlinks:lister",
+      "entree": {
+        "scenario": "partages-lister",
+        "document": "Facture A",
+        "auteur": "alice@exemple.test",
+        "expiration": "2099-01-01",
+        "creations": 2
+      },
+      "sortie": { "liens": 2, "titres": ["Facture A", "Facture A"], "secret_en_clair": false },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#get"
+    },
+    {
+      "id": "mfiles:sharedlinks:creer",
+      "entree": {
+        "scenario": "partage-creer",
+        "document": "Facture A",
+        "auteur": "alice@exemple.test",
+        "expiration": "2099-01-01"
+      },
+      "sortie": { "format_jeton": true, "expire_le": "2099-01-01 23:59:59", "condensat_seul": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/#post"
+    },
+    {
+      "id": "mfiles:sharedlinks:telecharger",
+      "entree": {
+        "scenario": "partage-telecharger",
+        "document": "Facture A",
+        "auteur": "alice@exemple.test",
+        "expiration": "2099-01-02"
+      },
+      "sortie": { "titre": "Facture A", "faux_jeton": null, "expire_ferme": null },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/content/#get"
+    },
+    {
+      "id": "mfiles:sharedlinks:revoquer",
+      "entree": {
+        "scenario": "partage-revoquer",
+        "document": "Facture A",
+        "auteur": "alice@exemple.test",
+        "expiration": "2099-01-03"
+      },
+      "sortie": { "avant": true, "apres": false, "liste": 0 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/sharedlinks/delete/#delete"
+    }
+  ]
+}

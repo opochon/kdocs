@@ -65,6 +65,7 @@ $serviceSocle = 'Ged' . $bs . 'Socle' . $bs;
 $serviceClasses = 'Ged' . $bs . 'ClassesMetadata' . $bs;
 $serviceDepot = 'Ged' . $bs . 'DepotFileserver' . $bs;
 $servicePermissions = 'Ged' . $bs . 'Permissions' . $bs;
+$serviceEspace = 'Ged' . $bs . 'EspacePartage' . $bs;
 $testJonctions = 'Ged' . $bs . 'Tests' . $bs . 'Jonctions' . $bs;
 $testSocle = 'Ged' . $bs . 'Tests' . $bs . 'Socle' . $bs;
 $testClasses = 'Ged' . $bs . 'Tests' . $bs . 'ClassesMetadata' . $bs;
@@ -386,6 +387,60 @@ $couverts = [
         'Les transitions nommées d’un circuit, chacune avec sa permission : le droit est vérifié avant le changement d’état.',
         true,
     ],
+    // --- Espace personnel & partage (lot ged-mfiles-espace-1) : favoris, récemment consultés, liens de
+    // partage (services Ged\EspacePartage\EspacePerso et Ged\EspacePartage\Partages ; registre portable
+    // `.ged/` pour les favoris/récents, table d'index document_collaboration pour les liens). Aucune
+    // exclusion posée : chaque élément a son vecteur rejoué.
+    'mfiles:rest:get:favorites' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Favoris : lister mes favoris actifs (registre portable .ged/favoris.json), sans copie du document.',
+    ],
+    'mfiles:rest:get:favorites-type-objectid' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Un document est-il en favori pour cet utilisateur ? Réponse par utilisateur, jamais partagée.',
+    ],
+    'mfiles:rest:post:favorites' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Ajouter un favori : idempotent, donnée d’index, le fichier et son .meta.json ne bougent pas.',
+    ],
+    'mfiles:rest:delete:favorites-type-objectid' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Retirer un favori : marqueur daté (retire_le), jamais une suppression — la trace reste dans le registre.',
+    ],
+    'mfiles:rest:get:recentlyaccessedbyme' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Récemment consultés : les documents consultés, du plus récent au plus ancien, filtres par les droits.',
+    ],
+    'mfiles:rest:post:recentlyaccessedbyme' => [
+        service($serviceEspace . 'EspacePerso'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesFavorisEtDesRecents'),
+        'Enregistrer une consultation : le document remonte en tête, sans doublon (registre .ged/recents.json).',
+    ],
+    'mfiles:rest:get:sharedlinks' => [
+        service($serviceEspace . 'Partages'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage'),
+        'Lister les liens de partage externes actifs ; la requête ne retient que les documents que l’appelant peut lire.',
+    ],
+    'mfiles:rest:post:sharedlinks' => [
+        service($serviceEspace . 'Partages'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage'),
+        'Créer un lien de partage : jeton long, expiration obligatoire, seul le condensat SHA-256 est conservé.',
+    ],
+    'mfiles:rest:get:sharedlinks-vaultguid-sharepublicaccesskey-content' => [
+        service($serviceEspace . 'Partages'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage'),
+        'Ouvrir/télécharger par le lien : le jeton n’ouvre QUE le document partagé ; inconnu ou expiré se refuse en se nommant.',
+    ],
+    'mfiles:rest:delete:sharedlinks-sharepublicaccesskey' => [
+        service($serviceEspace . 'Partages'),
+        p($testParite . 'MfilesEspaceVecteursTest::testRejoueLesVecteursDesLiensDePartage'),
+        'Révoquer un lien par sa clé publique : revoque_le daté (jamais un DELETE), le lien se refuse ensuite.',
+    ],
 ];
 
 $poses = 0;
@@ -408,6 +463,13 @@ foreach ($idsInventaire as $id => $reference) {
         ];
         ++$couvertsPoses;
     } else {
+        // Une exclusion RATIFIÉE PAR LE JUGE est conservée telle quelle : ce script ne la dégrade jamais
+        // en « absent » (l'exclusion est l'acte du juge, pas de l'agent).
+        $existant = $elements[$id] ?? null;
+        if (is_array($existant) && ($existant['statut'] ?? '') === 'exclu') {
+            ++$poses;
+            continue;
+        }
         $elements[$id] = [
             'statut' => 'absent',
             'doc' => $reference,
