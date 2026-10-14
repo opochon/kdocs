@@ -32,7 +32,8 @@ Sont hors de ce lot (autre agent) : aperçu / vignette / titre / historique / co
 
 - `src/EspacePartage/` : `EspacePerso.php` (favoris + récents, registre portable, filtrage ACL),
   `Partages.php` (lecture des liens externes, révocation par clé publique, composition de `Collaboration`).
-- `docs/secteurs/espace-partage.md`, `docs/lots/ged-mfiles-espace-1.md`.
+- `docs/secteurs/espace-partage.md`, `docs/lots/ged-mfiles-espace-1.md`,
+  `docs/rapports/lots/ged-mfiles-espace-1.md` (renvoi vers le rapport, chemin demandé par la mission).
 - Preuves : `tests/php/EspacePartage/` (unitaires + vecteurs), `tests/parite/vecteurs/mfiles-espace-*.json`,
   `tests/e2e/espace-perso.spec.ts`, `tests/e2e/preparer-espace-perso.php`.
 - Registre de parité : `tools/parite/corriger-correspondance-mfiles.php`,
