@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "categorie": "mfiles-vues-filtres",
+  "reference": {
+    "produit": "M-Files",
+    "source": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/",
+    "modele": "Famille M-Files 3 : vues dynamiques filtrees par classe et metadonnees, definitions portables dans le fonds (.ged/vues.json), aucun deplacement de fichier"
+  },
+  "total": 6,
+  "vecteurs": [
+    {
+      "id": "mfiles:vues:contenu-classe",
+      "entree": {
+        "scenario": "vue-classe",
+        "classe": "Facture",
+        "documents": [
+          { "titre": "Facture A", "classe": "Facture" },
+          { "titre": "Contrat B", "classe": "Contrat" },
+          { "titre": "Facture C", "classe": "Facture" }
+        ]
+      },
+      "sortie": { "classe": "Facture", "contenus": ["Facture A", "Facture C"], "compte": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get"
+    },
+    {
+      "id": "mfiles:vues:contenu-metadonnee",
+      "entree": {
+        "scenario": "vue-metadonnee",
+        "classe": "Facture",
+        "champ": { "nom": "Exercice", "nature": "nombre" },
+        "filtre": "2026",
+        "documents": [
+          { "titre": "Facture exercice 2025", "valeur": "2025" },
+          { "titre": "Facture exercice 2026 A", "valeur": "2026" },
+          { "titre": "Facture exercice 2026 B", "valeur": "2026" }
+        ]
+      },
+      "sortie": { "contenus": ["Facture exercice 2026 A", "Facture exercice 2026 B"], "compte": 2 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get"
+    },
+    {
+      "id": "mfiles:vues:contenu-classe-et-metadonnee",
+      "entree": {
+        "scenario": "vue-classe-et-metadonnee",
+        "classe": "Facture",
+        "champ": { "nom": "Exercice", "nature": "nombre" },
+        "filtre": "2026",
+        "de": "2026-01-01",
+        "a": "2026-12-31",
+        "documents": [
+          { "titre": "Facture retenue", "classe": "Facture", "date": "2026-03-01", "valeur": "2026" },
+          { "titre": "Facture hors periode", "classe": "Facture", "date": "2025-03-01", "valeur": "2026" },
+          { "titre": "Contrat hors classe", "classe": "Contrat", "date": "2026-05-01", "valeur": "2026" },
+          { "titre": "Facture hors exercice", "classe": "Facture", "date": "2026-07-01", "valeur": "2025" }
+        ]
+      },
+      "sortie": { "contenus": ["Facture retenue"], "compte": 1 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get"
+    },
+    {
+      "id": "mfiles:vues:refus-champ-inconnu",
+      "entree": { "scenario": "vue-refus-champ-inconnu", "champ": "exercice" },
+      "sortie": { "refus": true, "nomme": "aucun champ" },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get"
+    },
+    {
+      "id": "mfiles:vues:enregistree-relecture",
+      "entree": { "scenario": "vue-enregistree-relecture", "nom": "Contrats actifs", "type": "Contrat", "tri": "created", "tri_inverse": true },
+      "sortie": { "nom": "Contrats actifs", "slug_trouve": true, "type": "Contrat", "tri": "created", "tri_inverse": true, "fichier_present": true },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get"
+    },
+    {
+      "id": "mfiles:vues:compte-sans-deplacement",
+      "entree": { "scenario": "vue-compte-sans-deplacement", "classe": "Facture" },
+      "sortie": { "fichiers_avant": 3, "fichiers_apres": 3, "compte": 2, "deplacements": 0 },
+      "reference": "https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get"
+    }
+  ]
+}

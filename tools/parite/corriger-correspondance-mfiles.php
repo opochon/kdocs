@@ -111,11 +111,6 @@ $couverts = [
         p($testSocle . 'IndexeurTest::testUnDossierRenommeHorsApplicationEstSuiviSansPerdreLesVersions'),
         'Objets = documents du fonds, indexés depuis le dossier (le dossier fait foi).',
     ],
-    'mfiles:rest:get:views-path-items' => [
-        service($serviceSocle . 'Vues'),
-        p($testSocle . 'VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier'),
-        'Vues enregistrées du fonds (dossiers virtuels posés sur le dossier physique).',
-    ],
     'mfiles:rest:get:structure-properties' => [
         service($serviceSocle . 'Champs'),
         p($testSocle . 'ChampsTest::testUnChampTypéEstRattachéÀUnTypeAvecUneCléSlug'),
@@ -340,6 +335,23 @@ $couverts = [
         p($testParite . 'MfilesRelationsVecteursTest::testRejoueLesVecteursDeLaCompositionEtDeLIntegrite'),
         'Détacher un sous-objet (M-Files « demoting objects ») : le lien de composition est retiré, l’enfant devient indépendant, le geste est tracé.',
         true,
+    ],
+    // --- Famille 3 : vues dynamiques (vues par classe/metadonnees, vues enregistrees, vues recherchees) --
+    // (lot ged-mfiles-vues-1 ; service Ged\Socle\Vues, definitions portables dans `.ged/vues.json`).
+    'mfiles:rest:get:views-path-items' => [
+        service($serviceSocle . 'Vues'),
+        p($testParite . 'MfilesVuesVecteursTest::testRejoueLesVecteursDesFiltresEtDuContenu'),
+        'Contenu d’une vue : les documents retenus par sa classe et ses valeurs de métadonnées (filtres compilés dans le fonds, aucun fichier déplacé).',
+    ],
+    'mfiles:rest:get:views-path-items-count' => [
+        service($serviceSocle . 'Vues'),
+        p($testSocle . 'VuesTest::testLeContenuEtLeCompteDuneVueEnregistree'),
+        'Comptage du contenu d’une vue par classe et métadonnées, même sémantique que la liste.',
+    ],
+    'mfiles:rest:get:views-path-objects' => [
+        service($serviceSocle . 'Vues'),
+        p($testParite . 'MfilesVuesVecteursTest::testRejoueLesVecteursDesVuesRecherchees'),
+        'Contenu d’une vue de recherche : les critères (texte + classe + métadonnées) sont conservés dans le fonds puis rejoués par le moteur de Recherche, jamais un second moteur.',
     ],
 ];
 

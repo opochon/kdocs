@@ -14,7 +14,7 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (112 eleme
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 112 | 49 | 63 | 0 | 0 | 43,75 % | 43,75 % |
+| 112 | 51 | 61 | 0 | 0 | 45,54 % | 45,54 % |
 
 ## mfiles
 
@@ -94,9 +94,9 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (112 eleme
 | GET /valuelists/(id)/items — Value list items | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/#get | couvert | service Ged\Socle\Listes | phpunit Ged\Tests\Socle\ListesTest::testCompletRendLesValeursPourLAdministration (couche 1) |  |
 | GET /valuelists/(id)/items/(objectid) — Value list item | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/#get | couvert | service Ged\Socle\Listes | phpunit Ged\Tests\Socle\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur (couche 1) |  |
 | GET /valuelists/(id)/items/(objectid)/title — Value list item title | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/valuelists/id/items/objectid/title/#get | couvert | service Ged\Socle\Listes | phpunit Ged\Tests\Socle\ListesTest::testAjoutRenommageEtRetraitTraceDuneValeur (couche 1) |  |
-| GET /views/(path)/items — View contents | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get | couvert | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testUneVueEnregistréeSeRelitEtNeDéplaceAucunFichier (couche 1) |  |
-| GET /views/(path)/items/count — View contents count | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get | absent (Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).) | - | - | ged-mfiles-2..7 |
-| GET /views/(path)/objects — Search view contents | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get | absent (Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).) | - | - | ged-mfiles-2..7 |
+| GET /views/(path)/items — View contents | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/#get | couvert | service Ged\Socle\Vues | phpunit Ged\Tests\Parite\MfilesVuesVecteursTest::testRejoueLesVecteursDesFiltresEtDuContenu (couche 1) |  |
+| GET /views/(path)/items/count — View contents count | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get | couvert | service Ged\Socle\Vues | phpunit Ged\Tests\Socle\VuesTest::testLeContenuEtLeCompteDuneVueEnregistree (couche 1) |  |
+| GET /views/(path)/objects — Search view contents | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get | couvert | service Ged\Socle\Vues | phpunit Ged\Tests\Parite\MfilesVuesVecteursTest::testRejoueLesVecteursDesVuesRecherchees (couche 1) |  |
 | POST /favorites — Favorites | https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#post | absent (Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).) | - | - | ged-mfiles-2..7 |
 | POST /files — Temporary upload | https://developer.m-files.com/APIs/REST-API/Reference/resources/files/#post | absent (Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).) | - | - | ged-mfiles-2..7 |
 | POST /objects/automaticmetadata — Automatic metadata | https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/automaticmetadata/#post | absent (Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).) | - | - | ged-mfiles-2..7 |
@@ -147,6 +147,8 @@ le rejeu PHPUnit.
 | mfiles-relations-composition | tests/parite/vecteurs/mfiles-relations-composition.json | 6 | 6 | 100,00 % |
 | mfiles-relations-liens | tests/parite/vecteurs/mfiles-relations-liens.json | 7 | 7 | 100,00 % |
 | mfiles-versions | tests/parite/vecteurs/mfiles-versions.json | 4 | 4 | 100,00 % |
+| mfiles-vues-filtres | tests/parite/vecteurs/mfiles-vues-filtres.json | 6 | 6 | 100,00 % |
+| mfiles-vues-recherchees | tests/parite/vecteurs/mfiles-vues-recherchees.json | 3 | 3 | 100,00 % |
 
 ## Carnet de commandes (ecarts)
 
@@ -196,8 +198,6 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | mfiles:rest:get:structure-workflows-id-statetransitions | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/#get | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
 | mfiles:rest:get:structure-workflows-itemidbyalias-alias | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/itemidbyalias/alias/#get | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
 | mfiles:rest:get:structure-workflowstates-itemidbyalias-alias | https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/itemidbyalias/alias/#get | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
-| mfiles:rest:get:views-path-items-count | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/items/count/#get | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
-| mfiles:rest:get:views-path-objects | https://developer.m-files.com/APIs/REST-API/Reference/resources/views/path/objects/#get | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
 | mfiles:rest:post:favorites | https://developer.m-files.com/APIs/REST-API/Reference/resources/favorites/#post | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
 | mfiles:rest:post:files | https://developer.m-files.com/APIs/REST-API/Reference/resources/files/#post | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |
 | mfiles:rest:post:objects-automaticmetadata | https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/automaticmetadata/#post | absent | Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent). | ged-mfiles-2..7 |

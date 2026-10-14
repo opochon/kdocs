@@ -3,7 +3,7 @@
   "fonction": "F1",
   "libelle": "Lire le bilan d’ingestion sur l’écran d’accueil",
   "trouve": true,
-  "temps_ms": 58,
-  "ecran": "http://127.0.0.1:64969/a-traiter — À traiter",
+  "temps_ms": 10,
+  "ecran": "http://127.0.0.1:62436/a-traiter — À traiter",
   "erreur": ""
 }

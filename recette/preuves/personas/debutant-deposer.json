@@ -3,7 +3,7 @@
   "fonction": "F2",
   "libelle": "Déposer un document par l’écran, depuis le bouton de l’accueil",
   "trouve": true,
-  "temps_ms": 614,
-  "ecran": "http://127.0.0.1:57978/deposer?recu=1 — Déposer",
+  "temps_ms": 597,
+  "ecran": "http://127.0.0.1:54317/deposer?recu=1 — Déposer",
   "erreur": ""
 }
