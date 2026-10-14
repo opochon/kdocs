@@ -336,32 +336,10 @@ final class Document
      */
     private function historique(?PDO $pdo, int $id): array
     {
-        if ($pdo === null) {
-            return [];
-        }
-        try {
-            $requete = $pdo->prepare('SELECT chemin_avant, chemin_apres, cause, auteur, date_deplacement'
-                . ' FROM document_deplacements WHERE document_id = ? ORDER BY date_deplacement DESC');
-            $requete->execute([$id]);
-            $lignes = array_map(static fn (array $d): array => [
-                'quand' => (string) $d['date_deplacement'],
-                'quoi' => (string) $d['cause'] === 'restauration'
-                    ? 'Restauration : nouvelle version créée (' . (string) $d['auteur'] . ')'
-                    : 'Déplacé : ' . (string) $d['chemin_avant'] . ' → ' . (string) $d['chemin_apres']
-                        . ' (' . (string) $d['cause'] . ', ' . (string) $d['auteur'] . ')',
-            ], $requete->fetchAll());
-            $versions = $pdo->prepare('SELECT numero, nom_archive, cree_le FROM document_versions WHERE document_id = ?');
-            $versions->execute([$id]);
-            foreach ($versions->fetchAll() as $version) {
-                $lignes[] = ['quand' => (string) $version['cree_le'],
-                    'quoi' => 'Version v' . (int) $version['numero'] . ' archivée (' . (string) $version['nom_archive'] . ')'];
-            }
-            usort($lignes, static fn (array $a, array $b): int => strcmp($b['quand'], $a['quand']));
-        } catch (Throwable) {
-            return [];
-        }
-
-        return $lignes;
+        // Le service du secteur Fiche porte la règle (versions + déplacements, du plus récent au plus
+        // ancien) ; la fiche lui délègue pour ne pas dupliquer la lecture. `$pdo` est la connexion
+        // partagée déjà ouverte ici (`null` laisse le service l'ouvrir lui-même, panne tracée).
+        return (new \Ged\Fiche\Historique($this->config))->pour($id, $pdo);
     }
 
     private static function taille(int $octets): string

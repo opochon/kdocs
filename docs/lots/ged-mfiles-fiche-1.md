@@ -29,11 +29,13 @@ posée par l'agent).
 
 ### Fait (commité)
 
-- _(en cours)_ cadrage du secteur `docs/secteurs/fiche-rendu.md` (chemins, demandes, journal).
+- `7cdf144` — cadrage du secteur `docs/secteurs/fiche-rendu.md` (chemins, demandes, journal).
+- **Historique des versions** : service `Ged\Fiche\Historique` (versions archivées + déplacements, du plus
+  récent au plus ancien, lus du fonds ; base muette tracée, liste vide jamais 500) ; `Ui\Document::historique`
+  lui délègue. Oracle rouge d'abord (2 erreurs « classe absente »), puis vert : **2 tests, 10 assertions**.
 
 ### Reste
 
-- Historique des versions : service `Ged\Fiche\Historique`, délégation depuis `Ui\Document`, test.
 - Titre objet / nom de fichier : service `Ged\Fiche\Nom` (renommage réel) et oracles de couverture.
 - Check-out : service `Ged\Fiche\Verrou`, état dans le `.meta.json`, test.
 - Interface : barre d'actions de la fiche, routes `Ged\Fiche\Module`, permissions, ligne Kernel.
