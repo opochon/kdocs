@@ -29,9 +29,13 @@ test('un administrateur crée une règle de permission, la désactive et la réa
   await expect(page).toHaveURL(/\/permissions$/);
   await expect(page.getByTestId('ecran-permissions')).toBeVisible();
 
-  // Création par le formulaire : classe Facture, seuls les « utilisateur » voient.
+  // Création par le formulaire : classe du fonds (si le fonds en porte une), seuls les « utilisateur » voient.
+  const classe = (await page.getByTestId('regle-classe').locator('option').allTextContents())
+    .map((v) => v.trim()).find((v) => v !== '' && v !== 'Toutes') ?? '';
   await page.getByTestId('regle-nom').fill(nom);
-  await page.getByTestId('regle-classe').selectOption('Facture');
+  if (classe !== '') {
+    await page.getByTestId('regle-classe').selectOption({ label: classe });
+  }
   await page.getByTestId('regle-role').selectOption('utilisateur');
   await page.getByTestId('action-creer-regle').click({ timeout: 20_000 });
 
@@ -42,7 +46,7 @@ test('un administrateur crée une règle de permission, la désactive et la réa
   const section = page.locator('[data-testid^="regle-"]').filter({ hasText: nom }).first();
   await expect(section).toBeVisible();
   await expect(section).toContainText('active');
-  await expect(section).toContainText('classe Facture');
+  await expect(section).toContainText(classe !== '' ? `classe ${classe}` : 'toutes classes');
   await expect(section).toContainText('role utilisateur');
 
   // Désactivation par le bouton de la règle : jamais de suppression, l'état change.

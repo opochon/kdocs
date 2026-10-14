@@ -64,6 +64,7 @@ function p(string $cible): array
 $serviceSocle = 'Ged' . $bs . 'Socle' . $bs;
 $serviceClasses = 'Ged' . $bs . 'ClassesMetadata' . $bs;
 $serviceDepot = 'Ged' . $bs . 'DepotFileserver' . $bs;
+$servicePermissions = 'Ged' . $bs . 'Permissions' . $bs;
 $testJonctions = 'Ged' . $bs . 'Tests' . $bs . 'Jonctions' . $bs;
 $testSocle = 'Ged' . $bs . 'Tests' . $bs . 'Socle' . $bs;
 $testClasses = 'Ged' . $bs . 'Tests' . $bs . 'ClassesMetadata' . $bs;
@@ -352,6 +353,38 @@ $couverts = [
         service($serviceSocle . 'Vues'),
         p($testParite . 'MfilesVuesVecteursTest::testRejoueLesVecteursDesVuesRecherchees'),
         'Contenu d’une vue de recherche : les critères (texte + classe + métadonnées) sont conservés dans le fonds puis rejoués par le moteur de Recherche, jamais un second moteur.',
+    ],
+    // --- Famille 4 : permissions dynamiques (droits par classe / metadonnee / etat, visibilite conditionnelle) --
+    // (lot ged-mfiles-permissions-1 ; service Ged\Permissions\Moteur, règles nommées portables dans
+    // `.ged/permissions.json`). Aucune exclusion posée : le reste des éléments de structure de workflows
+    // (alias, state unique) reste `absent` et est PROPOSÉ au juge.
+    'mfiles:rest:get:objects-type-objectid-version-workflowstate' => [
+        service($servicePermissions . 'Moteur'),
+        p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
+        'L’état effectif d’un objet (premier circuit actif) : l’axe « droits selon l’état » des permissions dynamiques.',
+    ],
+    'mfiles:rest:put:objects-type-objectid-version-workflowstate' => [
+        service($servicePermissions . 'Moteur'),
+        p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
+        'Changer l’état d’un document (transition) : soumis au droit de la transition (moteur Ged\\Workflows) et tracé.',
+    ],
+    'mfiles:rest:get:structure-workflows' => [
+        service($servicePermissions . 'Moteur'),
+        p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
+        'Le catalogue des circuits à états (workflows M-Files) que les règles de permission nommées peuvent viser.',
+        true,
+    ],
+    'mfiles:rest:get:structure-workflows-id-states' => [
+        service($servicePermissions . 'Moteur'),
+        p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
+        'Les états nommés d’un circuit : une règle de permission peut viser un état (ex. a-valider).',
+        true,
+    ],
+    'mfiles:rest:get:structure-workflows-id-statetransitions' => [
+        service($servicePermissions . 'Moteur'),
+        p($testParite . 'MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats'),
+        'Les transitions nommées d’un circuit, chacune avec sa permission : le droit est vérifié avant le changement d’état.',
+        true,
     ],
 ];
 

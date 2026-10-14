@@ -9020,10 +9020,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:objects-type-objectid-version-workflowstate": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Permissions\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats"
+            },
+            "note": "L’état effectif d’un objet (premier circuit actif) : l’axe « droits selon l’état » des permissions dynamiques."
         },
         "mfiles:rest:get:recentlyaccessedbyme": {
             "statut": "absent",
@@ -9284,10 +9290,16 @@
             "note": "Résolution d’un alias de liste nommée."
         },
         "mfiles:rest:get:structure-workflows": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Permissions\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats"
+            },
+            "note": "Le catalogue des circuits à états (workflows M-Files) que les règles de permission nommées peuvent viser."
         },
         "mfiles:rest:get:structure-workflows-id": {
             "statut": "absent",
@@ -9296,10 +9308,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:structure-workflows-id-states": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/states/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Permissions\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats"
+            },
+            "note": "Les états nommés d’un circuit : une règle de permission peut viser un état (ex. a-valider)."
         },
         "mfiles:rest:get:structure-workflows-id-states-id": {
             "statut": "absent",
@@ -9308,10 +9326,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:get:structure-workflows-id-statetransitions": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/structure/workflows/id/statetransitions/#get",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert-autrement",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Permissions\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats"
+            },
+            "note": "Les transitions nommées d’un circuit, chacune avec sa permission : le droit est vérifié avant le changement d’état."
         },
         "mfiles:rest:get:structure-workflows-itemidbyalias-alias": {
             "statut": "absent",
@@ -9692,10 +9716,16 @@
             "lot": "ged-mfiles-2..7"
         },
         "mfiles:rest:put:objects-type-objectid-version-workflowstate": {
-            "statut": "absent",
-            "doc": "https://developer.m-files.com/APIs/REST-API/Reference/resources/objects/type/objectid/version/workflowstate/#put",
-            "note": "Pas encore d’équivalent GEDv2 mesuré ; proposé au juge (aucune exclusion posée par l’agent).",
-            "lot": "ged-mfiles-2..7"
+            "statut": "couvert",
+            "gedv2": {
+                "type": "service",
+                "classe": "Ged\\Permissions\\Moteur"
+            },
+            "preuve": {
+                "type": "phpunit",
+                "cible": "Ged\\Tests\\Parite\\MfilesPermissionsVecteursTest::testRejoueLesVecteursDesEtats"
+            },
+            "note": "Changer l’état d’un document (transition) : soumis au droit de la transition (moteur Ged\\Workflows) et tracé."
         },
         "mfiles:rest:put:session": {
             "statut": "absent",
