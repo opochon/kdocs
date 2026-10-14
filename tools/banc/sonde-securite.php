@@ -472,6 +472,13 @@ try {
         // préférence. La sonde ne vérifie ici que l'absence et le rejeu du jeton CSRF.
         'POST /corbeille/{id:[0-9]+}/restaurer' => 'sonde=1',
         'POST /reglages' => 'section=reglages-generaux&langue=xx',
+        // Lot ged-mfiles-espace-1 (espace perso & partage) : identifiant/clé inexistants, le métier refuse
+        // sans écrire ; la sonde ne vérifie ici que l'absence et le rejeu du jeton CSRF.
+        'POST /documents/{id:[0-9]+}/favori' => '',
+        'POST /documents/{id:[0-9]+}/favori/retirer' => '',
+        'POST /favoris/{id:[0-9]+}/retirer' => '',
+        'POST /liens-partages/{id:[0-9]+}/revoquer' => '',
+        'POST /liens-partages/cle/{jeton:[A-Za-z0-9_-]+}/revoquer' => '',
     ];
     foreach (DroitsRoutes::declarees() as $definition => $permission) {
         [$methode, $chemin] = explode(' ', $definition, 2);
