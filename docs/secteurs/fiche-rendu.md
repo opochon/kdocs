@@ -59,3 +59,7 @@ au juge.
 
 - 14.10.2026 — ouverture du lot `ged-mfiles-fiche-1` (DeepCode) : aperçu/vignette, titre objet/fichier,
   historique des versions, commentaires, verrouillage / check-out, parité M-Files famille 5.
+- 14.10.2026 — livré : services `Ged\Fiche\Historique`, `Ged\Fiche\Nom` (renommage réel tracé),
+  `Ged\Fiche\Verrou` (check-out dans le `.meta.json`, tracé), routes `Ged\Fiche\Module` et barre
+  d'actions de la fiche ; les 11 éléments `mfiles:*` passent couverts, **M-Files 67/112, 59,82 %,
+  0 non-prouvé**. Rapport : `docs/rapports/lots/ged-mfiles-fiche-1.md`.

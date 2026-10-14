@@ -48,7 +48,7 @@ posée par l'agent).
 
 ### Reste
 
-- Porte qualité ECC ; harness `-SansBanc` ; rapport de lot.
+- _(aucun)_ — rapport de lot complet : `docs/rapports/lots/ged-mfiles-fiche-1.md`.
 
 ## Mesures exactes
 
@@ -63,37 +63,41 @@ posée par l'agent).
 | Parité stricte (= hors exclusions) | **50,00 % → 59,82 %** |
 | Erreurs du juge | 0 |
 
-Les 11 éléments `mfiles:rest:*` passés de `absent` à couvert :
-
-| Élément M-Files | Statut | Équivalent GEDv2 | Preuve |
-| --- | --- | --- | --- |
-| GET `…/version/preview` (objet) | couvert-autrement | route `GET /documents/{id}/apercu` | `Apercu\ModuleTest::testPageApercuPdfSeDesigne` |
-| GET `…/files/{file}/preview` (fichier) | couvert | route `GET /documents/{id}/miniature` | `Apercu\ModuleTest::testMiniatureServieEnPng` |
-| GET `…/version/title` (objet) | couvert | service `Ged\Socle\DepotFichiers` | `Fiche\TitreTest::testLeTitreDeLObjetSeLitDuMetaJsonQuiFaitFoi` |
-| PUT `…/version/title` (objet) | couvert | service `Ged\Socle\DepotFichiers` | `Fiche\TitreTest::testChangerLeTitreMetAJourLeMetaEtLIndexSansRenommerLeFichierNiCreerDeVersion` |
-| GET `…/files/{file}/title` (fichier) | couvert | service `Ged\Fiche\Nom` | `Fiche\NomTest::testLeNomDeFichierSeLitSurLIndex` |
-| PUT `…/files/{file}/title` (fichier) | couvert | service `Ged\Fiche\Nom` | `Fiche\NomTest::testRenommerLeFichierDeplaceMetaEtVersionsEtTraceSansRienPerdre` |
-| GET `…/history` | couvert | service `Ged\Fiche\Historique` | `Fiche\HistoriqueTest::testLHistoriqueReunitVersionsEtDeplacementsDuPlusRecentAuPlusAncien` |
-| GET `…/version/comments` | couvert | service `Ged\Socle\Collaboration` | `Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex` |
-| PUT `…/version/comments` | couvert | service `Ged\Socle\Collaboration` | `Socle\V212dTest::testUneNoteEstEditeeParSonAuteurTraceeEtCherchableDansLeMemeIndex` |
-| GET `…/version/checkedout` | couvert | service `Ged\Fiche\Verrou` | `Fiche\VerrouTest::testPoseLitEtRetireLeVerrouDUneFiche` |
-| PUT `…/version/checkedout` | couvert | service `Ged\Fiche\Verrou` | `Fiche\VerrouTest::testUnAutreCompteNeRetirePasLeVerrouSansForce` |
+Les 11 éléments `mfiles:rest:*` passés de `absent` à couvert sont détaillés dans le rapport de lot
+(`docs/rapports/lots/ged-mfiles-fiche-1.md`).
 
 ### Tests
 
 | Mesure | Valeur |
 | --- | --- |
-| Suite PHPUnit complète | 970 tests, 17 969 assertions, 8 erreurs / 9 échecs d'environnement (voir ci-dessous) |
-| Dont `tests/php/Fiche` | **15 tests, 81 assertions** |
+| Dont `tests/php/Fiche` (5 fichiers) | **15 tests, 81 assertions** |
 | PHPStan niveau 6 | **0 erreur** (baseline vide) |
 
-Échecs d'environnement de la suite complète (aucun dans les chemins du lot) : `EditeurPdfTest`,
-`EditionPiecesTest`, `DeplacementDroitsTest`, `EcransTest::testApplicationDiagnostiqueLeMoteurDeRetouche`
-et `InstallateurTest` exigent PyMuPDF/`CMD4_PYTHON` (moteur PDF absent sur ce poste) ; `InfomaniakClientTest`
-exige le service externe. `V212cTest::testValidationDeLot…` est une fragilité d'ORDRE préexistante
-(`recherche_textes` retiré par `SupportCorpus`) ; il passe seul et passe juste après `tests/php/Fiche`
-(reproduit : `phpunit tests/php/Fiche tests/php/Socle/V212cTest.php` → 20/20 vert). Le secteur Fiche
-repose désormais `recherche_textes` dans son `setUpCorpus` pour ne pas casser l'ordre des suites suivantes.
+### Harness `-SansBanc` (commit `a3df142`, durée 813 s)
 
-ETAT: bloqué (lot en cours)
+| Couche | État | Détail |
+| --- | --- | --- |
+| 0 garde-fous | VERT | vendor + node_modules présents ; `DB_NAME=gedv2_test` imposé |
+| 1 unitaire | ROUGE | 970 tests, 17 952 assertions, 8 erreurs / 9 échecs **d'environnement** (PyMuPDF/`CMD4_PYTHON` absents, service Infomaniak, ordre `V212cTest`) — aucun dans les chemins du lot |
+| 3 banc | ROUGE | sautée (`-SansBanc`), par construction |
+| 4 écrans | ROUGE | 96 passés, 2 échoués (scripts de préparation exigeant le moteur PDF absent) |
+| 7 sécurité | VERT | aucun contournement accepté (charges CSRF des trois routes de la fiche) |
+| 2 contrat | VERT | toutes les routes déclarées couvertes |
+| 6 charge | ROUGE | `proc_open CreateProcess failed` (environnement) |
+| 8 statique | VERT | PHPStan 0 erreur ; `composer audit` : aucune vulnérabilité |
+| 5 personas | VERT | administrateur 4/4, auditeur 4/4, comptable 4/4, débutant 4/4, fiduciaire 4/4, secrétaire 3/3 |
+| 9 parité Paperless | VERT | 780 éléments, couverts 731, strict 93,72 %, hors exclusions 99,19 % |
+| 9b parité M-Files | VERT | 112 éléments, couverts **67**, strict **59,82 %**, écarts 45 |
+
+## Porte qualité (ECC)
+
+Voir le rapport de lot complet. En bref : PHPStan niveau 6 **0 erreur** (baseline vide) et `composer audit`
+sans vulnérabilité ; revues `php-reviewer`, `security-reviewer`, `silent-failure-hunter` appliquées ;
+le seul constat CRITIQUE de la grille sécurité (« check without lock » sur `Verrou::poser`) est **listé et
+motivé** (état de travail consultatif, pas une barrière d'autorisation ; aucune perte possible, le contenu
+étant toujours archivé) ; toutes les autres pannes sont tracées, aucune `catch` vide. TDD : oracles rouges
+avant le code, puis verts.
+
+ETAT: fini
+
 
