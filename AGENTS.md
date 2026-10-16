@@ -1,5 +1,7 @@
 # GEDv2 — contrat commun des agents
 
+> Transverse : `F:/DATA/DEVELOPPEMENT/EcosystemK/AGENTS.md` fait foi au-dessus de ce fichier (gouvernance d'équipe, règles A/B/C) ; avant de travailler, lire `EcosystemK/boite/tous.md` puis `EcosystemK/boite/ged.md`.
+
 À lire en entier avant toute action. Court exprès : les détails vivent dans `docs/secteurs/<secteur>.md`.
 
 ## Ce qu'est GEDv2
