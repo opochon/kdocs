@@ -1,9 +1,9 @@
 {
-    "date": "2026-10-14T20:08:49+00:00",
-    "commit": "ef8423f",
-    "duree_s": 59.7,
+    "date": "2026-10-15T18:22:59+00:00",
+    "commit": "7f5620b",
+    "duree_s": 459.8,
     "documents": 10000,
-    "fonds": "C:\\gedv2/var/charge/fonds/documents",
+    "fonds": "F:\\DATA\\DEVELOPPEMENT\\GEDv2/var/charge/fonds/documents",
     "seuils": {
         "lecture_p95_ms": 1500,
         "ecriture_p95_ms": 3000
@@ -14,82 +14,82 @@
             "par_ecran": {
                 "bibliotheque": {
                     "n": 9,
-                    "p50_ms": 290,
-                    "p95_ms": 420,
-                    "max_ms": 420
+                    "p50_ms": 4576,
+                    "p95_ms": 5607,
+                    "max_ms": 5607
                 },
                 "recherche": {
                     "n": 9,
-                    "p50_ms": 290,
-                    "p95_ms": 534,
-                    "max_ms": 534
+                    "p50_ms": 4102,
+                    "p95_ms": 4798,
+                    "max_ms": 4798
                 },
                 "a-traiter": {
                     "n": 9,
-                    "p50_ms": 278,
-                    "p95_ms": 355,
-                    "max_ms": 355
+                    "p50_ms": 4640,
+                    "p95_ms": 7159,
+                    "max_ms": 7159
                 },
                 "apercu": {
                     "n": 9,
-                    "p50_ms": 216,
-                    "p95_ms": 264,
-                    "max_ms": 264
+                    "p50_ms": 2547,
+                    "p95_ms": 4171,
+                    "max_ms": 4171
                 },
                 "validation": {
                     "n": 40,
-                    "p50_ms": 249,
-                    "p95_ms": 255,
-                    "max_ms": 257
+                    "p50_ms": 2405,
+                    "p95_ms": 3389,
+                    "max_ms": 3744
                 }
             },
-            "lecture_p95_ms": 534,
-            "ecriture_p95_ms": 255,
+            "lecture_p95_ms": 7159,
+            "ecriture_p95_ms": 3389,
             "ecriture_n": 40,
             "requetes": 76,
             "erreurs": 0,
-            "ok": true
+            "ok": false
         },
         "10-utilisateurs": {
             "nom": "10-utilisateurs",
             "par_ecran": {
                 "bibliotheque": {
                     "n": 30,
-                    "p50_ms": 261,
-                    "p95_ms": 372,
-                    "max_ms": 502
+                    "p50_ms": 4160,
+                    "p95_ms": 7617,
+                    "max_ms": 8165
                 },
                 "recherche": {
                     "n": 30,
-                    "p50_ms": 293,
-                    "p95_ms": 585,
-                    "max_ms": 601
+                    "p50_ms": 2608,
+                    "p95_ms": 5725,
+                    "max_ms": 6006
                 },
                 "a-traiter": {
                     "n": 30,
-                    "p50_ms": 218,
-                    "p95_ms": 265,
-                    "max_ms": 287
+                    "p50_ms": 2433,
+                    "p95_ms": 4995,
+                    "max_ms": 5233
                 },
                 "apercu": {
                     "n": 30,
-                    "p50_ms": 140,
-                    "p95_ms": 213,
-                    "max_ms": 219
+                    "p50_ms": 1932,
+                    "p95_ms": 3002,
+                    "max_ms": 3024
                 },
                 "validation": {
                     "n": 60,
-                    "p50_ms": 168,
-                    "p95_ms": 253,
-                    "max_ms": 308
+                    "p50_ms": 633,
+                    "p95_ms": 1128,
+                    "max_ms": 1426
                 }
             },
-            "lecture_p95_ms": 585,
-            "ecriture_p95_ms": 253,
+            "lecture_p95_ms": 7617,
+            "ecriture_p95_ms": 1128,
             "ecriture_n": 60,
             "requetes": 180,
             "erreurs": 0,
-            "ok": true
+            "ok": false
         }
     },
     "collisions": {
@@ -102,16 +102,18 @@
         "details": []
     },
     "ingestion": {
-        "finie": false,
-        "detail": "code 0, lot 1, 0 travail(x) non fini(s), 1 erreur(s), 0 pièce(s) rangée(s) — Failed loading C:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\nPHP Warning:  proc_open(): CreateProcess failed: La syntaxe du nom de fichier, de répertoire ou de volume est in",
-        "duree_s": 28.8,
-        "documents_ajoutes": 0,
+        "finie": true,
+        "detail": "53 pièces rangées, 0 travail restant",
+        "duree_s": 376.1,
+        "documents_ajoutes": 53,
         "travaux_restants": 0,
-        "erreurs": 1,
+        "erreurs": 0,
         "code": 0
     },
     "defauts": [
-        "ingestion : code 0, lot 1, 0 travail(x) non fini(s), 1 erreur(s), 0 pièce(s) rangée(s) — Failed loading C:/wamp64/bin/php/php8.4.0/zend_ext/php_xdebug-3.4.0beta1-8.4-x86_64.dll\nPHP Warning:  proc_open(): CreateProcess failed: La syntaxe du nom de fichier, de répertoire ou de volume est in"
+        "3-utilisateurs : p95 lecture 7159 ms ≥ 1500 ms",
+        "3-utilisateurs : p95 écriture 3389 ms ≥ 3000 ms",
+        "10-utilisateurs : p95 lecture 7617 ms ≥ 1500 ms"
     ],
     "porte": "NON FRANCHIE"
 }

@@ -1,14 +1,14 @@
 ﻿{
-    "date":  "2026-10-14T22:09:45",
-    "duree_s":  849,
-    "commit":  "ef8423f",
+    "date":  "2026-10-15T20:33:39",
+    "duree_s":  2413,
+    "commit":  "7f5620b",
     "couches":  {
                     "0-garde-fous":  {
                                          "detail":  "vendor et node_modules prÃ©sents ; DB_NAME=gedv2_test imposÃ©",
                                          "ok":  true
                                      },
                     "1-unitaire":  {
-                                       "detail":  "\u001b[37;41mTests: 972\u001b[0m\u001b[37;41m, Assertions: 18062\u001b[0m\u001b[37;41m, Errors: 8\u001b[0m\u001b[37;41m, Failures: 9\u001b[0m\u001b[37;41m, Skipped: 1\u001b[0m\u001b[37;41m.\u001b[0m",
+                                       "detail":  "Tests: 972, Assertions: 18094, Failures: 14, Warnings: 4, Skipped: 1.",
                                        "ok":  false
                                    },
                     "3-banc":  {
@@ -16,32 +16,32 @@
                                    "ok":  false
                                },
                     "4-ecrans":  {
-                                     "detail":  "  2 failed   96 passed (3.8m)",
+                                     "detail":  "  1 failed   104 passed (8.4m)",
                                      "ok":  false
                                  },
                     "7-securite":  {
-                                       "detail":  "OK: sonde s├®curit├® ÔÇö aucun contournement accept├®",
-                                       "ok":  true
+                                       "detail":  "ECHEC: Sonde HTTP POST /reglages : Operation timed out after 5292 milliseconds with 0 bytes received",
+                                       "ok":  false
                                    },
                     "2-contrat":  {
-                                      "detail":  "OK: contrats de service et HTTP ÔÇö toutes les routes d├®clar├®es sont couvertes",
+                                      "detail":  "OK: contrats de service et HTTP — toutes les routes déclarées sont couvertes",
                                       "ok":  true
                                   },
                     "6-charge":  {
-                                     "detail":  "PHP Warning:  proc_open(): CreateProcess failed: La syntaxe du nom de fichier, de r├®pertoire ou de volume est in)",
+                                     "detail":  "ECHEC: charge — 3 puis 10 utilisateurs, p95 lecture 7617 ms, p95 écriture 3389 ms, 0 erreur(s), 0 collision(s), ingestion finie (3-utilisateurs : p95 lecture 7159 ms ≥ 1500 ms ; 3-utilisateurs : p95 écriture 3389 ms ≥ 3000 ms ; 10-utilisateurs : p95 lecture 7617 ms ≥ 1500 ms)",
                                      "ok":  false
                                  },
                     "8-statique":  {
-                                       "detail":  "phpstan : 0 erreur(s) hors baseline | audit : \u001b[32mNo security vulnerability advisories found.\u001b[39m",
+                                       "detail":  "phpstan : 0 erreur(s) hors baseline | audit : No security vulnerability advisories found.",
                                        "ok":  true
                                    },
                     "5-personas":  {
-                                       "detail":  "administrateur: 4/4 (mÃ©diane 524 ms) | auditeur: 4/4 (mÃ©diane 429 ms) | comptable: 4/4 (mÃ©diane 588 ms) | debutant: 4/4 (mÃ©diane 390 ms) | fiduciaire: 4/4 (mÃ©diane 409 ms) | secretaire: 3/3 (mÃ©diane 558 ms)",
+                                       "detail":  "administrateur: 4/4 (mÃ©diane 1627 ms) | auditeur: 4/4 (mÃ©diane 1110 ms) | comptable: 4/4 (mÃ©diane 2160 ms) | debutant: 4/4 (mÃ©diane 1082 ms) | fiduciaire: 4/4 (mÃ©diane 624 ms) | secretaire: 3/3 (mÃ©diane 1421 ms)",
                                        "ok":  true
                                    },
                     "9-parite":  {
-                                     "detail":  "parite : 780 elements | couverts 731 | strict 93,72 % | hors exclusions 99,19 % | ecarts 49 | VERT",
-                                     "ok":  true
+                                     "detail":  "parite : 780 elements | couverts 732 | strict 93,85 % | hors exclusions 99,32 % | ecarts 48 | ROUGE",
+                                     "ok":  false
                                  },
                     "9-parite-mfiles":  {
                                             "detail":  "parite M-Files : 112 elements | couverts 67 | strict 59,82 % | hors exclusions 70,53 % | ecarts 45 | VERT",

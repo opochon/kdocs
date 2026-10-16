@@ -4,13 +4,13 @@ Mesure mecanique du lot `ged-oracle-paperless-1`, calculee depuis les sources de
 
 Un element n'est couvert que si l'equivalent GEDv2 existe et si la preuve citee a reussi au dernier rejeu. Une exclusion n'est jamais comptee comme couverte.
 
-Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1aa76e).
+Inventaire : **DIFFERENT du fichier versionne** — extraction en echec.
 
 ## Synthese
 
 | Total | Couverts | Absents | Non prouves | Exclus | Parite stricte | Parite hors exclusions |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 780 | 737 | 0 | 0 | 43 | 94,49 % | 100,00 % |
+| 780 | 732 | 0 | 5 | 43 | 93,85 % | 99,32 % |
 
 ### Par categorie
 
@@ -18,11 +18,11 @@ Inventaire : rejoue a l'identique — inventaire rejoue a l'identique (commit d1
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | api | 318 | 278 | 0 | 0 | 40 | 87,42 % | 100,00 % |
 | chaine | 60 | 60 | 0 | 0 | 0 | 100,00 % | 100,00 % |
-| commande | 17 | 15 | 0 | 0 | 2 | 88,24 % | 100,00 % |
+| commande | 17 | 14 | 0 | 1 | 2 | 82,35 % | 93,33 % |
 | correspondance | 13 | 13 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 | ecran | 30 | 29 | 0 | 0 | 1 | 96,67 % | 100,00 % |
-| masse | 17 | 17 | 0 | 0 | 0 | 100,00 % | 100,00 % |
-| modele | 313 | 313 | 0 | 0 | 0 | 100,00 % | 100,00 % |
+| masse | 17 | 16 | 0 | 1 | 0 | 94,12 % | 94,12 % |
+| modele | 313 | 310 | 0 | 3 | 0 | 99,04 % | 99,04 % |
 | permissions | 12 | 12 | 0 | 0 | 0 | 100,00 % | 100,00 % |
 
 ## Comportement (phase 2)
@@ -531,7 +531,7 @@ listes `non_rejouables` avec leur raison.
 | --- | --- | --- | --- | --- | --- |
 | documents manage.py convert_mariadb_uuid | src/documents/management/commands/convert_mariadb_uuid.py:1 | exclu (exclu : infrastructure-django) | - | - |  |
 | documents manage.py decrypt_documents | src/documents/management/commands/decrypt_documents.py:1 | couvert | service Ged\Ingestion\DechiffreurPdf | phpunit Ged\Tests\Parite\FinalCommandesTest::testLeDechiffrementNommeLOutilAbsentPuisDechiffreAvecUnOutilExterne (couche 1) |  |
-| documents manage.py document_archiver | src/documents/management/commands/document_archiver.py:1 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve (couche 1) |  |
+| documents manage.py document_archiver | src/documents/management/commands/document_archiver.py:1 | non-prouve (la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve) | service Ged\Ingestion\CopieArchivage | - |  |
 | documents manage.py document_consumer | src/documents/management/commands/document_consumer.py:1 | couvert-autrement | service Ged\Ingestion\Pilote | phpunit Ged\Tests\Ingestion\PiloteTest::testLotDecoupeEnPiecesPuisRange (couche 1) |  |
 | documents manage.py document_create_classifier | src/documents/management/commands/document_create_classifier.py:1 | couvert-autrement | service Ged\Classement\Habitudes | phpunit Ged\Tests\Classement\HabitudesTest::testTroisChoixIdentiquesFontUneHabitude (couche 1) |  |
 | documents manage.py document_exporter | src/documents/management/commands/document_exporter.py:1 | couvert-autrement | service Ged\Socle\Export | phpunit Ged\Tests\Parite\ModeleResteTest::testRejoueLesVecteursEtEcritLaMesure (couche 1) |  |
@@ -614,7 +614,7 @@ listes `non_rejouables` avec leur raison.
 | bulk_edit.reflect_doclinks | src/documents/bulk_edit.py:647 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testLeLienExterneEstLongExpireRevocableEtJamaisEcritEnClair (couche 1) |  |
 | bulk_edit.remove_doclink | src/documents/bulk_edit.py:710 | couvert-autrement | service Ged\Socle\Collaboration | phpunit Ged\Tests\Socle\V212dTest::testUneNoteRetireeSortDeLIndexEtUnLienEstVisibleDesDeuxCotes (couche 1) |  |
 | bulk_edit.remove_tag | src/documents/bulk_edit.py:125 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
-| bulk_edit.reprocess | src/documents/bulk_edit.py:297 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testLeRattrapageEstIdempotentReprenableEtCompteLEcart (couche 1) |  |
+| bulk_edit.reprocess | src/documents/bulk_edit.py:297 | non-prouve (la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testLeRattrapageEstIdempotentReprenableEtCompteLEcart) | service Ged\Ingestion\CopieArchivage | - |  |
 | bulk_edit.rotate | src/documents/bulk_edit.py:331 | couvert-autrement | service Ged\Ingestion\EditeurPdf | phpunit Ged\Tests\Ingestion\EditeurPdfTest::testTournerScinderFusionnerEtRetirerReecriventDesPdfValides (couche 1) |  |
 | bulk_edit.set_correspondent | src/documents/bulk_edit.py:41 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
 | bulk_edit.set_document_type | src/documents/bulk_edit.py:82 | couvert-autrement | service Ged\Socle\ModificationMasse | phpunit Ged\Tests\Socle\ModificationMasseTest::testLeServiceEnMasseProduitLesMemeEffetsQueLEditionUnitaire (couche 1) |  |
@@ -645,8 +645,8 @@ listes `non_rejouables` avec leur raison.
 | CustomFieldInstance.value_text | src/documents/models.py:882 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testLaValeurVitDansLeMetaJsonEtEstPortéeParLIndex (couche 1) |  |
 | CustomFieldInstance.value_url | src/documents/models.py:886 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
 | Document.added | src/documents/models.py:261 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
-| Document.archive_checksum | src/documents/models.py:219 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee (couche 1) |  |
-| Document.archive_filename | src/documents/models.py:278 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee (couche 1) |  |
+| Document.archive_checksum | src/documents/models.py:219 | non-prouve (la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee) | service Ged\Ingestion\CopieArchivage | - |  |
+| Document.archive_filename | src/documents/models.py:278 | non-prouve (la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee) | service Ged\Ingestion\CopieArchivage | - |  |
 | Document.archive_serial_number | src/documents/models.py:301 | couvert | route GET /api/v1/documents/{id:[0-9]+} | phpunit Ged\Tests\Parite\FinalModeleTest::testLaFicheExposeLesChampsPaperlessDuDocument (couche 1) |  |
 | Document.checksum | src/documents/models.py:211 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
 | Document.content | src/documents/models.py:193 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testDepotRangeFichierMetaEtVersion1 (couche 1) |  |
@@ -893,7 +893,7 @@ listes `non_rejouables` avec leur raison.
 | FieldDataType.SELECT | src/documents/models.py:794 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.STRING | src/documents/models.py:786 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ChampsTest::testChaqueNatureValideEtRefuseCeQuIlFaut (couche 1) |  |
 | FieldDataType.URL | src/documents/models.py:787 | couvert-autrement | service Ged\Socle\Champs | phpunit Ged\Tests\Socle\ModelesResteTest::testChampUrlEtLienSontValides (couche 1) |  |
-| FileVersion.ARCHIVE | src/documents/models.py:722 | couvert-autrement | service Ged\Ingestion\CopieArchivage | phpunit Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve (couche 1) |  |
+| FileVersion.ARCHIVE | src/documents/models.py:722 | non-prouve (la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve) | service Ged\Ingestion\CopieArchivage | - |  |
 | FileVersion.ORIGINAL | src/documents/models.py:723 | couvert-autrement | service Ged\Socle\DepotFichiers | phpunit Ged\Tests\Socle\RangementTest::testNouvelleVersionConserveLaPrecedenteEtIndexeLeNouveauContenu (couche 1) |  |
 | ImapSecurity.NONE | src/paperless_mail/models.py:14 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
 | ImapSecurity.SSL | src/paperless_mail/models.py:15 | couvert-autrement | service Ged\Ingestion\Courrier\Compte | phpunit Ged\Tests\Ingestion\Courrier\RegleTest::testToutesLesEnumerationsDuModeleExistent (couche 1) |  |
@@ -1004,6 +1004,11 @@ Chaque ecart (absent, non prouve, exclu) est listé ci-dessous avec sa reference
 | api:vue:PassUserMixin | api | src/documents/views.py:251 | exclu | infrastructure-django |  |
 | api:vue:SocialAccountProvidersView | api | src/paperless/views.py:405 | exclu | infrastructure-django |  |
 | commande:documents:convert_mariadb_uuid | commande | src/documents/management/commands/convert_mariadb_uuid.py:1 | exclu | infrastructure-django |  |
+| commande:documents:document_archiver | commande | src/documents/management/commands/document_archiver.py:1 | non-prouve | la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve |  |
 | commande:documents:loaddata_stdin | commande | src/documents/management/commands/loaddata_stdin.py:1 | exclu | infrastructure-django |  |
 | ecran:route:vide | ecran | src-ui/src/app/app-routing.module.ts:33 | exclu | infrastructure-django |  |
+| masse:fonction:reprocess | masse | src/documents/bulk_edit.py:297 | non-prouve | la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testLeRattrapageEstIdempotentReprenableEtCompteLEcart |  |
+| modele:champ:Document.archive_checksum | modele | src/documents/models.py:219 | non-prouve | la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee |  |
+| modele:champ:Document.archive_filename | modele | src/documents/models.py:278 | non-prouve | la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testDeuxPassesDonnentLeMemeResultatZeroDoublonEtMetaInchangee |  |
+| modele:type:FileVersion.ARCHIVE | modele | src/documents/models.py:722 | non-prouve | la preuve citee a echoue au dernier rejeu : Ged\Tests\Ingestion\CopieArchivageTest::testUnPdfTexteDonneUneCopiePdfA2bAvecXmpOutputIntentEtTexteConserve |  |
 

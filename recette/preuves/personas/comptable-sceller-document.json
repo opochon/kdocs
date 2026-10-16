@@ -3,7 +3,7 @@
   "fonction": "F11",
   "libelle": "Ouvrir la fiche d’un document validé et trouver le scellement",
   "trouve": true,
-  "temps_ms": 939,
-  "ecran": "http://127.0.0.1:58993/documents/10015 — Contrat Maintenance ORACLE",
+  "temps_ms": 4035,
+  "ecran": "http://127.0.0.1:13045/documents/10068 — Contrat Maintenance ORACLE",
   "erreur": ""
 }
