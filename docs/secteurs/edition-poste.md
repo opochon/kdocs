@@ -201,3 +201,88 @@ deux Word orphelins d'un rejeu F13 de 02:27 (ancien code, document de test tempo
 main. Revue : l'écran Application lit `ecart` depuis `ReconstructionIndex::etat()`, aucune sonde affaiblie.
 Reste ouvert : l'échec isolé de la couche 4 (1 failed / 77) n'est toujours pas nommé ; le harness
 automatique qui suit la fusion conserve désormais la sortie complète dans `var/harness/4-ecrans.txt`.
+
+## Lot ged-edition-poste-2 - réservation, liaison Office, OnlyOffice, crash tests (V2-14, après V2-10)
+
+16-10-2026 - décision d'Olivier. Le socle F13 est livré et jugé (lots ci-dessus). Ce lot le porte au niveau
+M-Files : réservation (check-out) unifiée, client desktop et liaison Office, OnlyOffice s'il est installé
+(jamais de serveur Docker), et une matrice de crash tests. **Placé après V2-10** : la GED d'abord à 100 %.
+
+### A. Réservation unifiée (un seul verrou)
+
+Constat du 16-10 : deux mécanismes s'ignorent. `Ged\Fiche\Verrou` (lot `ged-mfiles-fiche-1`, pas encore
+dans `v2`) pose un check-out dans le `.meta.json` avec un délai fixe de 30 min ; `Ged\Edition\Ouvertures`
+pose l'ouverture informative de l'agent dans `document_collaboration` (bail de 10 min prolongé par le
+signal). L'API de l'agent ne consulte pas `Verrou` : un document réservé dans la fiche peut être ouvert et
+versionné depuis un poste, et une réservation web expire à 30 min même si l'utilisateur travaille encore.
+
+Cible :
+- **Une seule réservation**, celle de `Fiche\Verrou` (le dossier fait foi). L'ouverture par l'agent EST la
+  réservation ; le signal de l'agent la prolonge ; la fermeture de Word la libère. Pas de délai fixe tant que
+  l'agent signale ; sans signal, « peut-être abandonné », puis libérable par un manager (geste tracé).
+- Gestes M-Files portés (référence : M-Files User Guide, « Functions in Microsoft Word, Microsoft Excel and
+  Microsoft PowerPoint ») : Réserver (Check Out), Rendre (Check In), Rendre et garder (Check In Changes),
+  Annuler la réservation (Undo Checkout - les modifications non rendues ne sont PAS effacées chez nous :
+  elles restent en copie de secours).
+- Les autres comptes voient le document en lecture seule ; l'agent ouvre alors une copie en lecture seule
+  (attribut) et le dit. Un dépôt reçu malgré tout (réservation forcée, expirée, poste hors ligne) devient une
+  **version parallèle signalée** : jamais refusé, jamais perdu, jamais écrasé.
+
+### B. Client desktop et liaison Office
+
+Fonctions du ruban M-Files à porter dans un onglet « K-Docs » de Word, Excel et PowerPoint :
+Ouvrir depuis la GED (recherche), Enregistrer dans la GED (un document neuf part au dépôt avec sa fiche de
+métadonnées), Réserver / Rendre / Rendre et garder / Annuler, Propriétés (fiche), Insérer une propriété
+(champ du document alimenté par les métadonnées), Comparer à une version (Word).
+
+Étape 0 obligatoire, documentation Microsoft d'abord, puis essai sur 2-3 cas avant de généraliser : choisir
+entre complément web Office (Office.js, manifeste, déploiement centralisé) et complément COM/VSTO (lié à
+.NET Framework 4.x, pas à .NET 10). Le complément ne parle jamais au serveur lui-même : il passe par l'agent
+(canal local existant), qui seul détient le jeton d'appareil.
+
+### C. OnlyOffice s'il est installé (Desktop Editors, pas de serveur)
+
+- Ouverture, Ctrl+S, versions, réservation : inchangés (association Windows + surveillance du dossier de
+  travail ; odt/ods/odp et docx/xlsx/pptx sont déjà dans la liste blanche).
+- Copies de secours : OnlyOffice n'a pas d'interface COM. Son Autorecover, actif par défaut et non réglable,
+  écrit les modifications 3 s après la fin de la saisie dans `%LocalAppData%\ONLYOFFICE\DesktopEditors\data\recover`
+  et les supprime à la fermeture normale (blog ONLYOFFICE, « How to recover unsaved documents in ONLYOFFICE
+  Desktop Editors », 07-2023). L'agent recopie dans son espace de secours les entrées de ce dossier qui
+  concernent un document de son dossier de travail. À prouver par oracle sur OnlyOffice réel (format des
+  entrées, correspondance avec le document) ; sinon limite écrite, jamais un faux vert.
+
+### D. Flux F13b - crash tests
+
+Oracle commun : pour chaque cas, l'empreinte de CHAQUE enregistrement local se retrouve en version serveur,
+dans l'ordre ; zéro version tronquée ; zéro modification perdue (version ou copie de secours récupérable) ;
+zéro écrasement ; l'agent redémarre seul et le dit dans « Mes documents en cours ».
+
+| # | Crash | Attendu |
+| --- | --- | --- |
+| 1 | Agent tué pendant un envoi (corps multipart à moitié) | aucune version partielle ; reprise au redémarrage |
+| 2 | Coupure de courant simulée pendant Ctrl+S (VM arrêtée net) | au redémarrage : instantané repris ou fichier intact, jamais tronqué |
+| 3 | Serveur en 500, lent (mutualisé) ou injoignable pendant l'envoi | file conservée, nouvel essai espacé, ordre respecté |
+| 4 | Disque du poste plein | échec nommé et visible, rien d'effacé |
+| 5 | Word figé sur une boîte de dialogue, puis tué | appels COM refusés sans bloquer l'agent ; copie de secours récupérable |
+| 6 | Deux postes ouvrent le même document | le second en lecture seule ; s'il dépose quand même : version parallèle |
+| 7 | Réservation forcée ou libérée pendant l'édition | rien perdu, version parallèle signalée |
+| 8 | Document renommé ou déplacé dans la GED pendant l'édition | l'envoi suit l'identifiant |
+| 9 | Redémarrage forcé (Windows Update) avec Word ouvert non enregistré | copie de secours récupérable |
+| 10 | Horloge du poste décalée (cas réel : M2 en avance d'environ 1 h) | ordre des versions donné par le serveur |
+| 11 | OnlyOffice tué avec modifications non enregistrées | entrée Autorecover recopiée et récupérable |
+| 12 | Jeton révoqué pendant un envoi | 401 nommé, instantané local conservé |
+
+Joués sur une machine dédiée avec Office réel (et OnlyOffice pour 11), jamais sur le poste de travail ; chaque
+cas vu ROUGE avant le correctif qui le rend VERT.
+
+### E. Parité M-Files
+
+L'inventaire de `docs/parite/PARITE-MFILES.md` ne lit que la référence REST : il ne voit ni le client
+desktop ni le ruban Office. Demande au lot d'oracle de parité : ajouter la source « Functions in Microsoft
+Word, Microsoft Excel and Microsoft PowerPoint » (dix fonctions ci-dessus) comme famille mesurée. Aucune
+exclusion par un agent ; l'exclusion reste le fait du juge.
+
+### Porte
+
+F13 reste vert ; F13b 12/12 ; A, B, C prouvés sur Office réel par des tests qui agissent comme l'utilisateur
+(ruban cliqué, Word fermé, poste coupé), pas par des appels internes.

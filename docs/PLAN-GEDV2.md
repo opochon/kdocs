@@ -117,7 +117,7 @@ La cible est « Paperless partout, M-Files là où il va plus loin, GEDv1 là o�
 | API, applications mobiles | oui | oui | 2 | API + écrans mobiles | V2-05, V2-10 |
 | Installation, mise à jour, console éditeur | Docker | intégrateur | 2 | celles de K-Time | V2-00 |
 | Modification en masse (type, étiquettes, émetteur, dossier, corbeille) | oui | oui | 0 | 9, droits respectés | ged-parite-masse |
-| Édition depuis le poste sans rien perdre (Word, Excel, PowerPoint) | non | oui (client Desktop, réservation) | 0 | 9 : agent local, `kdocs://`, versions à chaque enregistrement, copies de secours | ged-edition-serveur, ged-agent-poste |
+| Édition depuis le poste sans rien perdre (Word, Excel, PowerPoint) | non | oui (client Desktop, réservation) | 0 | 9 : agent local, `kdocs://`, versions à chaque enregistrement, copies de secours | ged-edition-serveur, ged-agent-poste, ged-edition-poste-2 (réservation, ruban Office, OnlyOffice) |
 
 ## 6. Matrice des flux
 
@@ -138,6 +138,7 @@ Un flux n'est au niveau 9 que s'il porte deux preuves vertes : le mécanisme sur
 | F11 | Archivage légal | scellement → déplacement hors du fonds → horodatage → rétention | hash + jeton d'horodatage | pièce intouchable pendant la durée légale |
 | F12 | Sauvegarde, restauration, reconstruction | base perdue → reconstruite depuis le dossier ; dossier + base → restauration sur base vierge | comparaison octet par octet | restauration identique, index reconstruit identique |
 | F13 | Éditer depuis le poste | GED → `kdocs://` → Word local → Ctrl+S → version ; coupure, redémarrage, fermeture sans enregistrer | parcours sur Office réel (docs/secteurs/edition-poste.md) | aucune modification perdue, aucun écrasement, lien piégé refusé |
+| F13b | Crash tests de l'édition depuis le poste | agent tué en plein envoi, coupure de courant, serveur en panne, disque plein, Word figé, deux postes, réservation forcée, document déplacé, redémarrage forcé, horloge décalée, OnlyOffice tué, jeton révoqué | douze cas joués sur Office réel (docs/secteurs/edition-poste.md, section D) | chaque enregistrement local retrouvé en version, zéro version tronquée, zéro perte, zéro écrasement |
 
 ## 7. Oracles et corpus
 
@@ -219,5 +220,6 @@ V2-10                                                    ██████ mobi
 | V2-08 | F3 ; F8 jusqu'à K-Time |
 | V2-09 | F11 |
 | V2-10 | 10 personas simultanés sans collision ; toutes les lignes des deux matrices à 9 : RC |
+| V2-14 | après V2-10 : F13 vert et F13b 12/12 ; réservation unifiée, ruban Office et OnlyOffice prouvés sur poste réel (ged-edition-poste-2) |
 
 Lots en parallèle quand leurs secteurs ne se touchent pas (V2-02 et V2-04, V2-05 et V2-07) ; jamais deux agents dans le même secteur.
