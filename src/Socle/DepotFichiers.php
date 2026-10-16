@@ -117,20 +117,29 @@ final class DepotFichiers implements Depot
             \Ged\Archivage\Garde::interdireMutation($this->cheminAbsolu((string) $ligne['chemin_relatif']), 'mise à jour', $idDocument);
         }
 
-        $meta = $this->fusionner($ligne['meta'], $metadonnees);   // fiche() livre déjà le meta décodé
         $ancienRel = (string) $ligne['chemin_relatif'];
-        // Le nom du fichier ne bouge pas (fixé au dépôt) : seul le rangement peut changer.
-        $nouveauRel = $this->cheminRangement($meta) . '/' . basename($ancienRel);
+        $ancienAbsolu = $this->cheminAbsolu($ancienRel);
+        // Sous verrou du dossier, relu depuis le DISQUE (le dossier fait foi) : une clé posée hors
+        // application ou par un autre processus n'est jamais écrasée par la copie de l'index. Repli sur
+        // l'index seulement si le .meta.json manque ou est illisible.
+        [$meta, $nouveauRel] = Fichiers::sousVerrouMeta($ancienAbsolu, function () use ($ligne, $metadonnees, $ancienRel, $ancienAbsolu, $idDocument, $auteur, $compte, $administrateur): array {
+            $meta = $this->fusionner(Fichiers::lireMeta($ancienAbsolu) ?? $ligne['meta'], $metadonnees);
+            // Le nom du fichier ne bouge pas (fixé au dépôt) : seul le rangement peut changer.
+            $nouveauRel = $this->cheminRangement($meta) . '/' . basename($ancienRel);
 
-        if ($nouveauRel !== $ancienRel) {
-            // F10 : le contrôle vit ICI, dans le service, AVANT le premier octet déplacé. Un changement de
-            // chemin exige `deposer` sur le dossier de droits d'ARRIVÉE, avec le compte de l'appelant.
-            $this->exigerDroitDeDepot($nouveauRel, $compte, $administrateur);
-            $absolu = Fichiers::deplacerAvecAnnexes($this->cheminAbsolu($ancienRel), $this->cheminAbsolu($nouveauRel));
-            $nouveauRel = substr($absolu, strlen($this->racine) + 1);
-            $this->tracer($idDocument, $ancienRel, $nouveauRel, 'mise_a_jour', $auteur);
-        }
-        file_put_contents($this->cheminAbsolu($nouveauRel) . '.meta.json', Fichiers::json($meta, true));
+            if ($nouveauRel !== $ancienRel) {
+                // F10 : le contrôle vit ICI, dans le service, AVANT le premier octet déplacé. Un changement de
+                // chemin exige `deposer` sur le dossier de droits d'ARRIVÉE, avec le compte de l'appelant.
+                $this->exigerDroitDeDepot($nouveauRel, $compte, $administrateur);
+                $absolu = Fichiers::deplacerAvecAnnexes($ancienAbsolu, $this->cheminAbsolu($nouveauRel));
+                $nouveauRel = substr($absolu, strlen($this->racine) + 1);
+                $this->tracer($idDocument, $ancienRel, $nouveauRel, 'mise_a_jour', $auteur);
+            }
+            Fichiers::ecrireMeta($this->cheminAbsolu($nouveauRel), Fichiers::json($meta, true));
+
+            return [$meta, $nouveauRel];
+        });
+        // Si l'index échoue ici, le disque est déjà juste : l'erreur remonte et l'indexeur réaligne la ligne.
 
         [$entetes, $valeurs] = Fichiers::colonnesIndex($meta);
         $this->pdo->prepare('UPDATE documents SET chemin_relatif = ?, nom = ?, meta = ?, '

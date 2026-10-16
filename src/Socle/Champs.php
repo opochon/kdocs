@@ -245,37 +245,37 @@ final class Champs
         if (!is_file($absolu)) {
             throw new RuntimeException("champ : document introuvable dans le fonds ($cheminRelatif)");
         }
-        $meta = is_file("$absolu.meta.json")
-            ? (json_decode((string) file_get_contents("$absolu.meta.json"), true) ?: [])
-            : Fichiers::metaMinimale(basename($cheminRelatif));
-        $type = isset($meta['type']) && is_string($meta['type']) ? $meta['type'] : '';
-        if ($type === '') {
-            throw new RuntimeException("champ : le document $cheminRelatif n’a pas de type, aucun champ ne peut s’y poser");
-        }
-
-        $def = null;
-        foreach ($this->pourType($type) as $d) {
-            if ($d['cle'] === $cle) {
-                $def = $d;
+        // Sous verrou du dossier, relu frais depuis le disque, écrit atomiquement (Fichiers::modifierMeta).
+        $meta = Fichiers::modifierMeta($absolu, function (array $meta) use ($cheminRelatif, $cle, $valeur): array {
+            $type = isset($meta['type']) && is_string($meta['type']) ? $meta['type'] : '';
+            if ($type === '') {
+                throw new RuntimeException("champ : le document $cheminRelatif n’a pas de type, aucun champ ne peut s’y poser");
             }
-        }
-        if ($def === null) {
-            throw new RuntimeException("champ : « $cle » n’est pas un champ du type $type");
-        }
 
-        $champs = isset($meta['champs']) && is_array($meta['champs']) ? $meta['champs'] : [];
-        if ($valeur === null || (is_string($valeur) && trim($valeur) === '')) {
-            unset($champs[$cle]);
-        } else {
-            $champs[$cle] = $this->validerDefinition($def, $valeur);
-        }
-        if ($champs === []) {
-            unset($meta['champs']);
-        } else {
-            $meta['champs'] = $champs;
-        }
+            $def = null;
+            foreach ($this->pourType($type) as $d) {
+                if ($d['cle'] === $cle) {
+                    $def = $d;
+                }
+            }
+            if ($def === null) {
+                throw new RuntimeException("champ : « $cle » n’est pas un champ du type $type");
+            }
 
-        file_put_contents("$absolu.meta.json", Fichiers::json($meta, true));
+            $champs = isset($meta['champs']) && is_array($meta['champs']) ? $meta['champs'] : [];
+            if ($valeur === null || (is_string($valeur) && trim($valeur) === '')) {
+                unset($champs[$cle]);
+            } else {
+                $champs[$cle] = $this->validerDefinition($def, $valeur);
+            }
+            if ($champs === []) {
+                unset($meta['champs']);
+            } else {
+                $meta['champs'] = $champs;
+            }
+
+            return $meta;
+        });
 
         // L'index redit le dossier : la colonne meta (copie reconstructible du .meta.json) suit, tout de suite.
         $this->depot->rapporterMeta($cheminRelatif, $meta);

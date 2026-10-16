@@ -235,6 +235,116 @@ final class Fichiers
         return $archive;
     }
 
+    /**
+     * Écrit le `.meta.json` d'un document sans jamais laisser un fichier tronqué : fichier temporaire du
+     * même dossier (même volume), vidage sur disque (`fsync`), puis renommage qui remplace la cible.
+     * Toute étape ratée lève une erreur nommée ; le temporaire est retiré, l'ancien `.meta.json` reste
+     * intact. Le temporaire finit par `.tmp` : l'indexeur ne le prend jamais pour un document.
+     */
+    public static function ecrireMeta(string $absoluDocument, string $contenu): void
+    {
+        $cible = "$absoluDocument.meta.json";
+        $temporaire = $cible . '.' . bin2hex(random_bytes(4)) . '.tmp';
+        $flux = @fopen($temporaire, 'xb');
+        if ($flux === false) {
+            throw new \RuntimeException("meta : écriture impossible à côté de $absoluDocument");
+        }
+        $ecrit = fwrite($flux, $contenu);
+        $vide = fflush($flux) && fsync($flux);
+        fclose($flux);
+        if ($ecrit !== strlen($contenu) || !$vide) {
+            @unlink($temporaire);
+            throw new \RuntimeException("meta : écriture incomplète du .meta.json de $absoluDocument");
+        }
+        // Sous Windows, le remplacement échoue tant qu'un lecteur (indexeur, recherche) tient la cible
+        // ouverte : quelques essais rapprochés, puis erreur nommée.
+        for ($essai = 1; !@rename($temporaire, $cible); $essai++) {
+            if ($essai >= 10 || is_dir($cible)) {
+                @unlink($temporaire);
+                throw new \RuntimeException("meta : publication impossible du .meta.json de $absoluDocument");
+            }
+            usleep(20_000);
+        }
+    }
+
+    /**
+     * Lit le `.meta.json` du disque. `null` s'il est absent ; illisible, il est signalé au journal PHP et
+     * `null` est rendu : l'appelant repart alors de la copie de l'index, jamais d'un tableau vide.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function lireMeta(string $absoluDocument): ?array
+    {
+        $fichier = "$absoluDocument.meta.json";
+        if (!is_file($fichier)) {
+            return null;
+        }
+        $meta = json_decode((string) file_get_contents($fichier), true);
+        if (!is_array($meta)) {
+            error_log("meta : .meta.json illisible pour $absoluDocument, repli sur l'index");
+
+            return null;
+        }
+
+        return $meta;
+    }
+
+    /**
+     * Lit, transforme et réécrit le `.meta.json` d'un document SOUS VERROU EXCLUSIF de son dossier : deux
+     * processus ne perdent jamais la modification de l'autre (relecture fraîche depuis le disque). Une
+     * transformation qui lève n'écrit rien. Le verrou est un fichier dédié caché (`.verrou-meta`), jamais
+     * le `.meta.json` lui-même : sous Windows `flock` est obligatoire et bloquerait les lecteurs.
+     *
+     * @param callable(array<string, mixed>): array<string, mixed> $transformation reçoit l'état frais
+     *        (`metaMinimale` s'il n'existe pas encore), rend l'état à écrire
+     * @return array<string, mixed> l'état écrit
+     */
+    public static function modifierMeta(string $absoluDocument, callable $transformation): array
+    {
+        return self::sousVerrouMeta($absoluDocument, static function () use ($absoluDocument, $transformation): array {
+            $meta = $transformation(self::lireMeta($absoluDocument) ?? self::metaMinimale(basename($absoluDocument)));
+            self::ecrireMeta($absoluDocument, self::json($meta, true));
+
+            return $meta;
+        });
+    }
+
+    /**
+     * Exécute `$geste` sous le verrou exclusif des `.meta.json` du dossier du document. Le document doit
+     * exister à l'entrée ET après l'obtention du verrou : un concurrent a pu le déplacer entre-temps, et
+     * réécrire alors son `.meta.json` à l'ancien endroit créerait une fiche orpheline.
+     *
+     * @template T
+     * @param callable(): T $geste
+     * @return T
+     */
+    public static function sousVerrouMeta(string $absoluDocument, callable $geste): mixed
+    {
+        if (!is_file($absoluDocument)) {
+            throw new \RuntimeException("meta : document introuvable ($absoluDocument)");
+        }
+        $chemin = dirname($absoluDocument) . '/.verrou-meta';
+        $neuf = !is_file($chemin);
+        $verrou = @fopen($chemin, 'c');
+        if ($verrou === false || !flock($verrou, LOCK_EX)) {
+            throw new \RuntimeException('meta : verrou indisponible dans ' . dirname($absoluDocument));
+        }
+        if ($neuf) {
+            self::cacher($chemin);
+        }
+        try {
+            clearstatcache(true, $absoluDocument);
+            if (!is_file($absoluDocument)) {
+                throw new \RuntimeException("meta : document déplacé pendant la mise à jour ($absoluDocument), à refaire");
+            }
+
+            return $geste();
+        } finally {
+            flock($verrou, LOCK_UN);
+            fclose($verrou);
+        }
+    }
+
     /** Attribut caché « façon mac » sous Windows : `.versions/` disparaît de l’Explorateur sans gêner l'application. */
     public static function cacher(string $cheminAbsolu): void
     {
@@ -257,8 +367,12 @@ final class Fichiers
         if (!@rename($avant, $apres)) {
             throw new \RuntimeException("déplacement : impossible de déplacer $avant");
         }
-        if (is_file("$avant.meta.json")) {
-            @rename("$avant.meta.json", "$apres.meta.json");
+        // Le .meta.json fait foi : un document arrivé sans lui perdrait ses métadonnées. Si le .meta.json ne
+        // peut pas suivre, le document est remis à sa place et l'erreur est nommée (jamais avalée).
+        if (is_file("$avant.meta.json") && !@rename("$avant.meta.json", "$apres.meta.json")) {
+            $remis = @rename($apres, $avant);
+            throw new \RuntimeException("déplacement : le .meta.json de $avant ne peut pas suivre vers $apres"
+                . ($remis ? ' ; document remis à sa place' : " ; ATTENTION document resté en $apres"));
         }
         $versionsAvant = self::dossierVersions($avant);
         if (is_dir($versionsAvant)) {
@@ -283,7 +397,7 @@ final class Fichiers
         if (!copy($source, $cible)) {
             throw new \RuntimeException("dépôt : copie impossible de $source");
         }
-        file_put_contents("$cible.meta.json", $contenuMeta);
+        self::ecrireMeta($cible, $contenuMeta);
 
         return $cible;
     }

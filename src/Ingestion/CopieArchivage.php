@@ -220,9 +220,12 @@ final class CopieArchivage
 
             return;
         }
-        $meta = $this->meta($absoluDocument);
-        $meta['pdfa'] = $bloc;
-        file_put_contents($absoluDocument . '.meta.json', Fichiers::json($meta, true));
+        // Sous verrou du dossier, relu frais depuis le disque, écrit atomiquement.
+        $meta = Fichiers::modifierMeta($absoluDocument, static function (array $meta) use ($bloc): array {
+            $meta['pdfa'] = $bloc;
+
+            return $meta;
+        });
         if ($cheminRelatif !== '' && class_exists(\Ged\Socle\DepotFichiers::class)) {
             try {
                 (new \Ged\Socle\DepotFichiers($this->config))->rapporterMeta($cheminRelatif, $meta);
